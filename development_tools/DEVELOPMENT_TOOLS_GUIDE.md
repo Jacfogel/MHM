@@ -134,7 +134,7 @@ Coverage worker config (`coverage` section):
 - `help` - shows detailed help information.
 
 **Experimental Commands** (high-risk, run only with approval):
-[EXAMPLE] - `version-sync` - wraps `development_tools/docs/fix_version_sync.py` (via `AIToolsService.run_version_sync`). Subcommands live on the script: `python development_tools/docs/fix_version_sync.py --help` (`show`, `status`, `sync`, `trim`, `check`, `validate`, `sync-todo`). For TODO cleanup: `sync-todo --dry-run` prints analysis only and flags manual-review items that need changelog confirmation; `sync-todo --apply` removes completed `- [x]` checklist lines classified as auto-cleanable (not both flags). Default scope is documentation metadata; prefer dry runs and capture logs before syncing dates or versions.
+[EXAMPLE] - `version-sync` - wraps `development_tools/docs/fix_version_sync.py` (via `AIToolsService.run_version_sync`). Subcommands live on the script: `python development_tools/docs/fix_version_sync.py --help` (`show`, `status`, `sync`, `trim`, `check`, `validate`, `sync-todo`). For TODO cleanup, follow the Section 10 **TODO sync workflow** (`--dry-run` then human changelog check, then optional `--apply`; never both flags). Default scope is documentation metadata; prefer dry runs and capture logs before syncing dates or versions.
 
 ### 2.4. Seeing all type-check issues (Pyright)
 
@@ -289,7 +289,7 @@ Most tools follow a 3-prefix naming system established in :
 - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py` (legacy reference cleanup tool included)
 - These tools perform cleanup, removal, or repair operations (often support `--dry-run`)
 - **No prefix** - Reporting/utility tools (descriptive names)
-- Examples: `decision_support.py`, `quick_status.py`, `system_signals.py`, `file_rotation.py`, `tool_guide.py`
+- Examples: `decision_support.py`, `quick_status.py`, `analyze_system_signals.py`, `file_rotation.py`, `tool_guide.py`
 - These are utility or reporting tools that don't fit the analyze/generate/fix pattern
 
 Tools under `development_tools/shared/` (service orchestration, registries, normalization, storage, and other infrastructure) may not fit cleanly into a single prefix category. Prefixes indicate primary intent, not a strict contract.
@@ -356,7 +356,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_unused_imports.py | supporting | partial | AST-based unused import detector (analysis only, no report generation). |
 | generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
-| system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
+| analyze_system_signals.py | supporting | advisory | Operational health pulse (audit freshness, coverage rollup, core files, alerts); doc-sync stays under Documentation Signals. |
 | static_checks/analyze_ruff.py | supporting | advisory | Runs Ruff in JSON mode and contributes lint diagnostics to Tier 3 audit reports. |
 | static_checks/analyze_pyright.py | supporting | advisory | Runs Pyright in JSON mode and contributes type-check diagnostics to Tier 3 audit reports. |
 | static_checks/check_channel_loggers.py | supporting | stable | Enforces logging import/call rules for static checks and CI validation. |
@@ -678,7 +678,11 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 - **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
 
-- **TODO sync**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits) and calls out manual-review items that need changelog confirmation before removal. **`sync-todo --apply`** removes auto-cleanable completed checklist lines (`- [x]` / `- [X]` only); do not combine `--apply` with `--dry-run`.
+- **TODO sync workflow** (B-010):
+  1. Dry-run first: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` (stdout only; no file edits).
+  2. Human changelog cross-check: confirm each **manual-review** item against [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) / [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) before removing anything by hand.
+  3. Auto-clean only when the dry-run list looks right: `python development_tools/docs/fix_version_sync.py sync-todo --apply` removes auto-cleanable `- [x]` / `- [X]` checklist lines only (never strikethrough/bold completions).
+  4. Do **not** combine `--dry-run` and `--apply`. Tiered `audit` also runs a non-apply sync for report signals; use the CLI above for cleanup.
 
 - **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run this scan over **`DEFAULT_DOCS`** (config-derived approved doc list; see Command Summary `doc-sync` bullet). Hints appear in **AI_STATUS** (summary line), **CONSOLIDATED_REPORT** (detail), **AI_PRIORITIES** (Tier 4 when hints > 0), and `development_tools/docs/jsons/scopes/full/analyze_documentation_sync_results.json`. Heuristics: broad example-style `##` headings (e.g. "Command Examples"), short marker proximity window, repo-style backtick paths, citation-line skips, changelog-class docs excluded via shared historical-preserve patterns; marker tokens per AI_DOCUMENTATION_GUIDE Section 3.6. Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 

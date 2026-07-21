@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Forward-looking backlog for `development_tools/` after V5  
 > **Style**: Direct, concise, action-oriented  
-> **Last Updated**: 2026-07-19 (B-001/B-006/B-007/B-008 residual slice; coverage stays elsewhere)  
+> **Last Updated**: 2026-07-20 (B-015 slice #3: report builder mixins)  
 > **Supersedes**: `archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` for active planning. Keep V4 and prior V5 snapshots for detailed checkbox history.
 
 ## Authoritative sources
@@ -57,7 +57,7 @@ prefer the generated outputs over any numeric examples in this plan.
 | **Active (outside V6)** | Product/domain coverage and refactor priorities from generated `AI_PRIORITIES.md` |
 | **Residual / medium** | B-001 re-profile if suite time hurts; portability/static packaging maintenance; B-006/B-007/B-008 only on new noise |
 | **Maintenance** | Domain-marker policy (taxonomy + enforcement shipped; tune only on false positives) |
-| **Deferred** | Coverage-cache numeric benchmarks; external-tool expansion; TODO-sync workflow polish; gap-analysis expansion; memory profiler; arbitrary audit scopes |
+| **Deferred** | External-tool expansion; gap-analysis expansion; further `run_test_coverage` splits (argv/shard/domain-cache); arbitrary audit scopes |
 | **Monitoring only** | Low-coverage warning recurrence; example-marker/doc-overlap regressions; legacy-reference regressions |
 
 ---
@@ -302,31 +302,37 @@ prefer the generated outputs over any numeric examples in this plan.
 
 ### 2.8 System signals purpose and redundancy cleanup
 
-**Status**: Deferred / optional.
+**Status**: Complete (2026-07-20 B-009).
 
-**Decision**: Keep the tool.
+**Decision**: Keep the tool as the Tier 1 operational health pulse.
+
+**Already done**:
+
+- Stopped re-deriving `documentation_sync_status` from prior audit JSON (doc-sync / Documentation Signals own that).
+- `critical_alerts` now projects `severity_levels.CRITICAL` (no second file/log scan).
+- Module docstring, human CLI output, guide table, and tool metadata clarify scope.
+- AI_STATUS / CONSOLIDATED already note Documentation Signals separately.
 
 **Open work**:
 
-- Further trim or merge with doc-sync overlap only if duplicate metrics reappear.
-- Clarify scope in reports if future generated output is confusing.
+- None. Reopen only if duplicate metrics confuse generated output again.
 
 ---
 
 ### 2.9 TODO sync cleanup automation
 
-**Status**: Partial; low priority.
+**Status**: Complete (2026-07-20 B-010).
 
 **Already done**:
 
 - `sync-todo --dry-run` prints a dry-run report.
 - `sync-todo --apply` removes auto-cleanable completed checklist lines.
 - `--dry-run` and `--apply` are mutually exclusive.
+- **2026-07-20**: Documented a four-step workflow in paired guides (dry-run → human changelog cross-check for manual-review items → optional `--apply` → never combine flags). Changelog confirmation before hand-removal stays a human step by design.
 
 **Open work**:
 
-- Broader workflow docs if needed.
-- Optional changelog cross-check before apply remains a human responsibility.
+- None. Reopen only if the CLI or audit wiring drifts.
 
 ---
 
@@ -336,18 +342,28 @@ These are real ideas, but they should not compete with the active slices unless 
 
 ### 3.1 Coverage-cache numeric benchmark
 
-**Status**: Deferred.
+**Status**: Complete (2026-07-20 B-011).
 
-**Goal**: Capture stable local numbers comparing full vs domain-filtered coverage runs.
+**Goal**: Capture stable local numbers comparing no-domain-cache vs domain-cache coverage runs.
 
-**Benchmark recipe**:
+**Local results** (`--dev-tools-only --no-parallel`, 2026-07-20, venv active):
+
+| Run | Flags | Wall time |
+|---|---|---|
+| Cold / no cache | `--no-domain-cache` | **298.67s** |
+| Domain-cache build | default (first populated run after cold) | **326.99s** |
+| Domain-cache hit | default (unchanged sources/tests) | **0.91s** |
+
+**Takeaway**: Domain cache does not speed the first populated run after a cold/no-cache pass; on a true hit it collapses wall time from ~5 minutes to under 1 second. Prefer leaving domain cache on for iterative coverage; use `--no-domain-cache` only when validating a full recompute.
+
+**Benchmark recipe** (re-run if cache semantics change):
 
 ```powershell
 Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }
 Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel }
+# True hit: repeat the second command without source/test edits
+Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel }
 ```
-
-Also compare full-audit cache behavior with and without `--clear-cache` / domain-cache options where appropriate.
 
 ### 3.2 External-tool expansion
 
@@ -385,36 +401,42 @@ Use `module-refactor-candidates` and priorities JSON as the practical current ga
 
 ### 3.4 Memory profiler integration
 
-**Status**: Deferred.
+**Status**: Resolved (2026-07-20 B-014) — **keep standalone**.
 
-**Source**: `scripts/testing/memory_profiler.py`.
+**Decision**:
 
-**Decision needed**:
-
-- Integrate as a new tool,
-- enhance an existing tool,
-- keep standalone,
-- or retire.
+- Do **not** integrate into `development_tools` audit tiers.
+- Keep `scripts/testing/memory_profiler.py` (and related local `*_memory_leak.py` helpers) as untracked/local diagnostics per [SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md).
+- Suite mitigations in testing guides remain the primary path; optional local profiler or OS/`tracemalloc` for ad-hoc triage.
+- Revisit migration only if memory profiling becomes a recurring multi-contributor workflow.
 
 ### 3.5 Refactor `report_generation.py` and `run_test_coverage.py`
 
-**Status**: Deferred; implement only in small steps.
+**Status**: Partial (2026-07-20 slices #1–#3); continue only in small tested steps.
 
-**Possible split for `report_generation.py`**:
+**No legacy shims**: move pure helpers to new modules; mixin methods may thin-delegate. Do not add `LEGACY COMPATIBILITY` bridges or dual public APIs.
 
-- Tier 3 helpers
-- `AI_STATUS` builder
-- `AI_PRIORITIES` builder
-- `CONSOLIDATED_REPORT` builder
-- downstream action item helpers
+**Already done**:
 
-**Possible split for `run_test_coverage.py`**:
+- Slice #1: `development_tools/tests/coverage_json_helpers.py` — `coverage_path_to_rel_posix`, `recompute_coverage_totals_from_files`.
+- Slice #1: `development_tools/shared/service/report_generation_tier3_helpers.py` — pure Tier 3 helpers (`coerce_int`, node-id normalize, track/outcome classification); mixin methods delegate.
+- Slice #2: `development_tools/tests/coverage_outcome_classification.py` — return-code/hex helpers, infra/xdist detectors, `build_track_outcome`, `classify_coverage_outcome`, `build_cache_only_coverage_outcome`, `strip_xdist_args`; `CoverageMetricsRegenerator` methods thin-delegate.
+- Slice #3: report builders extracted as mixins composed by `ReportGenerationMixin`:
+  - `report_generation_ai_status.py` (`AIStatusDocumentMixin`)
+  - `report_generation_ai_priorities.py` (`AIPrioritiesDocumentMixin`)
+  - `report_generation_consolidated.py` (`ConsolidatedReportDocumentMixin`)
+  - Shared helpers + action-item helpers remain in `report_generation.py` (~978 lines).
+
+**Possible later splits for `report_generation.py`**:
+
+- downstream action item helpers (optional; already small)
+- further pure-helper pulls from remaining shared helpers
+
+**Possible later splits for `run_test_coverage.py`**:
 
 - pytest argv construction
 - shard merge logic
 - domain cache
-- outcome classification
-- coverage metric regeneration
 
 ### 3.6 Arbitrary audit scope
 
@@ -577,6 +599,10 @@ Completed themes:
 | `core.logger` dependency | Removed. |
 | Domain-marker taxonomy + Tier 3 enforcement | Shipped; maintenance only (B-005). |
 | `pip` / `CVE-2026-3219` advisory | Remediated (`pip>=26.1`); B-018 closed. |
+| Coverage-cache numeric benchmark | Captured 2026-07-20; B-011 closed. |
+| Memory profiler audit integration | Keep standalone/local; B-014 closed. |
+| TODO sync workflow polish | Recipe documented in paired guides; B-010 closed. |
+| System signals doc-sync overlap | Trimmed; B-009 closed. |
 
 ---
 
@@ -592,13 +618,13 @@ Completed themes:
 | B-006 | Validation warnings | Monitoring | 2026-07-19: placeholder flood demoted; escalate only new/missing/changed. |
 | B-007 | Example-marker checker | Advisory | 2026-07-19: fence skip + prose `Examples:` openers; keep advisory (no default gate). |
 | B-008 | Documentation overlap | Monitoring | 2026-07-19: Discord-spec boilerplate in `EXPECTED_OVERLAPS`. |
-| B-009 | System signals overlap | Deferred | Reopen only if duplicate metrics confuse generated output. |
-| B-010 | TODO sync workflow polish | Low | Add docs/checks only if the workflow becomes active again. |
-| B-011 | Coverage-cache benchmark | Deferred | Capture local numeric before/after timings. |
+| B-009 | System signals overlap | Complete | 2026-07-20: dropped doc-sync re-derive; critical_alerts from severity; scope docs/metadata aligned. |
+| B-010 | TODO sync workflow polish | Complete | 2026-07-20: four-step recipe in paired guides; changelog cross-check stays human. |
+| B-011 | Coverage-cache benchmark | Complete | 2026-07-20: cold **298.67s** / cache-build **326.99s** / hit **0.91s** (`--dev-tools-only --no-parallel`). |
 | B-012 | External-tool expansion | Deferred | Evaluate one tool at a time with clear signal/runtime value. |
 | B-013 | Gap-analysis expansion | Deferred/large | Design matrix before implementing more tools. |
-| B-014 | Memory profiler | Deferred | Decide integrate/enhance/standalone/retire. |
-| B-015 | `report_generation.py` / `run_test_coverage.py` split | Deferred | Only small tested extractions. |
+| B-014 | Memory profiler | Resolved | Keep standalone in untracked `scripts/`; do not audit-integrate. |
+| B-015 | `report_generation.py` / `run_test_coverage.py` split | Partial | 2026-07-20: slices #1–#3 (helpers + outcome classification + AI_STATUS/AI_PRIORITIES/CONSOLIDATED mixins). Remaining: coverage argv/shard/domain-cache. |
 | B-016 | Arbitrary audit scope | Deferred/design | Design first; current scope model is binary. |
 | B-017 | Low coverage warning | Monitoring | Reopen only on recurrence. |
 | B-018 | `pip-audit` `CVE-2026-3219` | Resolved | Closed; reopen only on a new advisory in audit output. |

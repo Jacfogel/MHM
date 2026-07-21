@@ -872,46 +872,54 @@ def test_consolidated_report_marks_cached_overlap_data(temp_project_copy):
 
 @pytest.mark.unit
 def test_linkify_review_paths_single_md():
-    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+    from development_tools.shared.service.report_generation_linkify import (
+        linkify_review_paths_bullet,
+    )
 
     line = "Review for guidance: ai_development_docs/AI_TESTING_GUIDE.md"
-    out = _linkify_review_paths_bullet(line)
+    out = linkify_review_paths_bullet(line)
     assert "[AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)" in out
 
 
 @pytest.mark.unit
 def test_linkify_review_paths_and_json_with_parenthetical():
-    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+    from development_tools.shared.service.report_generation_linkify import (
+        linkify_review_paths_bullet,
+    )
 
     line = (
         "Review for details: development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)"
     )
-    out = _linkify_review_paths_bullet(line)
+    out = linkify_review_paths_bullet(line)
     assert "[LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)" in out
     assert "(exact locations)" in out
 
 
 @pytest.mark.unit
 def test_linkify_review_paths_comma_separated():
-    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+    from development_tools.shared.service.report_generation_linkify import (
+        linkify_review_paths_bullet,
+    )
 
     line = (
         "Review for guidance: ai_development_docs/A.md, ai_development_docs/B.md"
     )
-    out = _linkify_review_paths_bullet(line)
+    out = linkify_review_paths_bullet(line)
     assert "[A.md](../ai_development_docs/A.md)" in out
     assert "[B.md](../ai_development_docs/B.md)" in out
 
 
 @pytest.mark.unit
 def test_linkify_review_paths_development_tools_relative_to_report_dir():
-    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+    from development_tools.shared.service.report_generation_linkify import (
+        linkify_review_paths_bullet,
+    )
 
     line = (
         "Review for details: "
         "development_tools/functions/jsons/scopes/full/analyze_functions_results.json"
     )
-    out = _linkify_review_paths_bullet(line)
+    out = linkify_review_paths_bullet(line)
     assert (
         "[analyze_functions_results.json]"
         "(functions/jsons/scopes/full/analyze_functions_results.json)"
@@ -920,7 +928,9 @@ def test_linkify_review_paths_development_tools_relative_to_report_dir():
 
 @pytest.mark.unit
 def test_linkify_review_paths_leaves_non_review_lines():
-    from development_tools.shared.service.report_generation import _linkify_review_paths_bullet
+    from development_tools.shared.service.report_generation_linkify import (
+        linkify_review_paths_bullet,
+    )
 
     line = "Action: run pytest"
-    assert _linkify_review_paths_bullet(line) == line
+    assert linkify_review_paths_bullet(line) == line

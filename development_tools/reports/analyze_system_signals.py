@@ -7,8 +7,10 @@ System Signals Analysis Tool
 Analyzes system health and status signals for the project.
 This tool can be run independently or as part of audit workflows.
 
-Outputs complement (do not replace) documentation-focused metrics: pairing/sync and
-ASCII/doc issues remain in doc-sync and Documentation Signals sections of AI_STATUS.
+Scope: operational health pulse (core files/dirs, audit freshness, errors.log,
+recent activity, short test-coverage rollup). Documentation pairing/sync and ASCII
+issues belong exclusively to doc-sync / Documentation Signals — this tool does not
+re-derive ``documentation_sync_status``.
 
 Configuration is loaded from external config file (development_tools_config.json)
 if available, making this tool portable across different projects.
@@ -87,11 +89,12 @@ class SystemSignalsAnalyzer:
 
     def analyze_system_signals(self) -> dict[str, Any]:
         """Analyze comprehensive system signals"""
+        system_health = self._check_system_health()
         signals = {
             "timestamp": datetime.now().isoformat(),
-            "system_health": self._check_system_health(),
+            "system_health": system_health,
             "recent_activity": self._get_recent_activity(),
-            "critical_alerts": self._identify_critical_alerts(),
+            "critical_alerts": self._identify_critical_alerts(system_health),
             "performance_indicators": self._assess_performance_indicators(),
         }
         return signals
@@ -105,7 +108,6 @@ class SystemSignalsAnalyzer:
             "last_audit": None,
             "audit_freshness": None,
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Unknown",
             "health_indicators": [],
             "recommendations": [],
             "warnings": [],
@@ -198,16 +200,12 @@ class SystemSignalsAnalyzer:
                         "Run `python development_tools/run_development_tools.py audit --full` for comprehensive analysis"
                     )
 
-                # Try to extract test coverage and documentation sync status from audit results
+                # Short test-coverage pulse only (doc-sync lives under Documentation Signals)
                 try:
-                    import json
-
                     with open(audit_file, encoding="utf-8") as f:
                         audit_data = json.load(f)
 
-                    # Check test coverage status
                     if "results" in audit_data:
-                        # Look for test coverage data
                         coverage_keys = [
                             "run_test_coverage",
                             "analyze_test_coverage",
@@ -219,7 +217,6 @@ class SystemSignalsAnalyzer:
                                 if "data" in coverage_result:
                                     coverage_data = coverage_result["data"]
                                     if isinstance(coverage_data, dict):
-                                        # Try to extract overall coverage
                                         overall = coverage_data.get("overall", {})
                                         if isinstance(overall, dict):
                                             coverage_pct = overall.get(
@@ -258,40 +255,6 @@ class SystemSignalsAnalyzer:
                                                         "Test coverage is low - prioritize adding tests for critical paths"
                                                     )
                                                 break
-
-                    # Check documentation sync status
-                    if (
-                        "results" in audit_data
-                        and "analyze_documentation_sync" in audit_data["results"]
-                    ):
-                        doc_sync_result = audit_data["results"][
-                            "analyze_documentation_sync"
-                        ]
-                        if "data" in doc_sync_result:
-                            doc_sync_data = doc_sync_result["data"]
-                            if isinstance(doc_sync_data, dict):
-                                summary = doc_sync_data.get("summary", {})
-                                total_issues = summary.get("total_issues", 0)
-                                status = summary.get("status", "UNKNOWN")
-
-                                if total_issues == 0 and status in ["PASS", "OK"]:
-                                    health["documentation_sync_status"] = "Synchronized"
-                                    health["health_indicators"].append(
-                                        "Documentation is synchronized"
-                                    )
-                                elif total_issues <= 5:
-                                    health["documentation_sync_status"] = "Minor Issues"
-                                    health["severity_levels"]["INFO"].append(
-                                        f"Documentation has {total_issues} minor sync issue(s)"
-                                    )
-                                else:
-                                    health["documentation_sync_status"] = "Issues"
-                                    health["severity_levels"]["WARNING"].append(
-                                        f"Documentation has {total_issues} sync issue(s)"
-                                    )
-                                    health["recommendations"].append(
-                                        "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues"
-                                    )
                 except Exception as e:
                     logger.debug(
                         f"Failed to parse audit data for health indicators: {e}"
@@ -631,31 +594,22 @@ class SystemSignalsAnalyzer:
         # Fallback to 24 hours ago if git is not available
         return datetime.now() - timedelta(hours=24)
 
-    def _identify_critical_alerts(self) -> list[str]:
-        """Identify critical system alerts"""
-        alerts = []
+    def _identify_critical_alerts(
+        self, health: dict[str, Any] | None = None
+    ) -> list[str]:
+        """Project CRITICAL severity items into alerts (single source of truth).
 
-        # Check for critical files
-        # Use core_files from config, or fallback to generic
-        critical_files = self.system_signals_config.get("core_files", [])
-        if not critical_files:
-            critical_files = self.config.get_project_key_files([])
-        for file_path in critical_files:
-            if not (self.project_root / file_path).exists():
-                alerts.append(f"CRITICAL: Missing {file_path}")
-
-        # Check for error logs
-        error_log = self.project_root / "logs" / "errors.log"
-        if error_log.exists():
-            try:
-                stat = error_log.stat()
-                if stat.st_size > 0:
-                    # Check if log was modified recently (last hour)
-                    if datetime.now().timestamp() - stat.st_mtime < 3600:
-                        alerts.append("CRITICAL: Recent errors in logs/errors.log")
-            except Exception:
-                pass
-
+        Does not re-scan files/logs; those checks live in ``_check_system_health``.
+        """
+        alerts: list[str] = []
+        if not isinstance(health, dict):
+            return alerts
+        for issue in health.get("severity_levels", {}).get("CRITICAL", []):
+            text = str(issue)
+            if text.upper().startswith("CRITICAL"):
+                alerts.append(text)
+            else:
+                alerts.append(f"CRITICAL: {text}")
         return alerts
 
     def _assess_performance_indicators(self) -> dict[str, Any]:
@@ -777,16 +731,9 @@ def _format_human_readable(signals: dict[str, Any]) -> str:
             lines.append(f"  Last Audit: {health['last_audit']}")
         lines.append("")
 
-    # Test coverage status
+    # Test coverage pulse (doc-sync is under Documentation Signals, not here)
     if health.get("test_coverage_status") != "Unknown":
         lines.append(f"Test Coverage Status: {health['test_coverage_status']}")
-        lines.append("")
-
-    # Documentation sync status
-    if health.get("documentation_sync_status") != "Unknown":
-        lines.append(
-            f"Documentation Sync Status: {health['documentation_sync_status']}"
-        )
         lines.append("")
 
     # Warnings/errors

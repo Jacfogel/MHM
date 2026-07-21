@@ -410,7 +410,7 @@ _TOOLS: dict[str, ToolInfo] = {
         path="development_tools/reports/analyze_system_signals.py",
         tier="supporting",
         trust="advisory",
-        description="Analyzes system health and status signals for reports.",
+        description="Operational health pulse (audit freshness, coverage rollup, core files, alerts); doc-sync stays under Documentation Signals.",
     ),
     "analyze_ruff": ToolInfo(
         name="analyze_ruff",

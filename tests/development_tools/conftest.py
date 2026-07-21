@@ -240,7 +240,20 @@ def load_development_tools_module(module_name: str):
             # Load submodules in dependency order BEFORE executing __init__.py
             # Load order: utilities (no deps), data_loading (uses utilities),
             # tool_wrappers (needs core for SCRIPT_REGISTRY), then core (uses all mixins), then others
-            service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+            service_submodules = [
+                "utilities",
+                "data_loading",
+                "tool_wrappers",
+                "audit_orchestration",
+                "report_generation_linkify",
+                "report_generation_tier3_helpers",
+                "report_generation_ai_status",
+                "report_generation_ai_priorities",
+                "report_generation_consolidated",
+                "report_generation",
+                "commands",
+                "core",
+            ]
             for submod_name in service_submodules:
                 submod_path = project_root / "development_tools" / "shared" / "service" / f"{submod_name}.py"
                 if submod_path.exists():
@@ -390,7 +403,20 @@ def load_development_tools_module(module_name: str):
                     sys.modules["development_tools.shared.service"] = service_module
 
                     # Load submodules first
-                    service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+                    service_submodules = [
+                        "utilities",
+                        "data_loading",
+                        "tool_wrappers",
+                        "audit_orchestration",
+                        "report_generation_linkify",
+                        "report_generation_tier3_helpers",
+                        "report_generation_ai_status",
+                        "report_generation_ai_priorities",
+                        "report_generation_consolidated",
+                        "report_generation",
+                        "commands",
+                        "core",
+                    ]
                     for submod_name in service_submodules:
                         submod_path = package_dir / f"{submod_name}.py"
                         if submod_path.exists():

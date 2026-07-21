@@ -937,42 +937,33 @@ The test suite includes several mitigations to manage memory:
 
 ### 9.3. Memory Profiling Tools
 
-If you add an optional memory profiler script under scripts/testing/, you can use it to identify which tests consume excessive memory. Example (script name may vary):
+**Decision (V6 B-014):** Keep memory profiling **standalone / local only**. Do **not** integrate a profiler into `development_tools` audit tiers. Suite mitigations in Section 9.2 are the primary path.
+
+Optional local helper (untracked `scripts/` per [SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md)): if your machine has `scripts/testing/memory_profiler.py`, you can profile peak RSS per test. It is not a tracked project command and may be absent on other checkouts.
 
 ```powershell
-# Profile all tests
+# Optional local helper only (path may be missing)
 python scripts/testing/memory_profiler.py
-
-# Profile specific test file
 python scripts/testing/memory_profiler.py tests/unit/test_user_management.py
-
-# Profile with parallel execution
 python scripts/testing/memory_profiler.py --workers 4
-
-# Show top 20 memory-heavy tests
 python scripts/testing/memory_profiler.py --top 20
 ```
 
-The profiler will:
-1. Run tests while monitoring memory usage (main process + all worker processes)
-2. Track memory per test
-3. Display top memory-heavy tests with peak/average memory
-4. Save detailed report to `tests/logs/memory_profile_detailed.json`
-
-**Understanding the output:**
-- **Peak (MB)**: Maximum memory used during test execution
-- **Avg (MB)**: Average memory during test execution
-- **Samples**: Number of memory measurements taken
-- **Thresholds**: < 200 MB (normal), 200-500 MB (moderate), 500-1000 MB (high), > 1000 MB (very high)
-
-**Note:** The profiler automatically discovers and monitors pytest-xdist worker processes, providing accurate total memory usage (main + workers). If `scripts/testing/` is not present, use standard OS or Python profiling tools.
+When that helper is present it typically monitors main + xdist workers and may write `tests/logs/memory_profile_detailed.json`. Otherwise use OS Task Manager, `tracemalloc`, or similar ad-hoc tools. Orphan cleanup: `python development_tools/run_development_tools.py verify-process-cleanup`.
 
 ### 9.4. Process Cleanup Verification
 
-2. Orphaned pytest workers are cleaned up
-3. No Python processes remain after test runs
+Use the tracked cleanup verifier after heavy parallel runs:
 
-If orphaned processes are found, the script displays their PIDs and command lines for investigation.
+```powershell
+python development_tools/run_development_tools.py verify-process-cleanup
+```
+
+It checks that:
+1. Orphaned pytest workers are cleaned up
+2. No leftover Python test processes remain after the suite exits
+
+If orphans are found, the tool prints PIDs and command lines for investigation.
 
 ### 9.5. Recommendations
 
@@ -983,7 +974,7 @@ When memory usage gets high (>95%):
 3. **Reduce workers if needed** - Use `--workers 2` instead of 4 or 6 if memory is constrained
 4. **Run tests in smaller batches** - Use `--mode fast` or specific test categories
 5. **Close other applications** - Free up memory before running full test suite
-6. **Profile memory-heavy tests** - Use the memory profiler to identify and optimize problematic tests
+6. **Profile memory-heavy tests** - Optional local `scripts/testing/memory_profiler.py` or OS/`tracemalloc` (not part of audit)
 
 If you were previously running with 6 workers without issues but now experience high memory, recent changes that could affect this:
 - New test fixtures or larger test data

@@ -69,7 +69,6 @@ def test_format_human_readable_includes_recommendations_and_alerts():
                 "audit_freshness": "<24 hours",
                 "last_audit": "2026-02-25T00:00:00",
                 "test_coverage_status": "Good",
-                "documentation_sync_status": "Synchronized",
             },
             "recent_activity": {
                 "git_status": "Modified",
@@ -84,6 +83,41 @@ def test_format_human_readable_includes_recommendations_and_alerts():
     assert "RECOMMENDATIONS:" in formatted
     assert "CRITICAL ALERTS:" in formatted
     assert "Git Status: Modified" in formatted
+    assert "Documentation Sync Status" not in formatted
+
+
+@pytest.mark.unit
+def test_identify_critical_alerts_projects_severity_only():
+    """Critical alerts come from health severity, not a second file/log scan."""
+    analyzer = signals_module.SystemSignalsAnalyzer()
+    health = {
+        "severity_levels": {
+            "CRITICAL": [
+                "Missing core file: requirements.txt",
+                "CRITICAL: Recent errors detected in logs/errors.log (last hour)",
+            ],
+            "WARNING": ["Audit data is 5 days old"],
+        }
+    }
+    alerts = analyzer._identify_critical_alerts(health)
+    assert alerts == [
+        "CRITICAL: Missing core file: requirements.txt",
+        "CRITICAL: Recent errors detected in logs/errors.log (last hour)",
+    ]
+    assert analyzer._identify_critical_alerts(None) == []
+    assert analyzer._identify_critical_alerts({}) == []
+
+
+@pytest.mark.unit
+def test_check_system_health_omits_documentation_sync_status(tmp_path, monkeypatch):
+    """Doc-sync is owned by Documentation Signals; system health must not re-derive it."""
+    analyzer = signals_module.SystemSignalsAnalyzer(project_root=tmp_path)
+    monkeypatch.setattr(
+        analyzer, "_resolve_analysis_detailed_results_path", lambda: None
+    )
+    health = analyzer._check_system_health()
+    assert "documentation_sync_status" not in health
+    assert health.get("test_coverage_status") == "Unknown"
 
 
 @pytest.mark.unit

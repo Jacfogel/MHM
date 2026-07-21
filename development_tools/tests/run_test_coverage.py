@@ -55,6 +55,23 @@ os.environ.setdefault(
 from development_tools.shared.logging import get_dev_tools_logger
 import contextlib
 
+from development_tools.tests.coverage_json_helpers import (
+    coverage_path_to_rel_posix as _coverage_path_to_rel_posix,
+    recompute_coverage_totals_from_files as _recompute_coverage_totals_from_files,
+)
+from development_tools.tests.coverage_outcome_classification import (
+    build_cache_only_coverage_outcome as _build_cache_only_coverage_outcome_fn,
+    build_track_outcome as _build_track_outcome_fn,
+    classify_coverage_outcome as _classify_coverage_outcome_fn,
+    classify_windows_crash_return_code as _classify_windows_crash_return_code_fn,
+    format_return_code_hex as _format_return_code_hex_fn,
+    is_infra_cleanup_error as _is_infra_cleanup_error_fn,
+    is_interrupt_return_code as _is_interrupt_return_code_fn,
+    is_windows_crash_return_code as _is_windows_crash_return_code_fn,
+    is_xdist_worker_crash_output as _is_xdist_worker_crash_output_fn,
+    strip_xdist_args as _strip_xdist_args_fn,
+)
+
 # Import config module (absolute import for portability)
 try:
     from development_tools import config
@@ -86,45 +103,6 @@ config.load_external_config()
 logger = get_dev_tools_logger("development_tools")
 
 _DEV_TOOLS_TEST_POSIX_PREFIX = "tests/development_tools/"
-
-
-def _coverage_path_to_rel_posix(path_key: str, project_root: Path) -> str | None:
-    """Map a coverage.json file key to a project-relative posix path."""
-    raw = str(path_key).replace("\\", "/")
-    try:
-        p = Path(path_key)
-        if p.is_absolute():
-            rel = p.resolve().relative_to(project_root.resolve())
-            return str(rel).replace("\\", "/")
-        return raw
-    except ValueError:
-        root_norm = str(project_root.resolve()).replace("\\", "/").rstrip("/")
-        prefix = root_norm + "/"
-        if raw.lower().startswith(prefix.lower()):
-            return raw[len(prefix) :].replace("\\", "/")
-        return None
-
-
-def _recompute_coverage_totals_from_files(files: dict[str, Any]) -> dict[str, Any]:
-    """Build coverage.py-style totals dict from filtered file summaries."""
-    num_statements = 0
-    missing_lines = 0
-    covered_lines = 0
-    for info in files.values():
-        if not isinstance(info, dict):
-            continue
-        summary = info.get("summary") or {}
-        num_statements += int(summary.get("num_statements", 0) or 0)
-        missing_lines += int(summary.get("missing_lines", 0) or 0)
-        covered_lines += int(summary.get("covered_lines", 0) or 0)
-    pct = round((covered_lines / num_statements * 100), 2) if num_statements else 0.0
-    return {
-        "covered_lines": covered_lines,
-        "num_statements": num_statements,
-        "missing_lines": missing_lines,
-        "percent_covered": pct,
-        "excluded_lines": 0,
-    }
 
 
 class CoverageMetricsRegenerator:
@@ -510,19 +488,7 @@ class CoverageMetricsRegenerator:
     @staticmethod
     def _strip_xdist_args(cmd: list[str]) -> list[str]:
         """Return command list without xdist-specific arguments."""
-        stripped: list[str] = []
-        skip_next = False
-        for arg in cmd:
-            if skip_next:
-                skip_next = False
-                continue
-            if arg in {"-n", "--numprocesses", "--dist"}:
-                skip_next = True
-                continue
-            if arg.startswith("--dist="):
-                continue
-            stripped.append(arg)
-        return stripped
+        return _strip_xdist_args_fn(cmd)
 
     @staticmethod
     def _remove_tree_with_retries(path: Path, retries: int = 20) -> bool:
@@ -4642,71 +4608,29 @@ class CoverageMetricsRegenerator:
 
     def _is_windows_crash_return_code(self, return_code: int | None) -> bool:
         """Check whether return code matches a known Windows crash code."""
-        if return_code is None:
-            return False
-        return return_code in {3221226505, 3221225477}
+        return _is_windows_crash_return_code_fn(return_code)
 
     def _is_interrupt_return_code(self, return_code: int | None) -> bool:
         """Check whether return code indicates interrupt/control-event termination."""
-        if return_code is None:
-            return False
-        # 130 is standard SIGINT-style shell exit.
-        # 0xC000013A (3221225786) is Windows STATUS_CONTROL_C_EXIT.
-        return return_code in {130, 3221225786}
+        return _is_interrupt_return_code_fn(return_code)
 
     def _format_return_code_hex(self, return_code: int | None) -> str | None:
         """Return normalized hex code string for process return codes."""
-        if return_code is None:
-            return None
-        # Preserve canonical Windows-code display used in existing tooling/docs.
-        canonical_codes = {
-            3221226505: "0xC0000135",
-            3221225477: "0xC0000005",
-            3221225786: "0xC000013A",
-        }
-        if return_code in canonical_codes:
-            return canonical_codes[return_code]
-        try:
-            return f"0x{(int(return_code) & 0xFFFFFFFF):08X}"
-        except (TypeError, ValueError):
-            return None
+        return _format_return_code_hex_fn(return_code)
 
     def _classify_windows_crash_return_code(
         self, return_code: int | None
     ) -> tuple[str | None, str | None]:
         """Return crash reason and actionable context for known Windows return codes."""
-        if return_code == 3221226505:
-            return (
-                "windows_status_dll_not_found",
-                "Missing DLL or PATH issue in Python/runtime dependencies. Verify Python install and dependency DLL availability.",
-            )
-        if return_code == 3221225477:
-            return (
-                "windows_status_access_violation",
-                "Process access violation likely from native/library interaction. Review UI/native deps and threading-sensitive tests.",
-            )
-        return None, None
+        return _classify_windows_crash_return_code_fn(return_code)
 
     def _is_infra_cleanup_error(self, output: str) -> bool:
         """Detect pytest teardown cleanup errors that are infra failures, not test failures."""
-        if not output:
-            return False
-        lowered = output.lower()
-        return "cleanup_dead_symlinks" in lowered and "permissionerror" in lowered
+        return _is_infra_cleanup_error_fn(output)
 
     def _is_xdist_worker_crash_output(self, output: str) -> bool:
         """Detect xdist/execnet worker crash patterns from pytest output."""
-        if not output:
-            return False
-        lowered = output.lower()
-        crash_markers = (
-            "windows fatal exception",
-            "node down: not properly terminated",
-            "execnet.gateway_base",
-            "pluggyteardownraisedwarning",
-            "oserror: cannot send (already closed?)",
-        )
-        return any(marker in lowered for marker in crash_markers)
+        return _is_xdist_worker_crash_output_fn(output)
 
     def _log_windows_crash_context(
         self, return_code: int | None, log_file: Path | None
@@ -4907,105 +4831,13 @@ class CoverageMetricsRegenerator:
         log_file: Path | None = None,
     ) -> dict[str, Any]:
         """Build normalized per-track outcome details for report generation."""
-        failed_tests = list(parsed_results.get("failed_tests", []))
-        error_tests = list(parsed_results.get("error_tests", []))
-        failed_node_ids = failed_tests + error_tests
-        total_tests = int(parsed_results.get("total_tests", 0) or 0)
-        failed_count = int(parsed_results.get("failed_count", 0) or 0)
-        error_count = int(parsed_results.get("error_count", 0) or 0)
-        passed_count = int(parsed_results.get("passed_count", 0) or 0)
-        skipped_count = int(parsed_results.get("skipped_count", 0) or 0)
-        deselected_count = int(parsed_results.get("deselected_count", 0) or 0)
-        return_code_hex = self._format_return_code_hex(return_code)
-        normalized_log_file = str(log_file).replace("\\", "/") if log_file else None
-
-        state = "unknown"
-        classification = "unknown"
-        classification_reason = "unknown"
-        actionable_context = "Review pytest stdout log for this track."
-        if self._is_infra_cleanup_error(output):
-            state = "infra_cleanup_error"
-            classification = "infra_cleanup_error"
-            classification_reason = "cleanup_dead_symlinks_permission_error"
-            actionable_context = "Pytest teardown cleanup permission issue detected. Review temp-dir cleanup permissions and retry."
-        elif self._is_interrupt_return_code(return_code):
-            state = "crashed"
-            classification = "crashed"
-            classification_reason = "interrupt_signal"
-            actionable_context = (
-                "Subprocess terminated by interrupt/control event (SIGINT/CTRL+C). "
-                "This is not always a direct user Ctrl+C; inspect terminal/host signal propagation."
-            )
-        elif self._is_xdist_worker_crash_output(output):
-            state = "crashed"
-            classification = "crashed"
-            classification_reason = "xdist_worker_crash_output"
-            actionable_context = "xdist worker crash markers detected in pytest output. Inspect worker crash details in track log."
-        elif self._is_windows_crash_return_code(return_code):
-            state = "crashed"
-            classification = "crashed"
-            crash_reason, crash_context = self._classify_windows_crash_return_code(
-                return_code
-            )
-            classification_reason = crash_reason or "windows_crash_return_code"
-            actionable_context = crash_context or actionable_context
-        elif return_code is None and total_tests == 0 and not (output or "").strip():
-            state = "skipped"
-            classification = "skipped"
-            classification_reason = "no_output_no_return_code"
-            actionable_context = f"{track_name} produced no return code and no parsed output (likely intentionally skipped)."
-        elif (
-            track_name == "no_parallel"
-            and return_code == 5
-            and total_tests == 0
-            and not failed_node_ids
-        ):
-            state = "skipped"
-            classification = "skipped"
-            classification_reason = "zero_no_parallel_tests_collected"
-            actionable_context = "No no_parallel tests matched this scoped run."
-        elif return_code not in (0, None) and total_tests == 0 and not failed_node_ids:
-            state = "crashed"
-            classification = "crashed"
-            classification_reason = "nonzero_without_tests"
-            actionable_context = "Non-zero exit with zero parsed tests indicates subprocess crash/infra issue before pytest summary."
-        elif failed_count > 0 or error_count > 0 or failed_node_ids:
-            state = "failed"
-            classification = "failed"
-            classification_reason = "pytest_failed_or_errored"
-            actionable_context = "One or more pytest node IDs failed/errored. Fix failing tests and rerun."
-        elif return_code == 0 and total_tests > 0:
-            state = "passed"
-            classification = "passed"
-            classification_reason = "pytest_passed"
-            actionable_context = "Track completed successfully."
-        elif return_code == 0 and total_tests == 0:
-            state = "skipped"
-            classification = "skipped"
-            classification_reason = "zero_tests_collected"
-            actionable_context = "Track completed with zero collected tests."
-        elif return_code is None:
-            state = "crashed"
-            classification = "crashed"
-            classification_reason = "missing_return_code"
-            actionable_context = "Subprocess did not return a valid exit code."
-
-        # Return canonical per-track outcome fields consumed by Tier 3 reporting.
-        return {
-            "state": state,
-            "classification": classification,
-            "classification_reason": classification_reason,
-            "actionable_context": actionable_context,
-            "log_file": normalized_log_file,
-            "return_code_hex": return_code_hex,
-            "return_code": return_code,
-            "passed_count": passed_count,
-            "failed_count": failed_count,
-            "error_count": error_count,
-            "skipped_count": skipped_count,
-            "deselected_count": deselected_count,
-            "failed_node_ids": failed_node_ids,
-        }
+        return _build_track_outcome_fn(
+            return_code,
+            parsed_results,
+            output,
+            track_name=track_name,
+            log_file=log_file,
+        )
 
     def _build_no_parallel_test_args(self, test_filter_args: list[str]) -> list[str]:
         """Return the pytest path arguments for the serial no_parallel phase."""
@@ -5020,59 +4852,15 @@ class CoverageMetricsRegenerator:
         coverage_collected: bool,
     ) -> str:
         """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
-        if not coverage_collected:
-            return "coverage_failed"
-        states = [
-            parallel.get("classification", parallel.get("state")),
-            no_parallel.get("classification", no_parallel.get("state")),
-        ]
-        if "infra_cleanup_error" in states:
-            return "infra_cleanup_error"
-        if "crashed" in states:
-            return "crashed"
-        if "failed" in states:
-            return "test_failures"
-        return "clean"
+        return _classify_coverage_outcome_fn(
+            parallel, no_parallel, coverage_collected
+        )
 
     def _build_cache_only_coverage_outcome(
         self, coverage_collected: bool
     ) -> dict[str, Any]:
         """Build canonical Tier 3 outcome metadata for cache-only coverage runs."""
-        track_state = "skipped" if coverage_collected else "failed"
-        track_classification = "skipped" if coverage_collected else "failed"
-        track_reason = (
-            "cache_only"
-            if coverage_collected
-            else "cache_only_coverage_unavailable"
-        )
-        track_context = (
-            "Pytest execution skipped because full coverage data was restored from cache."
-            if coverage_collected
-            else "Pytest execution skipped but no cached coverage data was available."
-        )
-        track = {
-            "state": track_state,
-            "classification": track_classification,
-            "classification_reason": track_reason,
-            "actionable_context": track_context,
-            "log_file": None,
-            "return_code_hex": None,
-            "return_code": None,
-            "passed_count": 0,
-            "failed_count": 0,
-            "error_count": 0,
-            "skipped_count": 0,
-            "deselected_count": 0,
-            "failed_node_ids": [],
-        }
-        return {
-            "state": self._classify_coverage_outcome(
-                track, track, coverage_collected
-            ),
-            "parallel": dict(track),
-            "no_parallel": dict(track),
-            "failed_node_ids": [],
-        }
+        return _build_cache_only_coverage_outcome_fn(coverage_collected)
 
     def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
         """Rotate log files, keeping only the last max_versions copies total (consolidated)."""
