@@ -852,6 +852,76 @@ _original_levels = {}
 # Component loggers
 _component_loggers = {}
 
+# Map non-canonical get_component_logger("name") calls onto shared sinks so
+# unknown names do not silently fall through to app.log.
+COMPONENT_NAME_ALIASES = {
+    # Communication
+    "channels": "communication_manager",
+    "channel_orchestrator": "communication_manager",
+    "account_handler": "communication_manager",
+    "retry_manager": "communication_manager",
+    "channel_monitor": "communication_manager",
+    "command_handlers": "communication_manager",
+    "checkin_handler": "communication_manager",
+    "schedule_handler": "communication_manager",
+    "profile_handler": "communication_manager",
+    "rich_formatter": "communication_manager",
+    "message_formatter": "communication_manager",
+    "command_registry": "communication_manager",
+    "message_route_classifier": "communication_manager",
+    # Discord extras
+    "discord_api": "discord",
+    # AI
+    "ai_context": "ai",
+    "ai_conversation": "ai",
+    "ai_prompt": "ai",
+    "ai_cache": "ai",
+    # UI extras
+    "ui_widgets": "ui",
+    "admin_panel": "ui",
+    "process_watcher": "ui",
+    # Domain / entry points without dedicated files
+    "tasks": "main",
+    "notebook_validation": "main",
+    "notebook_schemas": "main",
+    "notebook_data_manager": "main",
+    "notebook_data_handlers": "main",
+    "tags": "main",
+    "user_management": "main",
+    "natural_language_defaults": "main",
+    "headless_service": "main",
+    "headless_launcher": "main",
+    "launcher": "main",
+}
+
+# Canonical sinks that have an explicit entry in get_component_logger's log_file_map.
+# Static logging checks parse this set (plus COMPONENT_NAME_ALIASES) without importing
+# this module, so CI can enforce names without loading core.config.
+CANONICAL_COMPONENT_NAMES = frozenset(
+    {
+        "discord",
+        "ai",
+        "user_activity",
+        "errors",
+        "communication_manager",
+        "email",
+        "ui",
+        "file_ops",
+        "scheduler",
+        "google_health",
+        "main",
+        "schedule_utilities",
+        "analytics",
+        "message",
+        "backup",
+        "checkin_dynamic",
+        "development_tools",
+        "ai_dev_tools",
+        "file_rotation",
+        "user_item_storage",
+    }
+)
+
 
 @handle_errors("getting log level from environment", default_return=logging.WARNING)
 def get_log_level_from_env():
@@ -963,9 +1033,8 @@ def get_component_logger(component_name: str) -> ComponentLogger:
 
             return DummyComponentLogger(component_name)
 
-    # Enforce canonical component names (channels -> communication_manager was migrated)
-    if component_name == "channels":
-        component_name = "communication_manager"
+    # Enforce canonical component names (aliases share one file + logger)
+    component_name = COMPONENT_NAME_ALIASES.get(component_name, component_name)
 
     if component_name not in _component_loggers:
         # Get environment-specific log paths
@@ -1052,7 +1121,8 @@ def setup_logging():
 
     # Check if logging is already set up properly
     if root_logger.hasHandlers():
-        # Logging already set up
+        # Still ensure central error-handler dual-write is attached (idempotent)
+        setup_error_handler_logging()
         return
 
     # Get log level from environment
@@ -1092,6 +1162,9 @@ def setup_logging():
     # Set up dedicated error handler for third-party library errors
     setup_third_party_error_logging()
 
+    # Dual-write central @handle_errors logger to errors.log (keep stderr)
+    setup_error_handler_logging()
+
     # Suppress noisy third-party logging
     suppress_noisy_logging()
 
@@ -1116,6 +1189,39 @@ def setup_logging():
         logger.debug("Logging system reinitialized")
 
 
+@handle_errors("creating errors file handler", user_friendly=False, re_raise=True)
+def _create_errors_file_handler(log_paths: dict[str, str]) -> logging.Handler:
+    """Build a rotating ERROR-level handler targeting errors.log."""
+    import core.config as config
+
+    error_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    error_handler = BackupDirectoryRotatingFileHandler(
+        log_paths["errors_file"],
+        log_paths["backup_dir"],
+        maxBytes=config.LOG_MAX_BYTES,
+        backupCount=config.LOG_BACKUP_COUNT,
+        when="midnight",
+        interval=1,
+        encoding="utf-8",
+    )
+    error_handler.setFormatter(error_formatter)
+    error_handler.setLevel(logging.ERROR)  # Only ERROR and CRITICAL
+    return error_handler
+
+
+@handle_errors("checking errors file handler", default_return=False)
+def _logger_has_errors_file_handler(logger: logging.Logger) -> bool:
+    """Return True when logger already writes to an errors.log file handler."""
+    for handler in logger.handlers:
+        base = getattr(handler, "baseFilename", "") or ""
+        if base and Path(base).name == "errors.log":
+            return True
+    return False
+
+
 @handle_errors("setting up third party error logging")
 def setup_third_party_error_logging():
     """
@@ -1131,27 +1237,7 @@ def setup_third_party_error_logging():
     try:
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
-
-        # Create error formatter
-        error_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-
-        # Create error file handler
-        import core.config as config
-
-        error_handler = BackupDirectoryRotatingFileHandler(
-            log_paths["errors_file"],
-            log_paths["backup_dir"],
-            maxBytes=config.LOG_MAX_BYTES,
-            backupCount=config.LOG_BACKUP_COUNT,
-            when="midnight",
-            interval=1,
-            encoding="utf-8",
-        )
-        error_handler.setFormatter(error_formatter)
-        error_handler.setLevel(logging.ERROR)  # Only ERROR and CRITICAL
+        error_handler = _create_errors_file_handler(log_paths)
 
         # Set up error logging for third-party libraries
         third_party_loggers = [
@@ -1177,6 +1263,52 @@ def setup_third_party_error_logging():
         # Failsafe: don't break logging if error handler setup fails
         logging.getLogger(__name__).warning(
             f"Failed to setup third-party error logging: {e}"
+        )
+
+
+@handle_errors("setting up central error handler logging")
+def setup_error_handler_logging():
+    """
+    Dual-write bootstrap / safe mhm.* ERROR/CRITICAL to errors.log.
+
+    Covers:
+    - ``mhm.error_handler`` (``@handle_errors``): keep stderr, ``propagate=False``
+    - ``mhm.network_probe``, ``mhm.time_utilities``, ``mhm.config``: attach
+      errors sink and keep ``propagate=True`` so INFO/DEBUG still reach app.log
+    """
+    if os.getenv("TEST_CONSOLIDATED_LOGGING") == "1":
+        return
+
+    try:
+        log_paths = _get_log_paths_for_environment()
+        errors_dir = os.path.dirname(log_paths["errors_file"])
+        if errors_dir:
+            os.makedirs(errors_dir, exist_ok=True)
+
+        # Attach a shared errors.log handler only when at least one logger needs it
+        errors_handler = None
+        # (logger_name, propagate) - error_handler keeps stderr and must not
+        # also flood app.log; other bootstrap loggers still use root for
+        # non-ERROR traffic.
+        bootstrap_loggers = (
+            ("mhm.error_handler", False),
+            ("mhm.network_probe", True),
+            ("mhm.time_utilities", True),
+            ("mhm.config", True),
+        )
+
+        for logger_name, propagate in bootstrap_loggers:
+            target = logging.getLogger(logger_name)
+            if not _logger_has_errors_file_handler(target):
+                if errors_handler is None:
+                    errors_handler = _create_errors_file_handler(log_paths)
+                target.addHandler(errors_handler)
+            target.propagate = propagate
+
+    except Exception as e:
+        # Failsafe: keep stderr/_safe_logger usable even if file routing fails
+        logging.getLogger(__name__).warning(
+            f"Failed to setup central error handler logging: {e}"
         )
 
 
@@ -1646,6 +1778,8 @@ def force_restart_logging():
 
         # Suppress noisy logging
         suppress_noisy_logging()
+        setup_third_party_error_logging()
+        setup_error_handler_logging()
 
         logging.getLogger(__name__).info("Logging system restarted successfully")
         return True

@@ -58,11 +58,35 @@ Common components include:
 - `ai` -> `logs/ai.log`
 - `file_ops` -> `logs/file_ops.log`
 - `user_activity` -> `logs/user_activity.log`
-- `errors` -> `logs/errors.log`
+- `communication_manager` -> `logs/communication_manager.log`
 
 The actual mapping is defined in `core/logger.py` and may be overridden via environment variables (see below).
 
-### 2.3. Format
+### 2.3. Where ERROR / CRITICAL go
+
+`logs/errors.log` is a **central ERROR/CRITICAL sink**, not a primary component logger:
+
+- Every `get_component_logger(...)` dual-writes ERROR/CRITICAL to `errors.log` (in addition to the component file).
+- Selected third-party loggers (`asyncio`, `discord*`, `aiohttp*`) route ERROR/CRITICAL to `errors.log`.
+- Bootstrap / safe loggers wired by `setup_error_handler_logging()`:
+  - `mhm.error_handler` (`@handle_errors`): ERROR/CRITICAL to `errors.log` + stderr; does **not** propagate into `app.log`
+  - `mhm.network_probe`, `mhm.time_utilities`, `mhm.config`: ERROR/CRITICAL also go to `errors.log`; non-ERROR traffic still propagates to `app.log`
+- **WARNING and below never enter `errors.log`.** Use ERROR for failures that should appear in the central error log.
+
+Aliases (see ``COMPONENT_NAME_ALIASES`` / ``CANONICAL_COMPONENT_NAMES`` in `core/logger.py`):
+non-canonical names share a canonical sink instead of falling through to `app.log`.
+`development_tools/static_checks/check_channel_loggers.py` fails CI when product code
+calls `get_component_logger("...")` with a string that is neither canonical nor aliased.
+
+Examples:
+
+- Communication extras (`channel_orchestrator`, `retry_manager`, handlers, formatters) -> `communication_manager`
+- AI extras (`ai_context`, `ai_conversation`, `ai_prompt`, `ai_cache`) -> `ai`
+- UI extras (`ui_widgets`, `admin_panel`, `process_watcher`) -> `ui`
+- `discord_api` -> `discord`
+- Domain/entry names without dedicated files (`tasks`, `notebook_*`, `launcher`, ...) -> `main` / `app.log`
+
+### 2.4. Format
 
 Log messages follow a standard format similar to:
 
@@ -256,7 +280,7 @@ logger.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead"
 Guidelines:
 
 - Only add legacy paths when necessary to prevent breakage.
-- Always log legacy usage at `WARNING` level so it is visible in `errors.log` and metrics.
+- Always log legacy usage at `WARNING` level so it is visible in the relevant **component log** and metrics (WARNING does **not** go to `errors.log`).
 - Add a clear removal condition and specific steps.
 - As part of refactors, search for `LEGACY COMPATIBILITY` and reduce/remove those code paths when safe.
 

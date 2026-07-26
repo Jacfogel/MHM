@@ -490,7 +490,7 @@ MHM Team"""
                 logger.info(f"Sent confirmation code to {recipient} for user {user_id}")
                 return True
             else:
-                logger.warning(
+                logger.error(
                     f"Failed to send confirmation code to {recipient} for user {user_id}"
                 )
                 return False

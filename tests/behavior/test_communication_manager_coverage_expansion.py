@@ -707,6 +707,10 @@ class TestCommunicationManagerCoverageExpansion:
         # Verify event loop was set up during initialization
         assert hasattr(comm_manager, '_main_loop')
         assert hasattr(comm_manager, '_event_loop')
+        assert comm_manager._main_loop is not None
+        assert comm_manager._loop_thread is not None
+        assert comm_manager._loop_thread.is_alive()
+        assert comm_manager._main_loop.is_running()
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -722,6 +726,37 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Verify result
         assert result == "test_result"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    def test_run_async_sync_concurrent_while_loop_running(self, comm_manager):
+        """Concurrent sync bridges must not raise 'loop already running'."""
+        async def slow_coro(value):
+            await asyncio.sleep(0.05)
+            return value
+
+        results = []
+        errors = []
+
+        def worker(value):
+            try:
+                results.append(
+                    comm_manager.send_message_sync__run_async_sync(slow_coro(value))
+                )
+            except Exception as exc:  # noqa: BLE001 - collect for assertion
+                errors.append(exc)
+
+        threads = [
+            threading.Thread(target=worker, args=(i,)) for i in range(3)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=10)
+
+        assert errors == [], f"Unexpected errors: {errors}"
+        assert sorted(results) == [0, 1, 2]
 
     @pytest.mark.behavior
     @pytest.mark.communication

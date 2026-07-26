@@ -78,14 +78,19 @@ class CheckinPromptDispatcher:
             return
 
         if self.should_send_checkin_prompt(user_id, checkin_prefs):
-            self.send_checkin_prompt(user_id, messaging_service, recipient)
-            logger.info(f"Sent scheduled check-in prompt to user {user_id}")
+            success = self.send_checkin_prompt(
+                user_id, messaging_service, recipient
+            )
+            if success:
+                logger.info(f"Sent scheduled check-in prompt to user {user_id}")
         else:
             logger.debug(f"Check-in not due yet for user {user_id}")
 
     # not_duplicate: checkin_prompt_delivery_boundary
-    @handle_errors("sending check-in prompt", default_return=None)
-    def send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
+    @handle_errors("sending check-in prompt", default_return=False)
+    def send_checkin_prompt(
+        self, user_id: str, messaging_service: str, recipient: str
+    ) -> bool:
         """Start the dynamic check-in flow and send its prompt through the channel."""
         try:
             from communication.message_processing.conversation_flow_manager import (
@@ -124,8 +129,11 @@ class CheckinPromptDispatcher:
                     )
                 except Exception:
                     pass
-            else:
-                logger.warning(f"Failed to send check-in prompt to user {user_id}")
+                return True
+
+            logger.error(f"Failed to send check-in prompt to user {user_id}")
+            return False
 
         except Exception as e:
             logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
+            return False

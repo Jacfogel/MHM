@@ -5,6 +5,9 @@ Rules enforced (fail on violation):
 - Application code must not import `logging` directly or call `logging.getLogger(...)`.
   Allowed: excluded dirs (from config) and explicit allowlist files (from config).
 - Logger calls must use a single positional argument (favor f-strings instead of printf-style formatting).
+- ``get_component_logger("name")`` string names must be canonical or aliased
+  (parsed from ``core/logger.py`` ``CANONICAL_COMPONENT_NAMES`` /
+  ``COMPONENT_NAME_ALIASES`` without importing ``core``).
 
 Directory exclusion uses shared should_exclude_file; project-specific excluded_dirs and
 allowed_logging_import_paths come from config (static_checks.channel_loggers).
@@ -23,6 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
+LOGGER_MODULE_PATH = REPO_ROOT / "core" / "logger.py"
 
 # Non-project-specific: dir names to skip during walk (should_exclude_file covers most)
 IGNORED_DIR_NAMES = {
@@ -47,8 +51,8 @@ def _get_channel_loggers_config():
 
     Project-specific lists must not be duplicated here; they live in
     ``development_tools_config.json`` (``static_checks.channel_loggers``) with defaults
-    and merge behavior in ``development_tools.config.config`` — see
-    ``development_docs/LIST_OF_LISTS.md`` §6–7.
+    and merge behavior in ``development_tools.config.config`` - see
+    ``development_docs/LIST_OF_LISTS.md`` sections 6-7.
 
     Loads ``config.py`` via importlib (same pattern as ``standard_exclusions``) so this
     script does not import the full ``development_tools`` package tree. GitHub Actions
@@ -76,6 +80,7 @@ def _get_channel_loggers_config():
 
 
 _channel_loggers_config = None
+_allowed_component_names: frozenset[str] | None = None
 
 
 def _get_excluded_dirs():
@@ -89,7 +94,95 @@ def _get_allowed_logging_import_paths():
     global _channel_loggers_config
     if _channel_loggers_config is None:
         _channel_loggers_config = _get_channel_loggers_config()
-    return {Path(p) for p in _channel_loggers_config.get("allowed_logging_import_paths", [])}
+    return {
+        Path(p) for p in _channel_loggers_config.get("allowed_logging_import_paths", [])
+    }
+
+
+def _constant_str_keys_and_values(node: ast.AST) -> tuple[set[str], set[str]]:
+    """Extract string keys/values from a dict/set AST node used for component names."""
+    keys: set[str] = set()
+    values: set[str] = set()
+    if isinstance(node, ast.Dict):
+        for key_node, value_node in zip(node.keys, node.values, strict=False):
+            if isinstance(key_node, ast.Constant) and isinstance(key_node.value, str):
+                keys.add(key_node.value.strip().lower())
+            if isinstance(value_node, ast.Constant) and isinstance(
+                value_node.value, str
+            ):
+                values.add(value_node.value.strip().lower())
+    elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        # frozenset({...}) / set({...})
+        if node.func.id in {"frozenset", "set"} and node.args:
+            inner = node.args[0]
+            if isinstance(inner, (ast.Set, ast.Tuple, ast.List)):
+                for elt in inner.elts:
+                    if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                        values.add(elt.value.strip().lower())
+    elif isinstance(node, (ast.Set, ast.Tuple, ast.List)):
+        for elt in node.elts:
+            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                values.add(elt.value.strip().lower())
+    return keys, values
+
+
+def load_allowed_component_logger_names(
+    logger_path: Path | None = None,
+) -> frozenset[str]:
+    """Parse allowed component logger names from core/logger.py without importing core.
+
+    Allowed = CANONICAL_COMPONENT_NAMES ∪ COMPONENT_NAME_ALIASES keys.
+    Alias targets are validated against the canonical set.
+    """
+    path = logger_path or LOGGER_MODULE_PATH
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return frozenset()
+
+    canonical: set[str] = set()
+    alias_keys: set[str] = set()
+    alias_targets: set[str] = set()
+
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if not isinstance(target, ast.Name):
+                continue
+            keys, values = _constant_str_keys_and_values(node.value)
+            if target.id == "CANONICAL_COMPONENT_NAMES":
+                canonical |= values or keys
+            elif target.id == "COMPONENT_NAME_ALIASES":
+                alias_keys |= keys
+                alias_targets |= values
+
+    if not canonical:
+        return frozenset()
+
+    unknown_targets = sorted(alias_targets - canonical)
+    if unknown_targets:
+        raise RuntimeError(
+            "COMPONENT_NAME_ALIASES targets not in CANONICAL_COMPONENT_NAMES: "
+            + ", ".join(unknown_targets)
+        )
+
+    return frozenset(canonical | alias_keys)
+
+
+def get_allowed_component_logger_names() -> frozenset[str]:
+    """Cached allowed component logger names for static checks."""
+    global _allowed_component_names
+    if _allowed_component_names is None:
+        _allowed_component_names = load_allowed_component_logger_names()
+    return _allowed_component_names
+
+
+def _is_get_component_logger_call(node: ast.Call) -> bool:
+    func = node.func
+    if isinstance(func, ast.Name) and func.id == "get_component_logger":
+        return True
+    return isinstance(func, ast.Attribute) and func.attr == "get_component_logger"
 
 
 def _load_should_exclude_file():
@@ -155,9 +248,10 @@ def check_file(path: Path) -> Iterable[str]:
         return []
 
     allow_logging_imports = rel_path in _get_allowed_logging_import_paths()
+    allowed_names = get_allowed_component_logger_names()
 
     try:
-        tree = ast.parse(path.read_text(encoding='utf-8'))
+        tree = ast.parse(path.read_text(encoding="utf-8"))
     except SyntaxError as exc:  # pragma: no cover - script should fail loudly
         return [format_issue(rel_path, exc.lineno or 0, f"Failed to parse file: {exc}")]
 
@@ -204,7 +298,11 @@ def check_file(path: Path) -> Iterable[str]:
                         )
                     )
                 # logger.info/debug/etc positional arg enforcement
-                elif func.attr in LOG_METHODS and has_logger_name(func.value) and len(node.args) > 1:
+                elif (
+                    func.attr in LOG_METHODS
+                    and has_logger_name(func.value)
+                    and len(node.args) > 1
+                ):
                     issues.append(
                         format_issue(
                             rel_path,
@@ -212,6 +310,21 @@ def check_file(path: Path) -> Iterable[str]:
                             "Logger calls should use a single positional argument (prefer f-strings over printf formatting)",
                         )
                     )
+
+            if _is_get_component_logger_call(node) and node.args and allowed_names:
+                first = node.args[0]
+                if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                    name = first.value.strip().lower()
+                    if name and name not in allowed_names:
+                        issues.append(
+                            format_issue(
+                                rel_path,
+                                node.lineno,
+                                f'Unknown get_component_logger name "{first.value}"; '
+                                "add it to CANONICAL_COMPONENT_NAMES or COMPONENT_NAME_ALIASES "
+                                "in core/logger.py (do not invent ad-hoc component log files)",
+                            )
+                        )
     return issues
 
 
@@ -243,6 +356,13 @@ def main() -> int:
     python_files = [p for p in iter_python_files(REPO_ROOT) if p.is_file()]
     violations = []
 
+    try:
+        # Fail fast if logger.py aliases/canonical sets are inconsistent
+        get_allowed_component_logger_names()
+    except RuntimeError as exc:
+        print(f"Static logging check failed. Resolve the issues below:\n\n- {exc}")
+        return 1
+
     for file_path in sorted(python_files):
         violations.extend(check_file(file_path))
 
@@ -252,7 +372,10 @@ def main() -> int:
             print(f"- {violation}")
         return 1
 
-    print("Static check passed: no forbidden logger usage detected")
+    print(
+        "Static check passed: no forbidden logger usage or unknown "
+        "get_component_logger names detected"
+    )
     return 0
 
 

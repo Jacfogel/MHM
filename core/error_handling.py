@@ -472,7 +472,7 @@ class ErrorHandler:
         return False
 
     def _log_error(self, error: Exception, context: dict[str, Any]):
-        """Log error with context."""
+        """Log error with context as a single structured ERROR line."""
         # Prevent recursion: if we're already logging an error, just use safe logger
         if hasattr(_logging_lock, "logging_error"):
             # Already in error logging, use safe logger only
@@ -491,28 +491,15 @@ class ErrorHandler:
         # Set flag to prevent recursion
         _logging_lock.logging_error = True
         try:
-            error_msg = (
-                f"Error in {context.get('operation', 'unknown operation')}: {error}"
-            )
-            if context.get("file_path"):
-                error_msg += f" (File: {context['file_path']})"
-            if context.get("user_id"):
-                error_msg += f" (User: {context['user_id']})"
-
             operation = context.get("operation", "unknown")
-            try:
-                fp = context.get("file_path")
-                uid = context.get("user_id")
+            fp = context.get("file_path")
+            uid = context.get("user_id")
+            with contextlib.suppress(Exception):
                 _safe_logger.error(
-                    f"{error_msg} | type={type(error).__name__} file_path={fp} user_id={uid}",
+                    f"Error in {operation}: {error} | type={type(error).__name__} "
+                    f"file_path={fp} user_id={uid}",
                     exc_info=True,
                 )
-                _safe_logger.error(
-                    f"Error occurred (operation={operation} error_type={type(error).__name__} "
-                    f"error_message={error!s} file_path={fp} user_id={uid})"
-                )
-            except Exception:
-                pass
         finally:
             # Always clear the flag
             if hasattr(_logging_lock, "logging_error"):

@@ -318,6 +318,48 @@ class TestChannelOrchestratorHelpers:
         result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, {})
         assert result is True, "Should default to True when frequency missing"
 
+    def test_handle_scheduled_checkin_does_not_log_success_on_send_failure(self):
+        """Failed delivery must not log 'Sent scheduled check-in prompt'."""
+        user_id = "test_user"
+        prefs = {
+            "preferences": {
+                "checkin_settings": {"frequency": "daily"},
+            }
+        }
+        account = {"account": {"features": {"checkins": "enabled"}}}
+
+        with (
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                side_effect=[prefs, account],
+            ),
+            patch.object(
+                self.manager.checkin_dispatcher,
+                "should_send_checkin_prompt",
+                return_value=True,
+            ),
+            patch.object(
+                self.manager.checkin_dispatcher,
+                "send_checkin_prompt",
+                return_value=False,
+            ) as mock_send,
+            patch(
+                "communication.reminders.checkin_prompt_dispatcher.logger"
+            ) as mock_logger,
+        ):
+            self.manager.checkin_dispatcher.handle_scheduled_checkin(
+                user_id, "discord", "recipient"
+            )
+
+            mock_send.assert_called_once_with(user_id, "discord", "recipient")
+            success_logs = [
+                call
+                for call in mock_logger.info.call_args_list
+                if call.args
+                and "Sent scheduled check-in prompt" in str(call.args[0])
+            ]
+            assert success_logs == [], "Must not claim success when send failed"
+
     def test_select_weighted_message_with_messages(self):
         """Test _select_weighted_message with available messages."""
         available_messages = [

@@ -87,6 +87,7 @@ class CommunicationManager:
         self.channel_configs = {}
         self._running = False
         self._main_loop = None
+        self._event_loop = None
         self._loop_thread = None
         self.scheduler_manager = None
         self._last_task_reminders = (
@@ -114,69 +115,81 @@ class CommunicationManager:
 
     @handle_errors("setting up event loop", default_return=None)
     def __init____setup_event_loop(self):
-        """Set up a dedicated event loop for async operations"""
-        try:
-            # Try to get existing loop - use get_running_loop() to avoid deprecation warning
-            try:
-                self._main_loop = asyncio.get_running_loop()
-                self._event_loop = self._main_loop
-                # If we get here, there's a running loop, so create a new one for our operations
-                import threading
+        """Set up a dedicated background event loop for sync->async bridging.
 
-                @handle_errors("running event loop", default_return=None)
-                def run_event_loop():
-                    """
-                    Run the event loop in a separate thread for async operations.
+        Always runs the managed loop in its own daemon thread so concurrent
+        sync callers can safely use run_coroutine_threadsafe instead of nested
+        or overlapping run_until_complete calls.
+        """
+        if (
+            self._main_loop
+            and not self._main_loop.is_closed()
+            and self._loop_thread
+            and self._loop_thread.is_alive()
+        ):
+            return
 
-                    This nested function is used to manage the event loop for async channel operations.
-                    """
-                    self._main_loop = asyncio.new_event_loop()
-                    self._event_loop = self._main_loop
-                    asyncio.set_event_loop(self._main_loop)
-                    self._main_loop.run_forever()
+        loop_ready = threading.Event()
 
-                self._loop_thread = threading.Thread(target=run_event_loop, daemon=True)
-                self._loop_thread.start()
+        @handle_errors("running event loop", default_return=None)
+        def run_event_loop():
+            """Run the managed event loop forever on a dedicated thread."""
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            self._main_loop = loop
+            self._event_loop = loop
+            loop_ready.set()
+            loop.run_forever()
 
-                # Wait a moment for loop to start
-                import time
+        self._loop_thread = threading.Thread(
+            target=run_event_loop,
+            name="comm-manager-event-loop",
+            daemon=True,
+        )
+        self._loop_thread.start()
 
-                time.sleep(0.1)
-            except RuntimeError:
-                # No running loop, try to get current loop
-                try:
-                    # Use get_running_loop() first, fallback to new_event_loop()
-                    try:
-                        self._main_loop = asyncio.get_running_loop()
-                    except RuntimeError:
-                        self._main_loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(self._main_loop)
-                    self._event_loop = self._main_loop
-                except RuntimeError:
-                    # No event loop exists, create new one
-                    self._main_loop = asyncio.new_event_loop()
-                    self._event_loop = self._main_loop
-                    asyncio.set_event_loop(self._main_loop)
-        except Exception:
-            # Fallback: create new loop
-            self._main_loop = asyncio.new_event_loop()
-            self._event_loop = self._main_loop
-            asyncio.set_event_loop(self._main_loop)
+        if not loop_ready.wait(timeout=2.0):
+            raise RuntimeError("Timed out waiting for managed event loop to start")
+        # Brief settle so is_running() is true before first sync submit
+        for _ in range(20):
+            if self._main_loop and self._main_loop.is_running():
+                break
+            time.sleep(0.01)
+        else:
+            raise RuntimeError("Managed event loop started but is not running")
 
     @handle_errors("running async sync", default_return=None)
     def send_message_sync__run_async_sync(self, coro):
-        """Run async function synchronously using our managed loop"""
-        if not self._main_loop:
+        """Run async function synchronously using the managed background loop."""
+        if (
+            not self._main_loop
+            or self._main_loop.is_closed()
+            or not self._loop_thread
+            or not self._loop_thread.is_alive()
+        ):
             self.__init____setup_event_loop()
         if not self._main_loop:
             raise RuntimeError("Event loop not initialized for sync execution")
-        if self._loop_thread:
-            # Submit to running loop
-            future = asyncio.run_coroutine_threadsafe(coro, self._main_loop)
-            return future.result(timeout=30)  # 30 second timeout
-        else:
-            # Use current loop
-            return self._main_loop.run_until_complete(coro)
+
+        loop = self._main_loop
+
+        # Prefer thread-safe submit whenever the managed loop is running. This
+        # avoids "This event loop is already running" when concurrent sync
+        # callers would otherwise race on run_until_complete.
+        if loop.is_running():
+            try:
+                running = asyncio.get_running_loop()
+            except RuntimeError:
+                running = None
+            if running is loop:
+                raise RuntimeError(
+                    "Cannot bridge sync->async from inside the managed event loop; "
+                    "await the coroutine directly instead"
+                )
+            future = asyncio.run_coroutine_threadsafe(coro, loop)
+            return future.result(timeout=30)
+
+        return loop.run_until_complete(coro)
 
     @handle_errors("setting scheduler manager", default_return=None)
     def set_scheduler_manager(self, scheduler_manager):
@@ -644,7 +657,7 @@ class CommunicationManager:
             elif success is False or not success:
                 failure_detail = self._channel_send_failure_detail(channel)
                 detail_suffix = f": {failure_detail}" if failure_detail else ""
-                logger.warning(
+                logger.error(
                     f"Channel {channel_name} returned False for message send to {recipient}{detail_suffix}"
                 )
                 return False
@@ -790,7 +803,7 @@ class CommunicationManager:
                 )
                 # Ensure we return False if result is None or unexpected
                 if result is None:
-                    logger.warning(
+                    logger.error(
                         f"Async send_message returned None for channel {channel_name}"
                     )
                     return False
@@ -1171,12 +1184,12 @@ class CommunicationManager:
         )
 
     # not_duplicate: checkin_prompt_delivery_boundary
-    @handle_errors("sending check-in prompt", default_return=None)
+    @handle_errors("sending check-in prompt", default_return=False)
     def send_checkin_prompt(
         self, user_id: str, messaging_service: str, recipient: str
-    ):
+    ) -> bool:
         """Public delivery-port wrapper for scheduled check-in prompts."""
-        self.checkin_dispatcher.send_checkin_prompt(
+        return self.checkin_dispatcher.send_checkin_prompt(
             user_id, messaging_service, recipient
         )
 

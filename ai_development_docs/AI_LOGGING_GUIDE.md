@@ -33,7 +33,9 @@ Where to look:
 
 Common component names (mapped in `core/logger.py`):
 
-- `main`, `errors`, `ai`, `discord`, `email`, `communication_manager`, `scheduler`, `ui`, `file_ops`, `user_activity`, plus a few specialized ones (for example `backup`, `checkin_dynamic`, `development_tools`).  
+- `main`, `ai`, `discord`, `email`, `communication_manager`, `scheduler`, `ui`, `file_ops`, `user_activity`, plus a few specialized ones (for example `backup`, `checkin_dynamic`, `development_tools`).  
+
+`errors.log` is a dual-write ERROR/CRITICAL sink (component loggers, third-party routers, and bootstrap loggers via `setup_error_handler_logging()`), not a primary app component name. Prefer canonical names; see `CANONICAL_COMPONENT_NAMES` / `COMPONENT_NAME_ALIASES` in `core/logger.py`. Static check: `development_tools/static_checks/check_channel_loggers.py` rejects unknown `get_component_logger("...")` strings.
 
 When in doubt, check the current `log_file_map` in `core/logger.py` rather than inventing new names.
 
@@ -46,13 +48,14 @@ Core behavior:
 - Use standard levels: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.  
 - Only use `DEBUG` for temporary or diagnostic detail.  
 - Use `INFO` for normal, high-level events (startup, shutdown, periodic jobs).  
-- Use `WARNING` for degraded but handled behavior.  
-- Use `ERROR` for failures that affect behavior but are contained by error handling.  
+- Use `WARNING` for degraded but handled behavior (component log only; not `errors.log`).  
+- Use `ERROR` for failures that affect behavior but are contained by error handling - including failed message / check-in delivery - so they dual-write to `errors.log`.  
 - Use `CRITICAL` for process-threatening situations.
 
 Routing:
 
-- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).
+- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).  
+- See section 2.3 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) for what actually enters `errors.log`.
 
 ---
 
@@ -119,7 +122,7 @@ AI usage:
 For any legacy path that you **must** keep temporarily:
 
 - Follow the comment+warning pattern documented in section 7. Legacy Compatibility Logging Standard in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
-- Log at `WARNING` so usage is visible in `errors.log`.  
+- Log at `WARNING` so usage is visible in the component log (WARNING does **not** enter `errors.log`).  
 - Include a clear removal condition and steps in the comment block.
 
 AI rules:

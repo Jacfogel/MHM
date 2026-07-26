@@ -66,7 +66,7 @@ def test_check_file_flags_multi_arg_logger_calls(tmp_path: Path):
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         "from core.logger import get_component_logger\n"
-        "app_logger = get_component_logger('x')\n"
+        "app_logger = get_component_logger('main')\n"
         "app_logger.info('value=%s', 3)\n",
         encoding="utf-8",
     )
@@ -122,7 +122,7 @@ def test_main_returns_success_when_no_violations(tmp_path: Path):
     clean_file.parent.mkdir(parents=True, exist_ok=True)
     clean_file.write_text(
         "from core.logger import get_component_logger\n"
-        "app_logger = get_component_logger('x')\n"
+        "app_logger = get_component_logger('main')\n"
         "app_logger.info(f'value={3}')\n",
         encoding="utf-8",
     )
@@ -163,3 +163,60 @@ def test_example_allowlist_covers_core_logging_infrastructure():
         "run_tests.py",
     }
     assert required.issubset(allowlist)
+
+
+@pytest.mark.unit
+def test_check_file_flags_unknown_component_logger_name(tmp_path: Path):
+    """Invented get_component_logger names should fail the static check."""
+    target = tmp_path / "core" / "bad_component_name.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "from core.logger import get_component_logger\n"
+        "logger = get_component_logger('totally_new_sink')\n",
+        encoding="utf-8",
+    )
+
+    with (
+        patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
+        patch.object(
+            check_channel_loggers,
+            "get_allowed_component_logger_names",
+            return_value=frozenset({"main", "communication_manager"}),
+        ),
+    ):
+        issues = list(check_channel_loggers.check_file(target))
+
+    assert any("Unknown get_component_logger name" in issue for issue in issues)
+    assert any("totally_new_sink" in issue for issue in issues)
+
+
+@pytest.mark.unit
+def test_check_file_allows_aliased_component_logger_name(tmp_path: Path):
+    """Aliased names from logger.py should be accepted."""
+    target = tmp_path / "communication" / "ok_alias.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "from core.logger import get_component_logger\n"
+        "logger = get_component_logger('channel_orchestrator')\n"
+        "logger.info('ok')\n",
+        encoding="utf-8",
+    )
+
+    with (
+        patch.object(check_channel_loggers, "REPO_ROOT", tmp_path),
+        patch.object(check_channel_loggers, "_allowed_component_names", None),
+    ):
+        # Use real allowed-name loader against the real logger.py
+        issues = list(check_channel_loggers.check_file(target))
+
+    assert not any("Unknown get_component_logger name" in issue for issue in issues)
+
+
+@pytest.mark.unit
+def test_load_allowed_component_logger_names_from_logger_module():
+    """Allowed names should include canonical sinks and alias keys from logger.py."""
+    names = check_channel_loggers.load_allowed_component_logger_names()
+    assert "communication_manager" in names
+    assert "channel_orchestrator" in names
+    assert "ai_context" in names
+    assert "main" in names

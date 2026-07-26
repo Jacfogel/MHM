@@ -33,6 +33,18 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-23 - Fix sync->async event-loop bridge, check-in logging, and errors.log routing
+- **Always run CommunicationManager's managed loop on a dedicated daemon thread**, and prefer `run_coroutine_threadsafe` when that loop is running, so concurrent scheduled sends no longer hit `RuntimeError: This event loop is already running`.
+- **Only log "Sent scheduled check-in prompt" after a successful send** (`send_checkin_prompt` now returns `bool`).
+- **Option B error routing**: `setup_error_handler_logging()` dual-writes `mhm.error_handler` ERROR/CRITICAL to `errors.log` (keeps stderr; `propagate=False` to avoid `app.log` duplicates). Also routes bootstrap raw loggers `mhm.network_probe`, `mhm.time_utilities`, `mhm.config` ERROR/CRITICAL to `errors.log` (propagate kept so INFO/DEBUG still reach `app.log`).
+- **Component aliases**: Expanded `COMPONENT_NAME_ALIASES` / added `CANONICAL_COMPONENT_NAMES` so communication extras (handlers/formatters/`retry_manager`), AI extras, UI extras, `discord_api`, and domain/entry names (`tasks`, `notebook_*`, launchers) resolve to canonical sinks instead of unknown-name fallthrough to `app.log`.
+- **Static check**: [`check_channel_loggers.py`](../development_tools/static_checks/check_channel_loggers.py) rejects unknown `get_component_logger("...")` string names (AST-parses allowed names from `core/logger.py` without importing `core`, CI-safe).
+- **`_log_error`**: one structured ERROR line per failure (plus optional User Error), instead of two nearly duplicate ERROR records.
+- **Severity alignment**: failed check-in / message / confirmation / Discord reply sends log at ERROR so they appear in `errors.log` (matches scheduled-message and task-reminder paths).
+- **Docs**: corrected paired logging/error-handling guides (WARNING does not enter `errors.log`; `@handle_errors` uses `mhm.error_handler`, not ComponentLogger).
+- **Audit cleanup**: `@handle_errors` on new logger helpers; registry entries; ASCII/`->` replacements; LOGGING_GUIDE heading renumber (2.3/2.4); Pyright fixes for `_event_loop` init and test `baseFilename` access.
+- Added concurrent bridge, false-success logging, error-handler dual-write, alias, and bootstrap-logger tests.
+
 ### 2026-07-20 - Nightly CI: static logging allowlist + development_tools marker
 - **Fix (Logging Enforcement / nightly)**: [`check_channel_loggers.py`](../development_tools/static_checks/check_channel_loggers.py) now calls `load_external_config()` with no explicit path so CI (missing gitignored live JSON) falls back to [`.example`](../development_tools/config/development_tools_config.json.example). Synced example `allowed_logging_import_paths` with live MHM allowlist (`core/config.py`, `core/network_probe.py`, `core/time_utilities.py`, etc.).
 - **Fix (strict markers)**: Registered `@pytest.mark.development_tools` in [`pytest.ini`](../pytest.ini) so `test_analyze_unused_functions.py` collects under `--strict-markers`.

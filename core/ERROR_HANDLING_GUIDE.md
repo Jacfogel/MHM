@@ -127,13 +127,14 @@ Use this decorator instead of manual try/except at **module entry points** (sche
 Error handling integrates tightly with `core/logger.py`:
 
 - The logger module imports `handle_errors` and decorates internal helpers such as `_is_testing_environment` to ensure logging initialization cannot crash the process.
-- All logging for errors uses `get_component_logger(...)` rather than direct `logging.getLogger(...)`.
-- Error logs typically flow into `logs/errors.log` and the appropriate component log (for example `logs/scheduler.log`), as described in:
+- `@handle_errors` / `error_handler.handle_error` log through a circular-safe logger named `mhm.error_handler` (`logging.getLogger`, not `get_component_logger`), so logging failures cannot recurse through ComponentLogger setup.
+- After `setup_logging()` -> `setup_error_handler_logging()`, that logger dual-writes ERROR/CRITICAL to `logs/errors.log` and keeps stderr; it does not propagate into `app.log`. The same setup also routes ERROR/CRITICAL from bootstrap raw loggers `mhm.network_probe`, `mhm.time_utilities`, and `mhm.config` into `errors.log` (those still propagate non-ERROR traffic to `app.log`).
+- Explicit call-site logging should still use `get_component_logger(...)` so failures also appear in the relevant component file (for example `logs/scheduler.log` or `logs/communication_manager.log`). Prefer canonical component names; see `COMPONENT_NAME_ALIASES` in `core/logger.py` for communication/AI/UI/domain aliases. See:
   - Section 2. "Logging Architecture" and  
   - Section 4. "Component Log Files and Layout"  
   in `logs/LOGGING_GUIDE.md`.
 
-File-related recovery behavior (such as backing up corrupted JSON and recreating files with default data) is logged via the `main` component logger so operators can see when auto-recovery occurs.
+File-related recovery behavior (such as backing up corrupted JSON and recreating files with default data) is logged via `mhm.error_handler`, so operators see auto-recovery in `errors.log` / stderr once logging setup has completed.
 
 ### 2.6. Service startup (`MHMService`)
 

@@ -180,7 +180,7 @@ async def _process_identified_user_message(
             has_rich_data=bool(response.rich_data),
         )
     else:
-        discord_logger.warning(
+        discord_logger.error(
             "Discord message send failed for user",
             user_id=internal_user_id,
             discord_user_id=discord_user_id,

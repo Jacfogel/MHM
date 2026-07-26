@@ -3990,11 +3990,13 @@ to keep test output clean when verbose logging is disabled.
 Args:
     name: Component name (e.g., 'discord', 'ai')
 - [OK] `_copy_locked_log_to_backup(self, backup_path, min_file_size)` - Fallback path for locked files: copy to backup and truncate original if safe.
+- [OK] `_create_errors_file_handler(log_paths)` - Build a rotating ERROR-level handler targeting errors.log.
 - [OK] `_finalize_rollover_stream(self, current_time, backup_path, dfn)` - Reopen the active stream and restore files when post-rotation verification fails.
 - [OK] `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
 - [OK] `_is_dev_tools_run()` - True when entry point or env indicates development tools (audit, scripts, etc.).
 - [OK] `_is_testing_environment()` - Check if we're running in a testing environment.
 - [OK] `_log(self, level, message)` - Internal logging method with structured data support.
+- [OK] `_logger_has_errors_file_handler(logger)` - Return True when logger already writes to an errors.log file handler.
 - [OK] `_restore_rotated_file_if_needed(self, dfn)` - Restore rotated temp file back to the active log path when backup move fails.
 - [OK] `_rotate_base_file_to_backup(self, dfn, backup_path, min_file_size)` - Move or copy current log file into backup storage.
 - [OK] `_skip_rollover_for_small_or_recent_file(self, current_time, min_file_size, min_file_age_seconds)` - Return True when rollover should be skipped due to size/age checks.
@@ -4105,6 +4107,11 @@ Args:
 
 Args:
     enabled (bool): True to enable verbose mode, False for quiet mode
+- [OK] `setup_error_handler_logging()` - Dual-write bootstrap / safe mhm.* ERROR/CRITICAL to errors.log.
+
+Covers mhm.error_handler (stderr kept, no app.log propagate) plus
+mhm.network_probe, mhm.time_utilities, and mhm.config (propagate kept for
+non-ERROR traffic).
 - [OK] `setup_logging()` - Set up logging with file and console handlers. Ensure it is called only once.
 
 Creates a dual-handler logging system:

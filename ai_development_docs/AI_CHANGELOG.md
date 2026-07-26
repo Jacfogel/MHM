@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-23 - Sync->async bridge, check-in logging, errors.log routing **COMPLETED**
+- Managed event loop always runs on a background thread; sync bridge uses `run_coroutine_threadsafe` when the loop is running (fixes concurrent `run_until_complete` / "loop already running").
+- Scheduled check-in success log gated on actual send result.
+- `setup_error_handler_logging()` dual-writes `mhm.error_handler` plus bootstrap raw loggers (`network_probe`, `time_utilities`, `config`) ERROR/CRITICAL to `errors.log`.
+- `channel_orchestrator` / handlers / AI+UI extras alias via `COMPONENT_NAME_ALIASES`; `_log_error` collapsed to one structured ERROR line.
+- Static logging check rejects unknown `get_component_logger("...")` names (parses `CANONICAL_COMPONENT_NAMES` + aliases from `logger.py`).
+- Failed check-in/message/confirmation/Discord-reply sends raised to ERROR; paired logging/error-handling docs corrected.
+- Audit cleanup: error-handling on logger helpers, function registry, ASCII/heading numbering, Pyright warnings from this slice.
+
 ### 2026-07-20 - Nightly CI logging check + marker **COMPLETED**
 - Static logging check falls back to committed `.example` when live config is missing; example allowlist restored for core logger/config files.
 - Registered `development_tools` pytest domain marker for `--strict-markers` collection.
@@ -172,20 +181,6 @@ Verified:
 - Added matching entries to `RESPONSE_LEAK_MARKERS` / `find_response_leak_markers()` so T-13.2 fails when live LM output still contains them.
 - Added T-17.16 fixture and unit coverage for full and mid-body `data_honesty` leaks.
 - Added `@handle_errors` to five `response_postprocess.py` helpers (`_truncate_at_first_leak`, `_response_starts_with_code_artifact`, `_first_nonempty_line_looks_like_user_prose`, `_response_is_mostly_instruction_leak`, `find_response_leak_markers`).
-
-### 2026-07-03 - Fix nightly CI: 26 CI-only test failures across 4 rounds **COMPLETED**
-- **Rounds 1-3 (15 fixes)**: Pytest 9.1 `--durations` compat; basetemp cleanup; email/Discord/headless/ServiceManager/UI schedule mock fixes; gitignored config skips; writable `tmp_path` for Linux.
-- **Round 4 (11 fixes)**: Process-group tests now `skipif(os.name != "nt")` since spoofing `os.name='nt'` on Linux crashes `Path()`; eliminated `no_parallel` markers + fixed policy violation. `is_local_module`/directory-tree/quick-status tests skip or mock when gitignored config absent. File locking tests platform-aware (`fcntl` on Linux, lock-file on Windows). Google health fixture tests skip when gitignored fixtures absent. `validate_core_paths` uses writable `tmp_path`.
-- **Round 5 (10 fixes)**: Complexity categorization tests pin 100/200/300 thresholds via module that ``categorize_functions`` is bound to (importlib reload issue). Config import tests use committed `.example` JSON on CI; `load_external_config()` falls back to `.example` when gitignored config is absent. Path-drift legacy-doc test uses inline config. Logging tests tolerate pytest capture handlers and mock audit lock for defer rollover.
-- **Round 6 (10 fixes)**: `load_external_config()` auto-loads `development_tools_config.json.example` on CI (fixes paired_docs, local_module_prefixes, generated_files guard, complexity thresholds project-wide). Complexity fixture patches `categorize_functions.__module__`. Email concurrent-access test mocks `_get_email_config`. Deprecation guard skips auto-generated AI report files when config is absent. Config import test expects [ARCHITECTURE.md](../ARCHITECTURE.md) in derived default_docs (not README).
-- **Round 7 (6 fixes)**: Reordered `load_external_config()` to prefer `.example` over stale minimal config from portability smoke tests (fixes `local_module_prefixes` / domain_mapper). `should_exclude_file()` and `test_config.json` always exclude `tests/fixtures/`. Env-mutation policy skips `tests/data/tmp/` and `pytest_runner` copied dev-tools trees. Google Health behavior test sets `GOOGLE_HEALTH_ENABLED` via env + `core.config` + handler module. Discord user creation prefers test-dir index lookup and retries with `auto_create=True`.
-- **Round 8 (4 fixes)**: Added `integrations` to `.example` `local_module_prefixes`. Health handler reads `GOOGLE_HEALTH_ENABLED` at call time from `core.config`. System signals test pins `core_files` so CI config key_files do not mark CRITICAL. User index updates use threading lock + single-handle `file_lock` RMW (fixes Linux concurrent JSON corruption).
-- **Round 9 (xdist crash)**: `run_test_suite` serially retries parallel pytest when output contains `node down: Not properly terminated` (same recovery as teardown interrupt). Concurrent user-index test marked `no_parallel`.
-- **Round 10 (5 failures)**: `is_google_health_enabled()` reads env at call time (fixes health handler CI monkeypatch). User index updates retry with backoff and log instead of raising on lock timeout; verify_creation skips duplicate index write and falls back to account file on disk. `get_connect_readiness()` also uses runtime env check (module constant was False on CI while handler check passed).
-- **Round 11 (file lock)**: Linux `file_lock()` adds in-process mutex per path - `fcntl.flock` alone does not serialize threads that `open()` the same file separately.
-- **Round 12 (serial basetemp)**: `run_test_suite` shares one run id and pre-creates `parallel/` + `serial/` basetemp dirs (matches `run_tests.py`); cleanup keeps nested run-id folder during active pytest. Google Health reconnect test pins feature/auth guards to reach notice path on CI.
-- **Audit hygiene**: `@handle_errors` on `is_google_health_enabled()` and `_thread_lock_for()`; function registry regenerated; changelog ASCII/link doc-fix pass.
-- Root cause pattern: tests pass locally (env vars, config files, Windows paths) but fail on CI (Linux, no credentials, no gitignored config/fixtures). Underlying theme: `tests/test_helpers/fixtures/` and `development_tools_config.json` are gitignored.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

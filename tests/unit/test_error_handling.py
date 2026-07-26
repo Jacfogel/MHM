@@ -152,10 +152,17 @@ class TestErrorHandlerDecorator:
             test_function()
             
             log_blob = _mock_log_text(mock_error)
+            # One structured _log_error line plus User Error line
             assert mock_error.call_count >= 2
             assert "test operation" in log_blob and "Test error" in log_blob
+            assert "type=ValueError" in log_blob
             assert "User Error:" in log_blob
-
+            structured = [
+                call
+                for call in mock_error.call_args_list
+                if call.args and "type=ValueError" in str(call.args[0])
+            ]
+            assert len(structured) == 1, "Should emit a single structured error line"
 
 @pytest.mark.core
 class TestHandleErrorsDecorator:

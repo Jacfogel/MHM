@@ -121,8 +121,10 @@ Routing rules:
 
 Logging constraints:
 
-- Use component loggers via `core/logger.py`.  
-- Do not use raw `logging.getLogger(...)` for new error logging.  
+- Prefer component loggers via `core/logger.py` for call-site / domain logging.  
+- Do not introduce new raw `logging.getLogger(...)` paths for application errors.  
+- Exception: `@handle_errors` uses the dedicated `mhm.error_handler` safe logger (wired to `errors.log` by `setup_error_handler_logging()`). Do not replace that with ComponentLogger inside `core/error_handling.py`.  
+- Soft delivery failures that matter operationally (failed check-in / message send) should log at `ERROR` so they appear in `errors.log`.
 
 ---
 
