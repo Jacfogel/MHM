@@ -1471,6 +1471,14 @@ STATIC_ANALYSIS = {
     "pip_audit_args": [],
     # Offline/CI: analyze_pip_audit.run_pip_audit skips when DEV_TOOLS_PIP_AUDIT_SKIP is truthy.
     "pip_audit_timeout_seconds": 600,
+    # Vulture dead-code (Tier 3; min-confidence gates noise — default 80)
+    "vulture_command": ["python", "-m", "vulture"],
+    # Extra args merge with default excludes for tests/data and similar (see analyze_vulture).
+    "vulture_args": [],
+    # Empty = use get_scan_directories(); projects may set explicit roots in config JSON.
+    "vulture_scan_paths": [],
+    "vulture_min_confidence": 80,
+    "vulture_timeout_seconds": 600,
 }
 
 

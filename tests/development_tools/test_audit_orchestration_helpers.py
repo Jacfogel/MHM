@@ -363,11 +363,12 @@ def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
 
 @pytest.mark.unit
 def test_get_tier2_groups_skips_unused_imports_report_when_dev_tools_only():
-    """Dev-tools-only audits still analyze unused imports but do not rewrite UNUSED_IMPORTS_REPORT.md (V5 §7.19)."""
+    """Dev-tools-only audits still analyze unused imports but do not rewrite UNUSED_IMPORTS_REPORT.md (V5 Section 7.19)."""
     from development_tools.shared.audit_tiers import get_tier2_groups
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
+    svc.audit_scope_path = None
     _ind, groups = get_tier2_groups(svc)
     last_group = [n for n, _ in groups[-1]]
     assert last_group == ["analyze_unused_imports", "generate_unused_imports_report"]

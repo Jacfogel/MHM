@@ -143,6 +143,13 @@
       "invalidation": "Ruff batch paths keyed by Path.resolve(); tool JSON mtime"
     },
     {
+      "tool": "analyze_vulture",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
       "tool": "generate_dev_tools_coverage",
       "strategy": "domain_test_file_cache_merge",
       "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",

@@ -1313,6 +1313,7 @@ class AIPrioritiesDocumentMixin:
             pyright_data = static_analysis.get("analyze_pyright", {})
             bandit_data = static_analysis.get("analyze_bandit", {})
             pip_audit_data = static_analysis.get("analyze_pip_audit", {})
+            vulture_data = static_analysis.get("analyze_vulture", {})
             ruff_summary = static_analysis.get("analyze_ruff", {}).get("summary", {})
             pyright_summary = static_analysis.get("analyze_pyright", {}).get(
                 "summary", {}
@@ -1321,6 +1322,9 @@ class AIPrioritiesDocumentMixin:
                 "summary", {}
             )
             pip_audit_summary = static_analysis.get("analyze_pip_audit", {}).get(
+                "summary", {}
+            )
+            vulture_summary = static_analysis.get("analyze_vulture", {}).get(
                 "summary", {}
             )
             pyright_details = static_analysis.get("analyze_pyright", {}).get(
@@ -1332,6 +1336,9 @@ class AIPrioritiesDocumentMixin:
             pip_audit_details = static_analysis.get("analyze_pip_audit", {}).get(
                 "details", {}
             )
+            vulture_details = (
+                vulture_data.get("details", {}) if isinstance(vulture_data, dict) else {}
+            )
             ruff_details = (
                 ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
             )
@@ -1339,10 +1346,12 @@ class AIPrioritiesDocumentMixin:
             pyright_available = bool(pyright_data.get("available", False))
             bandit_available = bool(bandit_data.get("available", False))
             pip_audit_available = bool(pip_audit_data.get("available", False))
+            vulture_available = bool(vulture_data.get("available", False))
             ruff_issues = to_int(ruff_summary.get("total_issues")) or 0
             pyright_issues = to_int(pyright_summary.get("total_issues")) or 0
             bandit_issues = to_int(bandit_summary.get("total_issues")) or 0
             pip_audit_issues = to_int(pip_audit_summary.get("total_issues")) or 0
+            vulture_issues = to_int(vulture_summary.get("total_issues")) or 0
             pyright_errors = to_int(pyright_details.get("errors")) or 0
             pyright_warnings = to_int(pyright_details.get("warnings")) or 0
             static_tools_ok = (
@@ -1350,6 +1359,7 @@ class AIPrioritiesDocumentMixin:
                 and pyright_available
                 and bandit_available
                 and pip_audit_available
+                and vulture_available
             )
             if not static_tools_ok:
                 unavailable_bullets: list[str] = []
@@ -1357,6 +1367,7 @@ class AIPrioritiesDocumentMixin:
                 pyright_msg = str(pyright_details.get("message", "")).strip()
                 bandit_msg = str(bandit_details.get("message", "")).strip()
                 pip_audit_msg = str(pip_audit_details.get("message", "")).strip()
+                vulture_msg = str(vulture_details.get("message", "")).strip()
                 if not ruff_available:
                     unavailable_bullets.append(
                         f"Ruff unavailable: {ruff_msg if ruff_msg else 'no details provided'}"
@@ -1373,9 +1384,13 @@ class AIPrioritiesDocumentMixin:
                     unavailable_bullets.append(
                         f"pip-audit unavailable: {pip_audit_msg if pip_audit_msg else 'no details provided'}"
                     )
+                if not vulture_available:
+                    unavailable_bullets.append(
+                        f"Vulture unavailable: {vulture_msg if vulture_msg else 'no details provided'}"
+                    )
                 unavailable_bullets.append(
                     "Action: install missing tooling in the audit interpreter (for example `.venv`; "
-                    "`pip install bandit pip-audit`) and rerun `python development_tools/run_development_tools.py audit --full`."
+                    "`pip install bandit pip-audit vulture`) and rerun `python development_tools/run_development_tools.py audit --full`."
                 )
                 unavailable_bullets.append(
                     "Why this matters: without the full static-analysis stack, security and type/lint signals in reports are incomplete."
@@ -1493,6 +1508,30 @@ class AIPrioritiesDocumentMixin:
                             f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s)."
                         ),
                         bullets=pip_bullets,
+                    )
+                # Vulture: Tier 4 only (advisory; overlaps unused-imports / registry noise)
+                if vulture_issues > 0:
+                    vulture_bullets: list[str] = [
+                        f"Vulture dead-code findings: {vulture_issues} issue(s) across "
+                        f"{to_int(vulture_summary.get('files_affected')) or 0} file(s) "
+                        f"(min-confidence gated).",
+                        "Action: Run `python development_tools/static_checks/analyze_vulture.py` "
+                        "and confirm false positives before deleting symbols.",
+                        "Why this matters: Confirmed dead code increases maintenance cost; noisy hits should not drive Immediate Focus.",
+                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                    ]
+                    vulture_bullets.insert(
+                        0,
+                        "Review for guidance: development_tools/DEVELOPMENT_TOOLS_GUIDE.md (Section 10.1)",
+                    )
+                    add_priority(
+                        tier=4,
+                        title="Review Vulture dead-code findings",
+                        reason=(
+                            f"Vulture reports {vulture_issues} dead-code finding(s) across "
+                            f"{to_int(vulture_summary.get('files_affected')) or 0} file(s)."
+                        ),
+                        bullets=vulture_bullets,
                     )
 
         # Watch coverage when thresholds are currently met (monitor for regressions).

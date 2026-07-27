@@ -354,9 +354,42 @@ class AuditOrchestrationMixin:
         self._audit_in_progress = True
         _AUDIT_IN_PROGRESS_GLOBAL = True
         # Dev-tools-only mode: restrict scan to development_tools
+        # Custom --audit-scope (B-016): path-derived storage slug + scan-dir override
         dev_tools_only = getattr(self, 'dev_tools_only_mode', False)
+        audit_scope_path = getattr(self, "audit_scope_path", None)
+        audit_scope_slug = getattr(self, "audit_scope_slug", None)
+        custom_audit_scope = bool(audit_scope_path and audit_scope_slug)
+        self._audit_scope_skipped_tools = []
         _audit_storage_token = None
-        if dev_tools_only:
+        if custom_audit_scope and dev_tools_only:
+            logger.error(
+                "--audit-scope and --dev-tools-only cannot both be active; refusing run"
+            )
+            self._audit_in_progress = False
+            _AUDIT_IN_PROGRESS_GLOBAL = False
+            return False
+        if custom_audit_scope:
+            # MVP: Tier 2 only (scan-dir-aware tools); never run Tier 3 tracks.
+            if tier > 2:
+                logger.info(
+                    "Capping --audit-scope run at Tier 2 (Tier 3 unsupported for custom scopes)"
+                )
+                tier = 2
+                self.current_audit_tier = 2
+                operation_name = "audit (Tier 2 - audit-scope MVP)"
+            from ..audit_storage_scope import set_audit_storage_scope
+
+            _audit_storage_token = set_audit_storage_scope(str(audit_scope_slug))
+            operation_name = f"{operation_name} (audit-scope={audit_scope_path})"
+            try:
+                from ... import config as dt_config
+
+                self._original_get_scan_directories = dt_config.get_scan_directories
+                scope_dirs = [str(audit_scope_path)]
+                dt_config.get_scan_directories = lambda dirs=scope_dirs: list(dirs)
+            except (ImportError, AttributeError):
+                pass
+        elif dev_tools_only:
             from ..audit_storage_scope import (
                 STORAGE_SCOPE_DEV_TOOLS,
                 set_audit_storage_scope,
@@ -406,12 +439,21 @@ class AuditOrchestrationMixin:
         
         success = True
         try:
-            # Tier 1: Quick audit tools
-            print("Running Tier 1 tools (quick audit)...")
-            logger.info("Running Tier 1 tools (quick audit)...")
-            tier1_success = self._run_quick_audit_tools()
-            if not tier1_success:
-                success = False
+            # Tier 1: Quick audit tools (skipped for --audit-scope MVP)
+            if custom_audit_scope:
+                print(
+                    f"Skipping Tier 1 for --audit-scope={audit_scope_path} "
+                    "(MVP runs scan-dir-aware Tier 2 tools only)..."
+                )
+                logger.info(
+                    "Skipping Tier 1 for custom audit scope %s", audit_scope_path
+                )
+            else:
+                print("Running Tier 1 tools (quick audit)...")
+                logger.info("Running Tier 1 tools (quick audit)...")
+                tier1_success = self._run_quick_audit_tools()
+                if not tier1_success:
+                    success = False
             
             # Tier 2: Standard audit tools
             if tier >= 2:
@@ -524,71 +566,86 @@ class AuditOrchestrationMixin:
                     logger.warning(f"Failed to temporarily remove audit lock file: {e}")
             
             try:
-                # Generate status documents
-                # Get status file paths from config
-                try:
-                    from ... import config
-                    status_config = config.get_status_config()
-                    status_files_config = status_config.get('status_files', {})
-                    if getattr(self, 'dev_tools_only_mode', False):
-                        ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
-                        ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
-                        consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
-                    else:
-                        ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
-                        ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                        consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
-                except (ImportError, AttributeError, KeyError):
-                    if getattr(self, 'dev_tools_only_mode', False):
-                        ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
-                        ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
-                        consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
-                    else:
-                        ai_status_path = 'development_tools/AI_STATUS.md'
-                        ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                        consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
-                
-                try:
-                    ai_status = self._generate_ai_status_document()
-                except Exception as e:
-                    if os.getenv("MHM_TESTING") == "1":
-                        logger.debug(
-                            "Error generating AI_STATUS document: %s", e, exc_info=True
-                        )
-                    else:
-                        logger.warning("Error generating AI_STATUS document: %s", e)
-                    ai_status = "# AI Status\n\nError generating status document."
-                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
-                
-                try:
-                    ai_priorities = self._generate_ai_priorities_document()
-                except Exception as e:
-                    import traceback
-                    if os.getenv("MHM_TESTING") == "1":
-                        logger.debug(
-                            "Error generating AI_PRIORITIES document: %s\n%s",
-                            e,
-                            traceback.format_exc(),
-                        )
-                    else:
-                        logger.warning("Error generating AI_PRIORITIES document: %s", e)
-                        logger.debug(
-                            "AI_PRIORITIES traceback:\n%s", traceback.format_exc()
-                        )
-                    ai_priorities = "# AI Priorities\n\nError generating priorities document."
-                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
-                
-                try:
-                    consolidated_report = self._generate_consolidated_report()
-                except Exception as e:
-                    if os.getenv("MHM_TESTING") == "1":
-                        logger.debug(
-                            "Error generating consolidated report: %s", e, exc_info=True
-                        )
-                    else:
-                        logger.warning("Error generating consolidated report: %s", e)
-                    consolidated_report = "Error generating consolidated report."
-                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
+                # Custom --audit-scope MVP: do not overwrite AI_* / DEV_TOOLS_* reports.
+                if custom_audit_scope:
+                    scoped_status = self._generate_scoped_audit_status_snippet()
+                    scoped_rel = (
+                        f"development_tools/reports/scopes/{audit_scope_slug}/"
+                        "SCOPED_AUDIT_STATUS.md"
+                    )
+                    ai_status_file = create_output_file(
+                        scoped_rel, scoped_status, project_root=self.project_root
+                    )
+                    ai_priorities_file = ai_status_file
+                    consolidated_file = ai_status_file
+                    print(f"  * Scoped audit status: {ai_status_file}")
+                    logger.info("* Scoped audit status: %s", ai_status_file)
+                else:
+                    # Generate status documents
+                    # Get status file paths from config
+                    try:
+                        from ... import config
+                        status_config = config.get_status_config()
+                        status_files_config = status_config.get('status_files', {})
+                        if getattr(self, 'dev_tools_only_mode', False):
+                            ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
+                            ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
+                            consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
+                        else:
+                            ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
+                            ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                            consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
+                    except (ImportError, AttributeError, KeyError):
+                        if getattr(self, 'dev_tools_only_mode', False):
+                            ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
+                            ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
+                            consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
+                        else:
+                            ai_status_path = 'development_tools/AI_STATUS.md'
+                            ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                            consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
+                    
+                    try:
+                        ai_status = self._generate_ai_status_document()
+                    except Exception as e:
+                        if os.getenv("MHM_TESTING") == "1":
+                            logger.debug(
+                                "Error generating AI_STATUS document: %s", e, exc_info=True
+                            )
+                        else:
+                            logger.warning("Error generating AI_STATUS document: %s", e)
+                        ai_status = "# AI Status\n\nError generating status document."
+                    ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
+                    
+                    try:
+                        ai_priorities = self._generate_ai_priorities_document()
+                    except Exception as e:
+                        import traceback
+                        if os.getenv("MHM_TESTING") == "1":
+                            logger.debug(
+                                "Error generating AI_PRIORITIES document: %s\n%s",
+                                e,
+                                traceback.format_exc(),
+                            )
+                        else:
+                            logger.warning("Error generating AI_PRIORITIES document: %s", e)
+                            logger.debug(
+                                "AI_PRIORITIES traceback:\n%s", traceback.format_exc()
+                            )
+                        ai_priorities = "# AI Priorities\n\nError generating priorities document."
+                    ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
+                    
+                    try:
+                        consolidated_report = self._generate_consolidated_report()
+                    except Exception as e:
+                        if os.getenv("MHM_TESTING") == "1":
+                            logger.debug(
+                                "Error generating consolidated report: %s", e, exc_info=True
+                            )
+                        else:
+                            logger.warning("Error generating consolidated report: %s", e)
+                        consolidated_report = "Error generating consolidated report."
+                    consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 
                 post_final_mtimes = _get_status_file_mtimes(
                     self.project_root, dev_tools_only=dev_tools_only
@@ -646,7 +703,10 @@ class AuditOrchestrationMixin:
                     if cache_summary:
                         cache_msg = f"Cache mode summary: {cache_summary}"
                         logger.info(cache_msg)
-                if getattr(self, "dev_tools_only_mode", False):
+                if custom_audit_scope:
+                    # Already printed scoped status path above.
+                    pass
+                elif getattr(self, "dev_tools_only_mode", False):
                     print(f"  * Dev Tools Status: {ai_status_file}")
                     print(f"  * Dev Tools Priorities: {ai_priorities_file}")
                     print(f"  * Dev Tools Consolidated Report: {consolidated_file}")
@@ -685,8 +745,11 @@ class AuditOrchestrationMixin:
             logger.error(f"Error generating status files: {e}", exc_info=True)
             success = False
         finally:
-            # Restore get_scan_directories if we patched it for dev-tools-only mode
-            if getattr(self, 'dev_tools_only_mode', False) and hasattr(self, '_original_get_scan_directories'):
+            # Restore get_scan_directories if we patched it for scoped / dev-tools-only mode
+            if hasattr(self, "_original_get_scan_directories") and (
+                getattr(self, "dev_tools_only_mode", False)
+                or getattr(self, "audit_scope_path", None)
+            ):
                 try:
                     from ... import config as dt_config
                     dt_config.get_scan_directories = self._original_get_scan_directories
@@ -714,6 +777,50 @@ class AuditOrchestrationMixin:
                     logger.warning(f"Failed to remove audit lock file: {e}")
         
         return success
+
+    def _generate_scoped_audit_status_snippet(self) -> str:
+        """Minimal status markdown for --audit-scope MVP (does not replace AI_STATUS)."""
+        scope_path = getattr(self, "audit_scope_path", None) or "?"
+        scope_slug = getattr(self, "audit_scope_slug", None) or "?"
+        tools_run = sorted(getattr(self, "_tools_run_in_current_tier", set()) or [])
+        skipped = list(getattr(self, "_audit_scope_skipped_tools", []) or [])
+        rel_file = (
+            f"development_tools/reports/scopes/{scope_slug}/SCOPED_AUDIT_STATUS.md"
+        )
+        lines = [
+            f"> **File**: `{rel_file}`",
+            f"> **Purpose**: MVP scoped-audit status for `{scope_path}` (does not replace AI_*).",
+            "> **Audience**: AI collaborators and developers reviewing scoped audits",
+            "",
+            "# Scoped Audit Status (B-016 MVP)",
+            "",
+            f"> **Scope path**: `{scope_path}`",
+            f"> **Storage slug**: `{scope_slug}`",
+            "> **Note**: Does not overwrite `development_tools/AI_STATUS.md` / "
+            "`development_tools/AI_PRIORITIES.md` / `development_tools/CONSOLIDATED_REPORT.md`.",
+            "",
+            "## Tools run",
+        ]
+        if tools_run:
+            lines.extend(f"- `{name}`" for name in tools_run)
+        else:
+            lines.append("- (none recorded)")
+        lines.extend(["", "## Tools skipped (unsupported in MVP)"])
+        if skipped:
+            lines.extend(f"- `{name}`" for name in skipped)
+        else:
+            lines.append("- (none)")
+        lines.extend(
+            [
+                "",
+                "## Next steps",
+                "- Inspect scoped JSON under "
+                f"`development_tools/**/jsons/scopes/{scope_slug}/`.",
+                "- For full-repo signals, run `audit` without `--audit-scope`.",
+                "",
+            ]
+        )
+        return "\n".join(lines)
     
     def run_quick_audit(self) -> bool:
         """Run quick audit (Tier 1 only)."""

@@ -15,6 +15,7 @@ requests>=2.33.0  # For LM Studio HTTP API calls (pip-audit floor)
 urllib3>=2.7.0  # Transitive; explicit floor for CVE fixes
 msgpack>=1.2.1  # Transitive (CacheControl/pip-audit); GHSA-6v7p-g79w-8964 DoS fix
 idna>=3.15  # Transitive (requests); CVE-2026-45409 / GHSA-65pc-fj4g-8rjx DoS in encode(); pip-audit floor
+pyasn1>=0.6.4  # Transitive (google-auth); pip-audit floor for PYSEC-2026-3455/3456/3457
 pydantic>=2.7.0  # For JSON schema validation and parsing
 google-auth>=2.29.0  # Google Health OAuth token refresh
 google-auth-oauthlib>=1.2.0  # Google Health OAuth connect flow
@@ -44,6 +45,7 @@ ruff>=0.1.0  # Linting and unused-imports (development_tools audit; preferred ov
 pylint>=2.17.0  # For code linting (fallback when ruff unavailable)
 pyright>=1.1.380  # For static type checking
 bandit[toml]>=1.7.0  # Security lint; TOML for [tool.bandit] in pyproject.toml (audit --full Tier 3)
+vulture>=2.11  # Dead-code scan (development_tools audit --full Tier 3 analyze_vulture)
 pip>=26.1.2  # Installer security floor for pip-audit findings on pip itself
 pip-audit>=2.6.0  # Dependency vulnerability scan (development_tools audit --full Tier 3)
 

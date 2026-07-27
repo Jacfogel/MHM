@@ -360,6 +360,7 @@ def test_static_analysis_snapshot_defaults_and_normalizes(temp_project_copy: Pat
             "details": "bad",
         },
         "analyze_bandit": None,
+        "analyze_vulture": None,
         "analyze_pip_audit": {
             "summary": {"total_issues": "x", "files_affected": 1},
             "details": {"tool_available": False},
@@ -375,6 +376,7 @@ def test_static_analysis_snapshot_defaults_and_normalizes(temp_project_copy: Pat
     assert snapshot["analyze_pyright"]["summary"]["total_issues"] == 0
     assert snapshot["analyze_bandit"]["available"] is False
     assert snapshot["analyze_pip_audit"]["available"] is False
+    assert snapshot["analyze_vulture"]["available"] is False
 
 
 @pytest.mark.unit

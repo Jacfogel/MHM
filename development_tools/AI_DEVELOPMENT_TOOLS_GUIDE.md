@@ -42,6 +42,7 @@ python development_tools/run_development_tools.py help
 - `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min). Alias: `full-audit`.
 - `full-audit` - Alias command for `audit --full`.
 - `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
+- `audit --audit-scope <rel-path>` - B-016 MVP subtree Tier 2 (scan-dir tools only); exclusive with `--dev-tools-only`; scoped status under `reports/scopes/scope_*/`.
 - `status` - Quick system status (uses cached audit data)
 - `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
 - `doc-sync` - Check documentation synchronization
@@ -317,11 +318,11 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ---
 
-## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
+## 10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)
 
 **Radon (manual pilot)**: Same stance as [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10 - compare Radon `cc` output to in-audit `analyze_functions` / refactor signals before treating it as authoritative; not integrated into default `audit` tiers (V5 Section 4.1).
 
-**Bandit** and **pip-audit** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit`; they are in root `requirements.txt`. **`DEV_TOOLS_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Radon** / **pydeps** / **vulture** remain manual pilots. Full detail and manual one-off commands: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+**Bandit**, **pip-audit**, and **Vulture** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit` / `analyze_vulture`; they are in root `requirements.txt`. **`DEV_TOOLS_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Vulture** is min-confidence gated (default 80); findings surface as Tier 4 advisory. **Radon** / **pydeps** remain manual pilots. Full detail: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
 **TODO sync workflow** (B-010): (1) `sync-todo --dry-run` for stdout analysis only; (2) confirm **manual-review** items against AI_CHANGELOG / CHANGELOG_DETAIL before any hand edits; (3) `sync-todo --apply` only when auto-cleanable `- [x]` / `- [X]` lines look correct (never removes strikethrough/bold completions); (4) never combine `--dry-run` with `--apply`. Full recipe: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
@@ -336,6 +337,6 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 - `python -m pip_audit` - ad-hoc; audit uses `development_tools/static_checks/analyze_pip_audit.py` (requirements-hash cache).
 - `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-cross-check only until Tier policy exists.
 
-### 10.1. Gap-analysis alignment (V5 Section 5.5)
+### 10.1. Gap-analysis alignment (V6 B-013)
 
-Tier 2 **`module-refactor-candidates`** is the in-repo "large module / complexity" gap signal; pair it with `AI_PRIORITIES.md` and `analyze_module_refactor_candidates_results.json` when triaging Documentation / Code quality / Testing themes. Full detail: Section 10.1 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+Triage via `AI_PRIORITIES.md` + existing tools; Tier 2 **`module-refactor-candidates`** is the large-module gap signal; no combined `analyze_gap*` tool. Full detail: Section 10.1 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).

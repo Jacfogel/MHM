@@ -90,6 +90,9 @@ class AIToolsService(
             'include_dev_tools': False
         }
         self.dev_tools_only_mode = False
+        # B-016: relative path for --audit-scope (mutually exclusive with dev_tools_only_mode)
+        self.audit_scope_path: str | None = None
+        self.audit_scope_slug: str | None = None
 
         self.docs_sync_summary = None
         self.legacy_cleanup_results = None

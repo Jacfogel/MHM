@@ -1328,6 +1328,9 @@
       "run_tests.py",
       "run_mhm.py"
     ],
+    "vulture_min_confidence": 80,
+    "vulture_scan_paths": [],
+    "vulture_timeout_seconds": 600,
     "timeout_seconds": 600
   },
   "quick_status": {

@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-26 - V6 deferred trio + B-015 coverage helpers **COMPLETED**
+- B-013: gap-category map folded into DEVELOPMENT_TOOLS_GUIDE Section 10.1 (standalone matrix removed; no `analyze_gap*` tool).
+- B-012: Tier 3 `analyze_vulture` (min-confidence 80); Radon/pydeps stay manual.
+- B-016 MVP: `--audit-scope` -> `scope_*` storage + Tier 2 scan-dir tools; no AI_* overwrite.
+- B-015 slice #4: coverage argv/shard/domain-cache + report scope helpers extracted.
+- AI_PRIORITIES cleanup: path-drift/ASCII/address on scoped status + guides; Ruff UP035/SIM110 on B-015 helpers; `pyasn1>=0.6.4` floor (pip-audit clean).
+- Fixed Tier 3 test failures (scoped MagicMock + regenerated `tool_cache_inventory.json` for `analyze_vulture`); vulture always excludes `tests/data` and similar ephemeral paths.
+- Removed standalone gap matrix doc; triage map lives in DEVELOPMENT_TOOLS_GUIDE Section 10.1 only.
+
 ### 2026-07-23 - Sync->async bridge, check-in logging, errors.log routing **COMPLETED**
 - Managed event loop always runs on a background thread; sync bridge uses `run_coroutine_threadsafe` when the loop is running (fixes concurrent `run_until_complete` / "loop already running").
 - Scheduled check-in success log gated on actual send result.
@@ -166,21 +175,6 @@ Verified:
 - Added `@pytest.mark.user` to three policy guard tests missing domain markers; Pydantic `@model_validator` methods tagged with `unused_functions_exclude`.
 - Product AI now receives an explicit current date/time line in chat and action-planning context, using the user's account timezone via `scheduler.user_timezone`.
 - Check-in "today" detection and task due-soon windows now use `user_local_date()` / `user_local_now_naive()` instead of server-local `date.today()` / `now_datetime_full()`.
-
-### 2026-07-05 - Planner routing behavior tests and AI error mock fix **COMPLETED**
-- Fixed T-10.x AI functionality error tests to patch `ai.client.lm_studio_client.requests` (HTTP calls moved out of `ai.chat.chatbot` during the `ai/` subpackage refactor).
-- Added `tests/behavior/test_action_planner_routing.py`: six behavior tests for `InteractionManager` with `AI_ACTION_PLANNER_ENABLED=true` using mocked planner output (create task via dispatcher, clarify, answer-only, planner-none fallback, high-confidence bypass, planner disabled).
-- Added `strip_product_ai_category_leaks()` in `ai/chat/response_postprocess.py` to remove leaked `[persona]`, `[reply_rules]`, `[data_honesty]`, and related category blocks from user-visible replies; wired through `clean_system_prompt_leaks()`.
-- Chat generation now uses `max(template.max_tokens, AI_MAX_RESPONSE_TOKENS)` so config token budget is not capped below `AI_MAX_RESPONSE_TOKENS` (default 300).
-- Fixed T-13.1 false truncation failure: the AI functionality test passed `response[:200]` into the validator, not the full model output.
-- **`test_lm_studio_connection`**: removed the `MHM_TESTING=1` early return that forced availability back on during `_ensure_lm_studio_available()` retry, so unavailable-LM paths use deterministic fallback (fixes T-10.1).
-- **`strip_markup_and_tutorial_leaks()`**: strips HTML (`<p>`), HTML comments, `[context_override]`, `## Your task` / tutorial headings, lone `##` lines, and Python code-fragment continuations.
-- **Post-process edge cases (T-17)**: meta-heading truncation at short prefixes; stricter leading-code detection (avoids `parser = argparse.` false prose match); form-field / persona-menu stripping; deterministic T-17.1-T-17.10 contract tests in `tests/ai/test_ai_postprocess.py` and unit fixtures in `tests/unit/test_ai_response_postprocess.py`. T-13.2 now flags code/meta leak markers in special-character responses.
-- **Post-process live-leak patterns (T-17.11-T-17.15)**: strip `[response_rules]` / `[reply_rules]` mid-body, `## How to use`, `### Example`, single-`#` tutorial headings, instruction-only feature-availability lines, and `(If the user says...)` template tails; shared `find_response_leak_markers()` for T-13.2/T-13.3 live tests.
-- Extended `clean_system_prompt_leaks()` / `strip_markup_and_tutorial_leaks()` to strip leaked `data_honesty` prompt body (`The user context below is reference...`, `Never reveal raw context blocks`, etc.) via truncation, regex removal, and line hints.
-- Added matching entries to `RESPONSE_LEAK_MARKERS` / `find_response_leak_markers()` so T-13.2 fails when live LM output still contains them.
-- Added T-17.16 fixture and unit coverage for full and mid-body `data_honesty` leaks.
-- Added `@handle_errors` to five `response_postprocess.py` helpers (`_truncate_at_first_leak`, `_response_starts_with_code_artifact`, `_first_nonempty_line_looks_like_user_prose`, `_response_is_mostly_instruction_leak`, `find_response_leak_markers`).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

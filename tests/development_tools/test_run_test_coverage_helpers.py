@@ -508,7 +508,7 @@ def test_wait_for_parallel_coverage_artifacts_stops_when_expected_met(tmp_path: 
 def test_detect_expected_parallel_workers_invalid_integers_returns_none(tmp_path: Path):
     regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
     with patch(
-        "development_tools.tests.run_test_coverage.re.findall",
+        "development_tools.tests.coverage_shard_merge.re.findall",
         return_value=[("notint", "1")],
     ):
         assert regenerator._detect_expected_parallel_workers("created: notint / 1 workers") is None

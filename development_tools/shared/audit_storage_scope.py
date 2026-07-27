@@ -1,14 +1,15 @@
 # TOOL_TIER: core
-"""Audit artifact storage scope: full repo vs dev-tools-only.
+"""Audit artifact storage scope: full repo, dev-tools-only, or path-derived scopes.
 
-Both layouts live under parallel trees:
+Layouts live under parallel trees:
 
 - ``development_tools/<domain>/jsons/scopes/full/`` — full-repo audits (default)
 - ``development_tools/<domain>/jsons/scopes/dev_tools/`` — ``--dev-tools-only``
-- ``development_tools/reports/scopes/<full|dev_tools>/...`` — aggregated JSON and timings
+- ``development_tools/<domain>/jsons/scopes/scope_<slug>/`` — ``--audit-scope <path>`` (B-016 MVP)
+- ``development_tools/reports/scopes/<scope>/...`` — aggregated JSON and timings
 
-**Reads:** tool JSON only under ``jsons/scopes/<full|dev_tools>/``; Tier 3 aggregates and
-``tool_timings.json`` only under ``reports/scopes/<scope>/`` (V5 §7.16). ``--clear-cache`` may
+**Reads:** tool JSON under ``jsons/scopes/<scope>/``; Tier 3 aggregates and
+``tool_timings.json`` under ``reports/scopes/<scope>/`` (V5 §7.16). ``--clear-cache`` may
 still remove orphan unscoped files left from older runs.
 """
 
@@ -17,6 +18,8 @@ from __future__ import annotations
 from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import Any
+
+from development_tools.shared.audit_scope import is_known_storage_scope
 
 AUDIT_SCOPE_USE_CONTEXT = object()
 _SENTINEL = AUDIT_SCOPE_USE_CONTEXT
@@ -34,7 +37,9 @@ def get_audit_storage_scope() -> str:
 
 
 def set_audit_storage_scope(scope: str) -> Token[Any]:
-    return _audit_storage_scope.set(scope)
+    if not is_known_storage_scope(str(scope)):
+        raise ValueError(f"unsupported audit storage scope: {scope!r}")
+    return _audit_storage_scope.set(str(scope))
 
 
 def reset_audit_storage_scope(token: Token[Any]) -> None:
@@ -44,10 +49,9 @@ def reset_audit_storage_scope(token: Token[Any]) -> None:
 def effective_storage_scope(explicit: str | object = _SENTINEL) -> str:
     if explicit is _SENTINEL:
         return _audit_storage_scope.get()
-    if explicit == STORAGE_SCOPE_DEV_TOOLS:
-        return STORAGE_SCOPE_DEV_TOOLS
-    if explicit == STORAGE_SCOPE_FULL:
-        return STORAGE_SCOPE_FULL
+    scope = str(explicit)
+    if is_known_storage_scope(scope):
+        return scope
     return STORAGE_SCOPE_FULL
 
 

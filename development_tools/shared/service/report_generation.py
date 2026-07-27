@@ -3,8 +3,9 @@ Report generation helpers for AIToolsService.
 
 Document builders live in dedicated mixins (V6 B-015):
 ``report_generation_ai_status``, ``report_generation_ai_priorities``,
-``report_generation_consolidated``. This module keeps shared helpers and composes
-those mixins.
+``report_generation_consolidated``. Scope filters live in
+``report_generation_scope_helpers``. This module keeps remaining shared helpers
+and composes those mixins.
 """
 
 # pyright: reportAttributeAccessIssue=false, reportGeneralTypeIssues=false
@@ -24,6 +25,14 @@ from .report_generation_tier3_helpers import (
     tier3_outcome_has_run_evidence as _tier3_outcome_has_run_evidence_fn,
     tier3_track_skipped_for_audit_scope as _tier3_track_skipped_fn,
     track_classification_label as _tier3_track_classification_label,
+)
+from .report_generation_scope_helpers import (
+    count_duplicate_affected_files as _count_duplicate_affected_files_fn,
+    count_duplicate_affected_files_dev_tools as _count_duplicate_affected_files_dev_tools_fn,
+    filter_circular_dependencies_dev_tools as _filter_circular_dependencies_dev_tools_fn,
+    filter_duplicate_groups_dev_tools as _filter_duplicate_groups_dev_tools_fn,
+    filter_high_coupling_dev_tools as _filter_high_coupling_dev_tools_fn,
+    path_is_under_development_tools_dir as _path_is_under_development_tools_dir_fn,
 )
 from .report_generation_ai_status import AIStatusDocumentMixin
 from .report_generation_ai_priorities import AIPrioritiesDocumentMixin
@@ -51,86 +60,33 @@ class ReportGenerationMixin(
 
     def _path_is_under_development_tools_dir(self, path_str: str) -> bool:
         """True if ``path_str`` resolves under ``project_root/development_tools``."""
-        if not path_str or not isinstance(path_str, str):
-            return False
-        try:
-            root = self.project_root.resolve()
-            anchor = (root / "development_tools").resolve()
-            raw = Path(path_str.strip())
-            candidate = (raw if raw.is_absolute() else (root / path_str)).resolve()
-            return anchor in candidate.parents or candidate == anchor
-        except (OSError, ValueError, RuntimeError):
-            norm = path_str.replace("\\", "/").strip().lstrip("./")
-            return norm.startswith("development_tools/") or norm == "development_tools"
+        return _path_is_under_development_tools_dir_fn(path_str, self.project_root)
 
     def _filter_duplicate_groups_dev_tools(self, groups: list[Any]) -> list[Any]:
         """Keep duplicate groups where every function maps to a file under development_tools/."""
-        out: list[Any] = []
-        for group in groups:
-            if not isinstance(group, dict):
-                continue
-            funcs = group.get("functions", [])
-            if not isinstance(funcs, list) or not funcs:
-                continue
-            paths: list[str] = []
-            for fn in funcs:
-                if isinstance(fn, dict):
-                    fp = fn.get("file", "")
-                    if fp:
-                        paths.append(str(fp))
-            if not paths:
-                continue
-            if all(self._path_is_under_development_tools_dir(p) for p in paths):
-                out.append(group)
-        return out
+        return _filter_duplicate_groups_dev_tools_fn(
+            groups, path_under_dev_tools=self._path_is_under_development_tools_dir
+        )
 
     def _count_duplicate_affected_files_dev_tools(self, groups: list[Any]) -> int:
-        files: set[str] = set()
-        for group in groups:
-            if not isinstance(group, dict):
-                continue
-            for fn in group.get("functions", []) or []:
-                if isinstance(fn, dict) and fn.get("file"):
-                    p = str(fn["file"])
-                    if self._path_is_under_development_tools_dir(p):
-                        files.add(p.replace("\\", "/"))
-        return len(files)
+        return _count_duplicate_affected_files_dev_tools_fn(
+            groups, path_under_dev_tools=self._path_is_under_development_tools_dir
+        )
 
     def _count_duplicate_affected_files(self, groups: list[Any]) -> int:
         """Count unique files represented by duplicate-function groups."""
-        files: set[str] = set()
-        for group in groups:
-            if not isinstance(group, dict):
-                continue
-            for fn in group.get("functions", []) or []:
-                if not isinstance(fn, dict):
-                    continue
-                path_value = str(fn.get("file", "")).strip()
-                if path_value:
-                    files.add(path_value.replace("\\", "/"))
-        return len(files)
+        return _count_duplicate_affected_files_fn(groups)
 
     def _filter_circular_dependencies_dev_tools(self, chains: list[Any]) -> list[Any]:
         """Keep dependency cycles that involve at least one module under ``development_tools/``."""
-        out: list[Any] = []
-        for chain in chains:
-            if not isinstance(chain, list):
-                continue
-            paths = [p for p in chain if isinstance(p, str) and p.strip()]
-            if paths and any(
-                self._path_is_under_development_tools_dir(p) for p in paths
-            ):
-                out.append(chain)
-        return out
+        return _filter_circular_dependencies_dev_tools_fn(
+            chains, path_under_dev_tools=self._path_is_under_development_tools_dir
+        )
 
     def _filter_high_coupling_dev_tools(self, items: list[Any]) -> list[dict[str, Any]]:
-        out: list[dict[str, Any]] = []
-        for item in items:
-            if isinstance(item, dict) and self._path_is_under_development_tools_dir(
-                str(item.get("file", ""))
-            ):
-                out.append(item)
-        return out
+        return _filter_high_coupling_dev_tools_fn(
+            items, path_under_dev_tools=self._path_is_under_development_tools_dir
+        )
 
     def _scoped_obvious_unused_import_metrics(
         self, unused_imports_data: dict[str, Any]
@@ -337,13 +293,14 @@ class ReportGenerationMixin(
         return details if isinstance(details, dict) else {}
 
     def _get_static_analysis_snapshot(self) -> dict[str, dict[str, Any]]:
-        """Load normalized summary/details for static analysis tools (ruff, pyright, bandit, pip-audit)."""
+        """Load normalized summary/details for static analysis tools (ruff, pyright, bandit, pip-audit, vulture)."""
         result: dict[str, dict[str, Any]] = {}
         for tool_name in (
             "analyze_ruff",
             "analyze_pyright",
             "analyze_bandit",
             "analyze_pip_audit",
+            "analyze_vulture",
         ):
             tool_data = self._load_tool_data(
                 tool_name, "static_checks", log_source=False

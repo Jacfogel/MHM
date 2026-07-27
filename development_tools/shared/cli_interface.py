@@ -76,6 +76,16 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         action="store_true",
         help="Run audit with development_tools as scan root; output DEV_TOOLS_STATUS.md, DEV_TOOLS_PRIORITIES.md, DEV_TOOLS_CONSOLIDATED_REPORT.md.",
     )
+    parser.add_argument(
+        "--audit-scope",
+        metavar="PATH",
+        default=None,
+        help=(
+            "B-016 MVP: audit a relative project subtree (e.g. communication/). "
+            "Mutually exclusive with --dev-tools-only. Runs scan-dir-aware Tier 2 tools only; "
+            "does not overwrite AI_STATUS.md."
+        ),
+    )
 
     if any(arg in ("-h", "--help") for arg in argv):
         _print_command_help(parser)
@@ -99,6 +109,30 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         getattr(ns, "dev_tools_only", False)
         or getattr(service, "dev_tools_only_mode", False)
     )
+
+    audit_scope_raw = getattr(ns, "audit_scope", None)
+    if audit_scope_raw and service.dev_tools_only_mode:
+        print(
+            "ERROR: --audit-scope and --dev-tools-only are mutually exclusive."
+        )
+        return 2
+    if audit_scope_raw:
+        from development_tools.shared.audit_scope import (
+            AuditScopeError,
+            resolve_audit_scope,
+        )
+
+        try:
+            rel, slug = resolve_audit_scope(service.project_root, audit_scope_raw)
+        except AuditScopeError as exc:
+            print(f"ERROR: invalid --audit-scope: {exc}")
+            return 2
+        service.audit_scope_path = rel
+        service.audit_scope_slug = slug
+        service.dev_tools_only_mode = False
+    else:
+        service.audit_scope_path = None
+        service.audit_scope_slug = None
 
     success = service.run_audit(
         quick=quick_mode,

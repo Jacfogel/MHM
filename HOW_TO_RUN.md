@@ -137,6 +137,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Refresh coverage metrics / TEST_COVERAGE_REPORT | `python development_tools/run_development_tools.py coverage` |
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
 | Tier 3 but only dev-tools tests + scoped DEV_TOOLS_* reports (no coverage) | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
+| Subtree Tier 2 MVP (`--audit-scope`; no AI_* overwrite) | `python development_tools/run_development_tools.py audit --audit-scope communication/` |
 | Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 
 **Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.

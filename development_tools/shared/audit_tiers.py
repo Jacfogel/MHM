@@ -77,6 +77,7 @@ TIER3_TOOL_NAMES = [
     "analyze_pyright",
     "analyze_bandit",
     "analyze_pip_audit",
+    "analyze_vulture",
     "verify_process_cleanup",
 ]
 
@@ -129,6 +130,7 @@ TIER3_GROUP_MAP: dict[str, list[str]] = {
         "analyze_pyright",
         "analyze_bandit",
         "analyze_pip_audit",
+        "analyze_vulture",
     ],
     "post_test": ["verify_process_cleanup"],
 }
@@ -303,7 +305,15 @@ def get_tier1_groups(service: Any) -> tuple[list[tuple[str, Any]], list[tuple[st
 
 def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tuple[str, Any]]]]:
     """Return (independent_tools, dependent_groups) for Tier 2."""
+    from development_tools.shared.audit_scope import (
+        filter_tools_for_audit_scope_mvp,
+        is_path_derived_storage_scope,
+    )
+
     dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
+    # Only real path strings trigger B-016 scoped filtering (MagicMock attrs are truthy).
+    _scope = getattr(service, "audit_scope_path", None)
+    custom_scope = isinstance(_scope, str) and bool(_scope.strip())
     independent_names = list(TIER2_GROUP_MAP["independent"])
     dependent_group_names = [list(group) for group in TIER2_GROUP_MAP["dependent"]]
     # Rebuild unused-imports dependent group for scope (last group in the map).
@@ -319,6 +329,30 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
             "Skipping generate_unused_imports_report (dev-tools-only scope); "
             "development_docs/UNUSED_IMPORTS_REPORT.md left unchanged."
         )
+    if custom_scope:
+        # B-016 MVP: keep only scan-dir-aware tools; skip docs/unused-imports/etc.
+        kept_indep, skipped_indep = filter_tools_for_audit_scope_mvp(independent_names)
+        independent_names = kept_indep
+        filtered_dependent: list[list[str]] = []
+        skipped_dep: list[str] = []
+        for group in dependent_group_names:
+            kept, skipped = filter_tools_for_audit_scope_mvp(group)
+            skipped_dep.extend(skipped)
+            if kept:
+                filtered_dependent.append(kept)
+        dependent_group_names = filtered_dependent
+        skipped_all = sorted(set(skipped_indep + skipped_dep))
+        if skipped_all:
+            logger.info(
+                "Skipping tools unsupported by --audit-scope MVP (%s): %s",
+                getattr(service, "audit_scope_path", "?"),
+                ", ".join(skipped_all),
+            )
+        # Record skipped names for scoped status report
+        service._audit_scope_skipped_tools = skipped_all
+        slug = getattr(service, "audit_scope_slug", None)
+        if slug and not is_path_derived_storage_scope(str(slug)):
+            logger.warning("Unexpected audit_scope_slug (not path-derived): %s", slug)
     independent_tools = _names_to_runnables(service, independent_names)
     dependent_groups = [_names_to_runnables(service, group) for group in dependent_group_names]
     return independent_tools, dependent_groups

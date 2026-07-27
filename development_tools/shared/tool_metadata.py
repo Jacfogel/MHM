@@ -440,6 +440,13 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="advisory",
         description="Runs pip-audit JSON report for dependency vulnerabilities (WARN when findings).",
     ),
+    "analyze_vulture": ToolInfo(
+        name="analyze_vulture",
+        path="development_tools/static_checks/analyze_vulture.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs vulture dead-code scan (min-confidence gated; WARN when findings).",
+    ),
     "decision_support": ToolInfo(
         name="decision_support",
         path="development_tools/reports/decision_support.py",
@@ -597,6 +604,7 @@ CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
     "analyze_ruff",
     "analyze_pyright",
     "analyze_bandit",
+    "analyze_vulture",
 })
 
 

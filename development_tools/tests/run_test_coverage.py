@@ -36,7 +36,6 @@ from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
 )
-from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Add project root to path for core module imports
 # Script is at: development_tools/tests/generate_test_coverage.py
@@ -70,6 +69,24 @@ from development_tools.tests.coverage_outcome_classification import (
     is_windows_crash_return_code as _is_windows_crash_return_code_fn,
     is_xdist_worker_crash_output as _is_xdist_worker_crash_output_fn,
     strip_xdist_args as _strip_xdist_args_fn,
+)
+from development_tools.tests.coverage_pytest_argv import (
+    build_dev_tools_coverage_pytest_cmd as _build_dev_tools_coverage_pytest_cmd,
+    build_main_coverage_pytest_cmd as _build_main_coverage_pytest_cmd,
+    build_no_parallel_coverage_pytest_cmd as _build_no_parallel_coverage_pytest_cmd,
+    build_no_parallel_test_args as _build_no_parallel_test_args_fn,
+)
+from development_tools.tests.coverage_shard_merge import (
+    detect_expected_parallel_workers as _detect_expected_parallel_workers_fn,
+    discover_parallel_coverage_artifacts as _discover_parallel_coverage_artifacts_fn,
+    merge_coverage_json as _merge_coverage_json_fn,
+    wait_for_parallel_coverage_artifacts as _wait_for_parallel_coverage_artifacts_fn,
+)
+from development_tools.tests.coverage_domain_cache import (
+    check_dev_tools_changed as _check_dev_tools_changed_fn,
+    get_config_mtime as _get_config_mtime_fn,
+    get_dev_tools_source_mtimes as _get_dev_tools_source_mtimes_fn,
+    get_dev_tools_test_mtimes as _get_dev_tools_test_mtimes_fn,
 )
 
 # Import config module (absolute import for portability)
@@ -580,241 +597,27 @@ class CoverageMetricsRegenerator:
     def _merge_coverage_json(
         self, coverage_json_1: dict[str, Any], coverage_json_2: dict[str, Any]
     ) -> dict[str, Any]:
-        """
-        Merge two coverage JSON dictionaries.
-
-        Args:
-            coverage_json_1: First coverage JSON (from cache or fresh run)
-            coverage_json_2: Second coverage JSON (from cache or fresh run)
-
-        Returns:
-            Merged coverage JSON with combined files and recalculated totals
-        """
-        # NOTE:
-        # Coverage JSON contains per-file executed/missing line lists.
-        # For selective runs, we must UNION executed lines for unchanged domains,
-        # otherwise coverage will drop (because fewer tests ran in the selective run).
-        #
-        # For files belonging to changed domains, prefer fresh coverage to avoid mixing
-        # potentially stale line data.
-        merged = {
-            "files": {},
-            "totals": {
-                "num_statements": 0,
-                "covered_lines": 0,
-                "missing_lines": 0,
-                "percent_covered": 0.0,
-            },
-        }
-
-        # Validate input structures
-        if not isinstance(coverage_json_1, dict) or not isinstance(
-            coverage_json_2, dict
-        ):
-            if logger:
-                logger.warning(
-                    "Invalid coverage JSON structure in merge - one or both inputs are not dictionaries"
-                )
-            return merged
-
-        # Merge files from both coverage JSONs
-        files_1 = coverage_json_1.get("files", {})
-        files_2 = coverage_json_2.get("files", {})
-
-        if not isinstance(files_1, dict) or not isinstance(files_2, dict):
-            if logger:
-                logger.warning(
-                    "Invalid 'files' structure in coverage JSON - expected dictionaries"
-                )
-            return merged
-
-        # Add all files from first JSON
-        files_1_count = 0
-        for file_path, file_data in files_1.items():
-            if isinstance(file_data, dict):
-                merged["files"][file_path] = file_data.copy()
-                files_1_count += 1
-
-        # Add or merge files from second JSON
-        duplicate_count = 0
-        files_2_unique_count = 0
-        for file_path, file_data in files_2.items():
-            if not isinstance(file_data, dict):
-                continue
-            if file_path in merged["files"]:
-                duplicate_count += 1
-                existing = merged["files"][file_path]
-                if not isinstance(existing, dict):
-                    merged["files"][file_path] = file_data.copy()
-                    continue
-
-                # Determine source domain for this file (if any)
-                normalized_path = file_path.replace("\\", "/")
-                file_domain = (
-                    self.domain_mapper.get_source_domain(normalized_path)
-                    if self.domain_mapper is not None
-                    else None
-                )
-
-                # If the file is in a changed domain and the statement count changed, prefer fresh
-                # (line numbers likely shifted, making union potentially misleading).
-                # Otherwise, union executed lines so coverage doesn't drop on selective runs.
-                changed_domains = getattr(self, "_merge_changed_domains", None)
-                summary_1 = (
-                    existing.get("summary", {})
-                    if isinstance(existing.get("summary"), dict)
-                    else {}
-                )
-                summary_2 = (
-                    file_data.get("summary", {})
-                    if isinstance(file_data.get("summary"), dict)
-                    else {}
-                )
-                ns_1 = int(summary_1.get("num_statements", 0) or 0)
-                ns_2 = int(summary_2.get("num_statements", 0) or 0)
-
-                if (
-                    isinstance(changed_domains, set)
-                    and file_domain in changed_domains
-                    and ns_1 != ns_2
-                ):
-                    merged["files"][file_path] = file_data.copy()
-                else:
-                    existing_executed = set(existing.get("executed_lines", []) or [])
-                    fresh_executed = set(file_data.get("executed_lines", []) or [])
-                    executed_union = sorted(existing_executed | fresh_executed)
-
-                    existing_missing = set(existing.get("missing_lines", []) or [])
-                    fresh_missing = set(file_data.get("missing_lines", []) or [])
-                    # Only lines missing in BOTH runs are still missing after combining
-                    missing_intersection = sorted(existing_missing & fresh_missing)
-
-                    existing_excluded = set(existing.get("excluded_lines", []) or [])
-                    fresh_excluded = set(file_data.get("excluded_lines", []) or [])
-                    excluded_union = sorted(existing_excluded | fresh_excluded)
-
-                    merged_file = existing.copy()
-                    merged_file["executed_lines"] = executed_union
-                    merged_file["missing_lines"] = missing_intersection
-                    merged_file["excluded_lines"] = excluded_union
-
-                    covered_lines = len(executed_union)
-                    missing_lines = len(missing_intersection)
-                    num_statements = max(ns_1, ns_2, covered_lines + missing_lines)
-                    excluded_lines = len(excluded_union)
-
-                    percent = (
-                        round((covered_lines / num_statements) * 100, 2)
-                        if num_statements > 0
-                        else 0.0
-                    )
-
-                    merged_file["summary"] = {
-                        "num_statements": num_statements,
-                        "covered_lines": covered_lines,
-                        "missing_lines": missing_lines,
-                        "excluded_lines": excluded_lines,
-                        "percent_covered": percent,
-                        "percent_covered_display": f"{percent:.2f}",
-                    }
-
-                    merged["files"][file_path] = merged_file
-            else:
-                merged["files"][file_path] = file_data.copy()
-                files_2_unique_count += 1
-
-        if logger:
-            logger.debug(
-                f"Merge details: {files_1_count} files from first JSON, {files_2_unique_count} unique files from second JSON, "
-                f"{duplicate_count} duplicates (line-union for unchanged domains; fresh for changed domains)"
-            )
-
-        # Recalculate totals from merged files
-        total_statements = 0
-        total_covered = 0
-        total_missing = 0
-
-        for _file_path, file_data in merged["files"].items():
-            if not isinstance(file_data, dict):
-                continue
-            summary = file_data.get("summary", {})
-            if isinstance(summary, dict):
-                total_statements += summary.get("num_statements", 0)
-                total_covered += summary.get("covered_lines", 0)
-                total_missing += summary.get("missing_lines", 0)
-
-        merged["totals"]["num_statements"] = total_statements
-        merged["totals"]["covered_lines"] = total_covered
-        merged["totals"]["missing_lines"] = total_missing
-
-        if total_statements > 0:
-            merged["totals"]["percent_covered"] = round(
-                (total_covered / total_statements) * 100, 2
-            )
-
-        return merged
+        """Merge two coverage JSON dictionaries (line-union for unchanged domains)."""
+        changed_domains = getattr(self, "_merge_changed_domains", None)
+        return _merge_coverage_json_fn(
+            coverage_json_1,
+            coverage_json_2,
+            domain_mapper=self.domain_mapper,
+            changed_domains=changed_domains if isinstance(changed_domains, set) else None,
+            log=logger,
+        )
 
     def _detect_expected_parallel_workers(self, pytest_output: str) -> int | None:
         """Extract expected xdist worker count from pytest output when available."""
-        if not pytest_output:
-            return None
-        matches = re.findall(r"created:\s*(\d+)\s*/\s*(\d+)\s*workers", pytest_output)
-        if not matches:
-            return None
-        try:
-            created, configured = matches[-1]
-            created_int = int(created)
-            configured_int = int(configured)
-            # Prefer created worker count; fallback to configured.
-            return created_int if created_int > 0 else configured_int
-        except (TypeError, ValueError):
-            return None
+        return _detect_expected_parallel_workers_fn(pytest_output)
 
     def _discover_parallel_coverage_artifacts(
         self, coverage_dir: Path
     ) -> dict[str, list[Path]]:
-        """Discover coverage files that should exist before combine.
-
-        pytest-cov with data_suffix=True creates .coverage_parallel.<machine>.<pid>.<random>
-        per worker (not .worker0). Also support legacy .coverage_parallel.worker* naming.
-        """
-        artifacts: dict[str, list[Path]] = {
-            "parallel_shards": [],
-            "project_root_shards": [],
-        }
-        if not coverage_dir.exists():
-            return artifacts
-
-        # All .coverage_parallel.* except the main file (data_suffix creates .machine.pid.random)
-        artifacts["parallel_shards"].extend(
-            f
-            for f in coverage_dir.glob(".coverage_parallel.*")
-            if f.name != ".coverage_parallel" and f.is_file()
+        """Discover coverage shard files that should exist before combine."""
+        return _discover_parallel_coverage_artifacts_fn(
+            coverage_dir, self.project_root
         )
-        artifacts["parallel_shards"].extend(
-            [f for f in coverage_dir.glob(".coverage.worker*") if f.name != ".coverage"]
-        )
-        artifacts["parallel_shards"] = [
-            f
-            for f in artifacts["parallel_shards"]
-            if f.name
-            not in {".coverage_parallel", ".coverage_no_parallel", ".coverage"}
-        ]
-
-        # Same for project root (workers may write to cwd if COVERAGE_FILE not respected)
-        artifacts["project_root_shards"].extend(
-            f
-            for f in self.project_root.glob(".coverage_parallel.*")
-            if f.name != ".coverage_parallel" and f.is_file()
-        )
-        artifacts["project_root_shards"].extend(
-            [
-                f
-                for f in self.project_root.glob(".coverage.worker*")
-                if f.name != ".coverage"
-            ]
-        )
-        return artifacts
 
     def _wait_for_parallel_coverage_artifacts(
         self,
@@ -824,48 +627,14 @@ class CoverageMetricsRegenerator:
         poll_seconds: float = 0.25,
     ) -> dict[str, Any]:
         """Wait briefly for shard files to appear before combine on slower filesystems."""
-        import time
-
-        start = time.time()
-        discovered: dict[str, list[Path]] = {
-            "parallel_shards": [],
-            "project_root_shards": [],
-        }
-        while time.time() - start < timeout_seconds:
-            discovered = self._discover_parallel_coverage_artifacts(coverage_dir)
-            shard_count = len(discovered["parallel_shards"])
-            if expected_workers and shard_count >= expected_workers:
-                break
-            # If workers are unknown, any shard is enough to proceed early.
-            if expected_workers is None and shard_count > 0:
-                break
-            time.sleep(poll_seconds)
-
-        elapsed = round(time.time() - start, 2)
-        if logger:
-            logger.debug(
-                "Coverage shard detection: "
-                f"expected_workers={expected_workers if expected_workers is not None else 'unknown'}, "
-                f"found_in_coverage_dir={len(discovered['parallel_shards'])}, "
-                f"found_in_project_root={len(discovered['project_root_shards'])}, "
-                f"waited={elapsed}s"
-            )
-            if discovered["parallel_shards"]:
-                logger.debug(
-                    "Coverage shard files (coverage dir): "
-                    f"{[p.name for p in discovered['parallel_shards'][:12]]}"
-                )
-            if discovered["project_root_shards"]:
-                logger.warning(
-                    "Coverage shard files found in project root (unexpected): "
-                    f"{[p.name for p in discovered['project_root_shards'][:12]]}"
-                )
-        return {
-            "expected_workers": expected_workers,
-            "waited_seconds": elapsed,
-            "parallel_shards": discovered["parallel_shards"],
-            "project_root_shards": discovered["project_root_shards"],
-        }
+        return _wait_for_parallel_coverage_artifacts_fn(
+            coverage_dir,
+            expected_workers,
+            timeout_seconds=timeout_seconds,
+            poll_seconds=poll_seconds,
+            discover_fn=self._discover_parallel_coverage_artifacts,
+            log=logger,
+        )
 
     def run_coverage_analysis(  # pyright: ignore[reportGeneralTypeIssues]
         self,
@@ -1188,77 +957,23 @@ class CoverageMetricsRegenerator:
                         ),
                     }
 
-            cmd = [
-                sys.executable,
-                "-m",
-                "pytest",
-                "-p",
-                "no:cacheprovider",
-            ]
-
-            # Add parallel execution if enabled
-            if self.parallel:
-                # Exclude no_parallel and e2e tests from parallel execution
-                # no_parallel tests run separately in serial mode
-                # e2e tests are slow and excluded from regular runs (per pytest.ini)
-                # This matches the behavior in run_tests.py to prevent flaky failures
-                cmd.extend(["-m", "not (no_parallel or e2e)"])
-                cmd.extend(["-n", self.num_workers])
-                # Use loadscope distribution to group tests by file/class for better isolation
-                # This reduces race conditions by keeping related tests together
-                cmd.extend(["--dist=loadscope"])
-                if logger:
-                    logger.info(
-                        f"Using parallel execution with {self.num_workers} workers (loadscope distribution), excluding no_parallel tests"
-                    )
-
-            # When running in parallel mode, we'll combine coverage later, so don't generate JSON yet
-            # When running in serial mode, generate JSON directly
-            if self.parallel:
-                # Don't generate JSON for parallel run - we'll combine coverage data files and regenerate JSON
-                # --cov-append enables data_suffix so each xdist worker writes its own .coverage_parallel.<suffix> file
-                cmd.extend(
-                    [
-                        "--cov-append",
-                        *cov_args,
-                        "--cov-report=term-missing",
-                        f"--cov-config={self.coverage_config_path.resolve()}",
-                        "--tb=line",  # Use line format for cleaner parallel output
-                        "-q",  # Quiet mode - reduces output noise
-                        f"--maxfail={self.maxfail}",
-                        # Ignore temp directories to prevent collecting tests from temp files
-                        "--ignore=tests/data/pytest-tmp-*",
-                        "--ignore=tests/data/pytest-of-*",
-                    ]
+            # Parallel: exclude no_parallel/e2e (serial track later); omit JSON until combine.
+            # Serial: write JSON directly. Matches run_tests.py marker exclusions.
+            cmd = _build_main_coverage_pytest_cmd(
+                executable=sys.executable,
+                parallel=self.parallel,
+                num_workers=str(self.num_workers),
+                cov_args=cov_args,
+                coverage_config_path=self.coverage_config_path,
+                maxfail=self.maxfail,
+                test_filter_args=test_filter_args,
+                coverage_json_output=None if self.parallel else coverage_output,
+                default_test_path="tests/",
+            )
+            if self.parallel and logger:
+                logger.info(
+                    f"Using parallel execution with {self.num_workers} workers (loadscope distribution), excluding no_parallel tests"
                 )
-                # Add test files or directories
-                if test_filter_args:
-                    # test_filter_args contains test file paths (from test-file cache) or test directories
-                    cmd.extend(test_filter_args)
-                else:
-                    cmd.append("tests/")
-            else:
-                # Serial mode - generate JSON directly
-                cmd.extend(
-                    [
-                        *cov_args,
-                        "--cov-report=term-missing",
-                        f"--cov-report=json:{coverage_output.resolve()}",
-                        f"--cov-config={self.coverage_config_path.resolve()}",
-                        "--tb=line",
-                        "-q",
-                        f"--maxfail={self.maxfail}",
-                        # Ignore temp directories to prevent collecting tests from temp files
-                        "--ignore=tests/data/pytest-tmp-*",
-                        "--ignore=tests/data/pytest-of-*",
-                    ]
-                )
-                # Add test files or directories
-                if test_filter_args:
-                    # test_filter_args contains test file paths (from test-file cache) or test directories
-                    cmd.extend(test_filter_args)
-                else:
-                    cmd.append("tests/")
 
             # Note: When using --cov-config, pytest-cov may still use the data_file from the config
             # even if COVERAGE_FILE is set. We need to ensure the coverage files are created in the
@@ -2063,30 +1778,15 @@ class CoverageMetricsRegenerator:
                         "Running no_parallel tests separately in serial mode..."
                     )
 
-                # Create command for no_parallel tests (serial execution, no parallel flags)
-                no_parallel_test_args = self._build_no_parallel_test_args(
-                    test_filter_args
+                # Serial no_parallel track; JSON deferred until coverage data files are combined.
+                no_parallel_cmd = _build_no_parallel_coverage_pytest_cmd(
+                    executable=sys.executable,
+                    cov_args=cov_args,
+                    coverage_config_path=self.coverage_config_path,
+                    maxfail=self.maxfail,
+                    test_filter_args=test_filter_args,
+                    test_directory=self.test_directory,
                 )
-                no_parallel_cmd = [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    "-p",
-                    "no:cacheprovider",
-                    "-m",
-                    "no_parallel and not e2e",  # Only run tests marked with no_parallel, but exclude e2e
-                    *cov_args,
-                    "--cov-report=term-missing",
-                    # Don't write JSON for no_parallel run - we'll combine coverage data files and regenerate JSON
-                    f"--cov-config={self.coverage_config_path.resolve()}",
-                    "--tb=line",
-                    "-q",
-                    f"--maxfail={self.maxfail}",
-                    # Ignore temp directories to prevent collecting tests from temp files
-                    "--ignore=tests/data/pytest-tmp-*",
-                    "--ignore=tests/data/pytest-of-*",
-                    *no_parallel_test_args,
-                ]
 
                 # Use separate coverage data file for no_parallel tests
                 # Use absolute path to ensure coverage.py uses our specified location
@@ -3685,156 +3385,25 @@ class CoverageMetricsRegenerator:
             }
 
     def _get_dev_tools_source_mtimes(self) -> dict[str, float]:
-        """
-        Get current modification times for all Python files in development_tools directory.
-
-        Returns:
-            Dictionary mapping file paths to modification times
-        """
-        mtimes = {}
-        dev_tools_dir = self.project_root / "development_tools"
-        if not dev_tools_dir.exists():
-            return mtimes
-
-        # Get all Python files in development_tools (excluding test files and cache)
-        for py_file in dev_tools_dir.rglob("*.py"):
-            # Skip actual test files (files with test_ prefix) and cache directories
-            # But DO include tool files like run_test_coverage.py even if they're in a tests/ directory
-            if py_file.name.startswith("test_") or ".coverage_cache" in py_file.parts:
-                continue
-            try:
-                rel_path = str(py_file.relative_to(self.project_root))
-                if should_exclude_file(
-                    rel_path.replace("\\", "/"),
-                    tool_type="analysis",
-                    context="development",
-                ):
-                    continue
-                mtime = py_file.stat().st_mtime
-                mtimes[rel_path] = mtime
-            except OSError:
-                continue
-
-        return mtimes
+        """Get current modification times for Python files in development_tools."""
+        return _get_dev_tools_source_mtimes_fn(self.project_root)
 
     def _get_dev_tools_test_mtimes(self) -> dict[str, float]:
         """Get current mtimes for development_tools test files."""
-        mtimes = {}
-        tests_dir = self.project_root / "tests" / "development_tools"
-        if not tests_dir.exists():
-            return mtimes
-        for test_file in tests_dir.rglob("test_*.py"):
-            try:
-                rel_path = str(test_file.relative_to(self.project_root))
-                if should_exclude_file(
-                    rel_path.replace("\\", "/"),
-                    tool_type="analysis",
-                    context="development",
-                ):
-                    continue
-                mtimes[rel_path] = test_file.stat().st_mtime
-            except OSError:
-                continue
-        return mtimes
+        return _get_dev_tools_test_mtimes_fn(self.project_root)
 
     def _get_config_mtime(self) -> float | None:
         """Get current development_tools_config.json mtime if available."""
-        try:
-            import development_tools.config.config as config_module
-
-            if (
-                hasattr(config_module, "_config_file_path")
-                and config_module._config_file_path
-            ):
-                config_path = Path(config_module._config_file_path)
-            else:
-                config_path = (
-                    self.project_root
-                    / "development_tools"
-                    / "config"
-                    / "development_tools_config.json"
-                )
-            if config_path.exists():
-                return config_path.stat().st_mtime
-        except Exception:
-            return None
-        return None
+        return _get_config_mtime_fn(self.project_root)
 
     def _check_dev_tools_changed(self) -> bool:
-        """
-        Check if development_tools source files have changed since last cache.
-
-        Returns:
-            True if files have changed, False if unchanged
-        """
-        if not self.use_domain_cache or not self.dev_tools_cache:
-            return True  # If caching disabled, always consider changed
-
-        tool_change_reason = self.dev_tools_cache.get_tool_change_reason()
-        if tool_change_reason:
-            if logger:
-                logger.info(
-                    f"Dev tools coverage cache invalidation: {tool_change_reason}"
-                )
-            return True
-
-        # Check config file mtime (config changes must invalidate cache)
-        current_config_mtime = self._get_config_mtime()
-        cached_config_mtime = self.dev_tools_cache.get_cached_config_mtime()
-        if current_config_mtime is not None:
-            if cached_config_mtime is None:
-                if logger:
-                    logger.info(
-                        "Config mtime missing from dev tools coverage cache - invalidating cache"
-                    )
-                return True
-            if current_config_mtime != cached_config_mtime:
-                if logger:
-                    logger.info(
-                        "Config file changed - invalidating dev tools coverage cache"
-                    )
-                return True
-
-        # If the last dev tools coverage run failed, force rerun
-        last_run_ok = self.dev_tools_cache.get_last_run_ok()
-        if last_run_ok is False:
-            if logger:
-                logger.info(
-                    "Previous dev tools coverage run failed - invalidating dev tools coverage cache"
-                )
-            return True
-
-        # Get current mtimes
-        current_mtimes = self._get_dev_tools_source_mtimes()
-        cached_mtimes = self.dev_tools_cache.get_cached_mtimes()
-        if not cached_mtimes:
-            return True  # No cache exists - consider it changed
-
-        # Compare mtimes
-        for file_path, current_mtime in current_mtimes.items():
-            cached_mtime = cached_mtimes.get(file_path)
-            if cached_mtime is None or current_mtime != cached_mtime:
-                return True
-
-        # Check if any files were removed
-        for file_path in cached_mtimes:
-            if file_path not in current_mtimes:
-                return True
-
-        # Compare dev tools test file mtimes
-        current_test_mtimes = self._get_dev_tools_test_mtimes()
-        cached_test_mtimes = self.dev_tools_cache.get_cached_test_mtimes()
-        if not cached_test_mtimes:
-            return True
-        for file_path, current_mtime in current_test_mtimes.items():
-            cached_mtime = cached_test_mtimes.get(file_path)
-            if cached_mtime is None or current_mtime != cached_mtime:
-                return True
-        for file_path in cached_test_mtimes:
-            if file_path not in current_test_mtimes:
-                return True
-
-        return False
+        """Check if development_tools source/tests/config invalidate the cache."""
+        return _check_dev_tools_changed_fn(
+            use_domain_cache=self.use_domain_cache,
+            dev_tools_cache=self.dev_tools_cache,
+            project_root=self.project_root,
+            log=logger,
+        )
 
     def run_dev_tools_coverage(self) -> dict[str, dict[str, Any]]:
         """Run pytest coverage analysis specifically for development_tools directory."""
@@ -3949,41 +3518,20 @@ class CoverageMetricsRegenerator:
 
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-            cmd = [
-                sys.executable,
-                "-m",
-                "pytest",
-                "-p",
-                "no:cacheprovider",
-                "-m",
-                "not e2e",  # Exclude e2e tests (slow, excluded from regular runs per pytest.ini)
-            ]
-
-            # Respect parallel mode for dev-tools coverage runs.
-            # This aligns with main coverage behavior so configured worker caps are effective.
-            if self.parallel:
-                cmd.extend(["-n", str(self.num_workers), "--dist=loadscope"])
-                if logger:
-                    logger.info(
-                        f"Using parallel execution for dev tools coverage with {self.num_workers} workers (loadscope distribution)"
-                    )
-
-            cmd.extend(
-                [
-                    "--cov=development_tools",
-                    "--cov-report=term-missing",
-                    f"--cov-report=json:{coverage_output_abs}",
-                    f"--cov-config={dev_cov_config}",
-                    "--tb=line",
-                    "-q",
-                    "--maxfail=10",  # Allow more failures before stopping (some tests may be flaky)
-                    "--continue-on-collection-errors",  # Continue even if collection fails
-                    # Ignore temp directories to prevent collecting tests from temp files
-                    "--ignore=tests/data/pytest-tmp-*",
-                    "--ignore=tests/data/pytest-of-*",
-                    "tests/development_tools/",
-                ]
+            # Respect parallel mode for dev-tools coverage (aligns with main coverage workers).
+            cmd = _build_dev_tools_coverage_pytest_cmd(
+                executable=sys.executable,
+                parallel=self.parallel,
+                num_workers=str(self.num_workers),
+                coverage_json_output=coverage_output_abs,
+                coverage_config_path=dev_cov_config,
+                maxfail=10,
+                test_path="tests/development_tools/",
             )
+            if self.parallel and logger:
+                logger.info(
+                    f"Using parallel execution for dev tools coverage with {self.num_workers} workers (loadscope distribution)"
+                )
 
             if logger:
                 logger.debug(
@@ -4841,9 +4389,9 @@ class CoverageMetricsRegenerator:
 
     def _build_no_parallel_test_args(self, test_filter_args: list[str]) -> list[str]:
         """Return the pytest path arguments for the serial no_parallel phase."""
-        if test_filter_args:
-            return list(test_filter_args)
-        return [self.test_directory]
+        return _build_no_parallel_test_args_fn(
+            test_filter_args, self.test_directory
+        )
 
     def _classify_coverage_outcome(
         self,

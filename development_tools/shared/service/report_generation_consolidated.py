@@ -1625,6 +1625,7 @@ class ConsolidatedReportDocumentMixin:
             pyright_data = static_analysis.get("analyze_pyright", {})
             bandit_data = static_analysis.get("analyze_bandit", {})
             pip_audit_data = static_analysis.get("analyze_pip_audit", {})
+            vulture_data = static_analysis.get("analyze_vulture", {})
             ruff_summary = (
                 ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
             )
@@ -1640,6 +1641,9 @@ class ConsolidatedReportDocumentMixin:
                 pip_audit_data.get("summary", {})
                 if isinstance(pip_audit_data, dict)
                 else {}
+            )
+            vulture_summary = (
+                vulture_data.get("summary", {}) if isinstance(vulture_data, dict) else {}
             )
             ruff_details = (
                 ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
@@ -1657,10 +1661,14 @@ class ConsolidatedReportDocumentMixin:
                 if isinstance(pip_audit_data, dict)
                 else {}
             )
+            vulture_details = (
+                vulture_data.get("details", {}) if isinstance(vulture_data, dict) else {}
+            )
             ruff_available = bool(ruff_data.get("available", False))
             pyright_available = bool(pyright_data.get("available", False))
             bandit_available = bool(bandit_data.get("available", False))
             pip_audit_available = bool(pip_audit_data.get("available", False))
+            vulture_available = bool(vulture_data.get("available", False))
             lines.append(
                 f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s), "
@@ -1681,6 +1689,11 @@ class ConsolidatedReportDocumentMixin:
                 f"({to_int(pip_audit_summary.get('total_issues')) or 0} vulnerability finding(s), "
                 f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
                 f"{self._pip_audit_elapsed_suffix(pip_audit_details)}"
+            )
+            lines.append(
+                f"- **Vulture**: {vulture_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(vulture_summary.get('total_issues')) or 0} dead-code finding(s), "
+                f"{to_int(vulture_summary.get('files_affected')) or 0} file(s))"
             )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()
@@ -1729,6 +1742,20 @@ class ConsolidatedReportDocumentMixin:
                     )
                     if file_text:
                         lines.append(f"  - Top Bandit Files: {file_text}")
+            if not vulture_available:
+                message = str(vulture_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Vulture unavailable: {message}")
+            elif vulture_available and isinstance(vulture_details.get("top_files"), list):
+                top_v = (vulture_details.get("top_files") or [])[:5]
+                if top_v:
+                    file_text = ", ".join(
+                        f"{Path(str(item.get('file', 'unknown'))).name} ({to_int(item.get('count')) or 0})"
+                        for item in top_v
+                        if isinstance(item, dict)
+                    )
+                    if file_text:
+                        lines.append(f"  - Top Vulture Files: {file_text}")
             if not pip_audit_available:
                 message = str(pip_audit_details.get("message", "")).strip()
                 if message:

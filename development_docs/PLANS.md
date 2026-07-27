@@ -67,7 +67,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live validation, edit sessions, command discovery, group ambiguity, bulk organization |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
-| AI development tools | **ACTIVE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | Dev-tools coverage slices, marker/domain work, portability follow-ups |
+| AI development tools | **ACTIVE / MAINTENANCE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | B-012/B-013/B-015/B-016 MVP landed; residual = further scope/static adoption + product priorities |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
 | Google Health integration (V0) | **COMPLETED** | Medium | [HEALTH_INTEGRATION_PLAN.md](HEALTH_INTEGRATION_PLAN.md) | Shipped read-only sync, signals, gentle personalization; V1/deferred items tracked in plan |
 
@@ -209,16 +209,15 @@ These plans should not be duplicated in detail here.
 
 ### 6.4 AI development tools
 
-**Status**: **ACTIVE**  
+**Status**: **ACTIVE / MAINTENANCE**  
 **Priority**: Medium  
 **Detailed plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)
 
 **Current focus**:
 
-- Use live generated reports before choosing the next slice.
-- Keep dev-tools coverage improvements small and targeted.
-- Coordinate domain-marker analyzer work with [TEST_PLAN.md](TEST_PLAN.md).
-- Keep pip-audit/watch items in monitoring unless a trusted fix or explicit policy decision exists.
+- Prefer generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 for triage.
+- `--audit-scope` MVP is Tier-2/scan-dir only; do not assume Tier 3/static honor custom roots yet.
+- Residual V6: further external tools only with clear signal; expand audit-scope adoption when needed.
 
 ---
 

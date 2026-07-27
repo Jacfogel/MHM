@@ -33,6 +33,16 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-26 - V6 deferred trio (B-013 / B-012 / B-016) + B-015 slice #4
+- **B-013 (design)**: Gap-category-to-signal map in [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 (standalone `GAP_ANALYSIS_MATRIX.md` removed); combined `analyze_gap*` tool stays deferred.
+- **B-012 (vulture)**: New [`analyze_vulture.py`](../development_tools/static_checks/analyze_vulture.py) (min-confidence 80, WARN on findings); Tier 3 static_analysis wiring (tiers/matrix/metadata/wrappers/reports); `vulture>=2.11` in requirements; tests in [`test_analyze_vulture.py`](../tests/development_tools/test_analyze_vulture.py). Radon/pydeps/pre-commit remain manual.
+- **B-016 (MVP)**: `--audit-scope <rel-path>` (exclusive with `--dev-tools-only`); path-derived `scope_*` storage; Tier 2 scan-dir-aware tools only; scoped status at `reports/scopes/<slug>/SCOPED_AUDIT_STATUS.md` (no AI_* overwrite). Helpers: [`audit_scope.py`](../development_tools/shared/audit_scope.py). Tests: [`test_audit_scope_b016.py`](../tests/development_tools/test_audit_scope_b016.py).
+- **B-015 slice #4 (earlier)**: Extracted `coverage_pytest_argv` / `coverage_shard_merge` / `coverage_domain_cache` + `report_generation_scope_helpers`; regenerator/mixin thin-delegates. Validation: **95 passed** on coverage helper suite; **8 passed** B-016; **24 passed** vulture/matrix/tier slice.
+- **Docs**: V6 backlog B-012/B-013/B-015/B-016 statuses; HOW_TO_RUN + paired guides command notes.
+- **AI_PRIORITIES cleanup**: Fixed path-drift (qualified `analyze_pip_audit.py` / `development_docs/TEST_COVERAGE_REPORT.md` / scoped AI_* refs), ASCII (`->` / `x` / Section), and file address on `SCOPED_AUDIT_STATUS.md` (+ generator). Ruff: `Callable` from `collections.abc`; SIM110 in coverage domain cache. Supply-chain: `pyasn1>=0.6.4`. Verify: `doc-sync` PASS; path-drift 0; ruff clean on touched helpers; `pip_audit` 0 vulns.
+- **AI_PRIORITIES follow-up**: Tier 2 test no longer tripped by MagicMock truthy `audit_scope_path` (also hardened `get_tier2_groups`); regenerated [`tool_cache_inventory.json`](../development_tools/config/tool_cache_inventory.json) for `analyze_vulture`; vulture merges default `--exclude` for `tests/data` / `.venv` / `__pycache__` so parallel tmp fixtures cannot crash the scan.
+- **Docs**: Removed standalone `GAP_ANALYSIS_MATRIX.md`; useful triage map folded into DEVELOPMENT_TOOLS_GUIDE Section 10.1 (paired AI guide + V6/PLANS/priorities generator updated).
+
 ### 2026-07-23 - Fix sync->async event-loop bridge, check-in logging, and errors.log routing
 - **Always run CommunicationManager's managed loop on a dedicated daemon thread**, and prefer `run_coroutine_threadsafe` when that loop is running, so concurrent scheduled sends no longer hit `RuntimeError: This event loop is already running`.
 - **Only log "Sent scheduled check-in prompt" after a successful send** (`send_checkin_prompt` now returns `bool`).

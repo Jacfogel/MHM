@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Forward-looking backlog for `development_tools/` after V5  
 > **Style**: Direct, concise, action-oriented  
-> **Last Updated**: 2026-07-20 (B-015 slice #3: report builder mixins)  
+> **Last Updated**: 2026-07-26 (B-013 gap alignment in guides; B-012 vulture; B-016 audit-scope MVP)  
 > **Supersedes**: `archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` for active planning. Keep V4 and prior V5 snapshots for detailed checkbox history.
 
 ## Authoritative sources
@@ -57,7 +57,7 @@ prefer the generated outputs over any numeric examples in this plan.
 | **Active (outside V6)** | Product/domain coverage and refactor priorities from generated `AI_PRIORITIES.md` |
 | **Residual / medium** | B-001 re-profile if suite time hurts; portability/static packaging maintenance; B-006/B-007/B-008 only on new noise |
 | **Maintenance** | Domain-marker policy (taxonomy + enforcement shipped; tune only on false positives) |
-| **Deferred** | External-tool expansion; gap-analysis expansion; further `run_test_coverage` splits (argv/shard/domain-cache); arbitrary audit scopes |
+| **Deferred** | Further external tools (Radon/pydeps/pre-commit); combined gap-matrix tool; full arbitrary-scope (Tier 3/static) |
 | **Monitoring only** | Low-coverage warning recurrence; example-marker/doc-overlap regressions; legacy-reference regressions |
 
 ---
@@ -367,18 +367,18 @@ Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tool
 
 ### 3.2 External-tool expansion
 
-**Status**: Deferred.
+**Status**: Complete for B-012 slice (2026-07-26) — **Vulture** integrated.
 
 **Already integrated**:
 
 - Bandit
 - pip-audit
+- Vulture (`analyze_vulture`, Tier 3, min-confidence 80, WARN on findings)
 
-**Possible future tools**:
+**Still manual / deferred**:
 
 - Radon
 - pydeps
-- vulture
 - pre-commit
 - deeper Ruff usage
 
@@ -386,18 +386,11 @@ Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tool
 
 ### 3.3 Gap-analysis tool expansion
 
-**Status**: Deferred / large.
+**Status**: Complete (design) — 2026-07-26 B-013.
 
-**Potential categories**:
+**Deliverable**: Gap-category-to-signal map lives in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 (paired AI guide summary). A standalone matrix file was removed to avoid extra docs.
 
-- Documentation
-- Code quality
-- Testing
-- Configuration/environment
-- AI/prompt
-- Integration/workflow
-
-Use `module-refactor-candidates` and priorities JSON as the practical current gap signal until a broader matrix is justified.
+**Rule**: Triage via Section 10.1 + generated `AI_PRIORITIES.md`. A combined `analyze_gap*` tool remains deferred unless that map shows a category with no usable signal.
 
 ### 3.4 Memory profiler integration
 
@@ -412,7 +405,7 @@ Use `module-refactor-candidates` and priorities JSON as the practical current ga
 
 ### 3.5 Refactor `report_generation.py` and `run_test_coverage.py`
 
-**Status**: Partial (2026-07-20 slices #1–#3); continue only in small tested steps.
+**Status**: Substantively complete for planned helper splits (2026-07-26 slice #4); reopen only for opportunistic pure-helper pulls.
 
 **No legacy shims**: move pure helpers to new modules; mixin methods may thin-delegate. Do not add `LEGACY COMPATIBILITY` bridges or dual public APIs.
 
@@ -425,34 +418,39 @@ Use `module-refactor-candidates` and priorities JSON as the practical current ga
   - `report_generation_ai_status.py` (`AIStatusDocumentMixin`)
   - `report_generation_ai_priorities.py` (`AIPrioritiesDocumentMixin`)
   - `report_generation_consolidated.py` (`ConsolidatedReportDocumentMixin`)
-  - Shared helpers + action-item helpers remain in `report_generation.py` (~978 lines).
+- Slice #4 (2026-07-26): planned `run_test_coverage` splits + optional scope helpers:
+  - `coverage_pytest_argv.py` — main / no_parallel / dev-tools pytest argv builders + `build_no_parallel_test_args`
+  - `coverage_shard_merge.py` — worker detect, shard discover/wait, `merge_coverage_json`
+  - `coverage_domain_cache.py` — source/test/config mtimes + `check_dev_tools_changed`
+  - `report_generation_scope_helpers.py` — path-under-dev-tools + duplicate/circular/coupling filters
+  - `CoverageMetricsRegenerator` / `ReportGenerationMixin` thin-delegate; `run_test_coverage.py` ~4747 lines; `report_generation.py` ~927 lines.
+  - Validation: **95 passed** across b015 helpers + run_test_coverage helpers + report_generation pure + regenerate_coverage_metrics.
 
-**Possible later splits for `report_generation.py`**:
+**Open work** (opportunistic only):
 
-- downstream action item helpers (optional; already small)
-- further pure-helper pulls from remaining shared helpers
-
-**Possible later splits for `run_test_coverage.py`**:
-
-- pytest argv construction
-- shard merge logic
-- domain cache
+- Further pure-helper pulls from remaining `report_generation.py` shared helpers / action items if a clear seam appears.
+- Do not force-split the large orchestration methods in `run_test_coverage.py` (`run_coverage_analysis` / `run_dev_tools_coverage`) without a design pass.
 
 ### 3.6 Arbitrary audit scope
 
-**Status**: Deferred / design-first.
+**Status**: Partial / MVP complete (2026-07-26 B-016).
 
 **Goal**: Audit any repo subtree, not only full repo vs `development_tools/`.
 
-**Hard part**: tools do not uniformly respect one scan root. A simple CLI flag is not enough.
+**Contract (MVP)**:
 
-**Possible future shape**:
+- CLI: `audit --audit-scope <rel-path>` (e.g. `communication/`)
+- Mutually exclusive with `--dev-tools-only`
+- Storage slug: sanitized path → `scope_<slug>` under existing `scopes/` trees ([`audit_scope.py`](shared/audit_scope.py) + [`audit_storage_scope.py`](shared/audit_storage_scope.py))
+- **Supported**: tools that honor `get_scan_directories()` (allow-list in `AUDIT_SCOPE_MVP_SUPPORTED_TOOLS`)
+- **Unsupported**: Tier 1, Tier 3 (pytest/coverage/static shards/legacy full-tree), doc-sync, unused-imports report generators
+- Does **not** overwrite `AI_STATUS.md` / `AI_PRIORITIES.md` / `CONSOLIDATED_REPORT.md`; writes `development_tools/reports/scopes/<slug>/SCOPED_AUDIT_STATUS.md`
 
 ```powershell
-python development_tools/run_development_tools.py audit --full --audit-scope communication/
+python development_tools/run_development_tools.py audit --audit-scope communication/
 ```
 
-Only proceed after design sign-off.
+**Still out of scope**: making Ruff/Pyright/Bandit/pytest/coverage honor arbitrary roots; per-scope AI_* filenames.
 
 ---
 
@@ -603,6 +601,7 @@ Completed themes:
 | Memory profiler audit integration | Keep standalone/local; B-014 closed. |
 | TODO sync workflow polish | Recipe documented in paired guides; B-010 closed. |
 | System signals doc-sync overlap | Trimmed; B-009 closed. |
+| `report_generation` / `run_test_coverage` planned helper splits | B-015 slices #1–#4 complete; opportunistic pulls only. |
 
 ---
 
@@ -621,11 +620,11 @@ Completed themes:
 | B-009 | System signals overlap | Complete | 2026-07-20: dropped doc-sync re-derive; critical_alerts from severity; scope docs/metadata aligned. |
 | B-010 | TODO sync workflow polish | Complete | 2026-07-20: four-step recipe in paired guides; changelog cross-check stays human. |
 | B-011 | Coverage-cache benchmark | Complete | 2026-07-20: cold **298.67s** / cache-build **326.99s** / hit **0.91s** (`--dev-tools-only --no-parallel`). |
-| B-012 | External-tool expansion | Deferred | Evaluate one tool at a time with clear signal/runtime value. |
-| B-013 | Gap-analysis expansion | Deferred/large | Design matrix before implementing more tools. |
+| B-012 | External-tool expansion | Complete | 2026-07-26: `analyze_vulture` Tier 3 (min-confidence 80); Radon/pydeps/pre-commit stay manual. |
+| B-013 | Gap-analysis expansion | Complete (design) | 2026-07-26: Section 10.1 in DEVELOPMENT_TOOLS_GUIDE; combined gap tool still deferred. |
 | B-014 | Memory profiler | Resolved | Keep standalone in untracked `scripts/`; do not audit-integrate. |
-| B-015 | `report_generation.py` / `run_test_coverage.py` split | Partial | 2026-07-20: slices #1–#3 (helpers + outcome classification + AI_STATUS/AI_PRIORITIES/CONSOLIDATED mixins). Remaining: coverage argv/shard/domain-cache. |
-| B-016 | Arbitrary audit scope | Deferred/design | Design first; current scope model is binary. |
+| B-015 | `report_generation.py` / `run_test_coverage.py` split | Complete (planned splits) | 2026-07-26 slice #4: argv/shard/domain-cache helpers + scope filters. Reopen only for opportunistic pure-helper pulls. |
+| B-016 | Arbitrary audit scope | Partial (MVP) | 2026-07-26: `--audit-scope` Tier-2 scan-dir tools + `scope_*` storage; Tier 3/static still unsupported. |
 | B-017 | Low coverage warning | Monitoring | Reopen only on recurrence. |
 | B-018 | `pip-audit` `CVE-2026-3219` | Resolved | Closed; reopen only on a new advisory in audit output. |
 | B-019 | Legacy references | Monitoring | Reopen only if generated reports show active markers. |

@@ -748,6 +748,11 @@ class AIStatusDocumentMixin:
             if isinstance(static_analysis, dict)
             else {}
         )
+        vulture_summary = (
+            static_analysis.get("analyze_vulture", {}).get("summary", {})
+            if isinstance(static_analysis, dict)
+            else {}
+        )
         ruff_available = (
             bool(static_analysis.get("analyze_ruff", {}).get("available", False))
             if isinstance(static_analysis, dict)
@@ -768,33 +773,44 @@ class AIStatusDocumentMixin:
             if isinstance(static_analysis, dict)
             else False
         )
+        vulture_available = (
+            bool(static_analysis.get("analyze_vulture", {}).get("available", False))
+            if isinstance(static_analysis, dict)
+            else False
+        )
         ruff_total = to_int(ruff_summary.get("total_issues")) or 0
         pyright_total = to_int(pyright_summary.get("total_issues")) or 0
         bandit_total = to_int(bandit_summary.get("total_issues")) or 0
         pip_audit_total = to_int(pip_audit_summary.get("total_issues")) or 0
+        vulture_total = to_int(vulture_summary.get("total_issues")) or 0
         static_ready = (
             ruff_available
             and pyright_available
             and bandit_available
             and pip_audit_available
+            and vulture_available
         )
         if not static_ready:
             lines.append(
-                "- **Static Analysis (ruff/pyright/bandit/pip-audit)**: UNAVAILABLE"
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: UNAVAILABLE"
             )
         elif (
             ruff_total > 0
             or pyright_total > 0
             or bandit_total > 0
             or pip_audit_total > 0
+            or vulture_total > 0
         ):
             lines.append(
-                f"- **Static Analysis (ruff/pyright/bandit/pip-audit)**: "
-                f"{ruff_total + pyright_total + bandit_total + pip_audit_total} issue(s) "
-                f"(ruff={ruff_total}, pyright={pyright_total}, bandit={bandit_total}, pip-audit={pip_audit_total})"
+                f"- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: "
+                f"{ruff_total + pyright_total + bandit_total + pip_audit_total + vulture_total} issue(s) "
+                f"(ruff={ruff_total}, pyright={pyright_total}, bandit={bandit_total}, "
+                f"pip-audit={pip_audit_total}, vulture={vulture_total})"
             )
         else:
-            lines.append("- **Static Analysis (ruff/pyright/bandit/pip-audit)**: CLEAN")
+            lines.append(
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: CLEAN"
+            )
 
         lines.extend(
             self._lines_for_verify_process_cleanup_status_snapshot(
@@ -1685,6 +1701,7 @@ class AIStatusDocumentMixin:
             pyright_data = static_analysis.get("analyze_pyright", {})
             bandit_data = static_analysis.get("analyze_bandit", {})
             pip_audit_data = static_analysis.get("analyze_pip_audit", {})
+            vulture_data = static_analysis.get("analyze_vulture", {})
             ruff_summary = (
                 ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
             )
@@ -1700,6 +1717,9 @@ class AIStatusDocumentMixin:
                 pip_audit_data.get("summary", {})
                 if isinstance(pip_audit_data, dict)
                 else {}
+            )
+            vulture_summary = (
+                vulture_data.get("summary", {}) if isinstance(vulture_data, dict) else {}
             )
             ruff_details = (
                 ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
@@ -1717,10 +1737,14 @@ class AIStatusDocumentMixin:
                 if isinstance(pip_audit_data, dict)
                 else {}
             )
+            vulture_details = (
+                vulture_data.get("details", {}) if isinstance(vulture_data, dict) else {}
+            )
             ruff_available = bool(ruff_data.get("available", False))
             pyright_available = bool(pyright_data.get("available", False))
             bandit_available = bool(bandit_data.get("available", False))
             pip_audit_available = bool(pip_audit_data.get("available", False))
+            vulture_available = bool(vulture_data.get("available", False))
             lines.append(
                 f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s) across "
@@ -1743,6 +1767,11 @@ class AIStatusDocumentMixin:
                 f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
                 f"{self._pip_audit_elapsed_suffix(pip_audit_details)}"
             )
+            lines.append(
+                f"- **Vulture**: {vulture_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(vulture_summary.get('total_issues')) or 0} dead-code finding(s) across "
+                f"{to_int(vulture_summary.get('files_affected')) or 0} file(s))"
+            )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()
                 if message:
@@ -1759,6 +1788,10 @@ class AIStatusDocumentMixin:
                 message = str(pip_audit_details.get("message", "")).strip()
                 if message:
                     lines.append(f"  - pip-audit unavailable: {message}")
+            if not vulture_available:
+                message = str(vulture_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Vulture unavailable: {message}")
         else:
             lines.append(
                 "- Static analysis data unavailable (run `audit --full` for latest diagnostics)"

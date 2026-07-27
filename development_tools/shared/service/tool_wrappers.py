@@ -82,6 +82,7 @@ _WIN_PROCESS_GROUP_SCRIPTS = frozenset(
         "analyze_ruff",
         "analyze_bandit",
         "analyze_pip_audit",
+        "analyze_vulture",
     }
 )
 
@@ -2040,6 +2041,46 @@ class ToolWrappersMixin:
                 result["error"] = "No parseable JSON output from analyze_bandit"
             result["success"] = False
             result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
+        return result
+
+    def run_analyze_vulture(self) -> dict:
+        """Run vulture dead-code analysis with structured JSON handling."""
+        logger.debug("Analyzing vulture dead-code findings...")
+        result = self.run_script("analyze_vulture", "--json", timeout=600)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
+            self.results_cache["analyze_vulture"] = data
+            try:
+                save_tool_result(
+                    "analyze_vulture",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_vulture result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_vulture"
+            result["success"] = False
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                None
+            )
         return result
 
     def run_analyze_pip_audit(self) -> dict:
