@@ -568,7 +568,6 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_as_completed(
 
     def _raise_interrupt(_futures):
         raise KeyboardInterrupt()
-        yield  # pragma: no cover
 
     monkeypatch.setattr(
         concurrent.futures, "ThreadPoolExecutor", _FakeExecutor, raising=True
@@ -627,7 +626,6 @@ def test_run_full_audit_tools_ignores_as_completed_interrupt_after_all_done(
 
     def _raise_interrupt(_futures):
         raise KeyboardInterrupt()
-        yield  # pragma: no cover
 
     monkeypatch.setattr(
         concurrent.futures, "ThreadPoolExecutor", _FakeExecutor, raising=True

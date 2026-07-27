@@ -107,9 +107,9 @@ _DEFAULT_BASE_EXCLUSIONS = [
     "*/pytest-tmp-*",
     "*/pytest-of-*",
     "*/pytest_tmp_*",
-    # Generated files (should be excluded everywhere)
+    # Generated files (should be excluded everywhere; projects may add path-specific
+    # variants via exclusions.base_exclusions / generated_files in config JSON)
     "*/generated/*",
-    "*/ui/generated/*",
     "*/pyscript*",
     "*/shibokensupport/*",
     "*/signature_bootstrap.py",
@@ -198,7 +198,6 @@ _DEFAULT_CONTEXT_EXCLUSIONS = {
     "testing": [
         # Testing should exclude generated files and data
         "*/generated/*",
-        "*/ui/generated/*",
         "*/data/*",
         "*/logs/*",
         "*/backup*",
@@ -438,7 +437,6 @@ def _load_base_exclusion_shortlist() -> tuple[str, ...]:
         ".venv/",
         "htmlcov/",
         "archive/",
-        "ui/generated/",
         "*.egg-info/",
         "*.log",
         ".coverage",

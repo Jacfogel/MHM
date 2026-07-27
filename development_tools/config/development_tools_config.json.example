@@ -592,7 +592,7 @@
     ]
   },
   "exclusions": {
-    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge—see development_docs/LIST_OF_LISTS.md §12b–§13.",
+    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; tool_exclusions.vulture = dead-code scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge—see development_docs/LIST_OF_LISTS.md §12b–§13.",
     "_comment_base_exclusions_additions": "If base_exclusions is omitted, standard_exclusions merges code defaults + base_exclusions_additions. Use for project paths removed from portable defaults (e.g. tests/ai/results, yourpackage.egg-info).",
     "base_exclusions_additions": [],
     "base_exclusions": [
@@ -678,6 +678,11 @@
     "tool_exclusions": {
       "documentation": [
         "development_docs/changelog_history/"
+      ],
+      "_comment_vulture": "Project-specific: pytest fixture params dominate as unused-variable false positives; keep out of analyze_vulture.py code.",
+      "vulture": [
+        "tests/*",
+        "*/tests/*"
       ]
     },
     "context_exclusions": {
@@ -1330,6 +1335,7 @@
     ],
     "vulture_min_confidence": 80,
     "vulture_scan_paths": [],
+    "vulture_args": [],
     "vulture_timeout_seconds": 600,
     "timeout_seconds": 600
   },

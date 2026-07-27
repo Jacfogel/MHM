@@ -33,6 +33,17 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-27 - Vulture findings triage and dead-code cleanup
+- **Triage**: First full Vulture run (647 findings / 72 files) was mostly noise: auto-generated Qt UI unused imports (`ui/generated`, ~384) and pytest fixture parameters reported as unused variables (`tests`, ~255). At min-confidence 80 there were no unused production functions/classes.
+- **Legitimate fixes**:
+  - Restored missing `class TestAccountHandlerBehavior` in [`test_account_handler_behavior.py`](../tests/behavior/test_account_handler_behavior.py) (entire suite was nested after `return` in `_unique_username`; pytest collected **0** tests; now **31**).
+  - Removed duplicate unreachable error/return block in Discord [`bot.py`](../communication/communication_channels/discord/bot.py).
+  - Dropped unused `typing` imports in [`backup_manager.py`](../core/backup_manager.py); underscored unused `__exit__` protocol args in [`error_handling.py`](../core/error_handling.py); referenced placeholder `body`/`public_key` in webhook debug log.
+  - Removed unreachable `yield` after `raise` in audit interrupt test helpers.
+- **Portable exclusions**: [`analyze_vulture.py`](../development_tools/static_checks/analyze_vulture.py) builds `--exclude` from shared [`standard_exclusions`](../development_tools/shared/standard_exclusions.py) (`get_exclusions("vulture")`, generated-file patterns, shortlist) and post-filters with `should_exclude_file` - no hardcoded project paths in the tool. MHM pytest-fixture noise skip is config-only: `exclusions.tool_exclusions.vulture` in [`development_tools_config.json.example`](../development_tools/config/development_tools_config.json.example). Portable defaults dropped project-specific `*/ui/generated/*` (generic `*/generated/*` remains).
+- **Docs**: Paired DEVELOPMENT_TOOLS_GUIDE / AI_DEVELOPMENT_TOOLS_GUIDE Section 10 updated for shared-exclusion policy.
+- **Verify**: 40 passed (account handler + vulture unit + interrupt helpers); webhook signature tests 4 passed; `analyze_vulture.py --json` status PASS.
+
 ### 2026-07-26 - V6 deferred trio (B-013 / B-012 / B-016) + B-015 slice #4
 - **B-013 (design)**: Gap-category-to-signal map in [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 (standalone `GAP_ANALYSIS_MATRIX.md` removed); combined `analyze_gap*` tool stays deferred.
 - **B-012 (vulture)**: New [`analyze_vulture.py`](../development_tools/static_checks/analyze_vulture.py) (min-confidence 80, WARN on findings); Tier 3 static_analysis wiring (tiers/matrix/metadata/wrappers/reports); `vulture>=2.11` in requirements; tests in [`test_analyze_vulture.py`](../tests/development_tools/test_analyze_vulture.py). Radon/pydeps/pre-commit remain manual.

@@ -1468,12 +1468,6 @@ class DiscordBot(BaseChannel):
         )
         return False
 
-        logger.error(f"Could not find Discord channel or user with ID {recipient}")
-        discord_logger.error(
-            "Discord message send failed - recipient not found", recipient=recipient
-        )
-        return False
-
     @handle_errors("creating Discord embed", default_return=None)
     def _create_discord_embed(
         self, message: str, rich_data: dict[str, Any]

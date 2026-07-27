@@ -46,7 +46,10 @@ def verify_webhook_signature(
         # Basic validation - proper implementation would use ed25519
         # For development, we can skip strict verification, but log it
         logger.debug(
-            f"Webhook signature verification (basic check): signature={signature[:20]}..., timestamp={timestamp}"
+            "Webhook signature verification (basic check): "
+            f"signature={signature[:20]}..., timestamp={timestamp}, "
+            f"body_len={len(body) if body is not None else 0}, "
+            f"public_key_len={len(public_key) if public_key else 0}"
         )
         return True  # Placeholder - implement proper ed25519 verification
 

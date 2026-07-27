@@ -748,14 +748,14 @@ def safe_file_operation(
             return self
 
         # ERROR_HANDLING_EXCLUDE: Context manager method in error handling infrastructure
-        def __exit__(self, exc_type, exc_val, exc_tb):
+        def __exit__(self, _exc_type, exc_val, _exc_tb):
             """
             Exit the context manager and handle any exceptions.
 
             Args:
-                exc_type: Type of exception if any occurred
+                _exc_type: Type of exception if any occurred (unused; required by protocol)
                 exc_val: Exception value if any occurred
-                exc_tb: Exception traceback if any occurred
+                _exc_tb: Exception traceback if any occurred (unused; required by protocol)
             """
             if exc_val is not None:
                 error_handler.handle_error(exc_val, self.context, self.operation)

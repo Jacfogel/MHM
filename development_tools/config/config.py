@@ -1473,7 +1473,8 @@ STATIC_ANALYSIS = {
     "pip_audit_timeout_seconds": 600,
     # Vulture dead-code (Tier 3; min-confidence gates noise — default 80)
     "vulture_command": ["python", "-m", "vulture"],
-    # Extra args merge with default excludes for tests/data and similar (see analyze_vulture).
+    # Extra args merge with shared exclusion patterns (see analyze_vulture +
+    # exclusions.tool_exclusions.vulture in development_tools_config.json).
     "vulture_args": [],
     # Empty = use get_scan_directories(); projects may set explicit roots in config JSON.
     "vulture_scan_paths": [],

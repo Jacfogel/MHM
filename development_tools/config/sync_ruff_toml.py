@@ -58,7 +58,6 @@ def collect_ruff_exclusions() -> list[str]:
     raw_patterns.extend(get_exclusions("analysis", "development"))
     raw_patterns.extend(BASE_EXCLUSION_SHORTLIST)
     raw_patterns.extend(GENERATED_FILE_PATTERNS)
-    raw_patterns.append("ui/generated")
     normalized = [_normalize_pattern(pattern) for pattern in raw_patterns]
     exclusions = _dedupe_preserve_order(normalized)
     return sorted(exclusions)

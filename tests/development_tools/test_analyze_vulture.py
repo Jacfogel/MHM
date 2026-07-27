@@ -45,6 +45,20 @@ def test_build_result_pass_when_clean() -> None:
 
 
 @pytest.mark.unit
+def test_normalize_pattern_for_vulture_expands_bare_names() -> None:
+    assert "*/.venv" in av_mod._normalize_pattern_for_vulture(".venv")
+    assert "*/.venv/*" in av_mod._normalize_pattern_for_vulture(".venv")
+    assert av_mod._normalize_pattern_for_vulture("*/generated/*") == ["*/generated/*"]
+    assert av_mod._normalize_pattern_for_vulture("tests/data/") == [
+        "tests/data",
+        "tests/data/*",
+        "*/tests/data",
+        "*/tests/data/*",
+    ]
+    assert av_mod._normalize_pattern_for_vulture("x/{domain}/y") == []
+
+
+@pytest.mark.unit
 def test_run_vulture_unavailable_on_missing_command(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         av_mod.config,
@@ -77,6 +91,12 @@ def test_run_vulture_parses_subprocess_stdout(tmp_path: Path, monkeypatch) -> No
             "vulture_scan_paths": ["core"],
         },
     )
+    monkeypatch.setattr(
+        av_mod,
+        "_collect_vulture_exclude_patterns",
+        lambda: ["*/generated/*", "*/.venv/*"],
+    )
+    monkeypatch.setattr(av_mod, "_filter_excluded_findings", lambda findings: findings)
     (tmp_path / "core").mkdir()
     proc = MagicMock()
     proc.returncode = 3
@@ -91,15 +111,40 @@ def test_run_vulture_parses_subprocess_stdout(tmp_path: Path, monkeypatch) -> No
     cmd = run_mock.call_args[0][0]
     assert "--exclude" in cmd
     exclude_val = cmd[cmd.index("--exclude") + 1]
-    assert "*/tests/data/*" in exclude_val
+    assert "*/generated/*" in exclude_val
+    assert "*/.venv/*" in exclude_val
 
 
 @pytest.mark.unit
-def test_merge_vulture_exclude_args_appends_defaults() -> None:
-    merged = av_mod._merge_vulture_exclude_args(["--exclude", "*/vendor/*"])
+def test_merge_vulture_exclude_args_appends_shared_patterns() -> None:
+    merged = av_mod._merge_vulture_exclude_args(
+        ["--exclude", "*/vendor/*"],
+        exclude_patterns=["*/generated/*", "*/tests/data/*"],
+    )
     assert merged[0] == "--exclude"
     assert "*/vendor/*" in merged[1]
+    assert "*/generated/*" in merged[1]
     assert "*/tests/data/*" in merged[1]
+
+
+@pytest.mark.unit
+def test_resolve_scan_paths_skips_excluded_roots(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "communication").mkdir()
+    (tmp_path / "tests").mkdir()
+    monkeypatch.setattr(
+        av_mod.config,
+        "get_scan_directories",
+        lambda: ["communication", "tests"],
+    )
+    monkeypatch.setattr(
+        av_mod,
+        "should_exclude_file",
+        lambda path, tool_type=None, context="development": str(path).startswith(
+            "tests/"
+        ),
+    )
+    paths = av_mod._resolve_scan_paths(tmp_path, {"vulture_scan_paths": []})
+    assert paths == ["communication"]
 
 
 @pytest.mark.unit
@@ -110,5 +155,22 @@ def test_resolve_scan_paths_uses_get_scan_directories(tmp_path: Path, monkeypatc
         "get_scan_directories",
         lambda: ["communication"],
     )
+    monkeypatch.setattr(av_mod, "_is_excluded_scan_root", lambda _name: False)
     paths = av_mod._resolve_scan_paths(tmp_path, {"vulture_scan_paths": []})
     assert paths == ["communication"]
+
+
+@pytest.mark.unit
+def test_filter_excluded_findings_uses_shared_exclusions(monkeypatch) -> None:
+    monkeypatch.setattr(
+        av_mod,
+        "should_exclude_file",
+        lambda path, tool_type=None, context="development": "generated" in str(path),
+    )
+    findings = [
+        {"file": "ui/generated/foo.py", "line": 1, "message": "unused import", "confidence": 90},
+        {"file": "core/bar.py", "line": 2, "message": "unused import", "confidence": 90},
+    ]
+    kept = av_mod._filter_excluded_findings(findings)
+    assert len(kept) == 1
+    assert kept[0]["file"] == "core/bar.py"

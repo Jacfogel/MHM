@@ -27,8 +27,11 @@ def _snowflake() -> str:
 
 def _unique_username(prefix: str = "user") -> str:
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+
+class TestAccountHandlerBehavior:
     """Test account handler real behavior and side effects."""
-    
+
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io

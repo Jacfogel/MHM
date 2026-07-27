@@ -769,13 +769,13 @@ class MHMService:
             pass
 
     @handle_errors("handling shutdown signal", default_return=None)
-    def signal_handler(self, signum, frame):
+    def signal_handler(self, signum, _frame):
         """
         Handle shutdown signals for graceful service termination.
 
         Args:
             signum: Signal number
-            frame: Current stack frame
+            _frame: Current stack frame (unused; required by signal handler protocol)
         """
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")
         self.shutdown()

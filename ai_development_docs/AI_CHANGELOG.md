@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-27 - Vulture triage: real fixes + noise excludes **COMPLETED**
+- Triaged 647 findings: ~384 generated unused imports + ~255 pytest fixture "unused vars" were false positives; real hits fixed.
+- Critical: restored `TestAccountHandlerBehavior` class (31 tests were unreachable / uncollected after helper return).
+- Cleanup: Discord bot duplicate unreachable return; unused typing imports in `backup_manager`; protocol unused args in `SafeFileContext.__exit__`; webhook placeholder params referenced in debug log.
+- Portability: `analyze_vulture` no longer hardcodes project paths; uses shared `get_exclusions("vulture")` / `should_exclude_file`; MHM `tests/*` skip lives in `exclusions.tool_exclusions.vulture`. Removed `*/ui/generated/*` from portable exclusion defaults (keep generic `*/generated/*`). Underscored unused signal `frame` in `core/service.py`.
+- Follow-up: Ruff py310 f-string escape in `analyze_vulture` fixed; ASCII cleaned in CHANGELOG_DETAIL.
+- Vulture PASS (0). Paired guides Section 10 updated.
+
 ### 2026-07-26 - V6 deferred trio + B-015 coverage helpers **COMPLETED**
 - B-013: gap-category map folded into DEVELOPMENT_TOOLS_GUIDE Section 10.1 (standalone matrix removed; no `analyze_gap*` tool).
 - B-012: Tier 3 `analyze_vulture` (min-confidence 80); Radon/pydeps stay manual.
@@ -168,13 +176,6 @@ Verified:
 - Fixed parallel flake in `test_generate_response_fallback_when_lm_unavailable` by stubbing `_ensure_lm_studio_available`.
 - Updated `SYSTEM_AI_GUIDE.md` and `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` for removed `ai/context/builder.py`.
 - Tests: [`test_ai_action_catalog.py`](../tests/unit/test_ai_action_catalog.py), [`test_fallback_envelope_alignment.py`](../tests/unit/test_fallback_envelope_alignment.py), planner partial-parse behavior; fixed fallback import-boundary test path.
-
-### 2026-07-07 - Dev-tools exclusion fix and AI datetime context **COMPLETED**
-- Fixed `should_exclude_file` bare-pattern matching (`env`, `venv`, etc.) to use path segments so `user_data_v2_envelopes.py` is no longer wrongly excluded from audits.
-- Removed unused `format_timestamp_milliseconds` and `now_datetime_minute` from `core/time_utilities.py`; pytest hooks inline millisecond formatting; workflow doc points to `parse_timestamp_minute(now_timestamp_minute())` for minute precision.
-- Added `@pytest.mark.user` to three policy guard tests missing domain markers; Pydantic `@model_validator` methods tagged with `unused_functions_exclude`.
-- Product AI now receives an explicit current date/time line in chat and action-planning context, using the user's account timezone via `scheduler.user_timezone`.
-- Check-in "today" detection and task due-soon windows now use `user_local_date()` / `user_local_now_naive()` instead of server-local `date.today()` / `now_datetime_full()`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

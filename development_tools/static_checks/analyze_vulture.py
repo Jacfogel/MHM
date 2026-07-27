@@ -10,16 +10,29 @@ import json
 import re
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
 try:
     from .. import config
+    from ..shared.standard_exclusions import (
+        BASE_EXCLUSION_SHORTLIST,
+        GENERATED_FILE_PATTERNS,
+        get_exclusions,
+        should_exclude_file,
+    )
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
+    from development_tools.shared.standard_exclusions import (
+        BASE_EXCLUSION_SHORTLIST,
+        GENERATED_FILE_PATTERNS,
+        get_exclusions,
+        should_exclude_file,
+    )
 
 try:
     from development_tools.shared.logging import get_dev_tools_logger
@@ -33,21 +46,74 @@ _FINDING_RE = re.compile(
     r"^(?P<file>.+?):(?P<line>\d+):\s*(?P<message>.+?)\s*\((?P<confidence>\d+)% confidence\)\s*$"
 )
 
-
-# Ephemeral / noisy trees that race with parallel tests or are not useful for dead-code signal.
-_DEFAULT_VULTURE_EXCLUDES = (
-    "*/tests/data/*",
-    "*/tests/logs/*",
-    "*/.venv/*",
-    "*/__pycache__/*",
-    "*/.git/*",
+# Portable fallback only when shared exclusions cannot be imported/loaded.
+_PORTABLE_EXCLUDE_FALLBACK = (
+    "__pycache__",
+    ".venv",
+    ".git",
+    "*/generated/*",
 )
 
+_VULTURE_TOOL_TYPE = "vulture"
+_VULTURE_CONTEXT = "development"
 
-def _merge_vulture_exclude_args(extra_args: list[str]) -> list[str]:
-    """Ensure default excludes are always applied (merge with any caller --exclude)."""
+
+def _dedupe_preserve_order(values: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        out.append(value)
+    return out
+
+
+def _normalize_pattern_for_vulture(pattern: str) -> list[str]:
+    """Map a shared exclusion pattern to one or more vulture ``--exclude`` globs."""
+    text = str(pattern or "").strip().replace("\\", "/")
+    if not text or "{domain}" in text:
+        return []
+    # Bare segment names (.venv, __pycache__, .git) -> recursive globs vulture understands.
+    if "/" not in text and not any(ch in text for ch in "*?[]"):
+        return [f"*/{text}", f"*/{text}/*"]
+    # Directory markers ending with / -> also match contents.
+    if text.endswith("/") and "*" not in text:
+        trimmed = text.rstrip("/")
+        return [trimmed, f"{trimmed}/*", f"*/{trimmed}", f"*/{trimmed}/*"]
+    return [text]
+
+
+def _collect_vulture_exclude_patterns() -> list[str]:
+    """Build vulture exclude patterns from the shared exclusion system (config-driven)."""
+    raw: list[str] = []
+    try:
+        # tool_type "vulture" adds exclusions.tool_exclusions.vulture from project config.
+        raw.extend(get_exclusions(_VULTURE_TOOL_TYPE, _VULTURE_CONTEXT))
+        raw.extend(GENERATED_FILE_PATTERNS)
+        raw.extend(BASE_EXCLUSION_SHORTLIST)
+    except Exception:
+        raw.extend(_PORTABLE_EXCLUDE_FALLBACK)
+
+    normalized: list[str] = []
+    for pattern in raw:
+        normalized.extend(_normalize_pattern_for_vulture(pattern))
+    return _dedupe_preserve_order(normalized)
+
+
+def _merge_vulture_exclude_args(
+    extra_args: list[str], exclude_patterns: list[str] | None = None
+) -> list[str]:
+    """Merge shared exclude patterns with any caller ``--exclude`` args."""
     args = list(extra_args)
-    default = ",".join(_DEFAULT_VULTURE_EXCLUDES)
+    patterns = (
+        list(exclude_patterns)
+        if exclude_patterns is not None
+        else _collect_vulture_exclude_patterns()
+    )
+    default = ",".join(patterns)
+    if not default:
+        return args
     for i, arg in enumerate(args):
         if arg == "--exclude" and i + 1 < len(args):
             existing = str(args[i + 1]).strip().strip(",")
@@ -83,14 +149,29 @@ def _resolve_python_command(command: list[str]) -> list[str]:
     return command
 
 
+def _is_excluded_scan_root(name: str) -> bool:
+    """True when a top-level scan directory is covered by shared exclusions."""
+    normalized = str(name).replace("\\", "/").strip("/")
+    probe = f"{normalized}/__vulture_probe__.py"
+    try:
+        return should_exclude_file(
+            probe, tool_type=_VULTURE_TOOL_TYPE, context=_VULTURE_CONTEXT
+        )
+    except Exception:
+        return False
+
+
 def _resolve_scan_paths(project_root: Path, static_cfg: dict[str, Any]) -> list[str]:
     """Prefer configured vulture paths; else get_scan_directories(); else ``.``."""
     configured = list(static_cfg.get("vulture_scan_paths") or [])
     path_args: list[str] = []
     for name in configured:
+        rel = str(name).replace("\\", "/")
+        if _is_excluded_scan_root(rel):
+            continue
         p = project_root / name
         if p.exists():
-            path_args.append(str(name).replace("\\", "/"))
+            path_args.append(rel)
     if path_args:
         return path_args
     try:
@@ -98,9 +179,12 @@ def _resolve_scan_paths(project_root: Path, static_cfg: dict[str, Any]) -> list[
     except Exception:
         scan_dirs = []
     for name in scan_dirs:
+        rel = str(name).replace("\\", "/")
+        if _is_excluded_scan_root(rel):
+            continue
         p = project_root / name
         if p.exists():
-            path_args.append(str(name).replace("\\", "/"))
+            path_args.append(rel)
     return path_args or ["."]
 
 
@@ -122,6 +206,24 @@ def _parse_vulture_output(stdout_text: str) -> list[dict[str, Any]]:
             }
         )
     return findings
+
+
+def _filter_excluded_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop findings under paths excluded by the shared exclusion system."""
+    kept: list[dict[str, Any]] = []
+    for item in findings:
+        rel = str(item.get("file", "")).replace("\\", "/").strip()
+        if not rel:
+            continue
+        try:
+            if should_exclude_file(
+                rel, tool_type=_VULTURE_TOOL_TYPE, context=_VULTURE_CONTEXT
+            ):
+                continue
+        except Exception:
+            pass
+        kept.append(item)
+    return kept
 
 
 def _build_result_from_findings(
@@ -163,7 +265,10 @@ def run_vulture(project_root: Path) -> dict[str, Any]:
     )
     min_confidence = int(static_cfg.get("vulture_min_confidence", 80) or 80)
     timeout_seconds = int(static_cfg.get("vulture_timeout_seconds", 600) or 600)
-    extra_args = _merge_vulture_exclude_args(list(static_cfg.get("vulture_args", [])))
+    exclude_patterns = _collect_vulture_exclude_patterns()
+    extra_args = _merge_vulture_exclude_args(
+        list(static_cfg.get("vulture_args", [])), exclude_patterns
+    )
     path_args = _resolve_scan_paths(project_root, static_cfg)
 
     args = [
@@ -193,7 +298,7 @@ def run_vulture(project_root: Path) -> dict[str, Any]:
     # vulture exits 0 when clean, 3 when dead code found (typical); other codes may be errors.
     stdout_text = result.stdout or ""
     stderr_text = (result.stderr or "").strip()
-    findings = _parse_vulture_output(stdout_text)
+    findings = _filter_excluded_findings(_parse_vulture_output(stdout_text))
     if result.returncode not in {0, 3} and not findings:
         message = stderr_text or f"vulture failed with return code {result.returncode}"
         return _build_unavailable_result(message)
