@@ -34,6 +34,7 @@ When adding new changes, follow this format:
 ## Recent Changes (Most Recent First)
 
 ### 2026-07-27 - Vulture findings triage and dead-code cleanup
+- **CI fix (nightly)**: `.gitignore` had an overly broad `**pytest**` rule that silently ignored source module [`coverage_pytest_argv.py`](../development_tools/tests/coverage_pytest_argv.py), so nightly failed with `ModuleNotFoundError` on import. Replaced with `.tmp_pytest_runner/`, `.pytest_tmp_cache/`, and `**/pytest_*.log`; file is now trackable.
 - **Triage**: First full Vulture run (647 findings / 72 files) was mostly noise: auto-generated Qt UI unused imports (`ui/generated`, ~384) and pytest fixture parameters reported as unused variables (`tests`, ~255). At min-confidence 80 there were no unused production functions/classes.
 - **Legitimate fixes**:
   - Restored missing `class TestAccountHandlerBehavior` in [`test_account_handler_behavior.py`](../tests/behavior/test_account_handler_behavior.py) (entire suite was nested after `return` in `_unique_username`; pytest collected **0** tests; now **31**).

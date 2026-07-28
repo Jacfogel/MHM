@@ -155,7 +155,11 @@ tests/fixtures/development_tools_demo/consolidated_report.txt
 tests/test_helpers/fixtures/
 tmp_test_data/
 pyright-report.json
-**pytest**
+# Pytest temp runners / caches / coverage stdout logs.
+# Do NOT use a broad **pytest** glob — it also ignores source like coverage_pytest_argv.py.
+.tmp_pytest_runner/
+.pytest_tmp_cache/
+**/pytest_*.log
 
 # ============================
 # Development tools cache and result files
