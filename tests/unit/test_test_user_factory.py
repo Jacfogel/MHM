@@ -12,6 +12,53 @@ from tests.test_helpers.test_utilities import TestUserFactory
 @pytest.mark.unit
 @pytest.mark.user
 @pytest.mark.file_io
+def test_get_test_user_id_resolves_v2_account_and_metadata_username(
+    test_path_factory,
+):
+    """Username lookup must work for v2 accounts without locked full-dir scans."""
+    test_data_dir = test_path_factory
+    internal_username = "v2_lookup_user"
+    success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+        internal_username, test_data_dir=test_data_dir
+    )
+    assert success
+    assert actual_user_id
+
+    account_path = os.path.join(
+        test_data_dir, "users", actual_user_id, "account.json"
+    )
+    with open(account_path, encoding="utf-8") as handle:
+        account_payload = json.load(handle)
+
+    # Production account.json is a v2 envelope with top-level identity fields.
+    assert account_payload.get("schema_version") == 2
+    assert (
+        TestUserFactory._account_internal_username(account_payload)
+        == internal_username
+    )
+    assert (
+        TestUserFactory.get_test_user_id_by_internal_username(
+            internal_username, test_data_dir
+        )
+        == actual_user_id
+    )
+
+    # Also cover envelopes that only keep username inside metadata.
+    metadata_only = {
+        "schema_version": 2,
+        "updated_at": "2026-07-27 00:00:00",
+        "user_id": actual_user_id,
+        "metadata": {"internal_username": internal_username},
+    }
+    assert (
+        TestUserFactory._account_internal_username(metadata_only)
+        == internal_username
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.user
+@pytest.mark.file_io
 @pytest.mark.no_parallel  # in-process thread pool + user_index locking; isolate from xdist workers
 def test_user_index_updates_preserve_concurrent_entries(test_path_factory):
     """Parallel test-user creation should not drop user_index entries."""

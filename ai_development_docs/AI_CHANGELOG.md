@@ -32,6 +32,7 @@ Guidelines:
 
 ### 2026-07-27 - Vulture triage: real fixes + noise excludes **COMPLETED**
 - Nightly CI: `.gitignore` `**pytest**` was ignoring `coverage_pytest_argv.py` (ModuleNotFoundError). Narrowed to temp dirs + `**/pytest_*.log`; module now trackable.
+- Nightly CI: fixed parallel timeout in account-management integration test - TestUserFactory username lookup uses unlocked test JSON reads (and v2 unwrap) instead of locked `safe_json_read` scans under worker-store contention.
 - Triaged 647 findings: ~384 generated unused imports + ~255 pytest fixture "unused vars" were false positives; real hits fixed.
 - Critical: restored `TestAccountHandlerBehavior` class (31 tests were unreachable / uncollected after helper return).
 - Cleanup: Discord bot duplicate unreachable return; unused typing imports in `backup_manager`; protocol unused args in `SafeFileContext.__exit__`; webhook placeholder params referenced in debug log.

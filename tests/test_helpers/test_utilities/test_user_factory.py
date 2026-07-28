@@ -2797,25 +2797,60 @@ class TestUserFactory:
             return {}
 
     @staticmethod
+    def _read_test_json_file(file_path: str) -> dict[str, Any]:
+        """Read JSON from an ephemeral test path without production file locks.
+
+        Test helpers often scan many account files under a shared worker data dir.
+        Using ``safe_json_read`` there can hang under lock contention and trip
+        pytest-timeout during parallel CI runs.
+        """
+        try:
+            with open(file_path, encoding="utf-8") as handle:
+                payload = json.load(handle)
+            return payload if isinstance(payload, dict) else {}
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            return {}
+
+    @staticmethod
+    def _account_internal_username(account_payload: dict[str, Any]) -> str | None:
+        """Return internal_username from flat or v2-wrapped account JSON."""
+        if not isinstance(account_payload, dict) or not account_payload:
+            return None
+        direct = account_payload.get("internal_username")
+        if isinstance(direct, str) and direct:
+            return direct
+        try:
+            from core.profile_v2_io import unwrap_profile_document_on_load
+
+            unwrapped = unwrap_profile_document_on_load("account", account_payload)
+        except Exception:
+            return None
+        if isinstance(unwrapped, dict):
+            username = unwrapped.get("internal_username")
+            if isinstance(username, str) and username:
+                return username
+        return None
+
+    @staticmethod
     def get_test_user_id_by_internal_username(
         internal_username: str, test_data_dir: str
     ) -> str | None:
         """Get user ID by internal username from test directory"""
         try:
-            from core.file_locking import safe_json_read
-
             user_index_file = os.path.join(test_data_dir, "user_index.json")
             if os.path.exists(user_index_file):
-                user_index = safe_json_read(user_index_file, default={})
+                user_index = TestUserFactory._read_test_json_file(user_index_file)
                 mapped_user_id = user_index.get(internal_username)
                 if mapped_user_id:
                     mapped_account_file = os.path.join(
                         test_data_dir, "users", mapped_user_id, "account.json"
                     )
                     if os.path.exists(mapped_account_file):
-                        mapped_account = safe_json_read(mapped_account_file, default={})
+                        mapped_account = TestUserFactory._read_test_json_file(
+                            mapped_account_file
+                        )
                         if (
-                            mapped_account.get("internal_username")
+                            TestUserFactory._account_internal_username(mapped_account)
                             == internal_username
                         ):
                             return mapped_user_id
@@ -2828,8 +2863,11 @@ class TestUserFactory:
                     account_file = os.path.join(user_dir, "account.json")
                     if not os.path.exists(account_file):
                         continue
-                    account_data = safe_json_read(account_file, default={})
-                    if account_data.get("internal_username") == internal_username:
+                    account_data = TestUserFactory._read_test_json_file(account_file)
+                    if (
+                        TestUserFactory._account_internal_username(account_data)
+                        == internal_username
+                    ):
                         # Update the index so future lookups are fast and consistent
                         TestUserFactory.create_basic_user__update_index(
                             test_data_dir, internal_username, entry

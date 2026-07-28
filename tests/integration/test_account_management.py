@@ -134,22 +134,24 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         
         # Create a test user first (minimal user since we only need basic structure for data structure testing)
         test_user_id = f"test-user-{uuid.uuid4().hex[:8]}"
-        success = TestUserFactory.create_minimal_user(test_user_id, test_data_dir=test_data_dir)
-        assert success, "Failed to create test user"
-        
-        # Get the actual UUID for the user
-        from core import get_user_id_by_identifier, clear_user_caches
-        test_user = TestUserFactory.get_test_user_id_by_internal_username(
-            test_user_id, test_data_dir
+        success, test_user = TestUserFactory.create_minimal_user_and_get_id(
+            test_user_id, test_data_dir=test_data_dir
         )
-        if test_user is None:
-            test_user = get_user_id_by_identifier(test_user_id)
+        assert success, "Failed to create test user"
+        if not test_user:
+            from core import get_user_id_by_identifier
+
+            test_user = TestUserFactory.get_test_user_id_by_internal_username(
+                test_user_id, test_data_dir
+            ) or get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
-        
+
         # Test account data structure
         try:
             from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             from tests.test_helpers.test_support.test_helpers import wait_until
+            from core import clear_user_caches
+
             materialize_user_minimal_via_public_apis(test_user)
             assert wait_until(
                 lambda: (
