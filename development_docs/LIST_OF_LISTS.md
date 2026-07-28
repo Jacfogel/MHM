@@ -82,7 +82,7 @@
 | **Behavior specifications (`specs/`)** | `development_tools_config.json` - `fix_version_sync.docs` includes `specs/SPECS_GUIDE.md`, `specs/SPEC_COVERAGE_MATRIX.md`, and topic files (for example `specs/discord-checkin-flow.md`, `specs/discord-welcome-and-onboarding.md`); `constants.fix_version_sync_directories` includes `specs/` | Derived into `DEFAULT_DOCS` via `_derive_default_docs_list()`; doc-sync, path-drift, heading/ASCII tools | Not paired (shared human + AI). Index: [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) section 6 lists Discord specs and the coverage matrix. `path_drift.ignored_path_patterns` includes spec heading fragments. Use full project-root paths in spec body text (not bare `module.py` filenames). |
 
 
-**Alignment note**: Config `constants.paired_docs` is canonical for tooling; DOCUMENTATION_GUIDE Section 4.1 is the human-readable summary (doc-sync validates). See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) related-docs list (generic list-sync across docs remains a deferred design idea, not an active V6 section).
+**Alignment note**: Config `constants.paired_docs` is canonical for tooling; DOCUMENTATION_GUIDE Section 4.1 is the human-readable summary (doc-sync validates). See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) related-docs list (generic list-sync across docs remains a deferred design idea, not an active V6 section).
 
 ---
 

@@ -309,7 +309,7 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 - **Config surface**: Repo root `pyproject.toml` (`[tool.pyright]`, `[tool.bandit]`, ...); `development_tools/config/` - `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml`.
 - **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
-- **Phase 2**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Use shims only per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md); see Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+- **Phase 2**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Use shims only per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md); see Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 - **Pyright SSOT**: root `pyproject.toml` **`[tool.pyright]`** only (IDE/whole repo; default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`.
 - **Portability (V5 Section 7.6 / V6 B-004)**: Structural checks enforce `[tool.pyright]` + absent JSON configs. Prefer periodic full-repo Pyright via `pyproject.toml`. Optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py).
 - **Human detail**: Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
@@ -320,23 +320,24 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)
 
-**Radon (manual pilot)**: Same stance as [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10 - compare Radon `cc` output to in-audit `analyze_functions` / refactor signals before treating it as authoritative; not integrated into default `audit` tiers (V5 Section 4.1).
+**Radon (manual only, B-012 closed 2026-07-28)**: Same stance as [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10 - uniqueness eval matched in-audit hotspots; not integrated into default `audit` tiers.
 
-**Bandit**, **pip-audit**, and **Vulture** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit` / `analyze_vulture`; they are in root `requirements.txt`. **`DEV_TOOLS_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Vulture** is min-confidence gated (default 80) and uses shared exclusions (`get_exclusions("vulture")` + config `tool_exclusions.vulture`); findings surface as Tier 4 advisory. **Radon** / **pydeps** remain manual pilots. Full detail: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+**Bandit**, **pip-audit**, and **Vulture** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit` / `analyze_vulture`; they are in root `requirements.txt`. **`DEV_TOOLS_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Vulture** is min-confidence gated (default 80) and uses shared exclusions (`get_exclusions("vulture")` + config `tool_exclusions.vulture`); findings surface as Tier 4 advisory. **Radon** / **pydeps** / **pre-commit** / **deeper Ruff** declined for audit integration (B-012). Full detail: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
 **TODO sync workflow** (B-010): (1) `sync-todo --dry-run` for stdout analysis only; (2) confirm **manual-review** items against AI_CHANGELOG / CHANGELOG_DETAIL before any hand edits; (3) `sync-todo --apply` only when auto-cleanable `- [x]` / `- [X]` lines look correct (never removes strikethrough/bold completions); (4) never combine `--dry-run` with `--apply`. Full recipe: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
 **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run `analyze_documentation_sync` with `--check-example-markers` over paths in **`DEFAULT_DOCS`** ([`shared/constants.py`](shared/constants.py), merged from `development_tools_config.json` via `get_constants_config()`). Hints are stored in doc-sync JSON and surfaced in **AI_STATUS** (summary), **CONSOLIDATED_REPORT**, and **AI_PRIORITIES** (Tier 4 when count > 0). Heuristics and exclusions: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 
-**Evaluation note (2026-04-10)**: **radon** remains an optional one-off install for CC sampling. **pre-commit** remains optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`.
+**Evaluation note (2026-07-28)**: **radon** / **pydeps** optional one-off installs for spot-checks only (not in `requirements.txt`). **pre-commit** optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`. Deeper Ruff declined without a named rule set.
 
 **Manual pilot (venv active)** - optional extras beyond the integrated wrappers:
 
 - `python -m pip install radon` (optional CC sampling).
 - `python -m bandit -c pyproject.toml -r core communication ui user ai tasks -ll` - ad-hoc path experiments; audit uses `development_tools/static_checks/analyze_bandit.py` with `[tool.bandit]` excludes.
 - `python -m pip_audit` - ad-hoc; audit uses `development_tools/static_checks/analyze_pip_audit.py` (requirements-hash cache).
-- `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-cross-check only until Tier policy exists.
+- `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-manual only.
+- `python -m pip install pydeps` then `python -m pydeps core --max-bacon=2 --nodot --no-output --show-cycles` - optional; coupling/circular source of truth remains `analyze_dependency_patterns`.
 
-### 10.1. Gap-analysis alignment (V6 B-013)
+### 10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)
 
-Triage via `AI_PRIORITIES.md` + existing tools; Tier 2 **`module-refactor-candidates`** is the large-module gap signal; no combined `analyze_gap*` tool. Full detail: Section 10.1 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+Triage via `AI_PRIORITIES.md` (the combined triage layer) + existing tools; Tier 2 **`module-refactor-candidates`** is the large-module gap signal. Combined `analyze_gap*` declined - no blind Section 10.1 category. Full detail: Section 10.1 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).

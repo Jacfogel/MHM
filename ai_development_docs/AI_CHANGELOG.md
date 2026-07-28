@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-28 - Close V6 B-012 / B-013; archive V6 plan **COMPLETED**
+- B-013: Combined `analyze_gap*` declined; Section 10.1 map + `AI_PRIORITIES` is triage.
+- B-012: Radon/pydeps uniqueness spikes duplicated existing complexity/coupling signals; pre-commit and deeper Ruff declined. Vulture remains the only B-012 Tier 3 add.
+- Archived [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual **B-016** carried in PLANS Section 6.4 / TODO. Live triage = `AI_PRIORITIES.md`.
+- Docs: TODO, PLANS, paired DEVELOPMENT_TOOLS guides, HOW_TO_RUN, LIST_OF_LISTS, legacy guide links retargeted; radon/pydeps stay optional manual recipes (not in requirements).
+
 ### 2026-07-27 - Vulture triage: real fixes + noise excludes **COMPLETED**
 - Nightly CI: `.gitignore` `**pytest**` was ignoring `coverage_pytest_argv.py` (ModuleNotFoundError). Narrowed to temp dirs + `**/pytest_*.log`; module now trackable.
 - Nightly CI: fixed parallel timeout in account-management integration test - TestUserFactory username lookup uses unlocked test JSON reads (and v2 unwrap) instead of locked `safe_json_read` scans under worker-store contention.
@@ -86,7 +92,7 @@ Guidelines:
 - LIST_OF_LISTS Section 7c documents cache/suite/static-analysis/backup policy lists.
 - Deferred SSOT closed: audit_tiers group maps, paired-docs prose sync in doc-sync, COMMAND_GROUPS guide parity test, PRODUCT_LIST_OF_LISTS.md.
 - Parallel-track flake fix: xdist worker-isolated `tests/data/xdist_*`; force-overwrite inherited `TEST_DATA_DIR`; actionability tests bind runtime data dir; `is_automated_messages_enabled` resolves usernames; audit_tiers TypedDict clears Pyright warnings.
-- Refreshed [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 1.1 / B-001-B-005 / B-018 against 2026-07-18 audit + codebase (coverage-first next slice; perf residual; portability residual; domain markers maintenance; pip CVE closed).
+- Refreshed [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 1.1 / B-001-B-005 / B-018 against 2026-07-18 audit + codebase (coverage-first next slice; perf residual; portability residual; domain markers maintenance; pip CVE closed).
 - B-002 coverage slice #1: branch tests for `report_generation` / `audit_orchestration` / `tool_wrappers` helpers (113 passed in the three extended test modules).
 - Fixed Tier 3 parallel flakes: unique user IDs for task-stats parity, admin provisioning, and Google Health reconnect-notice sync; ran `doc-fix --fix-ascii` on changelogs.
 - B-001 residual: module-scoped `temp_project_copy` in static-analysis wrapper + unused-imports report tests; legacy cleanup left function-scoped (mutates demo tree).
@@ -164,20 +170,6 @@ Verified:
 .\.venv\Scripts\python.exe -m pytest tests/unit/test_prompt_manager.py tests/unit/test_product_ai_prompt_composition.py tests/unit/test_product_ai_phase0_contracts.py -q
 .\.venv\Scripts\python.exe development_tools/run_development_tools.py legacy --clean --dry-run
 ```
-
-### 2026-07-08 - Action catalog expansion, fallback alignment, Phase 8 context slice, Phase 0 contracts **PARTIAL**
-- Expanded [`action_catalog.py`](../ai/prompts/action_catalog.py) with entity field metadata for check-ins, profile, schedules, analytics, notebooks, help/messages, health, and preferences; per-intent handler/feature overrides; `note_text` alignment for `append_note_to_task`.
-- Added `FallbackContext` / `build_fallback_context()` in [`context.py`](../ai/fallback/context.py) using `AIContextEnvelope` with `requested_intent="fallback_response"`.
-- Envelope-backed deterministic summaries in [`envelope_summaries.py`](../ai/fallback/envelope_summaries.py) and action-boundary-safe offline hints in [`action_hints.py`](../ai/fallback/action_hints.py).
-- Coordinator routes envelope summaries before keyword fallbacks; new categories `ENVELOPE_SUMMARY` and `ACTION_UNAVAILABLE`.
-- Partial structured-command retry when planner returns `None` but parse confidence is usable (`InteractionManager._try_partial_structured_command`).
-- Action plan executor prefers handler error metadata when execution message is empty.
-- Extracted check-in analytics to [`analytics.py`](../ai/context/analytics.py); envelope-backed [`chatbot_context.py`](../ai/context/chatbot_context.py) for contextual summary dict; legacy bridges logged and registered in `DEPRECATION_INVENTORY.json`.
-- Phase 0 contract tests in [`test_product_ai_phase0_contracts.py`](../tests/unit/test_product_ai_phase0_contracts.py): no direct `ai/` storage writes, dispatcher routing, envelope coverage, post-action task visibility.
-- Retired `analyze_recent_checkin_rows` alias; fallback and tests use `analyze_checkin_entries` directly.
-- Fixed parallel flake in `test_generate_response_fallback_when_lm_unavailable` by stubbing `_ensure_lm_studio_available`.
-- Updated `SYSTEM_AI_GUIDE.md` and `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` for removed `ai/context/builder.py`.
-- Tests: [`test_ai_action_catalog.py`](../tests/unit/test_ai_action_catalog.py), [`test_fallback_envelope_alignment.py`](../tests/unit/test_fallback_envelope_alignment.py), planner partial-parse behavior; fixed fallback import-boundary test path.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -324,7 +324,6 @@ C:.
 |
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
-|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
 |   |   CONSOLIDATED_REPORT.md

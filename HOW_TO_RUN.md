@@ -140,7 +140,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Subtree Tier 2 MVP (`--audit-scope`; no AI_* overwrite) | `python development_tools/run_development_tools.py audit --audit-scope communication/` |
 | Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 
-**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
+**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
 #### 5.1.2. Where full-audit time goes (baseline snapshot)
 
@@ -167,7 +167,7 @@ Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`devel
 
 #### 5.1.6. Completion log lines (`issues=`)
 
-Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
+Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly

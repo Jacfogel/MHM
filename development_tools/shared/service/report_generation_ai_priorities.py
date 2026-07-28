@@ -1928,7 +1928,7 @@ class AIPrioritiesDocumentMixin:
                 if vpc_n > 0 or vpc_st == "WARN":
                     vpc_bullets = [
                         "Action: Inspect candidate PIDs in the results JSON; end only processes you have verified are stale pytest-xdist workers.",
-                        "Limitation: orphan detection is heuristic until full command lines are available from the OS (see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md §3.18).",
+                        "Limitation: orphan detection is heuristic until full command lines are available from the OS (see archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md §3.18).",
                     ]
                     add_priority(
                         tier=3,

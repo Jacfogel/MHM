@@ -13,7 +13,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
+- Links to archived plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -63,7 +63,7 @@ python development_tools/run_development_tools.py --project-root . --config-path
 - **Porting** `development_tools/` only: install a matching Python stack in the host repo and ensure tools referenced in `development_tools/config/development_tools_config.json` are available.
 - **Future options** (when portability criteria land): optional `requirements-devtools.txt`, `[project.optional-dependencies]` devtools extra in `pyproject.toml`, or a lock file for reproducible tool-only CI.
 
-See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) for background.
+See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) for background.
 
 ### 2.2. Command Examples
 
@@ -266,7 +266,7 @@ Pipeline artifacts:
 
 - **`PASS` / `FAIL`** indicates whether the orchestration run for that tool **completed successfully** (`success` in the tool result), not whether `total_issues` is zero.
 - When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
-- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
+- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
@@ -403,7 +403,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)
-- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) if scope or gaps change
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
@@ -426,7 +426,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: live triage via [AI_PRIORITIES.md](AI_PRIORITIES.md) / [PLANS.md](../development_docs/PLANS.md) Section 6.4; historical backlog in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); document shipped changes in both changelogs; keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -629,7 +629,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Phased migration** (when restructuring): (1) clarify docs + ownership map (this section); (2) compatibility shims if modules move; (3) migrate imports and remove shims. Core CLI entrypoints (`run_development_tools.py`, `audit` tiers) should keep working throughout.
 
-**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
+**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
 **Pyright config**: Single SSOT is **`[tool.pyright]`** in `pyproject.toml` (IDE / Pylance / default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` was removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py`.
 
@@ -655,30 +655,31 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 
 ## 10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)
 
-**Status (2026-07-27)**: **Bandit**, **pip-audit**, and **Vulture** are integrated into **Tier 3** (`audit --full`): wrappers [`analyze_bandit.py`](static_checks/analyze_bandit.py), [`analyze_pip_audit.py`](static_checks/analyze_pip_audit.py), and [`analyze_vulture.py`](static_checks/analyze_vulture.py). JSON under scoped `development_tools/**/jsons/static_checks/`; summaries in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` / `AI_PRIORITIES.md` (Vulture findings are Tier 4 advisory). All three are in root `requirements.txt` (`bandit[toml]` for `[tool.bandit]`). **Bandit** scans **first-party package roots** (see `bandit_scan_roots` in [`config.py`](config/config.py)) plus `run_tests.py` / `run_mhm.py`, not a blind `-r .` (avoids `.venv` / site-packages noise); [`pyproject.toml`](../pyproject.toml) **`[tool.bandit]`** lists `exclude_dirs` (e.g. `tests`, `archive`). **Vulture** uses `get_scan_directories()` (or `vulture_scan_paths`) with default **min-confidence 80**, and builds `--exclude` from the shared exclusion system (`get_exclusions("vulture")` + generated-file patterns / shortlist; project extras via `exclusions.tool_exclusions.vulture`). **Strict mode** still keys off Tier 3 **pytest** outcome, not these tools. **pip-audit** needs network access to the vulnerability index on fresh runs (cache keyed off `requirements.txt` / `pyproject.toml`); upgrade **`pip`** in the venv if pip-audit reports CVEs on pip itself.
+**Status (2026-07-28)**: **Bandit**, **pip-audit**, and **Vulture** are integrated into **Tier 3** (`audit --full`): wrappers [`analyze_bandit.py`](static_checks/analyze_bandit.py), [`analyze_pip_audit.py`](static_checks/analyze_pip_audit.py), and [`analyze_vulture.py`](static_checks/analyze_vulture.py). JSON under scoped `development_tools/**/jsons/static_checks/`; summaries in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` / `AI_PRIORITIES.md` (Vulture findings are Tier 4 advisory). All three are in root `requirements.txt` (`bandit[toml]` for `[tool.bandit]`). **Bandit** scans **first-party package roots** (see `bandit_scan_roots` in [`config.py`](config/config.py)) plus `run_tests.py` / `run_mhm.py`, not a blind `-r .` (avoids `.venv` / site-packages noise); [`pyproject.toml`](../pyproject.toml) **`[tool.bandit]`** lists `exclude_dirs` (e.g. `tests`, `archive`). **Vulture** uses `get_scan_directories()` (or `vulture_scan_paths`) with default **min-confidence 80**, and builds `--exclude` from the shared exclusion system (`get_exclusions("vulture")` + generated-file patterns / shortlist; project extras via `exclusions.tool_exclusions.vulture`). **Strict mode** still keys off Tier 3 **pytest** outcome, not these tools. **pip-audit** needs network access to the vulnerability index on fresh runs (cache keyed off `requirements.txt` / `pyproject.toml`); upgrade **`pip`** in the venv if pip-audit reports CVEs on pip itself. **Radon**, **pydeps**, **pre-commit**, and **deeper Ruff** are **not** audit-integrated (B-012 closed 2026-07-28).
 
 - **CI / offline (2026-04-11)**: Set environment variable **`DEV_TOOLS_PIP_AUDIT_SKIP`** to `1`, `true`, `yes`, or `on` to skip the pip-audit subprocess and emit a **PASS** with zero findings and `details.pip_audit_skipped` (no vulnerability index fetch). Use in restricted networks or when delegating supply-chain checks elsewhere; local full audits should omit this flag so pip-audit runs normally.
 
 - **Timing semantics (2026-04-15, V5 Section 4.3)**: JSON `details` include `pip_audit_execution_state` (`executed_subprocess`, `requirements_lock_cache_hit`, `skipped_env`, `error`) and `pip_audit_subprocess_seconds` when the subprocess ran. Audit logs and consolidated static-analysis lines clarify cache hits vs real subprocess time so `elapsed=0.00s` is not misread as a broken timer.
 
-- **Evaluation (2026-04-08)**: **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM).
+- **Evaluation (2026-04-08 / 2026-07-28)**: **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). B-012 permanently declines integrating pre-commit into audit tiers; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks.
 
-- **Recorded decisions (2026-04-09-10 / 2026-07-26)**: **Radon** and **pydeps** remain **manual-only** pilots. **pre-commit** remains optional. **Vulture** is Tier 3 integrated (B-012). Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only.
+- **Recorded decisions (2026-04-09-10 / 2026-07-26 / 2026-07-28 B-012 close)**: **Vulture** is Tier 3 integrated. **Radon** and **pydeps** remain **manual-only** after uniqueness eval (same complexity/coupling hotspots as in-audit tools; pydeps viz needs host Graphviz). **pre-commit** remains optional host hygiene only. **deeper Ruff** declined (no named rule set). Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only. Prefer `analyze_dependency_patterns` for coupling/circular triage; use pydeps only for optional local graphs.
 
-- **Radon pilot (V5 Section 4.1, 2026-04-14)**: Keep Radon **out of default audit tiers** until policy defines tolerances vs `analyze_functions` / `analyze_module_refactor_candidates`. When triaging, run `python -m radon cc <path> -a -s`, compare ranks to `development_tools/functions/jsons/scopes/full/analyze_functions_results.json` (complexity) and refactor-candidate JSON; document notable divergences in changelogs only if you change thresholds or add a wrapper.
+- **Radon pilot (V5 Section 4.1, closed for integration 2026-07-28)**: Keep Radon **out of default audit tiers**. Spike on `command_parser` / `discord/bot` / `logger` matched existing critical-complexity and refactor-candidate top-N; no threshold policy that would change `AI_PRIORITIES`. When triaging, optional `python -m radon cc <path> -a -s` may cross-check ranks against `analyze_functions_results.json` and refactor-candidate JSON.
 
 - **Manual commands (Windows PowerShell, repo root, venv active)** - still valid for ad-hoc triage:
   - `python development_tools/static_checks/analyze_bandit.py --json` / `python development_tools/static_checks/analyze_pip_audit.py --json` / `python development_tools/static_checks/analyze_vulture.py --json` (same JSON shape as the audit subprocess).
   - `python -m bandit -c pyproject.toml -r core communication ui ...` (optional; audit uses the same first-party roots + `[tool.bandit]` excludes).
   - `python -m pip_audit`
   - `python -m vulture development_tools --min-confidence 80` (optional; audit uses `analyze_vulture` with config min-confidence).
-  - `python -m radon cc development_tools -a -s` (advisory; overlaps internal `analyze_functions` / refactor signals-use to cross-check hot spots, not as a second source of truth in CI until policy exists).
-  - **pydeps** (optional): `python -m pip install pydeps` then e.g. `python -m pydeps core --max-bacon=2` for a shallow graph sample; compare to `development_tools/imports/analyze_module_dependencies.py` before relying on graphs in documentation.
+  - `python -m radon cc development_tools -a -s` (advisory; overlaps internal `analyze_functions` / refactor signals-manual spot-check only; not audit-integrated).
+  - **pydeps** (optional): `python -m pip install pydeps` then e.g. `python -m pydeps core --max-bacon=2 --nodot --no-output --show-cycles` (text) or with Graphviz for SVG; compare to `analyze_dependency_patterns` before relying on graphs. Not audit-integrated.
 - **Bandit** / **pip-audit** / **Vulture**: In-audit defaults - Bandit summary counts **MEDIUM/HIGH** only (LOW counts appear under `details.low_severity_count`); pip-audit and Vulture findings are **WARN** severity in JSON when issues exist (do not fail Tier 3 alone).
-- **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
-- **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.
+- **Radon**: Declined for audit integration (B-012); overlaps `analyze_functions` / `analyze_module_refactor_candidates`. Manual recipe only.
+- **pydeps**: Declined for audit integration (B-012); optional dependency-graph visualization; in-audit coupling/circular source of truth is `analyze_dependency_patterns`.
 - **Vulture**: Tier 3 dead-code scan (min-confidence gated); excludes via shared `standard_exclusions` / `exclusions.tool_exclusions.vulture` (not hardcoded project paths); confirm before deleting symbols; AI_PRIORITIES Tier 4 only.
-- **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
+- **pre-commit**: Optional host-repo hygiene only (B-012 declined audit integration); policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
+- **deeper Ruff**: Declined (B-012); existing `analyze_ruff` + unused-imports path is sufficient until a named rule set and noise budget are proposed.
 
 - **TODO sync workflow** (B-010):
   1. Dry-run first: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` (stdout only; no file edits).
@@ -688,9 +689,9 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 
 - **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run this scan over **`DEFAULT_DOCS`** (config-derived approved doc list; see Command Summary `doc-sync` bullet). Hints appear in **AI_STATUS** (summary line), **CONSOLIDATED_REPORT** (detail), **AI_PRIORITIES** (Tier 4 when hints > 0), and `development_tools/docs/jsons/scopes/full/analyze_documentation_sync_results.json`. Heuristics: broad example-style `##` headings (e.g. "Command Examples"), short marker proximity window, repo-style backtick paths, citation-line skips, changelog-class docs excluded via shared historical-preserve patterns; marker tokens per AI_DOCUMENTATION_GUIDE Section 3.6. Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 
-### 10.1. Gap-analysis alignment (V6 B-013)
+### 10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)
 
-Triage with generated `AI_PRIORITIES.md` / `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` and existing tools. **Do not** add a combined `analyze_gap*` tool unless a category below has no usable signal.
+Triage with generated `AI_PRIORITIES.md` / `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` and existing tools. **`AI_PRIORITIES.md` is the combined triage layer** (ranked queue from audit JSON). Do **not** add a parallel `analyze_gap*` aggregator; reopen only if a category below has no usable signal.
 
 | Category | Primary existing signals |
 |---|---|
@@ -703,7 +704,7 @@ Triage with generated `AI_PRIORITIES.md` / `AI_STATUS.md` / `CONSOLIDATED_REPORT
 
 Practical order: (1) Immediate Focus in `AI_PRIORITIES.md`, (2) linked JSON for that item, (3) for size/complexity start with **`module-refactor-candidates`** before manual Radon, (4) for dead-code suspicion after unused-imports noise use Tier 3 Vulture (min-confidence gated).
 
-**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
+**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Residual task notes: [TODO.md](../TODO.md) and archived [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 **Snapshot (refresh when migrating)**:
 

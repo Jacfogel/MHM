@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-23 (post-refactor architecture decision cleanup)
+> **Last Updated**: 2026-07-28 (V6 plan archived)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -33,18 +33,17 @@ When adding new tasks, follow this format:
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md).
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
-**Note**: Development tools backlog is tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md). [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) remains for historical V4 checkboxes only.
+**Note**: Development tools V6 plan is **archived**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md). V4/V5 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md). Live triage: [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md).
 **Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here. Coverage-growth follow-ups from this session are tracked in TEST_PLAN Phase 5.7.
-**Legacy/Deprecation Source of Truth**: Development-tools legacy cleanup follow-ups are tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) section 5.6 and must align with `development_tools/config/jsons/DEPRECATION_INVENTORY.json`.
+**Legacy/Deprecation Source of Truth**: Align legacy cleanup with `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). Historical notes: archived V6 section 5.6.
 
-**Parallel product work (from audits)**: After `audit --full` (and `coverage` when metrics need refresh), use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity; this is separate from dev-tools suite implementation in [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md`](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
+**Parallel product work (from audits)**: After `audit --full` (and `coverage` when metrics need refresh), use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity.
 
-**Development tools backlog (active follow-ups only, reviewed 2026-07-19)**
-- **Coverage (tracked outside V6)**: use generated [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) + `python development_tools/run_development_tools.py coverage` for domain/product coverage; B-002 chokepoint history remains in V6 Section 2.2.
-- **Residual / maintenance**: B-001 re-profiled 2026-07-19 (**1591 passed / 83.94s**, was ~195s); B-003/B-004 portability; B-006/B-007/B-008 noise hardenings landed - reopen only on regression.
-- **Deferred**: optional external-tool expansion and gap tools remain deferred in V6.
-- **Opportunistic**: adopt `tests/development_tools/test_config.json` when touching analyzer tests.
-Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
+**Development tools (reviewed 2026-07-28 - V6 archived)**
+- **Live triage**: generated [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) + `python development_tools/run_development_tools.py coverage` when metrics need refresh.
+- **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP). Detail in [PLANS.md](development_docs/PLANS.md) Section 6.4 and archived [V6 Section 3.6](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
+- **Maintenance only**: reopen B-001/B-003-B-008 style work only on regression/noise; see archived V6 backlog register.
+- **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 **Use / fit** (2026-05-21 status): System AI overhaul is complete; post-overhaul AI quality work is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
 

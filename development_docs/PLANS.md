@@ -4,9 +4,9 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-07-18  
-> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
-> **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
+> **Last Updated**: 2026-07-28  
+> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
+> **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
 ---
 
@@ -33,7 +33,7 @@ Do **not** use this file as a dumping ground for long implementation checklists.
 | Testing roadmap | [TEST_PLAN.md](TEST_PLAN.md) |
 | Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
 | Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
-| AI/dev-tools roadmap | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) |
+| AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
 | Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
@@ -67,7 +67,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live validation, edit sessions, command discovery, group ambiguity, bulk organization |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
-| AI development tools | **ACTIVE / MAINTENANCE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | B-012/B-013/B-015/B-016 MVP landed; residual = further scope/static adoption + product priorities |
+| AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
 | Google Health integration (V0) | **COMPLETED** | Medium | [HEALTH_INTEGRATION_PLAN.md](HEALTH_INTEGRATION_PLAN.md) | Shipped read-only sync, signals, gentle personalization; V1/deferred items tracked in plan |
 
@@ -209,15 +209,15 @@ These plans should not be duplicated in detail here.
 
 ### 6.4 AI development tools
 
-**Status**: **ACTIVE / MAINTENANCE**  
+**Status**: **ARCHIVED / MAINTENANCE**  
 **Priority**: Medium  
-**Detailed plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)
+**Detailed plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived 2026-07-28)
 
 **Current focus**:
 
 - Prefer generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 for triage.
-- `--audit-scope` MVP is Tier-2/scan-dir only; do not assume Tier 3/static honor custom roots yet.
-- Residual V6: further external tools only with clear signal; expand audit-scope adoption when needed.
+- **Residual from V6 (B-016)**: `--audit-scope` MVP is Tier-2/scan-dir only; Tier 3/static/pytest/coverage and per-scope `AI_*` filenames remain unsupported until explicitly resumed.
+- No active V6 execution backlog; do not reopen Radon/pydeps/pre-commit/gap-tool work without a new plan.
 
 ---
 
@@ -362,6 +362,7 @@ Keep details in changelogs, not here.
 | Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
 | System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
 | Product AI context/action refactor | **COMPLETED** | Completed 2026-07-17; archived [PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md); runtime contracts in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md). |
+| AI development tools improvement plan V6 | **ARCHIVED** | Archived 2026-07-28 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual B-016 in Section 6.4 / TODO. |
 
 ---
 
