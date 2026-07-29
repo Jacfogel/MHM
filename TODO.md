@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-07-28 (V6 plan archived)
+> **Last Updated**: 2026-07-28 (V6 plan archived; Google Health plan archived)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -67,6 +67,16 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 - *Why it helps*: Removes real duplication while keeping the guard local to the Google Health package.
 - *Created*: 2026-07-02
 - *Estimated effort*: Small
+
+**Google Health deferred leftovers (from archived plan)** - Optional follow-ups after V0/V1 ship; not required for personal use. Live monitoring checklist is in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](archive/HEALTH_INTEGRATION_PLAN.md).
+- *Created*: 2026-07-28
+- *Estimated effort*: Small-Medium (pick items as needed)
+- *Candidates*:
+  - Admin UI "Sync now" (Discord `sync health` / CLI already cover debug)
+  - `preferences.json` -> `health_personalization` (`use_in_messages` / `use_in_chat`); today account feature flag only
+  - Populate `google_user_id` via `getIdentity` on connect
+  - Larger API `pageSize` for non-sleep types; configurable baseline window in `signal_builder.py`
+  - Doc gaps: Google Health mock section in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md); health context note in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md)
 
 ### Documentation
 

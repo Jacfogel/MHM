@@ -30,10 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-28 - Close V6 B-012 / B-013; archive V6 plan **COMPLETED**
+### 2026-07-28 - Close V6 B-012 / B-013; archive V6 and Google Health plans **COMPLETED**
 - B-013: Combined `analyze_gap*` declined; Section 10.1 map + `AI_PRIORITIES` is triage.
 - B-012: Radon/pydeps uniqueness spikes duplicated existing complexity/coupling signals; pre-commit and deeper Ruff declined. Vulture remains the only B-012 Tier 3 add.
 - Archived [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual **B-016** carried in PLANS Section 6.4 / TODO. Live triage = `AI_PRIORITIES.md`.
+- Archived [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md); monitoring in GOOGLE_HEALTH_GUIDE; deferred leftovers in TODO; PLANS Section 8 updated.
+- TODO.md ASCII/link hygiene via `doc-fix` (`--fix-ascii`, `--convert-links`) + `doc-sync`.
 - Docs: TODO, PLANS, paired DEVELOPMENT_TOOLS guides, HOW_TO_RUN, LIST_OF_LISTS, legacy guide links retargeted; radon/pydeps stay optional manual recipes (not in requirements).
 
 ### 2026-07-27 - Vulture triage: real fixes + noise excludes **COMPLETED**

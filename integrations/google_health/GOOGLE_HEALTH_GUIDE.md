@@ -110,6 +110,20 @@ Add the output to `.env`. Existing plaintext tokens migrate automatically on the
 
 For a **single-user MHM install**, keep the OAuth app in **Testing** mode and add yourself as a test user. Full Google verification + CASA security assessment is only needed if you share the app with more than 100 users or publish it publicly.
 
+## Post-ship monitoring
+
+V0/V1 shipped; the implementation plan is archived. When reviewing live behavior, confirm:
+
+- After 7–14 days of sync history, `confidence` rises to `medium`/`high` and `message_guidance` populates.
+- `resting_hr_signal` / `hrv_signal` leave `unknown` once enough baseline days exist.
+- Scheduled sends use guidance tone in logs (no raw metrics to the user).
+- Auth refresh failure triggers auto-pause and one reconnect notice on the primary channel.
+- Morning/evening sync entries appear in `logs/google_health.log` at the user's local `GOOGLE_HEALTH_SYNC_TIMES` (30-min poll).
+
+**Ops tip:** Temporarily raise `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` (default `3`) to backfill history for baselines faster.
+
+Deferred low-priority follow-ups (admin Sync now, `health_personalization` prefs, `getIdentity`, pagination/baseline knobs, doc gaps) live in [TODO.md](../../TODO.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](../../archive/HEALTH_INTEGRATION_PLAN.md).
+
 ## Module map
 
 All paths relative to project root.

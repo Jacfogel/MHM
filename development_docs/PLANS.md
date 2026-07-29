@@ -6,7 +6,7 @@
 > **Style**: Concise, current, action-oriented  
 > **Last Updated**: 2026-07-28  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
-> **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
+> **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
 ---
 
@@ -69,7 +69,6 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
-| Google Health integration (V0) | **COMPLETED** | Medium | [HEALTH_INTEGRATION_PLAN.md](HEALTH_INTEGRATION_PLAN.md) | Shipped read-only sync, signals, gentle personalization; V1/deferred items tracked in plan |
 
 ---
 
@@ -363,6 +362,7 @@ Keep details in changelogs, not here.
 | System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
 | Product AI context/action refactor | **COMPLETED** | Completed 2026-07-17; archived [PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md); runtime contracts in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md). |
 | AI development tools improvement plan V6 | **ARCHIVED** | Archived 2026-07-28 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual B-016 in Section 6.4 / TODO. |
+| Google Health integration (V0/V1) | **ARCHIVED** | Archived 2026-07-28 to [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md); live docs in [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md); deferred leftovers in [TODO.md](../TODO.md). |
 
 ---
 
