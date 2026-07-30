@@ -111,6 +111,7 @@ class TestNotebookHandlerBehavior:
             "show_entry",
             "append_to_entry",
             "set_entry_body",
+            "edit_entry",
             "add_tags_to_entry",
             "remove_tags_from_entry",
             "search_entries",
@@ -1174,6 +1175,37 @@ class TestNotebookEntityExtraction:
         body = result.parsed_command.entities.get("description", "").lower()
         assert "discuss project x" in body, f"Should extract correct description, got: {body}"
 
+    def test_extract_title_and_body_with_pipe_separator(self, test_data_dir):
+        """Pipe separator matches NOTEBOOK_HELP_TEXT phone examples."""
+        parser = EnhancedCommandParser()
+
+        result = parser.parse("n Meeting Notes | Discuss project X")
+        assert result.parsed_command.intent == "create_note"
+        title = (result.parsed_command.entities.get("title") or "").lower()
+        body = (result.parsed_command.entities.get("description") or "").lower()
+        assert "meeting notes" in title, f"Should extract title, got: {title}"
+        assert "discuss project x" in body, f"Should extract description, got: {body}"
+
+    def test_extract_title_and_body_from_note_prefix_with_pipe(self, test_data_dir):
+        """`note: Title | body` help example splits on pipe after the note: prefix."""
+        parser = EnhancedCommandParser()
+
+        result = parser.parse("note: Title | body text")
+        assert result.parsed_command.intent == "create_note"
+        title = (result.parsed_command.entities.get("title") or "").lower()
+        body = (result.parsed_command.entities.get("description") or "").lower()
+        assert title == "title", f"Should extract title, got: {title}"
+        assert "body text" in body, f"Should extract description, got: {body}"
+
+    def test_append_strips_optional_pipe_before_text(self, test_data_dir):
+        """Help shows `!append EntryRef | more text`; leading pipe is not stored."""
+        parser = EnhancedCommandParser()
+
+        result = parser.parse("append n123abc | more text about the meeting")
+        assert result.parsed_command.intent == "append_to_entry"
+        assert result.parsed_command.entities.get("entry_ref") == "n123abc"
+        assert result.parsed_command.entities.get("text") == "more text about the meeting"
+
     def test_extract_title_and_body_with_newline_separator(self, test_data_dir):
         """Test extracting title and body using newline separator."""
         parser = EnhancedCommandParser()
@@ -1643,6 +1675,152 @@ class TestNotebookFlowStateEdgeCases:
         assert any(
             e.title == "Timeout Test" for e in entries
         ), "Note should be saved with title only after timeout skip-all"
+
+    @pytest.mark.file_io
+    def test_edit_entry_replace_flow(self, test_data_dir):
+        """!edit starts a session; next message replaces the entry body."""
+        from notebook.notebook_data_manager import create_note, get_entry
+
+        handler = NotebookHandler()
+        user_id = "test_user_edit_replace"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+
+        entry = create_note(
+            user_id, title="Editable Note", description="original body"
+        )
+        assert entry is not None
+        short_id = entry.short_id or str(entry.id)
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="edit_entry",
+                entities={"entry_ref": short_id},
+                confidence=0.9,
+                original_message=f"!edit {short_id}",
+            ),
+        )
+        assert not response.completed
+        assert "editing" in response.message.lower()
+        assert conversation_manager.user_states.get(user_id, {}).get("flow") != 0
+
+        reply_text, completed = conversation_manager.handle_inbound_message(
+            user_id, "replacement body from phone"
+        )
+        assert completed
+        assert "updated" in reply_text.lower()
+
+        updated = get_entry(user_id, short_id)
+        assert updated is not None
+        assert updated.description == "replacement body from phone"
+        assert conversation_manager.user_states.get(user_id, {}).get("flow", 0) in (
+            0,
+            None,
+        )
+
+    @pytest.mark.file_io
+    def test_edit_entry_cancel_leaves_body_unchanged(self, test_data_dir):
+        """Cancel during edit session does not write."""
+        from notebook.notebook_data_manager import create_note, get_entry
+
+        handler = NotebookHandler()
+        user_id = "test_user_edit_cancel"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+
+        entry = create_note(user_id, title="Keep Body", description="keep me")
+        short_id = entry.short_id or str(entry.id)
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="edit_entry",
+                entities={"entry_ref": short_id},
+                confidence=0.9,
+                original_message=f"!edit {short_id}",
+            ),
+        )
+        assert not response.completed
+
+        reply_text, completed = conversation_manager.handle_inbound_message(
+            user_id, "cancel"
+        )
+        assert completed
+        assert "cancel" in reply_text.lower()
+        assert get_entry(user_id, short_id).description == "keep me"
+
+    @pytest.mark.file_io
+    def test_edit_entry_timeout_leaves_body_unchanged(self, test_data_dir):
+        """Expired edit session clears without replacing body."""
+        from datetime import timedelta
+
+        from notebook.notebook_data_manager import create_note, get_entry
+
+        handler = NotebookHandler()
+        user_id = "test_user_edit_timeout"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+
+        entry = create_note(user_id, title="Timeout Edit", description="unchanged")
+        short_id = entry.short_id or str(entry.id)
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="edit_entry",
+                entities={"entry_ref": short_id},
+                confidence=0.9,
+                original_message=f"!edit {short_id}",
+            ),
+        )
+        assert not response.completed
+
+        user_state = conversation_manager.user_states.get(user_id, {})
+        user_state["started_at"] = format_timestamp(
+            now_datetime_full() - timedelta(minutes=11), TIMESTAMP_FULL
+        )
+        conversation_manager.user_states[user_id] = user_state
+        conversation_manager._save_user_states()
+
+        reply_text, completed = conversation_manager.handle_inbound_message(
+            user_id, "hello"
+        )
+        assert completed
+        assert "cancel" in reply_text.lower() or "unchanged" in reply_text.lower()
+        assert get_entry(user_id, short_id).description == "unchanged"
+
+    @pytest.mark.file_io
+    def test_edit_entry_rejects_missing_and_list(self, test_data_dir):
+        """Invalid refs and lists do not start an edit session."""
+        from notebook.notebook_data_manager import create_list
+
+        handler = NotebookHandler()
+        user_id = "test_user_edit_invalid"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+
+        missing = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="edit_entry",
+                entities={"entry_ref": "nabcdef"},
+                confidence=0.9,
+                original_message="!edit nabcdef",
+            ),
+        )
+        assert missing.completed
+        assert "not found" in missing.message.lower()
+
+        list_entry = create_list(user_id, title="Groceries", items=["Milk"])
+        list_ref = list_entry.short_id or str(list_entry.id)
+        list_resp = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="edit_entry",
+                entities={"entry_ref": list_ref},
+                confidence=0.9,
+                original_message=f"!edit {list_ref}",
+            ),
+        )
+        assert list_resp.completed
+        assert "list" in list_resp.message.lower()
 
 
 @pytest.mark.behavior

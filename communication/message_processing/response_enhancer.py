@@ -53,6 +53,7 @@ EXCLUDED_ENHANCEMENT_INTENTS = {
     "show_entry",
     "append_to_entry",
     "set_entry_body",
+    "edit_entry",
     "add_tags_to_entry",
     "remove_tags_from_entry",
     "search_entries",

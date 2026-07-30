@@ -311,6 +311,13 @@ _NOTEBOOK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
         AIActionField("text", True, "Replacement body text."),
     ],
+    "edit_entry": [
+        AIActionField(
+            "entry_ref",
+            True,
+            "Entry id, short id, or title to start a replace-body edit session.",
+        ),
+    ],
     "add_tags_to_entry": [
         AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
         AIActionField("tags", True, "Tags to add."),

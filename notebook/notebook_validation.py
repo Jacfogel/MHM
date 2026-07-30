@@ -31,6 +31,41 @@ ENTRY_KIND_PREFIXES = {"note": "n", "list": "l", "journal_entry": "j"}
 PREFIX_TO_KIND = {v: k for k, v in ENTRY_KIND_PREFIXES.items()}
 
 
+@handle_errors("detecting structural entry reference", default_return=False)
+def looks_like_structural_entry_ref(ref: str) -> bool:
+    """True when ref looks like a UUID or short ID (not a free-text title).
+
+    Used to disambiguate dual-use commands such as `!group <ref> <name>` vs
+    `!group <multi word group name>`. Title-based assignment should use
+    `!setgroup <title> <group>` instead.
+    """
+    if not isinstance(ref, str):
+        return False
+    value = ref.strip()
+    if not value:
+        return False
+
+    uuid_pattern = re.compile(
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        re.IGNORECASE,
+    )
+    if uuid_pattern.match(value):
+        return True
+
+    short_id_with_prefix = re.compile(
+        rf"^[nlj][0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$",
+        re.IGNORECASE,
+    )
+    if short_id_with_prefix.match(value):
+        return True
+
+    short_id_fragment = re.compile(
+        rf"^[0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$",
+        re.IGNORECASE,
+    )
+    return bool(short_id_fragment.match(value))
+
+
 @handle_errors("validating entry reference", default_return=False)
 def is_valid_entry_reference(ref: str) -> bool:
     """

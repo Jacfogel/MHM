@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-07-28  
+> **Last Updated**: 2026-07-29  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -64,7 +64,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 |------|--------|----------|--------------------|---------------|
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
-| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live validation, edit sessions, command discovery, group ambiguity, bulk organization |
+| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live Discord Show More validation; help `|`, group ambiguity, and `!edit` sessions shipped; bulk later |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
@@ -166,11 +166,10 @@ These plans should not be duplicated in detail here.
 
 **Current focus**:
 
-- Live validation of implemented notebook behavior.
-- Edit sessions for longer note editing from Discord/mobile.
-- Better command discovery and help text.
-- Group command ambiguity cleanup.
-- Bulk organization commands only after core use feels reliable.
+- Live Discord validation of Show More / pagination (code + automated tests exist).
+- Help live spot-check (`|` separators, group ambiguity, and `!edit` shipped 2026-07-29).
+- AI notebook context privacy/opt-in scoping (recent entries already included).
+- Bulk organization commands only after live notebook use feels reliable.
 
 ---
 

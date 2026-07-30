@@ -452,7 +452,9 @@ class EnhancedCommandParser:
                 r"^quickn\s*(.*)$",  # Match "quickn" or "quickn <title>"
                 r"^quicknote\s*(.*)$",  # Match "quicknote" or "quicknote <title>"
                 r"^q\s+note\s*(.*)$",  # Match "q note" or "q note <title>"
-                r"quick\s+note\s*(.*)$",  # Match "quick note" or "quick note <title>"
+                # Must be anchored: unanchored search matched "Quick Notes" inside
+                # `group Quick Notes` and stole list-by-group.
+                r"^quick\s+notes?\s*(.*)$",
             ],
             "create_journal": [
                 r"^j\s+(.+)$",
@@ -475,6 +477,19 @@ class EnhancedCommandParser:
                 r"^update\s+(\S+)\s+(.+)$",
                 r"set\s+body\s+of\s+(\S+)\s+to\s+(.+)",
                 r"replace\s+body\s+of\s+(\S+)\s+with\s+(.+)",
+            ],
+            # Phone-friendly edit session: next free-text message replaces body.
+            # Keep ahead of update_task via priority_intents. Single-token `edit <ref>`
+            # avoids stealing `edit 5 priority high`; multi-word titles use `edit note ...`.
+            # Exclude reserved command words so `edit profile` stays update_profile.
+            "edit_entry": [
+                r"^edit\s+note\s+(.+)$",
+                r"^edit\s+entry\s+(.+)$",
+                r"^editn\s+(.+)$",
+                (
+                    r"^edit\s+(?!note\b|entry\b|profile\b|task\b|schedule\b|"
+                    r"check.?in\b|analytics\b|preferences?\b|settings?\b)(\S+)$"
+                ),
             ],
             "list_recent_entries": [
                 r"^recent(?:\s+(\d+))?$",
@@ -569,11 +584,14 @@ class EnhancedCommandParser:
                 r"^l\s+remove\s+(\S+)\s+(\d+)$",
             ],
             "set_entry_group": [
-                r"^group\s+(\S+)\s+(.+)$",
+                r"^setgroup\s+(\S+)\s+(.+)$",
+                r"^set\s+group\s+(\S+)\s+(.+)$",
+                r"^assign\s+group\s+(\S+)\s+(.+)$",
+                # Bare `group <ref> <name>` is accepted only when <ref> looks like
+                # a short ID / UUID (see `_accept_set_entry_group_match`).
                 r"^group\s+(\S+)\s+(.+)$",
             ],
             "list_entries_by_group": [
-                r"^group\s+(.+)$",
                 r"^group\s+(.+)$",
             ],
             "list_pinned_entries": [
@@ -1027,6 +1045,10 @@ class EnhancedCommandParser:
                 ("task_analytics", False),
                 ("edit_schedule_period", False),
                 ("create_quick_note", False),
+                # Before generic `set <ref> <text>` (set_entry_body).
+                ("set_entry_group", False),
+                # Before update_task's `edit <id> <rest>` patterns.
+                ("edit_entry", False),
                 ("list_recent_entries", False),
                 ("list_recent_notes", False),
             ]
@@ -1067,6 +1089,24 @@ class EnhancedCommandParser:
             ParsedCommand("unknown", {}, 0.0, message), 0.0, "rule_based"
         )
 
+    @staticmethod
+    @handle_errors("accepting set_entry_group match", default_return=False)
+    def _accept_set_entry_group_match(
+        message_for_match: str, entities: dict[str, Any]
+    ) -> bool:
+        """Accept set-group only for explicit aliases or structural entry refs.
+
+        Bare `group Quick Notes` must list the multi-word group, not set group
+        "Notes" on a title-like ref "Quick".
+        """
+        from notebook.notebook_validation import looks_like_structural_entry_ref
+
+        msg = (message_for_match or "").strip().lower()
+        if msg.startswith(("setgroup ", "set group ", "assign group ")):
+            return True
+        entry_ref = str(entities.get("entry_ref") or "").strip()
+        return looks_like_structural_entry_ref(entry_ref)
+
     @handle_errors("building rule-based result from pattern", default_return=None)
     def _build_rule_based_result_from_pattern(
         self,
@@ -1089,6 +1129,10 @@ class EnhancedCommandParser:
         entities = self._extract_entities_rule_based(
             intent, match, message_for_match, user_id=user_id
         )
+        if intent == "set_entry_group" and not self._accept_set_entry_group_match(
+            message_for_match, entities
+        ):
+            return None
         confidence = self._calculate_confidence(intent, match, message_for_match)
         return ParsingResult(
             ParsedCommand(intent, entities, confidence, original_message),
@@ -1527,13 +1571,28 @@ class EnhancedCommandParser:
     @staticmethod
     @handle_errors("parsing title/body from content", default_return=("", None))
     def _parse_title_body_from_content(content: str) -> tuple[str, str | None]:
-        """Split note/journal content into title and optional body."""
-        if ":" in content and "\n" not in content:
-            parts = content.split(":", 1)
-            return parts[0].strip(), parts[1].strip() if len(parts) > 1 else None
+        """Split note/journal content into title and optional body.
+
+        Separator priority matches notebook help / phone UX:
+        1. newline (multi-line body)
+        2. `|` (documented in NOTEBOOK_HELP_TEXT)
+        3. `:` (existing shorthand)
+        """
         if "\n" in content:
             lines = content.split("\n", 1)
-            return lines[0].strip(), lines[1].strip() if len(lines) > 1 else None
+            title = lines[0].strip()
+            body = lines[1].strip() if len(lines) > 1 else ""
+            return title, body or None
+        if "|" in content:
+            parts = content.split("|", 1)
+            title = parts[0].strip()
+            body = parts[1].strip() if len(parts) > 1 else ""
+            return title, body or None
+        if ":" in content:
+            parts = content.split(":", 1)
+            title = parts[0].strip()
+            body = parts[1].strip() if len(parts) > 1 else ""
+            return title, body or None
         return content, None
 
     @staticmethod
@@ -1629,7 +1688,16 @@ class EnhancedCommandParser:
         if intent in ("append_to_entry", "set_entry_body"):
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
-                entities["text"] = match.group(2).strip()
+                # Allow optional `|` after the entry ref (help shows `!append EntryRef | text`).
+                text = match.group(2).strip()
+                if text.startswith("|"):
+                    text = text[1:].strip()
+                entities["text"] = text
+            return True
+
+        if intent == "edit_entry":
+            if match.groups():
+                entities["entry_ref"] = match.group(1).strip()
             return True
 
         if intent == "create_journal":

@@ -119,6 +119,8 @@ TASK_FLOW_UNDO_CREATION_KEYWORDS = [
 NOTE_FLOW_UNDO_CREATION_KEYWORDS = ["undo note creation", *FLOW_CANCEL_KEYWORDS]
 JOURNAL_FLOW_UNDO_CREATION_KEYWORDS = ["undo entry creation", *FLOW_CANCEL_KEYWORDS]
 LIST_FLOW_UNDO_CREATION_KEYWORDS = ["undo list creation", *FLOW_CANCEL_KEYWORDS]
+ENTRY_EDIT_CANCEL_KEYWORDS = [*FLOW_CANCEL_KEYWORDS]
+ENTRY_EDIT_CANCELLED_MESSAGE = "Edit cancelled. Entry left unchanged."
 TASK_FLOW_DELETE_TASK_KEYWORDS = ["delete task", "delete this task"]
 
 # User-facing outcome messages
@@ -363,6 +365,8 @@ is_unrelated_journal_body_message = build_unrelated_checker(
 is_unrelated_list_items_message = build_unrelated_checker(
     FLOW_FOCUS_LIST, FLOW_STEP_FREE_TEXT
 )
+# Edit-session free text uses the same unrelated rules as note body capture.
+is_unrelated_entry_edit_message = is_unrelated_note_body_message
 
 
 @dataclass(frozen=True)

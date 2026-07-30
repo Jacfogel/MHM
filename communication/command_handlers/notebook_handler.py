@@ -70,13 +70,15 @@ Capture notes, lists, and journal entries from Discord.
 • `!show n123abc` — by short ID, UUID, or title
 • `!s project` — search titles, bodies, list items (archived excluded)
 • `!inbox` — active untagged entries updated in the last 30 days
-• `!pinned` / `!archived` / `!t work` / `!group Home`
+• `!pinned` / `!archived` / `!t work` / `!group Home` / `!group Quick Notes`
 
 **Modify:**
 • `!append EntryRef | more text`
+• `!edit n123abc` or `!edit note Meeting Notes` — next message replaces the body (`cancel` aborts)
 • `!set EntryRef new body` / `!tag EntryRef #idea #work`
 • `!pin` / `!unpin` / `!archive` / `!unarchive`
-• `!group EntryRef Home` — set entry group (`!group Home` lists that group)
+• `!setgroup n123abc Home` or `!group n123abc Home` — set group (short ID/UUID); use `!setgroup Title Home` for title refs
+• `!group Home` — list a group (multi-word names stay list, not set)
 
 **Lists:**
 • `!l add Groceries Milk`
@@ -185,7 +187,7 @@ def _format_no_group_hits_message(group: str) -> str:
     lines = [
         f"No entries found in group '{group}'.",
         "",
-        "Check the spelling. Assign a group with !group <entry_id> <groupname>.",
+        "Check the spelling. Assign with !setgroup <entry_id_or_title> <groupname>.",
         "Browse recent entries with !recent to see what you have.",
     ]
     return "\n".join(lines)
@@ -226,6 +228,7 @@ class NotebookHandler(InteractionHandler):
             "show_entry",
             "append_to_entry",
             "set_entry_body",
+            "edit_entry",
             "add_tags_to_entry",
             "remove_tags_from_entry",
             "search_entries",
@@ -274,6 +277,8 @@ class NotebookHandler(InteractionHandler):
             return self._handle_append_to_entry(user_id, entities)
         elif intent == "set_entry_body":
             return self._handle_set_entry_body(user_id, entities)
+        elif intent == "edit_entry":
+            return self._handle_edit_entry(user_id, entities)
         elif intent == "add_tags_to_entry":
             return self._handle_add_tags(user_id, entities)
         elif intent == "remove_tags_from_entry":
@@ -652,7 +657,8 @@ class NotebookHandler(InteractionHandler):
         if not entry_ref:
             return InteractionResponse("Which entry would you like to edit?", False)
         if not text:
-            return InteractionResponse("What should the new content be?", False)
+            # Missing one-shot text: start the same phone-friendly edit session as !edit.
+            return self._handle_edit_entry(user_id, {"entry_ref": entry_ref})
 
         result = replace_entry_body(user_id, entry_ref, text)
         entry = result.entry if result else None
@@ -666,6 +672,55 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse(
                 "❌ Failed to update. Entry not found or invalid.", True
             )
+
+    @handle_errors("handling edit entry session")
+    def _handle_edit_entry(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Start a replace edit session; next free-text message becomes the new body."""
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+        from communication.message_processing.flows.flow_constants import (
+            ENTRY_EDIT_SUGGESTIONS,
+            FLOW_ENTRY_EDIT,
+        )
+
+        entry_ref = entities.get("entry_ref")
+        if not entry_ref:
+            return InteractionResponse(
+                "Which entry? Example: `!edit n123abc` or `!edit note Meeting Notes`",
+                False,
+            )
+
+        entry = get_entry(user_id, entry_ref)
+        if not entry:
+            return InteractionResponse(
+                "❌ Entry not found. Try a short ID (`n123abc`) or `!edit note <title>`.",
+                True,
+            )
+        if entry.kind == "list":
+            return InteractionResponse(
+                "Lists don't have a body to edit. Use `!l add` / `!l done` / `!l remove` instead.",
+                True,
+            )
+
+        short_id = self._format_entry_id(entry)
+        title = entry.title or "Untitled"
+        conversation_manager.user_states[user_id] = {
+            "flow": FLOW_ENTRY_EDIT,
+            "state": 0,
+            "data": {"entry_ref": str(entry.id), "short_id": short_id, "title": title},
+            "started_at": now_timestamp_full(),
+        }
+        conversation_manager._save_user_states()
+        return InteractionResponse(
+            f"✏️ Editing '{title}' ({short_id}).\n\n"
+            "Send the new body text as your next message. "
+            "Type `cancel` to leave the entry unchanged.",
+            False,
+            suggestions=list(ENTRY_EDIT_SUGGESTIONS),
+        )
 
     @handle_errors("handling add tags")
     def _handle_add_tags(
@@ -941,9 +996,15 @@ class NotebookHandler(InteractionHandler):
         group = entities.get("group")
 
         if not entry_ref:
-            return InteractionResponse("Which entry?", False)
+            return InteractionResponse(
+                "Which entry? Example: `!setgroup n123abc Home`",
+                False,
+            )
         if not group:
-            return InteractionResponse("What group name?", False)
+            return InteractionResponse(
+                "What group name? Example: `!setgroup n123abc Home`",
+                False,
+            )
 
         result = set_entry_group(user_id, entry_ref, group)
         entry = result.entry if result else None
@@ -954,10 +1015,12 @@ class NotebookHandler(InteractionHandler):
                 f"✅ Set group '{group}' for '{entry.title or 'Untitled'}' ({short_id})",
                 True,
             )
-        else:
-            return InteractionResponse(
-                "❌ Failed to set group. Entry not found.", True
-            )
+        return InteractionResponse(
+            "❌ Failed to set group. Entry not found. "
+            "Use `!setgroup <short_id_or_title> <group>` "
+            "(bare `!group Name With Spaces` lists a group).",
+            True,
+        )
 
     @handle_errors(
         "building paginated list response",
@@ -1250,6 +1313,8 @@ class NotebookHandler(InteractionHandler):
             "!recent",
             "!show n123abc",
             "!append My thought | More details here",
+            "!edit n123abc",
+            "!edit note Meeting Notes",
             "!tag My thought #idea #work",
             "!s project X",
             "!l new Groceries #home",
@@ -1257,4 +1322,6 @@ class NotebookHandler(InteractionHandler):
             "!l done Groceries 1",
             "!pinned",
             "!inbox",
+            "!group Home",
+            "!setgroup n123abc Home",
         ]

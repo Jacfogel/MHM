@@ -33,6 +33,16 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-29 - Notebook roadmap refresh; `|` separators; group disambiguation; `!edit` sessions
+- **Docs**: Validated [NOTES_PLAN.md](NOTES_PLAN.md) against the live codebase; refreshed statuses (Section 4.2 polish, Section 5.4 AI context privacy). Synced [PLANS.md](PLANS.md) notebook focus blurbs.
+- **Feature**: Notebook title/body parsing accepts `|` (newline, then `|`, then `:`); optional leading `|` on append/set text stripped ([`command_parser.py`](../communication/message_processing/command_parser.py)).
+- **Feature**: Resolved notebook group ambiguity - `!setgroup` / `!set group` / `!assign group`; bare `!group` set only for short ID/UUID; multi-word groups list; anchored `quick note(s)`.
+- **Feature**: Phone-friendly edit sessions - `!edit` / `!editn` / `!edit note <title>` starts `FLOW_ENTRY_EDIT`; next free-text message calls `replace_entry_body`; cancel/skip/timeout leave the entry unchanged ([`note_flow.py`](../communication/message_processing/flows/note_flow.py), [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py)).
+- **Fix**: `edit_entry` single-token pattern excludes reserved words (`profile`, `task`, `schedule`, etc.) so `edit profile` stays `update_profile`.
+- **Docs**: Regenerated function registry for new edit/group helpers; `doc-fix --fix-ascii` on this changelog; `doc-sync` PASS.
+- **Tests**: Pipe separators; group disambiguation; edit replace/cancel/timeout/invalid-ref behavior tests; profile `edit profile` parser case passing again.
+- **Impact**: Documented phone UX works; longer note replacement no longer requires packing the body into one command line.
+
 ### 2026-07-28 - Close V6 B-012 / B-013 after uniqueness eval; archive V6 and Google Health plans
 - **B-013 (closed)**: Declined combined `analyze_gap*` tool. Gap-category map in [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 remains; generated `AI_PRIORITIES.md` is the combined triage layer. Reopen only if a mapped category has no usable signal.
 - **B-012 Radon spike (declined)**: `python -m radon cc` on `command_parser.py`, `discord/bot.py`, and `logger.py` ranked the same critical hotspots already surfaced by `analyze_functions` / `module-refactor-candidates` (e.g. `_extract_notebook_entities_rule_based`). No audit integration or `requirements.txt` pin.

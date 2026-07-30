@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-18 01:41:01
+> **Last Generated**: 2026-07-29 18:13:01
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000070 5EAC:07BC
+Volume serial number is 0000005F 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -309,6 +309,7 @@ C:.
 |   |   MODULE_DEPENDENCIES_DETAIL.md
 |   |   NOTES_PLAN.md
 |   |   PLANS.md
+|   |   PRODUCT_LIST_OF_LISTS.md
 |   |   TASKS_PLAN.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
@@ -443,6 +444,7 @@ C:.
 |   |   |       \---jsons
     (JSON files created by development tools)
 |   +---shared
+|   |   |   audit_scope.py
 |   |   |   audit_signal_state.py
 |   |   |   audit_storage_scope.py
 |   |   |   audit_tiers.py
@@ -484,7 +486,12 @@ C:.
 |   |   |   |   data_freshness_audit.py
 |   |   |   |   data_loading.py
 |   |   |   |   report_generation.py
+|   |   |   |   report_generation_ai_priorities.py
+|   |   |   |   report_generation_ai_status.py
+|   |   |   |   report_generation_consolidated.py
 |   |   |   |   report_generation_linkify.py
+|   |   |   |   report_generation_scope_helpers.py
+|   |   |   |   report_generation_tier3_helpers.py
 |   |   |   |   tool_wrappers.py
 |   |   |   |   utilities.py
 |   |   |   |   __init__.py
@@ -494,6 +501,7 @@ C:.
 |   |   |   analyze_pip_audit.py
 |   |   |   analyze_pyright.py
 |   |   |   analyze_ruff.py
+|   |   |   analyze_vulture.py
 |   |   |   check_channel_loggers.py
 |   |   |
 |   |   +---jsons
@@ -504,6 +512,11 @@ C:.
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
 |   |   |   coverage_dev_tools.ini
+|   |   |   coverage_domain_cache.py
+|   |   |   coverage_json_helpers.py
+|   |   |   coverage_outcome_classification.py
+|   |   |   coverage_pytest_argv.py
+|   |   |   coverage_shard_merge.py
 |   |   |   dev_tools_coverage_cache.py
 |   |   |   domain_mapper.py
 |   |   |   fix_test_markers.py
@@ -789,8 +802,11 @@ C:.
 |   |   |   test_analyze_test_markers.py
 |   |   |   test_analyze_test_markers_domain.py
 |   |   |   test_analyze_unconverted_links.py
+|   |   |   test_analyze_unused_functions.py
 |   |   |   test_analyze_unused_imports.py
+|   |   |   test_analyze_vulture.py
 |   |   |   test_audit_orchestration_helpers.py
+|   |   |   test_audit_scope_b016.py
 |   |   |   test_audit_signal_state.py
 |   |   |   test_audit_status_updates.py
 |   |   |   test_audit_storage_scope.py
@@ -816,6 +832,7 @@ C:.
 |   |   |   test_constants.py
 |   |   |   test_constants_config_alignment.py
 |   |   |   test_constants_config_import_order.py
+|   |   |   test_coverage_b015_helpers.py
 |   |   |   test_data_freshness_audit.py
 |   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py

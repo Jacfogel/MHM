@@ -11,6 +11,7 @@ FLOW_LIST_ITEMS = 4
 FLOW_TASK_DUE_DATE = 5
 FLOW_TASK_PRIORITY = 6
 FLOW_JOURNAL_BODY = 7
+FLOW_ENTRY_EDIT = 8
 
 
 # We'll define states for check-in - now dynamic based on user preferences
@@ -65,6 +66,7 @@ TASK_PRIORITY_SUGGESTIONS = [
 NOTEBOOK_BODY_SUGGESTIONS = ["Skip Question", "Undo Note Creation"]
 JOURNAL_BODY_SUGGESTIONS = ["Skip Question", "Undo Entry Creation"]
 LIST_ITEMS_SUGGESTIONS = ["End List", "Undo List Creation"]
+ENTRY_EDIT_SUGGESTIONS = ["Cancel"]
 
 # Question mapping for dynamic flow
 QUESTION_STATES = {

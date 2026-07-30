@@ -9,6 +9,7 @@ from uuid import uuid4
 from notebook.notebook_validation import (
 
     is_valid_entry_reference,
+    looks_like_structural_entry_ref,
     parse_short_id,
     format_short_id,
     is_valid_entry_title,
@@ -59,6 +60,16 @@ class TestEntryReferenceValidation:
         for ref in valid_refs:
             result = is_valid_entry_reference(ref)
             assert result is True, f"Short ID with prefix {ref} should be valid"
+
+    @pytest.mark.unit
+    def test_looks_like_structural_entry_ref_accepts_ids_not_titles(self):
+        """Structural refs are UUID/short-id only; titles fall through to setgroup."""
+        assert looks_like_structural_entry_ref("n3f2a9c") is True
+        assert looks_like_structural_entry_ref("3f2a9c") is True
+        assert looks_like_structural_entry_ref(str(uuid4())) is True
+        assert looks_like_structural_entry_ref("Quick") is False
+        assert looks_like_structural_entry_ref("GroceryList") is False
+        assert looks_like_structural_entry_ref("n123") is False
 
     @pytest.mark.unit
     @pytest.mark.critical

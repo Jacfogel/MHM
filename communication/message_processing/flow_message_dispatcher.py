@@ -12,6 +12,8 @@ from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
 )
 from communication.message_processing.flows.flow_constants import (
+    ENTRY_EDIT_SUGGESTIONS,
+    FLOW_ENTRY_EDIT,
     FLOW_JOURNAL_BODY,
     FLOW_LIST_ITEMS,
     FLOW_NOTE_BODY,
@@ -110,6 +112,10 @@ def _attach_flow_suggestions(
 
     if flow == FLOW_LIST_ITEMS:
         response.suggestions = list(LIST_ITEMS_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_ENTRY_EDIT:
+        response.suggestions = list(ENTRY_EDIT_SUGGESTIONS)
         return response
 
     if flow == FLOW_TASK_REMINDER or (

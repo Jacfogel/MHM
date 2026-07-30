@@ -7,6 +7,8 @@ from core.logger import get_component_logger
 from storage.user_data_v2_base import generate_short_id
 
 from communication.message_processing.flows.flow_command_helpers import (
+    ENTRY_EDIT_CANCEL_KEYWORDS,
+    ENTRY_EDIT_CANCELLED_MESSAGE,
     JOURNAL_FLOW_UNDO_CREATION_KEYWORDS,
     JOURNAL_NOT_SAVED_TEMPLATE,
     JOURNAL_SAVED_TITLE_ONLY_TEMPLATE,
@@ -22,6 +24,7 @@ from communication.message_processing.flows.flow_command_helpers import (
     is_journal_flow_step_back_message,
     is_note_flow_step_back_message,
     is_skip_question_message,
+    is_unrelated_entry_edit_message,
     is_unrelated_journal_body_message,
     is_unrelated_list_items_message,
     is_unrelated_note_body_message,
@@ -135,6 +138,12 @@ class NoteFlowMixin(FlowControlMixin):
         title = user_state.get("data", {}).get("title", "")
         self._clear_flow_state(user_id, mark_completion=True)
         return (LIST_NOT_SAVED_TEMPLATE.format(title=title), True)
+
+    # error_handling_exclude: called from decorated flow handlers
+    def _cancel_entry_edit(self, user_id: str, user_state: dict) -> tuple[str, bool]:
+        """Abandon edit session without writing (entry already exists)."""
+        self._clear_flow_state(user_id, mark_completion=True)
+        return (ENTRY_EDIT_CANCELLED_MESSAGE, True)
 
     # error_handling_exclude: called from decorated flow handlers
     def _note_body_step_back(self, user_id: str, user_state: dict) -> tuple[str, bool]:
@@ -379,4 +388,67 @@ class NoteFlowMixin(FlowControlMixin):
             f"Added {len(new_batch)} item(s). Total: {item_count} items.\n\n"
             "Add more items, or type `!end`, `/end`, or 'end' to finish the list.",
             False,
+        )
+
+    @handle_errors(
+        "handling entry edit flow",
+        default_return=(
+            "I'm having trouble with the edit flow. Please try again.",
+            True,
+        ),
+    )
+    def _handle_entry_edit_flow(
+        self, user_id: str, user_state: dict, message_text: str
+    ) -> tuple[str, bool]:
+        """Handle phone-friendly replace edit: next message replaces entry description."""
+        message_lower = message_text.lower().strip()
+
+        control = self._try_flow_control_command(
+            user_id,
+            user_state,
+            message_lower,
+            self._build_flow_control_handlers(
+                # Skip and cancel both abandon without writing (entry already exists).
+                on_skip_all=lambda: self._cancel_entry_edit(user_id, user_state),
+                on_skip_question=lambda: self._cancel_entry_edit(user_id, user_state),
+                on_undo_creation=lambda: self._cancel_entry_edit(user_id, user_state),
+                on_step_back=lambda: self._cancel_entry_edit(user_id, user_state),
+                is_unrelated=is_unrelated_entry_edit_message,
+                on_timeout_unrelated=lambda: self._cancel_entry_edit(user_id, user_state),
+                skip_question_checker=is_skip_question_message,
+                undo_creation_checker=lambda msg: message_matches_keyword(
+                    msg, ENTRY_EDIT_CANCEL_KEYWORDS
+                ),
+            ),
+            flow_label="entry edit flow",
+        )
+        if control is not None:
+            return control
+
+        flow_data = user_state.get("data", {})
+        entry_ref = flow_data.get("entry_ref")
+        if not entry_ref:
+            self._clear_flow_state(user_id, mark_completion=True)
+            return ("Edit session lost its entry reference. Please try `!edit` again.", True)
+
+        body = message_text.strip()
+        if not body:
+            return (
+                "Send the new body text for this entry, or type `cancel` to leave it unchanged.",
+                False,
+            )
+
+        self._clear_flow_state(user_id, mark_completion=True)
+
+        from notebook.notebook_service import replace_entry_body
+
+        result = replace_entry_body(user_id, entry_ref, body)
+        entry = result.entry if result else None
+        if entry:
+            short_id = self._entry_short_id(entry)
+            title = entry.title or "Untitled"
+            return (f"✅ Updated '{title}' ({short_id})", True)
+        return (
+            "❌ Failed to update. Entry not found or cannot be edited (lists use item commands).",
+            True,
         )

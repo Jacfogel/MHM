@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-18 01:40:42
+> **Last Generated**: 2026-07-29 18:12:38
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 258
-- **Total Imports Found**: 2187
+- **Total Imports Found**: 2189
 - **Dependencies Documented**: 258 (100% coverage)
-- **Standard Library Imports**: 648 (29.6%)
+- **Standard Library Imports**: 646 (29.5%)
 - **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1322 (60.4%)
-- **Last Updated**: 2026-07-18
+- **Local Imports**: 1326 (60.6%)
+- **Last Updated**: 2026-07-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 648 imports (29.6%)
+- **Standard Library**: 646 imports (29.5%)
 - **Third-Party**: 217 imports (9.9%)
-- **Local**: 1322 imports (60.4%)
+- **Local**: 1326 imports (60.6%)
 
 ## Module Dependencies by Directory
 
@@ -1409,7 +1409,7 @@
     - `communication.command_handlers.base_handler (InteractionHandler)`
     - `communication.command_handlers.shared_types (InteractionResponse, PaginationAction, ParsedCommand)`
     - `communication.message_processing.conversation_flow_manager (conversation_manager)`
-    - `communication.message_processing.flows.flow_constants (FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NOTE_BODY, JOURNAL_BODY_SUGGESTIONS, LIST_ITEMS_SUGGESTIONS, NOTEBOOK_BODY_SUGGESTIONS)` (NEW)
+    - `communication.message_processing.flows.flow_constants (ENTRY_EDIT_SUGGESTIONS, FLOW_ENTRY_EDIT, FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NOTE_BODY, JOURNAL_BODY_SUGGESTIONS, LIST_ITEMS_SUGGESTIONS, NOTEBOOK_BODY_SUGGESTIONS)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.pagination (PageRequest, paginate_items)` (NEW)
@@ -2603,6 +2603,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
     - `core.tags (normalize_tags, parse_tags_from_text)` (NEW)
+    - `notebook.notebook_validation (looks_like_structural_entry_ref)` (NEW)
   - **Standard Library**:
     - `contextlib (suppress)`
     - `dataclasses (dataclass)`
@@ -2618,7 +2619,7 @@
   - `communication/message_processing/structured_command_dispatcher.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags
+- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, notebook.notebook_validation
 - Removed: ai/prompts/command_registry.py, communication/message_processing/action_request_adapter.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/structured_command_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2653,7 +2654,7 @@
     - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
     - `checkins.checkin_data_manager (is_user_checkins_enabled)`
     - `communication.message_processing.flows.checkin_flow (CheckinFlowMixin)` (NEW)
-    - `communication.message_processing.flows.flow_constants (FLOW_CHECKIN, FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NONE, FLOW_NOTE_BODY, FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER)` (NEW)
+    - `communication.message_processing.flows.flow_constants (FLOW_CHECKIN, FLOW_ENTRY_EDIT, FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NONE, FLOW_NOTE_BODY, FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER)` (NEW)
     - `communication.message_processing.flows.note_flow (NoteFlowMixin)` (NEW)
     - `communication.message_processing.flows.task_flow (TaskFlowMixin)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -2687,7 +2688,7 @@
     - `communication.message_processing.command_parser (ParsingResult)` (NEW)
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
     - `communication.message_processing.flows.flow_command_helpers (FLOW_DISPATCH_KEYWORDS)` (NEW)
-    - `communication.message_processing.flows.flow_constants (FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NOTE_BODY, FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER, JOURNAL_BODY_SUGGESTIONS, LIST_ITEMS_SUGGESTIONS, NOTEBOOK_BODY_SUGGESTIONS, TASK_DUE_DATE_SUGGESTIONS, TASK_PRIORITY_SUGGESTIONS)` (NEW)
+    - `communication.message_processing.flows.flow_constants (ENTRY_EDIT_SUGGESTIONS, FLOW_ENTRY_EDIT, FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NOTE_BODY, FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER, JOURNAL_BODY_SUGGESTIONS, LIST_ITEMS_SUGGESTIONS, NOTEBOOK_BODY_SUGGESTIONS, TASK_DUE_DATE_SUGGESTIONS, TASK_PRIORITY_SUGGESTIONS)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -2845,18 +2846,19 @@
 - **Purpose**: Communication channel implementation for note_flow
 - **Dependencies**:
   - **Local**:
-    - `communication.message_processing.flows.flow_command_helpers (JOURNAL_FLOW_UNDO_CREATION_KEYWORDS, JOURNAL_NOT_SAVED_TEMPLATE, JOURNAL_SAVED_TITLE_ONLY_TEMPLATE, JOURNAL_SAVED_WITH_BODY_TEMPLATE, LIST_FLOW_UNDO_CREATION_KEYWORDS, LIST_NOT_SAVED_TEMPLATE, LIST_SAVED_TEMPLATE, LIST_STEP_BACK_REMOVED_TEMPLATE, NOTE_FLOW_UNDO_CREATION_KEYWORDS, NOTE_NOT_SAVED_TEMPLATE, NOTE_SAVED_TITLE_ONLY_TEMPLATE, NOTE_SAVED_WITH_BODY_TEMPLATE, is_journal_flow_step_back_message, is_note_flow_step_back_message, is_skip_question_message, is_unrelated_journal_body_message, is_unrelated_list_items_message, is_unrelated_note_body_message, message_matches_keyword)` (NEW)
+    - `communication.message_processing.flows.flow_command_helpers (ENTRY_EDIT_CANCELLED_MESSAGE, ENTRY_EDIT_CANCEL_KEYWORDS, JOURNAL_FLOW_UNDO_CREATION_KEYWORDS, JOURNAL_NOT_SAVED_TEMPLATE, JOURNAL_SAVED_TITLE_ONLY_TEMPLATE, JOURNAL_SAVED_WITH_BODY_TEMPLATE, LIST_FLOW_UNDO_CREATION_KEYWORDS, LIST_NOT_SAVED_TEMPLATE, LIST_SAVED_TEMPLATE, LIST_STEP_BACK_REMOVED_TEMPLATE, NOTE_FLOW_UNDO_CREATION_KEYWORDS, NOTE_NOT_SAVED_TEMPLATE, NOTE_SAVED_TITLE_ONLY_TEMPLATE, NOTE_SAVED_WITH_BODY_TEMPLATE, is_journal_flow_step_back_message, is_note_flow_step_back_message, is_skip_question_message, is_unrelated_entry_edit_message, is_unrelated_journal_body_message, is_unrelated_list_items_message, is_unrelated_note_body_message, message_matches_keyword)` (NEW)
     - `communication.message_processing.flows.flow_control_mixin (FlowControlMixin)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
     - `notebook.notebook_data_manager (create_journal, create_list, create_note)` (NEW)
+    - `notebook.notebook_service (replace_entry_body)` (NEW)
     - `storage.user_data_v2_base (generate_short_id)` (NEW)
 - **Used by**:
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.logger, core.tags, notebook.notebook_data_manager, storage.user_data_v2_base
+- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.logger, core.tags, notebook.notebook_data_manager, notebook.notebook_service, storage.user_data_v2_base
 - Removed: communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4852,7 +4854,7 @@
 - **Purpose**: Module for messages/message_data_manager.py
 - **Dependencies**:
   - **Local**:
-    - `core (get_user_data)` (NEW)
+    - `core (get_user_data, get_user_id_by_identifier)` (NEW)
     - `core.config (DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.file_operations (determine_file_path, load_json_data, save_json_data)` (NEW)

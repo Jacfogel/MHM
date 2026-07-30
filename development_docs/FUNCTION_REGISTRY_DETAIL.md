@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-18 01:40:41
+> **Last Generated**: 2026-07-29 18:12:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 260
-- **Functions Found**: 2488
-- **Methods Found**: 1362
+- **Functions Found**: 2495
+- **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3850
-- **Functions Documented**: 2207
-- **Methods Documented**: 1250
+- **Total Items**: 3861
+- **Functions Documented**: 2214
+- **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3457
+- **Total Documented**: 3468
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-18
+- **Last Updated**: 2026-07-29
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (460)
+### **Core System Functions** (463)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (642)
+### **Communication Functions** (646)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -1448,6 +1448,7 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_create_list(self, user_id, entities)` - Handle list creation.
 - [OK] `_handle_create_note(self, user_id, entities)` - Handle note creation.
 - [OK] `_handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
+- [OK] `_handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
 - [OK] `_handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
 - [OK] `_handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
 - [OK] `_handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
@@ -1483,6 +1484,7 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._handle_create_list(self, user_id, entities)` - Handle list creation.
   - [OK] `NotebookHandler._handle_create_note(self, user_id, entities)` - Handle note creation.
   - [OK] `NotebookHandler._handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
+  - [OK] `NotebookHandler._handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
   - [OK] `NotebookHandler._handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
   - [OK] `NotebookHandler._handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
   - [OK] `NotebookHandler._handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
@@ -2395,7 +2397,11 @@ to avoid circular dependencies with error handling infrastructure.
 #### `communication/core/channel_orchestrator.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the CommunicationManager singleton
-- [OK] `__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
+- [OK] `__init____setup_event_loop(self)` - Set up a dedicated background event loop for sync->async bridging.
+
+Always runs the managed loop in its own daemon thread so concurrent
+sync callers can safely use run_coroutine_threadsafe instead of nested
+or overlapping run_until_complete calls.
 - [OK] `__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
 - [OK] `_channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
 - [OK] `_channel_send_failure_detail(self, channel)` - Return a concise channel-provided failure reason, when available.
@@ -2448,13 +2454,11 @@ Returns:
 
 Returns:
     bool: True if successful, False if failed
-- [OK] `run_event_loop()` - Run the event loop in a separate thread for async operations.
-
-This nested function is used to manage the event loop for async channel operations.
+- [OK] `run_event_loop()` - Run the managed event loop forever on a dedicated thread.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
 - [OK] `send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
 - [OK] `send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
-- [OK] `send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using our managed loop
+- [OK] `send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
 - [OK] `set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
 - [OK] `start_all(self)` - Start all communication channels with validation.
 
@@ -2472,7 +2476,11 @@ Returns:
 - [OK] `BotInitializationError` - Custom exception for bot initialization failures.
 - [OK] `CommunicationManager` - Manages all communication channels with improved modularity
   - [OK] `CommunicationManager.__init__(self)` - Initialize the CommunicationManager singleton
-  - [OK] `CommunicationManager.__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
+  - [OK] `CommunicationManager.__init____setup_event_loop(self)` - Set up a dedicated background event loop for sync->async bridging.
+
+Always runs the managed loop in its own daemon thread so concurrent
+sync callers can safely use run_coroutine_threadsafe instead of nested
+or overlapping run_until_complete calls.
   - [OK] `CommunicationManager.__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
   - [OK] `CommunicationManager._channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
   - [OK] `CommunicationManager._channel_send_failure_detail(self, channel)` - Return a concise channel-provided failure reason, when available.
@@ -2527,7 +2535,7 @@ Returns:
   - [OK] `CommunicationManager.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
   - [OK] `CommunicationManager.send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
   - [OK] `CommunicationManager.send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
-  - [OK] `CommunicationManager.send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using our managed loop
+  - [OK] `CommunicationManager.send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
   - [OK] `CommunicationManager.set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
   - [OK] `CommunicationManager.start_all(self)` - Start all communication channels with validation.
 
@@ -2717,6 +2725,10 @@ independent of the rule-parser ``enable_ai_enhancement`` flag.
 
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
+- [OK] `_accept_set_entry_group_match(message_for_match, entities)` - Accept set-group only for explicit aliases or structural entry refs.
+
+Bare `group Quick Notes` must list the multi-word group, not set group
+"Notes" on a title-like ref "Quick".
 - [OK] `_ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
@@ -2742,6 +2754,11 @@ Returns (intent, entities) tuple
 - [OK] `_parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
 - [OK] `_parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
 - [OK] `_parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
+
+Separator priority matches notebook help / phone UX:
+1. newline (multi-line body)
+2. `|` (documented in NOTEBOOK_HELP_TEXT)
+3. `:` (existing shorthand)
 - [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
 - [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
@@ -2759,6 +2776,10 @@ Returns:
 
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
+  - [OK] `EnhancedCommandParser._accept_set_entry_group_match(message_for_match, entities)` - Accept set-group only for explicit aliases or structural entry refs.
+
+Bare `group Quick Notes` must list the multi-word group, not set group
+"Notes" on a title-like ref "Quick".
   - [OK] `EnhancedCommandParser._ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
@@ -2783,6 +2804,11 @@ Returns (intent, entities) tuple
   - [OK] `EnhancedCommandParser._parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
   - [OK] `EnhancedCommandParser._parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
   - [OK] `EnhancedCommandParser._parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
+
+Separator priority matches notebook help / phone UX:
+1. newline (multi-line body)
+2. `|` (documented in NOTEBOOK_HELP_TEXT)
+3. `:` (existing shorthand)
   - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
   - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
@@ -3033,6 +3059,7 @@ Safe no-op if no flow or different flow is active.
 
 #### `communication/message_processing/flows/note_flow.py`
 **Functions:**
+- [OK] `_cancel_entry_edit(self, user_id, user_state)` - Abandon edit session without writing (entry already exists).
 - [OK] `_cancel_journal_creation(self, user_id, user_state)` - Abandon journal entry creation without saving.
 - [OK] `_cancel_list_creation(self, user_id, user_state)` - Abandon list creation without saving.
 - [OK] `_cancel_note_creation(self, user_id, user_state)` - Abandon note creation without saving.
@@ -3040,6 +3067,7 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
 - [OK] `_finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
 - [OK] `_finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
+- [OK] `_handle_entry_edit_flow(self, user_id, user_state, message_text)` - Handle phone-friendly replace edit: next message replaces entry description.
 - [OK] `_handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
 - [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
@@ -3048,6 +3076,7 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 **Classes:**
 - [MISSING] `NoteFlowMixin` - No description
+  - [OK] `NoteFlowMixin._cancel_entry_edit(self, user_id, user_state)` - Abandon edit session without writing (entry already exists).
   - [OK] `NoteFlowMixin._cancel_journal_creation(self, user_id, user_state)` - Abandon journal entry creation without saving.
   - [OK] `NoteFlowMixin._cancel_list_creation(self, user_id, user_state)` - Abandon list creation without saving.
   - [OK] `NoteFlowMixin._cancel_note_creation(self, user_id, user_state)` - Abandon note creation without saving.
@@ -3055,6 +3084,7 @@ Safe no-op if no flow or different flow is active.
   - [OK] `NoteFlowMixin._finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
   - [OK] `NoteFlowMixin._finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
   - [OK] `NoteFlowMixin._finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
+  - [OK] `NoteFlowMixin._handle_entry_edit_flow(self, user_id, user_state, message_text)` - Handle phone-friendly replace edit: next message replaces entry description.
   - [OK] `NoteFlowMixin._handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
   - [OK] `NoteFlowMixin._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
   - [OK] `NoteFlowMixin._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
@@ -3461,12 +3491,12 @@ Raises:
 
 Returns:
     self: The SafeFileContext instance
-- [OK] `__exit__(self, exc_type, exc_val, exc_tb)` - Exit the context manager and handle any exceptions.
+- [OK] `__exit__(self, _exc_type, exc_val, _exc_tb)` - Exit the context manager and handle any exceptions.
 
 Args:
-    exc_type: Type of exception if any occurred
+    _exc_type: Type of exception if any occurred (unused; required by protocol)
     exc_val: Exception value if any occurred
-    exc_tb: Exception traceback if any occurred
+    _exc_tb: Exception traceback if any occurred (unused; required by protocol)
 - [OK] `__init__(self, message, details, recoverable)` - Initialize a new MHM error.
 
 Args:
@@ -3495,7 +3525,7 @@ Args:
 - [OK] `_default_new_checkins_file_payload()` - Empty v2 envelope when recovery creates ``checkins.json``.
 ``schema_version`` must stay aligned with ``storage.user_data_v2_base.SCHEMA_VERSION``.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
-- [OK] `_log_error(self, error, context)` - Log error with context.
+- [OK] `_log_error(self, error, context)` - Log error with context as a single structured ERROR line.
 - [OK] `_recovery_default_document_for_path(file_path, context)` - Default on-disk shape for user JSON files when recovery recreates them.
 
 Shared by file-not-found and JSON-decode recovery so defaults stay aligned.
@@ -3620,7 +3650,7 @@ Returns:
 
 Sets up recovery strategies for common error types like missing files and corrupted JSON.
   - [OK] `ErrorHandler._get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
-  - [OK] `ErrorHandler._log_error(self, error, context)` - Log error with context.
+  - [OK] `ErrorHandler._log_error(self, error, context)` - Log error with context as a single structured ERROR line.
   - [OK] `ErrorHandler._show_user_error(self, error, context, custom_message)` - Show user-friendly error message.
   - [OK] `ErrorHandler.handle_error(self, error, context, operation, user_friendly)` - Handle an error with recovery strategies and logging.
 
@@ -3705,12 +3735,12 @@ Returns:
 
 Returns:
     self: The SafeFileContext instance
-  - [OK] `SafeFileContext.__exit__(self, exc_type, exc_val, exc_tb)` - Exit the context manager and handle any exceptions.
+  - [OK] `SafeFileContext.__exit__(self, _exc_type, exc_val, _exc_tb)` - Exit the context manager and handle any exceptions.
 
 Args:
-    exc_type: Type of exception if any occurred
+    _exc_type: Type of exception if any occurred (unused; required by protocol)
     exc_val: Exception value if any occurred
-    exc_tb: Exception traceback if any occurred
+    _exc_tb: Exception traceback if any occurred (unused; required by protocol)
   - [OK] `SafeFileContext.__init__(self, file_path, operation, user_id, category)` - Initialize the safe file context.
 
 Args:
@@ -4109,9 +4139,10 @@ Args:
     enabled (bool): True to enable verbose mode, False for quiet mode
 - [OK] `setup_error_handler_logging()` - Dual-write bootstrap / safe mhm.* ERROR/CRITICAL to errors.log.
 
-Covers mhm.error_handler (stderr kept, no app.log propagate) plus
-mhm.network_probe, mhm.time_utilities, and mhm.config (propagate kept for
-non-ERROR traffic).
+Covers:
+- ``mhm.error_handler`` (``@handle_errors``): keep stderr, ``propagate=False``
+- ``mhm.network_probe``, ``mhm.time_utilities``, ``mhm.config``: attach
+  errors sink and keep ``propagate=True`` so INFO/DEBUG still reach app.log
 - [OK] `setup_logging()` - Set up logging with file and console handlers. Ensure it is called only once.
 
 Creates a dual-handler logging system:
@@ -4604,11 +4635,11 @@ Returns:
 Creates and starts the service, handling initialization errors and graceful shutdown.
 - [OK] `run_service_loop(self)` - Keep the service running until shutdown is requested
 - [OK] `shutdown(self)` - Gracefully shutdown the service
-- [OK] `signal_handler(self, signum, frame)` - Handle shutdown signals for graceful service termination.
+- [OK] `signal_handler(self, signum, _frame)` - Handle shutdown signals for graceful service termination.
 
 Args:
     signum: Signal number
-    frame: Current stack frame
+    _frame: Current stack frame (unused; required by signal handler protocol)
 - [OK] `start(self)` - Start the MHM backend service.
 
 Initializes communication channels, scheduler, and begins the main service loop.
@@ -4654,11 +4685,11 @@ Returns:
     List[str]: List of all initialized file paths
   - [OK] `MHMService.run_service_loop(self)` - Keep the service running until shutdown is requested
   - [OK] `MHMService.shutdown(self)` - Gracefully shutdown the service
-  - [OK] `MHMService.signal_handler(self, signum, frame)` - Handle shutdown signals for graceful service termination.
+  - [OK] `MHMService.signal_handler(self, signum, _frame)` - Handle shutdown signals for graceful service termination.
 
 Args:
     signum: Signal number
-    frame: Current stack frame
+    _frame: Current stack frame (unused; required by signal handler protocol)
   - [OK] `MHMService.start(self)` - Start the MHM backend service.
 
 Initializes communication channels, scheduler, and begins the main service loop.

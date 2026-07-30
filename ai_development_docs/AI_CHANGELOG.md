@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-29 - NOTES_PLAN refresh; `|` separators; group disambiguation; `!edit` **COMPLETED**
+- Validated/refreshed NOTES_PLAN + PLANS notebook status (help polish, AI context privacy remaining).
+- Parser: title/body accepts newline / `|` / `:`; append strips optional leading `|`.
+- Group ambiguity: `!setgroup` aliases; bare `!group` set only for short-ID/UUID; multi-word groups list; anchored `quick note(s)`.
+- `!edit` sessions: `FLOW_ENTRY_EDIT` replace-body flow with cancel/skip/timeout leaving entry unchanged.
+- Fix: `edit_entry` no longer steals `edit profile`; function registry regenerated; changelog ASCII cleaned.
+
 ### 2026-07-28 - Close V6 B-012 / B-013; archive V6 and Google Health plans **COMPLETED**
 - B-013: Combined `analyze_gap*` declined; Section 10.1 map + `AI_PRIORITIES` is triage.
 - B-012: Radon/pydeps uniqueness spikes duplicated existing complexity/coupling signals; pre-commit and deeper Ruff declined. Vulture remains the only B-012 Tier 3 add.
@@ -150,28 +157,6 @@ Guidelines:
 - LM Studio quality: T-13.5 false CRUD, T-15.2 persona echo, T-1.2 trim, T-14.2 coherence, T-16.2 wellness honesty. Live run 2026-07-10T20:43: **65 pass / 3 partial / 0 fail** ([`ai_functionality_test_results_latest.md`](../tests/ai/results/ai_functionality_test_results_latest.md)). Remaining partials: T-7.1, T-9.3, T-11.2 (non-blocking).
 - Phase 6: `wellness_status.py`, `conversation_coherence.py`, `_finalize_contextual_response`; unit tests in `test_wellness_status.py` and `test_conversation_coherence.py`.
 - `AI_ACTION_PLANNER_ENABLED` stays default off until slice 9.4 item 8 review (explicit sign-off).
-
-### 2026-07-09 - Retire PromptManager domain prompt builders; envelope Q&A tests and get_ai_context delegation **COMPLETED**
-
-Completed:
-
-- Removed `create_task_prompt` / `create_checkin_prompt` from [`ai/prompts/manager.py`](../ai/prompts/manager.py); product-AI flows use `compose_product_prompt` only.
-- Migrated [`tests/unit/test_prompt_manager.py`](../tests/unit/test_prompt_manager.py) to `compose_product_prompt` coverage; dropped inline `checkin` / `task_assistant` fallback templates.
-- Moved `prompt_manager_domain_prompt_builders` to `removed_inventory` in `DEPRECATION_INVENTORY.json`.
-- [`user/context_manager.py`](../user/context_manager.py) `get_ai_context` delegates to `build_chatbot_context_dict` with session overlay; removed duplicate domain loaders.
-- Added [`tests/behavior/test_product_ai_envelope_qa_behavior.py`](../tests/behavior/test_product_ai_envelope_qa_behavior.py) for envelope-backed Q&A behavior (tasks, profile, schedules).
-- Migrated AI integration tests to `build_chatbot_context_dict` where session overlay is not required.
-- Contextual chat now uses `chat_response` token budget (not 80) and full post-process pipeline; strips fake multi-turn leaks and premature help redirects (T-12.3/T-13.3).
-- [`assistant_system_prompt.txt`](../resources/prompts/assistant_system_prompt.txt) is comment-only; canonical persona lives in [`product_ai/persona.txt`](../resources/prompts/product_ai/persona.txt).
-- **Phase 8 complete**: `MINIMAL_CHAT_SYSTEM_PROMPT` centralized; chat uses `compose_product_prompt("chat_response")` for budgets; `get_persona_prompt_text()` for simple paths; `get_session_conversation_history()` for session-only reads; `product_ai_wellness_prompt_api_bridge` and `product_ai_user_context_bridge` in deprecation inventory.
-- **Bridge removal**: Dropped `get_ai_context` / `get_current_user_context`; `build_context_with_session_overlay()` is canonical for session overlay; `get_prompt` command-only.
-
-Verified:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests/unit/test_prompt_manager.py tests/unit/test_product_ai_prompt_composition.py tests/unit/test_product_ai_phase0_contracts.py -q
-.\.venv\Scripts\python.exe development_tools/run_development_tools.py legacy --clean --dry-run
-```
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

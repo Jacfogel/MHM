@@ -88,6 +88,17 @@ def build_base_command_definitions() -> list[CommandDefinition]:
         CommandDefinition("append", "Append text to an entry", mapped_message=None),
         CommandDefinition("add", "Add text to an entry", mapped_message=None),
         CommandDefinition("addto", "Add text to an entry", mapped_message=None),
+        CommandDefinition(
+            "edit",
+            "Start an edit session to replace an entry body",
+            mapped_message=None,
+        ),
+        CommandDefinition(
+            "editn",
+            "Start an edit session to replace an entry body",
+            mapped_message=None,
+        ),
+        CommandDefinition("setgroup", "Set an entry's group", mapped_message=None),
         CommandDefinition("tag", "Add tags or view entries by tag", mapped_message=None),
         CommandDefinition("untag", "Remove tags from an entry", mapped_message=None),
         CommandDefinition("t", "Show entries by tag", mapped_message=None),

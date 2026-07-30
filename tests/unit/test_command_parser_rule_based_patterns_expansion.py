@@ -592,6 +592,7 @@ class TestCommandParserNotebookPatterns:
             ("quicknote Rapid", "create_quick_note"),
             ("q note Short", "create_quick_note"),
             ("quick note Idea", "create_quick_note"),
+            ("quick notes Idea", "create_quick_note"),
             ("j Journal entry", "create_journal"),
             ("journal Entry", "create_journal"),
             ("newjournal Entry", "create_journal"),
@@ -633,6 +634,10 @@ class TestCommandParserNotebookPatterns:
             ("add n222 More text", "append_to_entry"),
             ("set n333 Replace body", "set_entry_body"),
             ("replace n444 Updated body", "set_entry_body"),
+            ("edit n123abc", "edit_entry"),
+            ("editn MeetingNotes", "edit_entry"),
+            ("edit note Meeting Notes", "edit_entry"),
+            ("edit entry GroceryList", "edit_entry"),
             ("tag n555 #work", "add_tags_to_entry"),
             ("untag n777 #old", "remove_tags_from_entry"),
             ("search notes", "search_entries"),
@@ -657,9 +662,12 @@ class TestCommandParserNotebookPatterns:
             ("newlist Errands", "create_list"),
             ("l new Projects", "create_list"),
             ("new list Tasks", "create_list"),
-            ("group n123 work", "set_entry_group"),
-            ("group n123 personal", "set_entry_group"),
+            ("group n123abc work", "set_entry_group"),
+            ("group n123abc personal", "set_entry_group"),
+            ("setgroup GroceryList home", "set_entry_group"),
+            ("set group GroceryList home", "set_entry_group"),
             ("group work", "list_entries_by_group"),
+            ("group Quick Notes", "list_entries_by_group"),
             ("tag urgent", "list_entries_by_tag"),
         ],
     )
@@ -667,3 +675,42 @@ class TestCommandParserNotebookPatterns:
         result = _rule_parse(command_parser, message)
 
         assert result.parsed_command.intent == expected_intent
+
+    @pytest.mark.parametrize(
+        "message, expected_intent, expected_entities",
+        [
+            (
+                "group n123abc home",
+                "set_entry_group",
+                {"entry_ref": "n123abc", "group": "home"},
+            ),
+            (
+                "setgroup MeetingNotes work",
+                "set_entry_group",
+                {"entry_ref": "meetingnotes", "group": "work"},
+            ),
+            (
+                "group Quick Notes",
+                "list_entries_by_group",
+                {"group": "quick notes"},
+            ),
+            (
+                "group GroceryList home",
+                "list_entries_by_group",
+                {"group": "grocerylist home"},
+            ),
+            (
+                "group home",
+                "list_entries_by_group",
+                {"group": "home"},
+            ),
+        ],
+    )
+    def test_notebook_group_command_disambiguation(
+        self, command_parser, message, expected_intent, expected_entities
+    ):
+        """Bare multi-word !group lists; set requires short-id/UUID or setgroup."""
+        result = _rule_parse(command_parser, message)
+        assert result.parsed_command.intent == expected_intent
+        for key, value in expected_entities.items():
+            assert result.parsed_command.entities.get(key) == value

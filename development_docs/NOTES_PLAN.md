@@ -4,8 +4,8 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for the notebook feature  
 > **Style**: Actionable, checklist-focused, concise  
-> **Last Updated**: 2026-05-17  
-> **Current Evidence**: Reviewed against `code_snapshot_project_root_2026-05-16_17-49-25.md`  
+> **Last Updated**: 2026-07-29  
+> **Current Evidence**: Validated against live codebase 2026-07-29 (modules, handlers, AI context, tests); prior snapshot `code_snapshot_project_root_2026-05-16_17-49-25.md`  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -18,10 +18,10 @@ Notebook is intended to become a primary daily-capture tool in MHM, especially f
 Current priority is no longer basic implementation. The core feature exists. The current priority is making it easier and more reliable to use day-to-day:
 
 1. Validate and polish pagination / Show More behavior in live Discord.
-2. Improve command discovery and notebook help text.
-3. Make phone-friendly editing practical.
-4. Clarify rough edges around group commands, inbox behavior, and visual distinctions.
-5. Defer AI extraction, slash-command expansion, and database/FTS work until the AI/command parsing or storage architecture is ready for that larger change.
+2. Polish command discovery (help text shipped 2026-06-22; `|` separators aligned 2026-07-29; live help spot-check remains).
+3. Phone-friendly `!edit` sessions shipped 2026-07-29 (replace flow + cancel/timeout).
+4. Group-command ambiguity resolved 2026-07-29 (`!setgroup` + structural-ID `!group`); journal visuals shipped 2026-06-26.
+5. Defer AI extraction, slash-command expansion, and database/FTS work until command parsing or storage architecture is ready. Notebook already enters AI context (recent entries); remaining AI work is privacy/opt-in scoping, not first-time inclusion.
 
 ---
 
@@ -177,7 +177,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 **Status**: Active  
 **Priority**: High
 
-**Problem**: Pagination appears implemented in code, but it still needs live Discord validation and any UX polish found during manual use.
+**Problem**: Pagination is implemented in code and covered by automated behavior/unit tests (handler `pagination_actions`, Discord action-row rendering). It still needs live Discord validation and any UX polish found during manual use. See also `tests/MANUAL_DISCORD_TEST_GUIDE.md` §6.2.
 
 **Tasks**:
 
@@ -203,10 +203,10 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 4.2 Improve notebook command discovery
 
-**Status**: Active (help text shipped 2026-06-22; live validation ongoing)  
-**Priority**: High
+**Status**: Active (help text shipped 2026-06-22; polish / accuracy remaining)  
+**Priority**: Medium
 
-**Problem**: Notebook has many useful commands, but discovery is weak. `NotebookHandler.get_help()` is currently too short to serve as the main user guide.
+**Problem**: Core help discovery is in place via `NOTEBOOK_HELP_TEXT` / `NotebookHandler.get_help()` and `help notebook`. Title/body `|` separators and optional append `|` now match help examples (2026-07-29). Live Discord confirmation that users can find commands from help alone is still useful.
 
 **Tasks**:
 
@@ -216,35 +216,39 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - [x] Mention current inbox semantics in help text.
 - [x] Mention group vs tag distinction briefly.
 - [x] Add tests for the help/discovery output.
+- [x] Align help/examples with real separators: parser accepts newline, `|`, and `:` for title/body; append strips optional leading `|` (2026-07-29).
+- [ ] Spot-check live Discord that `help notebook` / `examples notebook` are discoverable and accurate.
 
 **Acceptance**:
 
 - A user can discover basic notebook use without reading developer docs.
 - Help text is short enough for Discord but complete enough to be useful.
+- Documented separators and examples match parser behavior.
 
 ---
 
 ### 4.3 Implement phone-friendly edit sessions
 
-**Status**: Planned  
+**Status**: Completed (2026-07-29)  
 **Priority**: Medium
 
-**Problem**: Replacing long note content from a phone is awkward. `!set` / replace-style commands exist, but they are not a comfortable editing flow for longer entries.
+**Problem**: Replacing long note content from a phone is awkward. One-shot `!set` still works; longer edits needed a multi-message flow.
 
-**Proposed behavior**:
+**Shipped behavior**:
 
-- `!edit <id_or_title>` starts an edit session.
-- The next non-command message replaces the entry description.
-- `!cancel` cancels the edit session.
-- Optional later mode: append mode vs replace mode.
+- `!edit <short_id>` / `!editn <ref>` / `!edit note <title>` / `!edit entry <title>` starts `FLOW_ENTRY_EDIT`.
+- The next non-command message replaces the entry description via `replace_entry_body`.
+- `cancel` / `skip` / timeout clear the flow without writing.
+- Lists are rejected (use list item commands).
+- Optional later: append mode vs replace mode (not started).
 
 **Tasks**:
 
-- [ ] Define edit-session state model and timeout.
-- [ ] Decide whether state belongs in the existing conversation flow manager or notebook-specific flow handling.
-- [ ] Implement replace flow first; defer append/review modes unless needed.
-- [ ] Add skip/cancel handling.
-- [ ] Add tests for timeout, cancel, valid replacement, and invalid entry reference.
+- [x] Define edit-session state model and timeout (reuse conversation flow; 10-minute `CONVERSATION_FLOW_TIMEOUT_MINUTES`).
+- [x] Reuse conversation flow manager (`FLOW_ENTRY_EDIT` in `note_flow.py`).
+- [x] Implement replace flow first; defer append/review modes unless needed.
+- [x] Add skip/cancel handling (both abandon without write).
+- [x] Add tests for timeout, cancel, valid replacement, and invalid entry reference.
 
 **Acceptance**:
 
@@ -254,22 +258,25 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 4.4 Resolve group command ambiguity
 
-**Status**: Active  
+**Status**: Completed (2026-07-29)  
 **Priority**: Medium
 
-**Problem**: Group commands can mean either:
+**Problem**: Group commands could mean either list or set. Multi-word names like `!group Quick Notes` were incorrectly treated as set (`entry_ref=Quick`, `group=Notes`). An unanchored `quick note` pattern also stole that command into `create_quick_note`.
 
-- list entries in a group: `!group <group>`
-- set an entry's group: `!group <entry_ref> <group>`
+**Decision (shipped)**:
 
-Single-word groups and short entry references can be ambiguous.
+- Keep dual-use `!group` for short-ID/UUID set: `!group n123abc Home`.
+- Add clear aliases: `!setgroup`, `!set group`, `!assign group` (any single-token entry ref, including titles).
+- Bare `!group <words...>` lists the full group name when the first token is not a structural ID.
+- Title-based assignment must use `!setgroup Title Home`.
 
 **Tasks**:
 
-- [ ] Review parser behavior for `!group home`, `!group n123abc home`, and title-based references.
-- [ ] Decide whether to keep dual-use `!group` or introduce a clearer alias such as `!setgroup <entry_ref> <group>`.
-- [ ] Add ambiguity tests.
-- [ ] Improve error/help text when a group command is ambiguous.
+- [x] Review parser behavior for `!group home`, `!group n123abc home`, and title-based references.
+- [x] Introduce `!setgroup` / `!set group` / `!assign group`; tighten bare `!group` set to structural IDs only.
+- [x] Add ambiguity tests (including `!group Quick Notes` list path).
+- [x] Improve help / empty-group / set-failure text for the new rules.
+- [x] Anchor `quick note(s)` create pattern so it cannot match inside other commands.
 
 **Acceptance**:
 
@@ -309,7 +316,7 @@ Single-word groups and short entry references can be ambiguous.
 - bulk archive
 - bulk group assignment
 
-**Rule**: Do not implement bulk operations until normal single-entry notebook use is smooth and command ambiguity is resolved.
+**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth in live Discord. Group ambiguity and edit sessions are resolved in code; live Show More validation is still the main gate.
 
 ---
 
@@ -373,22 +380,24 @@ Current reusable helpers already in place:
 
 ---
 
-### 5.4 Add notebook entries to AI context later
+### 5.4 Scope notebook content in AI context (privacy / opt-in)
 
-**Status**: Deferred  
-**Priority**: Medium later, not now
+**Status**: Planned  
+**Priority**: Medium
 
-Current concern:
+**Current state (shipped)**: Recent notebook entries already enter AI context. `ai/context/service.py` builds a `notebooks` section via `_build_notebook_context`, using `notebook_service.list_recent_entries(..., limit=10)` and full entry dumps.
 
-- AI/chat context work needs a broader overhaul.
+**Remaining concern**:
+
 - Notebook entries can contain sensitive personal content.
-- Adding notebook content to AI context should be deliberate, scoped, and user-controlled.
+- Inclusion should be deliberate, scoped, and user-controlled rather than always-on full recent dumps.
 
-Future tasks:
+**Tasks**:
 
-- [ ] Decide what notebook content, if any, can enter AI context.
+- [x] Include a bounded recent-notebook slice in AI context (current: last 10 entries).
+- [ ] Decide what notebook content should remain in AI context by default.
 - [ ] Add opt-in or clear config for notebook context inclusion.
-- [ ] Start with small summaries or recent pinned entries, not full notebook dumps.
+- [ ] Prefer small summaries or recent pinned entries over full entry dumps when privacy matters.
 - [ ] Add tests for privacy boundaries and context size.
 
 ---
@@ -463,5 +472,8 @@ The following are no longer active roadmap tasks because the codebase now contai
 - Implement list item add/done/undo/remove operations.
 - Add search no-result feedback.
 - Add channel-neutral pagination metadata and Discord Show More payload rendering.
+- Align title/body `|` separators with help text.
+- Resolve `!group` list-vs-set ambiguity (`!setgroup` + structural-ID gate).
+- Phone-friendly `!edit` replace sessions (`FLOW_ENTRY_EDIT`).
 
 Historical details belong in `CHANGELOG_DETAIL.md` / `AI_CHANGELOG.md`, not in this active roadmap.
