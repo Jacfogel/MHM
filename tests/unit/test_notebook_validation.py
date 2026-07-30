@@ -141,6 +141,7 @@ class TestEntryReferenceValidation:
             '   ',  # Whitespace only
             'n12345',  # Too short fragment (less than 6 chars)
             'x3f2a9c',  # Invalid prefix (not n, l, or j)
+            't3f2a9c',  # Task prefix — wrong domain for notebook
             None,  # None value
             123,  # Non-string
         ]

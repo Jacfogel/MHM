@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-29 18:12:32
+> **Last Generated**: 2026-07-29 22:34:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 260
-- **Functions Found**: 2495
+- **Files Scanned**: 261
+- **Functions Found**: 2503
 - **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3861
-- **Functions Documented**: 2214
+- **Total Items**: 3869
+- **Functions Documented**: 2222
 - **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3468
+- **Total Documented**: 3476
 - **Template-Generated**: 46
 - **Last Updated**: 2026-07-29
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (463)
+### **Core System Functions** (473)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (646)
@@ -3967,6 +3967,26 @@ data still supports an honest wellness reply.
 - [OK] `resolve_active_health_signal(user_id)` - Today's signal when synced; otherwise the latest usable recent signal.
 - [MISSING] `should_avoid_productivity_pressure(user_id)` - No description
 
+#### `core/ids.py`
+**Functions:**
+- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when not UUID-shaped.
+- [OK] `display_short_id()` - Prefer persisted ``short_id``; otherwise generate from ``record_id`` + ``kind``.
+- [OK] `format_short_id(entry_id, kind)` - Format an ID into a short ID with kind prefix (default length 6).
+
+Accepts ``UUID`` or UUID-shaped / arbitrary strings (non-UUID strings use
+the same stable mapping as ``generate_short_id``). Returns ``None`` for
+unknown kinds that are not notebook/task/message/etc. and empty kind.
+- [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
+- [OK] `is_dashed_short_id(ref)` - True for obsolete prefix + hyphen + hex forms (6-8 hex digits after the hyphen).
+- [OK] `is_known_prefix(prefix)` - True when *prefix* is a registered short-ID letter (t/n/l/j/m/d/c).
+- [OK] `is_notebook_prefix(prefix)` - True when *prefix* is a notebook entry prefix (n/l/j).
+- [OK] `looks_like_short_id(ref)` - True when *ref* looks like a prefixed or bare hex short ID (any known prefix).
+- [OK] `looks_like_uuid(ref)` - True when *ref* is a full UUID string.
+- [OK] `parse_short_id(ref)` - Parse a short ID into ``(prefix, fragment)``.
+
+Prefix is ``None`` for bare hex fragments (6-8 chars).
+Accepts all known prefixes including task ``t``.
+
 #### `core/launch_env.py`
 **Functions:**
 - [OK] `prepare_launch_environment(script_dir)` - Create an environment dict that prefers the project's virtualenv.
@@ -5966,8 +5986,6 @@ Returns:
 
 #### `storage/user_data_v2_base.py`
 **Functions:**
-- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
-- [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
 - [OK] `normalize_string_list(cls, value)` - Coerce tags or linked_item_ids to a list of stripped, non-empty strings.
 - [OK] `v2_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
 - [MISSING] `validate_optional_timestamp_fields(cls, value)` - No description
@@ -6224,7 +6242,7 @@ Returns:
 - [MISSING] `restore_task(user_id, task_id)` - No description
 - [OK] `sort_tasks_by_priority_and_due_date(tasks)` - Sort active tasks by priority, then due date.
 - [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.
-- [OK] `task_short_identifier(task)` - Return canonical task short_id for matching and display.
+- [OK] `task_short_identifier(task)` - Return canonical task short_id (``t...``) for matching and display.
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
 **Classes:**
 - [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.

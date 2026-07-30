@@ -10,6 +10,7 @@ from typing import Any
 
 from core.error_handling import handle_errors
 from core import get_user_data
+from core.ids import display_short_id
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only
 from tasks.task_data_handlers import (
     runtime_task_due_date,
@@ -126,8 +127,12 @@ def task_identifier(task: dict[str, Any]) -> str:
 # not_duplicate: task_identifier_service_facade
 @handle_errors("task service: task short identifier", default_return="")
 def task_short_identifier(task: dict[str, Any]) -> str:
-    """Return canonical task short_id for matching and display."""
-    return str(task.get("short_id") or "")
+    """Return canonical task short_id (``t...``) for matching and display."""
+    return display_short_id(
+        short_id=task.get("short_id"),
+        record_id=task.get("id"),
+        kind="task",
+    )
 
 
 @handle_errors("task service: advancing one calendar month", re_raise=True)

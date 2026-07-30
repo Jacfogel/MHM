@@ -48,7 +48,7 @@ from notebook.notebook_service import (
     set_list_item_done,
 )
 from notebook.notebook_schemas import Entry
-from notebook.notebook_validation import format_short_id
+from core.ids import display_short_id
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
@@ -1235,16 +1235,11 @@ class NotebookHandler(InteractionHandler):
     @handle_errors("formatting entry ID", default_return="unknown")
     def _format_entry_id(self, entry: Entry) -> str:
         """Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing)."""
-        if getattr(entry, "short_id", None):
-            return str(entry.short_id).strip()
-        short_id = format_short_id(entry.id, entry.kind)
-        # Fallback if format_short_id returns None (shouldn't happen, but safety check)
-        if short_id is None:
-            # Fallback to simple format
-            short_id_fragment = str(entry.id).replace("-", "")[:6]
-            kind_prefix = entry.kind[0]  # 'n', 'l', or 'j'
-            return f"{kind_prefix}{short_id_fragment}"
-        return short_id
+        return display_short_id(
+            short_id=getattr(entry, "short_id", None),
+            record_id=entry.id,
+            kind=str(entry.kind),
+        ) or "unknown"
 
     @handle_errors("formatting entry list line", default_return="• Untitled")
     def _format_entry_list_line(self, entry: Entry, *, bullet: bool = False) -> str:

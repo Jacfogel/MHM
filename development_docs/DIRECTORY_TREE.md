@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-29 18:13:01
+> **Last Generated**: 2026-07-29 22:34:46
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 0000005F 5EAC:07BC
+Volume serial number is 000000C9 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -273,6 +273,7 @@ C:.
 |   |   headless_service.py
 |   |   health_context_builder.py
 |   |   health_signals.py
+|   |   ids.py
 |   |   launch_env.py
 |   |   logger.py
 |   |   natural_language_defaults.py
@@ -1056,6 +1057,7 @@ C:.
 |   |   |   test_conversational_context_envelope.py
 |   |   |   test_conversation_coherence.py
 |   |   |   test_conversation_flow_reminder_helpers.py
+|   |   |   test_core_ids.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_bot_helpers.py

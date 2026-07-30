@@ -3,8 +3,8 @@
 """Note, journal, and list conversation flow mixin."""
 
 from core.error_handling import handle_errors
+from core.ids import display_short_id
 from core.logger import get_component_logger
-from storage.user_data_v2_base import generate_short_id
 
 from communication.message_processing.flows.flow_command_helpers import (
     ENTRY_EDIT_CANCEL_KEYWORDS,
@@ -39,8 +39,10 @@ class NoteFlowMixin(FlowControlMixin):
     # error_handling_exclude: pure short-id formatting; no I/O
     def _entry_short_id(self, entry) -> str:
         """Format a notebook entry short id for user-facing messages."""
-        return entry.short_id or generate_short_id(
-            str(entry.id), str(entry.kind), length=6
+        return display_short_id(
+            short_id=getattr(entry, "short_id", None),
+            record_id=entry.id,
+            kind=str(entry.kind),
         )
 
     # error_handling_exclude: called from decorated flow handlers

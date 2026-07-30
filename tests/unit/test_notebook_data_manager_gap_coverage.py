@@ -102,6 +102,14 @@ class TestNotebookDataManagerGapCoverage:
         assert ndm._find_entry_by_ref(entries, "beta entry") == entries[1]
         assert ndm._find_entry_by_ref(entries, "alpha") == entries[0]
         assert ndm._find_entry_by_ref(entries, "bad ref !") is None
+        assert ndm._find_entry_by_ref(entries, "tabc123") is None
+
+    def test_find_entry_by_ref_persisted_short_id(self):
+        entries = [
+            _note("11111111-1111-1111-1111-111111111111", "Alpha Entry"),
+        ]
+        entries[0].short_id = "nabcdef"
+        assert ndm._find_entry_by_ref(entries, "nabcdef") == entries[0]
 
     def test_find_entry_by_ref_multiple_short_id_match_returns_first(self):
         entries = [

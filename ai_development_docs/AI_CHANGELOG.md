@@ -30,11 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-29 - NOTES_PLAN refresh; `|` separators; group disambiguation; `!edit` **COMPLETED**
+### 2026-07-29 - NOTES_PLAN refresh; `|` separators; group disambiguation; `!edit`; shared short IDs **COMPLETED**
 - Validated/refreshed NOTES_PLAN + PLANS notebook status (help polish, AI context privacy remaining).
 - Parser: title/body accepts newline / `|` / `:`; append strips optional leading `|`.
 - Group ambiguity: `!setgroup` aliases; bare `!group` set only for short-ID/UUID; multi-word groups list; anchored `quick note(s)`.
 - `!edit` sessions: `FLOW_ENTRY_EDIT` replace-body flow with cancel/skip/timeout leaving entry unchanged.
+- Shared short IDs: [`core/ids.py`](../core/ids.py) owns `t`/`n`/`l`/`j` generate/parse/display; notebook rejects `t...` as entry refs; Section 5.1 Done.
+- Audit follow-up: domain marker on `test_core_ids`; `user_data_v2_base` `__all__` re-export; legacy dashed-id scan clean; registry includes `ids.py`.
 - Fix: `edit_entry` no longer steals `edit profile`; function registry regenerated; changelog ASCII cleaned.
 
 ### 2026-07-28 - Close V6 B-012 / B-013; archive V6 and Google Health plans **COMPLETED**

@@ -31,7 +31,8 @@ One line per core module (plus related packages). **Read here first** when you a
 | `core/schemas.py` | **Tolerant** in-memory normalizer for account/preferences/schedules after v2 unwrap (coerce/normalize; `extra` may allow/ignore). |
 | `core/profile_v2_schemas.py` | **Strict** v2 envelope models for account, preferences, schedules (`categories` wrapper), context, tags, chat interactions. |
 | `core/profile_v2_io.py` | Unwrap v2 on-disk envelopes to in-memory shapes; always wrap on save. |
-| `storage/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`, `generate_short_id` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
+| `storage/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`; re-exports `generate_short_id` from `core.ids` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
+| `core/ids.py` | Shared external short-ID helpers: prefixes (`t`/`n`/`l`/`j`/`m`/`d`/`c`), generate/parse/format/display. |
 | `storage/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, messages, deliveries, and profile/tags/chat; `validate_v2_document` orchestration. |
 | `tasks/task_schemas.py`, `tasks/task_validation.py` | Task v2 disk models and `validate_tasks_v2_document`. |
 | `notebook/notebook_schemas.py`, `notebook/notebook_validation.py` | Notebook v2 disk models and `validate_notebook_v2_document`. |
@@ -178,7 +179,7 @@ For `kind: "task"` records in `tasks/tasks.json`:
 
 **Short IDs (no dash)**
 
-Persisted `short_id` values use `storage.user_data_v2_base.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
+Persisted `short_id` values use [`core.ids.generate_short_id`](ids.py) (also re-exported from `storage.user_data_v2_base`): prefix + hex fragment, **no hyphen**, default length 6. Shared prefixes: tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`, plus `m`/`d`/`c` for message/delivery/checkin. Notebook entry references accept only `n`/`l`/`j` (and bare hex / UUID / title); a `t...` token is a valid shared short ID but not a notebook entry ref. User-facing confirmations should use the canonical form; dashed `n-...` / `t-...` display is obsolete.
 
 Canonical v2 files:
 

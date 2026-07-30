@@ -33,15 +33,17 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-07-29 - Notebook roadmap refresh; `|` separators; group disambiguation; `!edit` sessions
+### 2026-07-29 - Notebook roadmap refresh; `|` separators; group disambiguation; `!edit` sessions; shared short IDs
 - **Docs**: Validated [NOTES_PLAN.md](NOTES_PLAN.md) against the live codebase; refreshed statuses (Section 4.2 polish, Section 5.4 AI context privacy). Synced [PLANS.md](PLANS.md) notebook focus blurbs.
 - **Feature**: Notebook title/body parsing accepts `|` (newline, then `|`, then `:`); optional leading `|` on append/set text stripped ([`command_parser.py`](../communication/message_processing/command_parser.py)).
 - **Feature**: Resolved notebook group ambiguity - `!setgroup` / `!set group` / `!assign group`; bare `!group` set only for short ID/UUID; multi-word groups list; anchored `quick note(s)`.
 - **Feature**: Phone-friendly edit sessions - `!edit` / `!editn` / `!edit note <title>` starts `FLOW_ENTRY_EDIT`; next free-text message calls `replace_entry_body`; cancel/skip/timeout leave the entry unchanged ([`note_flow.py`](../communication/message_processing/flows/note_flow.py), [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py)).
+- **Feature**: Centralized external short IDs in [`core/ids.py`](../core/ids.py) (prefixes `t`/`n`/`l`/`j`/..., generate/parse/format/display); storage re-exports `generate_short_id`; notebook lookup matches persisted `short_id` and rejects task `t...` as entry refs ([NOTES_PLAN](NOTES_PLAN.md) Section 5.1 Done).
+- **Cleanup**: Post-audit follow-up for short IDs - @pytest.mark.core on 	est_core_ids; __all__ re-export of generate_short_id in user_data_v2_base; dashed-id examples rewritten so legacy scan stays clean; function registry regenerated for core/ids.py.
 - **Fix**: `edit_entry` single-token pattern excludes reserved words (`profile`, `task`, `schedule`, etc.) so `edit profile` stays `update_profile`.
-- **Docs**: Regenerated function registry for new edit/group helpers; `doc-fix --fix-ascii` on this changelog; `doc-sync` PASS.
-- **Tests**: Pipe separators; group disambiguation; edit replace/cancel/timeout/invalid-ref behavior tests; profile `edit profile` parser case passing again.
-- **Impact**: Documented phone UX works; longer note replacement no longer requires packing the body into one command line.
+- **Docs**: Regenerated function registry for new edit/group helpers; `doc-format --fix-ascii` on this changelog; `doc-sync` PASS; [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) short-ID section points at `core.ids`.
+- **Tests**: Pipe separators; group disambiguation; edit replace/cancel/timeout/invalid-ref behavior tests; profile `edit profile` parser case passing again; `test_core_ids` collision/cross-domain coverage.
+- **Impact**: Documented phone UX works; longer note replacement no longer requires packing the body into one command line; notebook and task short IDs share one convention.
 
 ### 2026-07-28 - Close V6 B-012 / B-013 after uniqueness eval; archive V6 and Google Health plans
 - **B-013 (closed)**: Declined combined `analyze_gap*` tool. Gap-category map in [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 remains; generated `AI_PRIORITIES.md` is the combined triage layer. Reopen only if a mapped category has no usable signal.

@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.ids import is_notebook_prefix, parse_short_id
 from core.tags import normalize_tags
 from core.time_utilities import (
     now_timestamp_full,
@@ -53,7 +54,7 @@ def _is_entry_archived(entry: Entry) -> bool:
 # Helper to find an entry by various references
 @handle_errors("finding entry by reference", default_return=None)
 def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
-    """Finds an entry by full UUID, short ID fragment, or title."""
+    """Finds an entry by full UUID, persisted short_id, short ID fragment, or title."""
     # Validate reference format
     if not is_valid_entry_reference(ref):
         logger.warning(f"Invalid entry reference format: {ref}")
@@ -66,33 +67,39 @@ def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
         if str(entry.id) == ref:
             return entry
 
-    # 2. Try short ID fragment (e.g., 'n3f2a9c' or '3f2a9c')
-    # Extract fragment if prefixed (no dash - mobile-friendly format)
-    short_fragment = ref_lower
-    if len(ref_lower) > 1 and ref_lower[0] in ["n", "l", "j"]:
-        # Format without dash (e.g., 'n3f2a9c')
-        short_fragment = ref_lower[1:]
+    # 2. Exact match on persisted short_id (case-insensitive)
+    for entry in entries:
+        stored = getattr(entry, "short_id", None)
+        if isinstance(stored, str) and stored.strip().lower() == ref_lower:
+            return entry
 
-    if len(short_fragment) >= 6:  # Minimum length for short ID lookup
+    # 3. Prefixed/bare hex fragment → UUID hex startswith (notebook prefixes or bare hex only)
+    parsed = parse_short_id(ref_lower)
+    if parsed is not None:
+        prefix, short_fragment = parsed
+        if prefix is not None and not is_notebook_prefix(prefix):
+            # Wrong domain (e.g. task ``t``) - do not title-match
+            return None
+
         matching_entries = [
             entry
             for entry in entries
-            if str(entry.id).lower().startswith(short_fragment)
+            if str(entry.id).lower().replace("-", "").startswith(short_fragment)
         ]
         if len(matching_entries) == 1:
             return matching_entries[0]
-        elif len(matching_entries) > 1:
+        if len(matching_entries) > 1:
             logger.warning(
                 f"Multiple entries found for short ID fragment '{ref}'. Returning first match."
             )
             return matching_entries[0]
 
-    # 3. Try title (case-insensitive, exact match first)
+    # 4. Try title (case-insensitive, exact match first)
     for entry in entries:
         if entry.title and entry.title.lower() == ref_lower:
             return entry
 
-    # 4. Try title (case-insensitive, contains match)
+    # 5. Try title (case-insensitive, contains match)
     for entry in entries:
         if entry.title and ref_lower in entry.title.lower():
             return entry

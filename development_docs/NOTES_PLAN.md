@@ -44,6 +44,7 @@ Current shared support:
 
 - `core/tags.py` provides shared tag normalization and validation.
 - `core/pagination.py` provides channel-neutral pagination helpers.
+- `core/ids.py` provides shared external short-ID create/parse/display (`t`/`n`/`l`/`j`, ...).
 - `communication/command_handlers/notebook_handler.py` handles notebook interactions and calls `notebook/notebook_service.py` rather than doing all business operations directly.
 
 The old plan sections that said to create these modules have been removed because they are completed.
@@ -324,22 +325,24 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 5.1 Centralize external short IDs
 
-**Status**: Planned  
+**Status**: Done  
 **Priority**: Medium
 
 **Problem**: Notebook short ID formatting exists, task short IDs exist separately or partially, and the system will likely need a shared external ID strategy.
 
 **Tasks**:
 
-- [ ] Add `core/ids.py` or equivalent shared helper.
-- [ ] Centralize short ID creation/parsing.
-- [ ] Support notebook prefixes (`n`, `l`, `j`) consistently.
-- [ ] Review task short ID behavior and align only where it makes sense.
-- [ ] Add collision/ambiguity tests.
+- [x] Add `core/ids.py` or equivalent shared helper.
+- [x] Centralize short ID creation/parsing.
+- [x] Support notebook prefixes (`n`, `l`, `j`) and task prefix (`t`) consistently.
+- [x] Review task short ID behavior and align only where it makes sense.
+- [x] Add collision/ambiguity tests.
 
 **Acceptance**:
 
 - Notebook and task ID display/lookup conventions are clear and not duplicated across handlers.
+- Shared helpers live in [`core/ids.py`](../core/ids.py); storage re-exports `generate_short_id` for compatibility.
+- Notebook entry refs accept `n`/`l`/`j` (and bare hex); `t...` is a shared short ID but not a notebook entry ref.
 
 ---
 

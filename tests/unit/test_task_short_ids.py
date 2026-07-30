@@ -2,7 +2,7 @@
 
 import pytest
 
-from storage.user_data_v2_base import generate_short_id
+from core.ids import generate_short_id, parse_short_id
 from tasks.task_data_manager import _task_matches_identifier
 
 pytestmark = [pytest.mark.unit, pytest.mark.tasks]
@@ -18,6 +18,7 @@ def test_generate_short_id_task_shape_and_stability():
     assert len(sid) == 7
     assert sid == generate_short_id(task_uuid, "task", length=6)
     assert sid.islower()
+    assert parse_short_id(sid) == ("t", sid[1:])
 
 
 @pytest.mark.unit

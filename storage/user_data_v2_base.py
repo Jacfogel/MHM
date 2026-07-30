@@ -8,17 +8,28 @@ Must not import ``tasks`` or ``notebook`` to avoid circular imports with
 from __future__ import annotations
 
 from typing import Any, Literal
-from uuid import NAMESPACE_URL, UUID, uuid5
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticCustomError
 
 from core.error_handling import handle_errors
+from core.ids import generate_short_id
 from core.time_utilities import parse_timestamp_full
 
 SCHEMA_VERSION = 2
 
 ItemKind = Literal["task", "note", "list", "journal_entry"]
+
+# Explicit public surface so generate_short_id remains a documented re-export from core.ids.
+__all__ = [
+    "SCHEMA_VERSION",
+    "ItemKind",
+    "SourceModel",
+    "BaseItemModel",
+    "validate_optional_v2_timestamp",
+    "v2_schema_validation_error",
+    "generate_short_id",
+]
 
 
 class SourceModel(BaseModel):
@@ -86,35 +97,7 @@ def validate_optional_v2_timestamp(value: str | None, field_name: str) -> None:
         )
 
 
-@handle_errors("coercing stable uuid", re_raise=True)
-def _stable_uuid(value: str) -> UUID:
-    """Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped."""
-    try:
-        return UUID(str(value))
-    except (TypeError, ValueError):
-        return uuid5(NAMESPACE_URL, str(value))
-
-
 @handle_errors("building v2 schema validation error", re_raise=True)
 def v2_schema_validation_error(message: str) -> PydanticCustomError:
     """Build a Pydantic-native validation error without generic exception raises."""
     return PydanticCustomError("user_data_v2_validation", "{message}", {"message": message})
-
-
-@handle_errors("generating v2 short id", re_raise=True)
-def generate_short_id(record_id: str, kind: str, length: int = 6) -> str:
-    """Generate a mobile-friendly no-dash short ID from a UUID-like value."""
-    prefix_map = {
-        "task": "t",
-        "note": "n",
-        "list": "l",
-        "journal": "j",
-        "journal_entry": "j",
-        "message": "m",
-        "delivery": "d",
-        "checkin": "c",
-    }
-    prefix = prefix_map.get(kind, kind[:1].lower())
-    uuid_value = _stable_uuid(record_id)
-    fragment = str(uuid_value).replace("-", "")[:length]
-    return f"{prefix}{fragment}"

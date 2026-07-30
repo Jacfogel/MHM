@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-29 18:12:38
+> **Last Generated**: 2026-07-29 22:34:22
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 258
-- **Total Imports Found**: 2189
-- **Dependencies Documented**: 258 (100% coverage)
-- **Standard Library Imports**: 646 (29.5%)
+- **Files Scanned**: 259
+- **Total Imports Found**: 2197
+- **Dependencies Documented**: 259 (100% coverage)
+- **Standard Library Imports**: 649 (29.5%)
 - **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1326 (60.6%)
+- **Local Imports**: 1331 (60.6%)
 - **Last Updated**: 2026-07-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 646 imports (29.5%)
+- **Standard Library**: 649 imports (29.5%)
 - **Third-Party**: 217 imports (9.9%)
-- **Local**: 1326 imports (60.6%)
+- **Local**: 1331 imports (60.6%)
 
 ## Module Dependencies by Directory
 
@@ -1411,6 +1411,7 @@
     - `communication.message_processing.conversation_flow_manager (conversation_manager)`
     - `communication.message_processing.flows.flow_constants (ENTRY_EDIT_SUGGESTIONS, FLOW_ENTRY_EDIT, FLOW_JOURNAL_BODY, FLOW_LIST_ITEMS, FLOW_NOTE_BODY, JOURNAL_BODY_SUGGESTIONS, LIST_ITEMS_SUGGESTIONS, NOTEBOOK_BODY_SUGGESTIONS)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (display_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.pagination (PageRequest, paginate_items)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
@@ -1418,7 +1419,6 @@
     - `core.time_utilities (format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
     - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_group, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_entry_group, set_list_item_done)` (NEW)
-    - `notebook.notebook_validation (format_short_id)`
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `typing (Any)`
@@ -1426,8 +1426,8 @@
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.logger, core.pagination, core.tags, core.time_format_constants, core.time_utilities, notebook.notebook_service
-- Removed: collections.abc, communication/command_handlers/interaction_handlers.py
+- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.ids, core.logger, core.pagination, core.tags, core.time_format_constants, core.time_utilities, notebook.notebook_service
+- Removed: collections.abc, communication/command_handlers/interaction_handlers.py, notebook.notebook_validation
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2125,6 +2125,7 @@
     - `communication.message_processing.interaction_manager (handle_user_message)`
     - `core (get_user_id_by_identifier)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (display_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `typing (Optional)`
@@ -2134,7 +2135,7 @@
   - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger
+- Added: core, core.error_handling, core.ids, core.logger
 - Removed: communication/communication_channels/discord/interaction_views.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2849,16 +2850,16 @@
     - `communication.message_processing.flows.flow_command_helpers (ENTRY_EDIT_CANCELLED_MESSAGE, ENTRY_EDIT_CANCEL_KEYWORDS, JOURNAL_FLOW_UNDO_CREATION_KEYWORDS, JOURNAL_NOT_SAVED_TEMPLATE, JOURNAL_SAVED_TITLE_ONLY_TEMPLATE, JOURNAL_SAVED_WITH_BODY_TEMPLATE, LIST_FLOW_UNDO_CREATION_KEYWORDS, LIST_NOT_SAVED_TEMPLATE, LIST_SAVED_TEMPLATE, LIST_STEP_BACK_REMOVED_TEMPLATE, NOTE_FLOW_UNDO_CREATION_KEYWORDS, NOTE_NOT_SAVED_TEMPLATE, NOTE_SAVED_TITLE_ONLY_TEMPLATE, NOTE_SAVED_WITH_BODY_TEMPLATE, is_journal_flow_step_back_message, is_note_flow_step_back_message, is_skip_question_message, is_unrelated_entry_edit_message, is_unrelated_journal_body_message, is_unrelated_list_items_message, is_unrelated_note_body_message, message_matches_keyword)` (NEW)
     - `communication.message_processing.flows.flow_control_mixin (FlowControlMixin)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (display_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
     - `notebook.notebook_data_manager (create_journal, create_list, create_note)` (NEW)
     - `notebook.notebook_service (replace_entry_body)` (NEW)
-    - `storage.user_data_v2_base (generate_short_id)` (NEW)
 - **Used by**:
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.logger, core.tags, notebook.notebook_data_manager, notebook.notebook_service, storage.user_data_v2_base
+- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.ids, core.logger, core.tags, notebook.notebook_data_manager, notebook.notebook_service
 - Removed: communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3462,6 +3463,7 @@
   - `core/headless_service.py`
   - `core/health_context_builder.py`
   - `core/health_signals.py`
+  - `core/ids.py`
   - `core/launch_env.py`
   - `core/logger.py`
   - `core/natural_language_defaults.py`
@@ -3739,6 +3741,31 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/ids.py`
+- **Purpose**: Core system module for ids
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+    - `uuid (NAMESPACE_URL, UUID, uuid5)`
+- **Used by**:
+  - `communication/command_handlers/notebook_handler.py`
+  - `communication/communication_channels/discord/task_reminder_view.py`
+  - `communication/message_processing/flows/note_flow.py`
+  - `storage/user_data_v2_base.py`
+  - `tasks/task_service.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/launch_env.py`
 - **Purpose**: Core system module for launch_env
 - **Dependencies**:
@@ -3856,6 +3883,7 @@
   - `core/file_operations.py`
   - `core/headless_service.py`
   - `core/health_signals.py`
+  - `core/ids.py`
   - `core/natural_language_defaults.py`
   - `core/profile_v2_io.py`
   - `core/response_tracking.py`
@@ -5352,18 +5380,17 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (generate_short_id)` (NEW)
     - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `typing (Any, Literal)`
-    - `uuid (NAMESPACE_URL, UUID, uuid5)`
   - **Third-party**:
     - `pydantic (BaseModel, ConfigDict, Field, field_validator)`
     - `pydantic_core (PydanticCustomError)`
 - **Used by**:
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_schemas.py`
-  - `communication/message_processing/flows/note_flow.py`
   - `core/file_operations.py`
   - `core/profile_v2_io.py`
   - `core/profile_v2_schemas.py`
@@ -5377,7 +5404,7 @@
   - `tasks/task_schemas.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.time_utilities
+- Added: core.error_handling, core.ids, core.time_utilities
 - Removed: checkins/checkin_data_manager.py, checkins/checkin_schemas.py, communication/message_processing/flows/note_flow.py, core/file_operations.py, core/profile_v2_io.py, core/profile_v2_schemas.py, integrations/google_health/schemas.py, messages/message_data_manager.py, messages/message_schemas.py, storage/user_data_operations.py, storage/user_data_v2_envelopes.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5616,6 +5643,7 @@
   - **Local**:
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (display_short_id)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, get_natural_language_defaults, is_past_time_of_day)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks` (NEW)
@@ -5634,7 +5662,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.natural_language_defaults, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas, tasks.task_tag_helpers, tasks.task_templates, tasks.task_time_parsing
+- Added: core, core.error_handling, core.ids, core.natural_language_defaults, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas, tasks.task_tag_helpers, tasks.task_templates, tasks.task_time_parsing
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

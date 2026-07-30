@@ -6,6 +6,7 @@ Discord-specific UI adapter for task reminder buttons.
 
 import discord
 from typing import Optional
+from core.ids import display_short_id
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
@@ -107,7 +108,10 @@ def get_task_reminder_view(
             self, interaction: discord.Interaction, button: discord.ui.Button
         ):
             """Handle More button click - show additional information"""
-            short_id = self.task_id[:8] if len(self.task_id) > 8 else self.task_id
+            short_id = display_short_id(
+                record_id=self.task_id,
+                kind="task",
+            ) or (self.task_id[:8] if len(self.task_id) > 8 else self.task_id)
             more_info = (
                 f"**Task: {self.task_title}**\n\n"
                 f"**To complete this task:**\n"

@@ -10,10 +10,24 @@ import re
 from typing import Any
 from uuid import UUID
 
-from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from storage.user_data_validation import is_valid_string_length, is_valid_category_name
+from core.ids import (
+    MAX_SHORT_ID_LENGTH,
+    MIN_SHORT_ID_LENGTH,
+    NOTEBOOK_KIND_PREFIXES,
+    NOTEBOOK_PREFIXES,
+    PREFIX_TO_NOTEBOOK_KIND,
+    format_short_id as _core_format_short_id,
+    is_dashed_short_id,
+    is_known_prefix,
+    is_notebook_prefix,
+    looks_like_short_id,
+    looks_like_uuid,
+    parse_short_id,
+)
+from core.logger import get_component_logger
 from notebook.notebook_schemas import EntryKind, NotebookCollectionV2Model
+from storage.user_data_validation import is_valid_category_name, is_valid_string_length
 
 logger = get_component_logger("notebook_validation")
 
@@ -21,14 +35,33 @@ logger = get_component_logger("notebook_validation")
 MAX_TITLE_LENGTH = 200
 MAX_BODY_LENGTH = 10000
 MAX_GROUP_LENGTH = 50
-MIN_SHORT_ID_LENGTH = 6
-MAX_SHORT_ID_LENGTH = 8
 
-# Short ID prefix mapping
-ENTRY_KIND_PREFIXES = {"note": "n", "list": "l", "journal_entry": "j"}
+# Re-export shared short-ID constants for existing imports/tests
+ENTRY_KIND_PREFIXES = NOTEBOOK_KIND_PREFIXES
+PREFIX_TO_KIND = PREFIX_TO_NOTEBOOK_KIND
 
-# Reverse mapping for prefix to kind
-PREFIX_TO_KIND = {v: k for k, v in ENTRY_KIND_PREFIXES.items()}
+# Re-export parse_short_id from core.ids for existing imports
+__all__ = [
+    "MAX_TITLE_LENGTH",
+    "MAX_BODY_LENGTH",
+    "MAX_GROUP_LENGTH",
+    "MIN_SHORT_ID_LENGTH",
+    "MAX_SHORT_ID_LENGTH",
+    "ENTRY_KIND_PREFIXES",
+    "PREFIX_TO_KIND",
+    "looks_like_structural_entry_ref",
+    "is_valid_entry_reference",
+    "parse_short_id",
+    "format_short_id",
+    "is_valid_entry_title",
+    "is_valid_entry_description",
+    "is_valid_entry_group",
+    "is_valid_entry_kind",
+    "is_valid_list_item_index",
+    "normalize_list_item_index",
+    "validate_entry_content",
+    "validate_notebook_v2_document",
+]
 
 
 @handle_errors("detecting structural entry reference", default_return=False)
@@ -38,32 +71,18 @@ def looks_like_structural_entry_ref(ref: str) -> bool:
     Used to disambiguate dual-use commands such as `!group <ref> <name>` vs
     `!group <multi word group name>`. Title-based assignment should use
     `!setgroup <title> <group>` instead.
+
+    Recognizes notebook short IDs (n/l/j), bare hex, UUIDs, and other known
+    shared prefixes (e.g. task ``t``) so those tokens are not treated as titles.
     """
     if not isinstance(ref, str):
         return False
     value = ref.strip()
     if not value:
         return False
-
-    uuid_pattern = re.compile(
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-        re.IGNORECASE,
-    )
-    if uuid_pattern.match(value):
+    if looks_like_uuid(value):
         return True
-
-    short_id_with_prefix = re.compile(
-        rf"^[nlj][0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$",
-        re.IGNORECASE,
-    )
-    if short_id_with_prefix.match(value):
-        return True
-
-    short_id_fragment = re.compile(
-        rf"^[0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$",
-        re.IGNORECASE,
-    )
-    return bool(short_id_fragment.match(value))
+    return looks_like_short_id(value)
 
 
 @handle_errors("validating entry reference", default_return=False)
@@ -73,15 +92,12 @@ def is_valid_entry_reference(ref: str) -> bool:
 
     Entry references can be:
     - Full UUID strings
-    - Short IDs (e.g., 'n3f2a9c', 'l91ab20' - no dash for easier mobile typing)
+    - Notebook short IDs (e.g., 'n3f2a9c', 'l91ab20' - no dash)
     - Short ID fragments (e.g., '3f2a9c')
     - Non-empty title strings
 
-    Args:
-        ref: Entry reference to validate
-
-    Returns:
-        True if reference format is valid, False otherwise
+    Task short IDs (``t...``) and other non-notebook known prefixes are rejected
+    (wrong domain - not treated as free-text titles).
     """
     if not isinstance(ref, str):
         logger.warning(f"Entry reference must be a string, got {type(ref).__name__}")
@@ -93,106 +109,72 @@ def is_valid_entry_reference(ref: str) -> bool:
         logger.warning("Entry reference cannot be empty")
         return False
 
-    # Reject obsolete dashed short-id form (kind prefix + hyphen + hex fragment). Canonical form is prefix+hex with no hyphen.
-    dashed_short_id_pattern = re.compile(r"^[nlj]-[0-9a-f]{6,8}$", re.IGNORECASE)
-    if dashed_short_id_pattern.match(ref):
+    if is_dashed_short_id(ref):
         logger.warning(
             f"Entry reference uses obsolete dashed short-id format: {ref!r} (use no-dash form)"
         )
         return False
 
-    # Check if it's a valid UUID format
-    uuid_pattern = re.compile(
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
-    )
-    if uuid_pattern.match(ref):
+    if looks_like_uuid(ref):
         return True
 
-    # Check if it looks like a short ID with prefix but is invalid (e.g., 'n12345' - too short)
-    # Reject invalid short ID formats explicitly (no dash - mobile-friendly format)
-    invalid_short_id_prefix = re.compile(r"^[nlj][0-9a-f]{1,5}$", re.IGNORECASE)
-    if invalid_short_id_prefix.match(ref):
+    parsed = parse_short_id(ref)
+    if parsed is not None:
+        prefix, _fragment = parsed
+        if prefix is None:
+            return True  # bare hex fragment
+        if is_notebook_prefix(prefix):
+            return True
+        # Known non-notebook prefix (e.g. task ``t``) - wrong domain for notebook refs
+        logger.warning(
+            f"Short ID prefix {prefix!r} is not valid for notebook entries "
+            f"(expected one of {sorted(NOTEBOOK_PREFIXES)})"
+        )
+        return False
+
+    # Too-short notebook-prefixed forms (e.g. 'n12345')
+    too_short = re.compile(
+        rf"^[{''.join(sorted(NOTEBOOK_PREFIXES))}][0-9a-f]{{1,{MIN_SHORT_ID_LENGTH - 1}}}$",
+        re.IGNORECASE,
+    )
+    if too_short.match(ref):
         logger.warning(
             f"Short ID fragment too short: {ref} (minimum {MIN_SHORT_ID_LENGTH} characters)"
         )
         return False
 
-    # Check if it's a valid short ID with prefix (e.g., 'n3f2a9c' - no dash for easier mobile typing)
-    # Fragment must be at least MIN_SHORT_ID_LENGTH characters
-    short_id_with_prefix = re.compile(
-        rf"^[nlj][0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$",
-        re.IGNORECASE,
-    )
-    if short_id_with_prefix.match(ref):
-        return True
-
-    # Check if it's a valid short ID fragment (e.g., '3f2a9c')
-    # Fragment must be at least MIN_SHORT_ID_LENGTH characters
-    short_id_fragment = re.compile(
-        rf"^[0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$", re.IGNORECASE
-    )
-    if short_id_fragment.match(ref):
-        return True
-
-    # Check if it looks like a short ID with invalid prefix (e.g., 'x3f2a9c')
-    # Only check if it's short enough to be a short ID (max 9 chars: prefix + 8 hex)
-    # Longer strings are likely titles, not short IDs
-    if len(ref) <= 9:
-        invalid_prefix_pattern = re.compile(r"^[a-z][0-9a-f]+$", re.IGNORECASE)
-        if invalid_prefix_pattern.match(ref):
-            # Check if prefix is valid (n, l, j)
+    # Short token that looks like prefix+hex with unknown / wrong-domain prefix
+    if len(ref) <= 1 + MAX_SHORT_ID_LENGTH:
+        maybe_prefixed = re.compile(r"^[a-z][0-9a-f]+$", re.IGNORECASE)
+        if maybe_prefixed.match(ref):
             prefix = ref[0].lower()
-            if prefix not in ["n", "l", "j"]:
-                logger.warning(f"Invalid short ID prefix: {ref} (must be n, l, or j)")
+            if is_known_prefix(prefix) and not is_notebook_prefix(prefix):
+                logger.warning(
+                    f"Short ID prefix {prefix!r} is not valid for notebook entries "
+                    f"(expected one of {sorted(NOTEBOOK_PREFIXES)})"
+                )
+                return False
+            if not is_notebook_prefix(prefix):
+                logger.warning(
+                    f"Invalid short ID prefix: {ref} (must be n, l, or j)"
+                )
                 return False
 
     # Any other non-empty string is valid as a title reference
-    # (actual matching will be done by data manager)
     return True
 
 
-@handle_errors("parsing short ID", default_return=None)
-def parse_short_id(ref: str) -> tuple[str, str] | None:
-    """
-    Parse a short ID reference into (prefix, fragment) tuple.
-
-    Args:
-        ref: Short ID reference (e.g., 'n3f2a9c' or '3f2a9c' - no dash for easier mobile typing)
-
-    Returns:
-        Tuple of (prefix, fragment) if valid, None otherwise
-        Prefix will be None if not provided (fragment-only)
-    """
-    if not isinstance(ref, str):
-        return None
-
-    ref = ref.strip().lower()
-
-    # Check for prefix format (e.g., 'n3f2a9c' - no dash for easier mobile typing)
-    if len(ref) > 1 and ref[0] in PREFIX_TO_KIND:
-        prefix = ref[0]
-        fragment = ref[1:]
-        if len(fragment) >= MIN_SHORT_ID_LENGTH and re.match(r"^[0-9a-f]+$", fragment):
-            return (prefix, fragment)
-
-    # Check for fragment-only format (e.g., '3f2a9c')
-    if re.match(r"^[0-9a-f]{6,8}$", ref):
-        return (None, ref)
-
-    return None
-
-
-@handle_errors("formatting short ID", default_return=None)
+@handle_errors("formatting notebook short ID", default_return=None)
 def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
     """
-    Format a UUID into a short ID with prefix.
+    Format a UUID into a notebook short ID with prefix (canonical length 6).
 
     Args:
         entry_id: UUID of the entry
         kind: Entry kind ('note', 'list', or 'journal_entry')
 
     Returns:
-        Short ID string (e.g., 'n3f2a9c' - no dash for easier mobile typing) or None if invalid
+        Short ID string (e.g., 'n3f2a9c') or None if invalid
     """
     if not isinstance(entry_id, UUID):
         logger.warning(f"Entry ID must be a UUID, got {type(entry_id).__name__}")
@@ -202,11 +184,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
         logger.warning(f"Invalid entry kind: {kind}")
         return None
 
-    prefix = ENTRY_KIND_PREFIXES[kind]
-    fragment = str(entry_id).replace("-", "")[:MAX_SHORT_ID_LENGTH]
-
-    # No separator between prefix and hex fragment (mobile-friendly short id).
-    return f"{prefix}{fragment}"
+    return _core_format_short_id(entry_id, kind)
 
 
 @handle_errors("validating entry title", default_return=False)

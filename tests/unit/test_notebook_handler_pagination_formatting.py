@@ -174,14 +174,11 @@ class TestNotebookHandlerPaginationAndFormatting:
         handler = NotebookHandler()
         entry = _note_entry("Fallback")
 
-        with patch(
-            "communication.command_handlers.notebook_handler.format_short_id",
-            return_value=None,
-        ):
-            short_id = handler._format_entry_id(entry)
+        short_id = handler._format_entry_id(entry)
 
         assert short_id.startswith("n")
         assert len(short_id) == 7
+        assert "-" not in short_id
 
     def test_format_entry_id_reflects_stored_short_id_when_set(self):
         handler = NotebookHandler()
