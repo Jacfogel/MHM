@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-29 22:34:14
+> **Last Generated**: 2026-07-30 00:18:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 183
 - **Total Documented**: 3476
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-29
+- **Last Updated**: 2026-07-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 

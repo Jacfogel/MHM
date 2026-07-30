@@ -32,7 +32,7 @@ def main() -> int:
         int: Exit code (0 for success, 1 for failure)
     """
     setup_logging()
-    logger = get_component_logger("launcher")
+    logger = get_component_logger("main")
 
     # Get the directory where this script is located.
     script_dir = Path(__file__).resolve().parent

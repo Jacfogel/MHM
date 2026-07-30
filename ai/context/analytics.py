@@ -8,7 +8,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-logger = get_component_logger("ai_context")
+logger = get_component_logger("ai")
 
 
 @dataclass

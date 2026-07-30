@@ -19,7 +19,7 @@ from storage.user_data_v2_base import (
     v2_schema_validation_error,
 )
 
-logger = get_component_logger("notebook_schemas")
+logger = get_component_logger("main")
 
 
 # Aligns with the notebook subset of ``ItemKind`` in ``storage.user_data_v2_base``.

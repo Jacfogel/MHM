@@ -10,7 +10,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route API client logs to Discord component
-api_logger = get_component_logger("discord_api")
+api_logger = get_component_logger("discord")
 logger = api_logger
 
 

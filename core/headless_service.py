@@ -21,7 +21,7 @@ from core.service_utilities import (
     is_ui_service_running,
 )
 
-logger = get_component_logger("headless_service")
+logger = get_component_logger("main")
 
 
 class HeadlessServiceManager:

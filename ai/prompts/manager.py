@@ -11,7 +11,7 @@ from core.error_handling import handle_errors
 from core.config import AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT
 
 # Route prompt manager logs to AI component
-prompt_logger = get_component_logger("ai_prompt")
+prompt_logger = get_component_logger("ai")
 logger = prompt_logger
 
 _PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "resources" / "prompts"

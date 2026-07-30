@@ -64,7 +64,7 @@ def _print_service_details(label: str, services: list[dict[str, Any]]) -> None:
 def main(argv: list[str] | None = None) -> int:
     """Main entry point for headless service launcher."""
     setup_logging()
-    logger = get_component_logger("headless_launcher")
+    logger = get_component_logger("main")
 
     parser = _build_parser()
     if parser is None:

@@ -15,7 +15,7 @@ from communication.message_processing.command_registry import (
     lookup_command_definition,
 )
 
-logger = get_component_logger("message_route_classifier")
+logger = get_component_logger("communication_manager")
 
 
 class MessageType(Enum):

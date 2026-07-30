@@ -24,7 +24,7 @@ from communication.command_handlers.shared_types import (
 )
 
 # Route profile logs to command handlers component
-profile_logger = get_component_logger("profile_handler")
+profile_logger = get_component_logger("communication_manager")
 logger = profile_logger
 
 

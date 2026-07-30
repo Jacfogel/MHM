@@ -17,7 +17,7 @@ from core.error_handling import handle_errors
 from storage.user_data_validation import is_valid_user_id
 
 # Route handler logs to communication component
-handler_logger = get_component_logger("command_handlers")
+handler_logger = get_component_logger("communication_manager")
 logger = handler_logger
 
 

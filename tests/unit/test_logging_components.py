@@ -156,8 +156,8 @@ def test_error_handler_dual_writes_to_errors_log(tmp_path, monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.core
-def test_component_name_aliases_to_communication_manager(tmp_path, monkeypatch):
-    """Busy communication aliases should share communication_manager.log."""
+def test_communication_manager_logger_uses_dedicated_sink(tmp_path, monkeypatch):
+    """Canonical communication_manager logger should write to communication_manager.log."""
     monkeypatch.setenv("MHM_TESTING", "1")
     monkeypatch.setenv("TEST_VERBOSE_LOGS", "1")
     monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
@@ -171,65 +171,18 @@ def test_component_name_aliases_to_communication_manager(tmp_path, monkeypatch):
 
     logger_mod._component_loggers.clear()
 
-    orch = logger_mod.get_component_logger("channel_orchestrator")
-    account = logger_mod.get_component_logger("account_handler")
-    retry = logger_mod.get_component_logger("retry_manager")
-    checkin = logger_mod.get_component_logger("checkin_handler")
     canonical = logger_mod.get_component_logger("communication_manager")
+    again = logger_mod.get_component_logger("communication_manager")
 
-    assert orch is account is retry is checkin is canonical
-    assert orch.logger.name == "mhm.communication_manager"
+    assert canonical is again
+    assert canonical.logger.name == "mhm.communication_manager"
 
     filenames = [
         Path(str(getattr(h, "baseFilename", "") or "")).name
-        for h in orch.logger.handlers
+        for h in canonical.logger.handlers
     ]
     assert "communication_manager.log" in filenames
     assert "app.log" not in filenames
-
-
-@pytest.mark.unit
-@pytest.mark.core
-def test_component_name_aliases_ai_ui_discord_and_main(tmp_path, monkeypatch):
-    """AI/UI/discord/domain aliases should resolve to canonical sinks."""
-    monkeypatch.setenv("MHM_TESTING", "1")
-    monkeypatch.setenv("TEST_VERBOSE_LOGS", "1")
-    monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
-    logs_dir = tmp_path / "logs"
-    logs_dir.mkdir()
-    monkeypatch.setenv("LOGS_DIR", str(logs_dir))
-    # conftest points LOG_MAIN_FILE at the consolidated placeholder; override for this test
-    monkeypatch.setenv("LOG_MAIN_FILE", str(logs_dir / "app.log"))
-
-    if "core.logger" in sys.modules:
-        del sys.modules["core.logger"]
-    from core import logger as logger_mod
-
-    logger_mod._component_loggers.clear()
-
-    cases = (
-        ("ai_context", "ai", "ai.log"),
-        ("ai_conversation", "ai", "ai.log"),
-        ("ui_widgets", "ui", "ui.log"),
-        ("admin_panel", "ui", "ui.log"),
-        ("discord_api", "discord", "discord.log"),
-        ("tasks", "main", "app.log"),
-        ("notebook_data_manager", "main", "app.log"),
-        ("headless_service", "main", "app.log"),
-        ("launcher", "main", "app.log"),
-    )
-
-    for alias, canonical, expected_file in cases:
-        logger_mod._component_loggers.clear()
-        aliased = logger_mod.get_component_logger(alias)
-        target = logger_mod.get_component_logger(canonical)
-        assert aliased is target, f"{alias} should share logger with {canonical}"
-        assert aliased.logger.name == f"mhm.{canonical}"
-        filenames = [
-            Path(str(getattr(h, "baseFilename", "") or "")).name
-            for h in aliased.logger.handlers
-        ]
-        assert expected_file in filenames, f"{alias} should write to {expected_file}"
 
 
 @pytest.mark.unit

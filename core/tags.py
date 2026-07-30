@@ -17,7 +17,7 @@ from core.error_handling import handle_errors, ValidationError
 from core.config import get_user_data_dir, get_user_file_path
 from core.file_operations import load_json_data, save_json_data
 
-logger = get_component_logger("tags")
+logger = get_component_logger("main")
 
 
 @handle_errors("normalizing tag")

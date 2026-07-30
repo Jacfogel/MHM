@@ -7,7 +7,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors, DataError
 
 # Route formatting logs to communication component
-formatter_logger = get_component_logger("message_formatter")
+formatter_logger = get_component_logger("communication_manager")
 logger = formatter_logger
 
 

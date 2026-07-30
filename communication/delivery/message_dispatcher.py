@@ -13,7 +13,7 @@ from core.schedule_runtime import (
     get_current_time_periods_with_validation,
 )
 
-logger = get_component_logger("channel_orchestrator")
+logger = get_component_logger("communication_manager")
 
 
 class PredefinedMessageDispatcher:

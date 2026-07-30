@@ -8,7 +8,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route command registry logs to communication component
-registry_logger = get_component_logger("command_registry")
+registry_logger = get_component_logger("communication_manager")
 logger = registry_logger
 
 

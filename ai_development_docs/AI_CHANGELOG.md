@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-30 - Fix `ids` logger; consolidate component logger aliases **COMPLETED**
+- `core/ids.py` uses canonical `get_component_logger("main")` (no new alias/sink).
+- Domain/AI/UI/Discord/communication call sites use canonical sinks; `COMPONENT_NAME_ALIASES` emptied (temporary bridges only).
+- Logging guide + channel-logger/logging tests updated.
+
 ### 2026-07-29 - NOTES_PLAN refresh; `|` separators; group disambiguation; `!edit`; shared short IDs **COMPLETED**
 - Validated/refreshed NOTES_PLAN + PLANS notebook status (help polish, AI context privacy remaining).
 - Parser: title/body accepts newline / `|` / `:`; append strips optional leading `|`.
@@ -145,20 +150,6 @@ Guidelines:
 - Added shared health-wellness helpers in [`health_context_builder.py`](../core/health_context_builder.py): `format_health_guidance_for_user_reply`, `health_wellness_snippet_from_context`, `context_has_usable_health_wellness`.
 - Extended [`wellness_status.py`](../ai/chat/wellness_status.py) and [`checkin_summary.py`](../ai/fallback/checkin_summary.py) to use `health_guidance_summary` / recent signals when check-in data is weak or missing; coordinator and envelope fallback pass health context through.
 - Unit tests in `test_wellness_status.py`, `test_context_analytics_shared_source.py`, and `test_health_context_builder.py`.
-
-### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
-- Reconciled [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md): Phase 0 COMPLETE; slice 9.4 items 1-7 COMPLETE (LM Studio gate met).
-- Documented hybrid routing policy: rule-parser-first for high-confidence structured commands; planner on low-confidence when `AI_ACTION_PLANNER_ENABLED=true` (default remains off).
-- Added full core task-intent parity behavior tests (8 intents) and non-task parity (check-ins, profile, schedules; 8 intents) in [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py); 23 tests pass via `_run_intent_parity` / `_run_task_intent_parity`.
-- Fixed profile update persistence in [`profile_service.py`](../user/profile_service.py): `update_user_context`/`update_user_account` plus UUID resolution for internal usernames (was silently failing via legacy `save_user_data` 3-arg call).
-- Multi-action execution in [`action_plan_executor.py`](../communication/message_processing/action_plan_executor.py): runs `plan.actions` sequentially, combines completed handler messages, stops on follow-up (`completed=False`); 29 routing/executor tests pass.
-- Planner multi-action parsing in [`action_planner.py`](../ai/chat/action_planner.py): repeating `ACTION:` blocks, shared defaults, per-action validation; tests in [`test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py); 18 planner/executor unit tests pass.
-- Result-aware responses for all planner-path actions in [`action_plan_executor.py`](../communication/message_processing/action_plan_executor.py): `_apply_result_aware_responses` rewrites each completed action when AI is available (including multi-action plans), independent of `enable_ai_enhancement`.
-- Audit hygiene: fixed path drift in product AI audit doc; `@handle_errors` on executor helpers; profile handler behavior tests mock `update_user_context`; ASCII cleanup; function registry regen; doc-sync PASS.
-- Fixed remaining profile handler gap-coverage tests to mock `update_user_context` / `update_user_account` after `apply_profile_updates` migration.
-- LM Studio quality: T-13.5 false CRUD, T-15.2 persona echo, T-1.2 trim, T-14.2 coherence, T-16.2 wellness honesty. Live run 2026-07-10T20:43: **65 pass / 3 partial / 0 fail** ([`ai_functionality_test_results_latest.md`](../tests/ai/results/ai_functionality_test_results_latest.md)). Remaining partials: T-7.1, T-9.3, T-11.2 (non-blocking).
-- Phase 6: `wellness_status.py`, `conversation_coherence.py`, `_finalize_contextual_response`; unit tests in `test_wellness_status.py` and `test_conversation_coherence.py`.
-- `AI_ACTION_PLANNER_ENABLED` stays default off until slice 9.4 item 8 review (explicit sign-off).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

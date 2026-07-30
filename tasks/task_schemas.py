@@ -54,7 +54,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
 
 TASKS_V2_FILENAME = "tasks.json"
 
-logger = get_component_logger("tasks")
+logger = get_component_logger("main")
 
 TaskStatus = Literal["active", "completed", "cancelled", "archived", "deleted"]
 

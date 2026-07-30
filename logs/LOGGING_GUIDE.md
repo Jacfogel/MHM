@@ -80,11 +80,8 @@ calls `get_component_logger("...")` with a string that is neither canonical nor 
 
 Examples:
 
-- Communication extras (`channel_orchestrator`, `retry_manager`, handlers, formatters) -> `communication_manager`
-- AI extras (`ai_context`, `ai_conversation`, `ai_prompt`, `ai_cache`) -> `ai`
-- UI extras (`ui_widgets`, `admin_panel`, `process_watcher`) -> `ui`
-- `discord_api` -> `discord`
-- Domain/entry names without dedicated files (`tasks`, `notebook_*`, `launcher`, ...) -> `main` / `app.log`
+- Prefer canonical names at call sites (`"main"`, `"ai"`, `"discord"`, `"ui"`, `"communication_manager"`).
+- `COMPONENT_NAME_ALIASES` is currently empty; use it only for temporary bridges, then switch call sites to the canonical sink.
 
 ### 2.4. Format
 

@@ -20,7 +20,7 @@ from core.time_utilities import now_timestamp_full, parse_timestamp_full
 from storage.user_data_v2_base import SCHEMA_VERSION, generate_short_id
 from tasks.task_schemas import TASKS_V2_FILENAME, TaskV2Model
 
-logger = get_component_logger("tasks")
+logger = get_component_logger("main")
 
 TASKS_SUBDIR = "tasks"
 

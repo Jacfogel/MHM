@@ -29,7 +29,7 @@ from tasks.task_data_handlers import (
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
 from storage.user_data_v2_base import generate_short_id
 
-logger = get_component_logger("tasks")
+logger = get_component_logger("main")
 
 
 @handle_errors("resolving canonical task ID", default_return="")

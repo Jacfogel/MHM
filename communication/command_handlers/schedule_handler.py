@@ -11,7 +11,7 @@ from communication.command_handlers.shared_types import (
 )
 
 # Route schedule logs to command handlers component
-schedule_logger = get_component_logger("schedule_handler")
+schedule_logger = get_component_logger("communication_manager")
 logger = schedule_logger
 
 

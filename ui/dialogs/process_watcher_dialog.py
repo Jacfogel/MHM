@@ -25,7 +25,7 @@ from datetime import datetime
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 # Route process watcher logs to UI component
-process_logger = get_component_logger("process_watcher")
+process_logger = get_component_logger("ui")
 logger = process_logger
 
 

@@ -9,7 +9,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors, DataError
 
 # Route admin panel logs to UI component
-admin_logger = get_component_logger("admin_panel")
+admin_logger = get_component_logger("ui")
 logger = admin_logger
 
 

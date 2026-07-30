@@ -15,7 +15,7 @@ from core.logger import get_component_logger
 from storage.user_data_write import update_user_preferences
 from tasks.task_time_parsing import parse_time_string
 
-logger = get_component_logger("natural_language_defaults")
+logger = get_component_logger("main")
 
 PREFERENCES_NL_KEY = "natural_language_defaults"
 _RESOURCE_FILENAME = "default_natural_language_defaults.json"

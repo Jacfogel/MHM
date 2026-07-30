@@ -191,13 +191,13 @@ def test_check_file_flags_unknown_component_logger_name(tmp_path: Path):
 
 
 @pytest.mark.unit
-def test_check_file_allows_aliased_component_logger_name(tmp_path: Path):
-    """Aliased names from logger.py should be accepted."""
-    target = tmp_path / "communication" / "ok_alias.py"
+def test_check_file_allows_canonical_communication_manager_logger(tmp_path: Path):
+    """Canonical communication_manager name should be accepted."""
+    target = tmp_path / "communication" / "ok_canonical.py"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         "from core.logger import get_component_logger\n"
-        "logger = get_component_logger('channel_orchestrator')\n"
+        "logger = get_component_logger('communication_manager')\n"
         "logger.info('ok')\n",
         encoding="utf-8",
     )
@@ -214,9 +214,9 @@ def test_check_file_allows_aliased_component_logger_name(tmp_path: Path):
 
 @pytest.mark.unit
 def test_load_allowed_component_logger_names_from_logger_module():
-    """Allowed names should include canonical sinks and alias keys from logger.py."""
+    """Allowed names should include canonical sinks; thin aliases are retired."""
     names = check_channel_loggers.load_allowed_component_logger_names()
     assert "communication_manager" in names
-    assert "channel_orchestrator" in names
-    assert "ai_context" in names
     assert "main" in names
+    assert "channel_orchestrator" not in names
+    assert "ai_context" not in names

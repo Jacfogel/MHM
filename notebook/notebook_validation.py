@@ -29,7 +29,7 @@ from core.logger import get_component_logger
 from notebook.notebook_schemas import EntryKind, NotebookCollectionV2Model
 from storage.user_data_validation import is_valid_category_name, is_valid_string_length
 
-logger = get_component_logger("notebook_validation")
+logger = get_component_logger("main")
 
 # Validation constants
 MAX_TITLE_LENGTH = 200

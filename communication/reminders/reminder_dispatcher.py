@@ -8,7 +8,7 @@ from communication.core.message_send_result import MessageSendResult
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-logger = get_component_logger("channel_orchestrator")
+logger = get_component_logger("communication_manager")
 
 TASK_REMINDER_CATEGORY = "task_reminders"
 

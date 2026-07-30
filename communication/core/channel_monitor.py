@@ -11,7 +11,7 @@ from core.error_handling import handle_errors
 from communication.communication_channels.base.base_channel import BaseChannel
 
 # Route monitoring logs to communication component
-monitor_logger = get_component_logger("channel_monitor")
+monitor_logger = get_component_logger("communication_manager")
 logger = monitor_logger
 
 

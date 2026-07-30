@@ -8,7 +8,7 @@ from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.tags import normalize_tag, normalize_tags
 
-logger = get_component_logger("tasks")
+logger = get_component_logger("main")
 
 _TASK_TAG_PATTERN = re.compile(r"^[a-z0-9\-_:]+$")
 

@@ -14,7 +14,7 @@ from core.time_utilities import now_timestamp_full
 from storage.user_data_v2_base import SCHEMA_VERSION as V2_SCHEMA_VERSION, generate_short_id
 from notebook.notebook_schemas import Entry, NotebookV2Model
 
-logger = get_component_logger("notebook_data_handlers")
+logger = get_component_logger("main")
 
 NOTEBOOK_FILE_NAME = "entries.json"
 

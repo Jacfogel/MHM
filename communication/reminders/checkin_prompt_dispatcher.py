@@ -7,7 +7,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-logger = get_component_logger("channel_orchestrator")
+logger = get_component_logger("communication_manager")
 
 
 class CheckinPromptDispatcher:

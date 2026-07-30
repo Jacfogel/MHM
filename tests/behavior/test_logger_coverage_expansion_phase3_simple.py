@@ -126,8 +126,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
             assert 'backup_dir' in paths
             assert 'main_file' in paths
 
-    def test_component_logger_channels_alias_simple(self, tmp_path):
-        """Test that 'channels' component name is aliased to 'communication_manager'"""
+    def test_component_logger_communication_manager_simple(self, tmp_path):
+        """Test that 'communication_manager' component logger can be created"""
         # Create test directories
         log_dir = tmp_path / "logs"
         backup_dir = tmp_path / "backups"
@@ -165,8 +165,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
             ):
                 del get_component_logger.__globals__['_component_loggers']['communication_manager']
             
-            # Create logger with 'channels' name
-            channels_logger = get_component_logger('channels')
+            # Create logger with canonical communication_manager name
+            channels_logger = get_component_logger('communication_manager')
             
             # In test mode, it returns a DummyComponentLogger, so we just verify it doesn't crash
             assert channels_logger is not None

@@ -15,7 +15,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route widget logs to UI component
-widget_logger = get_component_logger("ui_widgets")
+widget_logger = get_component_logger("ui")
 logger = widget_logger
 
 

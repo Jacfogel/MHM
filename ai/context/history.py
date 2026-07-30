@@ -10,7 +10,7 @@ from core.time_utilities import now_timestamp_filename, now_datetime_full
 
 
 # Route conversation history logs to AI component
-history_logger = get_component_logger("ai_conversation")
+history_logger = get_component_logger("ai")
 logger = history_logger
 
 

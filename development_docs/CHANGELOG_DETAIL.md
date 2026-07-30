@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-30 - Fix `ids` logger; consolidate component logger aliases
+- **Fix**: [`core/ids.py`](../core/ids.py) now uses canonical `get_component_logger("main")` so `check_channel_loggers.py` passes without a new alias or log sink.
+- **Cleanup**: Domain/AI/UI/Discord/communication call sites switched to canonical sinks (`main`/`ai`/`ui`/`discord`/`communication_manager`); emptied `COMPONENT_NAME_ALIASES` in [`core/logger.py`](../core/logger.py) (reserved for temporary bridges only). Logger variable names unchanged.
+- **Docs/Tests**: Updated [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) alias examples; adjusted logging/channel-logger tests for retired alias names.
+- **Impact**: Restores CI static logging check; prefers canonical call sites over thin alias registry.
+
 ### 2026-07-29 - Notebook roadmap refresh; `|` separators; group disambiguation; `!edit` sessions; shared short IDs
 - **Docs**: Validated [NOTES_PLAN.md](NOTES_PLAN.md) against the live codebase; refreshed statuses (Section 4.2 polish, Section 5.4 AI context privacy). Synced [PLANS.md](PLANS.md) notebook focus blurbs.
 - **Feature**: Notebook title/body parsing accepts `|` (newline, then `|`, then `:`); optional leading `|` on append/set text stripped ([`command_parser.py`](../communication/message_processing/command_parser.py)).

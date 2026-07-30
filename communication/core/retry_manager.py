@@ -12,7 +12,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route retry logs to communication component
-retry_logger = get_component_logger("retry_manager")
+retry_logger = get_component_logger("communication_manager")
 logger = retry_logger
 
 

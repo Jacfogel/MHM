@@ -7,7 +7,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 # Route rich formatting logs to communication component
-rich_formatter_logger = get_component_logger("rich_formatter")
+rich_formatter_logger = get_component_logger("communication_manager")
 logger = rich_formatter_logger
 
 

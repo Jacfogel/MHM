@@ -852,47 +852,9 @@ _original_levels = {}
 # Component loggers
 _component_loggers = {}
 
-# Map non-canonical get_component_logger("name") calls onto shared sinks so
-# unknown names do not silently fall through to app.log.
-COMPONENT_NAME_ALIASES = {
-    # Communication
-    "channels": "communication_manager",
-    "channel_orchestrator": "communication_manager",
-    "account_handler": "communication_manager",
-    "retry_manager": "communication_manager",
-    "channel_monitor": "communication_manager",
-    "command_handlers": "communication_manager",
-    "checkin_handler": "communication_manager",
-    "schedule_handler": "communication_manager",
-    "profile_handler": "communication_manager",
-    "rich_formatter": "communication_manager",
-    "message_formatter": "communication_manager",
-    "command_registry": "communication_manager",
-    "message_route_classifier": "communication_manager",
-    # Discord extras
-    "discord_api": "discord",
-    # AI
-    "ai_context": "ai",
-    "ai_conversation": "ai",
-    "ai_prompt": "ai",
-    "ai_cache": "ai",
-    # UI extras
-    "ui_widgets": "ui",
-    "admin_panel": "ui",
-    "process_watcher": "ui",
-    # Domain / entry points without dedicated files
-    "tasks": "main",
-    "notebook_validation": "main",
-    "notebook_schemas": "main",
-    "notebook_data_manager": "main",
-    "notebook_data_handlers": "main",
-    "tags": "main",
-    "user_management": "main",
-    "natural_language_defaults": "main",
-    "headless_service": "main",
-    "headless_launcher": "main",
-    "launcher": "main",
-}
+# Reserved for temporary non-canonical get_component_logger("name") bridges.
+# Prefer canonical names at call sites; do not invent ad-hoc component log files.
+COMPONENT_NAME_ALIASES = {}
 
 # Canonical sinks that have an explicit entry in get_component_logger's log_file_map.
 # Static logging checks parse this set (plus COMPONENT_NAME_ALIASES) without importing

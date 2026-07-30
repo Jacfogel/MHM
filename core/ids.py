@@ -14,7 +14,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-logger = get_component_logger("ids")
+logger = get_component_logger("main")
 
 DEFAULT_SHORT_ID_LENGTH = 6
 MIN_SHORT_ID_LENGTH = 6

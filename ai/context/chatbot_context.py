@@ -9,7 +9,7 @@ from ai.context.service import build_ai_context_envelope
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-logger = get_component_logger("ai_context")
+logger = get_component_logger("ai")
 
 
 @handle_errors("building chatbot context dict", default_return={})

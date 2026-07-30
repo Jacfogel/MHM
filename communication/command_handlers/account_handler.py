@@ -18,7 +18,7 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 
-logger = get_component_logger("account_handler")
+logger = get_component_logger("communication_manager")
 
 
 class AccountManagementHandler(InteractionHandler):

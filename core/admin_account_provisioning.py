@@ -17,7 +17,7 @@ from core.file_operations import create_user_files
 from core.logger import get_component_logger
 from storage.user_data_operations import update_user_index
 
-logger = get_component_logger("user_management")
+logger = get_component_logger("main")
 
 
 @handle_errors("determining chat ID", default_return="")

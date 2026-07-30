@@ -11,7 +11,7 @@ from core.error_handling import handle_errors
 from core.config import AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_RESPONSE_CACHE_TTL
 
 # Route cache manager logs to AI component
-cache_logger = get_component_logger("ai_cache")
+cache_logger = get_component_logger("ai")
 logger = cache_logger
 
 

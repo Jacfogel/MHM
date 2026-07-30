@@ -22,7 +22,7 @@ from communication.command_handlers.shared_types import (
 
 
 # Route checkin logs to command handlers component
-checkin_logger = get_component_logger("checkin_handler")
+checkin_logger = get_component_logger("communication_manager")
 logger = checkin_logger
 
 

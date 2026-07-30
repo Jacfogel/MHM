@@ -14,7 +14,7 @@ from core.time_utilities import parse_date_only
 
 from tasks.task_schemas import VALID_PRIORITIES, ALLOWED_UPDATE_FIELDS
 
-logger = get_component_logger("tasks")
+logger = get_component_logger("main")
 
 
 @handle_errors("validating task title", default_return=False)

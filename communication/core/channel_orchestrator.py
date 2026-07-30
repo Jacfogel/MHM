@@ -32,7 +32,7 @@ from core.network_probe import wait_for_network
 import contextlib
 
 # Route orchestration logs to channels component; keep module logger for local debug if needed
-comm_logger = get_component_logger("channel_orchestrator")
+comm_logger = get_component_logger("communication_manager")
 logger = comm_logger
 
 
