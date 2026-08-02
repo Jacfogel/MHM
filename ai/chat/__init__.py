@@ -17,6 +17,7 @@ from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mo
 from ai.chat.response_generator import ResponseGenerator, get_response_generator
 from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
+    collapse_salutation_newlines,
     keep_first_personalized_block,
     smart_truncate_response,
     strip_instruction_tuning_markers,
@@ -39,6 +40,7 @@ __all__ = [
     "ResponseGenerator",
     "get_response_generator",
     "clean_system_prompt_leaks",
+    "collapse_salutation_newlines",
     "keep_first_personalized_block",
     "smart_truncate_response",
     "strip_instruction_tuning_markers",

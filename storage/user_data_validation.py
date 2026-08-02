@@ -466,30 +466,15 @@ def validate_user_update(
         try:
             try:
                 from storage.user_data_read import get_user_data
-                from core.profile_v2_io import (
-                    is_profile_v2_envelope,
-                    unwrap_profile_document_on_load,
-                )
 
                 current_raw = get_user_data(user_id, "schedules").get("schedules", {})
             except Exception:
                 current_raw = {}
 
-            if isinstance(current_raw, dict):
-                if is_profile_v2_envelope(current_raw):
-                    unwrapped = unwrap_profile_document_on_load("schedules", current_raw)
-                    current_schedules = unwrapped if isinstance(unwrapped, dict) else {}
-                else:
-                    current_schedules = {
-                        key: value
-                        for key, value in current_raw.items()
-                        if key not in ("schema_version", "updated_at", "categories")
-                    }
-            else:
-                current_schedules = {}
+            from core.profile_v2_io import coerce_schedules_to_in_memory
 
-            merged_schedules = current_schedules.copy()
-            merged_schedules.update(updates)
+            merged_schedules = coerce_schedules_to_in_memory(current_raw)
+            merged_schedules.update(coerce_schedules_to_in_memory(updates))
 
             # Use Pydantic validation for schedules data
             _, validation_errors = importlib.import_module(

@@ -532,6 +532,53 @@ class TestAIChatBotHelpers:
         assert "Best wishes" not in result
         assert "Assistant" not in result
         assert "keep today gentler" in result
+        assert result.startswith("Hi Julie, Based on")
+
+    def test_post_process_collapses_salutation_newlines(self, chatbot_instance):
+        raw = (
+            "Hi Julie,\n\n"
+            "It's great to see you've been doing well. Keep up the good work!"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == (
+            "Hi Julie, It's great to see you've been doing well. Keep up the good work!"
+        )
+
+    def test_post_process_strips_dash_wellness_assistant_signoff(self, chatbot_instance):
+        raw = (
+            "Hi Julie! Solid sleep and higher activity than usual. Keep up the good work. "
+            "Take care!\n"
+            "-Your Wellness Assistant"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "Take care" not in result
+        assert "Wellness Assistant" not in result
+        assert "Solid sleep" in result
+
+    def test_post_process_strips_best_and_wellness_assistant_lines(self, chatbot_instance):
+        raw = (
+            "Hi Julie,\n"
+            "I noticed you got solid sleep last night. Keep up the good work!\n"
+            "Best,\n"
+            "Wellness Assistant"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == (
+            "Hi Julie, I noticed you got solid sleep last night. Keep up the good work!"
+        )
+
+    def test_post_process_strips_inline_bracket_assistant_and_meta_note(
+        self, chatbot_instance
+    ):
+        raw = (
+            "Hi Julie! Great job on staying consistent. Keep up the good work! - [Assistant]\n"
+            "(Note: This response uses supportive language, addresses Julie by name, "
+            "and stays within the word limit.)"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "[Assistant]" not in result
+        assert "Note:" not in result
+        assert result == "Hi Julie! Great job on staying consistent. Keep up the good work!"
 
     def test_post_process_strips_instruction_tuning_markers(self, chatbot_instance):
         """Fine-tuned models may leak INPUT/OUTPUT delimiters — keep only the user message."""

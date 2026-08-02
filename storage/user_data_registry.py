@@ -239,7 +239,14 @@ def _get_user_data__load_impl(
             logger.warning(
                 f"Validation issues in {log_name} for user {user_id}: {'; '.join(errors)}"
             )
-        if normalized and isinstance(normalized, dict) and len(normalized) > 0:
+        # On failure validate_fn returns the original payload; do not cache that
+        # (e.g. raw v2 schedule envelopes) as if it were normalized in-memory data.
+        if (
+            not errors
+            and normalized
+            and isinstance(normalized, dict)
+            and len(normalized) > 0
+        ):
             data = normalized
     cache_dict[cache_key] = (data, current_time)
     return data

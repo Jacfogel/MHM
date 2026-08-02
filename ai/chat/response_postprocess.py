@@ -608,18 +608,24 @@ def strip_instruction_tuning_markers(text: str) -> str:
 
 # Closings and signatures may be one line ("Best wishes, Assistant") or two
 # ("Best wishes," then "Assistant"). Pop from the end until neither matches.
+# "Best," alone is allowed on a tail line; inline bare "best" is not (avoids
+# clipping "...you're doing your best.").
 _SIGNOFF_CLOSING = (
     r"(?:take care|best wishes|warm regards|kind regards|sincerely|cheers|"
-    r"all the best|with care)"
+    r"all the best|with care|regards)"
 )
+_SIGNOFF_CLOSING_LINE = rf"(?:{_SIGNOFF_CLOSING}|best)"
 _SIGNOFF_SIGNATURE = (
-    r"(?:\[?\s*(?:your\s*name|name)\s*\]?|mh[m]?(?:\s+bot)?|assistant|"
-    r"wellness assistant)"
+    r"(?:\[?\s*(?:your\s*name|name|assistant|your\s+wellness\s+assistant)\s*\]?"
+    r"|mh[m]?(?:\s+bot)?"
+    r"|(?:your\s+)?wellness\s+assistant"
+    r"|assistant)"
 )
+_OPTIONAL_DASH = r"[-–—]\s*"
 
 _SIGNOFF_TAIL_LINE = re.compile(
-    rf"^\s*(?:"
-    rf"{_SIGNOFF_CLOSING}"
+    rf"^\s*(?:{_OPTIONAL_DASH})?(?:"
+    rf"{_SIGNOFF_CLOSING_LINE}"
     rf"(?:[,\s]+{_SIGNOFF_SIGNATURE}?)?"
     rf"|{_SIGNOFF_SIGNATURE}"
     rf")\s*[!.]?\s*$",
@@ -627,13 +633,26 @@ _SIGNOFF_TAIL_LINE = re.compile(
 )
 
 _INLINE_SIGNOFF = re.compile(
+    rf"(?:"
     rf"[,\s]+{_SIGNOFF_CLOSING}"
-    rf"(?:[,\s]+{_SIGNOFF_SIGNATURE})?\s*[!.]?\s*$",
+    rf"(?:[,\s]+{_SIGNOFF_SIGNATURE})?"
+    rf"|[,\s]+best,\s*(?:{_SIGNOFF_SIGNATURE})?"
+    rf"|[,\s]*(?:{_OPTIONAL_DASH}){_SIGNOFF_SIGNATURE}"
+    rf")\s*[!.]?\s*$",
     re.IGNORECASE,
 )
 
+# Model meta-commentary like "(Note: This response uses supportive language...)"
+_META_NOTE_LINE = re.compile(r"^\s*\(\s*Note\s*:.*\)\s*$", re.IGNORECASE | re.DOTALL)
+_TRAILING_META_NOTE = re.compile(r"\s*\(\s*Note\s*:.*?\)\s*$", re.IGNORECASE | re.DOTALL)
+
 _PERSONALIZED_GREETING_START = re.compile(
     r"(?m)^(?:Dear|Hi|Hey)\s+\w+[!,]",
+)
+
+# "Hi Julie,\n\nBody..." / "Hi Julie,\nBody..." -> "Hi Julie, Body..."
+_SALUTATION_NEWLINE = re.compile(
+    r"(?m)^((?:Dear|Hi|Hey)\s+\w+[!,])[ \t]*\n+[ \t]*",
 )
 
 
@@ -648,17 +667,28 @@ def keep_first_personalized_block(text: str) -> str:
     return text[: matches[1].start()].strip()
 
 
+@handle_errors("collapsing salutation newlines", default_return="")
+def collapse_salutation_newlines(text: str) -> str:
+    """Put the message body on the same line as Hi/Hey/Dear Name."""
+    if not text:
+        return text
+    return _SALUTATION_NEWLINE.sub(r"\1 ", text.strip()).strip()
+
+
 @handle_errors("stripping letter sign-offs", default_return="")
 def strip_letter_signoffs(text: str) -> str:
-    """Remove email-style closings and [Your Name] placeholders from short wellness messages."""
+    """Remove email-style closings, dash signatures, and meta notes from wellness messages."""
     if not text:
         return text
 
     lines = [line for line in text.strip().split("\n")]
-    while lines and _SIGNOFF_TAIL_LINE.match(lines[-1]):
+    while lines and (
+        _SIGNOFF_TAIL_LINE.match(lines[-1]) or _META_NOTE_LINE.match(lines[-1])
+    ):
         lines.pop()
 
     result = "\n".join(lines).strip()
+    result = _TRAILING_META_NOTE.sub("", result)
     result = _INLINE_SIGNOFF.sub("", result)
     return result.strip()
 

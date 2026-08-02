@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-01 - Personalized cleanup; schedule envelope save flake **COMPLETED**
+- `strip_letter_signoffs()` strips dash signatures, `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta text.
+- `collapse_salutation_newlines()` puts the body on the same line as `Hi/Hey/Dear Name`.
+- Schedule save flake: `coerce_schedules_to_in_memory()` in `profile_v2_io` unwraps v2 envelope/cache pollution in merge/validate/read; loaders do not cache failed validation payloads. Breaks `user_data_read` <-> `user_data_validation` circular import.
+
 ### 2026-07-30 - Fix `ids` logger; consolidate component logger aliases **COMPLETED**
 - `core/ids.py` uses canonical `get_component_logger("main")` (no new alias/sink).
 - Domain/AI/UI/Discord/communication call sites use canonical sinks; `COMPONENT_NAME_ALIASES` emptied (temporary bridges only).
@@ -144,12 +149,6 @@ Guidelines:
 - Check-in fallback cites partial metrics and can combine check-in + health reads.
 - **Nightly CI fix**: full-suite orchestration timeout now allows parallel + no_parallel phases (~42 min); writes fallback `run_test_suite_nightly_results.json` when the subprocess is killed so GitHub Actions artifacts include failure context.
 - Audit hygiene: doc path drift fixed; docstrings/`@handle_errors` on wellness helpers; pytest markers; Ruff SIM103; `doc-sync` PASS.
-
-### 2026-07-11 - Wellness replies use Google Health when check-ins are weak **COMPLETED**
-- Removed `how am i doing` from the rule-parser `status` intent so wellness questions reach contextual chat.
-- Added shared health-wellness helpers in [`health_context_builder.py`](../core/health_context_builder.py): `format_health_guidance_for_user_reply`, `health_wellness_snippet_from_context`, `context_has_usable_health_wellness`.
-- Extended [`wellness_status.py`](../ai/chat/wellness_status.py) and [`checkin_summary.py`](../ai/fallback/checkin_summary.py) to use `health_guidance_summary` / recent signals when check-in data is weak or missing; coordinator and envelope fallback pass health context through.
-- Unit tests in `test_wellness_status.py`, `test_context_analytics_shared_source.py`, and `test_health_context_builder.py`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

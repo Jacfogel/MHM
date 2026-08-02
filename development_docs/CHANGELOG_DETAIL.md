@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-01 - Personalized message cleanup; schedule envelope save flake
+- **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) now strips dash signatures (`-Your Wellness Assistant`, `- [Assistant]`), bare `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta-commentary from scheduled wellness messages.
+- **Fix**: New [`collapse_salutation_newlines()`](../ai/chat/response_postprocess.py) joins the body onto the greeting line so `Hi Julie,\n\n...` becomes `Hi Julie, ...` in personalized post-processing.
+- **Fix**: Parallel Tier 3 failures in [`test_account_management_real_behavior.py`](../tests/behavior/test_account_management_real_behavior.py) (`Schedule data should save successfully`) came from in-memory schedules cache holding on-disk v2 envelopes (`schema_version` / `categories`). Added [`coerce_schedules_to_in_memory()`](../core/profile_v2_io.py) and applied it in save merge/validate/read paths; loaders no longer cache failed-validation originals. Kept the helper in `profile_v2_io` (not validation) so `user_data_read` / `user_data_validation` stay one-way and the circular chain clears.
+- **Tests**: Expanded chatbot post-process coverage; added schedule-envelope cache recovery coverage in [`test_validation.py`](../tests/unit/test_validation.py); hardened account-management helper UUID resolution and day names.
+- **Impact**: Wellness DMs read as short chat messages; schedule saves stay reliable under parallel suite cache pollution.
+
 ### 2026-07-30 - Fix `ids` logger; consolidate component logger aliases
 - **Fix**: [`core/ids.py`](../core/ids.py) now uses canonical `get_component_logger("main")` so `check_channel_loggers.py` passes without a new alias or log sink.
 - **Cleanup**: Domain/AI/UI/Discord/communication call sites switched to canonical sinks (`main`/`ai`/`ui`/`discord`/`communication_manager`); emptied `COMPONENT_NAME_ALIASES` in [`core/logger.py`](../core/logger.py) (reserved for temporary bridges only). Logger variable names unchanged.

@@ -11,6 +11,7 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path, get_user_data_dir
+from core.profile_v2_io import coerce_schedules_to_in_memory
 from storage.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
@@ -229,6 +230,9 @@ def _save_user_data__merge_single_type(
                 )
                 return None
         current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
+        if dt == "schedules":
+            current = coerce_schedules_to_in_memory(current)
+            updates = coerce_schedules_to_in_memory(updates)
         updated = current.copy() if isinstance(current, dict) else {}
         preserve_categories_order: list | None = None
         if (
@@ -253,6 +257,8 @@ def _save_user_data__merge_single_type(
                 updated["email"] = updates["email"]
         elif dt == "preferences":
             _save_user_data__preserve_preference_settings(updated, updates, user_id)
+        if dt == "schedules":
+            updated = coerce_schedules_to_in_memory(updated)
         _save_user_data__normalize_data(dt, updated)
         if dt == "account":
             try:
@@ -483,12 +489,15 @@ def save_user_data(
                 logger.debug(f"Could not normalize preferences: {e}")
         if "schedules" in invalid_types_from_validation and "schedules" in merged_data:
             try:
-                normalized_schedules, schedule_errors = validate_schedules_dict(
+                cleaned_schedules = coerce_schedules_to_in_memory(
                     merged_data["schedules"]
+                )
+                normalized_schedules, schedule_errors = validate_schedules_dict(
+                    cleaned_schedules
                 )
                 if not schedule_errors:
                     logger.debug(
-                        "Schedules validation had non-critical errors, allowing save after normalization"
+                        "Schedules validation recovered after envelope coercion"
                     )
                     merged_data["schedules"] = normalized_schedules
                     invalid_types_from_validation.remove("schedules")

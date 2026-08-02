@@ -540,6 +540,67 @@ class TestUserUpdateValidation:
 
         assert is_valid is True, f"Envelope metadata should be stripped before validation: {errors}"
 
+    def test_save_user_data_schedules_recovers_from_v2_envelope_cache(
+        self, test_data_dir, mock_config
+    ):
+        """save_user_data must succeed when schedules cache holds an on-disk v2 envelope."""
+        import time
+
+        from core import clear_user_caches, save_user_data
+        from core.profile_v2_io import wrap_profile_document_for_save
+        from storage.user_data_registry import _user_schedules_cache
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        username = f"test-user-schedules-env-{uuid.uuid4().hex[:8]}"
+        assert TestUserFactory.create_basic_user(
+            username,
+            enable_checkins=False,
+            enable_tasks=False,
+            test_data_dir=test_data_dir,
+        )
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            username, test_data_dir
+        )
+        assert user_id
+
+        wrapped = wrap_profile_document_for_save(
+            "schedules",
+            {
+                "motivational": {
+                    "periods": {
+                        "Default": {
+                            "active": True,
+                            "days": ["ALL"],
+                            "start_time": "18:00",
+                            "end_time": "21:30",
+                        }
+                    }
+                }
+            },
+        )
+        clear_user_caches(user_id)
+        _user_schedules_cache[f"schedules_{user_id}"] = (wrapped, time.time())
+
+        result = save_user_data(
+            user_id,
+            {
+                "schedules": {
+                    "motivational": {
+                        "periods": {
+                            "morning": {
+                                "active": True,
+                                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                                "start_time": "09:00",
+                                "end_time": "12:00",
+                            }
+                        }
+                    }
+                }
+            },
+            auto_create=True,
+        )
+        assert result.get("schedules") is True, result
+
 
 @pytest.mark.storage
 class TestSchedulePeriodsValidation:

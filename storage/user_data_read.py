@@ -107,8 +107,11 @@ def _finalize_get_user_data_payload(
                         pass
                     data = normalized
             elif data_type == "schedules":
+                from core.profile_v2_io import coerce_schedules_to_in_memory
+
+                data = coerce_schedules_to_in_memory(data)
                 normalized, _errs = validate_schedules_dict(data)
-                if normalized:
+                if normalized and not _errs:
                     data = normalized
                     try:
                         _ensure_sched = importlib.import_module(
@@ -124,12 +127,14 @@ def _finalize_get_user_data_payload(
                         )
                         if categories:
                             _ensure_sched(user_id, suppress_logging=True)
-                            normalized_after, _e2 = validate_schedules_dict(
-                                get_user_data(user_id, "schedules").get(
-                                    "schedules", {}
+                            normalized_after, errs_after = validate_schedules_dict(
+                                coerce_schedules_to_in_memory(
+                                    get_user_data(user_id, "schedules").get(
+                                        "schedules", {}
+                                    )
                                 )
                             )
-                            if normalized_after:
+                            if normalized_after and not errs_after:
                                 data = normalized_after
                     except Exception:
                         pass

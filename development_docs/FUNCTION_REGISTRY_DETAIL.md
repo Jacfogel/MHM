@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-30 00:18:05
+> **Last Generated**: 2026-08-01 20:19:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 261
-- **Functions Found**: 2503
+- **Functions Found**: 2505
 - **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3869
-- **Functions Documented**: 2222
+- **Total Items**: 3871
+- **Functions Documented**: 2224
 - **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3476
+- **Total Documented**: 3478
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-30
+- **Last Updated**: 2026-08-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (473)
+### **Core System Functions** (474)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (646)
@@ -228,6 +228,7 @@ answer with the stated fact instead of a vague or forgetful reply.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `collapse_persona_definition_echo(user_prompt, response)` - Replace verbatim persona-instruction dumps with a short user-facing intro.
+- [OK] `collapse_salutation_newlines(text)` - Put the message body on the same line as Hi/Hey/Dear Name.
 - [OK] `find_response_leak_markers(text)` - Return leak marker substrings still present in user-visible text.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
 - [OK] `polish_greeting_response(response, user_prompt)` - Drop immediate help offers when the reply already answers a greeting/feeling question.
@@ -235,7 +236,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
-- [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, dash signatures, and meta notes from wellness messages.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
 - [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
 - [OK] `trim_verbose_reply_for_simple_prompt(user_prompt, response)` - Keep capability/identity answers concise when the user asked a short question.
@@ -4343,6 +4344,11 @@ Args:
 - [OK] `_normalize_context_timestamp(value)` - Coerce non-canonical ISO/microsecond timestamps to canonical TIMESTAMP_FULL.
 - [OK] `_normalize_in_memory_profile(document_type, inner)` - Apply tolerant in-memory validators after unwrapping a v2 on-disk envelope.
 - [OK] `_warn_non_v2_on_disk(document_type, raw)` - Log when on-disk JSON is not a v2 envelope (load path returns empty in-memory data).
+- [OK] `coerce_schedules_to_in_memory(data)` - Return flat category->periods schedules, stripping v2 envelope/cache pollution.
+
+On-disk schedules use ``{schema_version, updated_at, categories: {...}}``.
+In-memory and save/merge paths expect ``{category: {periods: ...}}``. A poisoned
+cache may also store ``schema_version`` beside flat category keys.
 - [OK] `is_profile_v2_envelope(data)` - Return True when ``data`` is a dict with ``schema_version`` equal to v2.
 - [OK] `prepare_profile_raw_on_load(document_type, raw)` - Unwrap a v2 on-disk profile document for registry loaders and tooling.
 - [OK] `unwrap_profile_document_on_load(document_type, raw)` - Unwrap a v2 on-disk envelope to in-memory application shapes.

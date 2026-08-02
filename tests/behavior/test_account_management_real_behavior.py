@@ -56,23 +56,22 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         if not success:
             return False
             
-        # Get the actual user ID (UUID) that was created
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
-        if actual_user_id is None:
-            # Fallback to original user_id if index lookup fails
-            actual_user_id = user_id
-            
+        actual_user_id = _resolve_test_user_id(user_id, test_data_dir)
+
         # Update with specific schedule data
-        from core import save_user_data
+        from core import clear_user_caches, save_user_data
+        clear_user_caches(actual_user_id)
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
-            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
             "start_time": "09:00",
             "end_time": "12:00"
         }
         result = save_user_data(actual_user_id, {'schedules': schedules_data}, auto_create=True)
-        assert result.get('schedules', False), "Schedule data should save successfully"
+        assert result.get('schedules', False), (
+            f"Schedule data should save successfully for {actual_user_id}: {result}"
+        )
         
     elif base_state == "full":
         # Full user with all features enabled
@@ -80,29 +79,28 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         if not success:
             return False
             
-        # Get the actual user ID (UUID) that was created
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
-        if actual_user_id is None:
-            # Fallback to original user_id if index lookup fails
-            actual_user_id = user_id
-            
+        actual_user_id = _resolve_test_user_id(user_id, test_data_dir)
+
         # Update with specific schedule data
-        from core import save_user_data
+        from core import clear_user_caches, save_user_data
+        clear_user_caches(actual_user_id)
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational", "health"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
-            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
             "start_time": "09:00",
             "end_time": "12:00"
         }
         schedules_data["health"]["periods"]["afternoon"] = {
             "active": True,
-            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
             "start_time": "14:00",
             "end_time": "17:00"
         }
         result = save_user_data(actual_user_id, {'schedules': schedules_data}, auto_create=True)
-        assert result.get('schedules', False), "Schedule data should save successfully"
+        assert result.get('schedules', False), (
+            f"Schedule data should save successfully for {actual_user_id}: {result}"
+        )
     
     return True
 

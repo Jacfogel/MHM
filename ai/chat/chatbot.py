@@ -58,12 +58,13 @@ from ai.chat.wellness_status import (
 from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
     collapse_persona_definition_echo,
+    collapse_salutation_newlines,
+    keep_first_personalized_block,
     polish_greeting_response,
     sanitize_false_crud_claims,
     smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
-    keep_first_personalized_block,
     trim_verbose_reply_for_simple_prompt,
 )
 from core.error_handling import handle_errors
@@ -541,6 +542,7 @@ class AIChatBotSingleton:
             response = get_command_interpreter().extract_command_from_response(response)
         if mode == "personalized":
             response = strip_letter_signoffs(response)
+            response = collapse_salutation_newlines(response)
             response = keep_first_personalized_block(response)
             return smart_truncate_response(
                 response, AI_MAX_RESPONSE_LENGTH, max_words=100

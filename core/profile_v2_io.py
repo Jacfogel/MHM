@@ -78,6 +78,35 @@ def is_profile_v2_envelope(data: Any) -> bool:
     return isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION
 
 
+@handle_errors("coercing schedules to in-memory shape", default_return={})
+def coerce_schedules_to_in_memory(data: Any) -> dict[str, Any]:
+    """Return flat category->periods schedules, stripping v2 envelope/cache pollution.
+
+    On-disk schedules use ``{schema_version, updated_at, categories: {...}}``.
+    In-memory and save/merge paths expect ``{category: {periods: ...}}``. A poisoned
+    cache may also store ``schema_version`` beside flat category keys.
+    """
+    if not isinstance(data, dict) or not data:
+        return {}
+
+    if is_profile_v2_envelope(data):
+        categories = data.get("categories")
+        if isinstance(categories, dict):
+            unwrapped = unwrap_profile_document_on_load("schedules", data)
+            return unwrapped if isinstance(unwrapped, dict) else {}
+        return {
+            key: value
+            for key, value in data.items()
+            if key not in _SCHEDULE_V2_RESERVED_KEYS
+        }
+
+    return {
+        key: value
+        for key, value in data.items()
+        if key not in _SCHEDULE_V2_RESERVED_KEYS
+    }
+
+
 @handle_errors("normalizing in-memory profile payload", default_return={})
 def _normalize_in_memory_profile(
     document_type: ProfileDocumentType, inner: dict[str, Any]

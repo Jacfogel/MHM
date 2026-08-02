@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-30 00:18:12
+> **Last Generated**: 2026-08-01 20:19:43
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 259
-- **Total Imports Found**: 2197
+- **Total Imports Found**: 2199
 - **Dependencies Documented**: 259 (100% coverage)
 - **Standard Library Imports**: 649 (29.5%)
 - **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1331 (60.6%)
-- **Last Updated**: 2026-07-30
+- **Local Imports**: 1333 (60.6%)
+- **Last Updated**: 2026-08-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 649 imports (29.5%)
 - **Third-Party**: 217 imports (9.9%)
-- **Local**: 1331 imports (60.6%)
+- **Local**: 1333 imports (60.6%)
 
 ## Module Dependencies by Directory
 
@@ -75,7 +75,7 @@
     - `ai.chat.chatbot (AIChatBotSingleton, get_ai_chatbot)` (NEW)
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (ResponseGenerator, get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, keep_first_personalized_block, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_salutation_newlines, keep_first_personalized_block, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -142,7 +142,7 @@
     - `ai.chat.conversation_coherence (align_response_to_conversation_topic)` (NEW)
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_persona_definition_echo, keep_first_personalized_block, polish_greeting_response, sanitize_false_crud_claims, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, trim_verbose_reply_for_simple_prompt)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_persona_definition_echo, collapse_salutation_newlines, keep_first_personalized_block, polish_greeting_response, sanitize_false_crud_claims, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, trim_verbose_reply_for_simple_prompt)` (NEW)
     - `ai.chat.wellness_status (build_honest_wellness_status_reply, context_has_wellness_data, is_wellness_status_question, reinforce_wellness_honesty_if_needed)` (NEW)
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)
@@ -4059,6 +4059,7 @@
   - `core/file_operations.py`
   - `core/response_tracking.py`
   - `core/tags.py`
+  - `storage/user_data_read.py`
   - `storage/user_data_registry.py`
   - `storage/user_data_validation.py`
   - `storage/user_data_write.py`
@@ -5319,6 +5320,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (determine_file_path, load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.profile_v2_io (coerce_schedules_to_in_memory)` (NEW)
     - `core.schemas (validate_account_dict, validate_preferences_dict, validate_schedules_dict)` (NEW)
     - `storage.user_data_registry (USER_DATA_LOADERS, _get_user_data__load_account, _get_user_data__load_context, _get_user_data__load_preferences, _get_user_data__load_schedules, clear_user_caches, get_available_data_types, register_data_loader, register_default_loaders)` (NEW)
   - **Standard Library**:
@@ -5337,7 +5339,7 @@
   - `storage/user_data_write.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.schemas, storage.user_data_registry
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.schemas, storage.user_data_registry
 - Removed: core/__init__.py, core/schedule_document_defaults.py, core/service.py, core/user_lookup.py, core/user_management.py, storage/user_data_operations.py, storage/user_data_validation.py, storage/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5445,7 +5447,7 @@
     - `core.config (get_user_data_dir)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.profile_v2_io (is_profile_v2_envelope, unwrap_profile_document_on_load)` (NEW)
+    - `core.profile_v2_io (coerce_schedules_to_in_memory)` (NEW)
     - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
     - `messages.message_data_manager (get_message_categories)` (NEW)
     - `storage.user_data_read (get_user_data)` (NEW)
@@ -5470,7 +5472,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.profile_v2_io, core.time_utilities, messages.message_data_manager, storage.user_data_read
-- Removed: communication/command_handlers/base_handler.py, integrations/google_health/data_handlers.py, storage/user_data_write.py, tasks/task_data_handlers.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/widgets/category_selection_widget.py
+- Removed: communication/command_handlers/base_handler.py, integrations/google_health/data_handlers.py, storage/user_data_read.py, storage/user_data_write.py, tasks/task_data_handlers.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5484,7 +5486,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.profile_v2_io (wrap_profile_document_for_save)` (NEW)
+    - `core.profile_v2_io (coerce_schedules_to_in_memory, wrap_profile_document_for_save)` (NEW)
     - `core.schedule_document_defaults (ensure_all_categories_have_schedules, ensure_category_has_default_schedule)` (NEW)
     - `core.schemas (validate_account_dict, validate_preferences_dict, validate_schedules_dict)` (NEW)
     - `messages.message_data_manager (ensure_user_message_files)` (NEW)
