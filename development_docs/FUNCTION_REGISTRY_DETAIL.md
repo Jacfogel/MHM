@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-01 20:19:34
+> **Last Generated**: 2026-08-02 17:17:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 261
-- **Functions Found**: 2505
+- **Functions Found**: 2514
 - **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3871
-- **Functions Documented**: 2224
+- **Total Items**: 3880
+- **Functions Documented**: 2233
 - **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3478
+- **Total Documented**: 3487
 - **Template-Generated**: 46
-- **Last Updated**: 2026-08-01
+- **Last Updated**: 2026-08-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (474)
+### **Core System Functions** (482)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (646)
@@ -342,7 +342,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_append_checkin_summary_from_envelope(parts, structured)` - Append check-in summary text from envelope check-in data.
 - [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history, including in-memory session turns.
 - [OK] `_append_feature_enablement_from_envelope(parts, structured)` - Append feature availability lines from envelope sections.
-- [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append safe health guidance from envelope health data.
+- [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append recent wellness patterns then tone guidance from envelope health data.
 - [OK] `_append_recent_sent_messages_from_envelope(parts, structured)` - Append recent automated message context from envelope message data.
 - [OK] `_append_schedule_details_from_envelope(parts, structured)` - Append active schedule details from envelope schedule data.
 - [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
@@ -563,7 +563,7 @@ Returns:
 - [MISSING] `append_conversation_history(parts, context)` - No description
 - [OK] `append_current_datetime_context(parts, user_id)` - Prepend current date/time awareness for the user's account timezone.
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
-- [OK] `append_health_guidance(parts, user_id)` - Append safe wellness guidance (no raw wearable metrics).
+- [OK] `append_health_guidance(parts, user_id)` - Append recent wellness patterns then tone guidance for chat prompts.
 - [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from chatbot context dict.
 - [OK] `append_recent_sent_messages(parts, user_id)` - Return full recent_sent list for task-reminder follow-up.
 - [MISSING] `append_schedule_details(parts, user_id, context)` - No description
@@ -3938,21 +3938,35 @@ Raises:
 
 #### `core/health_context_builder.py`
 **Functions:**
+- [OK] `_count_consecutive_streak(signals_by_date)` - Count consecutive calendar days ending at end_date that match predicate.
 - [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
 - [OK] `_format_health_signal_coarse(signal)` - Plain-language wellness notes for AI prompts.
 
-Avoids internal field labels (e.g. sleep_recovery=high) that models tend to
-echo back as jargon like "high recovery" or "wearable wellness signal".
+May include rounded sleep hours, step counts, and active minutes. Avoids
+internal field labels and never includes HR/HRV numbers or device names.
+- [OK] `_format_health_streak_phrases(user_id, anchor_signal)` - Build multi-day streak phrases from recent signals.
+
+Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
+- [OK] `_format_rounded_active_minutes(active_minutes)` - Return '~45 active minutes' or empty when unavailable.
+- [OK] `_format_rounded_sleep_hours(hours)` - Return '~5.5 hours of sleep' or empty when unavailable.
+- [OK] `_format_rounded_steps(steps)` - Return '~2,400 steps' or empty when unavailable.
+- [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
+- [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour.
 - [OK] `build_personalized_wellness_context(user_id)` - Compact wellness context for scheduled personalized messages.
 
 Google Health signals take priority; stale check-ins are excluded.
+- [OK] `build_recent_health_patterns(user_id)` - Return 'Recent wellness patterns: ...' for scheduled messages and chat.
+
+Includes rounded sleep/steps/active minutes and multi-day streaks when
+available; never HR/HRV numbers.
 - [OK] `build_safe_health_guidance_summary(user_id)` - Return coarse wellness guidance for AI context.
 
-Never includes exact steps, HR, HRV, or device names.
+Tone tokens only — never includes sleep hours, steps, HR, HRV, or device names.
 - [OK] `build_user_facing_signal_wellness_snippet(user_id)` - Return a coarse, user-facing wellness read from the active health signal.
 
 Used when message_guidance is empty or confidence is low but recent wearable
-data still supports an honest wellness reply.
+data still supports an honest wellness reply. May include rounded sleep hours,
+step counts, active minutes, and multi-day streaks; never HR/HRV numbers.
 - [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
 - [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
 - [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.
@@ -5067,6 +5081,10 @@ Returns updated sync_state (may set reconnect_notice_sent).
 #### `integrations/google_health/personalization_rules.py`
 **Functions:**
 - [OK] `_add_guidance(tokens)` - Append unique message_guidance tokens without duplicates.
+- [OK] `activity_effort_band(signal)` - Return 'low', 'high', or 'other' from activity_level + active_intensity.
+
+High intensity overrides low steps (workout days can be high effort with
+fewer steps). Shared by personalization rules and streak phrasing.
 - [OK] `apply_personalization_rules(signal)` - Map derived signal fields to message_guidance tokens.
 
 Returns empty list when confidence is low or data insufficient.

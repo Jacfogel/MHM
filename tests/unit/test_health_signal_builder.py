@@ -40,6 +40,8 @@ def test_build_signal_low_sleep_and_activity():
     assert signal is not None
     assert signal["sleep_recovery"] == "low"
     assert signal["activity_level"] == "low"
+    assert signal["steps"] == 500
+    assert signal["sleep_hours"] == 4.0
     assert signal["sleep_quality"] == "unknown"
     assert signal["active_intensity"] == "unknown"
     assert "use_gentle_tone" in signal["message_guidance"]
@@ -104,6 +106,7 @@ def test_build_signal_active_intensity_from_active_minutes():
     signal = build_signal_for_date("2026-06-27", summaries)
     assert signal is not None
     assert signal["active_intensity"] == "high"
+    assert signal["active_minutes"] == 90
     assert "send_reinforcement" in signal["message_guidance"]
 
 

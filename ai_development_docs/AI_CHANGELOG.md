@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-02 - Richer Google Health context (rounded sleep/steps) **COMPLETED**
+- Pattern text may include `~5.5 hours` / `~2,400 steps` / `~45 active minutes`; HR/HRV remain categorical bands only.
+- Multi-day streaks (>=2 days): shorter sleep, lighter activity, or higher activity.
+- Signals carry optional `steps` and `active_minutes`; `build_recent_health_patterns()` feeds scheduled messages and chat (`recent_patterns` in health envelope).
+- Personalized prompt allows approximate sleep/steps/active minutes and streaks; truncate limit 700; guidance summary stays tone-only.
+- Follow-up: regenerated function registry for health context helpers; Ruff SIM108 cleaned in sleep-hour formatting; doc path drift + ASCII cleanup; shared `activity_effort_band()` for personalization and streak phrasing.
+
 ### 2026-08-01 - Personalized cleanup; schedule envelope save flake **COMPLETED**
 - `strip_letter_signoffs()` strips dash signatures, `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta text.
 - `collapse_salutation_newlines()` puts the body on the same line as `Hi/Hey/Dear Name`.
@@ -143,12 +150,6 @@ Guidelines:
 - Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.
 - Domain marker docs now list `integrations` alongside other product packages.
 - **Fix (personalized sign-offs)**: `strip_letter_signoffs()` now removes split closings (`Best wishes,` + bare `Assistant` / `MHM Bot` on the next line), not only single-line `Take care, [Your Name]`.
-
-### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks **COMPLETED**
-- When `message_guidance` is empty or confidence is `low`, wellness replies now use coarse signal fields via `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py).
-- Check-in fallback cites partial metrics and can combine check-in + health reads.
-- **Nightly CI fix**: full-suite orchestration timeout now allows parallel + no_parallel phases (~42 min); writes fallback `run_test_suite_nightly_results.json` when the subprocess is killed so GitHub Actions artifacts include failure context.
-- Audit hygiene: doc path drift fixed; docstrings/`@handle_errors` on wellness helpers; pytest markers; Ruff SIM103; `doc-sync` PASS.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

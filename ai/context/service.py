@@ -7,7 +7,10 @@ from typing import Any
 
 from core import get_user_data
 from core.error_handling import handle_errors
-from core.health_context_builder import build_safe_health_guidance_summary
+from core.health_context_builder import (
+    build_recent_health_patterns,
+    build_safe_health_guidance_summary,
+)
 from core.response_tracking import get_recent_chat_interactions
 from core.schedule_utilities import get_active_schedules
 from core.time_format_constants import DATE_DISPLAY_WEEKDAY
@@ -365,7 +368,12 @@ def _build_notebook_context(user_id: str) -> dict[str, Any]:
 def _build_health_context(user_id: str) -> dict[str, Any]:
     """Build safe AI-facing health guidance context."""
     summary = build_safe_health_guidance_summary(user_id)
-    return {"guidance_summary": summary, "available": bool(summary)}
+    recent_patterns = build_recent_health_patterns(user_id)
+    return {
+        "guidance_summary": summary,
+        "recent_patterns": recent_patterns,
+        "available": bool(summary or recent_patterns),
+    }
 
 
 @handle_errors("building analytics context", default_return={})
@@ -429,8 +437,15 @@ def _default_prompt_text(name: str, data: Any) -> str:
     if name == "notebooks":
         return f"Notebooks: {(data or {}).get('total_recent', 0)} recent entries."
     if name == "health":
-        summary = (data or {}).get("guidance_summary") or "no health guidance summary."
-        return f"Health: {summary}"
+        patterns = (data or {}).get("recent_patterns") or ""
+        summary = (data or {}).get("guidance_summary") or ""
+        if patterns and summary:
+            return f"Health: {patterns} {summary}"
+        if patterns:
+            return f"Health: {patterns}"
+        if summary:
+            return f"Health: {summary}"
+        return "Health: no health guidance summary."
     if name == "analytics":
         return f"Analytics: {data}"
     if name == "conversation":

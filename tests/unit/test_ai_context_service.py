@@ -83,6 +83,7 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert structured["messages"]["templates_by_category"]["motivational"][0]["text"] == "Keep going."
     assert structured["notebooks"]["recent"][0]["title"] == "Refill notes"
     assert "guidance_summary" in structured["health"]
+    assert "recent_patterns" in structured["health"]
     assert structured["analytics"]["recent_checkin_count"] == 1
     assert "recent_chat_interactions" in structured["conversation"]
     assert "create_task" in structured["action_catalog"]["available"]

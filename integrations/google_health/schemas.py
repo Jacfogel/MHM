@@ -76,7 +76,9 @@ class HealthSignalModel(BaseModel):
     sleep_hours: float | None = None
     sleep_vs_baseline: BaselineComparison = "unknown"
     sleep_quality: SleepQuality = "unknown"
+    steps: int | None = None
     activity_level: ActivityLevel = "unknown"
+    active_minutes: int | None = None
     active_intensity: ActiveIntensity = "unknown"
     resting_hr_signal: RestingHrSignal = "unknown"
     hrv_signal: HrvSignal = "unknown"

@@ -217,9 +217,15 @@ def append_checkin_summary(parts: list[str], user_id: str) -> None:
 
 @handle_errors("appending health guidance", default_return=None)
 def append_health_guidance(parts: list[str], user_id: str) -> None:
-    """Append safe wellness guidance (no raw wearable metrics)."""
-    from core.health_context_builder import build_safe_health_guidance_summary
+    """Append recent wellness patterns then tone guidance for chat prompts."""
+    from core.health_context_builder import (
+        build_recent_health_patterns,
+        build_safe_health_guidance_summary,
+    )
 
+    recent_patterns = build_recent_health_patterns(user_id)
+    if recent_patterns:
+        parts.append(recent_patterns)
     summary = build_safe_health_guidance_summary(user_id)
     if summary:
         parts.append(summary)

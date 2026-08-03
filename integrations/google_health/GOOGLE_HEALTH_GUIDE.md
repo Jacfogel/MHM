@@ -6,7 +6,7 @@
 
 ## Overview
 
-MHM reads **wellness data only** from the [Google Health API](https://developers.google.com/health/migration) (not the legacy Fitbit Web API). Data is normalized into daily summaries and derived **message guidance** tokens — raw metrics are never sent to the AI.
+MHM reads **wellness data only** from the [Google Health API](https://developers.google.com/health/migration) (not the legacy Fitbit Web API). Data is normalized into daily summaries and derived **message guidance** tokens. AI prompts may receive **rounded sleep hours, step counts, and active minutes**, categorical bands, and **multi-day streak phrases**; resting HR / HRV stay band-only (no bpm/ms), and other raw metrics are never sent.
 
 After a **one-time OAuth connect**, sync runs automatically via the scheduler (default 06:30 and 18:00). No daily manual steps are required.
 
@@ -62,25 +62,30 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 ## Safety
 
 - No diagnosis, treatment, or emergency detection.
-- AI receives coarse guidance phrases only (`core/health_context_builder.py`).
+- AI receives coarse guidance phrases plus rounded sleep/steps/active minutes and multi-day streaks when available (`core/health_context_builder.py`); never exact HR/HRV numbers or device names.
 - API failures: log internally, fall back to normal messages.
 - After repeated auth failures, feature auto-pauses (`GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD`).
 - When auto-pause is triggered by token refresh failure, MHM sends **one** low-key reconnect message on the user's primary channel (`sync_state.reconnect_notice_sent` prevents repeats until the next successful sync).
 
 ## Derived signals (used for personalization)
 
-Built by `signal_builder.py` from daily summaries — categorical only; raw minutes/% never go to the AI.
+Built by `signal_builder.py` from daily summaries. Most fields are categorical; AI pattern text may also use rounded `sleep_hours`, `steps`, and `active_minutes`, plus streak phrases derived across recent signal days.
 
 | Field | Source metrics | Purpose |
 |-------|----------------|---------|
 | `sleep_recovery` | sleep duration | Short / typical / fuller night |
+| `sleep_hours` | sleep duration / 60 | Rounded (~nearest 0.5h) in AI pattern text |
 | `sleep_vs_baseline` | sleep duration vs median | Below / near / above usual amount |
 | `sleep_quality` | sleep efficiency + deep/REM share | Sleep quality band (more cautious of the two inputs) |
+| `steps` | daily steps | Rounded (~nearest 100) in AI pattern text |
 | `activity_level` | steps | Step-based activity band |
+| `active_minutes` | active zone minutes | Rounded (~nearest 5) in AI pattern text |
 | `active_intensity` | active zone minutes | Workout / effort intensity (can reinforce even when steps are low) |
-| `resting_hr_signal` | resting HR vs median | Elevated readiness caution |
-| `hrv_signal` | HRV vs median | Lower readiness caution |
+| `resting_hr_signal` | resting HR vs median | Elevated readiness caution (band only; never bpm) |
+| `hrv_signal` | HRV vs median | Lower readiness caution (band only; never ms) |
 | `message_guidance` | personalization rules | Tone tokens for scheduled messages and chat |
+
+Streak phrases (from `core/health_context_builder.py`, >=2 consecutive calendar days): shorter sleep, lighter activity, or higher activity.
 
 Synced but not yet used for signals: calories (not fetched).
 

@@ -1,9 +1,15 @@
 """
-Safe AI-facing health guidance (no raw wearable metrics).
+Safe AI-facing health guidance.
+
+Tone guidance never includes raw wearable metrics. Pattern text may include
+rounded sleep hours, step counts, and active minutes, plus multi-day streak
+phrases (no HR/HRV numbers).
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import timedelta
 from typing import Any
 
 from core.error_handling import handle_errors
@@ -12,6 +18,8 @@ from core.health_signals import (
     is_personalization_active,
     resolve_active_health_signal,
 )
+from core.time_utilities import DATE_ONLY, parse_timestamp_full
+from integrations.google_health.data_handlers import load_health_signals
 from integrations.google_health.personalization_rules import (
     GUIDANCE_AVOID_NAG,
     GUIDANCE_AVOID_PRESSURE,
@@ -21,7 +29,122 @@ from integrations.google_health.personalization_rules import (
     GUIDANCE_REINFORCE,
     GUIDANCE_SHORT_WALK,
     GUIDANCE_SMALL_EXPECTATIONS,
+    activity_effort_band,
 )
+
+STREAK_LOOKBACK_DAYS = 7
+MIN_STREAK_DAYS = 2
+
+
+@handle_errors("rounding sleep hours for prompt", default_return=None)
+def _round_sleep_hours(hours: float) -> float:
+    """Round sleep hours to the nearest half hour."""
+    return round(float(hours) * 2.0) / 2.0
+
+
+@handle_errors("formatting rounded sleep hours", default_return="")
+def _format_rounded_sleep_hours(hours: Any) -> str:
+    """Return '~5.5 hours of sleep' or empty when unavailable."""
+    if not isinstance(hours, (int, float)):
+        return ""
+    rounded = _round_sleep_hours(float(hours))
+    text = str(int(rounded)) if rounded == int(rounded) else f"{rounded:.1f}"
+    return f"~{text} hours of sleep"
+
+
+@handle_errors("formatting rounded steps", default_return="")
+def _format_rounded_steps(steps: Any) -> str:
+    """Return '~2,400 steps' or empty when unavailable."""
+    if not isinstance(steps, (int, float)):
+        return ""
+    rounded = int(round(float(steps) / 100.0) * 100)
+    return f"~{rounded:,} steps"
+
+
+@handle_errors("formatting rounded active minutes", default_return="")
+def _format_rounded_active_minutes(active_minutes: Any) -> str:
+    """Return '~45 active minutes' or empty when unavailable."""
+    if not isinstance(active_minutes, (int, float)):
+        return ""
+    rounded = int(round(float(active_minutes) / 5.0) * 5)
+    return f"~{rounded} active minutes"
+
+
+@handle_errors("checking short-sleep signal day", default_return=False)
+def _is_short_sleep_day(signal: dict[str, Any]) -> bool:
+    """True when sleep recovery, baseline, or quality indicates a lighter night."""
+    return (
+        str(signal.get("sleep_recovery") or "").strip().lower() == "low"
+        or str(signal.get("sleep_vs_baseline") or "").strip().lower() == "below"
+        or str(signal.get("sleep_quality") or "").strip().lower() == "low"
+    )
+
+
+@handle_errors("counting consecutive health streak days", default_return=0)
+def _count_consecutive_streak(
+    signals_by_date: dict[str, dict[str, Any]],
+    *,
+    end_date: str,
+    predicate: Callable[[dict[str, Any]], bool],
+    lookback_days: int = STREAK_LOOKBACK_DAYS,
+) -> int:
+    """Count consecutive calendar days ending at end_date that match predicate."""
+    end = parse_timestamp_full(f"{end_date} 00:00:00")
+    if end is None:
+        return 0
+    count = 0
+    for offset in range(lookback_days):
+        day = (end.date() - timedelta(days=offset)).strftime(DATE_ONLY)
+        signal = signals_by_date.get(day)
+        if not signal or not predicate(signal):
+            break
+        count += 1
+    return count
+
+
+@handle_errors("formatting health streak phrases", default_return=[])
+def _format_health_streak_phrases(
+    user_id: str,
+    anchor_signal: dict[str, Any],
+) -> list[str]:
+    """
+    Build multi-day streak phrases from recent signals.
+
+    Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
+    """
+    end_date = str(anchor_signal.get("date") or "").strip()
+    if not end_date:
+        return []
+
+    doc = load_health_signals(user_id) or {}
+    signals_by_date: dict[str, dict[str, Any]] = {}
+    for item in doc.get("signals") or []:
+        if isinstance(item, dict) and item.get("date"):
+            signals_by_date[str(item["date"])] = item
+
+    phrases: list[str] = []
+    short_sleep = _count_consecutive_streak(
+        signals_by_date, end_date=end_date, predicate=_is_short_sleep_day
+    )
+    if short_sleep >= MIN_STREAK_DAYS:
+        phrases.append(f"shorter sleep for {short_sleep} days in a row")
+
+    light_activity = _count_consecutive_streak(
+        signals_by_date,
+        end_date=end_date,
+        predicate=lambda signal: activity_effort_band(signal) == "low",
+    )
+    high_activity = _count_consecutive_streak(
+        signals_by_date,
+        end_date=end_date,
+        predicate=lambda signal: activity_effort_band(signal) == "high",
+    )
+    if light_activity >= MIN_STREAK_DAYS:
+        phrases.append(f"lighter activity for {light_activity} days in a row")
+    elif high_activity >= MIN_STREAK_DAYS:
+        phrases.append(f"higher activity for {high_activity} days in a row")
+
+    return phrases
 
 
 @handle_errors("building safe health guidance summary", default_return="")
@@ -29,7 +152,7 @@ def build_safe_health_guidance_summary(user_id: str) -> str:
     """
     Return coarse wellness guidance for AI context.
 
-    Never includes exact steps, HR, HRV, or device names.
+    Tone tokens only — never includes sleep hours, steps, HR, HRV, or device names.
     """
     state = get_google_health_feature_state(user_id)
     if state == "disabled":
@@ -127,7 +250,8 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     Return a coarse, user-facing wellness read from the active health signal.
 
     Used when message_guidance is empty or confidence is low but recent wearable
-    data still supports an honest wellness reply.
+    data still supports an honest wellness reply. May include rounded sleep hours,
+    step counts, active minutes, and multi-day streaks; never HR/HRV numbers.
     """
     if not is_personalization_active(user_id):
         return ""
@@ -137,13 +261,25 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
         return ""
 
     phrases: list[str] = []
+    sleep_text = _format_rounded_sleep_hours(signal.get("sleep_hours"))
     sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
-    if sleep_recovery == "high":
+    if sleep_text:
+        if sleep_recovery == "high":
+            phrases.append(f"you got about {sleep_text} recently (a solid night)")
+        elif sleep_recovery == "low":
+            phrases.append(f"you got about {sleep_text} recently (a lighter night)")
+        elif sleep_recovery == "normal":
+            phrases.append(f"you got about {sleep_text} recently (about typical)")
+        else:
+            phrases.append(f"you got about {sleep_text} recently")
+    elif sleep_recovery == "high":
         phrases.append("you got a solid night's sleep recently")
     elif sleep_recovery == "low":
         phrases.append("your recent sleep looked lighter than usual")
     elif sleep_recovery == "normal":
         phrases.append("your recent sleep looked about typical")
+
+    phrases.extend(_format_health_streak_phrases(user_id, signal))
 
     sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
     if sleep_vs == "below":
@@ -161,16 +297,36 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     elif sleep_quality == "normal":
         phrases.append("sleep quality looked about typical")
 
+    steps_text = _format_rounded_steps(signal.get("steps"))
     activity = str(signal.get("activity_level") or "unknown").strip().lower()
-    if activity == "low":
+    if steps_text:
+        if activity == "low":
+            phrases.append(f"about {steps_text} (lighter than usual)")
+        elif activity == "high":
+            phrases.append(f"about {steps_text} (higher than usual)")
+        elif activity == "normal":
+            phrases.append(f"about {steps_text} (around your usual level)")
+        else:
+            phrases.append(f"about {steps_text}")
+    elif activity == "low":
         phrases.append("activity has been on the lighter side")
     elif activity == "high":
         phrases.append("you have been more active than usual")
     elif activity == "normal":
         phrases.append("activity has been around your usual level")
 
+    active_text = _format_rounded_active_minutes(signal.get("active_minutes"))
     active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
-    if active_intensity == "high":
+    if active_text:
+        if active_intensity == "high":
+            phrases.append(f"about {active_text} (higher than usual)")
+        elif active_intensity == "low":
+            phrases.append(f"about {active_text} (lighter than usual)")
+        elif active_intensity == "normal":
+            phrases.append(f"about {active_text} (around your usual level)")
+        else:
+            phrases.append(f"about {active_text}")
+    elif active_intensity == "high":
         phrases.append("active effort was higher than usual")
     elif active_intensity == "low":
         phrases.append("active effort was lighter than usual")
@@ -196,7 +352,7 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
         return f"{phrases[0].capitalize()}."
     if len(phrases) == 2:
         return f"{phrases[0].capitalize()}, and {phrases[1]}."
-    # Keep replies short while still surfacing sleep quality / active effort.
+    # Prefer sleep + streak/activity + one more readiness note.
     selected = phrases[:3]
     return f"{selected[0].capitalize()}, {selected[1]}, and {selected[2]}."
 
@@ -265,8 +421,8 @@ def _format_health_signal_coarse(signal: dict) -> str:
     """
     Plain-language wellness notes for AI prompts.
 
-    Avoids internal field labels (e.g. sleep_recovery=high) that models tend to
-    echo back as jargon like "high recovery" or "wearable wellness signal".
+    May include rounded sleep hours, step counts, and active minutes. Avoids
+    internal field labels and never includes HR/HRV numbers or device names.
     """
     if not signal:
         return ""
@@ -274,8 +430,18 @@ def _format_health_signal_coarse(signal: dict) -> str:
     if signal.get("date"):
         parts.append(f"for {signal['date']}")
 
+    sleep_text = _format_rounded_sleep_hours(signal.get("sleep_hours"))
     sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
-    if sleep_recovery == "high":
+    if sleep_text:
+        if sleep_recovery == "high":
+            parts.append(f"about {sleep_text} (a fuller night)")
+        elif sleep_recovery == "low":
+            parts.append(f"about {sleep_text} (a shorter night)")
+        elif sleep_recovery == "normal":
+            parts.append(f"about {sleep_text} (about typical)")
+        else:
+            parts.append(f"about {sleep_text}")
+    elif sleep_recovery == "high":
         parts.append("sleep looked solid (a fuller night)")
     elif sleep_recovery == "low":
         parts.append("sleep looked light (a shorter night)")
@@ -298,16 +464,36 @@ def _format_health_signal_coarse(signal: dict) -> str:
     elif sleep_quality == "normal":
         parts.append("sleep quality looked about typical")
 
+    steps_text = _format_rounded_steps(signal.get("steps"))
     activity = str(signal.get("activity_level") or "unknown").strip().lower()
-    if activity == "low":
+    if steps_text:
+        if activity == "low":
+            parts.append(f"about {steps_text} (lighter than usual)")
+        elif activity == "high":
+            parts.append(f"about {steps_text} (higher than usual)")
+        elif activity == "normal":
+            parts.append(f"about {steps_text} (around their usual level)")
+        else:
+            parts.append(f"about {steps_text}")
+    elif activity == "low":
         parts.append("activity was lighter than usual")
     elif activity == "high":
         parts.append("activity was higher than usual")
     elif activity == "normal":
         parts.append("activity was around their usual level")
 
+    active_text = _format_rounded_active_minutes(signal.get("active_minutes"))
     active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
-    if active_intensity == "high":
+    if active_text:
+        if active_intensity == "high":
+            parts.append(f"about {active_text} (higher than usual)")
+        elif active_intensity == "low":
+            parts.append(f"about {active_text} (lighter than usual)")
+        elif active_intensity == "normal":
+            parts.append(f"about {active_text} (around their usual level)")
+        else:
+            parts.append(f"about {active_text}")
+    elif active_intensity == "high":
         parts.append("active effort was higher than usual")
     elif active_intensity == "low":
         parts.append("active effort was lighter than usual")
@@ -330,6 +516,28 @@ def _format_health_signal_coarse(signal: dict) -> str:
 
 
 PERSONALIZED_CHECKIN_LOOKBACK_DAYS = 7
+PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS = 700
+
+
+@handle_errors("building recent health patterns for AI context", default_return="")
+def build_recent_health_patterns(user_id: str) -> str:
+    """
+    Return 'Recent wellness patterns: ...' for scheduled messages and chat.
+
+    Includes rounded sleep/steps/active minutes and multi-day streaks when
+    available; never HR/HRV numbers.
+    """
+    if not is_personalization_active(user_id):
+        return ""
+    signal = resolve_active_health_signal(user_id)
+    if not signal:
+        return ""
+    parts = [_format_health_signal_coarse(signal)]
+    parts.extend(_format_health_streak_phrases(user_id, signal))
+    combined = "; ".join(part for part in parts if part)
+    if not combined:
+        return ""
+    return f"Recent wellness patterns: {combined}."
 
 
 @handle_errors("building personalized wellness context", default_return="")
@@ -345,9 +553,9 @@ def build_personalized_wellness_context(user_id: str) -> str:
     health_signal = None
     if is_personalization_active(user_id):
         health_signal = resolve_active_health_signal(user_id)
-        coarse = _format_health_signal_coarse(health_signal or {})
-        if coarse:
-            sections.append(f"Recent wellness patterns: {coarse}.")
+        patterns = build_recent_health_patterns(user_id)
+        if patterns:
+            sections.append(patterns)
 
     health_summary = build_safe_health_guidance_summary(user_id)
     if health_summary:

@@ -718,19 +718,27 @@ class AIChatBotSingleton:
         if not self.lm_studio_available:
             return get_fallback_responses().personalized(user_id)
 
-        from core.health_context_builder import build_personalized_wellness_context
+        from core.health_context_builder import (
+            PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS,
+            build_personalized_wellness_context,
+        )
 
-        user_summary = build_personalized_wellness_context(user_id)[:400]
+        user_summary = build_personalized_wellness_context(user_id)[
+            :PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS
+        ]
 
         instruction = (
             "Create a brief, encouraging message based on the wellness data below. "
             "When 'Recent wellness patterns' is present, base the message on sleep and "
             "activity only; do not mention check-ins or hopelessness. "
-            "Speak in plain everyday language (for example 'you got solid sleep', "
-            "'sleep quality looked lighter', or 'active effort was higher than usual'). "
+            "Speak in plain everyday language (for example 'about ~5.5 hours of sleep', "
+            "'about ~2,400 steps', 'about ~45 active minutes', "
+            "'shorter sleep for 2 days in a row', or 'sleep quality looked lighter'). "
+            "You may use approximate sleep hours, step counts, and active minutes from "
+            "the Data block (values marked with ~), and mention multi-day streaks when present. "
             "Never say 'wearable', 'wellness signal', 'high recovery', 'low recovery', "
             "'sleep_recovery', 'sleep_quality', 'active_intensity', or other internal labels. "
-            "Do not mention exact hours, step counts, heart-rate numbers, or device names. "
+            "Do not mention heart-rate numbers, HRV numbers, or device names. "
             f"Data: {user_summary}. "
             "Keep it supportive, personal, and under 100 words. "
             "Do not end with a sign-off or signature (no 'Best wishes', 'Take care', or [Your Name])."

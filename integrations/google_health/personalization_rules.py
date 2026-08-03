@@ -28,6 +28,25 @@ def _add_guidance(tokens: list[str], *items: str) -> None:
             tokens.append(item)
 
 
+@handle_errors("deriving activity effort band", default_return="other")
+def activity_effort_band(signal: dict[str, Any]) -> str:
+    """
+    Return 'low', 'high', or 'other' from activity_level + active_intensity.
+
+    High intensity overrides low steps (workout days can be high effort with
+    fewer steps). Shared by personalization rules and streak phrasing.
+    """
+    activity_level = str(signal.get("activity_level") or "unknown").strip().lower()
+    active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
+    if activity_level == "high" or active_intensity == "high":
+        return "high"
+    if (activity_level == "low" and active_intensity != "high") or (
+        activity_level == "unknown" and active_intensity == "low"
+    ):
+        return "low"
+    return "other"
+
+
 @handle_errors("applying health personalization rules", default_return=[])
 def apply_personalization_rules(signal: dict[str, Any]) -> list[str]:
     """
@@ -44,8 +63,6 @@ def apply_personalization_rules(signal: dict[str, Any]) -> list[str]:
     sleep_recovery = signal.get("sleep_recovery") or "unknown"
     sleep_vs_baseline = signal.get("sleep_vs_baseline") or "unknown"
     sleep_quality = signal.get("sleep_quality") or "unknown"
-    activity_level = signal.get("activity_level") or "unknown"
-    active_intensity = signal.get("active_intensity") or "unknown"
     resting_hr = signal.get("resting_hr_signal") or "unknown"
     hrv_signal = signal.get("hrv_signal") or "unknown"
 
@@ -59,12 +76,9 @@ def apply_personalization_rules(signal: dict[str, Any]) -> list[str]:
         and sleep_vs_baseline != "below"
         and sleep_quality != "low"
     )
-    # Intensity can be high on low-step workout days; do not treat those as low activity.
-    low_activity = (
-        (activity_level == "low" and active_intensity != "high")
-        or (activity_level == "unknown" and active_intensity == "low")
-    )
-    high_activity = activity_level == "high" or active_intensity == "high"
+    effort_band = activity_effort_band(signal)
+    low_activity = effort_band == "low"
+    high_activity = effort_band == "high"
 
     if high_activity:
         _add_guidance(

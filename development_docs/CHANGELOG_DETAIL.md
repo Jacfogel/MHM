@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-02 - Richer Google Health context for messages and chat
+- **Feature**: AI health pattern text now includes rounded personal numbers for sleep hours (~nearest 0.5h), steps (~nearest 100), and active minutes (~nearest 5), plus existing band language. Resting HR / HRV stay band-only (no bpm/ms).
+- **Feature**: Multi-day streak phrases (>=2 consecutive calendar days) for shorter sleep, lighter activity, or higher activity.
+- **Data**: [`HealthSignalModel`](../integrations/google_health/schemas.py) carries optional `steps` and `active_minutes`; [`signal_builder.py`](../integrations/google_health/signal_builder.py) copies them from daily summaries.
+- **Context**: [`build_recent_health_patterns()`](../core/health_context_builder.py) shared by scheduled personalized messages and chat; chat envelope health section exposes `recent_patterns` alongside `guidance_summary`.
+- **Prompt**: Personalized messages may cite approximate sleep/steps/active minutes and streaks from Data; still ban HR/HRV numbers, device names, and internal labels. Context truncate raised to 700 chars.
+- **Docs/Tests**: Updated [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md); coverage for rounded patterns, streaks, guidance-without-numbers, and chat `recent_patterns`. Regenerated function registry for new health context helpers; fixed Ruff SIM108 in sleep-hour formatting. Path drift fix for `core/health_context_builder.py`; ASCII changelog cleanup; shared [`activity_effort_band()`](../integrations/google_health/personalization_rules.py) for rules + streaks.
+- **Impact**: Scheduled wellness messages and chat can reference concrete-but-approximate sleep/activity and short streaks instead of single-day bands alone.
+
 ### 2026-08-01 - Personalized message cleanup; schedule envelope save flake
 - **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) now strips dash signatures (`-Your Wellness Assistant`, `- [Assistant]`), bare `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta-commentary from scheduled wellness messages.
 - **Fix**: New [`collapse_salutation_newlines()`](../ai/chat/response_postprocess.py) joins the body onto the greeting line so `Hi Julie,\n\n...` becomes `Hi Julie, ...` in personalized post-processing.

@@ -230,8 +230,12 @@ def _append_checkin_summary_from_envelope(
 def _append_health_guidance_from_envelope(
     parts: list[str], structured: dict[str, Any]
 ) -> None:
-    """Append safe health guidance from envelope health data."""
-    summary = (structured.get("health") or {}).get("guidance_summary")
+    """Append recent wellness patterns then tone guidance from envelope health data."""
+    health = structured.get("health") or {}
+    recent_patterns = health.get("recent_patterns")
+    if recent_patterns:
+        parts.append(recent_patterns)
+    summary = health.get("guidance_summary")
     if summary:
         parts.append(summary)
 
