@@ -108,7 +108,7 @@ Add the output to `.env`. Existing plaintext tokens migrate automatically on the
 | Token refresh fails | Run `connect google health` once; check refresh token in auth file. You should also receive a one-time reconnect notice on Discord/email when sync auto-pauses. |
 | No personalization | Check `health status`, signal confidence, and `features.google_health` |
 | **Sync succeeds but `daily_summaries.json` is empty** | Restart MHM after updating (`python run_headless_service.py restart`), then run `sync health`. Check `logs/google_health.log` for lines like `listed N data point(s) for sleep`. If N is 0 for all types, confirm Fitbit has synced into Google Health (Fitbit app open + device synced). If N > 0 but summaries still empty, report — date parsing may need adjustment for your device payload. |
-| **Steps/active minutes missing after long lookback** | Google `dailyRollUp` allows **max 14 civil days** per request (`INVALID_ROLLUP_QUERY_DURATION` if exceeded). MHM chunks rollups automatically; set `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` up to 14 per sync, or rely on accumulated history across daily syncs. Restart after updates, then `sync health`. |
+| **Steps/active minutes missing** | Google `dailyRollUp` rejects requests when `window_size_days * page_size > 90` (`INVALID_ROLLUP_QUERY_DURATION`). MHM clamps page size to 90 and chunks civil ranges to **14 days**. If rollup still fails, sync falls back to chunked `dataPoints` list. Restart after updates, then `sync health`. |
 | “Could not start Google Health connect” | Restart MHM service after code/config changes; confirm `GOOGLE_HEALTH_*` in `.env` |
 
 ### Personal use vs public app

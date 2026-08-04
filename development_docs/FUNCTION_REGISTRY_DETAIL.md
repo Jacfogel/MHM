@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-02 17:17:58
+> **Last Generated**: 2026-08-03 23:51:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 261
-- **Functions Found**: 2514
+- **Functions Found**: 2515
 - **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3880
-- **Functions Documented**: 2233
+- **Total Items**: 3881
+- **Functions Documented**: 2234
 - **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3487
+- **Total Documented**: 3488
 - **Template-Generated**: 46
-- **Last Updated**: 2026-08-02
+- **Last Updated**: 2026-08-03
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -5027,6 +5027,7 @@ Blocks until callback or timeout. Intended for one-time connect.
 - [OK] `_build_filter(filter_prefix, filter_mode)` - Build an AIP-160 filter for list dataPoints (type-specific fields).
 - [OK] `_civil_datetime(day)` - Build Google Health civil date-time starting at midnight UTC.
 - [OK] `_civil_end_of_day(day)` - Build Google Health civil date-time ending at 23:59:59 UTC.
+- [OK] `_clamp_rollup_page_size(window_size_days, page_size)` - Keep window_size_days * page_size within Google's dailyRollUp limit.
 - [OK] `_coerce_float(value)` - Safely coerce API numeric values to float.
 - [OK] `_coerce_int(value)` - Safely coerce API numeric values to int.
 - [OK] `_date_from_civil_datetime(civil)` - Extract YYYY-MM-DD from a Google Health civil datetime object.

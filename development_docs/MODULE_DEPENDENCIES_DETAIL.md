@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-02 17:18:07
+> **Last Generated**: 2026-08-03 23:51:50
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 651 (29.6%)
 - **Third-Party Imports**: 217 (9.9%)
 - **Local Imports**: 1335 (60.6%)
-- **Last Updated**: 2026-08-02
+- **Last Updated**: 2026-08-03
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -3714,7 +3714,7 @@
 
 **Dependency Changes**:
 - Added: checkins.checkin_data_manager, core.error_handling, core.health_signals, core.time_utilities, integrations.google_health.data_handlers
-- Removed: ai/chat/chatbot.py, ai/chat/wellness_status.py, ai/context/chatbot_context.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/checkin_summary.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py
+- Removed: ai/chat/chatbot.py, ai/chat/wellness_status.py, ai/context/chatbot_context.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/checkin_summary.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py, collections.abc
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -7,11 +7,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from core.error_handling import CommunicationError
 from integrations.google_health.client import (
+    _ROLLUP_DEFAULT_PAGE_SIZE,
     _ROLLUP_MAX_DAYS,
+    _ROLLUP_MAX_WINDOW_PAGE_PRODUCT,
+    _Fetcher,
     _build_civil_range,
     _build_filter,
+    _clamp_rollup_page_size,
     _date_from_data_point,
+    _fetch_points_for_type,
+    _merge_steps_into_summary,
     fetch_daily_summaries,
     list_data_points,
 )
@@ -34,6 +41,71 @@ def test_build_civil_range_uses_end_of_day_on_last_date():
 @pytest.mark.unit
 def test_rollup_max_days_within_google_limit():
     assert _ROLLUP_MAX_DAYS <= 14
+
+
+@pytest.mark.unit
+def test_rollup_default_page_size_respects_window_page_product():
+    assert _ROLLUP_DEFAULT_PAGE_SIZE <= _ROLLUP_MAX_WINDOW_PAGE_PRODUCT
+    assert 1 * _ROLLUP_DEFAULT_PAGE_SIZE <= _ROLLUP_MAX_WINDOW_PAGE_PRODUCT
+
+
+@pytest.mark.unit
+def test_clamp_rollup_page_size_enforces_google_product_limit():
+    assert _clamp_rollup_page_size(1, 100) == 90
+    assert _clamp_rollup_page_size(1, 90) == 90
+    assert _clamp_rollup_page_size(2, 100) == 45
+    assert _clamp_rollup_page_size(1, 14) == 14
+
+
+@pytest.mark.unit
+def test_fetch_points_falls_back_to_list_when_rollup_fails(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    start = datetime(2026, 8, 1, tzinfo=timezone.utc)
+    end = datetime(2026, 8, 3, tzinfo=timezone.utc)
+    list_calls: list[str] = []
+
+    def _fail_rollup(*_args, **_kwargs):
+        raise CommunicationError("Google Health dailyRollUp error for steps")
+
+    def _fake_chunked(token, data_type, **_kwargs):
+        list_calls.append(data_type)
+        return [
+            {
+                "steps": {
+                    "interval": {
+                        "civilStartTime": {
+                            "date": {"year": 2026, "month": 8, "day": 2},
+                            "time": {"hours": 0},
+                        }
+                    },
+                    "count": "1200",
+                }
+            }
+        ]
+
+    fetcher = _Fetcher(
+        "steps",
+        "steps",
+        "interval_start",
+        _merge_steps_into_summary,
+        source="daily_rollup",
+    )
+    with (
+        patch(
+            "integrations.google_health.client.list_daily_rollups",
+            side_effect=_fail_rollup,
+        ),
+        patch(
+            "integrations.google_health.client._list_data_points_chunked",
+            side_effect=_fake_chunked,
+        ),
+    ):
+        points = _fetch_points_for_type(
+            "token", fetcher, start_time=start, end_time=end
+        )
+
+    assert list_calls == ["steps"]
+    assert points[0]["steps"]["count"] == "1200"
 
 
 @pytest.mark.unit

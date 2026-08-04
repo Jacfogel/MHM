@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-03 - Personalized prompt: no invented sleep/steps numbers; fix steps/AZM rollup
+- **Fix**: [`generate_personalized_message()`](../ai/chat/chatbot.py) no longer embeds concrete sample metrics (`~5.5 hours`, `~2,400 steps`, `~45 active minutes`) in the instruction text. Models were parroting those examples when Google Health data was missing or stale.
+- **Behavior**: Prompt now requires copying only `~` values present in the Data block, and writing a general supportive message (no sleep/steps/activity stats) when Data says there is no recent wellness data.
+- **Fix**: Google Health `dailyRollUp` for steps/active-zone-minutes failed with `INVALID_ROLLUP_QUERY_DURATION` because `windowSizeDays * pageSize` was 100 (>90). [`client.py`](../integrations/google_health/client.py) clamps page size to 90 and re-raises rollup errors so chunked list fallback can run.
+- **Docs/tests**: Guide troubleshooting updated; unit tests cover page-size clamp and rollup->list fallback.
+- **Impact**: Test personalized sends no longer invent week averages from prompt examples after OAuth sync failures; activity metrics can sync again after reconnect.
+
 ### 2026-08-02 - Richer Google Health context for messages and chat
 - **Feature**: AI health pattern text now includes rounded personal numbers for sleep hours (~nearest 0.5h), steps (~nearest 100), and active minutes (~nearest 5), plus existing band language. Resting HR / HRV stay band-only (no bpm/ms).
 - **Feature**: Multi-day streak phrases (>=2 consecutive calendar days) for shorter sleep, lighter activity, or higher activity.

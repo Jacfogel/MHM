@@ -30,6 +30,10 @@ FetchSource = Literal["list", "daily_rollup"]
 _LIST_CHUNK_DAYS = 5
 # Google dailyRollUp civil span limit (active-zone-minutes and related types).
 _ROLLUP_MAX_DAYS = 14
+# Google rejects dailyRollUp when window_size_days * page_size exceeds this
+# (INVALID_ROLLUP_QUERY_DURATION for steps / active-zone-minutes).
+_ROLLUP_MAX_WINDOW_PAGE_PRODUCT = 90
+_ROLLUP_DEFAULT_PAGE_SIZE = 90
 
 # Endpoint paths use kebab-case; filter fields use snake_case (Google Health API).
 DATA_TYPE_SPECS: dict[str, tuple[str, FilterMode]] = {
@@ -183,6 +187,15 @@ def _build_civil_range(start_date: date, end_date: date) -> dict[str, Any]:
     }
 
 
+@handle_errors("clamping Google Health dailyRollUp page size", default_return=1)
+def _clamp_rollup_page_size(window_size_days: int, page_size: int) -> int:
+    """Keep window_size_days * page_size within Google's dailyRollUp limit."""
+    window = max(int(window_size_days or 1), 1)
+    requested = max(int(page_size or 1), 1)
+    max_pages = max(_ROLLUP_MAX_WINDOW_PAGE_PRODUCT // window, 1)
+    return min(requested, max_pages)
+
+
 @handle_errors("listing Google Health daily rollups", default_return=[], re_raise=True)
 def _list_daily_rollups_single(
     access_token: str,
@@ -191,14 +204,15 @@ def _list_daily_rollups_single(
     start_date: date,
     end_date: date,
     window_size_days: int = 1,
-    page_size: int = 100,
+    page_size: int = _ROLLUP_DEFAULT_PAGE_SIZE,
 ) -> list[dict[str, Any]]:
     """Single dailyRollUp request for an inclusive civil date range (max ~14 days)."""
     url = f"{GOOGLE_HEALTH_API_BASE_URL}/users/me/dataTypes/{endpoint}/dataPoints:dailyRollUp"
+    safe_page_size = _clamp_rollup_page_size(window_size_days, page_size)
     body: dict[str, Any] = {
         "range": _build_civil_range(start_date, end_date),
         "windowSizeDays": window_size_days,
-        "pageSize": page_size,
+        "pageSize": safe_page_size,
     }
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -232,7 +246,7 @@ def _list_daily_rollups_single(
     return collected
 
 
-@handle_errors("listing Google Health daily rollups", default_return=[])
+@handle_errors("listing Google Health daily rollups", default_return=[], re_raise=True)
 def list_daily_rollups(
     access_token: str,
     data_type: str,
@@ -240,7 +254,7 @@ def list_daily_rollups(
     start_time: datetime,
     end_time: datetime,
     window_size_days: int = 1,
-    page_size: int = 100,
+    page_size: int = _ROLLUP_DEFAULT_PAGE_SIZE,
 ) -> list[dict[str, Any]]:
     """Fetch daily rollup totals in <=14-day civil chunks (Google API limit)."""
     if _testing_mode():
@@ -251,6 +265,7 @@ def list_daily_rollups(
     end_date = end_time.astimezone(timezone.utc).date()
     collected: list[dict[str, Any]] = []
     chunk_start = start_date
+    safe_page_size = _clamp_rollup_page_size(window_size_days, page_size)
 
     while chunk_start <= end_date:
         chunk_end = min(chunk_start + timedelta(days=_ROLLUP_MAX_DAYS - 1), end_date)
@@ -261,7 +276,7 @@ def list_daily_rollups(
                 start_date=chunk_start,
                 end_date=chunk_end,
                 window_size_days=window_size_days,
-                page_size=page_size,
+                page_size=safe_page_size,
             )
         )
         chunk_start = chunk_end + timedelta(days=1)

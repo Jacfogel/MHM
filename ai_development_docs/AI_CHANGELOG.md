@@ -30,11 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-03 - Personalized prompt + Google Health steps/AZM sync **COMPLETED**
+- Removed concrete sample metrics from `generate_personalized_message()` instructions so models cannot parrot `~5.5h` / `~2,400 steps` / `~45 active minutes` when Data has no recent wellness patterns.
+- Prompt now: copy only `~` values from the Data block; otherwise write a warm general message with no fabricated sleep/steps/activity numbers.
+- Fixed steps/active-zone-minutes `dailyRollUp` 400s: clamp `pageSize` so `window_size_days * page_size <= 90`; re-raise rollup errors so list fallback works.
+
 ### 2026-08-02 - Richer Google Health context (rounded sleep/steps) **COMPLETED**
-- Pattern text may include `~5.5 hours` / `~2,400 steps` / `~45 active minutes`; HR/HRV remain categorical bands only.
+- Pattern text may include rounded sleep/steps/active minutes; HR/HRV remain categorical bands only.
 - Multi-day streaks (>=2 days): shorter sleep, lighter activity, or higher activity.
 - Signals carry optional `steps` and `active_minutes`; `build_recent_health_patterns()` feeds scheduled messages and chat (`recent_patterns` in health envelope).
-- Personalized prompt allows approximate sleep/steps/active minutes and streaks; truncate limit 700; guidance summary stays tone-only.
+- Personalized prompt may use approximate sleep/steps/active minutes and streaks from Data only; truncate limit 700; guidance summary stays tone-only.
 - Follow-up: regenerated function registry for health context helpers; Ruff SIM108 cleaned in sleep-hour formatting; doc path drift + ASCII cleanup; shared `activity_effort_band()` for personalization and streak phrasing.
 
 ### 2026-08-01 - Personalized cleanup; schedule envelope save flake **COMPLETED**
@@ -145,11 +150,6 @@ Guidelines:
 - Personalized prompts use plain sleep/activity phrases (no `sleep_recovery=high` / "wearable wellness" parroting).
 - New derived fields: `sleep_quality` (efficiency + deep/REM) and `active_intensity` (active minutes) feed personalization rules + message/chat context.
 - User-facing effect: messages can mention solid/lighter sleep quality and higher/lighter active effort without raw metrics.
-
-### 2026-07-13 - Register `integrations` pytest domain marker; strip two-line wellness sign-offs **COMPLETED**
-- Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.
-- Domain marker docs now list `integrations` alongside other product packages.
-- **Fix (personalized sign-offs)**: `strip_letter_signoffs()` now removes split closings (`Best wishes,` + bare `Assistant` / `MHM Bot` on the next line), not only single-line `Take care, [Your Name]`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
