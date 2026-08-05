@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-03 23:51:50
+> **Last Generated**: 2026-08-05 00:38:34
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 651 (29.6%)
 - **Third-Party Imports**: 217 (9.9%)
 - **Local Imports**: 1335 (60.6%)
-- **Last Updated**: 2026-08-03
+- **Last Updated**: 2026-08-05
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -75,7 +75,7 @@
     - `ai.chat.chatbot (AIChatBotSingleton, get_ai_chatbot)` (NEW)
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (ResponseGenerator, get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_salutation_newlines, keep_first_personalized_block, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_salutation_newlines, keep_first_personalized_block, normalize_personalized_greeting, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, strip_ungrounded_checkin_claims)` (NEW)
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -142,7 +142,7 @@
     - `ai.chat.conversation_coherence (align_response_to_conversation_topic)` (NEW)
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_persona_definition_echo, collapse_salutation_newlines, keep_first_personalized_block, polish_greeting_response, sanitize_false_crud_claims, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, trim_verbose_reply_for_simple_prompt)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_persona_definition_echo, collapse_salutation_newlines, keep_first_personalized_block, normalize_personalized_greeting, polish_greeting_response, sanitize_false_crud_claims, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, strip_ungrounded_checkin_claims, trim_verbose_reply_for_simple_prompt)` (NEW)
     - `ai.chat.wellness_status (build_honest_wellness_status_reply, context_has_wellness_data, is_wellness_status_question, reinforce_wellness_honesty_if_needed)` (NEW)
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)

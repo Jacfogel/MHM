@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-04 - Personalized greetings/closings cleanup **COMPLETED**
+- Strip `Best regards`, soft day-wishes, help-offer closers, and `--[Your Name]` signatures.
+- Normalize to `Hi Name.` on one line (including `Hi Name.\nBody`); drop ungrounded check-in sentences when Data has no `Recent check-ins`.
+- Prompts ban Dear/newline-after-name, fake check-in claims, and letter/help-offer closings.
+
 ### 2026-08-03 - Personalized prompt + Google Health steps/AZM sync **COMPLETED**
 - Removed concrete sample metrics from `generate_personalized_message()` instructions so models cannot parrot `~5.5h` / `~2,400 steps` / `~45 active minutes` when Data has no recent wellness patterns.
 - Prompt now: copy only `~` values from the Data block; otherwise write a warm general message with no fabricated sleep/steps/activity numbers.
@@ -145,11 +150,6 @@ Guidelines:
 - Planner prompt is a short ACTION-first template + compact action list; calls LM Studio directly; free-text entities must appear in the user message.
 - `AI_ACTION_PLANNER_ENABLED` defaults to `true`; template/hub parity added for `create_task_from_template`, `list_task_templates`, `show_create_hub`.
 - Product AI audit Phases 4-6 / slice 9.4 marked complete.
-
-### 2026-07-14 - Plain-language wellness messaging; richer sleep quality + active minutes **COMPLETED**
-- Personalized prompts use plain sleep/activity phrases (no `sleep_recovery=high` / "wearable wellness" parroting).
-- New derived fields: `sleep_quality` (efficiency + deep/REM) and `active_intensity` (active minutes) feed personalization rules + message/chat context.
-- User-facing effect: messages can mention solid/lighter sleep quality and higher/lighter active effort without raw metrics.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

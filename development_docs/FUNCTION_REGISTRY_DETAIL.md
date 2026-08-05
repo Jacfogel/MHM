@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-03 23:51:40
+> **Last Generated**: 2026-08-05 00:38:20
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 261
-- **Functions Found**: 2515
+- **Functions Found**: 2517
 - **Methods Found**: 1366
 - **Classes Found**: 254
-- **Total Items**: 3881
-- **Functions Documented**: 2234
+- **Total Items**: 3883
+- **Functions Documented**: 2236
 - **Methods Documented**: 1254
 - **Classes Documented**: 183
-- **Total Documented**: 3488
+- **Total Documented**: 3490
 - **Template-Generated**: 46
-- **Last Updated**: 2026-08-03
+- **Last Updated**: 2026-08-05
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -228,17 +228,19 @@ answer with the stated fact instead of a vague or forgetful reply.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `collapse_persona_definition_echo(user_prompt, response)` - Replace verbatim persona-instruction dumps with a short user-facing intro.
-- [OK] `collapse_salutation_newlines(text)` - Put the message body on the same line as Hi/Hey/Dear Name.
+- [OK] `collapse_salutation_newlines(text)` - Put the message body on the same line as Hi/Hey Name.
 - [OK] `find_response_leak_markers(text)` - Return leak marker substrings still present in user-visible text.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
+- [OK] `normalize_personalized_greeting(text)` - Rewrite Dear Name to Hi Name, and normalize greeting punctuation to a period.
 - [OK] `polish_greeting_response(response, user_prompt)` - Drop immediate help offers when the reply already answers a greeting/feeling question.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
-- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, dash signatures, and meta notes from wellness messages.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, and meta notes.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
 - [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
+- [OK] `strip_ungrounded_checkin_claims(text)` - Drop sentences that cite check-ins when the prompt had no Recent check-ins data.
 - [OK] `trim_verbose_reply_for_simple_prompt(user_prompt, response)` - Keep capability/identity answers concise when the user asked a short question.
 
 #### `ai/chat/wellness_status.py`

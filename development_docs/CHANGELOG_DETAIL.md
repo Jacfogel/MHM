@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-04 - Personalized greetings/closings cleanup
+- **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) strips `Best regards`, soft day-wishes, help-offer closers (`Let me know if...`, `feel free to reach out`), and double-dash signatures (`--[Your Name]`).
+- **Fix**: [`normalize_personalized_greeting()`](../ai/chat/response_postprocess.py) rewrites `Dear` to `Hi` and normalizes greeting punctuation to `Hi Name.`; [`collapse_salutation_newlines()`](../ai/chat/response_postprocess.py) also joins `Hi Name.\nBody`.
+- **Fix**: [`strip_ungrounded_checkin_claims()`](../ai/chat/response_postprocess.py) drops check-in sentences when Data has no `Recent check-ins`.
+- **Prompt**: Ban `Dear`, newline-after-name, ungrounded check-in claims, letter sign-offs, and help-offer closers; prefer `Hi Name.` on the same line as the body.
+- **Tests**: Period salutation collapse, help-offer/`Take care` strip, and grounded vs ungrounded check-in claims in [`test_ai_chatbot_helpers.py`](../tests/unit/test_ai_chatbot_helpers.py).
+- **Impact**: Scheduled wellness DMs read like short chat messages; no fake check-in citations when only wearable patterns are present.
+
 ### 2026-08-03 - Personalized prompt: no invented sleep/steps numbers; fix steps/AZM rollup
 - **Fix**: [`generate_personalized_message()`](../ai/chat/chatbot.py) no longer embeds concrete sample metrics (`~5.5 hours`, `~2,400 steps`, `~45 active minutes`) in the instruction text. Models were parroting those examples when Google Health data was missing or stale.
 - **Behavior**: Prompt now requires copying only `~` values present in the Data block, and writing a general supportive message (no sleep/steps/activity stats) when Data says there is no recent wellness data.

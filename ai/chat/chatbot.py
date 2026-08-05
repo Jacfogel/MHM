@@ -60,11 +60,13 @@ from ai.chat.response_postprocess import (
     collapse_persona_definition_echo,
     collapse_salutation_newlines,
     keep_first_personalized_block,
+    normalize_personalized_greeting,
     polish_greeting_response,
     sanitize_false_crud_claims,
     smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
+    strip_ungrounded_checkin_claims,
     trim_verbose_reply_for_simple_prompt,
 )
 from core.error_handling import handle_errors
@@ -495,9 +497,14 @@ class AIChatBotSingleton:
                 "You are a supportive wellness assistant writing a brief scheduled wellness message. "
                 "Write 2-4 complete sentences (under 100 words) using only the wellness data in the request. "
                 "Be warm and specific. End with a finished supportive sentence. "
-                "Do not add a letter-style sign-off or signature — no 'Best wishes', 'Take care', "
-                "or placeholder names like [Your Name]; you already greet the user at the start. "
-                "Return only the message text — no INPUT/OUTPUT markers, labels, or second replies."
+                "Open with 'Hi Name.' or 'Hey Name.' on the same line as the first sentence — "
+                "never 'Dear', and do not put a newline after the name. "
+                "Never mention check-ins or claim the user said something in a check-in unless "
+                "the Data block contains 'Recent check-ins'. "
+                "Do not add a letter-style sign-off, help-offer closer, or signature — no "
+                "'Best wishes', 'Best regards', 'Take care', 'Have a wonderful day', "
+                "'Let me know if', dash signatures, or placeholder names like [Your Name]. "
+                "Return only one message — no INPUT/OUTPUT markers, labels, or second draft replies."
             )
             if name_prefix:
                 system_content += f" Address the user as {name_prefix}."
@@ -541,9 +548,12 @@ class AIChatBotSingleton:
         if mode == "command":
             response = get_command_interpreter().extract_command_from_response(response)
         if mode == "personalized":
-            response = strip_letter_signoffs(response)
-            response = collapse_salutation_newlines(response)
             response = keep_first_personalized_block(response)
+            response = strip_letter_signoffs(response)
+            if "Recent check-ins:" not in user_prompt:
+                response = strip_ungrounded_checkin_claims(response)
+            response = normalize_personalized_greeting(response)
+            response = collapse_salutation_newlines(response)
             return smart_truncate_response(
                 response, AI_MAX_RESPONSE_LENGTH, max_words=100
             )
@@ -730,7 +740,10 @@ class AIChatBotSingleton:
         instruction = (
             "Create a brief, encouraging message based on the wellness data below. "
             "When 'Recent wellness patterns' is present, base the message on sleep and "
-            "activity only; do not mention check-ins or hopelessness. "
+            "activity only. "
+            "Never mention check-ins, wellness check-ins, or claim the user mentioned "
+            "something in a check-in unless the Data block contains 'Recent check-ins'. "
+            "Do not mention hopelessness. "
             "Speak in plain everyday language about rest, sleep quality, activity, and "
             "multi-day streaks when those ideas appear in the Data block. "
             "Only mention approximate sleep hours, step counts, or active minutes if those "
@@ -742,7 +755,11 @@ class AIChatBotSingleton:
             "Do not mention heart-rate numbers, HRV numbers, or device names. "
             f"Data: {user_summary}. "
             "Keep it supportive, personal, and under 100 words. "
-            "Do not end with a sign-off or signature (no 'Best wishes', 'Take care', or [Your Name])."
+            "Start with 'Hi Name.' or 'Hey Name.' on the same line as the body — never 'Dear', "
+            "and no newline after the name. "
+            "Do not end with a sign-off, help-offer, or signature (no 'Best wishes', "
+            "'Best regards', 'Take care', 'Have a wonderful day', 'Let me know if', "
+            "dash signatures, or [Your Name])."
         )
         if prompt_prefix:
             instruction = f"{prompt_prefix} {instruction}"

@@ -497,7 +497,7 @@ class TestAIChatBotHelpers:
             "Hi Julie, HRV suggests recovery is still catching up."
         )
         result = chatbot_instance._post_process_generated_response("personalized", raw)
-        assert result.startswith("Hi Julie! Gentle day")
+        assert result.startswith("Hi Julie. Gentle day")
         assert "Dear Julie" not in result
         assert "HRV" not in result
 
@@ -509,14 +509,14 @@ class TestAIChatBotHelpers:
         )
         result = chatbot_instance._post_process_generated_response("personalized", raw)
         assert result == (
-            "Hey Julie, your recovery looks good today. Keep listening to your body."
+            "Hey Julie. your recovery looks good today. Keep listening to your body."
         )
         assert "[Your Name]" not in result
 
     def test_post_process_strips_inline_letter_signoff(self, chatbot_instance):
         raw = "Hi Julie, great job resting. Best wishes, [Your Name]"
         result = chatbot_instance._post_process_generated_response("personalized", raw)
-        assert result == "Hi Julie, great job resting."
+        assert result == "Hi Julie. great job resting."
         assert "Best wishes" not in result
 
     def test_post_process_strips_two_line_letter_signoff(self, chatbot_instance):
@@ -532,7 +532,7 @@ class TestAIChatBotHelpers:
         assert "Best wishes" not in result
         assert "Assistant" not in result
         assert "keep today gentler" in result
-        assert result.startswith("Hi Julie, Based on")
+        assert result.startswith("Hi Julie. Based on")
 
     def test_post_process_collapses_salutation_newlines(self, chatbot_instance):
         raw = (
@@ -541,7 +541,19 @@ class TestAIChatBotHelpers:
         )
         result = chatbot_instance._post_process_generated_response("personalized", raw)
         assert result == (
-            "Hi Julie, It's great to see you've been doing well. Keep up the good work!"
+            "Hi Julie. It's great to see you've been doing well. Keep up the good work!"
+        )
+
+    def test_post_process_collapses_period_salutation_newlines(self, chatbot_instance):
+        raw = (
+            "Hi Julie.\n"
+            "I noticed you have had a good night's sleep and about 400 steps today. "
+            "Keep up the good work!"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == (
+            "Hi Julie. I noticed you have had a good night's sleep and about 400 steps "
+            "today. Keep up the good work!"
         )
 
     def test_post_process_strips_dash_wellness_assistant_signoff(self, chatbot_instance):
@@ -554,6 +566,7 @@ class TestAIChatBotHelpers:
         assert "Take care" not in result
         assert "Wellness Assistant" not in result
         assert "Solid sleep" in result
+        assert result.startswith("Hi Julie.")
 
     def test_post_process_strips_best_and_wellness_assistant_lines(self, chatbot_instance):
         raw = (
@@ -564,7 +577,7 @@ class TestAIChatBotHelpers:
         )
         result = chatbot_instance._post_process_generated_response("personalized", raw)
         assert result == (
-            "Hi Julie, I noticed you got solid sleep last night. Keep up the good work!"
+            "Hi Julie. I noticed you got solid sleep last night. Keep up the good work!"
         )
 
     def test_post_process_strips_inline_bracket_assistant_and_meta_note(
@@ -578,7 +591,96 @@ class TestAIChatBotHelpers:
         result = chatbot_instance._post_process_generated_response("personalized", raw)
         assert "[Assistant]" not in result
         assert "Note:" not in result
-        assert result == "Hi Julie! Great job on staying consistent. Keep up the good work!"
+        assert result == "Hi Julie. Great job on staying consistent. Keep up the good work!"
+
+    def test_post_process_strips_best_regards_and_double_dash_signature(
+        self, chatbot_instance
+    ):
+        raw = (
+            "Dear Julie,\n\n"
+            "I noticed you've been sleeping for about 5.5 hours on average. "
+            "Keep up the good work!\n\n"
+            "Best regards,\n"
+            "[Your Name]"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result.startswith("Hi Julie.")
+        assert "Dear" not in result
+        assert "Best regards" not in result
+        assert "[Your Name]" not in result
+        assert "5.5 hours" in result
+
+    def test_post_process_strips_soft_day_closing_and_double_dash(
+        self, chatbot_instance
+    ):
+        raw = (
+            "Hi Julie! You slept well and were active today. "
+            "It's good to see you taking care of yourself. "
+            "I hope your day continues with wellness in mind!\n"
+            "--[Your Name]"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "hope your day" not in result.lower()
+        assert "[Your Name]" not in result
+        assert "taking care of yourself" in result
+        assert result.startswith("Hi Julie.")
+
+    def test_post_process_strips_have_a_wonderful_day(self, chatbot_instance):
+        raw = (
+            "Hey Julie, you had a full night's sleep and some light activity. "
+            "Keep up the good work! Have a wonderful day."
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "wonderful day" not in result.lower()
+        assert result.endswith("Keep up the good work!")
+
+    def test_post_process_strips_help_offer_and_inline_take_care(
+        self, chatbot_instance
+    ):
+        raw = (
+            "Hi Julie, It's great to see you doing well. "
+            "If you need anything or want to talk about anything, feel free to reach out anytime. "
+            "Take care, [Your Name]"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "[Your Name]" not in result
+        assert "Take care" not in result
+        assert "feel free to reach out" not in result.lower()
+        assert result.startswith("Hi Julie.")
+        assert "doing well" in result
+
+    def test_post_process_strips_ungrounded_checkin_claims(self, chatbot_instance):
+        raw = (
+            "Hi Julie. It's nice to see you're doing well today! "
+            "You mentioned in your wellness check-in that you had about 14 hours of sleep "
+            "last night and a little less than usual activity yesterday, but that sounds "
+            "like a full recovery from the past few days. I'm glad to hear that too. "
+            "Let me know if there's anything else I can do to support your wellness journey!"
+        )
+        result = chatbot_instance._post_process_generated_response(
+            "personalized",
+            raw,
+            user_prompt="Data: Recent wellness patterns: sleep was full.",
+        )
+        assert "check-in" not in result.lower()
+        assert "14 hours" not in result
+        assert "Let me know" not in result
+        assert "doing well today" in result
+        assert "glad to hear" in result
+
+    def test_post_process_keeps_checkin_claims_when_data_includes_checkins(
+        self, chatbot_instance
+    ):
+        raw = (
+            "Hi Julie. From your recent check-in, rest looked solid. Keep it up!"
+        )
+        result = chatbot_instance._post_process_generated_response(
+            "personalized",
+            raw,
+            user_prompt="Data: Recent check-ins: mood=ok | checkin_sleep_hours=7.",
+        )
+        assert "check-in" in result.lower()
+        assert "rest looked solid" in result
 
     def test_post_process_strips_instruction_tuning_markers(self, chatbot_instance):
         """Fine-tuned models may leak INPUT/OUTPUT delimiters — keep only the user message."""
@@ -587,7 +689,7 @@ class TestAIChatBotHelpers:
             "## INPUT ##OUTPUT I'm sorry to hear that you may be feeling hopeless right now."
         )
         result = chatbot_instance._post_process_generated_response("personalized", raw)
-        assert result == "Hey Julie, I hope you're doing well. You've got this! 😊"
+        assert result == "Hey Julie. I hope you're doing well. You've got this! 😊"
         assert "INPUT" not in result
         assert "hopeless" not in result
 

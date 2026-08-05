@@ -611,8 +611,8 @@ def strip_instruction_tuning_markers(text: str) -> str:
 # "Best," alone is allowed on a tail line; inline bare "best" is not (avoids
 # clipping "...you're doing your best.").
 _SIGNOFF_CLOSING = (
-    r"(?:take care|best wishes|warm regards|kind regards|sincerely|cheers|"
-    r"all the best|with care|regards)"
+    r"(?:take care|best wishes|best regards|warm regards|kind regards|sincerely|"
+    r"cheers|all the best|with care|regards)"
 )
 _SIGNOFF_CLOSING_LINE = rf"(?:{_SIGNOFF_CLOSING}|best)"
 _SIGNOFF_SIGNATURE = (
@@ -621,7 +621,8 @@ _SIGNOFF_SIGNATURE = (
     r"|(?:your\s+)?wellness\s+assistant"
     r"|assistant)"
 )
-_OPTIONAL_DASH = r"[-–—]\s*"
+# One or more dashes: "-Assistant", "--[Your Name]"
+_OPTIONAL_DASH = r"[-–—]+\s*"
 
 _SIGNOFF_TAIL_LINE = re.compile(
     rf"^\s*(?:{_OPTIONAL_DASH})?(?:"
@@ -642,18 +643,49 @@ _INLINE_SIGNOFF = re.compile(
     re.IGNORECASE,
 )
 
+# Soft day-wish / help-offer closings
+_SOFT_CLOSING_LINE = re.compile(
+    r"^\s*(?:"
+    r"have a (?:wonderful|great|nice|lovely|good) day"
+    r"|wishing you(?:\s+\w+){0,8}"
+    r"|i hope your day\b.*"
+    r"|let me know if\b.*"
+    r"|feel free to (?:reach out|ask)\b.*"
+    r"|if you need anything\b.*"
+    r")\s*[!.:\-)(\s]*$",
+    re.IGNORECASE,
+)
+_TRAILING_SOFT_CLOSING = re.compile(
+    r"(?<=[.!?])\s+"
+    r"(?:Have a (?:wonderful|great|nice|lovely|good) day"
+    r"|I hope your day\b[^.!?]*"
+    r"|Wishing you\b[^.!?]*"
+    r"|Let me know if\b[^.!?]*"
+    r"|Feel free to (?:reach out|ask)\b[^.!?]*"
+    r"|If you need anything\b[^.!?]*"
+    r")"
+    r"\s*[!.:\-)(\s]*$",
+    re.IGNORECASE,
+)
+
 # Model meta-commentary like "(Note: This response uses supportive language...)"
 _META_NOTE_LINE = re.compile(r"^\s*\(\s*Note\s*:.*\)\s*$", re.IGNORECASE | re.DOTALL)
 _TRAILING_META_NOTE = re.compile(r"\s*\(\s*Note\s*:.*?\)\s*$", re.IGNORECASE | re.DOTALL)
 
+_GREETING_NAME = r"(?:Dear|Hi|Hey)\s+\w+"
 _PERSONALIZED_GREETING_START = re.compile(
-    r"(?m)^(?:Dear|Hi|Hey)\s+\w+[!,]",
+    rf"(?m)^{_GREETING_NAME}[!,.]",
 )
 
-# "Hi Julie,\n\nBody..." / "Hi Julie,\nBody..." -> "Hi Julie, Body..."
+# "Hi Julie,\nBody..." / "Hi Julie.\nBody..." -> same line
 _SALUTATION_NEWLINE = re.compile(
-    r"(?m)^((?:Dear|Hi|Hey)\s+\w+[!,])[ \t]*\n+[ \t]*",
+    rf"(?m)^({_GREETING_NAME}[!,.])[ \t]*\n+[ \t]*",
 )
+
+# Letter-style Dear -> Hi; prefer "Hi Name." over comma/bang
+_DEAR_GREETING = re.compile(r"(?m)^Dear(\s+\w+)[!,.]", re.IGNORECASE)
+_GREETING_TO_PERIOD = re.compile(r"(?m)^((?:Hi|Hey)\s+\w+)[,!](?=\s|$)", re.IGNORECASE)
+_CHECKIN_WORD = re.compile(r"(?i)\bcheck-ins?\b")
 
 
 @handle_errors("keeping first personalized message block", default_return="")
@@ -667,29 +699,52 @@ def keep_first_personalized_block(text: str) -> str:
     return text[: matches[1].start()].strip()
 
 
+@handle_errors("normalizing personalized greeting", default_return="")
+def normalize_personalized_greeting(text: str) -> str:
+    """Rewrite Dear Name to Hi Name, and normalize greeting punctuation to a period."""
+    if not text:
+        return text
+    result = _DEAR_GREETING.sub(r"Hi\1.", text.strip())
+    result = _GREETING_TO_PERIOD.sub(r"\1.", result)
+    return result.strip()
+
+
 @handle_errors("collapsing salutation newlines", default_return="")
 def collapse_salutation_newlines(text: str) -> str:
-    """Put the message body on the same line as Hi/Hey/Dear Name."""
+    """Put the message body on the same line as Hi/Hey Name."""
     if not text:
         return text
     return _SALUTATION_NEWLINE.sub(r"\1 ", text.strip()).strip()
 
 
+@handle_errors("stripping ungrounded check-in claims", default_return="")
+def strip_ungrounded_checkin_claims(text: str) -> str:
+    """Drop sentences that cite check-ins when the prompt had no Recent check-ins data."""
+    if not text or not _CHECKIN_WORD.search(text):
+        return text
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
+    kept = [part for part in parts if part and not _CHECKIN_WORD.search(part)]
+    return " ".join(kept).strip()
+
+
 @handle_errors("stripping letter sign-offs", default_return="")
 def strip_letter_signoffs(text: str) -> str:
-    """Remove email-style closings, dash signatures, and meta notes from wellness messages."""
+    """Remove email-style closings, soft day-wishes, dash signatures, and meta notes."""
     if not text:
         return text
 
     lines = [line for line in text.strip().split("\n")]
     while lines and (
-        _SIGNOFF_TAIL_LINE.match(lines[-1]) or _META_NOTE_LINE.match(lines[-1])
+        _SIGNOFF_TAIL_LINE.match(lines[-1])
+        or _META_NOTE_LINE.match(lines[-1])
+        or _SOFT_CLOSING_LINE.match(lines[-1])
     ):
         lines.pop()
 
     result = "\n".join(lines).strip()
     result = _TRAILING_META_NOTE.sub("", result)
     result = _INLINE_SIGNOFF.sub("", result)
+    result = _TRAILING_SOFT_CLOSING.sub("", result)
     return result.strip()
 
 

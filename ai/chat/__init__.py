@@ -19,9 +19,11 @@ from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
     collapse_salutation_newlines,
     keep_first_personalized_block,
+    normalize_personalized_greeting,
     smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
+    strip_ungrounded_checkin_claims,
 )
 
 __all__ = [
@@ -42,7 +44,9 @@ __all__ = [
     "clean_system_prompt_leaks",
     "collapse_salutation_newlines",
     "keep_first_personalized_block",
+    "normalize_personalized_greeting",
     "smart_truncate_response",
     "strip_instruction_tuning_markers",
     "strip_letter_signoffs",
+    "strip_ungrounded_checkin_claims",
 ]
