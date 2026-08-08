@@ -77,33 +77,46 @@ _DEFAULT_COMMON_CODE_PATTERNS: tuple[str, ...] = (
     "pytest.fixture",
     "typing.",
 )
-# Non-project-specific: Python keywords and common variable names (skip when path-drift checks).
+# Shared Python keywords used by path-drift / unconverted-link skip logic.
+# COMMON_VARIABLE_NAMES and PYTHON_KEYWORDS_PATH_DRIFT both derive from this set
+# plus purpose-specific extras (exact-name skips vs keyword-in-path skips).
+_PYTHON_KEYWORDS_SHARED: frozenset[str] = frozenset(
+    {
+        "and",
+        "as",
+        "class",
+        "def",
+        "else",
+        "except",
+        "finally",
+        "for",
+        "from",
+        "if",
+        "import",
+        "in",
+        "return",
+        "try",
+        "while",
+        "with",
+        "yield",
+    }
+)
+
+# Exact path tokens to skip (keywords + a few common non-keyword names).
 # Not loaded from config.
-COMMON_VARIABLE_NAMES: tuple[str, ...] = (
-    "task",
-    "and",
-    "statements",
-    "from",
-    "in",
-    "to",
-    "for",
-    "with",
-    "as",
-    "if",
-    "else",
-    "elif",
-    "while",
-    "def",
-    "class",
-    "import",
-    "return",
-    "yield",
-    "try",
-    "except",
-    "finally",
-    "pass",
-    "break",
-    "continue",
+COMMON_VARIABLE_NAMES: tuple[str, ...] = tuple(
+    sorted(
+        _PYTHON_KEYWORDS_SHARED
+        | {
+            "task",
+            "statements",
+            "to",
+            "elif",
+            "pass",
+            "break",
+            "continue",
+        }
+    )
 )
 
 
@@ -537,11 +550,21 @@ DOC_COMMON_WORDS: frozenset[str] = frozenset({
     "signals", "quick", "status", "validation", "work", "ai",
 })
 
-# Python keywords (path-drift: paths containing these are likely code, not file refs)
-PYTHON_KEYWORDS_PATH_DRIFT: tuple[str, ...] = (
-    "def", "class", "import", "from", "if", "else", "for", "while", "try",
-    "except", "finally", "with", "as", "return", "yield", "lambda",
-    "and", "or", "not", "in", "is", "True", "False", "None",
+# Python keywords (path-drift: paths containing these are likely code, not file refs).
+# Derived from _PYTHON_KEYWORDS_SHARED plus path-drift-only keyword forms.
+PYTHON_KEYWORDS_PATH_DRIFT: tuple[str, ...] = tuple(
+    sorted(
+        _PYTHON_KEYWORDS_SHARED
+        | {
+            "lambda",
+            "or",
+            "not",
+            "is",
+            "True",
+            "False",
+            "None",
+        }
+    )
 )
 
 # Section header words (path-drift: title-case phrases that look like headers)

@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
-Verification script to confirm all analysis tools use standardized storage correctly.
+Verification script to confirm analysis tools use standardized storage correctly.
 
-Checks that all 20 analysis tools:
-- Save to correct domain directories
-- Use save_tool_result() function
-- Create archive directories
-- Maintain archive retention limits
+Checks each tool in ``EXPECTED_TOOLS`` (currently 26):
+- Saves to the correct domain directory
+- Uses ``save_tool_result()``
+- Creates archive directories
+- Maintains archive retention limits
+
+Tier comments below match ``development_tools/shared/audit_tiers.py`` flat
+membership. Tools marked "not in flat audit tiers" still use storage but are
+invoked via other commands (coverage, doc-sync helpers, etc.).
 
 Usage:
     python development_tools/shared/verify_tool_storage.py
@@ -29,33 +33,33 @@ from development_tools.shared.service.tool_wrappers import ToolWrappersMixin
 from development_tools.shared.service.commands import CommandsMixin
 import inspect
 
-# Expected tools that should use standardized storage
+# Expected tools that should use standardized storage (must be ⊆ tool_metadata._TOOLS).
 EXPECTED_TOOLS = {
-    # Tier 1
-    "analyze_functions": "functions",
-    "analyze_documentation_sync": "docs",
+    # Tier 1 (audit_tiers.TIER1_TOOL_NAMES)
     "analyze_system_signals": "reports",
     "quick_status": "reports",
-    # Tier 2
     "analyze_documentation": "docs",
-    "analyze_error_handling": "error_handling",
-    "decision_support": "reports",
     "analyze_config": "config",
     "analyze_ai_work": "ai_work",
+    "analyze_function_patterns": "functions",
+    "decision_support": "reports",
+    # Tier 2 (audit_tiers.TIER2_TOOL_NAMES)
+    "analyze_functions": "functions",
+    "analyze_documentation_sync": "docs",
+    "analyze_error_handling": "error_handling",
     "analyze_function_registry": "functions",
     "analyze_module_dependencies": "imports",
     "analyze_module_imports": "imports",
     "analyze_dependency_patterns": "imports",
-    "analyze_function_patterns": "functions",
     "analyze_package_exports": "functions",
     "analyze_facade_shims": "functions",
-    # Tier 3
+    "analyze_unused_imports": "imports",
+    # Tier 3 (audit_tiers.TIER3_TOOL_NAMES)
+    "analyze_test_markers": "tests",
+    "analyze_legacy_references": "legacy",
+    # Not in flat audit-tier membership (coverage / doc-sync helpers)
     "analyze_test_coverage": "tests",
     "generate_dev_tools_coverage": "tests",
-    "analyze_test_markers": "tests",
-    "analyze_unused_imports": "imports",
-    "analyze_legacy_references": "legacy",
-    # Additional tools
     "analyze_path_drift": "docs",
     "analyze_missing_addresses": "docs",
     "analyze_ascii_compliance": "docs",

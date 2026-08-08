@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-06 - LIST_OF_LISTS consolidation scan, rewrite, and SSOT cleanup **COMPLETED**
+- Rewrote LIST_OF_LISTS as current ownership map; trimmed completed-history tables.
+- Follow-up: live/example `base_exclusions` -> additions/removals; emptied portable `CONFIG_VALIDATOR` / `DOMAIN_MAPPER_DEFAULTS` / `known_deleted_files`; omitted duplicate JSON keys (`test_run`, `analyze_duplicate_functions`, identity `directory_to_marker`, matching error_handling scalars).
+- Same-day hygiene: documented MHM `derived_prefix_excludes.core` (includes `development_tools` in `CORE_MODULES`); fixed `EXPECTED_TOOLS` tier comments/count; shared `_PYTHON_KEYWORDS_SHARED` for path-drift keyword tuples.
+- Updated config.py comments that pointed at old LIST_OF_LISTS section numbers.
+
 ### 2026-08-04 - Personalized greetings/closings cleanup **COMPLETED**
 - Strip `Best regards`, soft day-wishes, help-offer closers, and `--[Your Name]` signatures.
 - Normalize to `Hi Name.` on one line (including `Hi Name.\nBody`); drop ungrounded check-in sentences when Data has no `Recent check-ins`.
@@ -145,11 +151,6 @@ Guidelines:
 - `conversation_coherence` reinforces stated facts (favorite color/name/food) when follow-ups omit them; `reply_rules.txt` updated.
 - Durable routing/prompt contracts recorded in `ai/SYSTEM_AI_GUIDE.md`; completed plan moved to `archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`.
 - Live AI suite: 66 pass / 2 partial / 0 fail (T-7.1 PASS).
-
-### 2026-07-15 - Compact planner prompt; planner default on; template/hub parity **COMPLETED**
-- Planner prompt is a short ACTION-first template + compact action list; calls LM Studio directly; free-text entities must appear in the user message.
-- `AI_ACTION_PLANNER_ENABLED` defaults to `true`; template/hub parity added for `create_task_from_template`, `list_task_templates`, `show_create_hub`.
-- Product AI audit Phases 4-6 / slice 9.4 marked complete.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-06 - LIST_OF_LISTS consolidation scan, rewrite, and SSOT cleanup
+- **Docs**: Rewrote [LIST_OF_LISTS.md](LIST_OF_LISTS.md) as a lean current ownership map (commands, tiers, deprecation, docs, exclusions, config, operational lists, quick reference). Removed long historical "Done" / relocation audit tables; changelogs remain the history.
+- **Scan**: Fresh SSOT pass over `development_tools/shared/standard_exclusions.py`, `development_tools/shared/constants.py`, `development_tools/shared/audit_tiers.py`, live/example `development_tools_config.json`, and `development_tools/config/config.py`.
+- **Config (2026-08-07 follow-up)**: Live/example omit full `exclusions.base_exclusions` and use `base_exclusions_additions` / `base_exclusions_removals` against portable defaults. Emptied MHM-shaped portable defaults in [`config.py`](../development_tools/config/config.py) for `CONFIG_VALIDATOR`, `DOMAIN_MAPPER_DEFAULTS`, and `known_deleted_files` (values stay in project JSON / example for CI). Omitted exact-duplicate JSON keys: `test_run`, `analyze_duplicate_functions`, identity `test_markers.directory_to_marker`, and matching `error_handling` scalars.
+- **SSOT hygiene (same day)**: Documented MHM `derived_prefix_excludes.core` omitting `development_tools` (so `CORE_MODULES` includes it). Realigned [`EXPECTED_TOOLS`](../development_tools/shared/verify_tool_storage.py) tier comments/count to `audit_tiers`. Shared `_PYTHON_KEYWORDS_SHARED` frozenset for `COMMON_VARIABLE_NAMES` / `PYTHON_KEYWORDS_PATH_DRIFT` in [`constants.py`](../development_tools/shared/constants.py).
+- **Hygiene**: Updated stale LIST_OF_LISTS section pointers in `development_tools/config/config.py` comments after renumbering.
+- **Impact**: Fewer duplicated lists to maintain; portable code defaults stay generic; LIST_OF_LISTS Section 9 only notes optional `quick-audit` guide prose.
+
 ### 2026-08-04 - Personalized greetings/closings cleanup
 - **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) strips `Best regards`, soft day-wishes, help-offer closers (`Let me know if...`, `feel free to reach out`), and double-dash signatures (`--[Your Name]`).
 - **Fix**: [`normalize_personalized_greeting()`](../ai/chat/response_postprocess.py) rewrites `Dear` to `Hi` and normalizes greeting punctuation to `Hi Name.`; [`collapse_salutation_newlines()`](../ai/chat/response_postprocess.py) also joins `Hi Name.\nBody`.

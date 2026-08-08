@@ -279,7 +279,7 @@ OUTPUT = {
 }
 
 # File patterns
-# exclude_patterns removed from file_patterns; use exclusions.base_exclusions (LIST_OF_LISTS §9a)
+# exclude_patterns removed from file_patterns; use exclusions.base_exclusions (LIST_OF_LISTS §5)
 FILE_PATTERNS = {
     "python_files": "*.py",
     "documentation_files": "*.md",
@@ -745,12 +745,12 @@ def get_data_freshness_config():
     """
     Get data freshness audit configuration (e.g. known deleted files to check for in caches).
     Returns dict with key: known_deleted_files (list of path strings).
+
+    Portable default is empty; project-specific paths belong in
+    development_tools_config.json ``data_freshness.known_deleted_files``.
     """
-    default = {
-        "known_deleted_files": [
-            "development_tools/shared/operations.py",
-            "development_docs/SESSION_SUMMARY_2025-12-07.md",
-        ],
+    default: dict[str, list[str]] = {
+        "known_deleted_files": [],
     }
     external = _get_external_value("data_freshness", None)
     if not isinstance(external, dict):
@@ -959,7 +959,7 @@ def get_test_markers_config():
     Returns:
         Dict with optional keys:
         - categories
-        - directory_to_marker (derived from categories as identity map when absent; see LIST_OF_LISTS §9a)
+        - directory_to_marker (derived from categories as identity map when absent; see LIST_OF_LISTS §6)
         - transient_data_path_markers
         - ai_path_tokens
         - domain_markers (union of domain_mapper markers when use_domain_mapper_marker_union and unset)
@@ -1294,45 +1294,14 @@ def get_analyze_package_exports_config():
     return result
 
 
-# Config validator configuration (project-specific lists can override via development_tools_config.json)
+# Config validator configuration.
+# Portable defaults are empty; project-specific expected functions / required sections
+# belong in development_tools_config.json ``analyze_config`` (see .example for a template).
 CONFIG_VALIDATOR = {
     "config_schema": {},  # Expected config schema structure (empty = auto-detect)
     "validation_rules": {},  # Custom validation rules
-    "expected_config_functions": [
-        "get_available_channels",
-        "get_channel_class_mapping",
-        "get_user_data_dir",
-        "get_backups_dir",
-        "get_user_file_path",
-        "validate_core_paths",
-        "validate_ai_configuration",
-        "validate_communication_channels",
-        "validate_logging_configuration",
-        "validate_scheduler_configuration",
-        "validate_file_organization_settings",
-        "validate_environment_variables",
-        "validate_all_configuration",
-        "validate_and_raise_if_invalid",
-        "print_configuration_report",
-        "ensure_user_directory",
-        "validate_email_config",
-        "validate_discord_config",
-        "validate_minimum_config",
-    ],
-    "required_sections": [
-        "PROJECT_ROOT",
-        "SCAN_DIRECTORIES",
-        "FUNCTION_DISCOVERY",
-        "VALIDATION",
-        "AUDIT",
-        "OUTPUT",
-        "QUICK_AUDIT",
-        "VERSION_SYNC",
-        "WORKFLOW",
-        "DOCUMENTATION",
-        "AUTO_DOCUMENT",
-        "AI_VALIDATION",
-    ],
+    "expected_config_functions": [],
+    "required_sections": [],
 }
 
 
@@ -1367,7 +1336,7 @@ VALIDATE_AI_WORK = {
 
 
 def get_analyze_ai_work_config():
-    """Get validate AI work configuration. Thresholds default from ai_validation (LIST_OF_LISTS §4)."""
+    """Get validate AI work configuration. Thresholds default from ai_validation (LIST_OF_LISTS §6)."""
     ai_val = get_ai_validation_config()
     result = VALIDATE_AI_WORK.copy()
     for key in (
@@ -1391,7 +1360,7 @@ def get_analyze_ai_work_config():
 
 
 # Shared tool commands (canonical for ruff_command; unused_imports and static_analysis derive from here)
-# See LIST_OF_LISTS.md §9a.
+# See LIST_OF_LISTS.md §8.
 _DEFAULT_RUFF_COMMAND = ["python", "-m", "ruff"]
 
 
@@ -1750,95 +1719,14 @@ def get_fix_function_docstrings_config():
     return AUTO_DOCUMENT_FUNCTIONS
 
 
-# Domain mapper configuration (test coverage / selective test execution)
-# Maps source domains to test directories and pytest markers.
+# Domain mapper configuration (test coverage / selective test execution).
+# Portable defaults are empty; project maps belong in development_tools_config.json
+# ``domain_mapper`` (see .example). Missing local_module_prefixes domains are still
+# augmented at runtime by ``_augment_domain_mapper_from_local_prefixes``.
 DOMAIN_MAPPER_DEFAULTS = {
-    "source_to_test_mapping": {
-        "core": [["tests/core/", "tests/unit/"], ["core"]],
-        "communication": [["tests/communication/"], ["communication"]],
-        "ui": [["tests/ui/"], ["ui"]],
-        "tasks": [[], ["tasks"]],
-        "ai": [["tests/ai/"], ["ai"]],
-        "user": [[], ["user"]],
-        "notebook": [[], ["notebook"]],
-        "scheduler": [[], ["scheduler"]],
-        "checkins": [[], ["checkins"]],
-        "integrations": [[], ["integrations"]],
-        "messages": [[], ["messages"]],
-        "storage": [[], ["storage"]],
-        "development_tools": [["tests/development_tools/"], []],
-    },
-    "domain_dependencies": {
-        "core": [
-            "communication",
-            "ui",
-            "tasks",
-            "ai",
-            "user",
-            "notebook",
-            "scheduler",
-            "checkins",
-            "integrations",
-            "messages",
-            "storage",
-        ],
-        "communication": ["ui", "tasks", "ai", "user", "checkins", "messages"],
-        "tasks": ["communication", "ui"],
-        "user": ["communication", "ui", "ai", "storage"],
-        "ai": ["communication", "ui"],
-        "ui": [],
-        "notebook": ["communication", "ui"],
-        "scheduler": ["communication", "core"],
-        "checkins": ["communication", "user"],
-        "messages": ["communication"],
-        "storage": ["core", "user"],
-        "integrations": ["core", "communication", "scheduler"],
-        "development_tools": [],
-    },
-    "keyword_map": {
-        "development_tools": [
-            "development_tools",
-            "dev_tools",
-            "audit",
-            "coverage",
-            "verification",
-            "status",
-        ],
-        "communication": [
-            "communication",
-            "discord",
-            "email",
-            "webhook",
-            "channel",
-            "command",
-            "interaction",
-            "router",
-        ],
-        "ai": ["ai", "chatbot", "prompt", "context", "llm"],
-        "tasks": ["task"],
-        "ui": ["ui", "dialog", "widget", "qt", "pyside"],
-        "user": ["user", "profile", "account", "preferences"],
-        "notebook": ["notebook", "note", "journal", "list"],
-        "scheduler": ["scheduler", "schedule", "reminder"],
-        "checkins": ["checkin", "checkins"],
-        "integrations": ["integration", "integrations", "google_health", "health_sync"],
-        "messages": ["message", "messages", "delivery", "template"],
-        "storage": ["storage", "user_data", "registry", "persistence"],
-        "core": [
-            "core",
-            "service",
-            "config",
-            "logger",
-            "logging",
-            "observability",
-            "error",
-            "backup",
-            "file",
-            "cleanup",
-            "analytics",
-            "response",
-        ],
-    },
+    "source_to_test_mapping": {},
+    "domain_dependencies": {},
+    "keyword_map": {},
 }
 
 _DOMAIN_MAPPER_PREFIX_EXCLUDES: frozenset[str] = frozenset(

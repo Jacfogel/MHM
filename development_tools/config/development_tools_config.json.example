@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see LIST_OF_LISTS.md). Optional sections omitted here fall back to development_tools/config/config.py: documentation_analysis, test_markers, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY). file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config.",
+  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see LIST_OF_LISTS.md). Optional sections omitted here fall back to development_tools/config/config.py: documentation_analysis, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY), test_run, analyze_duplicate_functions. file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config(). test_markers.directory_to_marker is derived from categories when absent.",
   "project": {
     "name": "YourProject",
     "key_files": [
@@ -289,39 +289,6 @@
       "dev_tools_html": "development_tools/coverage_html_dev_tools"
     }
   },
-  "test_run": {
-    "pytest_command": [
-      "{python}",
-      "-m",
-      "pytest"
-    ],
-    "pytest_base_args": [
-      "--tb=short",
-      "--disable-warnings",
-      "--maxfail=10"
-    ],
-    "test_paths": null,
-    "workers": "auto",
-    "timeout_seconds": 1200,
-    "default_profile": "quick",
-    "profiles": {
-      "quick": {
-        "exclude_markers": ["e2e", "slow"]
-      },
-      "full": {
-        "exclude_markers": ["e2e"]
-      }
-    },
-    "exclude_markers": [
-      "e2e",
-      "slow"
-    ],
-    "no_parallel_marker": "no_parallel",
-    "sigint_taps_to_stop": 5,
-    "sigint_window_seconds": 2.0,
-    "sigint_debounce_seconds": 0.35,
-    "junit_dir": "development_tools/tests/jsons/test_suite_junit"
-  },
   "domain_mapper": {
     "source_to_test_mapping": {
       "core": [
@@ -592,60 +559,19 @@
     ]
   },
   "exclusions": {
-    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; tool_exclusions.vulture = dead-code scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge—see development_docs/LIST_OF_LISTS.md §12b–§13.",
-    "_comment_base_exclusions_additions": "If base_exclusions is omitted, standard_exclusions merges code defaults + base_exclusions_additions. Use for project paths removed from portable defaults (e.g. tests/ai/results, yourpackage.egg-info).",
-    "base_exclusions_additions": [],
-    "base_exclusions": [
-      "*.pyc",
-      "*.pyi",
-      "*.pyo",
-      "*.swo",
-      "*.swp",
-      "*/generated/*",
-      "*/pyscript*",
+    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge - see development_docs/LIST_OF_LISTS.md Section 5.",
+    "_comment_base_exclusions_additions": "Omit base_exclusions to merge portable defaults from development_tools/shared/standard_exclusions.py with base_exclusions_additions / base_exclusions_removals.",
+    "base_exclusions_additions": [
       "*/run_app.py",
       "*/run_tests.py",
-      "*/shibokensupport/*",
-      "*/signature_bootstrap.py",
-      "*~",
-      ".cursorignore",
-      ".DS_Store",
-      ".env",
-      ".git",
-      ".gitattributes",
-      ".gitignore",
-      ".idea",
-      ".pytest_cache",
-      ".pytest_tmp_cache",
-      ".pytest-tmp-*",
-      ".tmp_devtools_pyfiles",
-      ".tmp_pytest",
-      ".tmp_pytest_runner",
-      ".ruff_cache",
-      ".venv",
-      ".vscode",
-      "__pycache__",
-      "archive",
-      "backup*",
-      "desktop.ini",
       "development_tools/{domain}/jsons/*",
-      "env",
       "env.example",
       "htmlcov",
       "yourpackage.egg-info",
-      "node_modules",
       "run_app.py",
       "run_tests.py",
-      "scripts",
       "scripts/**/*",
-      "tests/ai/results",
-      "tests/coverage_html",
-      "tests/data/",
-      "tests/fixtures/",
-      "tests/logs/",
-      "tests/temp/",
-      "Thumbs.db",
-      "venv"
+      "tests/ai/results"
     ],
     "base_exclusion_shortlist": [
       "*.html",
@@ -741,6 +667,21 @@
       "logs/",
       "development_docs/changelog_history/",
       "CHANGELOG_*.md"
+    ],
+    "base_exclusions_removals": [
+      ".pytest_runtime",
+      ".cursor",
+      "backups",
+      "scripts/*",
+      "*/scripts/*",
+      "tests/__pycache__",
+      "tests/.pytest_cache",
+      "pytest-tmp-*",
+      "pytest-of-*",
+      "pytest_tmp_*",
+      "*/pytest-tmp-*",
+      "*/pytest-of-*",
+      "*/pytest_tmp_*"
     ]
   },
   "constants": {
@@ -851,26 +792,43 @@
       "styles": "styles/"
     },
     "derived_prefix_excludes": {
-      "scan": ["data", "development_tools", "notebook", "scripts"],
-      "core": ["data", "development_tools", "scripts", "tests"],
-      "project": ["data", "development_tools", "scripts"]
+      "_comment": "Portable default: exclude development_tools from core (meta tooling). MHM live config omits development_tools from core excludes so CORE_MODULES includes it.",
+      "scan": [
+        "data",
+        "development_tools",
+        "notebook",
+        "scripts"
+      ],
+      "core": [
+        "data",
+        "development_tools",
+        "scripts",
+        "tests"
+      ],
+      "project": [
+        "data",
+        "development_tools",
+        "scripts"
+      ]
     }
   },
   "test_markers": {
-    "categories": ["unit", "integration", "behavior", "ui"],
-    "directory_to_marker": {
-      "unit": "unit",
-      "integration": "integration",
-      "behavior": "behavior",
-      "ui": "ui"
-    },
+    "categories": [
+      "unit",
+      "integration",
+      "behavior",
+      "ui"
+    ],
     "transient_data_path_markers": [
       "/tmp/",
       "/tmp_pytest_runtime/",
       "pytest-tmp-",
       "pytest-of-"
     ],
-    "ai_path_tokens": ["ai/test_ai", "test_ai"]
+    "ai_path_tokens": [
+      "ai/test_ai",
+      "test_ai"
+    ]
   },
   "static_checks": {
     "channel_loggers": {
@@ -1015,43 +973,6 @@
           ]
         ]
       }
-    }
-  },
-  "analyze_duplicate_functions": {
-    "use_mtime_cache": true,
-    "min_name_similarity": 0.6,
-    "min_overall_similarity": 0.7,
-    "max_pairs": 50,
-    "max_groups": 50,
-    "max_candidate_pairs": 20000,
-    "max_token_group_size": 200,
-    "consider_argument_similarity_candidates": true,
-    "min_argument_similarity": 0.75,
-    "max_argument_candidate_pairs": 5000,
-    "stop_name_tokens": [
-      "get",
-      "set",
-      "update",
-      "create",
-      "delete",
-      "handle",
-      "process",
-      "load",
-      "save",
-      "run",
-      "init",
-      "main",
-      "check",
-      "build",
-      "fetch",
-      "sync",
-      "prepare"
-    ],
-    "weights": {
-      "name": 0.45,
-      "args": 0.2,
-      "locals": 0.2,
-      "imports": 0.15
     }
   },
   "analyze_functions": {
@@ -1292,27 +1213,63 @@
     "ruff_sync_root_compat": true,
     "ruff_shard_scan": true,
     "ruff_path_shards": [
-      ["core"],
-      ["communication"],
-      ["ui"],
-      ["ai"],
-      ["user"],
-      ["tasks"],
-      ["notebook"],
-      ["development_tools"],
-      ["tests"]
+      [
+        "core"
+      ],
+      [
+        "communication"
+      ],
+      [
+        "ui"
+      ],
+      [
+        "ai"
+      ],
+      [
+        "user"
+      ],
+      [
+        "tasks"
+      ],
+      [
+        "notebook"
+      ],
+      [
+        "development_tools"
+      ],
+      [
+        "tests"
+      ]
     ],
     "pyright_shard_scan": true,
     "pyright_path_shards": [
-      ["core"],
-      ["communication"],
-      ["ui"],
-      ["ai"],
-      ["user"],
-      ["tasks"],
-      ["notebook"],
-      ["development_tools"],
-      ["tests"]
+      [
+        "core"
+      ],
+      [
+        "communication"
+      ],
+      [
+        "ui"
+      ],
+      [
+        "ai"
+      ],
+      [
+        "user"
+      ],
+      [
+        "tasks"
+      ],
+      [
+        "notebook"
+      ],
+      [
+        "development_tools"
+      ],
+      [
+        "tests"
+      ]
     ],
     "bandit_shard_scan": true,
     "bandit_scan_roots": [
