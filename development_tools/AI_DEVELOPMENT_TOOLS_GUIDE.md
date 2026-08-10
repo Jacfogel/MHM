@@ -253,7 +253,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
     - `python development_tools/run_development_tools.py backup retention --dry-run|--apply` enforces Category-B retention on development-tools-owned artifacts.
     - `python development_tools/run_development_tools.py backup drill` executes isolated restore drill and writes drill reports.
     - `python development_tools/run_development_tools.py backup verify` runs end-to-end backup health checks (inventory + newest-backup validation + restore drill).
-- **Documentation overlap (V5 Section 5.2 backlog)**: `analyze_documentation` / doc-sync can emit `section_overlaps` and consolidation hints; they also surface in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md`. Treat as advisory-verify against [LIST_OF_LISTS.md](../development_docs/LIST_OF_LISTS.md) and paired-guide boundaries before large doc merges.
+- **Documentation overlap (V5 Section 5.2 backlog)**: `analyze_documentation` / doc-sync can emit `section_overlaps` and consolidation hints; they also surface in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md`. Treat as advisory-verify against [LIST_OF_LISTS.md](LIST_OF_LISTS.md) and paired-guide boundaries before large doc merges.
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
   - **Tier 3**: Test-suite, legacy, and static-analysis groups run in parallel with each other (tools within each group run sequentially)

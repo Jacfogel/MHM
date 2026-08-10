@@ -19,13 +19,14 @@ from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import Any
 
-from development_tools.shared.audit_scope import is_known_storage_scope
+from development_tools.shared.audit_scope import (
+    STORAGE_SCOPE_DEV_TOOLS as STORAGE_SCOPE_DEV_TOOLS,
+    STORAGE_SCOPE_FULL as STORAGE_SCOPE_FULL,
+    is_known_storage_scope,
+)
 
 AUDIT_SCOPE_USE_CONTEXT = object()
 _SENTINEL = AUDIT_SCOPE_USE_CONTEXT
-
-STORAGE_SCOPE_FULL = "full"
-STORAGE_SCOPE_DEV_TOOLS = "dev_tools"
 
 _audit_storage_scope: ContextVar[str] = ContextVar(
     "audit_storage_scope", default=STORAGE_SCOPE_FULL

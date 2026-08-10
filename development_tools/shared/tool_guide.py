@@ -42,7 +42,7 @@ TOOL_GUIDE_OVERRIDES: dict[str, dict[str, Any]] = {
         "when_to_use": [
             "Primary tool for all development tool operations",
             "Simple commands for basic operations (audit, docs, validate, config)",
-            "Advanced commands for complex tasks (workflow, quick-audit, decision-support)",
+            "Advanced commands for complex tasks (workflow, audit --quick, decision-support)",
             "When you want a unified interface for all tools",
             "For both simple user commands and advanced workflows",
         ],

@@ -52,7 +52,7 @@ def _get_channel_loggers_config():
     Project-specific lists must not be duplicated here; they live in
     ``development_tools_config.json`` (``static_checks.channel_loggers``) with defaults
     and merge behavior in ``development_tools.config.config`` - see
-    ``development_docs/LIST_OF_LISTS.md`` sections 6-7.
+    ``development_tools/LIST_OF_LISTS.md`` sections 6-7.
 
     Loads ``config.py`` via importlib (same pattern as ``standard_exclusions``) so this
     script does not import the full ``development_tools`` package tree. GitHub Actions

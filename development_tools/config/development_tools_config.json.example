@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see LIST_OF_LISTS.md). Optional sections omitted here fall back to development_tools/config/config.py: documentation_analysis, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY), test_run, analyze_duplicate_functions. file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config(). test_markers.directory_to_marker is derived from categories when absent.",
+  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see development_tools/LIST_OF_LISTS.md). Omit optional sections/keys that match development_tools/config/config.py defaults (workflow, documentation, auto_document, ai_validation, ai_collaboration, audit, output, status, system_signals, validation, unused_imports, quick_audit, analyze_module_dependencies, analyze_package_exports, and matching static_analysis / analyze_function_registry scalars). Other common omit-or-fallback sections: documentation_analysis, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY), test_run, analyze_duplicate_functions. file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config(). test_markers.directory_to_marker is derived from categories when absent. Quick-audit tool membership is audit_tiers (TIER1_*), not a JSON script list.",
   "project": {
     "name": "YourProject",
     "key_files": [
@@ -27,40 +27,6 @@
     "documentation_patterns": [
       "*.md"
     ]
-  },
-  "quick_audit": {
-    "run_function_audit": true,
-    "run_dependency_audit": true,
-    "run_documentation_audit": true,
-    "run_validation": true,
-    "save_results": true,
-    "results_file": "development_tools/reports/analysis_detailed_results.json",
-    "audit_scripts": [],
-    "concise_output": true,
-    "prioritize_issues": true
-  },
-  "audit": {
-    "include_generated_files": false,
-    "include_test_files": true,
-    "include_legacy_files": false,
-    "max_output_lines": 20,
-    "save_detailed_results": true,
-    "generate_summary": true,
-    "highlight_issues": true
-  },
-  "ai_collaboration": {
-    "concise_output": true,
-    "detailed_files": true,
-    "actionable_insights": true,
-    "context_aware": true,
-    "priority_issues": true,
-    "integration_mode": true
-  },
-  "validation": {
-    "documentation_coverage_threshold": 80.0,
-    "duplicate_function_warning": true,
-    "missing_docstring_warning": true,
-    "critical_issues_first": true
   },
   "error_handling": {
     "decorator_names": [
@@ -208,62 +174,12 @@
       ]
     }
   },
-  "output": {
-    "use_emojis": false,
-    "show_progress": false,
-    "color_output": false,
-    "detailed_reports": false,
-    "concise_format": true,
-    "priority_indicators": true,
-    "action_items": true
-  },
   "path_drift": {
     "ignored_path_patterns": [],
     "legacy_documentation_files": []
   },
   "data_freshness": {
     "known_deleted_files": []
-  },
-  "workflow": {
-    "audit_first": true,
-    "validate_results": true,
-    "require_user_approval": false,
-    "save_intermediate_results": true,
-    "generate_action_items": true,
-    "prioritize_by_impact": true
-  },
-  "documentation": {
-    "auto_generate": true,
-    "preserve_manual_content": true,
-    "update_frequency": "on_demand",
-    "coverage_target": 95.0,
-    "quality_threshold": 80.0
-  },
-  "auto_document": {
-    "enabled": true,
-    "template_generation": true,
-    "quality_check": true,
-    "suggest_improvements": true,
-    "preserve_manual_work": true
-  },
-  "ai_validation": {
-    "completeness_threshold": 90.0,
-    "accuracy_threshold": 85.0,
-    "consistency_threshold": 80.0,
-    "actionable_threshold": 75.0,
-    "critical_issues_weight": 3.0,
-    "warning_issues_weight": 1.5,
-    "info_issues_weight": 1.0
-  },
-  "status": {
-    "check_key_files": true,
-    "check_audit_results": true,
-    "generate_status_files": true,
-    "status_files": {
-      "ai_status": "development_tools/AI_STATUS.md",
-      "ai_priorities": "development_tools/AI_PRIORITIES.md",
-      "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md"
-    }
   },
   "coverage": {
     "main_workers": null,
@@ -559,7 +475,7 @@
     ]
   },
   "exclusions": {
-    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge - see development_docs/LIST_OF_LISTS.md Section 5.",
+    "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge - see development_tools/LIST_OF_LISTS.md Section 5.",
     "_comment_base_exclusions_additions": "Omit base_exclusions to merge portable defaults from development_tools/shared/standard_exclusions.py with base_exclusions_additions / base_exclusions_removals.",
     "base_exclusions_additions": [
       "*/run_app.py",
@@ -850,15 +766,6 @@
     }
   },
   "analyze_function_registry": {
-    "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-    "high_complexity_min": 50,
-    "top_complexity": 10,
-    "top_undocumented": 5,
-    "top_duplicates": 5,
-    "error_sample_limit": 5,
-    "max_complexity_json": 200,
-    "max_undocumented_json": 200,
-    "max_duplicates_json": 200,
     "decision_trees": {
       "user_data": {
         "title": "User Data Operations Decision Tree",
@@ -985,13 +892,6 @@
     "max_functions_per_module": 40,
     "max_total_complexity_per_module": 4000,
     "high_plus_critical_threshold": 10
-  },
-  "analyze_module_dependencies": {
-    "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
-  },
-  "analyze_package_exports": {
-    "export_patterns": [],
-    "expected_exports": {}
   },
   "analyze_config": {
     "config_schema": {},
@@ -1180,38 +1080,7 @@
       "git": "Canonical history for tracked code/docs/changelogs"
     }
   },
-  "unused_imports": {
-    "preferred_backend": "ruff",
-    "pylint_command": [
-      "python",
-      "-m",
-      "pylint"
-    ],
-    "batch_size": 200,
-    "pylint_batch_size": 25,
-    "ignore_patterns": [],
-    "type_stub_locations": [],
-    "timeout_seconds": 30
-  },
   "static_analysis": {
-    "pyright_command": [
-      "python",
-      "-m",
-      "pyright"
-    ],
-    "pyright_args": [
-      "--outputjson"
-    ],
-    "pyright_project_path": "pyproject.toml",
-    "ruff_args": [
-      "check",
-      ".",
-      "--output-format",
-      "json"
-    ],
-    "ruff_config_path": "development_tools/config/ruff.toml",
-    "ruff_sync_root_compat": true,
-    "ruff_shard_scan": true,
     "ruff_path_shards": [
       [
         "core"
@@ -1241,7 +1110,6 @@
         "tests"
       ]
     ],
-    "pyright_shard_scan": true,
     "pyright_path_shards": [
       [
         "core"
@@ -1271,7 +1139,6 @@
         "tests"
       ]
     ],
-    "bandit_shard_scan": true,
     "bandit_scan_roots": [
       "core",
       "communication",
@@ -1289,20 +1156,11 @@
     "bandit_root_python": [
       "run_tests.py",
       "run_mhm.py"
-    ],
-    "vulture_min_confidence": 80,
-    "vulture_scan_paths": [],
-    "vulture_args": [],
-    "vulture_timeout_seconds": 600,
-    "timeout_seconds": 600
+    ]
   },
   "quick_status": {
     "core_files": [],
     "key_directories": [],
-    "data_source_plugins": {}
-  },
-  "system_signals": {
-    "core_files": [],
     "data_source_plugins": {}
   },
   "fix_function_docstrings": {

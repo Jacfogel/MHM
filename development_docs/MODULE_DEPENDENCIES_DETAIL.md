@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-05 00:38:34
+> **Last Generated**: 2026-08-10 00:12:57
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 651 (29.6%)
 - **Third-Party Imports**: 217 (9.9%)
 - **Local Imports**: 1335 (60.6%)
-- **Last Updated**: 2026-08-05
+- **Last Updated**: 2026-08-10
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 

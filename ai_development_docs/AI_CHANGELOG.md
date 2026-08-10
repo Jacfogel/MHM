@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup **COMPLETED**
+- Moved `LIST_OF_LISTS.md` into `development_tools/`; retargeted pointers.
+- Omitted default-copy JSON sections/keys; retired dead `quick_audit.audit_scripts` (Tier 1 = `audit_tiers`).
+- Fixed `audit --quick` guide prose; `STORAGE_SCOPE_*` re-exported from `audit_scope`; prompt category/flow alignment test.
+- Follow-up: doc-sync path-drift + F401/SIM300 from that SSOT work cleared (`doc-sync` PASS).
+
 ### 2026-08-06 - LIST_OF_LISTS consolidation scan, rewrite, and SSOT cleanup **COMPLETED**
 - Rewrote LIST_OF_LISTS as current ownership map; trimmed completed-history tables.
 - Follow-up: live/example `base_exclusions` -> additions/removals; emptied portable `CONFIG_VALIDATOR` / `DOMAIN_MAPPER_DEFAULTS` / `known_deleted_files`; omitted duplicate JSON keys (`test_run`, `analyze_duplicate_functions`, identity `directory_to_marker`, matching error_handling scalars).
@@ -145,12 +151,6 @@ Guidelines:
 - B-002 coverage slice #3: `commands` / `data_loading` helpers (coverage summary/insights, canonical metrics, doc-subcheck freshness/cache-hit, execute_task/cleanup/status skip); 121 passed across three extended modules.
 - Doc correction: coverage is refreshed only by `python development_tools/run_development_tools.py coverage` (not `audit --full`). Updated HOW_TO_RUN, DEVELOPMENT_WORKFLOW (paired with AI_*), DEVELOPMENT_TOOLS_GUIDE, V6/TODO, and generated-status follow-up strings in `report_generation.py`.
 - Cleared AI_PRIORITIES quick wins: path-drift bare `TEST_COVERAGE_REPORT.md` refs -> `development_docs/...`; Pyright on new helper tests (0/0); TODO.md ASCII via `doc-fix --fix-ascii`; `doc-sync` PASS.
-
-### 2026-07-17 - Session fact recall; archive completed product-AI plan **COMPLETED**
-- Contextual prompts merge session + disk conversation history and label prior user turns clearly; cache skipped when prior turns exist.
-- `conversation_coherence` reinforces stated facts (favorite color/name/food) when follow-ups omit them; `reply_rules.txt` updated.
-- Durable routing/prompt contracts recorded in `ai/SYSTEM_AI_GUIDE.md`; completed plan moved to `archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`.
-- Live AI suite: 66 pass / 2 partial / 0 fail (T-7.1 PASS).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

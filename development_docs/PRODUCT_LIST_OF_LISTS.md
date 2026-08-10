@@ -1,9 +1,9 @@
 # Product List of Lists - Runtime Canonical Sources
 
 > **File**: `development_docs/PRODUCT_LIST_OF_LISTS.md`
-> **Purpose**: Single reference for product/runtime list-like data (commands, prompts, categories, channels). Sibling to [LIST_OF_LISTS.md](LIST_OF_LISTS.md) (dev-tools lists only).
+> **Purpose**: Single reference for product/runtime list-like data (commands, prompts, categories, channels). Sibling to [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (dev-tools lists only).
 > **Audience**: Maintainers, AI collaborators.
-> **Last updated**: 2026-07-18
+> **Last updated**: 2026-08-10
 
 **Principles**: (1) One canonical source per list. (2) Prefer code registries over duplicated prose/help examples. (3) Align docs to code after the catalog is stable.
 
@@ -30,7 +30,7 @@
 | **Runtime-only prompt categories** | `ai/prompts/flows.py` - `RUNTIME_PROMPT_CATEGORIES` (e.g. `available_actions`) | Generated at runtime, not a file | Do not add a `.txt` for these |
 | **Assistant / command system prompts** | `resources/prompts/assistant_system_prompt.txt`, `resources/prompts/command.txt`; filename constants in `ai/prompts/manager.py` | LM Studio / command interpretation | |
 
-**Alignment note**: Conversational behavior rules belong in category files under `resources/prompts/product_ai/`, not duplicated in `ai/chat/chatbot.py` (see [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md)).
+**Alignment note**: Conversational behavior rules belong in category files under `resources/prompts/product_ai/`, not duplicated in `ai/chat/chatbot.py` (see [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md)). Policy test: `tests/unit/test_ai_prompt_flows.py` (`test_product_ai_flow_categories_align_with_filename_map`) keeps file-backed flow categories aligned with `_PRODUCT_AI_CATEGORY_FILENAMES`.
 
 ## 3. Message / user categories
 
@@ -59,4 +59,4 @@
 
 ## 6. Relation to LIST_OF_LISTS
 
-Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [LIST_OF_LISTS.md](LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md) Section 2.
+Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md) Section 2.

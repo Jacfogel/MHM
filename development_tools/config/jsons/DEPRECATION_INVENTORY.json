@@ -82,6 +82,17 @@
   ],
   "removed_inventory": [
     {
+      "id": "quick_audit_audit_scripts",
+      "removed_at": "2026-08-10",
+      "search_terms": [
+        "audit_scripts",
+        "QUICK_AUDIT.audit_scripts",
+        "quick_audit.audit_scripts"
+      ],
+      "replacement": "development_tools.shared.audit_tiers.TIER1_TOOL_NAMES / get_tier1_groups()",
+      "notes": "Unused by audit orchestration (Tier 1 membership is audit_tiers). Removed from QUICK_AUDIT defaults, live/example JSON, and analyze_config completeness check. Optional quick_audit JSON may still override results_file knobs."
+    },
+    {
       "id": "user_context_manager_duplicate_domain_loaders",
       "removed_at": "2026-07-09",
       "search_terms": [

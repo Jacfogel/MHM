@@ -289,6 +289,9 @@ FILE_PATTERNS = {
 
 # Quick audit settings optimized for AI
 # NOTE: Paths are relative to project root. Projects should provide config file.
+# Tier membership for quick audit is owned by audit_tiers.py (TIER1_*).
+# This block only holds runtime knobs still read via get_quick_audit_config()
+# (today: results_file path). Do not reintroduce audit_scripts - unused by orchestration.
 QUICK_AUDIT = {
     "run_function_audit": True,
     "run_dependency_audit": True,
@@ -296,7 +299,6 @@ QUICK_AUDIT = {
     "run_validation": True,
     "save_results": True,
     "results_file": "development_tools/reports/analysis_detailed_results.json",  # Generic path - override via config
-    "audit_scripts": [],  # Empty by default - requires config file
     "concise_output": True,
     "prioritize_issues": True,
 }

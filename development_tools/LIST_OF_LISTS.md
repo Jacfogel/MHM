@@ -1,11 +1,11 @@
 # List of Lists - Canonical Sources
 
 
-> **File**: `development_docs/LIST_OF_LISTS.md`
-**Purpose**: Current ownership map for list-like data (arrays, mappings, enumerated sets) in **development tools** code and config. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md). Planning ownership: [PLANS.md](PLANS.md) Section 2.
+> **File**: `development_tools/LIST_OF_LISTS.md`
+**Purpose**: Current ownership map for list-like data (arrays, mappings, enumerated sets) in **development tools** code and config. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](../development_docs/PRODUCT_LIST_OF_LISTS.md). Planning ownership: [PLANS.md](../development_docs/PLANS.md) Section 2.
 
 **Audience**: Maintainers, AI collaborators.
-**Last updated**: 2026-08-07 (Section 9 remaining items closed)
+**Last updated**: 2026-08-10 (SSOT cleanup: omit default-copy JSON; retire `audit_scripts`; STORAGE_SCOPE re-export)
 
 **Config shorthand**: `development_tools_config.json` means `development_tools/config/development_tools_config.json` (loaded by `development_tools/config/config.py`). Template: `development_tools/config/development_tools_config.json.example`.
 
@@ -15,7 +15,7 @@
 3. **Consolidate when overlap is complete or appropriate**: derive subsets from the larger canonical list instead of maintaining both.
 4. **Omit optional JSON keys when code defaults are correct** - do not duplicate a path or keyword list in JSON solely to "document" it.
 
-**Quick index**: [1 Commands](#1-commands-and-tool-catalog) | [2 Audit tiers](#2-audit-tiers) | [3 Deprecation](#3-deprecation--legacy) | [4 Docs](#4-documentation-lists) | [5 Exclusions](#5-exclusions-and-ignores) | [6 Config/constants](#6-config-and-shared-constants) | [7 Operational](#7-operational-lists) | [8 Alignment](#8-alignment-workflow) | [9 Open findings](#9-open-consolidation-findings-2026-08-06-scan) | [10 Quick reference](#10-quick-reference)
+**Quick index**: [1 Commands](#1-commands-and-tool-catalog) | [2 Audit tiers](#2-audit-tiers) | [3 Deprecation](#3-deprecation--legacy) | [4 Docs](#4-documentation-lists) | [5 Exclusions](#5-exclusions-and-ignores) | [6 Config/constants](#6-config-and-shared-constants) | [7 Operational](#7-operational-lists) | [8 Alignment](#8-alignment-workflow) | [9 Consolidation status](#9-consolidation-status) | [10 Quick reference](#10-quick-reference)
 
 ---
 
@@ -32,7 +32,7 @@
 | **Cache-aware tools** | `development_tools/shared/tool_metadata.py` - `CACHE_AWARE_TOOLS` | Must be ⊆ `_TOOLS` (policy test) |
 | **Tool guide fields** | `development_tools/shared/tool_guide.py` - `TOOL_GUIDE_OVERRIDES` | Guide-only prose; path/tier/description enriched from `_TOOLS` |
 | **Tier display titles** | `development_tools/shared/tool_metadata.py` - `TIER_TITLES` | Imported by tool_guide |
-| **Quick-audit scripts** | config `quick_audit.audit_scripts` | Filenames (not tool names); config is canonical for "what runs in quick audit" |
+| **Quick-audit tool membership** | `development_tools/shared/audit_tiers.py` - `TIER1_*` | Orchestration uses tier groups; optional `quick_audit` JSON only overrides knobs like `results_file` (omit when defaults match). Do not maintain a parallel `audit_scripts` list |
 
 ---
 
@@ -130,7 +130,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 1. **Code/config first** - fix the canonical source and consumers; omit JSON that only copies correct defaults.
 2. **Derive subsets** - if A ⊆ B and same purpose, derive A in code and delete the duplicate list.
 3. **Then docs** - point guides at the canonical source; prefer structural tests over copying lists into prose.
-4. **Record open work here** in [§9](#9-open-consolidation-findings-2026-08-06-scan); do not keep long "Done" audit trails in this file (changelogs own history).
+4. **Record open work here** in [§9](#9-consolidation-status); do not keep long "Done" audit trails in this file (changelogs own history).
 
 **When not to consolidate**: different purposes; tool-specific formats (Ruff vs Pyright); consolidation would obscure intent.
 
@@ -138,7 +138,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 
 ## 9. Consolidation status
 
-Dev-tools list SSOT from the 2026-08-06 scan is closed. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md).
+Dev-tools list SSOT from the 2026-08-06 scan is closed. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](../development_docs/PRODUCT_LIST_OF_LISTS.md).
 
 ### Healthy
 
@@ -146,17 +146,17 @@ Dev-tools list SSOT from the 2026-08-06 scan is closed. Product/runtime lists: [
 - `audit_tiers` flat + group maps + omit sets with import-time coverage.
 - `COMMAND_GROUPS` ⊆ `COMMAND_REGISTRY` (aliases like `full-audit` omitted from groups on purpose).
 - Version-sync category lists and `default_docs` derivation; `local_module_prefixes` directory derivation.
-- Live JSON omits optional keys that match code defaults (`audit_tiers`, `default_docs`, `tool_commands`, `file_patterns`, `test_run`, `analyze_duplicate_functions`, …).
+- Live JSON omits optional keys/sections that match code defaults (`audit_tiers`, `default_docs`, `tool_commands`, `file_patterns`, `test_run`, `analyze_duplicate_functions`, `workflow`, `documentation`, `auto_document`, `ai_validation`, `ai_collaboration`, `audit`, `output`, `status`, `system_signals`, `validation`, `unused_imports`, `quick_audit`, matching `static_analysis` / `analyze_function_registry` scalars, …).
 - `base_exclusions` via portable defaults + additions/removals; MHM `analyze_config` / `domain_mapper` / `known_deleted_files` live only in JSON (empty portable code defaults).
 - MHM `derived_prefix_excludes.core` intentionally omits `development_tools` (includes it in `CORE_MODULES`); documented in live/example `_comment`.
 - Path-drift keyword overlap: `_PYTHON_KEYWORDS_SHARED` in `development_tools/shared/constants.py` feeds `COMMON_VARIABLE_NAMES` and `PYTHON_KEYWORDS_PATH_DRIFT`.
 - Legacy scan patterns in inventory; lean live `legacy_cleanup`.
+- Quick-audit membership = `audit_tiers.TIER1_*` (retired unused `quick_audit.audit_scripts`).
+- `STORAGE_SCOPE_*` string ids defined once in `development_tools/shared/audit_scope.py` and re-exported by `development_tools/shared/audit_storage_scope.py`.
 
 ### Optional leftover
 
-| Finding | Action |
-|---------|--------|
-| `TOOL_GUIDE_OVERRIDES` mentions obsolete `quick-audit` wording | Fix guide prose when touching tool_guide |
+None for the current scan. Product help curated lists remain intentional (see [PRODUCT_LIST_OF_LISTS.md](../development_docs/PRODUCT_LIST_OF_LISTS.md)).
 
 ---
 

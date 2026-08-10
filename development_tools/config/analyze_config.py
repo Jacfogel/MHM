@@ -303,11 +303,7 @@ class ConfigValidator:
                 completeness["sections_complete"] = False
                 completeness["missing_fields"].append(f"VALIDATION.{field}")
 
-        # Check QUICK_AUDIT
-        quick_audit = config.QUICK_AUDIT
-        if "audit_scripts" not in quick_audit:
-            completeness["sections_complete"] = False
-            completeness["missing_fields"].append("QUICK_AUDIT.audit_scripts")
+        # QUICK_AUDIT.audit_scripts retired: Tier 1 membership is audit_tiers.TIER1_*.
 
         ai_validation = config.get_ai_validation_config()
         required_ai_fields = [

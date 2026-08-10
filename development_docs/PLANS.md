@@ -34,7 +34,7 @@ Do **not** use this file as a dumping ground for long implementation checklists.
 | Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
 | Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
 | AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
-| Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
+| Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
 | Generated priority queue | [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
