@@ -358,7 +358,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_reminder_followup_parses_minutes_before(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -416,7 +416,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_reminder_followup_parses_hours_before(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -464,7 +464,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_reminder_followup_parses_days_before(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -530,7 +530,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_reminder_followup_handles_task_without_due_date(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -571,7 +571,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_reminder_followup_handles_unparseable_response(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -606,7 +606,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_reminder_followup_schedules_reminders(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir

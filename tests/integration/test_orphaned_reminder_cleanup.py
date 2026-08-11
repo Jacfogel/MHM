@@ -30,7 +30,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_removes_reminders_for_deleted_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
@@ -66,7 +66,7 @@ class TestOrphanedReminderCleanup:
         mock_get_scheduler.return_value = real_scheduler
 
         # Get scheduler and manually schedule a reminder job (simulating what happens)
-        from core.service import get_scheduler_manager
+        from scheduler.runtime_access import get_scheduler_manager
 
         scheduler = get_scheduler_manager()
         assert scheduler is not None, "Scheduler should be available"
@@ -119,7 +119,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_removes_reminders_for_completed_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
@@ -155,7 +155,7 @@ class TestOrphanedReminderCleanup:
         mock_get_scheduler.return_value = real_scheduler
 
         # Get scheduler and manually schedule a reminder job
-        from core.service import get_scheduler_manager
+        from scheduler.runtime_access import get_scheduler_manager
 
         scheduler = get_scheduler_manager()
         assert scheduler is not None, "Scheduler should be available"
@@ -206,7 +206,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_preserves_reminders_for_active_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
@@ -237,7 +237,7 @@ class TestOrphanedReminderCleanup:
         mock_get_scheduler.return_value = mock_scheduler
 
         # Get scheduler and manually schedule a reminder job
-        from core.service import get_scheduler_manager
+        from scheduler.runtime_access import get_scheduler_manager
 
         scheduler = get_scheduler_manager()
         assert scheduler is not None, "Scheduler should be available"
@@ -287,7 +287,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_handles_multiple_users(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
@@ -328,7 +328,7 @@ class TestOrphanedReminderCleanup:
         mock_get_scheduler.return_value = real_scheduler
 
         # Get scheduler and schedule reminders
-        from core.service import get_scheduler_manager
+        from scheduler.runtime_access import get_scheduler_manager
 
         scheduler = get_scheduler_manager()
         assert scheduler is not None, "Scheduler should be available"

@@ -1099,7 +1099,7 @@ class TestTaskManagementCoverageExpansion:
             {"date": "2024-12-31", "start_time": "14:00", "end_time": "15:00"},
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = Mock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -1118,7 +1118,7 @@ class TestTaskManagementCoverageExpansion:
             {"date": "2024-12-30", "start_time": "09:00", "end_time": "10:00"}
         ]
 
-        with patch("core.service.get_scheduler_manager", return_value=None):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=None):
             result = schedule_task_reminders(user_id, task_id, reminder_periods)
 
             assert result is False
@@ -1149,7 +1149,7 @@ class TestTaskManagementCoverageExpansion:
         mock_scheduler = Mock()
         mock_scheduler.schedule_task_reminder_at_datetime.return_value = False
 
-        with patch("core.service.get_scheduler_manager", return_value=mock_scheduler):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=mock_scheduler):
             result = schedule_task_reminders(user_id, task_id, reminder_periods)
 
             # Should return False if no reminders were scheduled
@@ -1175,7 +1175,7 @@ class TestTaskManagementCoverageExpansion:
             False,
         ]  # First succeeds, second fails
 
-        with patch("core.service.get_scheduler_manager", return_value=mock_scheduler):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=mock_scheduler):
             result = schedule_task_reminders(user_id, task_id, reminder_periods)
 
             # Should return True if at least one reminder was scheduled
@@ -1199,7 +1199,7 @@ class TestTaskManagementCoverageExpansion:
             "Scheduler error"
         )
 
-        with patch("core.service.get_scheduler_manager", return_value=mock_scheduler):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=mock_scheduler):
             result = schedule_task_reminders(user_id, task_id, reminder_periods)
 
             # Should return False on exception
@@ -1216,7 +1216,7 @@ class TestTaskManagementCoverageExpansion:
         mock_scheduler = Mock()
         mock_scheduler.cleanup_task_reminders.return_value = False
 
-        with patch("core.service.get_scheduler_manager", return_value=mock_scheduler):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=mock_scheduler):
             result = cleanup_task_reminders(user_id, task_id)
 
             # Should return False when cleanup fails
@@ -1236,7 +1236,7 @@ class TestTaskManagementCoverageExpansion:
         mock_scheduler = Mock()
         mock_scheduler.cleanup_task_reminders.side_effect = Exception("Cleanup error")
 
-        with patch("core.service.get_scheduler_manager", return_value=mock_scheduler):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=mock_scheduler):
             result = cleanup_task_reminders(user_id, task_id)
 
             # Should return False on exception

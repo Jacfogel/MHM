@@ -375,17 +375,8 @@ def get_checkin_first_question(user_id: str) -> str | None:
         from communication.message_processing.conversation_flow_manager import (
             conversation_manager,
         )
-        from core import get_user_data
 
-        prefs_result = get_user_data(user_id, "preferences")
-        checkin_prefs = prefs_result.get("preferences", {}).get("checkin_settings", {})
-        enabled_questions = checkin_prefs.get("questions", {})
-        question_order = conversation_manager._select_checkin_questions_with_weighting(
-            user_id, enabled_questions
-        )
-        if question_order:
-            first_question_key = question_order[0]
-            return conversation_manager._get_question_text(first_question_key, {})
+        return conversation_manager.get_first_checkin_question_text(user_id)
     except Exception as e:
         logger.debug(f"Could not get check-in first question: {e}")
     return None

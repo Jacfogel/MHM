@@ -1847,7 +1847,8 @@ class AIStatusDocumentMixin:
                     f"- **Circular Dependencies**: {circular_count} circular dependency chain(s)"
                 )
                 lines.append(
-                    f"- **High Coupling**: {high_coupling_count} high-coupling module(s)"
+                    f"- **High Coupling**: {high_coupling_count} high-fan-out module(s) "
+                    f"(unique local imports > 10, excluding __init__.py)"
                 )
         else:
             lines.append(

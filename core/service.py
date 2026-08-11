@@ -463,6 +463,10 @@ class MHMService:
                     details={"stage": "scheduler_manager_construct"},
                 )
 
+            from scheduler.runtime_access import set_scheduler_manager
+
+            set_scheduler_manager(self.scheduler_manager)
+
             # Step 4: Start bots and scheduler
             self.communication_manager.set_scheduler_manager(self.scheduler_manager)
             self.communication_manager.start_all()
@@ -748,6 +752,10 @@ class MHMService:
                 logger.info("Scheduler manager stopped")
         except Exception as e:
             logger.error(f"Error stopping scheduler manager: {e}")
+        finally:
+            from scheduler.runtime_access import clear_scheduler_manager
+
+            clear_scheduler_manager()
 
         # Clean up shutdown request file if it exists
         shutdown_file = get_flags_dir() / "shutdown_request.flag"
@@ -805,16 +813,13 @@ class MHMService:
 
 @handle_errors("getting scheduler manager", default_return=None)
 def get_scheduler_manager():
-    """Get the scheduler manager instance from the global service.
-    Safely handle cases where the global 'service' symbol may not be defined yet.
+    """Return the process SchedulerManager via the scheduler runtime handle.
+
+    Prefer ``scheduler.runtime_access.get_scheduler_manager`` for new call sites.
     """
-    # Check if service exists in globals before accessing it
-    global_vars = globals()
-    if "service" in global_vars:
-        service_instance = global_vars["service"]
-        if service_instance and hasattr(service_instance, "scheduler_manager"):
-            return service_instance.scheduler_manager
-    return None
+    from scheduler.runtime_access import get_scheduler_manager as _get_scheduler_manager
+
+    return _get_scheduler_manager()
 
 
 @handle_errors("main service function")

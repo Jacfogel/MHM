@@ -88,7 +88,7 @@ class TestTaskCleanupReal:
         assert not any(t['id'] == task_id for t in completed_before), "Task should not be in completed_tasks"
         
         # Act: Complete the task (mock scheduler to prevent Windows task creation and document cleanup bug)
-        with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
+        with patch('scheduler.runtime_access.get_scheduler_manager') as mock_get_scheduler:
             # Mock scheduler that doesn't have cleanup_task_reminders (simulating the bug)
             mock_scheduler = MagicMock()
             mock_scheduler.set_wake_timer = MagicMock()  # Prevent Windows task creation
@@ -155,7 +155,7 @@ class TestTaskCleanupReal:
         assert any(t['id'] == task_id for t in active_before), "Task should exist before deletion"
         
         # Act: Delete the task (mock scheduler to prevent Windows task creation and document cleanup bug)
-        with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
+        with patch('scheduler.runtime_access.get_scheduler_manager') as mock_get_scheduler:
             # Mock scheduler that doesn't have cleanup_task_reminders (simulating the bug)
             mock_scheduler = MagicMock()
             mock_scheduler.set_wake_timer = MagicMock()  # Prevent Windows task creation
@@ -227,7 +227,7 @@ class TestTaskCleanupReal:
             'priority': 'high'
         }
         
-        with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
+        with patch('scheduler.runtime_access.get_scheduler_manager') as mock_get_scheduler:
             # Mock scheduler that doesn't have cleanup_task_reminders (simulating the bug)
             mock_scheduler = MagicMock()
             mock_scheduler.set_wake_timer = MagicMock()  # Prevent Windows task creation

@@ -476,9 +476,13 @@ def test_ai_priorities_include_dependency_pattern_recommendations(temp_project_c
     doc = service._generate_ai_priorities_document()
 
     assert "Reduce dependency pattern risk" in doc
-    assert "2 circular chain(s) and 2 high-coupling module(s) were detected." in doc
+    assert (
+        "2 circular chain(s) and 2 high-fan-out module(s) (unique local imports > 10, excluding "
+        "__init__.py) were detected."
+    ) in doc
     assert "Top circular chains:" in doc
     assert "Top high-coupling modules:" in doc
+    assert "Triage high-fan-out modules for inappropriate edges" in doc
     assert "run_development_tools.py audit" in doc
 
 
@@ -554,7 +558,7 @@ def test_ai_status_dependency_patterns_section_includes_top_findings(temp_projec
 
     assert "## Dependency Patterns" in doc
     assert "**Circular Dependencies**: 2 circular dependency chain(s)" in doc
-    assert "**High Coupling**: 2 high-coupling module(s)" in doc
+    assert "**High Coupling**: 2 high-fan-out module(s) (unique local imports > 10, excluding __init__.py)" in doc
     assert "**Top Circular Chains**:" not in doc
     assert "**Top High-Coupling Modules**:" not in doc
 
@@ -603,6 +607,10 @@ def test_consolidated_dependency_patterns_include_top_findings(temp_project_copy
     doc = service._generate_consolidated_report()
 
     assert "## Dependency Patterns" in doc
+    assert (
+        "**High Coupling**: 2 modules with unique local fan-out > 10 (excluding __init__.py)"
+        in doc
+    )
     assert "**Top Circular Chains**:" in doc
     assert "**Top High-Coupling Modules**:" in doc
 

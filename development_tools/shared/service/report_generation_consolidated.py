@@ -2643,7 +2643,8 @@ class ConsolidatedReportDocumentMixin:
                             )
                 if high_coupling > 0:
                     lines.append(
-                        f"- **High Coupling**: {high_coupling} modules with high coupling"
+                        f"- **High Coupling**: {high_coupling} modules with unique local "
+                        f"fan-out > 10 (excluding __init__.py)"
                     )
                     high_coupling_modules = (
                         patterns_data.get("high_coupling", [])

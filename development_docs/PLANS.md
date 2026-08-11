@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-07-29  
+> **Last Updated**: 2026-08-11  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -69,6 +69,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
+| Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 
 ---
 
@@ -101,6 +102,24 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 4. **Actionability sprint** - CRUD reliability, feature-flag-aware suggestions, and non-conflicting guidance using recent automated messages (partially present in `ai/conversational_context/`).
 
 **First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.
+
+---
+
+### 5.0.2 Appropriate coupling reductions
+
+**Status**: **ACTIVE**  
+**Priority**: Medium  
+**Started**: 2026-08-11  
+**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) item "Reduce dependency pattern risk"
+
+**Triage rubric**: High-coupling audit flag = unique local fan-out **> 10**, excluding package `__init__.py` re-export hubs. Legitimate composition hubs (orchestrator, chatbot, interaction_manager, `core.service`) keep their fan-out. Fix only **inappropriate** edges (wrong direction, private-API reach, domain -> composition-root locators).
+
+**Done this pass**:
+- Public `get_first_checkin_question_text` on check-in flow; `core.service_requests` no longer calls private conversation-flow helpers.
+- `scheduler.runtime_access` holds the process SchedulerManager handle; `tasks.task_data_manager` no longer imports `core.service`.
+- Coupling analyzer threshold raised to > 10 with `__init__.py` exclusion; AI_PRIORITIES action text updated for triage (not hub shrink).
+
+**Later candidates** (not automatic refactors): storage -> feature-domain managers; duplicated multi-domain reads in `ai/context`; optional delivery ownership for AI personalized send only if ownership pressure appears; optional hub vs inappropriate-edge classification in the analyzer.
 
 ---
 

@@ -31,8 +31,9 @@ config.load_external_config()
 
 logger = get_dev_tools_logger("development_tools")
 
-# Flag modules with more than this many distinct local (first-party) imports.
-HIGH_COUPLING_UNIQUE_THRESHOLD = 5
+# Flag non-__init__ modules with more than this many distinct local (first-party) imports.
+# Threshold 10 keeps the care set useful; package __init__ re-export hubs are excluded.
+HIGH_COUPLING_UNIQUE_THRESHOLD = 10
 
 
 class DependencyPatternAnalyzer:
@@ -51,10 +52,22 @@ class DependencyPatternAnalyzer:
             return int(unique)
         return int(item.get("import_count", 0))
 
+    @staticmethod
+    def _is_package_init(file_path: str) -> bool:
+        """Return True for package ``__init__.py`` re-export facades."""
+        normalized = file_path.replace("\\", "/")
+        return normalized.endswith("__init__.py")
+
     def _high_coupling_record(
         self, file_path: str, local_imports: list[dict[str, Any]]
     ) -> dict[str, Any] | None:
-        """Build a high-coupling entry when unique local fan-out exceeds threshold."""
+        """Build a high-coupling entry when unique local fan-out exceeds threshold.
+
+        Package ``__init__.py`` files are excluded: their fan-out is usually
+        intentional re-exports, not dependency risk.
+        """
+        if self._is_package_init(file_path):
+            return None
         unique_modules = self._unique_local_module_names(local_imports)
         unique_count = len(unique_modules)
         if unique_count <= HIGH_COUPLING_UNIQUE_THRESHOLD:
@@ -197,7 +210,8 @@ class DependencyPatternAnalyzer:
                 ):
                     dup_note = f" ({raw_count} import statements; {raw_count - unique_count} duplicate)"
                 lines.append(
-                    f"- `{item['file']}` -> {unique_count} unique local dependencies (heavy coupling){dup_note}"
+                    f"- `{item['file']}` -> {unique_count} unique local dependencies "
+                    f"(high fan-out; review for inappropriate edges){dup_note}"
                 )
             lines.append("")
 

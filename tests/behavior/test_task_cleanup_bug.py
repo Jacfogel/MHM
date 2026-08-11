@@ -52,7 +52,7 @@ class TestTaskCleanupBug:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler

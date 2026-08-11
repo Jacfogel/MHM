@@ -336,7 +336,7 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 - `python -m bandit -c pyproject.toml -r core communication ui user ai tasks -ll` - ad-hoc path experiments; audit uses `development_tools/static_checks/analyze_bandit.py` with `[tool.bandit]` excludes.
 - `python -m pip_audit` - ad-hoc; audit uses `development_tools/static_checks/analyze_pip_audit.py` (requirements-hash cache).
 - `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-manual only.
-- `python -m pip install pydeps` then `python -m pydeps core --max-bacon=2 --nodot --no-output --show-cycles` - optional; coupling/circular source of truth remains `analyze_dependency_patterns`.
+- `python -m pip install pydeps` then `python -m pydeps core --max-bacon=2 --nodot --no-output --show-cycles` - optional; coupling/circular source of truth remains `analyze_dependency_patterns` (high-coupling = unique local fan-out > 10, excluding `__init__.py`).
 
 ### 10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)
 

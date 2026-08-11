@@ -23,23 +23,9 @@ def service():
 @pytest.mark.checkins
 class TestServiceCheckinRequestHelpers:
     def test_get_checkin_first_question_returns_selected_text(self, service):
-        with (
-            patch(
-                "core.get_user_data",
-                return_value={
-                    "preferences": {
-                        "checkin_settings": {"questions": {"mood": {"enabled": True}}}
-                    }
-                },
-            ),
-            patch(
-                "communication.message_processing.conversation_flow_manager.conversation_manager._select_checkin_questions_with_weighting",
-                return_value=["mood"],
-            ),
-            patch(
-                "communication.message_processing.conversation_flow_manager.conversation_manager._get_question_text",
-                return_value="How is your mood today?",
-            ),
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager.get_first_checkin_question_text",
+            return_value="How is your mood today?",
         ):
             question = service._get_checkin_first_question("user-1")
 

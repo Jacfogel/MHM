@@ -218,7 +218,7 @@ def update_user_index_with_retry(user_id: str, max_retries: int = 5) -> None:
 def schedule_new_user_if_available(user_id: str) -> None:
     """Register the new user with the scheduler when the service is running."""
     try:
-        from core.service import get_scheduler_manager
+        from scheduler.runtime_access import get_scheduler_manager
 
         scheduler_manager = get_scheduler_manager()
         if scheduler_manager:

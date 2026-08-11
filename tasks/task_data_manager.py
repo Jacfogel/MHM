@@ -437,7 +437,7 @@ def schedule_task_reminders(
     if not user_id or not task_id or not reminder_periods:
         logger.debug(f"No reminder periods to schedule for task {task_id}")
         return True
-    from core.service import get_scheduler_manager
+    from scheduler.runtime_access import get_scheduler_manager
     scheduler_manager = get_scheduler_manager()
     if not scheduler_manager:
         logger.error("Scheduler manager not available for scheduling task reminders")
@@ -462,7 +462,7 @@ def schedule_task_reminders(
 @handle_errors("cleaning up task reminders", default_return=False)
 def cleanup_task_reminders(user_id: str, task_identifier: str) -> bool:
     """Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id)."""
-    from core.service import get_scheduler_manager
+    from scheduler.runtime_access import get_scheduler_manager
     scheduler_manager = get_scheduler_manager()
     if not scheduler_manager:
         logger.warning(

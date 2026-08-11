@@ -11,10 +11,17 @@ from scheduler.manager import (
     schedule_all_task_reminders,
     set_scheduler_delivery_factory,
 )
+from scheduler.runtime_access import (
+    clear_scheduler_manager,
+    get_scheduler_manager,
+    set_scheduler_manager,
+)
 
 __all__ = [
     "SchedulerManager",
     "clear_all_accumulated_jobs_standalone",
+    "clear_scheduler_manager",
+    "get_scheduler_manager",
     "process_category_schedule",
     "process_user_schedules",
     "run_category_scheduler_standalone",
@@ -22,4 +29,5 @@ __all__ = [
     "run_user_scheduler_standalone",
     "schedule_all_task_reminders",
     "set_scheduler_delivery_factory",
+    "set_scheduler_manager",
 ]

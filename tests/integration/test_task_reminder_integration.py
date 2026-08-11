@@ -56,7 +56,7 @@ class TestTaskReminderIntegration:
             },
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -111,7 +111,7 @@ class TestTaskReminderIntegration:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -124,7 +124,7 @@ class TestTaskReminderIntegration:
 
             # Complete the task
             with patch(
-                "core.service.get_scheduler_manager"
+                "scheduler.runtime_access.get_scheduler_manager"
             ) as mock_get_scheduler_cleanup:
                 mock_scheduler_cleanup_instance = MagicMock()
                 mock_get_scheduler_cleanup.return_value = (
@@ -162,7 +162,7 @@ class TestTaskReminderIntegration:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -175,7 +175,7 @@ class TestTaskReminderIntegration:
 
             # Delete the task
             with patch(
-                "core.service.get_scheduler_manager"
+                "scheduler.runtime_access.get_scheduler_manager"
             ) as mock_get_scheduler_cleanup:
                 mock_scheduler_cleanup_instance = MagicMock()
                 mock_get_scheduler_cleanup.return_value = (
@@ -213,7 +213,7 @@ class TestTaskReminderIntegration:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -239,7 +239,7 @@ class TestTaskReminderIntegration:
             ]
 
             with patch(
-                "core.service.get_scheduler_manager"
+                "scheduler.runtime_access.get_scheduler_manager"
             ) as mock_get_scheduler_update:
                 mock_scheduler_update_instance = MagicMock()
                 mock_scheduler_update_instance.schedule_task_reminder_at_datetime.return_value = (
@@ -288,7 +288,7 @@ class TestTaskReminderIntegration:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler
@@ -303,7 +303,7 @@ class TestTaskReminderIntegration:
 
             # Complete the task
             with patch(
-                "core.service.get_scheduler_manager"
+                "scheduler.runtime_access.get_scheduler_manager"
             ) as mock_get_scheduler_complete:
                 mock_scheduler_complete_instance = MagicMock()
                 mock_scheduler_complete_instance.schedule_task_reminder_at_datetime.return_value = (

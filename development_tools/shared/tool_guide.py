@@ -184,7 +184,7 @@ TOOL_GUIDE_OVERRIDES: dict[str, dict[str, Any]] = {
         "output_interpretation": {
             "dependency_graph": "Visual representation of module relationships",
             "circular_dependencies": "Modules that depend on each other",
-            "high_coupling": "Modules with many dependencies",
+            "high_coupling": "Modules with unique local fan-out > 10 (excluding __init__.py); triage for inappropriate edges",
             "isolated_modules": "Modules with few dependencies",
         },
         "success_criteria": [

@@ -172,7 +172,7 @@ class TestTaskErrorHandling:
             }
         ]
 
-        with patch("core.service.get_scheduler_manager", return_value=None):
+        with patch("scheduler.runtime_access.get_scheduler_manager", return_value=None):
             result = schedule_task_reminders(user_id, task_id, reminder_periods)
             assert result is False, "Should return False when scheduler unavailable"
 
@@ -205,7 +205,7 @@ class TestTaskErrorHandling:
             },  # Missing end_time
         ]
 
-        with patch("core.service.get_scheduler_manager") as mock_get_scheduler:
+        with patch("scheduler.runtime_access.get_scheduler_manager") as mock_get_scheduler:
             mock_scheduler = MagicMock()
             mock_scheduler.schedule_task_reminder_at_datetime.return_value = True
             mock_get_scheduler.return_value = mock_scheduler

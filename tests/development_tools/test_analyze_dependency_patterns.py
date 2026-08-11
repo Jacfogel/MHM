@@ -23,6 +23,10 @@ def _build_imports_payload(local_modules=None, third_party_modules=None, stdlib_
     }
 
 
+def _many_local_modules(count: int, prefix: str = "core.mod") -> list[str]:
+    return [f"{prefix}{i}" for i in range(count)]
+
+
 @pytest.mark.unit
 def test_high_coupling_uses_unique_module_count_not_duplicate_imports():
     """Duplicate import statements must not inflate high-coupling detection."""
@@ -39,22 +43,47 @@ def test_high_coupling_uses_unique_module_count_not_duplicate_imports():
 
     genuinely_coupled = {
         "core/coupled.py": _build_imports_payload(
-            local_modules=[
-                "core.a",
-                "core.b",
-                "core.c",
-                "core.d",
-                "core.e",
-                "core.f",
-            ],
+            local_modules=_many_local_modules(11),
         ),
     }
     patterns = analyzer.analyze_dependency_patterns(genuinely_coupled)
     item = next(
         x for x in patterns["high_coupling"] if x["file"] == "core/coupled.py"
     )
-    assert item["unique_module_count"] == 6
-    assert item["import_count"] == 6
+    assert item["unique_module_count"] == 11
+    assert item["import_count"] == 11
+
+
+@pytest.mark.unit
+def test_high_coupling_ignores_unique_count_at_or_below_threshold():
+    """Unique fan-out of 10 or fewer must not be flagged."""
+    analyzer = DependencyPatternAnalyzer()
+    patterns = analyzer.analyze_dependency_patterns(
+        {
+            "core/borderline.py": _build_imports_payload(
+                local_modules=_many_local_modules(10),
+            ),
+        }
+    )
+    assert not any(
+        item["file"] == "core/borderline.py" for item in patterns["high_coupling"]
+    )
+
+
+@pytest.mark.unit
+def test_high_coupling_excludes_package_init_files():
+    """Package __init__.py re-export hubs must not be flagged as high coupling."""
+    analyzer = DependencyPatternAnalyzer()
+    patterns = analyzer.analyze_dependency_patterns(
+        {
+            "ai/__init__.py": _build_imports_payload(
+                local_modules=_many_local_modules(16, prefix="ai.pkg"),
+            ),
+        }
+    )
+    assert not any(
+        item["file"] == "ai/__init__.py" for item in patterns["high_coupling"]
+    )
 
 
 @pytest.mark.unit
@@ -67,7 +96,7 @@ def test_analyze_dependency_patterns_categorizes_and_flags_high_coupling():
             third_party_modules=["pydantic"],
         ),
         "communication/discord_bot.py": _build_imports_payload(
-            local_modules=["core.config", "core.service", "ai.chat.chatbot", "communication.router", "communication.webhook", "communication.events"],
+            local_modules=_many_local_modules(11, prefix="communication.dep"),
             third_party_modules=["discord"],
         ),
         "ui/main_window.py": _build_imports_payload(
@@ -107,14 +136,7 @@ def test_detect_risk_areas_contains_expected_sections():
     analyzer = DependencyPatternAnalyzer()
     actual_imports = {
         "core/a.py": _build_imports_payload(
-            local_modules=[
-                "core.b",
-                "core.c",
-                "core.d",
-                "core.e",
-                "core.f",
-                "core.g",
-            ],
+            local_modules=["core.b"] + _many_local_modules(10),
             third_party_modules=["numpy"],
         ),
         "core/b.py": _build_imports_payload(local_modules=["core.a"]),
@@ -124,6 +146,7 @@ def test_detect_risk_areas_contains_expected_sections():
     text = analyzer.detect_risk_areas(actual_imports, patterns)
 
     assert "High Coupling" in text
+    assert "high fan-out; review for inappropriate edges" in text
     assert "Third-Party Risks" in text
     assert "Circular Dependencies to Monitor" in text
 

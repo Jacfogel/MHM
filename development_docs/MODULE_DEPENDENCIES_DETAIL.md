@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-10 00:12:57
+> **Last Generated**: 2026-08-11 15:23:19
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 259
-- **Total Imports Found**: 2203
-- **Dependencies Documented**: 259 (100% coverage)
-- **Standard Library Imports**: 651 (29.6%)
-- **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1335 (60.6%)
-- **Last Updated**: 2026-08-10
+- **Files Scanned**: 260
+- **Total Imports Found**: 2209
+- **Dependencies Documented**: 260 (100% coverage)
+- **Standard Library Imports**: 653 (29.6%)
+- **Third-Party Imports**: 217 (9.8%)
+- **Local Imports**: 1339 (60.6%)
+- **Last Updated**: 2026-08-11
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 651 imports (29.6%)
-- **Third-Party**: 217 imports (9.9%)
-- **Local**: 1335 imports (60.6%)
+- **Standard Library**: 653 imports (29.6%)
+- **Third-Party**: 217 imports (9.8%)
+- **Local**: 1339 imports (60.6%)
 
 ## Module Dependencies by Directory
 
@@ -3195,7 +3195,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (create_user_files)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.service (get_scheduler_manager)` (NEW)
+    - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `storage.user_data_operations (update_user_index)` (NEW)
     - `tasks (add_user_task_tag, setup_default_task_tags)` (NEW)
   - **Standard Library**:
@@ -3208,7 +3208,7 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.service, storage.user_data_operations, tasks
+- Added: core, core.config, core.error_handling, core.file_operations, core.logger, scheduler.runtime_access, storage.user_data_operations, tasks
 - Removed: ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3501,6 +3501,7 @@
   - `scheduler/jobs.py`
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
+  - `scheduler/runtime_access.py`
   - `scheduler/task_reminders.py`
   - `scheduler/user_timezone.py`
   - `storage/runtime_state_storage.py`
@@ -4261,6 +4262,7 @@
     - `core.time_utilities (now_datetime_full, parse_timestamp_full)` (NEW)
     - `core.user_management (get_all_user_ids)` (NEW)
     - `scheduler.manager (SchedulerManager, set_scheduler_delivery_factory)`
+    - `scheduler.runtime_access (clear_scheduler_manager, get_scheduler_manager, set_scheduler_manager)` (NEW)
     - `storage.user_data_read (get_user_data)`
   - **Standard Library**:
     - `atexit`
@@ -4274,12 +4276,10 @@
     - `typing (Any)`
   - **Third-party**:
     - `psutil`
-- **Used by**:
-  - `core/admin_account_provisioning.py`
-  - `tasks/task_data_manager.py`
+- **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management
+- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management, scheduler.runtime_access
 - Removed: core/admin_account_provisioning.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5003,10 +5003,11 @@
 - **Dependencies**:
   - **Local**:
     - `scheduler.manager (SchedulerManager, clear_all_accumulated_jobs_standalone, process_category_schedule, process_user_schedules, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone, schedule_all_task_reminders, set_scheduler_delivery_factory)` (NEW)
+    - `scheduler.runtime_access (clear_scheduler_manager, get_scheduler_manager, set_scheduler_manager)` (NEW)
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: scheduler.manager
+- Added: scheduler.manager, scheduler.runtime_access
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5132,6 +5133,27 @@
 **Dependency Changes**:
 - Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler, scheduler.user_timezone, tasks, user.user_context
 - Removed: collections.abc, core/service.py, scheduler/__init__.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/runtime_access.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `typing (Any)`
+- **Used by**:
+  - `core/admin_account_provisioning.py`
+  - `core/service.py`
+  - `scheduler/__init__.py`
+  - `tasks/task_data_manager.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5596,9 +5618,9 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.service (get_scheduler_manager)` (NEW)
     - `core.tags (add_user_tag, ensure_tags_initialized, get_user_tags, remove_user_tag)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
+    - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `scheduler.user_timezone (user_local_now_naive)` (NEW)
     - `storage.user_data_v2_base (generate_short_id)`
     - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks)`
@@ -5611,7 +5633,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.service, core.tags, core.time_utilities, scheduler.user_timezone, tasks.task_tag_helpers
+- Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone, tasks.task_tag_helpers
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

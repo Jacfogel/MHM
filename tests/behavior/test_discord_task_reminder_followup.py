@@ -35,7 +35,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch('core.service.get_scheduler_manager')
+    @patch('scheduler.runtime_access.get_scheduler_manager')
     def test_discord_task_creation_triggers_reminder_followup(self, mock_get_scheduler, test_data_dir):
         """Test that creating a task via Discord triggers reminder follow-up flow."""
         # Arrange
@@ -69,7 +69,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch('core.service.get_scheduler_manager')
+    @patch('scheduler.runtime_access.get_scheduler_manager')
     def test_discord_reminder_followup_complete_flow(self, mock_get_scheduler, test_data_dir):
         """Test complete Discord flow: create task -> set reminders."""
         # Arrange
@@ -116,7 +116,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_nt_call_dentist_skip_due_date_shows_priority_buttons(
         self, mock_get_scheduler, test_data_dir
     ):
@@ -152,7 +152,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch('core.service.get_scheduler_manager')
+    @patch('scheduler.runtime_access.get_scheduler_manager')
     def test_discord_reminder_followup_no_reminders(self, mock_get_scheduler, test_data_dir):
         """Test Discord flow: create task -> decline reminders."""
         # Arrange
@@ -196,7 +196,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @patch("core.service.get_scheduler_manager")
+    @patch("scheduler.runtime_access.get_scheduler_manager")
     def test_discord_tomorrow_at_2pm_reminder_uses_due_time(
         self, mock_get_scheduler, test_data_dir
     ):

@@ -180,6 +180,20 @@ class CheckinFlowMixin(FlowStateMixin):
                 )
 
         return question_text
+
+    @handle_errors("getting first check-in question text", default_return=None)
+    def get_first_checkin_question_text(self, user_id: str) -> str | None:
+        """Public API: first weighted check-in question text for a user (no active flow)."""
+        prefs_result = get_user_data(user_id, "preferences")
+        checkin_prefs = prefs_result.get("preferences", {}).get("checkin_settings", {})
+        enabled_questions = checkin_prefs.get("questions", {})
+        question_order = self._select_checkin_questions_with_weighting(
+            user_id, enabled_questions
+        )
+        if not question_order:
+            return None
+        return self._get_question_text(question_order[0], {})
+
     @handle_errors(
         "handling checkin",
         default_return=(

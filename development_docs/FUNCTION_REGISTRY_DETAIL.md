@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-10 00:12:45
+> **Last Generated**: 2026-08-11 15:23:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 261
-- **Functions Found**: 2517
-- **Methods Found**: 1366
+- **Files Scanned**: 262
+- **Functions Found**: 2521
+- **Methods Found**: 1367
 - **Classes Found**: 254
-- **Total Items**: 3883
-- **Functions Documented**: 2236
-- **Methods Documented**: 1254
+- **Total Items**: 3888
+- **Functions Documented**: 2240
+- **Methods Documented**: 1255
 - **Classes Documented**: 183
-- **Total Documented**: 3490
+- **Total Documented**: 3495
 - **Template-Generated**: 46
-- **Last Updated**: 2026-08-10
+- **Last Updated**: 2026-08-11
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (482)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (646)
+### **Communication Functions** (647)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -2950,6 +2950,7 @@ Returns:
     List of question keys in selected order
 - [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
 - [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+- [OK] `get_first_checkin_question_text(self, user_id)` - Public API: first weighted check-in question text for a user (no active flow).
 **Classes:**
 - [MISSING] `CheckinFlowMixin` - No description
   - [OK] `CheckinFlowMixin._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
@@ -2973,6 +2974,7 @@ Returns:
     List of question keys in selected order
   - [OK] `CheckinFlowMixin._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
   - [OK] `CheckinFlowMixin._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+  - [OK] `CheckinFlowMixin.get_first_checkin_question_text(self, user_id)` - Public API: first weighted check-in question text for a user (no active flow).
 
 #### `communication/message_processing/flows/flow_command_helpers.py`
 **Functions:**
@@ -4660,8 +4662,9 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `cleanup_reschedule_requests(self)` - Clean up any remaining reschedule request files
 - [OK] `cleanup_test_message_requests(self)` - Clean up any remaining test message request files
 - [OK] `emergency_shutdown(self)` - Emergency shutdown invoked via signal handling or the process-wide atexit hook.
-- [OK] `get_scheduler_manager()` - Get the scheduler manager instance from the global service.
-Safely handle cases where the global 'service' symbol may not be defined yet.
+- [OK] `get_scheduler_manager()` - Return the process SchedulerManager via the scheduler runtime handle.
+
+Prefer ``scheduler.runtime_access.get_scheduler_manager`` for new call sites.
 - [OK] `init_service_runtime()` - Configure logging, component loggers, and optional developer tooling once per process.
 
 Call from service entry points (``MHMService`` construction / ``start()``) instead of running
@@ -5729,6 +5732,12 @@ Args:
     period: The time period name
     wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
   - [OK] `SchedulerManager.stop_scheduler(self)` - Stops the scheduler thread.
+
+#### `scheduler/runtime_access.py`
+**Functions:**
+- [OK] `clear_scheduler_manager()` - Clear the registered SchedulerManager handle.
+- [OK] `get_scheduler_manager()` - Return the registered SchedulerManager, or None if the service is not up.
+- [OK] `set_scheduler_manager(manager)` - Register the live SchedulerManager for this process (or clear with None).
 
 #### `scheduler/task_reminders.py`
 **Functions:**

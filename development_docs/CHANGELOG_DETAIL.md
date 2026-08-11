@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-11 - Appropriate coupling reductions (inverted edges)
+- **Architecture**: Reframed dependency-priority work away from lowering the audit's high-coupling count. Legitimate hubs keep their fan-out; only inappropriate edges are in scope. Added triage note in [PLANS.md](PLANS.md) Section 5.0.2.
+- **Check-in API**: Added public `CheckinFlowMixin.get_first_checkin_question_text`; [`core/service_requests.py`](../core/service_requests.py) now calls that instead of private `_select_checkin_questions_with_weighting` / `_get_question_text`.
+- **Scheduler access**: Added [`scheduler/runtime_access.py`](../scheduler/runtime_access.py); `MHMService` registers/clears the live manager on start/shutdown. [`tasks/task_data_manager.py`](../tasks/task_data_manager.py) and [`core/admin_account_provisioning.py`](../core/admin_account_provisioning.py) use the new handle; `core.service.get_scheduler_manager` remains a thin re-export.
+- **Dev tools**: [`analyze_dependency_patterns.py`](../development_tools/imports/analyze_dependency_patterns.py) high-coupling now requires unique local fan-out > 10 and excludes `__init__.py`; AI_PRIORITIES/status/consolidated wording triages inappropriate edges instead of instructing hub fan-out cuts.
+- **Impact**: Removes upward/private-API dependency edges without chasing hub import scores; coupling audit care set shrinks from ~76 noisy hits to ~18.
+- **Testing**: Service-request / task-reminder suites earlier; analyzer + report-generation unit tests for threshold/`__init__` exclusion and priority text.
+
 ### 2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup (A+B)
 - **Docs**: Moved [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) from `development_docs/` to `development_tools/` (dev-tools lists only; product lists stay in [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md)). Retargeted live pointers in PLANS, PRODUCT_LIST_OF_LISTS, AI_DEVELOPMENT_WORKFLOW, AI_DEVELOPMENT_TOOLS_GUIDE, SPECS_GUIDE, `check_channel_loggers.py`, config comments, and historical changelog links.
 - **Config SSOT**: Omitted live/example JSON sections and keys that exactly copied `config.py` defaults (`workflow`, `documentation`, `auto_document`, `ai_validation`, `ai_collaboration`, `audit`, `output`, `status`, `system_signals`, `validation`, `unused_imports`, `quick_audit`, plus matching `static_analysis` / `analyze_function_registry` scalars). Kept MHM shard roots and `decision_trees`.

@@ -1641,13 +1641,17 @@ class AIPrioritiesDocumentMixin:
                 )
 
                 dep_bullets.append(
-                    "Action: Break circular dependencies and reduce module fan-in/fan-out in top offenders."
+                    "Action: Triage high-fan-out modules for inappropriate edges "
+                    "(wrong-layer or private-API reach); leave legitimate composition "
+                    "hubs alone. Break any circular chains first."
                 )
                 add_priority(
                     tier=3,
                     title="Reduce dependency pattern risk",
                     reason=(
-                        f"{circular_count} circular chain(s) and {high_coupling_count} high-coupling module(s) were detected."
+                        f"{circular_count} circular chain(s) and {high_coupling_count} "
+                        f"high-fan-out module(s) (unique local imports > 10, excluding "
+                        f"__init__.py) were detected."
                     ),
                     bullets=dep_bullets,
                 )
