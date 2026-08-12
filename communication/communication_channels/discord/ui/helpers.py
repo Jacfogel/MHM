@@ -1,16 +1,52 @@
-"""Deliver channel-agnostic InteractionResponse objects on Discord."""
+"""Shared Discord UI helpers: user resolution, command runner, response delivery."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import discord
 
-from communication.command_handlers.shared_types import InteractionResponse
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.error_handling import handle_errors
 
 if TYPE_CHECKING:
     from communication.communication_channels.discord.bot import DiscordBot
+
+
+@handle_errors("resolving internal user from Discord interaction", default_return=None)
+def internal_user_id(interaction: discord.Interaction) -> str | None:
+    """Map a Discord interaction to the internal MHM user id."""
+    from core import get_user_id_by_identifier
+
+    if not interaction.user:
+        return None
+    return get_user_id_by_identifier(str(interaction.user.id))
+
+
+@handle_errors("running Discord command handler", default_return=None)
+def run_discord_handler_intent(
+    user_id: str,
+    intent: str,
+    entities: dict[str, Any],
+    original_message: str,
+    *,
+    missing_handler_message: str,
+) -> InteractionResponse:
+    """Run a command handler for a Discord UI action."""
+    from communication.command_handlers.interaction_handlers import get_interaction_handler
+
+    handler = get_interaction_handler(intent)
+    if not handler:
+        return InteractionResponse(missing_handler_message, True)
+    return handler.handle(
+        user_id,
+        ParsedCommand(
+            intent=intent,
+            entities=entities,
+            confidence=1.0,
+            original_message=original_message,
+        ),
+    )
 
 
 @handle_errors("delivering handler response on Discord", default_return=None)

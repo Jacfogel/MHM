@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 15:23:19
+> **Last Generated**: 2026-08-11 16:14:12
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 260
-- **Total Imports Found**: 2209
-- **Dependencies Documented**: 260 (100% coverage)
-- **Standard Library Imports**: 653 (29.6%)
-- **Third-Party Imports**: 217 (9.8%)
-- **Local Imports**: 1339 (60.6%)
+- **Files Scanned**: 264
+- **Total Imports Found**: 2220
+- **Dependencies Documented**: 264 (100% coverage)
+- **Standard Library Imports**: 661 (29.8%)
+- **Third-Party Imports**: 218 (9.8%)
+- **Local Imports**: 1341 (60.4%)
 - **Last Updated**: 2026-08-11
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 653 imports (29.6%)
-- **Third-Party**: 217 imports (9.8%)
-- **Local**: 1339 imports (60.6%)
+- **Standard Library**: 661 imports (29.8%)
+- **Third-Party**: 218 imports (9.8%)
+- **Local**: 1341 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -1123,7 +1123,7 @@
     - `communication_channels.base.rich_formatter (DiscordRichFormatter, EmailRichFormatter, RichFormatter, get_rich_formatter)`
     - `communication_channels.discord.api_client (DiscordAPIClient, MessageData, SendMessageOptions, get_discord_api_client)`
     - `communication_channels.discord.bot (DiscordBot)`
-    - `communication_channels.discord.discord_connection_status (DiscordConnectionStatus)`
+    - `communication_channels.discord.events.status (DiscordConnectionStatus)`
     - `communication_channels.email.bot (EmailBot, EmailBotError)`
     - `message_processing.command_parser (EnhancedCommandParser, ParsingResult, get_enhanced_command_parser, parse_command)`
     - `message_processing.conversation_flow_manager (ConversationManager, conversation_manager)`
@@ -1167,7 +1167,7 @@
     - `string`
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/account_flow_handler.py`
+  - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger
@@ -1367,8 +1367,8 @@
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/discord_command_runner.py`
-  - `communication/communication_channels/discord/discord_interaction_router.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/ui/helpers.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/flows/checkin_flow.py`
   - `communication/message_processing/interaction_manager.py`
@@ -1499,12 +1499,11 @@
   - `communication/command_handlers/task_analytics_handler.py`
   - `communication/command_handlers/task_handler.py`
   - `communication/command_handlers/trend_analytics_handler.py`
-  - `communication/communication_channels/discord/account_flow_handler.py`
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/discord_command_runner.py`
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_response_delivery.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `communication/communication_channels/discord/ui/helpers.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
   - `communication/message_processing/action_plan_executor.py`
   - `communication/message_processing/action_request_adapter.py`
   - `communication/message_processing/command_parser.py`
@@ -1618,8 +1617,9 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/discord_handler_protocol.py`
-  - `communication/communication_channels/discord/discord_ready_handlers.py`
+  - `communication/communication_channels/discord/events/connection_health.py`
+  - `communication/communication_channels/discord/events/lifecycle.py`
+  - `communication/communication_channels/discord/events/protocol.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
@@ -1693,31 +1693,6 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/account_flow_handler.py`
-- **Purpose**: Communication channel implementation for account_flow_handler
-- **Dependencies**:
-  - **Local**:
-    - `communication.command_handlers.account_handler (AccountManagementHandler)`
-    - `communication.command_handlers.shared_types (ParsedCommand)`
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-    - `storage.user_data_presets (TIMEZONE_OPTIONS)`
-  - **Standard Library**:
-    - `contextlib`
-  - **Third-party**:
-    - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/welcome_handler.py`
-
-**Dependency Changes**:
-- Added: core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/welcome_handler.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
 #### `communication/communication_channels/discord/api_client.py`
 - **Purpose**: Communication channel implementation for api_client
 - **Dependencies**:
@@ -1745,193 +1720,112 @@
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.base.base_channel (BaseChannel, ChannelConfig, ChannelStatus, ChannelType)`
-    - `communication.communication_channels.discord.discord_connection_status (DiscordConnectionStatus)` (NEW)
-    - `communication.communication_channels.discord.discord_guild_handlers (handle_guild_join)` (NEW)
-    - `communication.communication_channels.discord.discord_interaction_router (handle_discord_interaction)` (NEW)
-    - `communication.communication_channels.discord.discord_message_handler (handle_discord_message)` (NEW)
-    - `communication.communication_channels.discord.discord_ready_handlers (handle_disconnect, handle_error, run_on_ready_internal)` (NEW)
-    - `communication.communication_channels.discord.webhook_server (WebhookServer)`
-    - `communication.communication_channels.interaction_view_factory (create_interaction_view)` (NEW)
-    - `communication.message_processing.flows.flow_constants (FLOW_CONTROL_SKIP_LABELS, FLOW_UNDO_BUTTON_PREFIX)` (NEW)
-    - `communication.message_processing.interaction_manager (get_interaction_manager, handle_user_message)`
-    - `core (get_user_data, get_user_id_by_identifier)` (NEW)
-    - `core.config (DISCORD_APPLICATION_ID, DISCORD_AUTO_NGROK, DISCORD_BOT_TOKEN, DISCORD_WEBHOOK_PORT)` (NEW)
+    - `communication.communication_channels.discord.events.command_registration (register_discord_commands)` (NEW)
+    - `communication.communication_channels.discord.events.connection_health (DiscordConnectionHealthMixin)` (NEW)
+    - `communication.communication_channels.discord.events.interaction_router (handle_discord_interaction)` (NEW)
+    - `communication.communication_channels.discord.events.lifecycle (handle_disconnect, handle_error, handle_guild_join, run_on_ready_internal)` (NEW)
+    - `communication.communication_channels.discord.events.message_handler (handle_discord_message)` (NEW)
+    - `communication.communication_channels.discord.events.status (DiscordConnectionStatus)` (NEW)
+    - `communication.communication_channels.discord.ui.rich_delivery (DiscordRichDeliveryMixin)` (NEW)
+    - `communication.communication_channels.discord.webhooks.tunnel (DiscordWebhookTunnelMixin)` (NEW)
+    - `core (get_user_id_by_identifier)` (NEW)
+    - `core.config (DISCORD_APPLICATION_ID, DISCORD_BOT_TOKEN)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
+    - `__future__ (annotations)`
     - `asyncio`
-    - `collections.abc (Awaitable)`
     - `contextlib`
     - `gc`
-    - `os`
     - `queue`
-    - `shutil`
-    - `socket`
-    - `subprocess`
     - `threading`
     - `time`
-    - `typing (Any, cast)`
+    - `typing (Any)`
   - **Third-party**:
     - `aiohttp`
     - `discord (app_commands, discord)`
     - `discord.ext (commands)`
-    - `dns.resolver`
-    - `psutil`
 - **Used by**:
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/discord_response_delivery.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `communication/communication_channels/discord/ui/helpers.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.discord.discord_connection_status, communication.communication_channels.discord.discord_guild_handlers, communication.communication_channels.discord.discord_interaction_router, communication.communication_channels.discord.discord_message_handler, communication.communication_channels.discord.discord_ready_handlers, communication.communication_channels.interaction_view_factory, communication.message_processing.flows.flow_constants, core, core.config, core.error_handling, core.logger
-- Removed: collections.abc, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/task_list_ui.py, discord.ext, dns.resolver
+- Added: communication.communication_channels.discord.events.command_registration, communication.communication_channels.discord.events.connection_health, communication.communication_channels.discord.events.interaction_router, communication.communication_channels.discord.events.lifecycle, communication.communication_channels.discord.events.message_handler, communication.communication_channels.discord.events.status, communication.communication_channels.discord.ui.rich_delivery, communication.communication_channels.discord.webhooks.tunnel, core, core.config, core.error_handling, core.logger
+- Removed: collections.abc, communication.communication_channels.discord.webhook_server, communication.message_processing.interaction_manager, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/task_list_ui.py, discord.ext, dns.resolver
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/checkin_view.py`
-- **Purpose**: Communication channel implementation for checkin_view
-- **Dependencies**:
-  - **Local**:
-    - `communication.message_processing.interaction_manager (handle_user_message)`
-    - `core (get_user_id_by_identifier)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `typing (Optional)`
-  - **Third-party**:
-    - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/interaction_views.py`
-
-**Dependency Changes**:
-- Added: core, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/interaction_views.py
+#### `communication/communication_channels/discord/events/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/create_item_ui.py`
-- **Purpose**: Communication channel implementation for create_item_ui
+#### `communication/communication_channels/discord/events/command_registration.py`
+- **Purpose**: Communication channel implementation for command_registration
 - **Dependencies**:
   - **Local**:
-    - `communication.command_handlers.shared_types (InteractionResponse)` (NEW)
-    - `communication.communication_channels.discord.bot (DiscordBot)` (NEW)
-    - `communication.communication_channels.discord.discord_command_runner (run_discord_handler_intent)` (NEW)
-    - `communication.communication_channels.discord.discord_response_delivery (deliver_handler_response)` (NEW)
-    - `communication.communication_channels.discord.discord_user_resolution (internal_user_id)` (NEW)
-    - `communication.communication_channels.discord.item_form_shared (entities_from_shared_fields)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `__future__ (annotations)`
-    - `typing (Any, TYPE_CHECKING)`
-  - **Third-party**:
-    - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/interaction_views.py`
-
-**Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.discord_command_runner, communication.communication_channels.discord.discord_response_delivery, communication.communication_channels.discord.discord_user_resolution, communication.communication_channels.discord.item_form_shared, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/interaction_views.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/discord_command_runner.py`
-- **Purpose**: Communication channel implementation for discord_command_runner
-- **Dependencies**:
-  - **Local**:
-    - `communication.command_handlers.interaction_handlers (get_interaction_handler)` (NEW)
-    - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
+    - `communication.communication_channels.discord (bot)` (NEW)
+    - `communication.communication_channels.discord.events.protocol (DiscordHandlerHost)` (NEW)
+    - `communication.message_processing.interaction_manager (get_interaction_manager, handle_user_message)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
-    - `typing (Any)`
-- **Used by**:
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
-
-**Dependency Changes**:
-- Added: communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, core.error_handling
-- Removed: communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/task_list_ui.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/discord_connection_status.py`
-- **Purpose**: Communication channel implementation for discord_connection_status
-- **Dependencies**:
-  - **Standard Library**:
-    - `enum`
-- **Used by**:
-  - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/discord_handler_protocol.py`
-  - `communication/communication_channels/discord/discord_ready_handlers.py`
-
-**Dependency Changes**:
-- Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/discord_handler_protocol.py, communication/communication_channels/discord/discord_ready_handlers.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/discord_guild_handlers.py`
-- **Purpose**: Communication channel implementation for discord_guild_handlers
-- **Dependencies**:
-  - **Local**:
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
+    - `contextlib`
   - **Third-party**:
     - `discord`
 - **Used by**:
   - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py
+- Added: communication.communication_channels.discord, communication.communication_channels.discord.events.protocol, communication.message_processing.interaction_manager, core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/discord_handler_protocol.py`
-- **Purpose**: Communication channel implementation for discord_handler_protocol
+#### `communication/communication_channels/discord/events/connection_health.py`
+- **Purpose**: Communication channel implementation for connection_health
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.base.base_channel (ChannelStatus)` (NEW)
-    - `communication.communication_channels.discord.discord_connection_status (DiscordConnectionStatus)` (NEW)
+    - `communication.communication_channels.discord (bot)` (NEW)
+    - `communication.communication_channels.discord.events.status (DiscordConnectionStatus)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
-    - `typing (Any, Protocol)`
+    - `asyncio`
+    - `socket`
+    - `time`
+    - `typing (Any)`
   - **Third-party**:
-    - `discord`
+    - `dns.resolver`
 - **Used by**:
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/discord_ready_handlers.py`
+  - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.discord_connection_status
-- Removed: communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord, communication.communication_channels.discord.events.status, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/discord_interaction_router.py`
-- **Purpose**: Communication channel implementation for discord_interaction_router
+#### `communication/communication_channels/discord/events/interaction_router.py`
+- **Purpose**: Communication channel implementation for interaction_router
 - **Dependencies**:
   - **Local**:
     - `communication.command_handlers.interaction_handlers (get_interaction_handler)` (NEW)
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
-    - `communication.communication_channels.discord.account_flow_handler (start_account_creation_flow, start_account_linking_flow)` (NEW)
-    - `communication.communication_channels.discord.discord_handler_protocol (DiscordHandlerHost)` (NEW)
-    - `communication.communication_channels.discord.welcome_handler (get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `communication.communication_channels.discord.events.protocol (DiscordHandlerHost)` (NEW)
+    - `communication.communication_channels.discord.onboarding.account_flow_handler (start_account_creation_flow, start_account_linking_flow)` (NEW)
+    - `communication.communication_channels.discord.onboarding.welcome_handler (get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
     - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
     - `core (get_user_id_by_identifier)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -1945,19 +1839,41 @@
   - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, communication.communication_channels.discord.account_flow_handler, communication.communication_channels.discord.discord_handler_protocol, communication.communication_channels.discord.welcome_handler, communication.message_processing.interaction_manager, core, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py
+- Added: communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, communication.communication_channels.discord.events.protocol, communication.communication_channels.discord.onboarding.account_flow_handler, communication.communication_channels.discord.onboarding.welcome_handler, communication.message_processing.interaction_manager, core, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/discord_message_handler.py`
-- **Purpose**: Communication channel implementation for discord_message_handler
+#### `communication/communication_channels/discord/events/lifecycle.py`
+- **Purpose**: Communication channel implementation for lifecycle
 - **Dependencies**:
   - **Local**:
-    - `communication.communication_channels.discord.discord_handler_protocol (DiscordHandlerHost)` (NEW)
-    - `communication.communication_channels.discord.welcome_handler (get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `communication.communication_channels.base.base_channel (ChannelStatus)` (NEW)
+    - `communication.communication_channels.discord.events.protocol (DiscordHandlerHost)` (NEW)
+    - `communication.communication_channels.discord.events.status (DiscordConnectionStatus)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/bot.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.events.protocol, communication.communication_channels.discord.events.status, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/events/message_handler.py`
+- **Purpose**: Communication channel implementation for message_handler
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.discord.events.protocol (DiscordHandlerHost)` (NEW)
+    - `communication.communication_channels.discord.onboarding.welcome_handler (get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
     - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
     - `core (get_user_data, get_user_id_by_identifier, save_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -1970,76 +1886,46 @@
   - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.discord.discord_handler_protocol, communication.communication_channels.discord.welcome_handler, communication.message_processing.interaction_manager, core, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py
+- Added: communication.communication_channels.discord.events.protocol, communication.communication_channels.discord.onboarding.welcome_handler, communication.message_processing.interaction_manager, core, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/discord_ready_handlers.py`
-- **Purpose**: Communication channel implementation for discord_ready_handlers
+#### `communication/communication_channels/discord/events/protocol.py`
+- **Purpose**: Communication channel implementation for protocol
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.base.base_channel (ChannelStatus)` (NEW)
-    - `communication.communication_channels.discord.discord_connection_status (DiscordConnectionStatus)` (NEW)
-    - `communication.communication_channels.discord.discord_handler_protocol (DiscordHandlerHost)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
+    - `communication.communication_channels.discord.events.status (DiscordConnectionStatus)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `typing (Any, Protocol)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/events/command_registration.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/events/lifecycle.py`
+  - `communication/communication_channels/discord/events/message_handler.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.events.status
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/events/status.py`
+- **Purpose**: Communication channel implementation for status
+- **Dependencies**:
+  - **Standard Library**:
+    - `enum`
 - **Used by**:
   - `communication/communication_channels/discord/bot.py`
-
-**Dependency Changes**:
-- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.discord_connection_status, communication.communication_channels.discord.discord_handler_protocol, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/discord_response_delivery.py`
-- **Purpose**: Communication channel implementation for discord_response_delivery
-- **Dependencies**:
-  - **Local**:
-    - `communication.command_handlers.shared_types (InteractionResponse)` (NEW)
-    - `communication.communication_channels.discord.bot (DiscordBot)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-  - **Standard Library**:
-    - `__future__ (annotations)`
-    - `typing (TYPE_CHECKING)`
-  - **Third-party**:
-    - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
-
-**Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, core.error_handling
-- Removed: communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/task_list_ui.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/discord_user_resolution.py`
-- **Purpose**: Communication channel implementation for discord_user_resolution
-- **Dependencies**:
-  - **Local**:
-    - `core (get_user_id_by_identifier)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-  - **Standard Library**:
-    - `__future__ (annotations)`
-  - **Third-party**:
-    - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
-
-**Dependency Changes**:
-- Added: core, core.error_handling
-- Removed: communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/task_list_ui.py
+  - `communication/communication_channels/discord/events/connection_health.py`
+  - `communication/communication_channels/discord/events/lifecycle.py`
+  - `communication/communication_channels/discord/events/protocol.py`
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2049,10 +1935,10 @@
 - **Purpose**: Communication channel implementation for interaction_views
 - **Dependencies**:
   - **Local**:
-    - `communication.communication_channels.discord.checkin_view (get_checkin_view)` (NEW)
-    - `communication.communication_channels.discord.create_item_ui (get_create_hub_view)` (NEW)
-    - `communication.communication_channels.discord.task_list_ui (get_task_list_view)` (NEW)
-    - `communication.communication_channels.discord.task_reminder_view (get_task_reminder_view)` (NEW)
+    - `communication.communication_channels.discord.ui.checkin_view (get_checkin_view)` (NEW)
+    - `communication.communication_channels.discord.ui.create_item_ui (get_create_hub_view)` (NEW)
+    - `communication.communication_channels.discord.ui.task_list_ui (get_task_list_view)` (NEW)
+    - `communication.communication_channels.discord.ui.task_reminder_view (get_task_reminder_view)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -2061,41 +1947,182 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.communication_channels.discord.checkin_view, communication.communication_channels.discord.create_item_ui, communication.communication_channels.discord.task_list_ui, communication.communication_channels.discord.task_reminder_view, core.error_handling
+- Added: communication.communication_channels.discord.ui.checkin_view, communication.communication_channels.discord.ui.create_item_ui, communication.communication_channels.discord.ui.task_list_ui, communication.communication_channels.discord.ui.task_reminder_view, core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/item_form_shared.py`
-- **Purpose**: Communication channel implementation for item_form_shared
+#### `communication/communication_channels/discord/onboarding/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/onboarding/account_flow_handler.py`
+- **Purpose**: Communication channel implementation for account_flow_handler
 - **Dependencies**:
   - **Local**:
+    - `communication.command_handlers.account_handler (AccountManagementHandler)` (NEW)
+    - `communication.command_handlers.shared_types (ParsedCommand)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `storage.user_data_presets (TIMEZONE_OPTIONS)` (NEW)
+  - **Standard Library**:
+    - `contextlib`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/onboarding/welcome_handler.py`
+
+**Dependency Changes**:
+- Added: communication.command_handlers.account_handler, communication.command_handlers.shared_types, core.error_handling, core.logger, storage.user_data_presets
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/onboarding/welcome_handler.py`
+- **Purpose**: Communication channel implementation for welcome_handler
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.discord.onboarding.account_flow_handler (start_account_creation_flow, start_account_linking_flow)` (NEW)
+    - `communication.core.welcome_manager (clear_welcomed_status, get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `typing (TYPE_CHECKING)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/events/message_handler.py`
+  - `communication/communication_channels/discord/webhooks/handler.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.discord.onboarding.account_flow_handler, communication.core.welcome_manager, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/ui/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/ui/checkin_view.py`
+- **Purpose**: Communication channel implementation for checkin_view
+- **Dependencies**:
+  - **Local**:
+    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
+    - `core (get_user_id_by_identifier)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `typing (Optional)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/interaction_views.py`
+
+**Dependency Changes**:
+- Added: communication.message_processing.interaction_manager, core, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/ui/create_item_ui.py`
+- **Purpose**: Communication channel implementation for create_item_ui
+- **Dependencies**:
+  - **Local**:
+    - `communication.command_handlers.shared_types (InteractionResponse)` (NEW)
+    - `communication.communication_channels.discord.bot (DiscordBot)` (NEW)
+    - `communication.communication_channels.discord.ui.helpers (deliver_handler_response, internal_user_id, run_discord_handler_intent)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
-    - `typing (Any)`
+    - `typing (Any, TYPE_CHECKING)`
+  - **Third-party**:
+    - `discord`
 - **Used by**:
-  - `communication/communication_channels/discord/create_item_ui.py`
+  - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.tags
-- Removed: communication/communication_channels/discord/create_item_ui.py
+- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.ui.helpers, core.error_handling, core.logger, core.tags
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/task_list_ui.py`
+#### `communication/communication_channels/discord/ui/helpers.py`
+- **Purpose**: Communication channel implementation for helpers
+- **Dependencies**:
+  - **Local**:
+    - `communication.command_handlers.interaction_handlers (get_interaction_handler)` (NEW)
+    - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
+    - `communication.communication_channels.discord.bot (DiscordBot)` (NEW)
+    - `core (get_user_id_by_identifier)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `typing (Any, TYPE_CHECKING)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
+
+**Dependency Changes**:
+- Added: communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, communication.communication_channels.discord.bot, core, core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/ui/rich_delivery.py`
+- **Purpose**: Communication channel implementation for rich_delivery
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.interaction_view_factory (create_interaction_view)` (NEW)
+    - `communication.message_processing.flows.flow_constants (FLOW_CONTROL_SKIP_LABELS, FLOW_UNDO_BUTTON_PREFIX)` (NEW)
+    - `core (get_user_data)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `collections.abc (Awaitable)`
+    - `typing (Any, cast)`
+  - **Third-party**:
+    - `discord`
+- **Used by**:
+  - `communication/communication_channels/discord/bot.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.interaction_view_factory, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/ui/task_list_ui.py`
 - **Purpose**: Communication channel implementation for task_list_ui
 - **Dependencies**:
   - **Local**:
     - `communication.command_handlers.shared_types (InteractionResponse)` (NEW)
     - `communication.communication_channels.discord.bot (DiscordBot)` (NEW)
-    - `communication.communication_channels.discord.discord_command_runner (run_discord_handler_intent)` (NEW)
-    - `communication.communication_channels.discord.discord_response_delivery (deliver_handler_response)` (NEW)
-    - `communication.communication_channels.discord.discord_user_resolution (internal_user_id)` (NEW)
+    - `communication.communication_channels.discord.ui.helpers (deliver_handler_response, internal_user_id, run_discord_handler_intent)` (NEW)
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
     - `communication.message_processing.flows.flow_constants (TASK_DUE_DATE_SUGGESTIONS, TASK_PRIORITY_SUGGESTIONS)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -2111,18 +2138,17 @@
   - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.discord_command_runner, communication.communication_channels.discord.discord_response_delivery, communication.communication_channels.discord.discord_user_resolution, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core.error_handling, core.logger, tasks, tasks.task_data_handlers
-- Removed: communication/communication_channels/discord/interaction_views.py
+- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.ui.helpers, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core.error_handling, core.logger, tasks, tasks.task_data_handlers
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/task_reminder_view.py`
+#### `communication/communication_channels/discord/ui/task_reminder_view.py`
 - **Purpose**: Communication channel implementation for task_reminder_view
 - **Dependencies**:
   - **Local**:
-    - `communication.message_processing.interaction_manager (handle_user_message)`
+    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
     - `core (get_user_id_by_identifier)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.ids (display_short_id)` (NEW)
@@ -2135,19 +2161,27 @@
   - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.ids, core.logger
-- Removed: communication/communication_channels/discord/interaction_views.py
+- Added: communication.message_processing.interaction_manager, core, core.error_handling, core.ids, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/webhook_handler.py`
-- **Purpose**: Communication channel implementation for webhook_handler
+#### `communication/communication_channels/discord/webhooks/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/discord/webhooks/handler.py`
+- **Purpose**: Communication channel implementation for handler
 - **Dependencies**:
   - **Local**:
-    - `communication.communication_channels.discord.welcome_handler (get_welcome_message, get_welcome_message_view)`
-    - `communication.core.welcome_manager (clear_welcomed_status, has_been_welcomed, mark_as_welcomed)`
+    - `communication.communication_channels.discord.onboarding.welcome_handler (get_welcome_message, get_welcome_message_view)` (NEW)
+    - `communication.core.welcome_manager (clear_welcomed_status, has_been_welcomed, mark_as_welcomed)` (NEW)
     - `core (get_user_id_by_identifier, update_user_account)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (_is_testing_environment, get_component_logger)` (NEW)
@@ -2157,21 +2191,20 @@
     - `json`
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/webhook_server.py`
+  - `communication/communication_channels/discord/webhooks/server.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/webhook_server.py, concurrent.futures
+- Added: communication.communication_channels.discord.onboarding.welcome_handler, communication.core.welcome_manager, core, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/webhook_server.py`
-- **Purpose**: Communication channel implementation for webhook_server
+#### `communication/communication_channels/discord/webhooks/server.py`
+- **Purpose**: Communication channel implementation for server
 - **Dependencies**:
   - **Local**:
-    - `communication.communication_channels.discord.webhook_handler (handle_webhook_event, parse_webhook_event)`
+    - `communication.communication_channels.discord.webhooks.handler (handle_webhook_event, parse_webhook_event)` (NEW)
     - `core.config (DISCORD_PUBLIC_KEY)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -2183,36 +2216,38 @@
     - `nacl.exceptions (BadSignatureError)`
     - `nacl.signing (VerifyKey)`
 - **Used by**:
-  - `communication/communication_channels/discord/bot.py`
+  - `communication/communication_channels/discord/webhooks/tunnel.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py, http.server, nacl.exceptions, nacl.signing
+- Added: communication.communication_channels.discord.webhooks.handler, core.config, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `communication/communication_channels/discord/welcome_handler.py`
-- **Purpose**: Communication channel implementation for welcome_handler
+#### `communication/communication_channels/discord/webhooks/tunnel.py`
+- **Purpose**: Communication channel implementation for tunnel
 - **Dependencies**:
   - **Local**:
-    - `communication.communication_channels.discord.account_flow_handler (start_account_creation_flow, start_account_linking_flow)`
-    - `communication.core.welcome_manager (clear_welcomed_status, get_welcome_message, has_been_welcomed, mark_as_welcomed)`
+    - `communication.communication_channels.discord.webhooks.server (WebhookServer)` (NEW)
+    - `core.config (DISCORD_AUTO_NGROK, DISCORD_WEBHOOK_PORT)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
-    - `typing (TYPE_CHECKING)`
+    - `__future__ (annotations)`
+    - `os`
+    - `shutil`
+    - `subprocess`
+    - `threading`
+    - `time`
+    - `typing (Any)`
   - **Third-party**:
-    - `discord`
+    - `psutil`
 - **Used by**:
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/webhook_handler.py`
+  - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/webhook_handler.py
+- Added: communication.communication_channels.discord.webhooks.server, core.config, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2285,7 +2320,7 @@
     - `importlib`
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/bot.py`
+  - `communication/communication_channels/discord/ui/rich_delivery.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
 
@@ -2462,8 +2497,8 @@
     - `pathlib (Path)`
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/webhook_handler.py`
-  - `communication/communication_channels/discord/welcome_handler.py`
+  - `communication/communication_channels/discord/onboarding/welcome_handler.py`
+  - `communication/communication_channels/discord/webhooks/handler.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.time_utilities
@@ -2665,7 +2700,7 @@
 - **Used by**:
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/interaction_manager.py`
@@ -2777,8 +2812,8 @@
 - **Used by**:
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`
-  - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/rich_delivery.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/flows/checkin_flow.py`
@@ -2958,11 +2993,11 @@
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
-  - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/checkin_view.py`
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/task_reminder_view.py`
+  - `communication/communication_channels/discord/events/command_registration.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/events/message_handler.py`
+  - `communication/communication_channels/discord/ui/checkin_view.py`
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/communication_channels/email/inbound_processor.py`
 
 **Dependency Changes**:
@@ -3269,7 +3304,8 @@
   - `ai/prompts/manager.py`
   - `communication/command_handlers/health_handler.py`
   - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/webhook_server.py`
+  - `communication/communication_channels/discord/webhooks/server.py`
+  - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -3403,25 +3439,25 @@
   - `communication/communication_channels/base/command_registry.py`
   - `communication/communication_channels/base/message_formatter.py`
   - `communication/communication_channels/base/rich_formatter.py`
-  - `communication/communication_channels/discord/account_flow_handler.py`
   - `communication/communication_channels/discord/api_client.py`
   - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/checkin_view.py`
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/discord_command_runner.py`
-  - `communication/communication_channels/discord/discord_guild_handlers.py`
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/discord_ready_handlers.py`
-  - `communication/communication_channels/discord/discord_response_delivery.py`
-  - `communication/communication_channels/discord/discord_user_resolution.py`
+  - `communication/communication_channels/discord/events/command_registration.py`
+  - `communication/communication_channels/discord/events/connection_health.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/events/lifecycle.py`
+  - `communication/communication_channels/discord/events/message_handler.py`
   - `communication/communication_channels/discord/interaction_views.py`
-  - `communication/communication_channels/discord/item_form_shared.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
-  - `communication/communication_channels/discord/task_reminder_view.py`
-  - `communication/communication_channels/discord/webhook_handler.py`
-  - `communication/communication_channels/discord/webhook_server.py`
-  - `communication/communication_channels/discord/welcome_handler.py`
+  - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
+  - `communication/communication_channels/discord/onboarding/welcome_handler.py`
+  - `communication/communication_channels/discord/ui/checkin_view.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `communication/communication_channels/discord/ui/helpers.py`
+  - `communication/communication_channels/discord/ui/rich_delivery.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
+  - `communication/communication_channels/discord/webhooks/handler.py`
+  - `communication/communication_channels/discord/webhooks/server.py`
+  - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
   - `communication/communication_channels/interaction_view_factory.py`
@@ -3557,7 +3593,7 @@
 
 **Dependency Changes**:
 - Added: core.network_probe, core.time_utilities
-- Removed: ai/chat/action_boundaries.py, ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/conversation_coherence.py, ai/chat/interaction_types.py, ai/chat/response_generator.py, ai/chat/response_postprocess.py, ai/chat/wellness_status.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/analytics.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/context/history.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/checkin_summary.py, ai/fallback/context.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py, ai/fallback/personalized.py, ai/fallback/profile_helpers.py, ai/prompts/action_catalog.py, ai/prompts/command_interpreter.py, ai/prompts/command_registry.py, ai/prompts/flows.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/create_menu_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_command_runner.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/discord_user_resolution.py, communication/communication_channels/discord/interaction_views.py, communication/communication_channels/discord/item_form_shared.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/interaction_view_factory.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py, communication/message_processing/command_parser.py, communication/message_processing/command_registry.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/help_responses.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/message_processing/user_suggestions.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_context_builder.py, core/health_signals.py, core/ids.py, core/launch_env.py, core/logger.py, core/natural_language_defaults.py, core/pagination.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/personalization_rules.py, integrations/google_health/schemas.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, messages/message_analytics.py, messages/message_data_manager.py, messages/message_service.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_tag_helpers.py, tasks/task_templates.py, tasks/task_time_parsing.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
+- Removed: ai/chat/action_boundaries.py, ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/conversation_coherence.py, ai/chat/interaction_types.py, ai/chat/response_generator.py, ai/chat/response_postprocess.py, ai/chat/wellness_status.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/analytics.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/context/history.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/checkin_summary.py, ai/fallback/context.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py, ai/fallback/personalized.py, ai/fallback/profile_helpers.py, ai/prompts/action_catalog.py, ai/prompts/command_interpreter.py, ai/prompts/command_registry.py, ai/prompts/flows.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/create_menu_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_command_runner.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/discord_user_resolution.py, communication/communication_channels/discord/interaction_views.py, communication/communication_channels/discord/item_form_shared.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/interaction_view_factory.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py, communication/message_processing/command_parser.py, communication/message_processing/command_registry.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/help_responses.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/message_processing/user_suggestions.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_context_builder.py, core/health_signals.py, core/ids.py, core/launch_env.py, core/logger.py, core/natural_language_defaults.py, core/pagination.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/personalization_rules.py, integrations/google_health/schemas.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, messages/message_analytics.py, messages/message_data_manager.py, messages/message_service.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/runtime_access.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_tag_helpers.py, tasks/task_templates.py, tasks/task_time_parsing.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Centralized error handling and recovery
@@ -3759,7 +3795,7 @@
     - `uuid (NAMESPACE_URL, UUID, uuid5)`
 - **Used by**:
   - `communication/command_handlers/notebook_handler.py`
-  - `communication/communication_channels/discord/task_reminder_view.py`
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/flows/note_flow.py`
   - `storage/user_data_v2_base.py`
   - `tasks/task_service.py`
@@ -3843,20 +3879,22 @@
   - `communication/communication_channels/base/command_registry.py`
   - `communication/communication_channels/base/message_formatter.py`
   - `communication/communication_channels/base/rich_formatter.py`
-  - `communication/communication_channels/discord/account_flow_handler.py`
   - `communication/communication_channels/discord/api_client.py`
   - `communication/communication_channels/discord/bot.py`
-  - `communication/communication_channels/discord/checkin_view.py`
-  - `communication/communication_channels/discord/create_item_ui.py`
-  - `communication/communication_channels/discord/discord_guild_handlers.py`
-  - `communication/communication_channels/discord/discord_interaction_router.py`
-  - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/discord_ready_handlers.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
-  - `communication/communication_channels/discord/task_reminder_view.py`
-  - `communication/communication_channels/discord/webhook_handler.py`
-  - `communication/communication_channels/discord/webhook_server.py`
-  - `communication/communication_channels/discord/welcome_handler.py`
+  - `communication/communication_channels/discord/events/connection_health.py`
+  - `communication/communication_channels/discord/events/interaction_router.py`
+  - `communication/communication_channels/discord/events/lifecycle.py`
+  - `communication/communication_channels/discord/events/message_handler.py`
+  - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
+  - `communication/communication_channels/discord/onboarding/welcome_handler.py`
+  - `communication/communication_channels/discord/ui/checkin_view.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `communication/communication_channels/discord/ui/rich_delivery.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
+  - `communication/communication_channels/discord/webhooks/handler.py`
+  - `communication/communication_channels/discord/webhooks/server.py`
+  - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
   - `communication/core/channel_monitor.py`
@@ -4280,7 +4318,6 @@
 
 **Dependency Changes**:
 - Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management, scheduler.runtime_access
-- Removed: core/admin_account_provisioning.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
@@ -4364,7 +4401,7 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/notebook_handler.py`
-  - `communication/communication_channels/discord/item_form_shared.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/flows/note_flow.py`
   - `storage/user_data_registry.py`
@@ -5154,6 +5191,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
+- Removed: core/admin_account_provisioning.py, core/service.py, scheduler/__init__.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5330,7 +5368,7 @@
   - **Third-party**:
     - `pytz`
 - **Used by**:
-  - `communication/communication_channels/discord/account_flow_handler.py`
+  - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
@@ -5593,7 +5631,7 @@
   - `ai/context/assembly.py`
   - `ai/context/phraser.py`
   - `communication/command_handlers/task_handler.py`
-  - `communication/communication_channels/discord/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/task_list_ui.py`
   - `communication/message_processing/flows/task_flow.py`
   - `communication/message_processing/user_suggestions.py`
   - `communication/reminders/reminder_dispatcher.py`

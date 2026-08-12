@@ -7,14 +7,10 @@ from typing import TYPE_CHECKING, Any
 import discord
 
 from communication.command_handlers.shared_types import InteractionResponse
-from communication.communication_channels.discord.discord_command_runner import (
-    run_discord_handler_intent,
-)
-from communication.communication_channels.discord.discord_user_resolution import (
-    internal_user_id as _internal_user_id,
-)
-from communication.communication_channels.discord.discord_response_delivery import (
+from communication.communication_channels.discord.ui.helpers import (
     deliver_handler_response,
+    internal_user_id as _internal_user_id,
+    run_discord_handler_intent,
 )
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.message_processing.flows.flow_constants import (

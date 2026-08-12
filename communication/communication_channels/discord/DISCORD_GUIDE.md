@@ -27,27 +27,32 @@ This document focuses on implementation details and integration points, *not* en
 
 ## 2. Discord Channel Architecture
 
-The Discord implementation is split into clear responsibilities:
+Package layout under `communication/communication_channels/discord/`:
 
-- **Bot and API client**
-  - `communication/communication_channels/discord/bot.py` - Creates and configures the Discord client/bot instance.  
-  - `communication/communication_channels/discord/api_client.py` - Lower-level wrapper for REST calls to Discord where needed.
+- **Root host (stable import paths)**
+  - `bot.py` - Thin `DiscordBot` / BaseChannel host (lifecycle, event loop, command queue, registration wrappers, public send APIs).  
+  - `interaction_views.py` - Dynamic view factory entrypoint (`interaction_view_factory` imports this module path).  
+  - `api_client.py` - Lower-level REST wrapper for Discord where needed.
 
-- **Event wiring**
-  - `communication/communication_channels/discord/bot.py` - `DiscordBot.initialize__register_events` registers Discord events on the client.
-  - `discord_ready_handlers.py`, `discord_message_handler.py`, `discord_interaction_router.py`, `discord_guild_handlers.py` - Extracted handlers delegate to the channel-agnostic pipeline.
+- **`events/`**
+  - `events/lifecycle.py` - Ready, disconnect, error, and guild-join handlers.  
+  - `events/message_handler.py` / `events/interaction_router.py` - Inbound message and component/slash routing into the channel-agnostic pipeline.  
+  - `events/connection_health.py` - DNS/network checks, reconnect policy, health/status helpers.  
+  - `events/command_registration.py` - Slash and prefix command registration.  
+  - `events/status.py` / `events/protocol.py` - `DiscordConnectionStatus` and `DiscordHandlerHost` typing surface.
 
-- **Views (UI adapters)**
-  - `communication/communication_channels/discord/checkin_view.py` - Builds `discord.ui.View` for check-in buttons (cancel, skip, more info). :contentReference[oaicite:7]{index=7}  
-  - `communication/communication_channels/discord/task_reminder_view.py` - Builds `discord.ui.View` for task reminder buttons (complete, remind later, more info). :contentReference[oaicite:8]{index=8}  
+- **`ui/`**
+  - `ui/rich_delivery.py` - Embeds, action rows, pagination, send internals.  
+  - `ui/checkin_view.py` / `ui/task_reminder_view.py` - Check-in and task-reminder button views.  
+  - `ui/create_item_ui.py` / `ui/task_list_ui.py` / `ui/helpers.py` - Create hub, task list, and shared UI helpers.
 
-- **Onboarding and account flow**
-  - `communication/communication_channels/discord/welcome_handler.py` - Composes and sends welcome DMs, tracks welcomed users.  
-  - `communication/communication_channels/discord/account_flow_handler.py` - Handles account-related flows specific to Discord.
+- **`onboarding/`**
+  - `onboarding/welcome_handler.py` - Welcome DMs and welcomed-user tracking wrappers.  
+  - `onboarding/account_flow_handler.py` - Discord account create/link UI flows.
 
-- **Webhook-based onboarding**
-  - `communication/communication_channels/discord/webhook_server.py` - HTTP server receiving Discord webhook events (e.g., app authorization).  
-  - `communication/communication_channels/discord/webhook_handler.py` - Parses and routes webhook events (e.g., `APPLICATION_AUTHORIZED`).
+- **`webhooks/`**
+  - `webhooks/server.py` / `webhooks/handler.py` - HTTP webhook receiver and `APPLICATION_AUTHORIZED` handling.  
+  - `webhooks/tunnel.py` - Optional ngrok tunnel lifecycle for local webhook development.
 
 All of these modules ultimately route user actions into the **channel-agnostic interaction manager** in `communication/message_processing/interaction_manager.py`, which returns response objects that the Discord layer renders.
 
@@ -87,7 +92,7 @@ When modifying shutdown behavior, follow the patterns in section 2. "Architectur
 
 ### 4.1. Messages
 
-Discord messages are handled by `handle_discord_message` in `discord_message_handler.py`:
+Discord messages are handled by `handle_discord_message` in `events/message_handler.py`:
 
 1. Ignores messages from the bot itself.
 2. Resolves the internal user ID using `core.get_user_id_by_identifier(...)`.
@@ -96,18 +101,18 @@ Discord messages are handled by `handle_discord_message` in `discord_message_han
 
 ### 4.2. Reactions and Membership Events
 
-Guild and interaction events are handled in `discord_guild_handlers.py` and `discord_interaction_router.py` (minimal logging plus channel-agnostic integration where applicable).
+Guild and interaction events are handled in `events/lifecycle.py` (`handle_guild_join`) and `events/interaction_router.py` (minimal logging plus channel-agnostic integration where applicable).
 
 ### 4.3. UI Views and Button Callbacks
 
 UI views are adapters between Discord's UI and the core message pipeline:
 
-- `get_checkin_view(user_id)` in `checkin_view.py` returns a `discord.ui.View` with:
+- `get_checkin_view(user_id)` in `ui/checkin_view.py` returns a `discord.ui.View` with:
   - "Cancel Check-in" - Routes `/cancel` through the interaction manager. :contentReference[oaicite:22]{index=22}  
   - "Skip Question" - Routes `skip` through the interaction manager. :contentReference[oaicite:23]{index=23}  
   - "More" - Sends static help text explaining how check-ins work. :contentReference[oaicite:24]{index=24}  
 
-- `get_task_reminder_view(user_id, task_id, task_title)` in `task_reminder_view.py` returns a `discord.ui.View` with: :contentReference[oaicite:25]{index=25}  
+- `get_task_reminder_view(user_id, task_id, task_title)` in `ui/task_reminder_view.py` returns a `discord.ui.View` with:
   - "Complete Task" - Routes `complete task {task_id}` through the interaction manager.  
   - "Remind Me Later" - Sends an acknowledgement (future snooze behavior can be added).  
   - "More" - Sends a brief help message including a short task ID and example commands.
@@ -126,7 +131,7 @@ When a user authorizes the MHM Discord app (via the OAuth2 "Add to Server" / dir
 
 ### 5.1. Webhook Server
 
-`communication/communication_channels/discord/webhook_server.py` implements a small HTTP server to receive Discord webhook events:
+`webhooks/server.py` implements a small HTTP server to receive Discord webhook events:
 
 - Runs on `DISCORD_WEBHOOK_PORT` (see section 7).  
 - Uses `DiscordWebhookHandler` (a `BaseHTTPRequestHandler` subclass) to:
@@ -139,7 +144,7 @@ In development, this server may be started in a background thread when the bot b
 
 ### 5.2. Webhook Event Handler
 
-`webhook_handler.py` implements the event handling:
+`webhooks/handler.py` implements the event handling:
 
 - Parses the JSON payload into a normalized event structure.  
 - Distinguishes event types such as:
@@ -156,7 +161,7 @@ The current implementation of `verify_webhook_signature` is a **placeholder**. I
 
 ### 5.3. Welcome Handler and Tracking
 
-`welcome_handler.py`:
+`onboarding/welcome_handler.py`:
 
 - Generates a personalized welcome message, usually including:
   - A brief explanation of what MHM does.  
@@ -288,7 +293,7 @@ See section 2. "Logging Architecture" and section 4. "Component Log Files and La
 
 Most functions that touch Discord APIs or user-facing behavior should be wrapped with `handle_errors`:
 
-- Button callbacks in `checkin_view.py` and `task_reminder_view.py` already use `@handle_errors(...)`.   
+- Button callbacks in `ui/checkin_view.py` and `ui/task_reminder_view.py` already use `@handle_errors(...)`.
 - Core events in `bot.py` and extracted handler modules use `@handle_errors(...)` on wrappers and helpers.
 
 Use clear context strings (e.g., `"creating check-in view"`, `"handling Discord message event"`) to make log messages and error categories easier to interpret.

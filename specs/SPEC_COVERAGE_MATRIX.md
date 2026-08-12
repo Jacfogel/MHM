@@ -119,7 +119,7 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | Deleted task reminder cleanup | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py), [tests/integration/test_orphaned_reminder_cleanup.py](../tests/integration/test_orphaned_reminder_cleanup.py) |
 | Updated reminder schedule | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
 | Scheduler marks reminder attempted after dispatch handoff | Partial | Current behavior is documented; add direct scheduler-level assertion that `reminder_sent` does not depend on `MessageSendResult`. |
-| Task reminder view creation | Partial | Custom view attachment is tested; add direct `communication/communication_channels/discord/task_reminder_view.py` button-shape coverage. |
+| Task reminder view creation | Partial | Custom view attachment is tested; add direct `communication/communication_channels/discord/ui/task_reminder_view.py` button-shape coverage. |
 | Complete Task button | Partial | Completion by Discord reminder and task command behavior are tested; add direct button callback coverage. |
 | Complete Task button from unlinked user | Gap | Add direct button callback coverage for unmapped Discord user. |
 | Remind Me Later button | Gap | Add direct button callback coverage for acknowledgement-only behavior. |
@@ -158,6 +158,6 @@ Good next tests to add:
 
 1. `on_guild_join` channel-selection branches.
 2. Suggestion-button click dispatch for structured payload, label fallback, and unresolved buttons.
-3. Task-reminder button callbacks in `communication/communication_channels/discord/task_reminder_view.py`.
+3. Task-reminder button callbacks in `communication/communication_channels/discord/ui/task_reminder_view.py`.
 4. Public Discord `send_message` timeout/not-ready behavior.
 5. Discord account-flow UI callbacks for welcome buttons, feature timeout, and confirmation-code instructions.

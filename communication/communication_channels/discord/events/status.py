@@ -1,4 +1,4 @@
-# communication/communication_channels/discord/discord_connection_status.py
+# communication/communication_channels/discord/events/status.py
 
 import enum
 

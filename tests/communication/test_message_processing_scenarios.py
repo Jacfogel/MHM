@@ -919,7 +919,7 @@ class TestDiscordResponseDelivery:
 
     @pytest.mark.asyncio
     async def test_text_only_response(self):
-        from communication.communication_channels.discord.discord_response_delivery import (
+        from communication.communication_channels.discord.ui.helpers import (
             deliver_handler_response,
         )
 
@@ -932,7 +932,7 @@ class TestDiscordResponseDelivery:
 
     @pytest.mark.asyncio
     async def test_embed_only_response(self):
-        from communication.communication_channels.discord.discord_response_delivery import (
+        from communication.communication_channels.discord.ui.helpers import (
             deliver_handler_response,
         )
 
@@ -953,7 +953,7 @@ class TestDiscordResponseDelivery:
 
     @pytest.mark.asyncio
     async def test_view_only_response(self):
-        from communication.communication_channels.discord.discord_response_delivery import (
+        from communication.communication_channels.discord.ui.helpers import (
             deliver_handler_response,
         )
 
@@ -971,7 +971,7 @@ class TestDiscordResponseDelivery:
 
     @pytest.mark.asyncio
     async def test_embed_and_view_response(self):
-        from communication.communication_channels.discord.discord_response_delivery import (
+        from communication.communication_channels.discord.ui.helpers import (
             deliver_handler_response,
         )
 
@@ -994,7 +994,7 @@ class TestDiscordResponseDelivery:
 
     @pytest.mark.asyncio
     async def test_ephemeral_flag_passed_through(self):
-        from communication.communication_channels.discord.discord_response_delivery import (
+        from communication.communication_channels.discord.ui.helpers import (
             deliver_handler_response,
         )
 
@@ -1147,7 +1147,7 @@ class TestDiscordGuildHandlers:
 
     @pytest.mark.asyncio
     async def test_handle_guild_join_uses_system_channel(self):
-        from communication.communication_channels.discord.discord_guild_handlers import (
+        from communication.communication_channels.discord.events.lifecycle import (
             handle_guild_join,
         )
 
@@ -1167,7 +1167,7 @@ class TestDiscordGuildHandlers:
 
     @pytest.mark.asyncio
     async def test_handle_guild_join_falls_back_to_text_channel(self):
-        from communication.communication_channels.discord.discord_guild_handlers import (
+        from communication.communication_channels.discord.events.lifecycle import (
             handle_guild_join,
         )
 
@@ -1187,7 +1187,7 @@ class TestDiscordGuildHandlers:
 
     @pytest.mark.asyncio
     async def test_handle_guild_join_no_channel_logs_warning(self):
-        from communication.communication_channels.discord.discord_guild_handlers import (
+        from communication.communication_channels.discord.events.lifecycle import (
             handle_guild_join,
         )
 
@@ -1196,7 +1196,7 @@ class TestDiscordGuildHandlers:
         guild.system_channel = None
         guild.text_channels = []
         with patch(
-            "communication.communication_channels.discord.discord_guild_handlers.discord_logger"
+            "communication.communication_channels.discord.events.lifecycle.discord_logger"
         ) as mock_logger:
             await handle_guild_join(guild)
         mock_logger.warning.assert_called()

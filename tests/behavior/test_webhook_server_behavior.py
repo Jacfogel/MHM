@@ -11,7 +11,7 @@ import time
 import socket
 from typing import Any, cast
 from unittest.mock import patch, MagicMock
-from communication.communication_channels.discord.webhook_server import (
+from communication.communication_channels.discord.webhooks.server import (
     DiscordWebhookHandler,
     WebhookServer
 )
@@ -195,7 +195,7 @@ class TestWebhookServerBehavior:
         handler.bot_instance = None
         
         with patch('core.config.DISCORD_PUBLIC_KEY', None), \
-             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+             patch('communication.communication_channels.discord.webhooks.server.handle_webhook_event') as mock_handle:
             mock_handle.return_value = True
             handler.do_POST()
         
@@ -236,7 +236,7 @@ class TestWebhookServerBehavior:
         handler.bot_instance = None
         
         with patch('core.config.DISCORD_PUBLIC_KEY', None), \
-             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+             patch('communication.communication_channels.discord.webhooks.server.handle_webhook_event') as mock_handle:
             mock_handle.return_value = False
             handler.do_POST()
         
@@ -373,7 +373,7 @@ class TestWebhookServerBehavior:
         """Test: log_message uses custom logger instead of stderr."""
         handler = create_mock_handler()
         
-        with patch('communication.communication_channels.discord.webhook_server.logger') as mock_logger:
+        with patch('communication.communication_channels.discord.webhooks.server.logger') as mock_logger:
             handler.log_message('test %s', 'message')
             
             # Assert: Should use custom logger
@@ -436,7 +436,7 @@ class TestWebhookServerBehavior:
         handler.bot_instance = None
         
         with patch('core.config.DISCORD_PUBLIC_KEY', None), \
-             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+             patch('communication.communication_channels.discord.webhooks.server.handle_webhook_event') as mock_handle:
             mock_handle.return_value = True
             handler.do_POST()
         
@@ -697,7 +697,7 @@ class TestWebhookServerBehavior:
         handler.bot_instance = None
         
         with patch('core.config.DISCORD_PUBLIC_KEY', None), \
-             patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+             patch('communication.communication_channels.discord.webhooks.server.handle_webhook_event') as mock_handle:
             mock_handle.return_value = True
             handler.do_POST()
         

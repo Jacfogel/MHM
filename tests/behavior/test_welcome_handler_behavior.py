@@ -8,7 +8,7 @@ These tests verify that welcome handler actually works and produces expected sid
 import pytest
 from unittest.mock import patch
 import uuid
-from communication.communication_channels.discord.welcome_handler import (
+from communication.communication_channels.discord.onboarding.welcome_handler import (
     has_been_welcomed,
     mark_as_welcomed,
     clear_welcomed_status,
@@ -86,7 +86,7 @@ class TestWelcomeHandlerBehavior:
         discord_username = 'TestUser'
         
         # The function imports and calls _get_welcome_message directly
-        with patch('communication.communication_channels.discord.welcome_handler._get_welcome_message') as mock_get_message:
+        with patch('communication.communication_channels.discord.onboarding.welcome_handler._get_welcome_message') as mock_get_message:
             mock_get_message.return_value = "Test welcome message"
             
             result = get_welcome_message(discord_user_id, discord_username, is_authorization=True)

@@ -6,7 +6,7 @@ import pytest
 @pytest.mark.unit
 @pytest.mark.communication
 def test_parse_modal_tags_comma_and_hash():
-    from communication.communication_channels.discord.item_form_shared import (
+    from communication.communication_channels.discord.ui.create_item_ui import (
         parse_modal_tags,
     )
 
@@ -16,7 +16,7 @@ def test_parse_modal_tags_comma_and_hash():
 @pytest.mark.unit
 @pytest.mark.communication
 def test_entities_from_shared_fields_merges_title_tags():
-    from communication.communication_channels.discord.item_form_shared import (
+    from communication.communication_channels.discord.ui.create_item_ui import (
         entities_from_shared_fields,
     )
 

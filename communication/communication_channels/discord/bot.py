@@ -1,40 +1,43 @@
-# communication/communication_channels/discord/bot.py
+"""Thin BaseChannel host for Discord lifecycle and extracted handlers."""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import queue
+import threading
+import time
+from typing import Any
 
 import discord
-from discord import app_commands
-import asyncio
-import threading
+from discord import app_commands  # noqa: F401  # patch/import surface for command_registration
 from discord.ext import commands
-from typing import Any, cast
-from collections.abc import Awaitable
-import queue
-import time
-import socket
-import contextlib
-import subprocess
-import shutil
-import os
-import psutil
 
-from communication.communication_channels.discord.discord_connection_status import (
-    DiscordConnectionStatus,
-)
-from communication.message_processing.flows.flow_constants import (
-    FLOW_CONTROL_SKIP_LABELS,
-    FLOW_UNDO_BUTTON_PREFIX,
-)
-from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
-from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import (
     BaseChannel,
-    ChannelType,
-    ChannelStatus,
     ChannelConfig,
+    ChannelStatus,
+    ChannelType,
 )
-from core import get_user_id_by_identifier
+from communication.communication_channels.discord.events.connection_health import (
+    DiscordConnectionHealthMixin,
+)
+from communication.communication_channels.discord.events.status import (
+    DiscordConnectionStatus,
+)
+from communication.communication_channels.discord.ui.rich_delivery import (
+    DiscordRichDeliveryMixin,
+)
+from communication.communication_channels.discord.webhooks.tunnel import (
+    DiscordWebhookTunnelMixin,
+)
+from core.config import DISCORD_APPLICATION_ID, DISCORD_BOT_TOKEN
 from core.error_handling import handle_errors
+from core.logger import get_component_logger
+from core import get_user_id_by_identifier  # noqa: F401  # patch surface for command_registration
 
-# Route all Discord module logs to the Discord component logger so they appear in logs/discord.log
+# Module attributes above remain bound so callers/tests can patch them on this module.
+
 discord_logger = get_component_logger("discord")
 logger = discord_logger
 
@@ -43,611 +46,146 @@ intents.messages = True
 intents.message_content = True
 
 
-class DiscordBot(BaseChannel):
+class DiscordBot(
+    DiscordRichDeliveryMixin,
+    DiscordConnectionHealthMixin,
+    DiscordWebhookTunnelMixin,
+    BaseChannel,
+):
+    """Discord channel host; feature behavior lives in focused submodules."""
+
     @handle_errors("initializing Discord bot", default_return=None)
     def __init__(self, config: ChannelConfig | None = None):
-        # Initialize BaseChannel
-        """Initialize the object."""
         if config is None:
             config = ChannelConfig(
                 name="discord",
-                max_retries=5,  # Increased from 3
-                retry_delay=2.0,  # Increased from 1.5
+                max_retries=5,
+                retry_delay=2.0,
                 backoff_multiplier=2.0,
             )
         super().__init__(config)
-
         self.bot = None
         self.discord_thread = None
         self._loop = None
         self._starting = False
-        self._command_queue = queue.Queue()  # For sending commands to Discord thread
-        self._result_queue = queue.Queue()  # For getting results back
+        self._command_queue = queue.Queue()
+        self._result_queue = queue.Queue()
         self._reconnect_attempts = 0
         self._max_reconnect_attempts = 10
         self._last_reconnect_time = 0
-        self._reconnect_cooldown = (
-            60  # Increased to 60 seconds to reduce rapid reconnection attempts
-        )
+        self._reconnect_cooldown = 60
         self._connection_status = DiscordConnectionStatus.UNINITIALIZED
         self._last_health_check = 0
-        self._health_check_interval = 30  # Check health every 30 seconds
+        self._health_check_interval = 30
         self._detailed_error_info = {}
-        # Idempotency flags
         self._events_registered = False
         self._commands_registered = False
-        # Session management
         self._sessions_to_cleanup = []
-        # Task management for proper cleanup
         self._sync_task = None
         self._suggestion_button_payloads: dict[str, Any] = {}
         self._suggestion_button_counter = 0
-        # Webhook server for receiving installation events
         self._webhook_server = None
-        # Ngrok process for webhook tunneling (auto-launched if enabled)
         self._ngrok_process = None
-        self._ngrok_pid = None  # Store PID separately in case process reference is lost
-        self._on_ready_fired = False  # Track if on_ready() event has fired
-        # Ensure BaseChannel logs for this instance also go to the Discord component log
+        self._ngrok_pid = None
+        self._on_ready_fired = False
         self.logger = discord_logger
 
     @property
-    # not_duplicate: channel_type_properties
     @handle_errors("getting Discord channel type", default_return=ChannelType.ASYNC)
     def channel_type(self) -> ChannelType:
-        """
-        Get the channel type for Discord bot.
-
-        Returns:
-            ChannelType.ASYNC: Discord bot operates asynchronously
-        """
         return ChannelType.ASYNC
-
-    @handle_errors("checking DNS resolution", default_return=False)
-    def _check_dns_resolution(self, hostname: str = "discord.com") -> bool:
-        """
-        Check DNS resolution with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        # Validate hostname
-        if not hostname or not isinstance(hostname, str):
-            logger.error(f"Invalid hostname: {hostname}")
-            return False
-
-        if not hostname.strip():
-            logger.error("Empty hostname provided")
-            return False
-        """Check DNS resolution for a hostname with enhanced fallback and error reporting"""
-        # Alternative DNS servers to try if primary fails
-        alternative_dns_servers = [
-            "8.8.8.8",  # Google DNS
-            "1.1.1.1",  # Cloudflare DNS
-            "208.67.222.222",  # OpenDNS
-            "9.9.9.9",  # Quad9 DNS
-        ]
-
-        # Try primary DNS first (system default)
-        try:
-            socket.gethostbyname(hostname)
-            # Only log DNS success occasionally to reduce log noise
-            if hasattr(self, "_dns_success_count"):
-                self._dns_success_count += 1
-            else:
-                self._dns_success_count = 1
-
-            # Log DNS success every 60th check to reduce noise
-            if self._dns_success_count % 60 == 0:
-                logger.debug(
-                    f"Primary DNS resolution successful for {hostname} (check #{self._dns_success_count})"
-                )
-            return True
-        except socket.gaierror as e:
-            primary_error = {
-                "hostname": hostname,
-                "error_code": e.errno,
-                "error_message": str(e),
-                "timestamp": time.time(),
-                "dns_server": "system_default",
-            }
-
-            logger.warning(f"Primary DNS failed for {hostname}: {e}")
-
-            # Try alternative DNS servers
-            for dns_server in alternative_dns_servers:
-                try:
-                    logger.info(
-                        f"Trying alternative DNS server {dns_server} for {hostname}"
-                    )
-
-                    # Create a custom resolver using the alternative DNS server
-                    import dns.resolver
-
-                    resolver = dns.resolver.Resolver()
-                    resolver.nameservers = [dns_server]
-                    resolver.timeout = 5
-                    resolver.lifetime = 10
-
-                    # Try to resolve the hostname
-                    answers = resolver.resolve(hostname, "A")
-                    if answers:
-                        ip_address = str(answers[0])
-                        logger.info(
-                            f"Successfully resolved {hostname} to {ip_address} using {dns_server}"
-                        )
-
-                        # Update error info to show which DNS server worked
-                        self._detailed_error_info["dns_error"] = {
-                            "hostname": hostname,
-                            "primary_error": primary_error,
-                            "resolved_with": dns_server,
-                            "resolved_ip": ip_address,
-                            "timestamp": time.time(),
-                        }
-                        return True
-
-                except Exception as alt_e:
-                    logger.debug(f"Alternative DNS {dns_server} also failed: {alt_e}")
-                    continue
-
-            # All DNS servers failed
-            self._detailed_error_info["dns_error"] = {
-                "hostname": hostname,
-                "primary_error": primary_error,
-                "alternative_dns_failed": alternative_dns_servers,
-                "timestamp": time.time(),
-            }
-            logger.error(f"All DNS servers failed for {hostname}")
-            self._connection_status = DiscordConnectionStatus.DNS_FAILURE
-            return False
-
-    @handle_errors("checking network connectivity", default_return=False)
-    def _check_network_connectivity(
-        self, hostname: str = "discord.com", port: int = 443
-    ) -> bool:
-        """
-        Check network connectivity with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        # Validate hostname
-        if not hostname or not isinstance(hostname, str):
-            logger.error(f"Invalid hostname: {hostname}")
-            return False
-
-        if not hostname.strip():
-            logger.error("Empty hostname provided")
-            return False
-
-        # Validate port
-        if not isinstance(port, int) or port < 1 or port > 65535:
-            logger.error(f"Invalid port: {port}")
-            return False
-        """Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling"""
-        # Discord endpoints to try in order of preference
-        discord_endpoints = [
-            ("discord.com", 443),
-            ("gateway.discord.gg", 443),
-            ("gateway-us-east1-b.discord.gg", 443),
-            ("gateway-us-east1-c.discord.gg", 443),
-            ("gateway-us-east1-d.discord.gg", 443),
-            ("gateway-us-east1-a.discord.gg", 443),
-        ]
-
-        # If a specific hostname was requested, try it first
-        if hostname != "discord.com":
-            discord_endpoints.insert(0, (hostname, port))
-
-        for endpoint_hostname, endpoint_port in discord_endpoints:
-            try:
-                # Use a shorter timeout for faster failure detection
-                socket.create_connection((endpoint_hostname, endpoint_port), timeout=5)
-                # Only log network success occasionally to reduce log noise
-                if hasattr(self, "_network_success_count"):
-                    self._network_success_count += 1
-                else:
-                    self._network_success_count = 1
-
-                # Log network success every 60th check to reduce noise
-                if self._network_success_count % 60 == 0:
-                    logger.debug(
-                        f"Network connectivity successful to {endpoint_hostname}:{endpoint_port} (check #{self._network_success_count})"
-                    )
-                return True
-            except (TimeoutError, socket.gaierror, OSError) as e:
-                logger.debug(
-                    f"Network connectivity failed to {endpoint_hostname}:{endpoint_port} - {e}"
-                )
-                continue
-
-        # All endpoints failed
-        self._detailed_error_info["network_error"] = {
-            "hostname": hostname,
-            "port": port,
-            "endpoints_tried": discord_endpoints,
-            "error_type": "all_endpoints_failed",
-            "error_message": "All Discord endpoints failed connectivity test",
-            "timestamp": time.time(),
-        }
-        logger.error("All Discord endpoints failed network connectivity test")
-        self._connection_status = DiscordConnectionStatus.NETWORK_FAILURE
-        return False
-
-    @handle_errors("waiting for network recovery", default_return=False)
-    def _wait_for_network_recovery(self, max_wait: int = 300) -> bool:
-        """
-        Wait for network recovery with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        # Validate max_wait
-        if not isinstance(max_wait, int) or max_wait < 0:
-            logger.error(f"Invalid max_wait: {max_wait}")
-            return False
-        """Wait for network connectivity to recover with enhanced monitoring and early exit"""
-        logger.info(f"Waiting for network connectivity to recover (max {max_wait}s)...")
-        start_time = time.time()
-        check_interval = 10  # Check every 10 seconds
-
-        while time.time() - start_time < max_wait:
-            # Check DNS resolution first
-            if self._check_dns_resolution():
-                # Then check network connectivity
-                if self._check_network_connectivity():
-                    logger.info("Network connectivity recovered successfully")
-                    self._connection_status = DiscordConnectionStatus.INITIALIZING
-                    return True
-
-            # Wait before next check
-            time.sleep(check_interval)
-
-        logger.error(f"Network connectivity did not recover within {max_wait} seconds")
-        return False
-
-    @contextlib.asynccontextmanager
-    @handle_errors("cleaning up session context", default_return=None)
-    async def shutdown__session_cleanup_context(self):
-        """Context manager for proper session cleanup with timeout handling"""
-        sessions_to_cleanup = []
-        try:
-            yield sessions_to_cleanup
-        finally:
-            # Clean up all sessions with timeout
-            cleanup_tasks = []
-            for session in sessions_to_cleanup:
-                if hasattr(session, "close") and not session.closed:
-                    cleanup_tasks.append(self._cleanup_session_with_timeout(session))
-
-            if cleanup_tasks:
-                try:
-                    await asyncio.wait_for(
-                        asyncio.gather(*cleanup_tasks, return_exceptions=True),
-                        timeout=10.0,
-                    )
-                    logger.info(
-                        f"Successfully cleaned up {len(cleanup_tasks)} sessions"
-                    )
-                except asyncio.TimeoutError:
-                    logger.warning(
-                        "Session cleanup timed out, some sessions may not be properly closed"
-                    )
-                except Exception as e:
-                    logger.error(f"Error during session cleanup: {e}")
-
-    @handle_errors(
-        "cleaning up session with timeout", user_friendly=False, default_return=False
-    )
-    async def _cleanup_session_with_timeout(self, session) -> bool:
-        """Clean up a single session with timeout handling"""
-        try:
-            await asyncio.wait_for(session.close(), timeout=5.0)
-            return True
-        except asyncio.TimeoutError:
-            logger.warning(f"Session cleanup timed out for {type(session).__name__}")
-            return False
-        except Exception as e:
-            logger.debug(f"Error closing session {type(session).__name__}: {e}")
-            return False
-
-    @handle_errors(
-        "cleaning up event loop safely", user_friendly=False, default_return=False
-    )
-    async def _cleanup_event_loop_safely(self, loop: asyncio.AbstractEventLoop) -> bool:
-        """Safely clean up event loop with proper task cancellation and error handling"""
-        if not loop or loop.is_closed():
-            return True
-
-        # Get all tasks in this specific loop
-        tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
-
-        if not tasks:
-            logger.debug("No pending tasks to cancel")
-            return True
-
-        logger.info(f"Cancelling {len(tasks)} pending tasks")
-
-        # Cancel all tasks
-        for task in tasks:
-            if not task.done():
-                task.cancel()
-
-        # Wait for tasks to be cancelled with timeout
-        try:
-            await asyncio.wait_for(
-                asyncio.gather(*tasks, return_exceptions=True), timeout=5.0
-            )
-            logger.info("All tasks cancelled successfully")
-        except asyncio.TimeoutError:
-            logger.warning(
-                "Task cancellation timed out, some tasks may still be running"
-            )
-
-        # Close the loop if it's not already closed
-        if not loop.is_closed():
-            loop.close()
-            logger.info("Event loop closed successfully")
-
-        return True
-
-    @handle_errors(
-        "cleaning up aiohttp sessions", user_friendly=False, default_return=False
-    )
-    async def _cleanup_aiohttp_sessions(self) -> bool:
-        """Clean up any remaining aiohttp sessions to prevent warnings"""
-        # Get current event loop
-        asyncio.get_running_loop()
-
-        # Find and close any aiohttp sessions
-        import gc
-        import aiohttp
-
-        # Force garbage collection to find any orphaned sessions
-        gc.collect()
-
-        # Look for aiohttp ClientSession objects in memory
-        for obj in gc.get_objects():
-            if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
-                try:
-                    await obj.close()
-                    logger.debug("Closed orphaned aiohttp session")
-                except Exception as e:
-                    logger.debug(f"Error closing aiohttp session: {e}")
-
-        return True
-
-    @handle_errors("getting detailed connection status", default_return={})
-    def _get_detailed_connection_status(self) -> dict[str, Any]:
-        """Get detailed connection status information"""
-        status_info = {
-            "connection_status": self._connection_status.value,
-            "bot_initialized": self.bot is not None,
-            "bot_ready": self.bot.is_ready() if self.bot else False,
-            "bot_closed": self.bot.is_closed() if self.bot else True,
-            "reconnect_attempts": self._reconnect_attempts,
-            "max_reconnect_attempts": self._max_reconnect_attempts,
-            "last_reconnect_time": self._last_reconnect_time,
-            "dns_resolution": self._check_dns_resolution(),
-            "network_connectivity": self._check_network_connectivity(),
-            "detailed_errors": self._detailed_error_info.copy(),
-            "timestamp": time.time(),
-        }
-
-        # Add Discord-specific status if available
-        if self.bot:
-            try:
-                status_info["latency"] = self.bot.latency
-                status_info["guild_count"] = len(self.bot.guilds)
-            except Exception as e:
-                status_info["discord_status_error"] = str(e)
-
-        return status_info
-
-    @handle_errors("updating connection status", default_return=None)
-    def _shared__update_connection_status(
-        self, status: DiscordConnectionStatus, error_info: dict[str, Any] | None = None
-    ):
-        """Update connection status with detailed error information"""
-        # Only log if status actually changed
-        if self._connection_status != status:
-            self._connection_status = status
-            if error_info:
-                self._detailed_error_info.update(error_info)
-
-            # Log status change with details (single log message)
-            logger.info(f"Discord connection status changed to: {status.value}")
-            if error_info:
-                logger.debug(f"Connection error details: {error_info}")
-        else:
-            # Status didn't change, just update error info if provided
-            if error_info:
-                self._detailed_error_info.update(error_info)
-
-    @handle_errors("checking network health", default_return=False)
-    def _check_network_health(self) -> bool:
-        """Comprehensive network health check with detailed reporting"""
-        logger.debug("Performing network health check...")
-
-        # Check DNS resolution first
-        if not self._check_dns_resolution():
-            logger.warning("DNS resolution failed during health check")
-            return False
-
-        # Check network connectivity
-        if not self._check_network_connectivity():
-            logger.warning("Network connectivity failed during health check")
-            return False
-
-        # If we have a bot instance, check its health
-        if self.bot and hasattr(self.bot, "latency"):
-            try:
-                latency = self.bot.latency
-                if latency > 1.0:  # More than 1 second latency
-                    logger.warning(f"High Discord latency detected: {latency:.3f}s")
-                    return False
-                logger.debug(f"Discord latency: {latency:.3f}s")
-            except Exception as e:
-                logger.debug(f"Could not check Discord latency: {e}")
-
-        logger.debug("Network health check passed")
-        return True
-
-    @handle_errors("checking if should attempt reconnection", default_return=False)
-    def _should_attempt_reconnection(self) -> bool:
-        """Determine if reconnection should be attempted based on various factors"""
-        current_time = time.time()
-
-        # Check if we've exceeded max attempts
-        if self._reconnect_attempts >= self._max_reconnect_attempts:
-            logger.warning(
-                f"Maximum reconnection attempts ({self._max_reconnect_attempts}) exceeded"
-            )
-            return False
-
-        # Check cooldown period
-        if current_time - self._last_reconnect_time < self._reconnect_cooldown:
-            remaining_cooldown = self._reconnect_cooldown - (
-                current_time - self._last_reconnect_time
-            )
-            logger.debug(
-                f"Reconnection cooldown active, {remaining_cooldown:.1f}s remaining"
-            )
-            return False
-
-        # Check network health before attempting reconnection
-        if not self._check_network_health():
-            logger.info("Network health check failed, skipping reconnection attempt")
-            return False
-
-        return True
 
     @handle_errors("initializing Discord bot", default_return=False)
     async def initialize(self) -> bool:
-        """
-        Initialize Discord bot with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        """Initialize Discord bot with enhanced network resilience"""
         if self._starting:
             logger.info("Discord bot already initializing")
             return False
-
         if self.is_ready():
             logger.info("Discord bot already initialized")
             return True
-
         self._starting = True
         self._set_status(ChannelStatus.INITIALIZING)
         self._shared__update_connection_status(DiscordConnectionStatus.INITIALIZING)
-
         try:
             if not DISCORD_BOT_TOKEN:
                 error_msg = "Discord bot token not configured."
                 self._set_status(ChannelStatus.ERROR, error_msg)
                 logger.error(error_msg)
                 return False
-
-            # Pre-flight network check
             logger.info("Performing pre-flight network check...")
             if not self._check_network_health():
                 logger.warning(
                     "Pre-flight network check failed, but continuing with initialization"
                 )
-                # Don't fail immediately, let Discord.py handle the connection
-
-            # Create bot instance with automatic command processing disabled.
-            # Only set application_id when explicitly configured.
             bot_kwargs: dict[str, Any] = {
                 "command_prefix": "!",
                 "intents": intents,
-                "help_command": None,  # Disable default help command
+                "help_command": None,
             }
             if DISCORD_APPLICATION_ID is not None:
                 bot_kwargs["application_id"] = DISCORD_APPLICATION_ID
             self.bot = commands.Bot(**bot_kwargs)
-
-            # Register events and commands
             if not self._events_registered:
                 self.initialize__register_events()
-
             if not self._commands_registered:
                 self.initialize__register_commands()
-
-            # Start bot in a separate thread
             self.discord_thread = threading.Thread(
                 target=self.initialize__run_bot_in_thread, daemon=True
             )
             self.discord_thread.start()
 
-            # Wait for the bot to be ready with enhanced monitoring
-            max_wait = 60  # 60 seconds for network issues
-            wait_interval = 0.5  # Check every 0.5 seconds
-            total_waited = 0
-
+            max_wait = 60
+            total_waited = 0.0
             while total_waited < max_wait:
-                await asyncio.sleep(wait_interval)
-                total_waited += wait_interval
-
+                await asyncio.sleep(0.5)
+                total_waited += 0.5
                 if self.bot and self.bot.is_ready():
                     self._set_status(ChannelStatus.READY)
-                    self._reconnect_attempts = (
-                        0  # Reset reconnect attempts on successful connection
-                    )
-                    self._starting = False  # Reset starting flag
+                    self._reconnect_attempts = 0
+                    self._starting = False
                     self._shared__update_connection_status(
                         DiscordConnectionStatus.CONNECTED
                     )
                     logger.info("Discord bot initialized successfully")
-
-                    # If on_ready() hasn't fired yet (or won't fire), manually trigger webhook server startup
-                    # This can happen if the bot becomes ready before on_ready() fires, or if on_ready() fails silently
-                    # Wait a moment to see if on_ready() fires naturally
-                    await asyncio.sleep(0.5)  # Give on_ready() a chance to fire
-
-                    if hasattr(self, "_on_ready_handler") and self._on_ready_handler:
-                        if not self._on_ready_fired:
-                            discord_logger.warning(
-                                "Bot is ready but on_ready() hasn't fired - manually triggering webhook server startup"
-                            )
-                            try:
-                                # Only create task if loop is running and not closed
-                                if (
-                                    hasattr(self.bot, "loop")
-                                    and self.bot.loop
-                                    and not self.bot.loop.is_closed()
-                                ):
-                                    self.bot.loop.create_task(self._on_ready_handler())
-                                else:
-                                    discord_logger.debug(
-                                        "Bot loop not available for manual on_ready trigger"
-                                    )
-                            except Exception as e:
-                                discord_logger.warning(
-                                    f"Failed to manually trigger webhook server startup: {e}",
-                                    exc_info=True,
+                    await asyncio.sleep(0.5)
+                    if (
+                        getattr(self, "_on_ready_handler", None)
+                        and not self._on_ready_fired
+                    ):
+                        discord_logger.warning(
+                            "Bot is ready but on_ready() hasn't fired - manually "
+                            "triggering webhook server startup"
+                        )
+                        try:
+                            if (
+                                hasattr(self.bot, "loop")
+                                and self.bot.loop
+                                and not self.bot.loop.is_closed()
+                            ):
+                                self.bot.loop.create_task(self._on_ready_handler())
+                            else:
+                                discord_logger.debug(
+                                    "Bot loop not available for manual on_ready trigger"
                                 )
-
-                    return True
-
-                # Log progress for longer waits
-                if total_waited % 10 == 0:  # Every 10 seconds
-                    logger.info(
-                        f"Waiting for Discord bot to be ready... ({total_waited}s/{max_wait}s)"
-                    )
-
-                    # Perform periodic network health check
-                    if total_waited % 20 == 0:  # Every 20 seconds
-                        if not self._check_network_health():
-                            logger.warning(
-                                "Network health check failed during initialization"
+                        except Exception as exc:
+                            discord_logger.warning(
+                                "Failed to manually trigger webhook server startup: "
+                                f"{exc}",
+                                exc_info=True,
                             )
-
-            # If we get here, the bot didn't become ready in time
-            error_msg = f"Discord bot failed to become ready within {max_wait} seconds"
+                    return True
+                if total_waited % 10 == 0:
+                    logger.info(
+                        "Waiting for Discord bot to be ready... "
+                        f"({total_waited}s/{max_wait}s)"
+                    )
+                    if total_waited % 20 == 0 and not self._check_network_health():
+                        logger.warning(
+                            "Network health check failed during initialization"
+                        )
+            error_msg = (
+                f"Discord bot failed to become ready within {max_wait} seconds"
+            )
             self._set_status(ChannelStatus.ERROR, error_msg)
             self._shared__update_connection_status(
                 DiscordConnectionStatus.GATEWAY_ERROR,
@@ -660,121 +198,82 @@ class DiscordBot(BaseChannel):
             logger.error(error_msg)
             return False
         finally:
-            # Always reset the starting flag, even if initialization fails
             self._starting = False
 
     @handle_errors("running Discord bot in thread")
     def initialize__run_bot_in_thread(self):
-        """Run Discord bot in completely isolated thread with its own event loop"""
-        # Create completely new event loop for this thread
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
-
-        # Start the bot and process commands
         self._loop.run_until_complete(self.initialize__bot_main_loop())
 
     @handle_errors("running Discord bot main loop")
     async def initialize__bot_main_loop(self):
-        """Main bot loop that handles both Discord and command queue"""
         bot = self.bot
         if not bot or not DISCORD_BOT_TOKEN:
             logger.error("Discord bot not initialized or token missing")
             return
-        # Start the Discord bot
         bot_task = asyncio.create_task(bot.start(DISCORD_BOT_TOKEN))
-
-        # Process command queue concurrently with bot
         command_task = asyncio.create_task(self.initialize__process_command_queue())
-
         try:
-            # Wait for either the bot to finish or a stop command
-            done, pending = await asyncio.wait(
+            _done, pending = await asyncio.wait(
                 [bot_task, command_task], return_when=asyncio.FIRST_COMPLETED
             )
-
-            # Cancel any remaining tasks
             for task in pending:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
         finally:
-            # Ensure bot is properly closed
             if not bot.is_closed():
                 await bot.close()
-
-            # Clean up HTTP session to prevent "Unclosed client session" errors
             try:
                 http = getattr(bot, "_HTTP", None)
-                if http:
-                    http_client = getattr(http, "_HTTPClient", None)
-                    if http_client:
-                        session = getattr(http_client, "_session", None)
-                        if session:
-                            await session.close()
-                            logger.info("Discord bot HTTP session closed in main loop")
-            except Exception as e:
+                http_client = getattr(http, "_HTTPClient", None) if http else None
+                session = getattr(http_client, "_session", None) if http_client else None
+                if session:
+                    await session.close()
+                    logger.info("Discord bot HTTP session closed in main loop")
+            except Exception as exc:
                 logger.debug(
-                    f"Error closing HTTP session in main loop (may already be closed): {e}"
+                    "Error closing HTTP session in main loop "
+                    f"(may already be closed): {exc}"
                 )
 
     @handle_errors("processing Discord command queue")
     async def initialize__process_command_queue(self):
-        """Process command queue without blocking Discord bot heartbeat"""
         while True:
             try:
-                # Check for commands from main thread (non-blocking)
                 try:
                     command, args = self._command_queue.get_nowait()
-
                     if command == "send_message":
-                        if len(args) == 4:
-                            # New format: message with rich data and suggestions
-                            recipient, message, rich_data, suggestions = args
-                            result = await self._send_message_internal(
-                                recipient, message, rich_data, suggestions
-                            )
-                        elif len(args) == 5:
-                            # New format: message with rich data, suggestions, and custom view
-                            recipient, message, rich_data, suggestions, custom_view = (
-                                args
-                            )
-                            result = await self._send_message_internal(
-                                recipient, message, rich_data, suggestions, custom_view
-                            )
+                        if len(args) in (4, 5):
+                            result = await self._send_message_internal(*args)
                         else:
                             logger.error(f"Invalid send_message args: {args}")
                             result = False
                         self._result_queue.put(result)
                     elif command == "stop":
                         logger.info("Discord bot received stop command")
-                        return  # Exit the command processing loop
-
+                        return
                 except queue.Empty:
                     pass
-
-                # Give Discord bot time to process heartbeat and other events
                 await asyncio.sleep(0.1)
-
-            except Exception as e:
-                logger.error(f"Error in Discord command processing: {e}")
-                # Continue processing even if one command fails
+            except Exception as exc:
+                logger.error(f"Error in Discord command processing: {exc}")
                 await asyncio.sleep(0.1)
 
     @handle_errors("scheduling Discord ready tasks", default_return=None)
     def _schedule_ready_tasks(self, bot) -> None:
-        """Schedule non-blocking tasks after Discord ready event."""
-
         @handle_errors(
             "syncing Discord application commands",
             user_friendly=False,
             default_return=None,
         )
         async def _sync_app_cmds():
-            app_id = getattr(bot, "application_id", None)
-            if not app_id:
+            if not getattr(bot, "application_id", None):
                 logger.warning(
                     "Skipping Discord command sync: application_id unavailable. "
-                    "Set DISCORD_APPLICATION_ID (matching your bot token's app) to enable sync."
+                    "Set DISCORD_APPLICATION_ID (matching your bot token's app) "
+                    "to enable sync."
                 )
                 return
             await bot.tree.sync()
@@ -787,91 +286,28 @@ class DiscordBot(BaseChannel):
         )
         async def _check_new_authorized_users():
             discord_logger.debug(
-                "Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction"
+                "Bot ready - will welcome users on Discord app authorization "
+                "(via webhook) or first interaction"
             )
 
         self._sync_task = bot.loop.create_task(_sync_app_cmds())
         bot.loop.create_task(_check_new_authorized_users())
 
-    @handle_errors("detecting external ngrok tunnel", default_return=False)
-    def _has_external_ngrok_tunnel(self) -> bool:
-        """Detect an externally running ngrok HTTP tunnel."""
-        try:
-            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-                try:
-                    if not proc.info["name"]:
-                        continue
-                    proc_name = proc.info["name"].lower()
-                    if "ngrok" not in proc_name:
-                        continue
-                    cmdline = proc.info.get("cmdline", [])
-                    if (
-                        cmdline
-                        and "http" in " ".join(cmdline).lower()
-                        and proc.is_running()
-                    ):
-                        discord_logger.info(
-                            "ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL"
-                        )
-                        return True
-                except (
-                    psutil.NoSuchProcess,
-                    psutil.AccessDenied,
-                    psutil.ZombieProcess,
-                ):
-                    continue
-        except Exception:
-            return False
-        return False
-
-    @handle_errors("starting Discord webhook server", default_return=None)
-    def _start_discord_webhook_server_for_ready(self) -> None:
-        """Start webhook server and log ngrok/webhook status."""
-        try:
-            from communication.communication_channels.discord.webhook_server import (
-                WebhookServer,
-            )
-            from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
-
-            if DISCORD_AUTO_NGROK:
-                self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
-
-            self._webhook_server = WebhookServer(
-                port=DISCORD_WEBHOOK_PORT, bot_instance=self
-            )
-            if self._webhook_server.start():
-                if self._ngrok_process:
-                    discord_logger.info(
-                        "ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL"
-                    )
-                elif not self._has_external_ngrok_tunnel():
-                    discord_logger.info(
-                        f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal"
-                    )
-            else:
-                discord_logger.warning("Failed to start Discord webhook server")
-        except Exception as e:
-            discord_logger.warning(f"Could not start webhook server: {e}")
-
     @handle_errors("registering Discord events")
     def initialize__register_events(self):
-        """Register Discord event handlers"""
         if self._events_registered or not self.bot:
             return
-
-        from communication.communication_channels.discord.discord_guild_handlers import (
-            handle_guild_join,
-        )
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             handle_discord_interaction,
         )
-        from communication.communication_channels.discord.discord_message_handler import (
-            handle_discord_message,
-        )
-        from communication.communication_channels.discord.discord_ready_handlers import (
+        from communication.communication_channels.discord.events.lifecycle import (
             handle_disconnect,
             handle_error,
+            handle_guild_join,
             run_on_ready_internal,
+        )
+        from communication.communication_channels.discord.events.message_handler import (
+            handle_discord_message,
         )
 
         @self.bot.event
@@ -915,10 +351,8 @@ class DiscordBot(BaseChannel):
             await run_on_ready_internal(self)
 
         self._on_ready_handler = _on_ready_handler
-
         self._events_registered = True
-
-        if self.bot and self.bot.is_ready():
+        if self.bot.is_ready():
             try:
                 if (
                     hasattr(self.bot, "loop")
@@ -930,1224 +364,182 @@ class DiscordBot(BaseChannel):
                     discord_logger.debug(
                         "Bot loop not available for manual on_ready trigger"
                     )
-            except Exception as e:
+            except Exception as exc:
                 discord_logger.warning(
-                    f"Failed to manually trigger webhook server startup: {e}",
+                    f"Failed to manually trigger webhook server startup: {exc}",
                     exc_info=True,
                 )
 
     @handle_errors("registering Discord commands")
     def initialize__register_commands(self):
-        """Register Discord commands"""
-        if self._commands_registered or not self.bot:
-            return
-
-        # Register dynamic application (slash) commands from the channel-agnostic map
-        from communication.message_processing.interaction_manager import (
-            get_interaction_manager,
-            handle_user_message,
+        from communication.communication_channels.discord.events.command_registration import (
+            register_discord_commands,
         )
 
-        im = get_interaction_manager()
-        cmd_defs = im.get_command_definitions()
+        register_discord_commands(self)
 
-        for cmd in cmd_defs:
-            name = cmd["name"]
-            mapped = cmd["mapped_message"]
-            description = cmd["description"]
-
-            @handle_errors(
-                "handling Discord app command",
-                context={"command": name},
-                default_return=None,
-            )
-            async def _app_cb(
-                interaction: discord.Interaction, _mapped=mapped, _name=name
-            ):
-                discord_user_id = str(interaction.user.id)
-                internal_user_id = get_user_id_by_identifier(discord_user_id)
-                if not internal_user_id:
-                    # Welcome message should have been sent by on_interaction handler
-                    # But provide helpful response if they try to use a command
-                    await interaction.response.send_message(
-                        f"Please create or link a MHM account to use this feature. Your Discord ID: `{discord_user_id}`",
-                        ephemeral=True,
+    @contextlib.asynccontextmanager
+    @handle_errors("cleaning up session context", default_return=None)
+    async def shutdown__session_cleanup_context(self):
+        sessions_to_cleanup = []
+        try:
+            yield sessions_to_cleanup
+        finally:
+            cleanup_tasks = [
+                self._cleanup_session_with_timeout(session)
+                for session in sessions_to_cleanup
+                if hasattr(session, "close") and not session.closed
+            ]
+            if cleanup_tasks:
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*cleanup_tasks, return_exceptions=True),
+                        timeout=10.0,
                     )
-                    return
-                response = handle_user_message(internal_user_id, _mapped, "discord")
-
-                # Create embed if rich_data is provided
-                embed = None
-                if self._has_display_rich_data(response.rich_data):
-                    embed = self._create_discord_embed(
-                        response.message, response.rich_data
+                    logger.info(
+                        f"Successfully cleaned up {len(cleanup_tasks)} sessions"
                     )
+                except asyncio.TimeoutError:
+                    logger.warning("Session cleanup timed out")
 
-                # Create view with buttons if suggestions or custom interaction view
-                view = self._resolve_interaction_view_from_rich_data(response.rich_data)
-                if not view:
-                    button_labels, button_payloads = self._get_action_row_inputs(
-                        response.suggestions, response.rich_data
-                    )
-                    if button_labels:
-                        view = self._create_action_row(
-                            button_labels,
-                            button_payloads,
-                        )
+    @handle_errors(
+        "cleaning up session with timeout", user_friendly=False, default_return=False
+    )
+    async def _cleanup_session_with_timeout(self, session) -> bool:
+        try:
+            await asyncio.wait_for(session.close(), timeout=5.0)
+            return True
+        except asyncio.TimeoutError:
+            logger.warning(f"Session cleanup timed out for {type(session).__name__}")
+            return False
+        except Exception as exc:
+            logger.debug(f"Error closing session {type(session).__name__}: {exc}")
+            return False
 
-                # Send response with embed and/or view
-                if embed and view:
-                    await interaction.response.send_message(embed=embed, view=view)
-                elif embed:
-                    await interaction.response.send_message(embed=embed)
-                elif view:
-                    await interaction.response.send_message(response.message, view=view)
-                else:
-                    await interaction.response.send_message(response.message)
-
+    @handle_errors(
+        "cleaning up event loop safely", user_friendly=False, default_return=False
+    )
+    async def _cleanup_event_loop_safely(
+        self, loop: asyncio.AbstractEventLoop
+    ) -> bool:
+        if not loop or loop.is_closed():
+            return True
+        tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
+        for task in tasks:
+            task.cancel()
+        if tasks:
             try:
-                app_cmd = app_commands.Command(
-                    name=name,
-                    description=(description or f"{name} command"),
-                    callback=_app_cb,
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True), timeout=5.0
                 )
-                self.bot.tree.add_command(app_cmd)
-            except Exception:
-                # If already exists, skip silently
-                pass
+            except asyncio.TimeoutError:
+                logger.warning("Task cancellation timed out")
+        if not loop.is_closed():
+            loop.close()
+        return True
 
-        # Dynamically expose a set of native-style classic commands based on the central slash map.
-        from communication.message_processing.interaction_manager import (
-            get_interaction_manager,
-        )
+    @handle_errors(
+        "cleaning up aiohttp sessions", user_friendly=False, default_return=False
+    )
+    async def _cleanup_aiohttp_sessions(self) -> bool:
+        import gc
+        import aiohttp
 
-        im = get_interaction_manager()
-        cmd_defs = im.get_command_definitions()
-
-        for cmd in cmd_defs:
-            name = cmd["name"]
-            mapped = cmd["mapped_message"]
-            # Skip Discord's native classic commands to avoid duplication
-            if name in ["help"]:
-                continue
-
-            @handle_errors(
-                "handling Discord dynamic command",
-                context={"command": name},
-                default_return=None,
-            )
-            async def _dynamic(ctx, _mapped=mapped, _name=name):
-                discord_user_id = str(ctx.author.id)
-                internal_user_id = get_user_id_by_identifier(discord_user_id)
-                if not internal_user_id:
-                    await ctx.send("Please register first to use this feature.")
-                    return
-                from communication.message_processing.interaction_manager import (
-                    handle_user_message,
-                )
-
-                response = handle_user_message(internal_user_id, _mapped, "discord")
-                await ctx.send(response.message)
-
-            # Register as a classic command: users can type !tasks, !profile, etc.
-            # Ignore duplicate command registration attempts.
-            with contextlib.suppress(Exception):
-                self.bot.command(name=name)(_dynamic)
-
-        self._commands_registered = True
+        gc.collect()
+        for obj in gc.get_objects():
+            if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
+                try:
+                    await obj.close()
+                except Exception as exc:
+                    logger.debug(f"Error closing aiohttp session: {exc}")
+        return True
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:
-        """Shutdown Discord bot safely with improved session and event loop management"""
         logger.info("Starting Discord bot shutdown...")
-
         try:
-            # Stop ngrok FIRST - don't wait for full bot shutdown
-            # This ensures ngrok stops even if shutdown hangs
             self._stop_ngrok_tunnel()
-
-            # Send stop command to Discord thread
             try:
                 self._command_queue.put(("stop", None))
-            except Exception as e:
-                logger.warning(f"Error sending stop command: {e}")
-
-            # Wait for thread to finish
+            except Exception as exc:
+                logger.warning(f"Error sending stop command: {exc}")
             if self.discord_thread and self.discord_thread.is_alive():
                 self.discord_thread.join(timeout=10)
                 if self.discord_thread.is_alive():
                     logger.warning("Discord thread did not stop gracefully")
-
-            # Properly close the bot and event loop with enhanced cleanup
             if self.bot:
-                async with (
-                    self.shutdown__session_cleanup_context() as sessions_to_cleanup
-                ):
-                    # Cancel any pending sync task first
-                    if (
-                        hasattr(self, "_sync_task")
-                        and self._sync_task
-                        and not self._sync_task.done()
-                    ):
+                async with self.shutdown__session_cleanup_context() as sessions:
+                    if self._sync_task and not self._sync_task.done():
                         self._sync_task.cancel()
-                        try:
+                        with contextlib.suppress(
+                            asyncio.CancelledError, asyncio.TimeoutError
+                        ):
                             await asyncio.wait_for(self._sync_task, timeout=2.0)
-                        except (asyncio.CancelledError, asyncio.TimeoutError):
-                            logger.debug(
-                                "Sync task cancelled or timed out during shutdown"
-                            )
-                        except Exception as e:
-                            logger.debug(
-                                f"Error waiting for sync task cancellation: {e}"
-                            )
-
-                    # Close the bot first
                     if not self.bot.is_closed():
                         await self.bot.close()
                         logger.info("Discord bot closed successfully")
-
-                    # Collect all sessions that need cleanup
                     http = getattr(self.bot, "_HTTP", None)
-                    if http:
-                        http_client = getattr(http, "_HTTPClient", None)
-                        if http_client:
-                            session = getattr(http_client, "_session", None)
-                            if session:
-                                sessions_to_cleanup.append(session)
-
-                    # Clean up the event loop if it exists
-                    if hasattr(self, "_loop") and self._loop:
+                    http_client = getattr(http, "_HTTPClient", None) if http else None
+                    session = (
+                        getattr(http_client, "_session", None) if http_client else None
+                    )
+                    if session:
+                        sessions.append(session)
+                    if self._loop:
                         await self._cleanup_event_loop_safely(self._loop)
-
-                    # Additional cleanup for aiohttp sessions
                     await self._cleanup_aiohttp_sessions()
-
-                    # Stop webhook server
                     if self._webhook_server:
                         try:
                             self._webhook_server.stop()
-                        except Exception as e:
-                            logger.debug(f"Error stopping webhook server: {e}")
-
-                    # Stop ngrok tunnel if running
+                        except Exception as exc:
+                            logger.debug(f"Error stopping webhook server: {exc}")
                     self._stop_ngrok_tunnel()
-
-            # Ensure ngrok is stopped even if shutdown had errors
             self._stop_ngrok_tunnel()
-
             return True
         finally:
-            # Always set status to STOPPED, even if shutdown encountered errors
-            # This ensures tests can verify shutdown was attempted
             self._set_status(ChannelStatus.STOPPED)
             logger.info("Discord bot shutdown completed")
 
-    # not_duplicate: send_message_channel
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
-        """
-        Send Discord message with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        # Validate recipient
-        if not recipient or not isinstance(recipient, str):
+        if not recipient or not isinstance(recipient, str) or not recipient.strip():
             logger.error(f"Invalid recipient: {recipient}")
             return False
-
-        if not recipient.strip():
-            logger.error("Empty recipient provided")
-            return False
-
-        # Validate message
-        if not message or not isinstance(message, str):
+        if not message or not isinstance(message, str) or not message.strip():
             logger.error(f"Invalid message: {message}")
             return False
-
-        if not message.strip():
-            logger.error("Empty message provided")
-            return False
-        """Send message via Discord using thread-safe queue communication with rich response support"""
         if not self.is_ready():
             logger.error("Discord bot is not ready to send messages")
             return False
-
-        # Check for rich response data
-        rich_data = kwargs.get("rich_data", {})
-        suggestions = kwargs.get("suggestions", [])
+        args = (
+            recipient,
+            message,
+            kwargs.get("rich_data", {}),
+            kwargs.get("suggestions", []),
+        )
         custom_view = kwargs.get("view")
-
-        # Send command to Discord thread with rich data and optional custom view
         if custom_view:
-            self._command_queue.put(
-                (
-                    "send_message",
-                    (recipient, message, rich_data, suggestions, custom_view),
-                )
-            )
-        else:
-            self._command_queue.put(
-                ("send_message", (recipient, message, rich_data, suggestions))
-            )
-
-        # Wait for result with timeout
-        timeout = 10  # 10 seconds
+            args = (*args, custom_view)
+        self._command_queue.put(("send_message", args))
         start_time = time.time()
-
-        while time.time() - start_time < timeout:
+        while time.time() - start_time < 10:
             try:
-                result = self._result_queue.get_nowait()
-                return result
+                return self._result_queue.get_nowait()
             except queue.Empty:
                 time.sleep(0.1)
-
         logger.error(f"Timeout waiting for Discord message send to {recipient}")
         return False
 
-    @handle_errors(
-        "validating Discord user accessibility",
-        user_friendly=False,
-        default_return=False,
-    )
-    async def _validate_discord_user_accessibility(self, user_id: str) -> bool:
-        """Validate if a Discord user ID is still accessible"""
-        bot = self.bot
-        if not bot:
-            logger.error("Discord bot not initialized")
+    @handle_errors("sending Discord DM", default_return=False)
+    async def send_dm(self, user_id: str, message: str) -> bool:
+        if not user_id or not isinstance(user_id, str) or not user_id.strip():
+            logger.error(f"Invalid user_id: {user_id}")
             return False
-        user_id_int = int(user_id)
-        user = bot.get_user(user_id_int)
-        if not user:
-            try:
-                user = await bot.fetch_user(user_id_int)
-                return True
-            except discord.NotFound:
-                logger.warning(f"Discord user {user_id} not found (404)")
-                return False
-            except discord.Forbidden:
-                logger.warning(
-                    f"Bot forbidden from accessing Discord user {user_id} (403)"
-                )
-                return False
-        return True
-
-    @handle_errors(
-        "sending message to Discord channel", user_friendly=False, default_return=False
-    )
-    async def _send_to_channel(
-        self,
-        channel,
-        message: str,
-        rich_data: dict[str, Any] | None = None,
-        suggestions: list[str] | None = None,
-    ) -> bool:
-        """Send message directly to a Discord channel (for regular message responses)"""
-        rich_data = rich_data or {}
-        suggestions = suggestions or []
-
-        # Create Discord embed if rich data is provided
-        embed = None
-        if self._has_display_rich_data(rich_data):
-            embed = self._create_discord_embed(message, rich_data)
-
-        # Create view: custom interaction view (create hub, etc.) or suggestion buttons
-        view = self._resolve_interaction_view_from_rich_data(rich_data)
-        if not view:
-            button_labels, button_payloads = self._get_action_row_inputs(
-                suggestions, rich_data
-            )
-            if button_labels:
-                view = self._create_action_row(button_labels, button_payloads)
-
-        # Send to the channel
-        if embed and view:
-            await channel.send(content=message or None, embed=embed, view=view)
-        elif embed:
-            await channel.send(content=message or None, embed=embed)
-        elif view:
-            await channel.send(content=message, view=view)
-        else:
-            await channel.send(content=message)
-
-        logger.info(f"Message sent to Discord channel {channel.id}")
-        discord_logger.info(
-            "Discord channel message sent",
-            channel_id=str(channel.id),
-            message_length=len(message),
-            has_embed=bool(embed),
-            has_components=bool(view),
-        )
-        return True
-
-    @handle_errors("sending Discord message internally", default_return=False)
-    async def _send_message_internal(
-        self,
-        recipient: str,
-        message: str,
-        rich_data: dict[str, Any] | None = None,
-        suggestions: list[str] | None = None,
-        custom_view: Any | None = None,
-    ) -> bool:
-        """
-        Send Discord message internally with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        bot = self.bot
-        if not bot:
-            logger.error("Discord bot not initialized")
-            return False
-        # Validate recipient
-        if not recipient or not isinstance(recipient, str):
-            logger.error(f"Invalid recipient: {recipient}")
-            return False
-
-        if not recipient.strip():
-            logger.error("Empty recipient provided")
-            return False
-
-        # Validate message
-        if not message or not isinstance(message, str):
+        if not message or not isinstance(message, str) or not message.strip():
             logger.error(f"Invalid message: {message}")
             return False
-
-        if not message.strip():
-            logger.error("Empty message provided")
-            return False
-
-        # Validate rich_data
-        if rich_data is not None and not isinstance(rich_data, dict):
-            logger.error(f"Invalid rich_data: {type(rich_data)}")
-            return False
-
-        # Validate suggestions
-        if suggestions is not None and not isinstance(suggestions, list):
-            logger.error(f"Invalid suggestions: {type(suggestions)}")
-            return False
-        """Send message safely within async context with rich response support"""
-        rich_data = rich_data or {}
-        suggestions = suggestions or []
-
-        # Create Discord embed if rich data is provided
-        embed = None
-        if self._has_display_rich_data(rich_data):
-            embed = self._create_discord_embed(message, rich_data)
-
-        # Create view with buttons - prefer custom_view, then suggestions
-        view = None
-        if custom_view:
-            # Handle factory functions (callables) - create view within async context
-            if callable(custom_view) and not isinstance(custom_view, type):
-                try:
-                    view = custom_view()
-                except Exception as e:
-                    logger.error(f"Error creating view from factory function: {e}")
-                    view = None
-            else:
-                view = custom_view
-        else:
-            button_labels, button_payloads = self._get_action_row_inputs(
-                suggestions, rich_data
-            )
-            if button_labels:
-                view = self._create_action_row(button_labels, button_payloads)
-
-        # Handle special Discord user marker first
-        if recipient.startswith("discord_user:"):
-            internal_user_id = recipient.split(":", 1)[1]
-            # Get the user's Discord user ID and send a DM
-            try:
-                from core import get_user_data
-
-                user_data_result = get_user_data(internal_user_id, "account")
-                account_data = user_data_result.get("account", {})
-                discord_user_id = account_data.get("discord_user_id")
-
-                if discord_user_id:
-                    user_id_int = int(discord_user_id)
-                    user = bot.get_user(user_id_int)
-                    if not user:
-                        user = await bot.fetch_user(user_id_int)
-
-                    if user:
-                        kwargs: dict[str, Any] = {"content": message}
-                        if embed:
-                            kwargs["embed"] = embed
-                        if view:
-                            kwargs["view"] = view
-                        await user.send(**kwargs)
-                        # Log detailed message information (consolidated from two separate logs)
-                        logger.info(
-                            f'Discord DM sent | {{"user_id": "{discord_user_id}", "message_length": {len(message)}, "has_embed": {bool(embed)}, "has_components": {bool(view)}, "message_preview": "{message[:50]}..."}}'
-                        )
-                        return True
-                    else:
-                        logger.warning(
-                            f"Could not find Discord user {discord_user_id} for internal user {internal_user_id}"
-                        )
-                        return False
-                else:
-                    logger.warning(
-                        f"No Discord user ID found for internal user {internal_user_id}"
-                    )
-                    return False
-            except Exception as e:
-                logger.error(
-                    f"Error sending DM to Discord user {internal_user_id}: {e}"
-                )
-                return False
-
-        # Handle direct Discord user ID (for account linking when user doesn't have internal ID yet)
-        if recipient.startswith("discord_direct:"):
-            discord_user_id = recipient.split(":", 1)[1]
-            # Send DM directly to Discord user ID (no internal user lookup needed)
-            try:
-                user_id_int = int(discord_user_id)
-                user = bot.get_user(user_id_int)
-                if not user:
-                    user = await bot.fetch_user(user_id_int)
-
-                if user:
-                    kwargs = {"content": message}
-                    if embed:
-                        kwargs["embed"] = embed
-                    if view:
-                        kwargs["view"] = view
-                    await user.send(**kwargs)
-                    logger.info(
-                        f'Discord DM sent directly | {{"discord_user_id": "{discord_user_id}", "message_length": {len(message)}, "has_embed": {bool(embed)}, "has_components": {bool(view)}, "message_preview": "{message[:50]}..."}}'
-                    )
-                    return True
-                else:
-                    logger.warning(f"Could not find Discord user {discord_user_id}")
-                    return False
-            except Exception as e:
-                logger.error(
-                    f"Error sending DM directly to Discord user {discord_user_id}: {e}"
-                )
-                return False
-
-        # Try as a channel first (preferred method)
-        try:
-            channel_id = int(recipient)
-            channel = bot.get_channel(channel_id)
-            if channel:
-                kwargs = {"content": message}
-                if embed:
-                    kwargs["embed"] = embed
-                if view:
-                    kwargs["view"] = view
-                send_fn = getattr(channel, "send", None)
-                if callable(send_fn):
-                    # getattr leaves send_fn as object; channel.send is async, so result is awaitable
-                    await cast(Awaitable[Any], send_fn(**kwargs))
-                    logger.info(f"Message sent to Discord channel {recipient}")
-                    discord_logger.info(
-                        "Discord channel message sent",
-                        channel_id=recipient,
-                        message_length=len(message),
-                        has_embed=bool(embed),
-                        has_components=bool(view),
-                    )
-                    return True
-                logger.warning(
-                    f"Channel {recipient} does not support sending messages (e.g. category channel)"
-                )
-            else:
-                logger.warning(f"Could not find Discord channel with ID {recipient}")
-        except (ValueError, TypeError):
-            logger.warning(f"Invalid channel ID format: {recipient}")
-            pass  # Not a valid channel ID
-
-        # If we get here, we couldn't send the message
-        logger.error(f"Could not find Discord channel or user with ID {recipient}")
-        discord_logger.error(
-            "Discord message send failed - recipient not found", recipient=recipient
-        )
-        return False
-
-    @handle_errors("creating Discord embed", default_return=None)
-    def _create_discord_embed(
-        self, message: str, rich_data: dict[str, Any]
-    ) -> discord.Embed:
-        """
-        Create Discord embed with validation.
-
-        Returns:
-            discord.Embed: Created embed, None if failed
-        """
-        # Validate message
-        if not message or not isinstance(message, str):
-            logger.error(f"Invalid message: {message}")
-            return None
-
-        if not message.strip():
-            logger.error("Empty message provided")
-            return None
-
-        # Validate rich_data
-        if not rich_data or not isinstance(rich_data, dict):
-            logger.error(f"Invalid rich_data: {rich_data}")
-            return None
-        """Create a Discord embed from rich data"""
-        embed = discord.Embed()
-
-        # Set title
-        if "title" in rich_data:
-            embed.title = rich_data["title"]
-        else:
-            # Extract title from message if it starts with **
-            if message.startswith("**") and "**" in message[2:]:
-                title_end = message.find("**", 2)
-                embed.title = message[2:title_end]
-                message = message[title_end + 2 :].strip()
-
-        # Set description
-        embed.description = rich_data.get("description", message)
-
-        # Set color based on type or use default
-        color_map = {
-            "success": discord.Color.green(),
-            "error": discord.Color.red(),
-            "warning": discord.Color.yellow(),
-            "info": discord.Color.blue(),
-            "task": discord.Color.purple(),
-            "profile": discord.Color.orange(),
-            "schedule": discord.Color.blue(),
-            "analytics": discord.Color.green(),
-        }
-
-        embed_type = rich_data.get("type", "info")
-        embed.color = color_map.get(embed_type, discord.Color.blue())
-
-        # Add fields
-        if "fields" in rich_data:
-            for field in rich_data["fields"]:
-                name = field.get("name", "")
-                value = field.get("value", "")
-                inline = field.get("inline", False)
-                embed.add_field(name=name, value=value, inline=inline)
-
-        # Add footer
-        if "footer" in rich_data:
-            embed.set_footer(text=rich_data["footer"])
-
-        # Add timestamp
-        if "timestamp" in rich_data:
-            embed.timestamp = rich_data["timestamp"]
-
-        return embed
-
-    @handle_errors("checking Discord display rich data", default_return=False)
-    def _has_display_rich_data(self, rich_data: dict[str, Any] | None) -> bool:
-        """Return True when rich_data contains embed-facing fields."""
-        if not isinstance(rich_data, dict):
-            return False
-        metadata_only_keys = {
-            "suggestion_payloads",
-            "pagination_actions",
-            "interaction_view",
-            "user_id",
-            "task_list_items",
-        }
-        return any(key not in metadata_only_keys for key in rich_data)
-
-    @handle_errors("getting Discord suggestion payloads", default_return=None)
-    def _get_suggestion_payloads(
-        self, rich_data: dict[str, Any] | None
-    ) -> list[Any] | None:
-        """Extract hidden button payloads from response rich data."""
-        if not isinstance(rich_data, dict):
-            return None
-        payloads = rich_data.get("suggestion_payloads")
-        if isinstance(payloads, list):
-            return payloads
-        return None
-
-    @handle_errors("getting Discord pagination actions", default_return=[])
-    def _get_pagination_actions(self, rich_data: dict[str, Any] | None) -> list[Any]:
-        """Extract channel-neutral pagination actions from response rich data."""
-        if not isinstance(rich_data, dict):
-            return []
-        actions = rich_data.get("pagination_actions")
-        if isinstance(actions, list):
-            return actions
-        return []
-
-    @handle_errors("reading pagination action field", default_return=None)
-    def _pagination_action_value(
-        self, action: Any, field: str, default: Any = None
-    ) -> Any:
-        """Read a pagination action field from a dataclass or dictionary."""
-        if isinstance(action, dict):
-            return action.get(field, default)
-        return getattr(action, field, default)
-
-    @handle_errors("converting pagination action to Discord button", default_return=None)
-    def _pagination_action_button_data(
-        self, action: Any
-    ) -> tuple[str, dict[str, Any]] | None:
-        """Convert generic pagination metadata into a Discord label and hidden payload."""
-        action_name = self._pagination_action_value(action, "action")
-        if not action_name:
-            return None
-
-        params = self._pagination_action_value(action, "params", {})
-        if not isinstance(params, dict):
-            params = {}
-        limit = int(self._pagination_action_value(action, "limit", 0) or 0)
-        next_offset = int(
-            self._pagination_action_value(action, "next_offset", 0) or 0
-        )
-        remaining_count = int(
-            self._pagination_action_value(action, "remaining_count", 0) or 0
-        )
-        button_count = min(limit, remaining_count) if limit > 0 else remaining_count
-        if button_count < 1:
-            return None
-
-        entities = dict(params)
-        entities["offset"] = next_offset
-        entities["limit"] = limit
-        payload = {"intent": str(action_name), "entities": entities}
-        return f"Show More ({button_count} more)", payload
-
-    @handle_errors("resolving Discord interaction view from rich data", default_return=None)
-    def _resolve_interaction_view_from_rich_data(
-        self, rich_data: dict[str, Any] | None
-    ) -> Any | None:
-        """Attach channel-specific views (e.g. create hub) when rich_data requests them."""
-        if not rich_data or not isinstance(rich_data, dict):
-            return None
-        view_type = rich_data.get("interaction_view")
-        user_id = rich_data.get("user_id")
-        if not view_type or not user_id:
-            return None
-        from communication.communication_channels.interaction_view_factory import (
-            create_interaction_view,
-        )
-
-        view = create_interaction_view(
-            "discord",
-            str(view_type),
-            str(user_id),
-            discord_bot=self,
-            task_list_items=rich_data.get("task_list_items"),
-            pagination_actions=rich_data.get("pagination_actions"),
-        )
-        if callable(view) and not isinstance(view, type):
-            try:
-                return view()
-            except Exception as exc:
-                logger.error(f"Error creating interaction view '{view_type}': {exc}")
-                return None
-        return view
-
-    @handle_errors("building Discord action row inputs", default_return=([], None))
-    def _get_action_row_inputs(
-        self,
-        suggestions: list[str] | None,
-        rich_data: dict[str, Any] | None,
-    ) -> tuple[list[str], list[Any] | None]:
-        """Combine handler suggestions with Discord-rendered pagination buttons."""
-        labels = list(suggestions or [])
-        suggestion_payloads = self._get_suggestion_payloads(rich_data) or []
-        payloads: list[Any] = [
-            suggestion_payloads[index] if index < len(suggestion_payloads) else None
-            for index, _label in enumerate(labels)
-        ]
-
-        for action in self._get_pagination_actions(rich_data):
-            button_data = self._pagination_action_button_data(action)
-            if button_data is None:
-                continue
-            label, payload = button_data
-            labels.append(label)
-            payloads.append(payload)
-
-        if not labels:
-            return [], None
-        # Discord allows up to 5 action rows (25 buttons); View wraps automatically.
-        return labels[:25], payloads[:25]
-
-    # error_handling_exclude: pure label lookup; caller _create_action_row is decorated
-    def _discord_button_style_for_suggestion(self, label: str) -> discord.ButtonStyle:
-        """Flow control buttons use grey/red; data suggestions (priority, dates) stay blue."""
-        if label.startswith(FLOW_UNDO_BUTTON_PREFIX):
-            return discord.ButtonStyle.danger
-        if label in FLOW_CONTROL_SKIP_LABELS:
-            return discord.ButtonStyle.secondary
-        return discord.ButtonStyle.primary
-
-    @handle_errors("creating Discord action row", default_return=None)
-    def _create_action_row(
-        self,
-        suggestions: list[str],
-        suggestion_payloads: list[Any] | None = None,
-    ) -> discord.ui.View:
-        """
-        Create Discord action row with validation.
-
-        Returns:
-            discord.ui.View: Created view, None if failed
-        """
-        # Validate suggestions
-        if not suggestions or not isinstance(suggestions, list):
-            logger.error(f"Invalid suggestions: {suggestions}")
-            return None
-
-        if not suggestions:
-            logger.error("Empty suggestions provided")
-            return None
-        """Create a Discord view with buttons from suggestions"""
-        # Use discord.ui.View instead of ActionRow for discord.py v2.x compatibility
-        view = discord.ui.View()
-
-        for i, suggestion in enumerate(suggestions[:25]):
-            self._suggestion_button_counter += 1
-            custom_id = f"suggestion_{self._suggestion_button_counter}_{i}"
-            if (
-                suggestion_payloads
-                and i < len(suggestion_payloads)
-                and suggestion_payloads[i] is not None
-            ):
-                self._suggestion_button_payloads[custom_id] = suggestion_payloads[i]
-            else:
-                self._suggestion_button_payloads[custom_id] = suggestion
-            if len(self._suggestion_button_payloads) > 500:
-                oldest_key = next(iter(self._suggestion_button_payloads))
-                self._suggestion_button_payloads.pop(oldest_key, None)
-            # Create a button with a unique custom_id
-            button = discord.ui.Button(
-                style=self._discord_button_style_for_suggestion(suggestion),
-                label=suggestion[:80],  # Discord button label limit
-                custom_id=custom_id,
-            )
-            view.add_item(button)
-
-        return view
+        return await self.send_message(user_id, message)
 
     @handle_errors("receiving Discord messages", default_return=[])
     async def receive_messages(self) -> list[dict[str, Any]]:
-        """Receive messages from Discord"""
-        # Discord messages are handled via events, not polling
-        # Return empty list as messages are processed via event handlers
         return []
-
-    @handle_errors("performing Discord health check", default_return=False)
-    async def health_check(self) -> bool:
-        """Perform comprehensive health check on Discord bot with detailed status"""
-        current_time = time.time()
-
-        # Rate limit health checks to avoid spam
-        if current_time - self._last_health_check < self._health_check_interval:
-            return self._connection_status == DiscordConnectionStatus.CONNECTED
-
-        self._last_health_check = current_time
-
-        # Get detailed status information
-        status_info = self._get_detailed_connection_status()
-
-        # Check basic bot state
-        if not self.bot:
-            logger.warning("Discord bot not initialized")
-            self._shared__update_connection_status(
-                DiscordConnectionStatus.UNINITIALIZED
-            )
-            return False
-
-        if self.bot.is_closed():
-            logger.warning("Discord bot is closed")
-            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
-            return False
-
-        if not self.bot.is_ready():
-            logger.warning("Discord bot is not ready")
-            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
-            return False
-
-        # Enhanced network connectivity checks
-        dns_ok = self._check_dns_resolution()
-        network_ok = self._check_network_connectivity()
-
-        if not dns_ok:
-            logger.warning("DNS resolution failed during health check")
-            self._shared__update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
-            return False
-
-        if not network_ok:
-            logger.warning("Network connectivity failed during health check")
-            self._shared__update_connection_status(
-                DiscordConnectionStatus.NETWORK_FAILURE
-            )
-            return False
-
-        # Check Discord-specific metrics
-        try:
-            latency = self.bot.latency
-            if latency > 1.0:  # High latency warning
-                logger.warning(f"Discord latency is high: {latency:.2f}s")
-                status_info["high_latency"] = True
-                status_info["latency"] = latency
-        except Exception as e:
-            logger.warning(f"Could not check Discord latency: {e}")
-
-        # Update status to connected if all checks pass
-        self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
-        logger.debug("Discord health check passed")
-        return True
-
-    @handle_errors("getting Discord health status", default_return={})
-    def get_health_status(self) -> dict[str, Any]:
-        """Get comprehensive health status information"""
-        return self._get_detailed_connection_status()
-
-    @handle_errors("getting connection status summary", default_return="Unknown")
-    def get_connection_status_summary(self) -> str:
-        """Get a human-readable connection status summary"""
-        status_info = self._get_detailed_connection_status()
-
-        if status_info["connection_status"] == "connected":
-            latency = status_info.get("latency", "unknown")
-            guild_count = status_info.get("guild_count", "unknown")
-            return f"Connected (Latency: {latency}s, Guilds: {guild_count})"
-        elif status_info["connection_status"] == "dns_failure":
-            error = status_info.get("detailed_errors", {}).get("dns_error", {})
-            return f"DNS Failure: {error.get('error_message', 'Unknown DNS error')}"
-        elif status_info["connection_status"] == "network_failure":
-            error = status_info.get("detailed_errors", {}).get("network_error", {})
-            return f"Network Failure: {error.get('error_message', 'Unknown network error')}"
-        elif status_info["connection_status"] == "gateway_error":
-            return "Gateway Error: Unable to connect to Discord servers"
-        elif status_info["connection_status"] == "disconnected":
-            return "Disconnected: Bot is not ready or closed"
-        else:
-            return f"Status: {status_info['connection_status']}"
-
-    @handle_errors("checking if actually connected", default_return=False)
-    def is_actually_connected(self) -> bool:
-        """Check if the Discord bot is actually connected, regardless of initialization status"""
-        if not self.bot:
-            return False
-
-        # Check if the bot is ready and not closed
-        if self.bot.is_ready() and not self.bot.is_closed():
-            # If we're actually connected but our status is wrong, fix it
-            if self.get_status() != ChannelStatus.READY:
-                logger.info("Discord bot is actually connected - fixing status")
-                self._set_status(ChannelStatus.READY)
-                self._starting = False
-            return True
-
-        # If bot exists but not ready, check if it's in a recoverable state
-        if self.bot and not self.bot.is_closed():
-            # Bot exists and not closed, but not ready - might be reconnecting
-            return False
-
-        return False
-
-    @handle_errors("checking if can send messages", default_return=False)
-    def can_send_messages(self) -> bool:
-        """Check if the Discord bot can actually send messages"""
-        if not self.is_actually_connected():
-            return False
-
-        # Additional checks for message sending capability
-        try:
-            bot = self.bot
-            if not bot:
-                return False
-            # Check if we have the bot user (means we're logged in)
-            if not bot.user:
-                return False
-
-            # Check if we have any guilds (servers) we're connected to
-            return bot.guilds
-        except Exception as e:
-            logger.warning(f"Error checking message sending capability: {e}")
-            return False
-
-    @handle_errors("manually reconnecting Discord bot", default_return=False)
-    async def manual_reconnect(self) -> bool:
-        """Manually trigger a reconnection attempt"""
-        if not self.bot:
-            logger.error("Cannot reconnect - bot not initialized")
-            return False
-        if not DISCORD_BOT_TOKEN:
-            logger.error("Cannot reconnect - Discord bot token not configured")
-            return False
-
-        logger.info("Manual reconnection requested")
-
-        # Check network connectivity first
-        if not self._check_dns_resolution():
-            logger.error("DNS resolution failed - cannot reconnect")
-            return False
-
-        try:
-            # Close the current connection
-            await self.bot.close()
-
-            # Wait a moment
-            await asyncio.sleep(2)
-
-            # Attempt to reconnect
-            await self.bot.start(DISCORD_BOT_TOKEN)
-
-            logger.info("Manual reconnection successful")
-            return True
-
-        except Exception as e:
-            logger.error(f"Manual reconnection failed: {e}")
-            return False
-
-    @handle_errors("starting ngrok tunnel", default_return=None)
-    def _start_ngrok_tunnel(self, port: int):
-        """
-        Start ngrok tunnel for webhook server (development only).
-
-        Args:
-            port: Local port to tunnel (e.g., 8080)
-        """
-        try:
-            # Check if ngrok is available
-            ngrok_path = shutil.which("ngrok")
-            if not ngrok_path:
-                discord_logger.warning(
-                    "ngrok not found in PATH - auto-launch disabled. Install ngrok or set DISCORD_AUTO_NGROK=false"
-                )
-                return
-
-            # Check if ngrok is already running (avoid duplicates)
-            if self._ngrok_process and self._ngrok_process.poll() is None:
-                discord_logger.info(
-                    "ngrok tunnel already running (managed by this bot)"
-                )
-                return
-
-            # Check if ngrok is already running from another process
-            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-                try:
-                    if not proc.info["name"]:
-                        continue
-                    proc_name = proc.info["name"].lower()
-                    if "ngrok" in proc_name:
-                        cmdline = proc.info.get("cmdline", [])
-                        if cmdline and "http" in " ".join(cmdline).lower():
-                            if proc.is_running():
-                                discord_logger.info(
-                                    f"ngrok tunnel already running externally (PID: {proc.info['pid']}) - skipping auto-launch"
-                                )
-                                return
-                except (
-                    psutil.NoSuchProcess,
-                    psutil.AccessDenied,
-                    psutil.ZombieProcess,
-                ):
-                    continue
-
-            # Start ngrok process
-            discord_logger.info(f"Starting ngrok tunnel for port {port}...")
-            try:
-                # Capture stderr so exit code 1 (common: missing authtoken) is diagnosable.
-                # If the tunnel stays up, drain stderr in a daemon thread so the pipe cannot fill.
-                if os.name == "nt":  # Windows
-                    self._ngrok_process = subprocess.Popen(
-                        [ngrok_path, "http", str(port)],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.PIPE,
-                        creationflags=subprocess.CREATE_NO_WINDOW,
-                    )
-                else:  # Unix/Linux/Mac
-                    self._ngrok_process = subprocess.Popen(
-                        [ngrok_path, "http", str(port)],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.PIPE,
-                    )
-
-                # Give ngrok a moment to start
-                time.sleep(2)
-
-                # Check if process started successfully
-                if self._ngrok_process.poll() is None:
-                    self._ngrok_pid = (
-                        self._ngrok_process.pid
-                    )  # Store PID for fallback cleanup
-                    discord_logger.info(
-                        f"ngrok tunnel started successfully (PID: {self._ngrok_process.pid})"
-                    )
-                    discord_logger.info("ngrok web interface: http://127.0.0.1:4040")
-                    discord_logger.info(
-                        "Check ngrok web interface for public URL to configure in Discord Developer Portal"
-                    )
-
-                    def _drain_ngrok_stderr() -> None:
-                        """Read ngrok stderr in a loop so a full pipe cannot block the child process."""
-                        proc = self._ngrok_process
-                        if not proc or proc.stderr is None:
-                            return
-                        try:
-                            while True:
-                                chunk = proc.stderr.read(4096)
-                                if not chunk:
-                                    break
-                        except Exception:
-                            pass
-
-                    threading.Thread(
-                        target=_drain_ngrok_stderr, daemon=True
-                    ).start()
-                else:
-                    exit_code = self._ngrok_process.poll()
-                    err_text = ""
-                    try:
-                        if self._ngrok_process.stderr is not None:
-                            err_raw = self._ngrok_process.stderr.read()
-                            err_text = err_raw.decode(errors="replace").strip()
-                    except Exception:
-                        pass
-                    discord_logger.warning(
-                        f"ngrok process exited immediately (exit code: {exit_code})"
-                    )
-                    if err_text:
-                        discord_logger.warning(
-                            f"ngrok stderr (excerpt): {err_text[:2048]}"
-                        )
-                    discord_logger.warning(
-                        "ngrok hint: ngrok v3+ needs a one-time authtoken "
-                        "(`ngrok config add-authtoken <token>` from https://dashboard.ngrok.com/). "
-                        "Or run ngrok yourself and set DISCORD_AUTO_NGROK=false."
-                    )
-                    self._ngrok_process = None
-                    self._ngrok_pid = None
-
-            except FileNotFoundError:
-                discord_logger.warning(
-                    "ngrok executable not found - auto-launch disabled"
-                )
-                self._ngrok_process = None
-                self._ngrok_pid = None
-            except Exception as e:
-                discord_logger.warning(f"Failed to start ngrok: {e}")
-                self._ngrok_process = None
-                self._ngrok_pid = None
-
-        except Exception as e:
-            discord_logger.warning(f"Error starting ngrok tunnel: {e}")
-            self._ngrok_process = None
-            self._ngrok_pid = None
-
-    @handle_errors("stopping ngrok tunnel", default_return=None)
-    def _stop_ngrok_tunnel(self):
-        """Stop ngrok tunnel if running."""
-        # Check if we've already stopped ngrok (avoid duplicate stop attempts)
-        if not self._ngrok_process and not self._ngrok_pid:
-            # Already stopped or never started - skip silently
-            return
-
-        stopped = False
-
-        # Try to stop using process reference first
-        if self._ngrok_process:
-            try:
-                if self._ngrok_process.poll() is None:
-                    # Process is still running - terminate it
-                    pid = self._ngrok_process.pid
-                    discord_logger.info(f"Stopping ngrok tunnel (PID: {pid})...")
-                    self._ngrok_process.terminate()
-
-                    # Wait up to 5 seconds for graceful shutdown
-                    try:
-                        self._ngrok_process.wait(timeout=5)
-                        discord_logger.info("ngrok tunnel stopped")
-                        stopped = True
-                    except subprocess.TimeoutExpired:
-                        # Force kill if it doesn't stop gracefully
-                        discord_logger.warning(
-                            "ngrok did not stop gracefully - forcing termination"
-                        )
-                        self._ngrok_process.kill()
-                        self._ngrok_process.wait()
-                        discord_logger.info("ngrok tunnel force-stopped")
-                        stopped = True
-                else:
-                    # Process already exited
-                    exit_code = self._ngrok_process.poll()
-                    discord_logger.debug(
-                        f"ngrok tunnel already exited (exit code: {exit_code})"
-                    )
-                    stopped = True
-
-                self._ngrok_process = None
-            except Exception as e:
-                discord_logger.warning(
-                    f"Error stopping ngrok tunnel via process reference: {e}"
-                )
-                self._ngrok_process = None
-
-        # Fallback: Try to stop by PID if process reference was lost
-        if not stopped and self._ngrok_pid:
-            try:
-                discord_logger.info(
-                    f"Attempting to stop ngrok tunnel by PID (PID: {self._ngrok_pid})..."
-                )
-                proc = psutil.Process(self._ngrok_pid)
-                if proc.is_running():
-                    proc.terminate()
-                    try:
-                        proc.wait(timeout=5)
-                        discord_logger.info("ngrok tunnel stopped (via PID)")
-                        stopped = True
-                    except psutil.TimeoutExpired:
-                        proc.kill()
-                        proc.wait()
-                        discord_logger.info("ngrok tunnel force-stopped (via PID)")
-                        stopped = True
-                else:
-                    discord_logger.debug(
-                        f"ngrok process {self._ngrok_pid} already exited"
-                    )
-                    stopped = True
-            except psutil.NoSuchProcess:
-                discord_logger.debug(
-                    f"ngrok process {self._ngrok_pid} not found (already stopped)"
-                )
-                stopped = True
-            except Exception as e:
-                discord_logger.warning(f"Error stopping ngrok tunnel by PID: {e}")
-
-        # Clear references only after successful stop
-        if stopped:
-            self._ngrok_process = None
-            self._ngrok_pid = None
-
-    # Keep the existing send_dm method for specific Discord functionality
-    @handle_errors("sending Discord DM", default_return=False)
-    async def send_dm(self, user_id: str, message: str) -> bool:
-        """
-        Send Discord DM with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        # Validate user_id
-        if not user_id or not isinstance(user_id, str):
-            logger.error(f"Invalid user_id: {user_id}")
-            return False
-
-        if not user_id.strip():
-            logger.error("Empty user_id provided")
-            return False
-
-        # Validate message
-        if not message or not isinstance(message, str):
-            logger.error(f"Invalid message: {message}")
-            return False
-
-        if not message.strip():
-            logger.error("Empty message provided")
-            return False
-        """Send a direct message to a Discord user"""
-        return await self.send_message(user_id, message)

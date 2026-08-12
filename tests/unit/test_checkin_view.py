@@ -9,7 +9,7 @@ import contextlib
 import pytest
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
-from communication.communication_channels.discord.checkin_view import get_checkin_view
+from communication.communication_channels.discord.ui.checkin_view import get_checkin_view
 
 
 def find_button_by_label(view, label):
@@ -64,7 +64,7 @@ class TestCheckinView:
     def test_get_checkin_view_handles_invalid_user_id(self, test_data_dir):
         """Test that get_checkin_view handles invalid user_id gracefully."""
         # Mock discord module to avoid import issues
-        with patch('communication.communication_channels.discord.checkin_view.discord'):
+        with patch('communication.communication_channels.discord.ui.checkin_view.discord'):
             # Empty string should still create a view (validation happens in handlers)
             view = get_checkin_view("")
             

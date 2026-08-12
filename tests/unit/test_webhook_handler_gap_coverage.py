@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from communication.communication_channels.discord import webhook_handler as wh
+from communication.communication_channels.discord.webhooks import handler as wh
 
 
 def _auth_event(user_id: str = "12345", username: str = "julie") -> dict:
@@ -61,11 +61,11 @@ class TestWebhookHandlerGapCoverage:
             lambda user_id, channel_type="discord": marks.append((user_id, channel_type)),
         )
         monkeypatch.setattr(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message_view",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message_view",
             lambda user_id: "view",
         )
         monkeypatch.setattr(
@@ -124,7 +124,7 @@ class TestWebhookHandlerGapCoverage:
             lambda user_id, channel_type="discord": marks.append((user_id, channel_type)),
         )
         monkeypatch.setattr(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
@@ -159,7 +159,7 @@ class TestWebhookHandlerGapCoverage:
             lambda user_id, channel_type="discord": marks.append((user_id, channel_type)),
         )
         monkeypatch.setattr(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(
@@ -195,7 +195,7 @@ class TestWebhookHandlerGapCoverage:
             lambda user_id, channel_type="discord": marks.append((user_id, channel_type)),
         )
         monkeypatch.setattr(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             lambda *args, **kwargs: "welcome",
         )
         monkeypatch.setattr(

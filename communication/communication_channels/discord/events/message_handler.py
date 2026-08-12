@@ -1,4 +1,4 @@
-# communication/communication_channels/discord/discord_message_handler.py
+# communication/communication_channels/discord/events/message_handler.py
 
 """Discord on_message event handling."""
 
@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import discord
 
-from communication.communication_channels.discord.discord_handler_protocol import (
+from communication.communication_channels.discord.events.protocol import (
     DiscordHandlerHost,
 )
 from core import get_user_id_by_identifier
@@ -58,7 +58,7 @@ async def _handle_unrecognized_user_message(
         f"DISCORD_MESSAGE_UNRECOGNIZED: No internal user found for Discord ID {discord_user_id}"
     )
 
-    from communication.communication_channels.discord.welcome_handler import (
+    from communication.communication_channels.discord.onboarding.welcome_handler import (
         get_welcome_message,
         has_been_welcomed,
         mark_as_welcomed,

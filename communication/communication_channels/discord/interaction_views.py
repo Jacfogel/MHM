@@ -9,7 +9,7 @@ from core.error_handling import handle_errors
 
 @handle_errors("creating Discord check-in view", default_return=None)
 def create_checkin_view(user_id: str, **kwargs: Any) -> Any | None:
-    from communication.communication_channels.discord.checkin_view import (
+    from communication.communication_channels.discord.ui.checkin_view import (
         get_checkin_view,
     )
 
@@ -18,7 +18,7 @@ def create_checkin_view(user_id: str, **kwargs: Any) -> Any | None:
 
 @handle_errors("creating Discord create hub view", default_return=None)
 def create_create_hub_view(user_id: str, **kwargs: Any) -> Any | None:
-    from communication.communication_channels.discord.create_item_ui import (
+    from communication.communication_channels.discord.ui.create_item_ui import (
         get_create_hub_view,
     )
 
@@ -29,7 +29,7 @@ def create_create_hub_view(user_id: str, **kwargs: Any) -> Any | None:
 
 @handle_errors("creating Discord task list view", default_return=None)
 def create_task_list_view(user_id: str, **kwargs: Any) -> Any | None:
-    from communication.communication_channels.discord.task_list_ui import (
+    from communication.communication_channels.discord.ui.task_list_ui import (
         get_task_list_view,
     )
 
@@ -44,7 +44,7 @@ def create_task_list_view(user_id: str, **kwargs: Any) -> Any | None:
 
 @handle_errors("creating Discord task reminder view", default_return=None)
 def create_task_reminder_view(user_id: str, **kwargs: Any) -> Any | None:
-    from communication.communication_channels.discord.task_reminder_view import (
+    from communication.communication_channels.discord.ui.task_reminder_view import (
         get_task_reminder_view,
     )
 

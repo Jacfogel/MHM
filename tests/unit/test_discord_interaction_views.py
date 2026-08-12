@@ -37,7 +37,7 @@ class TestInteractionViewFactories:
     def test_create_checkin_view_delegates(self, monkeypatch):
         mock_view = MagicMock()
         monkeypatch.setattr(
-            "communication.communication_channels.discord.checkin_view.get_checkin_view",
+            "communication.communication_channels.discord.ui.checkin_view.get_checkin_view",
             lambda user_id: mock_view,
         )
 
@@ -56,7 +56,7 @@ class TestInteractionViewFactories:
             return "hub-view"
 
         monkeypatch.setattr(
-            "communication.communication_channels.discord.create_item_ui.get_create_hub_view",
+            "communication.communication_channels.discord.ui.create_item_ui.get_create_hub_view",
             fake_get_create_hub_view,
         )
 
@@ -80,7 +80,7 @@ class TestInteractionViewFactories:
             return "reminder-view"
 
         monkeypatch.setattr(
-            "communication.communication_channels.discord.task_reminder_view.get_task_reminder_view",
+            "communication.communication_channels.discord.ui.task_reminder_view.get_task_reminder_view",
             fake_get_task_reminder_view,
         )
 
@@ -104,7 +104,7 @@ class TestInteractionViewFactories:
             return "reminder-view"
 
         monkeypatch.setattr(
-            "communication.communication_channels.discord.task_reminder_view.get_task_reminder_view",
+            "communication.communication_channels.discord.ui.task_reminder_view.get_task_reminder_view",
             fake_get_task_reminder_view,
         )
 

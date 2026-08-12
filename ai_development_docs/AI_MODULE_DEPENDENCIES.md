@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 15:23:41
+> **Last Generated**: 2026-08-11 16:14:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 260
-- **Total Imports**: 2209
-- **Standard Library**: 653 (29.6%)
-- **Third-Party**: 217 (9.8%)
-- **Local Imports**: 1339 (60.6%)
+- **Files Scanned**: 264
+- **Total Imports**: 2220
+- **Standard Library**: 661 (29.8%)
+- **Third-Party**: 218 (9.8%)
+- **Local Imports**: 1341 (60.4%)
 
 ## Dependency Decision Trees
 
@@ -50,8 +50,8 @@ Communication Dependencies:
   - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
 - Specific Channels
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
+  - communication/communication_channels/discord/bot.py <- standard library (__future__, asyncio, contextlib, gc), third-party (aiohttp, discord, discord.ext), base_channel, connection_health, status, rich_delivery, tunnel (+8 more)
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
   - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager (+2 more)
@@ -114,16 +114,16 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (heavy coupling) (31 import statements; 10 duplicate)
-- `ai/chat/chatbot.py` -> 19 unique local dependencies (heavy coupling) (20 import statements; 1 duplicate)
-- `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (heavy coupling) (18 import statements; 1 duplicate)
-- `ai/__init__.py` -> 16 unique local dependencies (heavy coupling)
-- `ai/context/service.py` -> 14 unique local dependencies (heavy coupling) (15 import statements; 1 duplicate)
+- `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
+- `ai/chat/chatbot.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
+- `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
+- `ai/context/service.py` -> 14 unique local dependencies (high fan-out; review for inappropriate edges) (15 import statements; 1 duplicate)
+- `core/service.py` -> 14 unique local dependencies (high fan-out; review for inappropriate edges) (19 import statements; 5 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (38 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (18 modules use this)
+- `communication/communication_channels/base/command_registry.py` -> discord (19 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `checkins/checkin_schemas.py` -> pydantic (7 modules use this)
 

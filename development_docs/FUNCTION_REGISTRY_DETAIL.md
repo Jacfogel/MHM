@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 15:23:01
+> **Last Generated**: 2026-08-11 16:13:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 262
-- **Functions Found**: 2521
-- **Methods Found**: 1367
-- **Classes Found**: 254
-- **Total Items**: 3888
-- **Functions Documented**: 2240
-- **Methods Documented**: 1255
-- **Classes Documented**: 183
-- **Total Documented**: 3495
-- **Template-Generated**: 46
+### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 266
+- **Functions Found**: 2523
+- **Methods Found**: 1368
+- **Classes Found**: 257
+- **Total Items**: 3891
+- **Functions Documented**: 2212
+- **Methods Documented**: 1227
+- **Classes Documented**: 187
+- **Total Documented**: 3439
+- **Template-Generated**: 48
 - **Last Updated**: 2026-08-11
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (482)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (647)
+### **Communication Functions** (649)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -1814,7 +1814,126 @@ Returns:
   - [OK] `RichFormatter.create_interactive_view(self, suggestions)` - Create interactive view with buttons/menus from suggestions
   - [OK] `RichFormatter.get_color_for_type(self, content_type)` - Get appropriate color for content type
 
-#### `communication/communication_channels/discord/account_flow_handler.py`
+#### `communication/communication_channels/discord/api_client.py`
+**Functions:**
+- [OK] `__init__(self, bot)` - Initialize the Discord API client
+- [OK] `get_connection_latency(self)` - Get the bot's connection latency
+- [OK] `get_discord_api_client(bot)` - Get a Discord API client instance
+- [OK] `is_connected(self)` - Check if the bot is connected to Discord
+**Classes:**
+- [OK] `DiscordAPIClient` - Discord API client for handling Discord-specific operations
+  - [OK] `DiscordAPIClient.__init__(self, bot)` - Initialize the Discord API client
+  - [OK] `DiscordAPIClient.get_connection_latency(self)` - Get the bot's connection latency
+  - [OK] `DiscordAPIClient.is_connected(self)` - Check if the bot is connected to Discord
+- [OK] `MessageData` - Data structure for Discord messages
+- [OK] `SendMessageOptions` - Options for sending messages
+
+#### `communication/communication_channels/discord/bot.py`
+**Functions:**
+- [OK] `__init__(self, config)` - Special Python method
+- [MISSING] `_schedule_ready_tasks(self, bot)` - No description
+- [MISSING] `channel_type(self)` - No description
+- [MISSING] `initialize__register_commands(self)` - No description
+- [MISSING] `initialize__register_events(self)` - No description
+- [MISSING] `initialize__run_bot_in_thread(self)` - No description
+**Classes:**
+- [OK] `DiscordBot` - Discord channel host; feature behavior lives in focused submodules.
+  - [OK] `DiscordBot.__init__(self, config)` - Special Python method
+  - [MISSING] `DiscordBot._schedule_ready_tasks(self, bot)` - No description
+  - [MISSING] `DiscordBot.channel_type(self)` - No description
+  - [MISSING] `DiscordBot.initialize__register_commands(self)` - No description
+  - [MISSING] `DiscordBot.initialize__register_events(self)` - No description
+  - [MISSING] `DiscordBot.initialize__run_bot_in_thread(self)` - No description
+
+#### `communication/communication_channels/discord/events/__init__.py`
+
+#### `communication/communication_channels/discord/events/command_registration.py`
+**Functions:**
+- [OK] `register_discord_commands(host)` - Register dynamic slash and prefix commands on the host's Discord client.
+
+#### `communication/communication_channels/discord/events/connection_health.py`
+**Functions:**
+- [MISSING] `_check_dns_resolution(self, hostname)` - No description
+- [MISSING] `_check_network_connectivity(self, hostname, port)` - No description
+- [MISSING] `_check_network_health(self)` - No description
+- [MISSING] `_get_detailed_connection_status(self)` - No description
+- [MISSING] `_shared__update_connection_status(self, status, error_info)` - No description
+- [MISSING] `_should_attempt_reconnection(self)` - No description
+- [MISSING] `_wait_for_network_recovery(self, max_wait)` - No description
+- [MISSING] `can_send_messages(self)` - No description
+- [MISSING] `get_connection_status_summary(self)` - No description
+- [MISSING] `get_health_status(self)` - No description
+- [MISSING] `is_actually_connected(self)` - No description
+**Classes:**
+- [OK] `DiscordConnectionHealthMixin` - Connection-health surface for the Discord bot host.
+  - [MISSING] `DiscordConnectionHealthMixin._check_dns_resolution(self, hostname)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._check_network_connectivity(self, hostname, port)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._check_network_health(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._get_detailed_connection_status(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._shared__update_connection_status(self, status, error_info)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._should_attempt_reconnection(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin._wait_for_network_recovery(self, max_wait)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.can_send_messages(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.get_connection_status_summary(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.get_health_status(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.is_actually_connected(self)` - No description
+
+#### `communication/communication_channels/discord/events/interaction_router.py`
+**Functions:**
+- [MISSING] `_build_suggestion_button_response(bot, custom_id, button_label, internal_user_id)` - No description
+- [MISSING] `_extract_suggestion_button_label(interaction, custom_id)` - No description
+
+#### `communication/communication_channels/discord/events/lifecycle.py`
+
+#### `communication/communication_channels/discord/events/message_handler.py`
+**Functions:**
+- [MISSING] `_sync_discord_user_id(internal_user_id, discord_user_id)` - No description
+
+#### `communication/communication_channels/discord/events/protocol.py`
+**Functions:**
+- [OK] `_check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
+- [OK] `_check_network_connectivity(self, hostname, port)` - Return whether a TCP connection to the host/port succeeds.
+- [OK] `_create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
+- [OK] `_create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
+- [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
+- [OK] `_has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
+- [OK] `_resolve_interaction_view_from_rich_data(self, rich_data)` - Resolve a requested channel-specific interaction view.
+- [OK] `_schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+- [OK] `_set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
+- [OK] `_shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
+- [OK] `_start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
+- [OK] `get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
+**Classes:**
+- [OK] `DiscordHandlerHost` - Structural typing surface of ``DiscordBot`` used by extracted handler modules.
+  - [OK] `DiscordHandlerHost._check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
+  - [OK] `DiscordHandlerHost._check_network_connectivity(self, hostname, port)` - Return whether a TCP connection to the host/port succeeds.
+  - [OK] `DiscordHandlerHost._create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
+  - [OK] `DiscordHandlerHost._create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
+  - [OK] `DiscordHandlerHost._get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
+  - [OK] `DiscordHandlerHost._has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
+  - [OK] `DiscordHandlerHost._resolve_interaction_view_from_rich_data(self, rich_data)` - Resolve a requested channel-specific interaction view.
+  - [OK] `DiscordHandlerHost._schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+  - [OK] `DiscordHandlerHost._set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
+  - [OK] `DiscordHandlerHost._shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
+  - [OK] `DiscordHandlerHost._start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
+  - [OK] `DiscordHandlerHost.get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
+
+#### `communication/communication_channels/discord/events/status.py`
+**Classes:**
+- [OK] `DiscordConnectionStatus` - Detailed Discord connection status for better error reporting.
+
+#### `communication/communication_channels/discord/interaction_views.py`
+**Functions:**
+- [OK] `_defer_if_no_running_loop(factory)` - Return a view immediately when in an event loop, otherwise defer creation.
+- [MISSING] `create_checkin_view(user_id)` - No description
+- [MISSING] `create_create_hub_view(user_id)` - No description
+- [MISSING] `create_task_list_view(user_id)` - No description
+- [MISSING] `create_task_reminder_view(user_id)` - No description
+- [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
+
+#### `communication/communication_channels/discord/onboarding/__init__.py`
+
+#### `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 **Functions:**
 - [OK] `__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
 
@@ -1915,131 +2034,47 @@ account creation. Limited to 25 options (Discord's maximum).
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
 
-#### `communication/communication_channels/discord/api_client.py`
+#### `communication/communication_channels/discord/onboarding/welcome_handler.py`
 **Functions:**
-- [OK] `__init__(self, bot)` - Initialize the Discord API client
-- [OK] `get_connection_latency(self)` - Get the bot's connection latency
-- [OK] `get_discord_api_client(bot)` - Get a Discord API client instance
-- [OK] `is_connected(self)` - Check if the bot is connected to Discord
-**Classes:**
-- [OK] `DiscordAPIClient` - Discord API client for handling Discord-specific operations
-  - [OK] `DiscordAPIClient.__init__(self, bot)` - Initialize the Discord API client
-  - [OK] `DiscordAPIClient.get_connection_latency(self)` - Get the bot's connection latency
-  - [OK] `DiscordAPIClient.is_connected(self)` - Check if the bot is connected to Discord
-- [OK] `MessageData` - Data structure for Discord messages
-- [OK] `SendMessageOptions` - Options for sending messages
+- [OK] `__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
 
-#### `communication/communication_channels/discord/bot.py`
-**Functions:**
-- [OK] `__init__(self, config)` - Initialize the object.
-- [OK] `_check_dns_resolution(self, hostname)` - Check DNS resolution with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `_check_network_connectivity(self, hostname, port)` - Check network connectivity with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `_check_network_health(self)` - Comprehensive network health check with detailed reporting
-- [OK] `_create_action_row(self, suggestions, suggestion_payloads)` - Create Discord action row with validation.
-
-Returns:
-    discord.ui.View: Created view, None if failed
-- [OK] `_create_discord_embed(self, message, rich_data)` - Create Discord embed with validation.
-
-Returns:
-    discord.Embed: Created embed, None if failed
-- [OK] `_discord_button_style_for_suggestion(self, label)` - Flow control buttons use grey/red; data suggestions (priority, dates) stay blue.
-- [OK] `_drain_ngrok_stderr()` - Read ngrok stderr in a loop so a full pipe cannot block the child process.
-- [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
-- [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
-- [OK] `_get_pagination_actions(self, rich_data)` - Extract channel-neutral pagination actions from response rich data.
-- [OK] `_get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
-- [OK] `_has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
-- [OK] `_has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
-- [OK] `_pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
-- [OK] `_pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
-- [OK] `_resolve_interaction_view_from_rich_data(self, rich_data)` - Attach channel-specific views (e.g. create hub) when rich_data requests them.
-- [OK] `_schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
-- [OK] `_shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
-- [OK] `_should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
-- [OK] `_start_discord_webhook_server_for_ready(self)` - Start webhook server and log ngrok/webhook status.
-- [OK] `_start_ngrok_tunnel(self, port)` - Start ngrok tunnel for webhook server (development only).
+Creates a Discord UI view with buttons for creating a new account
+or linking to an existing account. Buttons persist without timeout.
 
 Args:
-    port: Local port to tunnel (e.g., 8080)
-- [OK] `_stop_ngrok_tunnel(self)` - Stop ngrok tunnel if running.
-- [OK] `_wait_for_network_recovery(self, max_wait)` - Wait for network recovery with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `can_send_messages(self)` - Check if the Discord bot can actually send messages
-- [OK] `channel_type(self)` - Get the channel type for Discord bot.
-
-Returns:
-    ChannelType.ASYNC: Discord bot operates asynchronously
-- [OK] `get_connection_status_summary(self)` - Get a human-readable connection status summary
-- [OK] `get_health_status(self)` - Get comprehensive health status information
-- [OK] `initialize__register_commands(self)` - Register Discord commands
-- [OK] `initialize__register_events(self)` - Register Discord event handlers
-- [OK] `initialize__run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
-- [OK] `is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
-**Classes:**
-- [MISSING] `DiscordBot` - No description
-  - [OK] `DiscordBot.__init__(self, config)` - Initialize the object.
-  - [OK] `DiscordBot._check_dns_resolution(self, hostname)` - Check DNS resolution with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `DiscordBot._check_network_connectivity(self, hostname, port)` - Check network connectivity with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `DiscordBot._check_network_health(self)` - Comprehensive network health check with detailed reporting
-  - [OK] `DiscordBot._create_action_row(self, suggestions, suggestion_payloads)` - Create Discord action row with validation.
-
-Returns:
-    discord.ui.View: Created view, None if failed
-  - [OK] `DiscordBot._create_discord_embed(self, message, rich_data)` - Create Discord embed with validation.
-
-Returns:
-    discord.Embed: Created embed, None if failed
-  - [OK] `DiscordBot._discord_button_style_for_suggestion(self, label)` - Flow control buttons use grey/red; data suggestions (priority, dates) stay blue.
-  - [OK] `DiscordBot._get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
-  - [OK] `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
-  - [OK] `DiscordBot._get_pagination_actions(self, rich_data)` - Extract channel-neutral pagination actions from response rich data.
-  - [OK] `DiscordBot._get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
-  - [OK] `DiscordBot._has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
-  - [OK] `DiscordBot._has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
-  - [OK] `DiscordBot._pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
-  - [OK] `DiscordBot._pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
-  - [OK] `DiscordBot._resolve_interaction_view_from_rich_data(self, rich_data)` - Attach channel-specific views (e.g. create hub) when rich_data requests them.
-  - [OK] `DiscordBot._schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
-  - [OK] `DiscordBot._shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
-  - [OK] `DiscordBot._should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
-  - [OK] `DiscordBot._start_discord_webhook_server_for_ready(self)` - Start webhook server and log ngrok/webhook status.
-  - [OK] `DiscordBot._start_ngrok_tunnel(self, port)` - Start ngrok tunnel for webhook server (development only).
+    discord_user_id: The Discord user ID for the welcome session
+- [OK] `clear_welcomed_status(discord_user_id)` - Clear the welcomed status for a Discord user (e.g., when they deauthorize).
+- [OK] `get_welcome_message(discord_user_id, discord_username, is_authorization)` - Get a welcome message for a new Discord user.
 
 Args:
-    port: Local port to tunnel (e.g., 8080)
-  - [OK] `DiscordBot._stop_ngrok_tunnel(self)` - Stop ngrok tunnel if running.
-  - [OK] `DiscordBot._wait_for_network_recovery(self, max_wait)` - Wait for network recovery with validation.
+    discord_user_id: The user's Discord ID
+    discord_username: The user's Discord username (optional, for prefilling)
+    is_authorization: True if this is triggered by app authorization (DM), False for server messages
 
 Returns:
-    bool: True if successful, False if failed
-  - [OK] `DiscordBot.can_send_messages(self)` - Check if the Discord bot can actually send messages
-  - [OK] `DiscordBot.channel_type(self)` - Get the channel type for Discord bot.
+    str: Welcome message text
+- [OK] `get_welcome_message_view(discord_user_id)` - Create a Discord View with buttons for account creation and linking.
+
+Args:
+    discord_user_id: The user's Discord ID
 
 Returns:
-    ChannelType.ASYNC: Discord bot operates asynchronously
-  - [OK] `DiscordBot.get_connection_status_summary(self)` - Get a human-readable connection status summary
-  - [OK] `DiscordBot.get_health_status(self)` - Get comprehensive health status information
-  - [OK] `DiscordBot.initialize__register_commands(self)` - Register Discord commands
-  - [OK] `DiscordBot.initialize__register_events(self)` - Register Discord event handlers
-  - [OK] `DiscordBot.initialize__run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
-  - [OK] `DiscordBot.is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
+    discord.ui.View with buttons for account actions
+- [OK] `has_been_welcomed(discord_user_id)` - Check if a Discord user has already been sent a welcome message.
+- [OK] `mark_as_welcomed(discord_user_id)` - Mark a Discord user as having been welcomed.
+**Classes:**
+- [MISSING] `WelcomeView` - No description
+  - [OK] `WelcomeView.__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
 
-#### `communication/communication_channels/discord/checkin_view.py`
+Creates a Discord UI view with buttons for creating a new account
+or linking to an existing account. Buttons persist without timeout.
+
+Args:
+    discord_user_id: The Discord user ID for the welcome session
+
+#### `communication/communication_channels/discord/ui/__init__.py`
+
+#### `communication/communication_channels/discord/ui/checkin_view.py`
 **Functions:**
 - [OK] `__init__(self, user_id)` - Initialize the check-in view with action buttons.
 
@@ -2065,7 +2100,7 @@ skipping questions, and accessing help during the check-in flow.
 Args:
     user_id: The internal user ID for the check-in session
 
-#### `communication/communication_channels/discord/create_item_ui.py`
+#### `communication/communication_channels/discord/ui/create_item_ui.py`
 **Functions:**
 - [MISSING] `_bind_modal_button_callback(label, discord_bot, modal_builder)` - No description
 - [MISSING] `_bind_template_button_callback(template_id, discord_bot)` - No description
@@ -2074,81 +2109,45 @@ Args:
 - [MISSING] `_build_quick_note_modal(user_id, discord_bot)` - No description
 - [MISSING] `_run_handler(user_id, intent, entities, original_message)` - No description
 - [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
+- [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
 - [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
+- [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
 **Classes:**
 - [MISSING] `CustomTaskModal` - No description
 - [MISSING] `NewNoteModal` - No description
 - [MISSING] `QuickNoteModal` - No description
 
-#### `communication/communication_channels/discord/discord_command_runner.py`
-**Functions:**
-- [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
-
-#### `communication/communication_channels/discord/discord_connection_status.py`
-**Classes:**
-- [OK] `DiscordConnectionStatus` - Detailed Discord connection status for better error reporting.
-
-#### `communication/communication_channels/discord/discord_guild_handlers.py`
-
-#### `communication/communication_channels/discord/discord_handler_protocol.py`
-**Functions:**
-- [OK] `_check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
-- [OK] `_check_network_connectivity(self, hostname, port, timeout)` - Return whether a TCP connection to the host/port succeeds within timeout.
-- [OK] `_create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
-- [OK] `_create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
-- [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
-- [OK] `_has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
-- [OK] `_schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
-- [OK] `_set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
-- [OK] `_shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
-- [OK] `_start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
-- [OK] `get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
-**Classes:**
-- [OK] `DiscordHandlerHost` - Structural typing surface of ``DiscordBot`` used by extracted handler modules.
-  - [OK] `DiscordHandlerHost._check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
-  - [OK] `DiscordHandlerHost._check_network_connectivity(self, hostname, port, timeout)` - Return whether a TCP connection to the host/port succeeds within timeout.
-  - [OK] `DiscordHandlerHost._create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
-  - [OK] `DiscordHandlerHost._create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
-  - [OK] `DiscordHandlerHost._get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
-  - [OK] `DiscordHandlerHost._has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
-  - [OK] `DiscordHandlerHost._schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
-  - [OK] `DiscordHandlerHost._set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
-  - [OK] `DiscordHandlerHost._shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
-  - [OK] `DiscordHandlerHost._start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
-  - [OK] `DiscordHandlerHost.get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
-
-#### `communication/communication_channels/discord/discord_interaction_router.py`
-**Functions:**
-- [MISSING] `_build_suggestion_button_response(bot, custom_id, button_label, internal_user_id)` - No description
-- [MISSING] `_extract_suggestion_button_label(interaction, custom_id)` - No description
-
-#### `communication/communication_channels/discord/discord_message_handler.py`
-**Functions:**
-- [MISSING] `_sync_discord_user_id(internal_user_id, discord_user_id)` - No description
-
-#### `communication/communication_channels/discord/discord_ready_handlers.py`
-
-#### `communication/communication_channels/discord/discord_response_delivery.py`
-
-#### `communication/communication_channels/discord/discord_user_resolution.py`
+#### `communication/communication_channels/discord/ui/helpers.py`
 **Functions:**
 - [OK] `internal_user_id(interaction)` - Map a Discord interaction to the internal MHM user id.
+- [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
 
-#### `communication/communication_channels/discord/interaction_views.py`
+#### `communication/communication_channels/discord/ui/rich_delivery.py`
 **Functions:**
-- [OK] `_defer_if_no_running_loop(factory)` - Return a view immediately when in an event loop, otherwise defer creation.
-- [MISSING] `create_checkin_view(user_id)` - No description
-- [MISSING] `create_create_hub_view(user_id)` - No description
-- [MISSING] `create_task_list_view(user_id)` - No description
-- [MISSING] `create_task_reminder_view(user_id)` - No description
-- [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
+- [MISSING] `_create_action_row(self, suggestions, suggestion_payloads)` - No description
+- [OK] `_create_discord_embed(self, message, rich_data)` - Create a Discord embed from rich response data.
+- [MISSING] `_discord_button_style_for_suggestion(self, label)` - No description
+- [MISSING] `_get_action_row_inputs(self, suggestions, rich_data)` - No description
+- [MISSING] `_get_pagination_actions(self, rich_data)` - No description
+- [MISSING] `_get_suggestion_payloads(self, rich_data)` - No description
+- [MISSING] `_has_display_rich_data(self, rich_data)` - No description
+- [MISSING] `_pagination_action_button_data(self, action)` - No description
+- [MISSING] `_pagination_action_value(self, action, field, default)` - No description
+- [MISSING] `_resolve_interaction_view_from_rich_data(self, rich_data)` - No description
+**Classes:**
+- [OK] `DiscordRichDeliveryMixin` - Rich delivery surface shared by the thin Discord bot host.
+  - [MISSING] `DiscordRichDeliveryMixin._create_action_row(self, suggestions, suggestion_payloads)` - No description
+  - [OK] `DiscordRichDeliveryMixin._create_discord_embed(self, message, rich_data)` - Create a Discord embed from rich response data.
+  - [MISSING] `DiscordRichDeliveryMixin._discord_button_style_for_suggestion(self, label)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._get_action_row_inputs(self, suggestions, rich_data)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._get_pagination_actions(self, rich_data)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._get_suggestion_payloads(self, rich_data)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._has_display_rich_data(self, rich_data)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._pagination_action_button_data(self, action)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._pagination_action_value(self, action, field, default)` - No description
+  - [MISSING] `DiscordRichDeliveryMixin._resolve_interaction_view_from_rich_data(self, rich_data)` - No description
 
-#### `communication/communication_channels/discord/item_form_shared.py`
-**Functions:**
-- [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
-- [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
-
-#### `communication/communication_channels/discord/task_list_ui.py`
+#### `communication/communication_channels/discord/ui/task_list_ui.py`
 **Functions:**
 - [OK] `__init__(self, user_id, task_id, discord_bot)` - Special Python method
 - [OK] `__init__(self, user_id, task_items, discord_bot)` - Special Python method
@@ -2163,7 +2162,7 @@ Args:
 - [OK] `TaskListSelect` - Dropdown to pick a task from the current list page.
   - [OK] `TaskListSelect.__init__(self, user_id, task_items, discord_bot)` - Special Python method
 
-#### `communication/communication_channels/discord/task_reminder_view.py`
+#### `communication/communication_channels/discord/ui/task_reminder_view.py`
 **Functions:**
 - [OK] `__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
@@ -2189,7 +2188,9 @@ Args:
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
 
-#### `communication/communication_channels/discord/webhook_handler.py`
+#### `communication/communication_channels/discord/webhooks/__init__.py`
+
+#### `communication/communication_channels/discord/webhooks/handler.py`
 **Functions:**
 - [OK] `handle_application_authorized(event_data, bot_instance)` - Handle APPLICATION_AUTHORIZED webhook event.
 
@@ -2232,7 +2233,7 @@ Args:
 Returns:
     bool: True if signature is valid
 
-#### `communication/communication_channels/discord/webhook_server.py`
+#### `communication/communication_channels/discord/webhooks/server.py`
 **Functions:**
 - [OK] `__init__(self, port, bot_instance)` - Initialize webhook server.
 
@@ -2260,43 +2261,19 @@ Args:
   - [OK] `WebhookServer.start(self)` - Start the webhook server
   - [OK] `WebhookServer.stop(self)` - Stop the webhook server
 
-#### `communication/communication_channels/discord/welcome_handler.py`
+#### `communication/communication_channels/discord/webhooks/tunnel.py`
 **Functions:**
-- [OK] `__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
-
-Creates a Discord UI view with buttons for creating a new account
-or linking to an existing account. Buttons persist without timeout.
-
-Args:
-    discord_user_id: The Discord user ID for the welcome session
-- [OK] `clear_welcomed_status(discord_user_id)` - Clear the welcomed status for a Discord user (e.g., when they deauthorize).
-- [OK] `get_welcome_message(discord_user_id, discord_username, is_authorization)` - Get a welcome message for a new Discord user.
-
-Args:
-    discord_user_id: The user's Discord ID
-    discord_username: The user's Discord username (optional, for prefilling)
-    is_authorization: True if this is triggered by app authorization (DM), False for server messages
-
-Returns:
-    str: Welcome message text
-- [OK] `get_welcome_message_view(discord_user_id)` - Create a Discord View with buttons for account creation and linking.
-
-Args:
-    discord_user_id: The user's Discord ID
-
-Returns:
-    discord.ui.View with buttons for account actions
-- [OK] `has_been_welcomed(discord_user_id)` - Check if a Discord user has already been sent a welcome message.
-- [OK] `mark_as_welcomed(discord_user_id)` - Mark a Discord user as having been welcomed.
+- [MISSING] `_drain_ngrok_stderr()` - No description
+- [MISSING] `_has_external_ngrok_tunnel(self)` - No description
+- [MISSING] `_start_discord_webhook_server_for_ready(self)` - No description
+- [MISSING] `_start_ngrok_tunnel(self, port)` - No description
+- [MISSING] `_stop_ngrok_tunnel(self)` - No description
 **Classes:**
-- [MISSING] `WelcomeView` - No description
-  - [OK] `WelcomeView.__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
-
-Creates a Discord UI view with buttons for creating a new account
-or linking to an existing account. Buttons persist without timeout.
-
-Args:
-    discord_user_id: The Discord user ID for the welcome session
+- [OK] `DiscordWebhookTunnelMixin` - Ngrok and webhook-server startup helpers for the Discord host.
+  - [MISSING] `DiscordWebhookTunnelMixin._has_external_ngrok_tunnel(self)` - No description
+  - [MISSING] `DiscordWebhookTunnelMixin._start_discord_webhook_server_for_ready(self)` - No description
+  - [MISSING] `DiscordWebhookTunnelMixin._start_ngrok_tunnel(self, port)` - No description
+  - [MISSING] `DiscordWebhookTunnelMixin._stop_ngrok_tunnel(self)` - No description
 
 #### `communication/communication_channels/email/bot.py`
 **Functions:**

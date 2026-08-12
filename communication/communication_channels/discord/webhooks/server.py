@@ -8,7 +8,7 @@ import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from communication.communication_channels.discord.webhook_handler import (
+from communication.communication_channels.discord.webhooks.handler import (
     parse_webhook_event,
     handle_webhook_event,
 )

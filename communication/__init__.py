@@ -63,7 +63,7 @@ def __getattr__(name: str):
         from .communication_channels.email.bot import EmailBot
         return EmailBot
     elif name == 'DiscordConnectionStatus':
-        from .communication_channels.discord.discord_connection_status import (
+        from .communication_channels.discord.events.status import (
             DiscordConnectionStatus,
         )
         return DiscordConnectionStatus

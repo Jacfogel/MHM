@@ -70,6 +70,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
+| Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 
 ---
 
@@ -120,6 +121,18 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 - Coupling analyzer threshold raised to > 10 with `__init__.py` exclusion; AI_PRIORITIES action text updated for triage (not hub shrink).
 
 **Later candidates** (not automatic refactors): storage -> feature-domain managers; duplicated multi-domain reads in `ai/context`; optional delivery ownership for AI personalized send only if ownership pressure appears; optional hub vs inappropriate-edge classification in the analyzer.
+
+---
+
+### 5.0.3 Discord package reorg and bot.py split
+
+**Status**: **COMPLETED**  
+**Priority**: Medium  
+**Started**: 2026-08-11  
+**Completed**: 2026-08-11  
+**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) module refactor candidates (`discord/bot.py`) + high-fan-out triage
+
+**Outcome**: `communication/communication_channels/discord/` uses `events/`, `ui/`, `onboarding/`, `webhooks/` subpackages. Tiny helpers merged; rich delivery, connection health, command registration, and ngrok extracted from `bot.py` (now ~545-line BaseChannel host). Stable paths kept: `discord.bot.DiscordBot`, `discord.interaction_views`. Retired flat module paths recorded in `DEPRECATION_INVENTORY.json` (`discord_flat_module_paths_2026_08_11`) via search-and-close (no long-lived bridges).
 
 ---
 

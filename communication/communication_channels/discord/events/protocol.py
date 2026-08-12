@@ -1,4 +1,4 @@
-# communication/communication_channels/discord/discord_handler_protocol.py
+# communication/communication_channels/discord/events/protocol.py
 
 """Typing protocol for Discord handler modules (avoids importing bot.py)."""
 
@@ -7,9 +7,10 @@ from __future__ import annotations
 from typing import Any, Protocol
 
 import discord
+from discord.ext import commands
 
 from communication.communication_channels.base.base_channel import ChannelStatus
-from communication.communication_channels.discord.discord_connection_status import (
+from communication.communication_channels.discord.events.status import (
     DiscordConnectionStatus,
 )
 
@@ -17,10 +18,11 @@ from communication.communication_channels.discord.discord_connection_status impo
 class DiscordHandlerHost(Protocol):
     """Structural typing surface of ``DiscordBot`` used by extracted handler modules."""
 
-    bot: discord.Client | None
+    bot: commands.Bot | None
     _on_ready_fired: bool
     _reconnect_attempts: int
     _suggestion_button_payloads: dict[str, Any]
+    _commands_registered: bool
 
     def get_status(self) -> ChannelStatus:
         """Return the channel lifecycle status for this Discord bot instance."""
@@ -49,9 +51,9 @@ class DiscordHandlerHost(Protocol):
         ...
 
     def _check_network_connectivity(
-        self, hostname: str = "discord.com", port: int = 443, timeout: float = 5.0
+        self, hostname: str = "discord.com", port: int = 443
     ) -> bool:
-        """Return whether a TCP connection to the host/port succeeds within timeout."""
+        """Return whether a TCP connection to the host/port succeeds."""
         ...
 
     def _has_display_rich_data(self, rich_data: dict[str, Any] | None) -> bool:
@@ -73,9 +75,15 @@ class DiscordHandlerHost(Protocol):
         ...
 
     def _create_action_row(
-        self, button_labels: list[str], button_payloads: list[Any]
+        self, button_labels: list[str], button_payloads: list[Any] | None = None
     ) -> Any:
         """Create a Discord UI view containing the given suggestion or pagination buttons."""
+        ...
+
+    def _resolve_interaction_view_from_rich_data(
+        self, rich_data: dict[str, Any] | None
+    ) -> Any | None:
+        """Resolve a requested channel-specific interaction view."""
         ...
 
     async def _send_to_channel(

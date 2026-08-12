@@ -119,7 +119,7 @@ def handle_application_authorized(
             has_been_welcomed,
             mark_as_welcomed,
         )
-        from communication.communication_channels.discord.welcome_handler import (
+        from communication.communication_channels.discord.onboarding.welcome_handler import (
             get_welcome_message,
         )
 
@@ -180,7 +180,7 @@ def handle_application_authorized(
                     await asyncio.sleep(1)
 
                     # Create view with buttons inside async context (requires event loop)
-                    from communication.communication_channels.discord.welcome_handler import (
+                    from communication.communication_channels.discord.onboarding.welcome_handler import (
                         get_welcome_message_view,
                     )
 

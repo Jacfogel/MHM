@@ -1,4 +1,4 @@
-# communication/communication_channels/discord/discord_interaction_router.py
+# communication/communication_channels/discord/events/interaction_router.py
 
 """Route Discord component and application-command interactions."""
 
@@ -8,7 +8,7 @@ from typing import Any
 
 import discord
 
-from communication.communication_channels.discord.discord_handler_protocol import (
+from communication.communication_channels.discord.events.protocol import (
     DiscordHandlerHost,
 )
 from core import get_user_id_by_identifier
@@ -60,7 +60,7 @@ async def _handle_welcome_button(
         return
 
     discord_user_id = parts[2]
-    from communication.communication_channels.discord.account_flow_handler import (
+    from communication.communication_channels.discord.onboarding.account_flow_handler import (
         start_account_creation_flow,
         start_account_linking_flow,
     )
@@ -240,7 +240,7 @@ async def _handle_application_command_interaction(
         f"DISCORD_INTERACTION: user_id={discord_user_id}, command={command_name}"
     )
 
-    from communication.communication_channels.discord.welcome_handler import (
+    from communication.communication_channels.discord.onboarding.welcome_handler import (
         get_welcome_message,
         has_been_welcomed,
         mark_as_welcomed,
@@ -273,7 +273,7 @@ async def _handle_application_command_interaction(
 async def _handle_start_command_welcome(
     interaction: discord.Interaction, discord_user_id: str
 ) -> None:
-    from communication.communication_channels.discord.welcome_handler import (
+    from communication.communication_channels.discord.onboarding.welcome_handler import (
         get_welcome_message,
         mark_as_welcomed,
     )

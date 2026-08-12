@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 15:24:00
+> **Last Generated**: 2026-08-11 16:14:44
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000095 5EAC:07BC
+Volume serial number is 00000097 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -185,29 +185,41 @@ C:.
 |   |   |   |   rich_formatter.py
 |   |   |   |
 |   |   +---discord
-|   |   |   |   account_flow_handler.py
 |   |   |   |   api_client.py
 |   |   |   |   bot.py
-|   |   |   |   checkin_view.py
-|   |   |   |   create_item_ui.py
-|   |   |   |   discord_command_runner.py
-|   |   |   |   discord_connection_status.py
 |   |   |   |   DISCORD_GUIDE.md
-|   |   |   |   discord_guild_handlers.py
-|   |   |   |   discord_handler_protocol.py
-|   |   |   |   discord_interaction_router.py
-|   |   |   |   discord_message_handler.py
-|   |   |   |   discord_ready_handlers.py
-|   |   |   |   discord_response_delivery.py
-|   |   |   |   discord_user_resolution.py
 |   |   |   |   interaction_views.py
-|   |   |   |   item_form_shared.py
-|   |   |   |   task_list_ui.py
-|   |   |   |   task_reminder_view.py
-|   |   |   |   webhook_handler.py
-|   |   |   |   webhook_server.py
-|   |   |   |   welcome_handler.py
 |   |   |   |
+|   |   |   +---events
+|   |   |   |   |   command_registration.py
+|   |   |   |   |   connection_health.py
+|   |   |   |   |   interaction_router.py
+|   |   |   |   |   lifecycle.py
+|   |   |   |   |   message_handler.py
+|   |   |   |   |   protocol.py
+|   |   |   |   |   status.py
+|   |   |   |   |   __init__.py
+|   |   |   |   |
+|   |   |   +---onboarding
+|   |   |   |   |   account_flow_handler.py
+|   |   |   |   |   welcome_handler.py
+|   |   |   |   |   __init__.py
+|   |   |   |   |
+|   |   |   +---ui
+|   |   |   |   |   checkin_view.py
+|   |   |   |   |   create_item_ui.py
+|   |   |   |   |   helpers.py
+|   |   |   |   |   rich_delivery.py
+|   |   |   |   |   task_list_ui.py
+|   |   |   |   |   task_reminder_view.py
+|   |   |   |   |   __init__.py
+|   |   |   |   |
+|   |   |   +---webhooks
+|   |   |   |   |   handler.py
+|   |   |   |   |   server.py
+|   |   |   |   |   tunnel.py
+|   |   |   |   |   __init__.py
+|   |   |   |   |
 |   |   +---email
 |   |   |   |   bot.py
 |   |   |   |   inbound_processor.py

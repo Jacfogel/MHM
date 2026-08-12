@@ -5,7 +5,7 @@
 > **Purpose**: Behavior requirements for Discord welcome messaging and create/link account onboarding  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
 > **Last Updated**: 2026-05-16  
-> **Implementation**: `communication/core/welcome_manager.py`, `communication/communication_channels/discord/welcome_handler.py`, `communication/communication_channels/discord/webhook_handler.py`, `communication/communication_channels/discord/account_flow_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/command_handlers/account_handler.py`  
+> **Implementation**: `communication/core/welcome_manager.py`, `communication/communication_channels/discord/onboarding/welcome_handler.py`, `communication/communication_channels/discord/webhooks/handler.py`, `communication/communication_channels/discord/onboarding/account_flow_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/command_handlers/account_handler.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md)  
 > **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-welcome-and-onboarding)
@@ -45,14 +45,14 @@ The system SHALL treat "welcomed" as a per-Discord-user flag that lasts from a s
 #### Scenario: Deauthorize clears welcomed flag
 
 - **GIVEN** a Discord user was previously welcomed  
-- **WHEN** they deauthorize the MHM application (deauthorization webhook path in `communication/communication_channels/discord/webhook_handler.py`)  
+- **WHEN** they deauthorize the MHM application (deauthorization webhook path in `communication/communication_channels/discord/webhooks/handler.py`)  
 - **THEN** `clear_welcomed_status(discord_user_id, channel_type="discord")` runs  
 - **SO THAT** a later authorization can trigger welcome again  
 
 #### Scenario: Welcome scheduling failure still marks welcomed
 
 - **GIVEN** welcome DM scheduling or sending cannot complete (closed event loop, missing bot, scheduling error)  
-- **WHEN** the webhook handler handles the failure paths documented in `communication/communication_channels/discord/webhook_handler.py`  
+- **WHEN** the webhook handler handles the failure paths documented in `communication/communication_channels/discord/webhooks/handler.py`  
 - **THEN** the system still calls `mark_as_welcomed` to avoid repeated welcome retries  
 
 ### 3.2. Requirement: Fallback welcome paths without buttons
@@ -120,7 +120,7 @@ When a `WelcomeView` is attached, the system SHALL provide create and link actio
 
 ### 3.5. Requirement: Account creation flow (Discord UI)
 
-Discord account creation SHALL use `AccountManagementHandler` for business logic and SHALL follow the modal -> feature selection -> create sequence in `communication/communication_channels/discord/account_flow_handler.py`.
+Discord account creation SHALL use `AccountManagementHandler` for business logic and SHALL follow the modal -> feature selection -> create sequence in `communication/communication_channels/discord/onboarding/account_flow_handler.py`.
 
 #### Scenario: User already has an account
 

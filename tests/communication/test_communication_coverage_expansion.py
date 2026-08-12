@@ -1,7 +1,7 @@
 """
 Scenario tests for communication modules below the 80% domain target.
 
-Targets: discord_interaction_router, create_item_ui, checkin_flow, task_flow edges.
+Targets: events.interaction_router, ui.create_item_ui, checkin_flow, task_flow edges.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_routes_component_interaction(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             handle_discord_interaction,
         )
 
@@ -74,7 +74,7 @@ class TestDiscordInteractionRouter:
         interaction.data = {}
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._handle_component_interaction",
+            "communication.communication_channels.discord.events.interaction_router._handle_component_interaction",
             new_callable=AsyncMock,
         ) as mock_component:
             await handle_discord_interaction(bot, interaction)
@@ -82,7 +82,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_routes_application_command_interaction(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             handle_discord_interaction,
         )
 
@@ -91,7 +91,7 @@ class TestDiscordInteractionRouter:
         interaction.type = discord.InteractionType.application_command
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._handle_application_command_interaction",
+            "communication.communication_channels.discord.events.interaction_router._handle_application_command_interaction",
             new_callable=AsyncMock,
         ) as mock_app:
             await handle_discord_interaction(bot, interaction)
@@ -99,7 +99,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_component_missing_custom_id_is_noop(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_component_interaction,
         )
 
@@ -109,14 +109,14 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_welcome_create_button_starts_creation_flow(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_welcome_button,
         )
 
         interaction = _discord_interaction(user=MagicMock(name="tester"))
 
         with patch(
-            "communication.communication_channels.discord.account_flow_handler.start_account_creation_flow",
+            "communication.communication_channels.discord.onboarding.account_flow_handler.start_account_creation_flow",
             new_callable=AsyncMock,
         ) as mock_create:
             await _handle_welcome_button(
@@ -126,14 +126,14 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_welcome_link_button_starts_linking_flow(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_welcome_button,
         )
 
         interaction = _discord_interaction(user=MagicMock(name="tester"))
 
         with patch(
-            "communication.communication_channels.discord.account_flow_handler.start_account_linking_flow",
+            "communication.communication_channels.discord.onboarding.account_flow_handler.start_account_linking_flow",
             new_callable=AsyncMock,
         ) as mock_link:
             await _handle_welcome_button(
@@ -143,14 +143,14 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_checkin_task_prefix_returns_early(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_component_interaction,
         )
 
         interaction = MagicMock()
         interaction.data = {"custom_id": "checkin_start_abc"}
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._handle_suggestion_button",
+            "communication.communication_channels.discord.events.interaction_router._handle_suggestion_button",
             new_callable=AsyncMock,
         ) as mock_suggestion:
             await _handle_component_interaction(MagicMock(), interaction)
@@ -158,7 +158,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_suggestion_button_no_label_sends_error(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_suggestion_button,
         )
 
@@ -167,7 +167,7 @@ class TestDiscordInteractionRouter:
         interaction.data = {"custom_id": "suggestion_0"}
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._extract_suggestion_button_label",
+            "communication.communication_channels.discord.events.interaction_router._extract_suggestion_button_label",
             return_value=None,
         ):
             await _handle_suggestion_button(MagicMock(), interaction, "suggestion_0")
@@ -177,17 +177,17 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_suggestion_button_unregistered_user(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_suggestion_button,
         )
 
         interaction = AsyncMock()
         interaction.user.id = 111
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._extract_suggestion_button_label",
+            "communication.communication_channels.discord.events.interaction_router._extract_suggestion_button_label",
             return_value="List tasks",
         ), patch(
-            "communication.communication_channels.discord.discord_interaction_router.get_user_id_by_identifier",
+            "communication.communication_channels.discord.events.interaction_router.get_user_id_by_identifier",
             return_value=None,
         ):
             await _handle_suggestion_button(MagicMock(), interaction, "suggestion_0")
@@ -196,7 +196,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_suggestion_button_success_with_intent_payload(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_suggestion_button,
         )
 
@@ -213,10 +213,10 @@ class TestDiscordInteractionRouter:
         mock_handler.handle.return_value = InteractionResponse("Your tasks.", True)
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._extract_suggestion_button_label",
+            "communication.communication_channels.discord.events.interaction_router._extract_suggestion_button_label",
             return_value="List tasks",
         ), patch(
-            "communication.communication_channels.discord.discord_interaction_router.get_user_id_by_identifier",
+            "communication.communication_channels.discord.events.interaction_router.get_user_id_by_identifier",
             return_value="internal-user",
         ), patch(
             "communication.command_handlers.interaction_handlers.get_interaction_handler",
@@ -227,7 +227,7 @@ class TestDiscordInteractionRouter:
         interaction.followup.send.assert_awaited_once_with(content="Your tasks.")
 
     def test_extract_suggestion_label_from_component(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _extract_suggestion_button_label,
         )
 
@@ -238,7 +238,7 @@ class TestDiscordInteractionRouter:
         assert _extract_suggestion_button_label(interaction, "suggestion_0") == "Done"
 
     def test_extract_suggestion_label_from_message_children(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _extract_suggestion_button_label,
         )
 
@@ -254,7 +254,7 @@ class TestDiscordInteractionRouter:
         assert _extract_suggestion_button_label(interaction, "suggestion_2") == "Cancel"
 
     def test_build_suggestion_response_via_message_handler(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _build_suggestion_button_response,
         )
 
@@ -271,7 +271,7 @@ class TestDiscordInteractionRouter:
         mock_handle.assert_called_once_with("user-abc", "list tasks", "discord")
 
     def test_build_suggestion_response_unknown_notebook_intent(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _build_suggestion_button_response,
         )
 
@@ -290,7 +290,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_send_suggestion_followup_embed_and_view(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _send_suggestion_followup,
         )
 
@@ -309,7 +309,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_start_command_welcome_sends_dm(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_start_command_welcome,
         )
 
@@ -320,10 +320,10 @@ class TestDiscordInteractionRouter:
         interaction.user.send = AsyncMock()
 
         with patch(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             return_value="Welcome!",
         ), patch(
-            "communication.communication_channels.discord.welcome_handler.mark_as_welcomed"
+            "communication.communication_channels.discord.onboarding.welcome_handler.mark_as_welcomed"
         ):
             await _handle_start_command_welcome(interaction, "discord-999")
 
@@ -332,7 +332,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_application_command_welcome_unlinked_user(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_application_command_interaction,
         )
 
@@ -344,16 +344,16 @@ class TestDiscordInteractionRouter:
         interaction.command.name = "help"
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router.get_user_id_by_identifier",
+            "communication.communication_channels.discord.events.interaction_router.get_user_id_by_identifier",
             return_value=None,
         ), patch(
-            "communication.communication_channels.discord.welcome_handler.has_been_welcomed",
+            "communication.communication_channels.discord.onboarding.welcome_handler.has_been_welcomed",
             return_value=False,
         ), patch(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             return_value="Welcome new user!",
         ), patch(
-            "communication.communication_channels.discord.welcome_handler.mark_as_welcomed"
+            "communication.communication_channels.discord.onboarding.welcome_handler.mark_as_welcomed"
         ):
             await _handle_application_command_interaction(bot, interaction)
 
@@ -361,7 +361,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_application_command_start_unlinked_routes_to_start_welcome(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_application_command_interaction,
         )
 
@@ -372,10 +372,10 @@ class TestDiscordInteractionRouter:
         interaction.command.name = "start"
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router.get_user_id_by_identifier",
+            "communication.communication_channels.discord.events.interaction_router.get_user_id_by_identifier",
             return_value=None,
         ), patch(
-            "communication.communication_channels.discord.discord_interaction_router._handle_start_command_welcome",
+            "communication.communication_channels.discord.events.interaction_router._handle_start_command_welcome",
             new_callable=AsyncMock,
         ) as mock_start:
             await _handle_application_command_interaction(bot, interaction)
@@ -384,7 +384,7 @@ class TestDiscordInteractionRouter:
 
     @pytest.mark.asyncio
     async def test_suggestion_button_build_failure_sends_error(self):
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_suggestion_button,
         )
 
@@ -394,19 +394,19 @@ class TestDiscordInteractionRouter:
         interaction.user.id = 555
 
         with patch(
-            "communication.communication_channels.discord.discord_interaction_router._extract_suggestion_button_label",
+            "communication.communication_channels.discord.events.interaction_router._extract_suggestion_button_label",
             return_value="List tasks",
         ), patch(
-            "communication.communication_channels.discord.discord_interaction_router.get_user_id_by_identifier",
+            "communication.communication_channels.discord.events.interaction_router.get_user_id_by_identifier",
             return_value="user-555",
         ), patch(
-            "communication.communication_channels.discord.discord_interaction_router._build_suggestion_button_response",
+            "communication.communication_channels.discord.events.interaction_router._build_suggestion_button_response",
             return_value=None,
         ):
             await _handle_suggestion_button(bot, interaction, "suggestion_x")
 
         assert "error occurred" in interaction.followup.send.await_args.args[0].lower()
-        from communication.communication_channels.discord.discord_interaction_router import (
+        from communication.communication_channels.discord.events.interaction_router import (
             _handle_start_command_welcome,
         )
 
@@ -417,10 +417,10 @@ class TestDiscordInteractionRouter:
         interaction.user.send = AsyncMock(side_effect=discord.Forbidden(MagicMock(), ""))
 
         with patch(
-            "communication.communication_channels.discord.welcome_handler.get_welcome_message",
+            "communication.communication_channels.discord.onboarding.welcome_handler.get_welcome_message",
             return_value="Welcome!",
         ), patch(
-            "communication.communication_channels.discord.welcome_handler.mark_as_welcomed"
+            "communication.communication_channels.discord.onboarding.welcome_handler.mark_as_welcomed"
         ):
             await _handle_start_command_welcome(interaction, "discord-888")
 
@@ -436,7 +436,7 @@ class TestCreateItemUi:
     """Discord create hub helpers and view factory."""
 
     def test_internal_user_id_missing_user(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _internal_user_id,
         )
 
@@ -444,7 +444,7 @@ class TestCreateItemUi:
         assert _internal_user_id(interaction) is None
 
     def test_internal_user_id_resolves_account(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _internal_user_id,
         )
 
@@ -454,7 +454,7 @@ class TestCreateItemUi:
             assert _internal_user_id(interaction) == "uid-555"
 
     def test_run_handler_missing_handler_returns_fallback(self):
-        from communication.communication_channels.discord.create_item_ui import _run_handler
+        from communication.communication_channels.discord.ui.create_item_ui import _run_handler
 
         with patch(
             "communication.command_handlers.interaction_handlers.get_interaction_handler",
@@ -464,7 +464,7 @@ class TestCreateItemUi:
         assert "could not run" in response.message.lower()
 
     def test_run_handler_delegates_to_handler(self):
-        from communication.communication_channels.discord.create_item_ui import _run_handler
+        from communication.communication_channels.discord.ui.create_item_ui import _run_handler
 
         mock_handler = MagicMock()
         mock_handler.handle.return_value = InteractionResponse("Created.", True)
@@ -477,7 +477,7 @@ class TestCreateItemUi:
         mock_handler.handle.assert_called_once()
 
     def test_create_hub_rich_data_marker(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             create_hub_rich_data,
         )
 
@@ -486,7 +486,7 @@ class TestCreateItemUi:
         assert data["user_id"] == "user-xyz"
 
     def test_get_create_hub_view_has_template_and_modal_buttons(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             CREATE_HUB_PREFIX,
             get_create_hub_view,
         )
@@ -505,10 +505,10 @@ class TestCreateItemUi:
                 self.callback = None
 
         with patch(
-            "communication.communication_channels.discord.create_item_ui.discord.ui.View",
+            "communication.communication_channels.discord.ui.create_item_ui.discord.ui.View",
             MockView,
         ), patch(
-            "communication.communication_channels.discord.create_item_ui.discord.ui.Button",
+            "communication.communication_channels.discord.ui.create_item_ui.discord.ui.Button",
             MockButton,
         ):
             view = get_create_hub_view("user-hub", discord_bot=None)
@@ -521,13 +521,13 @@ class TestCreateItemUi:
 
     @pytest.mark.asyncio
     async def test_hub_run_template_task_no_account(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _hub_run_template_task,
         )
 
         interaction = AsyncMock()
         with patch(
-            "communication.communication_channels.discord.create_item_ui._internal_user_id",
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value=None,
         ):
             await _hub_run_template_task(interaction, None, "medication")
@@ -537,19 +537,19 @@ class TestCreateItemUi:
 
     @pytest.mark.asyncio
     async def test_hub_run_template_task_success(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _hub_run_template_task,
         )
 
         interaction = AsyncMock()
         with patch(
-            "communication.communication_channels.discord.create_item_ui._internal_user_id",
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value="user-1",
         ), patch(
-            "communication.communication_channels.discord.create_item_ui._run_handler",
+            "communication.communication_channels.discord.ui.create_item_ui._run_handler",
             return_value=InteractionResponse("Task from template.", True),
         ), patch(
-            "communication.communication_channels.discord.create_item_ui.deliver_handler_response",
+            "communication.communication_channels.discord.ui.create_item_ui.deliver_handler_response",
             new_callable=AsyncMock,
         ) as mock_deliver:
             await _hub_run_template_task(interaction, MagicMock(), "appointment")
@@ -558,7 +558,7 @@ class TestCreateItemUi:
 
     @pytest.mark.asyncio
     async def test_modal_button_callback_no_account(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _bind_modal_button_callback,
         )
 
@@ -567,7 +567,7 @@ class TestCreateItemUi:
         )
         interaction = AsyncMock()
         with patch(
-            "communication.communication_channels.discord.create_item_ui._internal_user_id",
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value=None,
         ):
             await callback(interaction)
@@ -577,7 +577,7 @@ class TestCreateItemUi:
 
     @pytest.mark.asyncio
     async def test_modal_button_callback_opens_modal(self):
-        from communication.communication_channels.discord.create_item_ui import (
+        from communication.communication_channels.discord.ui.create_item_ui import (
             _bind_modal_button_callback,
         )
 
@@ -587,7 +587,7 @@ class TestCreateItemUi:
         )
         interaction = AsyncMock()
         with patch(
-            "communication.communication_channels.discord.create_item_ui._internal_user_id",
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value="user-1",
         ):
             await callback(interaction)

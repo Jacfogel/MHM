@@ -478,6 +478,32 @@
       ],
       "replacement": "pyproject.toml [tool.pyright]",
       "note": "Removed nested owned Pyright JSON formerly kept for alternate --project / settings-parity. Single SSOT is pyproject.toml [tool.pyright]; analyze_pyright default pyright_project_path remains pyproject.toml. STATIC_CHECK_CONFIG_RELATIVE_PATHS no longer hashes the nested file."
+    },
+    {
+      "id": "discord_flat_module_paths_2026_08_11",
+      "removed_at": "2026-08-11",
+      "search_terms": [
+        "discord_ready_handlers",
+        "discord_guild_handlers",
+        "discord_message_handler",
+        "discord_interaction_router",
+        "discord_connection_status",
+        "discord_handler_protocol",
+        "discord_user_resolution",
+        "discord_command_runner",
+        "discord_response_delivery",
+        "item_form_shared",
+        "communication.communication_channels.discord.webhook_handler",
+        "communication.communication_channels.discord.webhook_server",
+        "communication.communication_channels.discord.welcome_handler",
+        "communication.communication_channels.discord.account_flow_handler",
+        "communication.communication_channels.discord.checkin_view",
+        "communication.communication_channels.discord.task_reminder_view",
+        "communication.communication_channels.discord.create_item_ui",
+        "communication.communication_channels.discord.task_list_ui"
+      ],
+      "replacement": "communication.communication_channels.discord.{events,ui,onboarding,webhooks}.*",
+      "note": "Flat discord/*.py helpers moved into events/, ui/, onboarding/, webhooks/ subpackages (2026-08-11 package reorg). Search-and-close: production and test imports updated; no LEGACY COMPATIBILITY re-export stubs. Canonical stables remain discord.bot.DiscordBot and discord.interaction_views."
     }
   ],
   "global_sweep_keywords": [

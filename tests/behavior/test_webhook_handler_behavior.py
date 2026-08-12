@@ -33,7 +33,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_verify_webhook_signature_with_valid_inputs(self):
         """Test: Webhook signature verification returns True for valid inputs."""
-        from communication.communication_channels.discord.webhook_handler import verify_webhook_signature
+        from communication.communication_channels.discord.webhooks.handler import verify_webhook_signature
         
         # Arrange: Valid signature inputs
         signature = "test_signature_12345"
@@ -52,7 +52,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_verify_webhook_signature_with_missing_signature(self):
         """Test: Webhook signature verification returns False for missing signature."""
-        from communication.communication_channels.discord.webhook_handler import verify_webhook_signature
+        from communication.communication_channels.discord.webhooks.handler import verify_webhook_signature
         
         # Arrange: Missing signature
         signature = ""
@@ -71,7 +71,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_verify_webhook_signature_with_missing_timestamp(self):
         """Test: Webhook signature verification returns False for missing timestamp."""
-        from communication.communication_channels.discord.webhook_handler import verify_webhook_signature
+        from communication.communication_channels.discord.webhooks.handler import verify_webhook_signature
         
         # Arrange: Missing timestamp
         signature = "test_signature_12345"
@@ -90,7 +90,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_parse_webhook_event_with_valid_json(self):
         """Test: Parse webhook event returns dict for valid JSON."""
-        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        from communication.communication_channels.discord.webhooks.handler import parse_webhook_event
         
         # Arrange: Valid JSON event
         event_data = {
@@ -119,7 +119,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_parse_webhook_event_with_invalid_json(self):
         """Test: Parse webhook event returns None for invalid JSON."""
-        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        from communication.communication_channels.discord.webhooks.handler import parse_webhook_event
         
         # Arrange: Invalid JSON
         body = "{ invalid json }"
@@ -136,7 +136,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_new_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event creates welcome for new user."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: New user event data
@@ -193,7 +193,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_existing_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event skips welcome for already-welcomed user."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import mark_as_welcomed
         
         # Arrange: Create existing user and mark as already welcomed
@@ -233,7 +233,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_missing_user_id(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event returns False for missing user ID."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         
         # Arrange: Event data without user ID
         event_data = {
@@ -262,7 +262,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_already_welcomed_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event skips welcome for already welcomed user."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import mark_as_welcomed, clear_welcomed_status
         
         # Arrange: Mark user as already welcomed
@@ -299,7 +299,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_handle_application_authorized_with_bot_unavailable(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles bot unavailability gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: New user event data
@@ -335,7 +335,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_handle_webhook_event_routes_application_authorized(self, test_data_dir):
         """Test: Webhook event handler routes APPLICATION_AUTHORIZED events correctly."""
-        from communication.communication_channels.discord.webhook_handler import (
+        from communication.communication_channels.discord.webhooks.handler import (
             handle_webhook_event,
             EVENT_APPLICATION_AUTHORIZED
         )
@@ -360,7 +360,7 @@ class TestWebhookHandlerBehavior:
         bot_instance = None
         
         # Act: Handle webhook event
-        with patch('communication.communication_channels.discord.webhook_handler.handle_application_authorized') as mock_handler:
+        with patch('communication.communication_channels.discord.webhooks.handler.handle_application_authorized') as mock_handler:
             mock_handler.return_value = True
             result = handle_webhook_event(EVENT_APPLICATION_AUTHORIZED, event_data, bot_instance)
         
@@ -375,7 +375,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_webhook_event_routes_application_deauthorized(self, test_data_dir):
         """Test: Webhook event handler routes APPLICATION_DEAUTHORIZED events correctly."""
-        from communication.communication_channels.discord.webhook_handler import (
+        from communication.communication_channels.discord.webhooks.handler import (
             handle_webhook_event,
             EVENT_APPLICATION_DEAUTHORIZED
         )
@@ -413,7 +413,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_deauthorize_then_reauthorize_sends_welcome(self, test_data_dir):
         """Test: User who deauthorizes then reauthorizes should receive welcome message."""
-        from communication.communication_channels.discord.webhook_handler import (
+        from communication.communication_channels.discord.webhooks.handler import (
             handle_webhook_event,
             handle_application_authorized,
             EVENT_APPLICATION_DEAUTHORIZED
@@ -485,7 +485,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_handle_webhook_event_handles_unknown_event_type(self):
         """Test: Webhook event handler handles unknown event types gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_webhook_event
+        from communication.communication_channels.discord.webhooks.handler import handle_webhook_event
         
         # Arrange: Unknown event type
         event_type = "UNKNOWN_EVENT_TYPE"
@@ -509,7 +509,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_handle_application_authorized_with_closed_event_loop(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles closed event loop gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: New user event data
@@ -550,7 +550,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_handle_application_authorized_with_missing_event_structure(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles missing event structure gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         
         # Arrange: Event data with missing structure
         event_data = {
@@ -577,7 +577,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_dm_send_failure(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles DM send failure gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: New user event data
@@ -625,7 +625,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_scheduling_error(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles scheduling error gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status, has_been_welcomed
         
         # Arrange: New user event data
@@ -703,7 +703,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_verify_webhook_signature_with_exception(self):
         """Test: Webhook signature verification handles exceptions gracefully."""
-        from communication.communication_channels.discord.webhook_handler import verify_webhook_signature
+        from communication.communication_channels.discord.webhooks.handler import verify_webhook_signature
         
         # Arrange: Valid inputs but force exception
         signature = "test_signature_12345"
@@ -722,7 +722,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_parse_webhook_event_with_empty_string(self):
         """Test: Parse webhook event handles empty string gracefully."""
-        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        from communication.communication_channels.discord.webhooks.handler import parse_webhook_event
         
         # Arrange: Empty string
         body = ""
@@ -738,7 +738,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     def test_parse_webhook_event_with_none(self):
         """Test: Parse webhook event handles None gracefully."""
-        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        from communication.communication_channels.discord.webhooks.handler import parse_webhook_event
         
         # Arrange: None input
         body = None
@@ -755,7 +755,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_webhook_event_with_exception(self, test_data_dir):
         """Test: Webhook event handler handles exceptions gracefully."""
-        from communication.communication_channels.discord.webhook_handler import (
+        from communication.communication_channels.discord.webhooks.handler import (
             handle_webhook_event,
             EVENT_APPLICATION_AUTHORIZED
         )
@@ -776,7 +776,7 @@ class TestWebhookHandlerBehavior:
         bot_instance = None
         
         # Act: Handle webhook event with patched handler that raises exception
-        with patch('communication.communication_channels.discord.webhook_handler.handle_application_authorized') as mock_handler:
+        with patch('communication.communication_channels.discord.webhooks.handler.handle_application_authorized') as mock_handler:
             mock_handler.side_effect = Exception("Test exception")
             result = handle_webhook_event(EVENT_APPLICATION_AUTHORIZED, event_data, bot_instance)
         
@@ -789,7 +789,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     def test_handle_application_authorized_with_empty_username(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event handles empty username gracefully."""
-        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.communication_channels.discord.webhooks.handler import handle_application_authorized
         from communication.core.welcome_manager import clear_welcomed_status
         
         # Arrange: Event data with empty username

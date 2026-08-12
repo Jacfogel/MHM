@@ -108,7 +108,7 @@ def get_welcome_message_view(discord_user_id: str) -> "discord.ui.View":
         ):
             """Handle Create Account button click"""
             # Start account creation flow (will handle interaction response internally)
-            from communication.communication_channels.discord.account_flow_handler import (
+            from communication.communication_channels.discord.onboarding.account_flow_handler import (
                 start_account_creation_flow,
             )
 
@@ -128,7 +128,7 @@ def get_welcome_message_view(discord_user_id: str) -> "discord.ui.View":
         ):
             """Handle Link Account button click"""
             # Start account linking flow (will handle interaction response internally)
-            from communication.communication_channels.discord.account_flow_handler import (
+            from communication.communication_channels.discord.onboarding.account_flow_handler import (
                 start_account_linking_flow,
             )
 
