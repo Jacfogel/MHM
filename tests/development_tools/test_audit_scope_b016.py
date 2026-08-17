@@ -75,11 +75,10 @@ def test_effective_storage_scope_accepts_path_slug() -> None:
 @pytest.mark.unit
 def test_filter_tools_for_audit_scope_mvp() -> None:
     supported, skipped = filter_tools_for_audit_scope_mvp(
-        ["analyze_functions", "analyze_documentation_sync", "analyze_unused_imports"]
+        ["analyze_functions", "analyze_documentation_sync", "analyze_error_handling"]
     )
-    assert supported == ["analyze_functions"]
+    assert supported == ["analyze_functions", "analyze_error_handling"]
     assert "analyze_documentation_sync" in skipped
-    assert "analyze_unused_imports" in skipped
 
 
 @pytest.mark.unit
@@ -101,14 +100,12 @@ def test_get_tier2_groups_filters_for_custom_scope() -> None:
     service.run_analyze_function_registry = MagicMock()
     # Unsupported callables still present on service but should be filtered out
     service.run_analyze_documentation_sync = MagicMock()
-    service.run_analyze_unused_imports = MagicMock()
 
     independent, dependent = get_tier2_groups(service)
     indep_names = [n for n, _ in independent]
     dep_names = [n for group in dependent for n, _ in group]
     assert "analyze_functions" in indep_names
     assert "analyze_documentation_sync" not in dep_names
-    assert "analyze_unused_imports" not in dep_names
     assert "analyze_documentation_sync" in service._audit_scope_skipped_tools
 
 

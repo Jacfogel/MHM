@@ -1360,46 +1360,19 @@ def get_analyze_ai_work_config():
     return result
 
 
-# Shared tool commands (canonical for ruff_command; unused_imports and static_analysis derive from here)
+# Shared tool commands (canonical for ruff_command; static_analysis derives from here)
 # See LIST_OF_LISTS.md §8.
 _DEFAULT_RUFF_COMMAND = ["python", "-m", "ruff"]
 
 
 def _get_ruff_command() -> list:
-    """Get ruff command from tool_commands, or default. Used by unused_imports and static_analysis."""
+    """Get ruff command from tool_commands, or default. Used by static_analysis."""
     tool_cmds = _get_external_value("tool_commands", None)
     if isinstance(tool_cmds, dict) and "ruff_command" in tool_cmds:
         cmd = tool_cmds["ruff_command"]
         if isinstance(cmd, (list, tuple)) and cmd:
             return list(cmd)
     return list(_DEFAULT_RUFF_COMMAND)
-
-
-# Unused imports checker configuration
-UNUSED_IMPORTS = {
-    "preferred_backend": "ruff",  # prefer ruff F401, fallback to pylint
-    "ruff_command": _DEFAULT_RUFF_COMMAND,  # Overridden by tool_commands.ruff_command or unused_imports.ruff_command
-    "pylint_command": ["python", "-m", "pylint"],  # Pylint command as list
-    "batch_size": 200,  # Files per backend invocation
-    "pylint_batch_size": 25,  # Smaller fallback batches to avoid timeout spikes
-    "ignore_patterns": [],  # Patterns to ignore
-    "type_stub_locations": [],  # Locations for type stubs (.pyi files)
-    "timeout_seconds": 30,  # Timeout per file
-}
-
-
-def get_unused_imports_config():
-    """Get unused imports checker configuration (from external config if available, otherwise default).
-    ruff_command: uses tool_commands.ruff_command if set, else unused_imports.ruff_command, else default.
-    """
-    external_config = _get_external_value("unused_imports", None)
-    result = UNUSED_IMPORTS.copy()
-    result["ruff_command"] = _get_ruff_command()
-    if external_config:
-        result.update(external_config)
-        if "ruff_command" not in external_config:
-            result["ruff_command"] = _get_ruff_command()
-    return result
 
 
 # Portable default: empty shards force monolithic Ruff/Pyright (``check .`` / full project).

@@ -51,10 +51,6 @@
 ## Test Markers
 - **Status**: CLEAN (category and domain marker policy satisfied)
 
-## Unused Imports
-- **Status**: CLEAN (no unused imports detected)
-- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)
-
 ## Static Analysis
 - **Ruff**: PASS (0 issue(s) across 0 file(s))
 - **Pyright**: PASS (0 error(s), 0 warning(s))

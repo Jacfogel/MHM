@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see development_tools/LIST_OF_LISTS.md). Omit optional sections/keys that match development_tools/config/config.py defaults (workflow, documentation, auto_document, ai_validation, ai_collaboration, audit, output, status, system_signals, validation, unused_imports, quick_audit, analyze_module_dependencies, analyze_package_exports, and matching static_analysis / analyze_function_registry scalars). Other common omit-or-fallback sections: documentation_analysis, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY), test_run, analyze_duplicate_functions. file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config(). test_markers.directory_to_marker is derived from categories when absent. Quick-audit tool membership is audit_tiers (TIER1_*), not a JSON script list.",
+  "_comment": "Copy to development_tools/config/development_tools_config.json and customize. Top-level categories match the live config for this repo (see development_tools/LIST_OF_LISTS.md). Omit optional sections/keys that match development_tools/config/config.py defaults (workflow, documentation, auto_document, ai_validation, ai_collaboration, audit, output, status, system_signals, validation, quick_audit, analyze_module_dependencies, analyze_package_exports, and matching static_analysis / analyze_function_registry scalars). Other common omit-or-fallback sections: documentation_analysis, analyze_function_patterns, analyze_ai_work, backup_health, tool_commands, analyze_functions (FUNCTION_DISCOVERY), test_run, analyze_duplicate_functions. file_patterns in JSON merges with FILE_PATTERNS via get_file_patterns_config(). test_markers.directory_to_marker is derived from categories when absent. Quick-audit tool membership is audit_tiers (TIER1_*), not a JSON script list.",
   "project": {
     "name": "YourProject",
     "key_files": [
@@ -563,7 +563,6 @@
       "development_docs/LEGACY_REFERENCE_REPORT.md",
       "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
       "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
-      "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
       "development_tools/CONSOLIDATED_REPORT.md",

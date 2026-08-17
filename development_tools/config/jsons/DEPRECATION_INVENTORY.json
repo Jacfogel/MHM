@@ -82,6 +82,19 @@
   ],
   "removed_inventory": [
     {
+      "id": "analyze_unused_imports_tool",
+      "removed_at": "2026-08-17",
+      "search_terms": [
+        "analyze_unused_imports",
+        "generate_unused_imports_report",
+        "unused-imports-report",
+        "get_unused_imports_config",
+        "UNUSED_IMPORTS_REPORT.md"
+      ],
+      "replacement": "analyze_ruff F401 (python -m ruff check --select F401); Static Analysis in AI_STATUS / AI_PRIORITIES",
+      "notes": "Retired dedicated unused-imports analyzer and markdown report. Detection was a second ruff F401 pass plus categorization; ruff already runs in Tier 3 via analyze_ruff. CLI unused-imports / unused-imports-report removed."
+    },
+    {
       "id": "module_refactor_ast_complexity_thresholds",
       "removed_at": "2026-08-16",
       "search_terms": [

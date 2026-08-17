@@ -77,8 +77,6 @@ python development_tools/run_development_tools.py doc-fix --full
 python development_tools/run_development_tools.py status
 python development_tools/run_development_tools.py legacy
 python development_tools/run_development_tools.py coverage
-python development_tools/run_development_tools.py unused-imports
-python development_tools/run_development_tools.py unused-imports-report
 python development_tools/run_development_tools.py config
 ```
 
@@ -118,8 +116,6 @@ Coverage worker config (`coverage` section):
 - `system-signals` - generates system health and status signals.
 - `validate` - validates AI-generated work (lightweight structural validation).
 - `decision-support` - generates decision support insights.
-- `unused-imports` - runs the AST-based unused import detection tool (analysis only).
-- `unused-imports-report` - generates unused imports report from analysis results.
 - `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the Tier 3 suite); invoke manually when investigating flakes.
 - `verify-process-cleanup` - checks for potential orphaned pytest/python worker processes (included in Tier 3 full audit).
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
@@ -210,7 +206,6 @@ The modular structure provides clear separation of concerns, making the codebase
 - **Quality checks**: Error handling coverage, package export validation
 - **Documentation sync**: Documentation synchronization (includes multiple sub-tools)
 - **Module dependencies**: Module dependency validation (depends on module imports from Tier 1)
-- **Unused imports**: Unused import detection and report generation
 - **Duration**: ~15-25 seconds (with parallel execution)
 
 **Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus tools >10s (or groups containing tools >10s):
@@ -222,7 +217,7 @@ The modular structure provides clear separation of concerns, making the codebase
 - **Static analysis group** (runs in parallel with test suite + legacy groups):
 - Ruff diagnostics summary (advisory)
 - Pyright diagnostics summary (advisory)
-- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
+- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md)
 - Tier 3 outcome states are explicit: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`
 - In strict mode (`audit --strict`), Tier 3 returns non-zero for `test_failures`, `crashed`, or `infra_cleanup_error`; default mode remains non-strict.
 - Coverage regeneration, marker analysis, and TEST_COVERAGE_REPORT.md are handled by the explicit `coverage` command.
@@ -231,7 +226,7 @@ The modular structure provides clear separation of concerns, making the codebase
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](AI_STATUS.md), `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
-- Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
+- Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`
 - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
 - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
 
@@ -239,7 +234,7 @@ Pipeline artifacts:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ",... +N" format when there are more items
 - **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
-- Human-facing: [FUNCTION_REGISTRY_DETAIL.md](../development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)
+- Human-facing: [FUNCTION_REGISTRY_DETAIL.md](../development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)
 - Coverage: `development_tools/tests/jsons/coverage.json`, `development_tools/tests/jsons/coverage_dev_tools.json`, `development_tools/tests/coverage_html/`, `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
 
@@ -354,8 +349,6 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
 | analyze_config.py | supporting | partial | Detects configuration drift and missing values across tools. |
 | analyze_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
-| analyze_unused_imports.py | supporting | partial | AST-based unused import detector (analysis only, no report generation). |
-| generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | analyze_system_signals.py | supporting | advisory | Operational health pulse (audit freshness, coverage rollup, core files, alerts); doc-sync stays under Documentation Signals. |
 | static_checks/analyze_ruff.py | supporting | advisory | Runs Ruff in JSON mode and contributes lint diagnostics to Tier 3 audit reports. |
@@ -385,11 +378,11 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - **Facade/shim analysis** (`development_tools/functions/analyze_facade_shims.py`): Advisory-only detector for named/documented facade/shim/compatibility surfaces, import re-export aliases, module aliases, compatibility markers, and active deprecation-inventory terms. By default it filters plain one-line delegating wrappers and generic import aliases unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Run with `python development_tools/run_development_tools.py facade-shims`; run the script directly with `--include-low-signal` when an exhaustive thin-wrapper sweep is needed. Add `--include-tests`, `--include-dev-tools`, or `--include-all` when needed. Suppress intentional candidates with `# devtools: ignore[facade-shims]: <reason>`.
 - **Module refactor candidates** (`development_tools/functions/analyze_module_refactor_candidates.py`): Identifies modules (Python files) that exceed configurable **size** thresholds: lines of code or function/method count. Use to prioritize splitting large modules. Reports all candidates; AI_PRIORITIES and consolidated report show top 3 with a pointer to the full JSON. Candidates are **sorted by lines of code** (largest first), then by function count as tiebreaker. Function/method count includes module-level functions and class methods, not nested closures. High-complexity *functions* are covered by `analyze_functions`; this tool does not use AST-node or cyclomatic totals. **Settings** (from `analyze_module_refactor_candidates` config): `max_lines_per_module` (default 1500), `max_functions_per_module` (default 40).
 - **Caching Infrastructure**:
-- **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `imports/analyze_module_imports.py`, `functions/analyze_functions.py`, `error_handling/analyze_error_handling.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py` (compatibility scan; cache hits reuse stored matches without re-reading file contents, and the INTENTIONAL LEGACY 10-line probe runs only on cache misses), `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). Cache keys are namespaced by tool/domain/config-signature/tool-hash, payload includes tool hash/tool mtimes, and run-status metadata supports failure-aware invalidation.
+- **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_module_imports.py`, `functions/analyze_functions.py`, `error_handling/analyze_error_handling.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py` (compatibility scan; cache hits reuse stored matches without re-reading file contents, and the INTENTIONAL LEGACY 10-line probe runs only on cache misses), `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). Cache keys are namespaced by tool/domain/config-signature/tool-hash, payload includes tool hash/tool mtimes, and run-status metadata supports failure-aware invalidation.
 - **Test Coverage Caching**:
 - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` Caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed.
 - **Test-file coverage caching (Integrated, enabled by default)**: `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Disable with `--no-domain-cache`. `domain_dependencies.storage` is a leaf (empty list) so a storage-only source change does not walk through `core` and invalidate the whole product suite; `core` may still list `storage`.
-- **Doc-sync result freshness**: Documentation subchecks (including path-drift) compare mtimes against scoped JSON at `development_tools/docs/jsons/scopes/<full|dev_tools>/`, not the pre-scopes flat `docs/jsons/` path. Freshness ignores changelog files and generated reports the audit rewrites after the scan (otherwise a changelog trim would force a full ~60s rescan on the next audit).
+- **Doc-sync result freshness**: Documentation subchecks (including path-drift) compare mtimes against scoped JSON at `development_tools/docs/jsons/scopes/<full|dev_tools>/`, not the pre-scopes flat `docs/jsons/` path. Freshness includes both [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) and [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md). Changelog trim and TODO classification run before Tier 2 doc-sync so those edits do not self-invalidate the next audit. Generated coverage/legacy reports remain excluded (still rewritten after the scan).
 - **Failure-aware test-file invalidation**: `tests/test_file_coverage_cache.py` persists run status (`last_run_ok`, parallel/no-parallel status) and `last_failed_domains`. On a failed previous run, invalidation is domain-scoped when failed domains are known; otherwise all domains are invalidated. Missing no-parallel coverage invalidates all domains.
 - **Tool/config-aware test-file invalidation**: `tests/test_file_coverage_cache.py` stores `tool_hash`, tool mtimes, and config mtime. Tool/config changes force global invalidation.
 - **Dev tools coverage caching (Integrated, enabled by default)**: `tests/dev_tools_coverage_cache.py` caches development_tools coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Disable with `--no-domain-cache`.
@@ -466,7 +459,6 @@ All generated Markdown files must use this standardized metadata format at the b
 - `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
-- `development_docs/UNUSED_IMPORTS_REPORT.md`
 - `development_docs/TEST_COVERAGE_REPORT.md`
 - `development_docs/DIRECTORY_TREE.md`
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
@@ -680,7 +672,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 - **pydeps**: Declined for audit integration (B-012); optional dependency-graph visualization; in-audit coupling/circular source of truth is `analyze_dependency_patterns`.
 - **Vulture**: Tier 3 dead-code scan (min-confidence gated); excludes via shared `standard_exclusions` / `exclusions.tool_exclusions.vulture` (not hardcoded project paths); confirm before deleting symbols; AI_PRIORITIES Tier 4 only.
 - **pre-commit**: Optional host-repo hygiene only (B-012 declined audit integration); policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
-- **deeper Ruff**: Declined (B-012); existing `analyze_ruff` + unused-imports path is sufficient until a named rule set and noise budget are proposed.
+- **deeper Ruff**: Declined (B-012); existing `analyze_ruff` is sufficient until a named rule set and noise budget are proposed.
 
 - **TODO sync workflow** (B-010):
   1. Dry-run first: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` (stdout only; no file edits).
@@ -701,9 +693,9 @@ Triage with generated `AI_PRIORITIES.md` / `AI_STATUS.md` / `CONSOLIDATED_REPORT
 | Testing | `coverage` command / `development_docs/TEST_COVERAGE_REPORT.md`, markers, Tier 3 pytest |
 | Config / environment | `analyze_config`, import-boundary / AI-work tools |
 | AI / prompt | `analyze_ai_work` when present in priorities |
-| Integration / workflow | dependency patterns, legacy refs, unused imports, backup health, pip-audit |
+| Integration / workflow | dependency patterns, legacy refs, backup health, pip-audit |
 
-Practical order: (1) Immediate Focus in `AI_PRIORITIES.md`, (2) linked JSON for that item, (3) for module size start with **`module-refactor-candidates`** and for function complexity use `analyze_functions` before manual Radon, (4) for dead-code suspicion after unused-imports noise use Tier 3 Vulture (min-confidence gated).
+Practical order: (1) Immediate Focus in `AI_PRIORITIES.md`, (2) linked JSON for that item, (3) for module size start with **`module-refactor-candidates`** and for function complexity use `analyze_functions` before manual Radon, (4) for dead-code suspicion use Tier 3 Vulture (min-confidence gated).
 
 **Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Residual task notes: [TODO.md](../TODO.md) and archived [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 

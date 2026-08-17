@@ -226,52 +226,6 @@ def test_count_duplicate_affected_files_and_filter_groups_dev_tools(
     assert service._count_duplicate_affected_files_dev_tools(mixed) == 2
 
 
-@pytest.mark.unit
-def test_scoped_obvious_unused_import_metrics_counts(temp_project_copy: Path) -> None:
-    service = AIToolsService(project_root=str(temp_project_copy))
-
-    payload = {
-        "details": {
-            "findings": {
-                "obvious_unused": [
-                    {"file": "development_tools/a.py"},
-                    {"file": "ui/b.py"},
-                    {"file": "development_tools/a.py"},
-                ],
-                "type_hints_only": [
-                    {"file": "development_tools/c.py"},
-                    {"file": "ui/d.py"},
-                ],
-            }
-        }
-    }
-    obvious, type_only, per_file = service._scoped_obvious_unused_import_metrics(payload)
-    assert obvious == 2
-    assert type_only == 1
-    assert per_file.get("development_tools/a.py") == 2
-
-
-@pytest.mark.unit
-def test_scoped_unused_imports_status_metrics_none_and_totals(
-    temp_project_copy: Path,
-) -> None:
-    service = AIToolsService(project_root=str(temp_project_copy))
-
-    assert service._scoped_unused_imports_status_metrics({}) is None
-    assert service._scoped_unused_imports_status_metrics({"details": {"findings": {}}}) is None
-
-    data = {
-        "details": {
-            "findings": {
-                "obvious_unused": [{"file": "development_tools/x.py"}],
-                "other_cat": [{"file": "ui/y.py"}],
-            }
-        }
-    }
-    total, nfiles, by_cat = service._scoped_unused_imports_status_metrics(data)
-    assert total == 1
-    assert nfiles == 1
-    assert by_cat == {"obvious_unused": 1}
 
 
 @pytest.mark.unit

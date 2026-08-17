@@ -19,7 +19,7 @@ from development_tools.shared.logging import get_dev_tools_logger
 logger = get_dev_tools_logger("development_tools")
 
 # Import output storage
-from ..output_storage import save_tool_result, get_all_tool_results, load_tool_result
+from ..output_storage import save_tool_result, get_all_tool_results
 from ..file_rotation import create_output_file
 from ..lock_state import (
     active_audit_coverage_locks_present,
@@ -439,6 +439,22 @@ class AuditOrchestrationMixin:
         
         success = True
         try:
+            # Changelog trim/TODO classify before doc-sync so both changelogs can
+            # participate in freshness without the post-scan rewrite dirtying cache.
+            try:
+                self._sync_todo_with_changelog()
+            except KeyboardInterrupt:
+                self._internal_interrupt_detected = True
+                logger.error(
+                    "KeyboardInterrupt during changelog maintenance "
+                    "(_sync_todo_with_changelog); treating as internal failure state."
+                )
+                raise
+            try:
+                self._check_and_trim_changelog_entries()
+            except Exception as e:
+                logger.warning(f"Changelog trim check failed (non-blocking): {e}")
+
             # Tier 1: Quick audit tools (skipped for --audit-scope MVP)
             if custom_audit_scope:
                 print(
@@ -510,17 +526,6 @@ class AuditOrchestrationMixin:
                 "treating as internal failure state."
             )
         
-        # Sync TODO.md with changelog
-        try:
-            self._sync_todo_with_changelog()
-        except KeyboardInterrupt:
-            self._internal_interrupt_detected = True
-            success = False
-            logger.error(
-                "KeyboardInterrupt during audit finalization (_sync_todo_with_changelog); "
-                "treating as internal failure state."
-            )
-        
         # Validate referenced paths
         try:
             self._validate_referenced_paths()
@@ -528,11 +533,6 @@ class AuditOrchestrationMixin:
             logger.warning(f"Path validation failed (non-blocking): {e}")
         
         # Final quality checks (must run before report generation so findings appear in reports)
-        try:
-            self._check_and_trim_changelog_entries()
-        except Exception as e:
-            logger.warning(f"Changelog trim check failed (non-blocking): {e}")
-
         try:
             self._check_documentation_quality()
         except Exception as e:
@@ -698,7 +698,7 @@ class AuditOrchestrationMixin:
                         coverage_msg = f"Coverage mode summary: {coverage_summary}"
                         logger.info(coverage_msg)
                     cache_summary = self._format_cache_mode_summary(
-                        ['analyze_unused_imports', 'analyze_legacy_references', 'analyze_documentation_sync']
+                        ['analyze_legacy_references', 'analyze_documentation_sync']
                     )
                     if cache_summary:
                         cache_msg = f"Cache mode summary: {cache_summary}"
@@ -1153,9 +1153,7 @@ class AuditOrchestrationMixin:
             cache_state = None
         cache_fragment = f" cache={cache_state}" if cache_state else ""
         detail_fragment = ""
-        if tool_name == "generate_unused_imports_report" and success:
-            detail_fragment = " detailed_report=development_docs/UNUSED_IMPORTS_REPORT.md"
-        elif tool_name == "generate_test_coverage_report" and success:
+        if tool_name == "generate_test_coverage_report" and success:
             detail_fragment = " detailed_report=development_docs/TEST_COVERAGE_REPORT.md"
         elif tool_name == "generate_legacy_reference_report" and success:
             detail_fragment = " detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md"
@@ -1248,20 +1246,6 @@ class AuditOrchestrationMixin:
                 if isinstance(cache_metadata, dict):
                     metadata.update(cache_metadata)
 
-                if tool_name == 'analyze_unused_imports':
-                    details = data.get('details', {})
-                    stats = details.get('stats', {}) if isinstance(details, dict) else {}
-                    if isinstance(stats, dict):
-                        hits = int(stats.get('cache_hits', 0) or 0)
-                        misses = int(stats.get('cache_misses', 0) or 0)
-                        files_scanned = int(stats.get('files_scanned', 0) or 0)
-                        if files_scanned > 0 and misses == 0 and files_scanned >= hits:
-                            misses = files_scanned - hits
-                        metadata.setdefault('hits', hits)
-                        metadata.setdefault('misses', misses)
-                        metadata.setdefault('total_cache_checks', hits + misses)
-                        metadata.setdefault('cache_mode', self._infer_cache_mode_from_hits_misses(hits, misses))
-
                 if tool_name == 'analyze_legacy_references':
                     details = data.get('details', {})
                     cache_data = details.get('cache', {}) if isinstance(details, dict) else {}
@@ -1321,32 +1305,6 @@ class AuditOrchestrationMixin:
                         if key != 'cache_mode'
                     }
                 metadata.update(coverage_metadata)
-
-        if tool_name == 'analyze_unused_imports' and not metadata:
-            try:
-                cached_unused = load_tool_result(
-                    'analyze_unused_imports',
-                    'imports',
-                    project_root=self.project_root,
-                )
-                if isinstance(cached_unused, dict):
-                    details = cached_unused.get('details', {})
-                    stats = details.get('stats', {}) if isinstance(details, dict) else {}
-                    if isinstance(stats, dict):
-                        hits = int(stats.get('cache_hits', 0) or 0)
-                        misses = int(stats.get('cache_misses', 0) or 0)
-                        files_scanned = int(stats.get('files_scanned', 0) or 0)
-                        if files_scanned > 0 and misses == 0 and files_scanned >= hits:
-                            misses = files_scanned - hits
-                        metadata = {
-                            'cache_mode': self._infer_cache_mode_from_hits_misses(hits, misses),
-                            'hits': hits,
-                            'misses': misses,
-                            'total_cache_checks': hits + misses,
-                            'source': 'cached_tool_result',
-                        }
-            except Exception:
-                pass
 
         if metadata:
             self._tool_cache_metadata[tool_name] = metadata

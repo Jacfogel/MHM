@@ -409,44 +409,6 @@ def _legacy_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0 if success else 1
 
 
-def _unused_imports_command(service: "AIToolsService", argv: Sequence[str]) -> int:
-    """Handle unused-imports command (analysis only)."""
-    if argv:
-        if "-h" in argv or "--help" in argv:
-            print("Usage: unused-imports")
-            return 0
-
-        if any(arg not in ("-h", "--help") for arg in argv):
-            print("The 'unused-imports' command does not accept additional arguments.")
-            print("Usage: unused-imports")
-            return 2
-
-    result = service.run_analyze_unused_imports()
-    success = result.get("success", False) if isinstance(result, dict) else bool(result)
-    return 0 if success else 1
-
-
-def _unused_imports_report_command(
-    service: "AIToolsService", argv: Sequence[str]
-) -> int:
-    """Handle unused-imports-report command (report generation)."""
-    if argv:
-        if "-h" in argv or "--help" in argv:
-            print("Usage: unused-imports-report")
-            return 0
-
-        if any(arg not in ("-h", "--help") for arg in argv):
-            print(
-                "The 'unused-imports-report' command does not accept additional arguments."
-            )
-            print("Usage: unused-imports-report")
-            return 2
-
-    result = service.run_unused_imports_report()
-    success = result.get("success", False) if isinstance(result, dict) else bool(result)
-    return 0 if success else 1
-
-
 def _flaky_detector_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Run the migrated flaky detector utility."""
     result = service.run_script("flaky_detector", *argv, timeout=3600)
@@ -1001,22 +963,6 @@ COMMAND_REGISTRY = OrderedDict(
             "legacy",
             CommandRegistration(
                 "legacy", _legacy_command, "Scan for legacy references."
-            ),
-        ),
-        (
-            "unused-imports",
-            CommandRegistration(
-                "unused-imports",
-                _unused_imports_command,
-                "Detect unused imports in codebase (analysis only).",
-            ),
-        ),
-        (
-            "unused-imports-report",
-            CommandRegistration(
-                "unused-imports-report",
-                _unused_imports_report_command,
-                "Generate unused imports report from analysis results.",
             ),
         ),
         (

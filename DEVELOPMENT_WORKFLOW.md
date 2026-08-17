@@ -384,7 +384,7 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` (Tier 2, default, ~2-5min) for standard quality checks. Includes everything in Tier 1 plus: documentation analysis, error handling coverage, decision support insights, config validation, and AI work validation.
 
-- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: the configured pytest suite without coverage, legacy reference scanning, static analysis, and improvement opportunity reports (for example `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`). Tier 3 uses the portable `development_tools/tests/run_test_suite.py` runner and does **not** call the project-specific `run_tests.py`.
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: the configured pytest suite without coverage, legacy reference scanning, static analysis, and improvement opportunity reports (for example `development_docs/LEGACY_REFERENCE_REPORT.md`). Tier 3 uses the portable `development_tools/tests/run_test_suite.py` runner and does **not** call the project-specific `run_tests.py`.
 
 - **Coverage refresh**: Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh. Coverage runs are intentionally less frequent than Tier 3 audits.
 

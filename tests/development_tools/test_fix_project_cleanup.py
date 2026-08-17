@@ -324,7 +324,7 @@ class TestProjectCleanup:
         # Hidden standardized cache.
         hidden_cache = docs_jsons / ".analyze_ascii_compliance_cache.json"
         hidden_cache.write_text("{}")
-        hidden_unused_cache = docs_jsons / ".analyze_unused_imports_cache.json"
+        hidden_unused_cache = docs_jsons / ".analyze_heading_numbering_cache.json"
         hidden_unused_cache.write_text("{}")
         # Non-hidden cache (coverage caches use this form).
         regular_cache = tests_jsons / "test_file_coverage_cache.json"
@@ -343,7 +343,7 @@ class TestProjectCleanup:
         assert removed >= 5, "Should remove tool cache artifacts"
         assert failed == 0, "Should not fail tool cache cleanup"
         assert not hidden_cache.exists(), "Hidden cache should be removed"
-        assert not hidden_unused_cache.exists(), "Unused imports cache should be removed"
+        assert not hidden_unused_cache.exists(), "Second hidden cache should be removed"
         assert not regular_cache.exists(), "Regular cache should be removed"
         assert not derived_cache.exists(), "Derived cache should be removed"
         assert not docs_result.exists(), "Docs result cache artifact should be removed"

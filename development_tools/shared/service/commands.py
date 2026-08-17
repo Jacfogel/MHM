@@ -2312,16 +2312,6 @@ class CommandsMixin:
                 "returncode": result.get("returncode"),
             }
     
-    def run_unused_imports_report(self):
-        """Run unused imports report generation (generates markdown report from analysis results)"""
-        logger.info("Generating unused imports report...")
-        result = self.run_generate_unused_imports_report()
-        if result.get('success'):
-            logger.info("Unused imports report generated successfully!")
-        else:
-            logger.warning(f"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}")
-        return result
-    
     def generate_directory_trees(self):
         """Generate directory tree documentation.
         
@@ -2464,9 +2454,10 @@ class CommandsMixin:
     def _get_docs_tree_max_mtime(self) -> float:
         """Return latest mtime across documentation files that can invalidate doc-sync.
 
-        Audit-generated reports and changelog files are excluded: the audit rewrites
-        them after doc-sync (changelog trim, unused-imports/legacy reports), which
-        would otherwise make every following audit look like docs had changed.
+        Generated coverage/legacy reports are excluded because those tools still
+        rewrite them after doc-sync. Both ``AI_CHANGELOG.md`` and
+        ``CHANGELOG_DETAIL.md`` are included: changelog trim runs before
+        Tier 2 doc-sync, so those edits do not self-invalidate the next audit.
         """
         patterns = [
             "*.md",
@@ -2474,14 +2465,12 @@ class CommandsMixin:
             "ai_development_docs/**/*.md",
         ]
         generated_docs = [
-            "development_docs/UNUSED_IMPORTS_REPORT.md",
             "development_docs/TEST_COVERAGE_REPORT.md",
             "development_docs/LEGACY_REFERENCE_REPORT.md",
         ]
         return self._latest_mtime_for_patterns(
             patterns,
             exclude_paths=generated_docs,
-            exclude_name_contains=("CHANGELOG",),
         )
 
     def _doc_subcheck_result_path(self, tool_name: str) -> Path:

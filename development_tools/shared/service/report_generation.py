@@ -38,7 +38,6 @@ from .report_generation_ai_status import AIStatusDocumentMixin
 from .report_generation_ai_priorities import AIPrioritiesDocumentMixin
 from .report_generation_consolidated import ConsolidatedReportDocumentMixin
 
-
 class ReportGenerationMixin(
     AIStatusDocumentMixin,
     AIPrioritiesDocumentMixin,
@@ -87,76 +86,6 @@ class ReportGenerationMixin(
         return _filter_high_coupling_dev_tools_fn(
             items, path_under_dev_tools=self._path_is_under_development_tools_dir
         )
-
-    def _scoped_obvious_unused_import_metrics(
-        self, unused_imports_data: dict[str, Any]
-    ) -> tuple[int, int, dict[str, int]]:
-        """Metrics for obvious/type-hint unused imports limited to ``development_tools/`` files."""
-        details = (
-            unused_imports_data.get("details", {})
-            if isinstance(unused_imports_data, dict)
-            else {}
-        )
-        findings = details.get("findings", {}) if isinstance(details, dict) else {}
-        if not isinstance(findings, dict):
-            findings = {}
-        obvious_list = findings.get("obvious_unused", [])
-        if not isinstance(obvious_list, list):
-            obvious_list = []
-        scoped_obvious = [
-            x
-            for x in obvious_list
-            if isinstance(x, dict)
-            and self._path_is_under_development_tools_dir(str(x.get("file", "")))
-        ]
-        type_list = findings.get("type_hints_only", [])
-        if not isinstance(type_list, list):
-            type_list = []
-        type_scoped = sum(
-            1
-            for x in type_list
-            if isinstance(x, dict)
-            and self._path_is_under_development_tools_dir(str(x.get("file", "")))
-        )
-        per_file: dict[str, int] = {}
-        for x in scoped_obvious:
-            fp = str(x.get("file", "")).strip()
-            if fp:
-                per_file[fp] = per_file.get(fp, 0) + 1
-        return len(scoped_obvious), type_scoped, per_file
-
-    def _scoped_unused_imports_status_metrics(
-        self, unused_imports_data: dict[str, Any]
-    ) -> tuple[int, int, dict[str, int]] | None:
-        """Per-category counts and totals for unused imports in ``development_tools/`` only."""
-        details = (
-            unused_imports_data.get("details", {})
-            if isinstance(unused_imports_data, dict)
-            else {}
-        )
-        findings = details.get("findings", {}) if isinstance(details, dict) else {}
-        if not isinstance(findings, dict) or not findings:
-            return None
-        by_cat: dict[str, int] = {}
-        files_set: set[str] = set()
-        for cat, items in findings.items():
-            if not isinstance(items, list):
-                continue
-            for x in items:
-                if not isinstance(x, dict):
-                    continue
-                if not self._path_is_under_development_tools_dir(
-                    str(x.get("file", ""))
-                ):
-                    continue
-                by_cat[cat] = by_cat.get(cat, 0) + 1
-                fp = str(x.get("file", "")).strip()
-                if fp:
-                    files_set.add(fp)
-        total = sum(by_cat.values())
-        if total <= 0:
-            return 0, 0, {}
-        return total, len(files_set), by_cat
 
     def _audit_source_cmd_display(self, base_cmd: str) -> str:
         """Append --dev-tools-only to documented source command when scope is restricted."""

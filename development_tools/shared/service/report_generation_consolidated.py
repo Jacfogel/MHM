@@ -180,9 +180,6 @@ class ConsolidatedReportDocumentMixin:
             getattr(self, "docs_sync_summary", None) or doc_sync_data or {}
         )
 
-        unused_imports_data = self._load_tool_data(
-            "analyze_unused_imports", "imports", log_source=True
-        )
         analyze_docs_data = self._load_tool_data(
             "analyze_documentation", "docs", log_source=True
         )
@@ -1467,156 +1464,6 @@ class ConsolidatedReportDocumentMixin:
                 verify_process_cleanup_data_cr
             )
         )
-
-        # Unused Imports
-        lines.append("## Unused Imports")
-
-        if unused_imports_data:
-            summary = unused_imports_data.get("summary", {})
-            details = unused_imports_data.get("details", {})
-            total_unused = summary.get("total_issues", 0)
-            files_with_issues = summary.get("files_affected", 0)
-            if total_unused > 0 or files_with_issues > 0:
-                lines.append(
-                    f"- **Total Unused**: {total_unused} imports across {files_with_issues} files"
-                )
-                by_category = details.get("by_category", {})
-                perf = details.get("performance", {})
-                obvious = by_category.get("obvious_unused")
-                if obvious:
-                    lines.append(f"    - **Obvious Removals**: {obvious} imports")
-                type_only = by_category.get("type_hints_only")
-                if type_only:
-                    lines.append(f"    - **Type-Only Imports**: {type_only} imports")
-                if isinstance(perf, dict):
-                    backend = perf.get("backend")
-                    mode = perf.get("scan_mode")
-                    files_per_second = perf.get("files_per_second")
-                    total_seconds = (
-                        perf.get("timings", {}).get("total_seconds")
-                        if isinstance(perf.get("timings"), dict)
-                        else None
-                    )
-                    if backend:
-                        lines.append(f"    - **Backend**: {backend}")
-                    if mode:
-                        lines.append(f"    - **Scan Mode**: {mode}")
-                    if isinstance(files_per_second, (int, float)):
-                        lines.append(
-                            f"    - **Throughput**: {float(files_per_second):.2f} files/sec"
-                        )
-                    if isinstance(total_seconds, (int, float)):
-                        lines.append(
-                            f"    - **Scan Time**: {float(total_seconds):.2f}s"
-                        )
-
-                # Add top files with unused imports
-                from collections import defaultdict
-
-                file_counts = defaultdict(int)
-
-                # First, try to get file counts from the tool's JSON output (most current)
-                if unused_imports_data and isinstance(unused_imports_data, dict):
-                    files_dict = unused_imports_data.get("files", {})
-                    if isinstance(files_dict, dict):
-                        for file_path_str, count in files_dict.items():
-                            if isinstance(file_path_str, str) and isinstance(
-                                count, (int, float)
-                            ):
-                                # CRITICAL: Filter out files that no longer exist
-                                try:
-                                    file_path = self.project_root / file_path_str
-                                    if file_path.exists():
-                                        file_counts[file_path_str] = int(count)
-                                    # If file doesn't exist, skip it
-                                except (OSError, ValueError):
-                                    # Error checking file, skip it
-                                    pass
-
-                # Fallback to cache file if no data from JSON output
-                if not file_counts:
-                    try:
-                        from ..output_storage import load_tool_cache
-
-                        cache_data = load_tool_cache(
-                            "analyze_unused_imports",
-                            "imports",
-                            project_root=self.project_root,
-                        )
-                        if cache_data:
-                            # CRITICAL: Filter out entries for files that no longer exist
-                            for file_path_str, file_data in cache_data.items():
-                                if isinstance(file_data, dict):
-                                    # Check if file still exists
-                                    try:
-                                        file_path = self.project_root / file_path_str
-                                        if file_path.exists():
-                                            # Verify mtime matches (file hasn't been modified)
-                                            cached_mtime = file_data.get("mtime")
-                                            if cached_mtime is not None:
-                                                current_mtime = (
-                                                    file_path.stat().st_mtime
-                                                )
-                                                if current_mtime == cached_mtime:
-                                                    results = file_data.get(
-                                                        "results", []
-                                                    )
-                                                    if (
-                                                        isinstance(results, list)
-                                                        and len(results) > 0
-                                                    ):
-                                                        file_counts[file_path_str] = (
-                                                            len(results)
-                                                        )
-                                            else:
-                                                # No mtime in cache, include it
-                                                results = file_data.get("results", [])
-                                                if (
-                                                    isinstance(results, list)
-                                                    and len(results) > 0
-                                                ):
-                                                    file_counts[file_path_str] = len(
-                                                        results
-                                                    )
-                                        # If file doesn't exist, skip it (don't count deleted files)
-                                    except (OSError, ValueError):
-                                        # File doesn't exist or error checking, skip it
-                                        pass
-                    except Exception:
-                        pass
-
-                if file_counts:
-                    sorted_files = sorted(
-                        file_counts.items(), key=lambda x: x[1], reverse=True
-                    )[:5]
-                    file_list = [
-                        f"{Path(f).name} ({count})" for f, count in sorted_files
-                    ]
-                    if unused_imports_data and isinstance(unused_imports_data, dict):
-                        summary = unused_imports_data.get("summary", {})
-                        total_files_with_issues = summary.get("files_affected", 0)
-                    else:
-                        total_files_with_issues = len(file_counts)
-                    if total_files_with_issues > 5:
-                        file_list.append(f"... +{total_files_with_issues - 5}")
-                    lines.append(f"    - **Top files**: {', '.join(file_list)}")
-
-                report_path = (
-                    self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-                )
-                if isinstance(report_path, Path) and report_path.exists():
-                    href = self._markdown_href_from_dev_tools_report(report_path)
-                    lines.append(
-                        f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({href})"
-                    )
-            else:
-                lines.append("- **Unused Imports**: CLEAN (no unused imports detected)")
-        else:
-            lines.append(
-                "- **Unused Imports**: Data unavailable (run `audit --full` for latest scan)"
-            )
-
-        lines.append("")
 
         # Static Analysis
         lines.append("## Static Analysis")
@@ -3094,13 +2941,6 @@ class ConsolidatedReportDocumentMixin:
         if coverage_report.exists():
             href = self._markdown_href_from_dev_tools_report(coverage_report)
             lines.append(f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})")
-
-        unused_imports_report = (
-            self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-        )
-        if unused_imports_report.exists():
-            href = self._markdown_href_from_dev_tools_report(unused_imports_report)
-            lines.append(f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({href})")
 
         archive_dir = self.project_root / "development_tools" / "reports" / "archive"
         if archive_dir.exists():

@@ -205,7 +205,6 @@ def check_generated_reports_for_deleted_files(project_root: Path, deleted_files:
         project_root / 'development_tools' / 'CONSOLIDATED_REPORT.md',
         project_root / 'development_tools' / 'AI_STATUS.md',
         project_root / 'development_tools' / 'AI_PRIORITIES.md',
-        project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md',
     ]
     
     for report_path in reports:

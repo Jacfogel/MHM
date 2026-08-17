@@ -201,12 +201,6 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
         def run_verify_process_cleanup(self):
             return {"success": True}
 
-        def run_analyze_unused_imports(self):
-            return {"success": True}
-
-        def run_generate_unused_imports_report(self):
-            return {"success": True}
-
     def _fake_report(results, report_path):
         report_calls.append((results, report_path))
 

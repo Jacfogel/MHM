@@ -248,8 +248,6 @@
 #             'analyze_module_dependencies',
 #             'analyze_function_registry',
 #             'analyze_documentation_sync',
-#             'analyze_unused_imports',
-#             'generate_unused_imports_report'
 #         ]
 
 #         found_tier1 = [tool for tool in tier1_all_tools if tool in analysis_data['results']]
@@ -333,8 +331,6 @@
 #             'analyze_module_dependencies',
 #             'analyze_function_registry',
 #             'analyze_documentation_sync',
-#             'analyze_unused_imports',
-#             'generate_unused_imports_report'
 #         ]
 #         # Tier 3 tools (6 total)
 #         tier3_all_tools = [

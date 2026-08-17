@@ -146,7 +146,7 @@ Dev-tools list SSOT from the 2026-08-06 scan is closed. Product/runtime lists: [
 - `audit_tiers` flat + group maps + omit sets with import-time coverage.
 - `COMMAND_GROUPS` ⊆ `COMMAND_REGISTRY` (aliases like `full-audit` omitted from groups on purpose).
 - Version-sync category lists and `default_docs` derivation; `local_module_prefixes` directory derivation.
-- Live JSON omits optional keys/sections that match code defaults (`audit_tiers`, `default_docs`, `tool_commands`, `file_patterns`, `test_run`, `analyze_duplicate_functions`, `workflow`, `documentation`, `auto_document`, `ai_validation`, `ai_collaboration`, `audit`, `output`, `status`, `system_signals`, `validation`, `unused_imports`, `quick_audit`, matching `static_analysis` / `analyze_function_registry` scalars, …).
+- Live JSON omits optional keys/sections that match code defaults (`audit_tiers`, `default_docs`, `tool_commands`, `file_patterns`, `test_run`, `analyze_duplicate_functions`, `workflow`, `documentation`, `auto_document`, `ai_validation`, `ai_collaboration`, `audit`, `output`, `status`, `system_signals`, `validation`, `quick_audit`, matching `static_analysis` / `analyze_function_registry` scalars, …).
 - `base_exclusions` via portable defaults + additions/removals; MHM `analyze_config` / `domain_mapper` / `known_deleted_files` live only in JSON (empty portable code defaults).
 - MHM `derived_prefix_excludes.core` intentionally omits `development_tools` (includes it in `CORE_MODULES`); documented in live/example `_comment`.
 - Path-drift keyword overlap: `_PYTHON_KEYWORDS_SHARED` in `development_tools/shared/constants.py` feeds `COMMON_VARIABLE_NAMES` and `PYTHON_KEYWORDS_PATH_DRIFT`.

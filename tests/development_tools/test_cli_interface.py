@@ -28,8 +28,6 @@ class _StubService:
         self.doc_fix_calls = []
         self.coverage_calls = 0
         self.legacy_calls = 0
-        self.unused_imports_result = {"success": True}
-        self.unused_imports_report_result = {"success": True}
         self.duplicate_function_calls = []
         self.facade_shim_calls = []
         self.trees_calls = 0
@@ -132,12 +130,6 @@ class _StubService:
     def run_legacy_cleanup(self):
         self.legacy_calls += 1
         return True
-
-    def run_analyze_unused_imports(self):
-        return self.unused_imports_result
-
-    def run_unused_imports_report(self):
-        return self.unused_imports_report_result
 
     def run_analyze_duplicate_functions(
         self,
@@ -342,19 +334,6 @@ def test_status_command_exception_path(cli_module):
 
     code = cli_module._status_command(service, [])
     assert code == 1
-
-
-@pytest.mark.unit
-def test_unused_imports_commands_validate_args_and_status(cli_module):
-    service = _StubService()
-
-    assert cli_module._unused_imports_command(service, ["--help"]) == 0
-    assert cli_module._unused_imports_command(service, ["--bad"]) == 2
-    assert cli_module._unused_imports_report_command(service, ["--help"]) == 0
-    assert cli_module._unused_imports_report_command(service, ["--bad"]) == 2
-
-    service.unused_imports_result = {"success": False}
-    assert cli_module._unused_imports_command(service, []) == 1
 
 
 @pytest.mark.unit

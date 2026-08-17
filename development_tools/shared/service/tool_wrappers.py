@@ -31,11 +31,9 @@ from ..tool_metadata import get_script_registry
 
 SCRIPT_REGISTRY = get_script_registry()
 
-
 def _static_check_tool_cache_metadata(*, from_disk_cache: bool) -> dict[str, str]:
     """Labels for audit logs (orchestration maps cache_hit/cold_scan to utilized/created)."""
     return {"cache_mode": "cache_hit" if from_disk_cache else "cold_scan"}
-
 
 def _static_check_cache_metadata_from_analyzer_details(
     details: dict[str, Any] | None,
@@ -70,7 +68,6 @@ def _static_check_cache_metadata_from_analyzer_details(
         meta["shard_fallback_reason"] = sr["reason"]
     return meta
 
-
 # Windows: child inherits console control events unless isolated in a new process group.
 # Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
 # tear down nested pyright/ruff mid-communicate without emitting JSON.
@@ -85,7 +82,6 @@ _WIN_PROCESS_GROUP_SCRIPTS = frozenset(
         "analyze_vulture",
     }
 )
-
 
 class ToolWrappersMixin:
     """Mixin class providing tool execution methods to AIToolsService."""
@@ -1751,176 +1747,6 @@ class ToolWrappersMixin:
             )
             return {"success": False, "error": str(e), "output": "", "returncode": 1}
 
-    def run_analyze_unused_imports(self) -> dict:
-        """Run analyze_unused_imports with structured JSON handling (analysis only)."""
-        script_path = (
-            Path(__file__).resolve().parent.parent.parent
-            / "imports"
-            / "analyze_unused_imports.py"
-        )
-        # Run with --json flag only (report generation is now separate)
-        cmd = [sys.executable, str(script_path), "--json"]
-        env = os.environ.copy()
-        env["MHM_DEV_TOOLS_RUN"] = "1"
-        try:
-            result_proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=str(self.project_root),
-                timeout=1200,
-                env=env,
-            )
-            result = {
-                "success": result_proc.returncode == 0,
-                "output": result_proc.stdout,
-                "error": result_proc.stderr,
-                "returncode": result_proc.returncode,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "output": "",
-                "error": "Unused imports checker timed out after 20 minutes",
-                "returncode": None,
-                "issues_found": False,
-            }
-        output = result.get("output", "")
-        data = None
-        if output:
-            # Try to find JSON in output (may be mixed with other text)
-            # JSON is printed first, so look for the first complete JSON object
-            output_lines = output.strip().split("\n")
-            json_start = None
-
-            # Find the start of JSON (first line with '{')
-            for i, line in enumerate(output_lines):
-                stripped = line.strip()
-                if stripped.startswith("{"):
-                    json_start = i
-                    logger.debug(f"Found JSON start at line {i}: {stripped[:50]}...")
-                    break
-
-            if json_start is not None:
-                # Find the matching closing brace by counting braces
-                # Start with 1 because we found the opening brace
-                brace_count = 1
-                json_end = None
-                for i in range(json_start + 1, len(output_lines)):
-                    line = output_lines[i]
-                    brace_count += line.count("{") - line.count("}")
-                    if brace_count == 0:
-                        json_end = i + 1
-                        logger.debug(
-                            f"Found JSON end at line {i + 1}, total lines: {json_end - json_start}"
-                        )
-                        break
-
-                if json_end is not None:
-                    json_output = "\n".join(output_lines[json_start:json_end])
-                    try:
-                        data = json.loads(json_output)
-                        logger.debug(
-                            f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars, {len(json_output)} chars raw)"
-                        )
-                    except json.JSONDecodeError as e:
-                        logger.warning(
-                            f"Failed to parse JSON output from analyze_unused_imports: {e}"
-                        )
-                        logger.debug(
-                            f"JSON section preview (first 500 chars): {json_output[:500]}"
-                        )
-                        data = None
-                else:
-                    logger.warning(
-                        f"analyze_unused_imports: Found JSON start at line {json_start} but couldn't find matching closing brace (searched {len(output_lines) - json_start} lines, brace_count ended at {brace_count})"
-                    )
-            else:
-                # Try parsing entire output as JSON (fallback)
-                try:
-                    data = json.loads(output)
-                    logger.debug(
-                        f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars)"
-                    )
-                except json.JSONDecodeError as e:
-                    logger.warning(
-                        f"Failed to parse JSON output from analyze_unused_imports: {e}"
-                    )
-                    logger.debug(f"Output preview (first 500 chars): {output[:500]}")
-                    data = None
-        else:
-            logger.warning(
-                f"analyze_unused_imports returned empty output (returncode: {result.get('returncode')})"
-            )
-        if data is not None:
-            details = data.get("details", {}) if isinstance(data, dict) else {}
-            stats = details.get("stats", {}) if isinstance(details, dict) else {}
-            cache_hits = int(stats.get("cache_hits", 0) or 0)
-            cache_misses = int(stats.get("cache_misses", 0) or 0)
-            files_scanned = int(stats.get("files_scanned", 0) or 0)
-            # Some analyzer modes report cache_misses as 0; derive misses from files_scanned when possible.
-            if files_scanned > 0 and cache_misses == 0 and files_scanned >= cache_hits:
-                cache_misses = files_scanned - cache_hits
-            total_cache_checks = cache_hits + cache_misses
-            if total_cache_checks == 0:
-                cache_mode = "unknown"
-            elif cache_hits > 0 and cache_misses == 0:
-                cache_mode = "cache_only"
-            elif cache_hits > 0 and cache_misses > 0:
-                cache_mode = "partial_cache"
-            else:
-                cache_mode = "cold_scan"
-            cache_metadata = {
-                "cache_mode": cache_mode,
-                "hits": cache_hits,
-                "misses": cache_misses,
-                "total_cache_checks": total_cache_checks,
-                "hit_rate": round((cache_hits / total_cache_checks) * 100, 1)
-                if total_cache_checks
-                else 0.0,
-            }
-            if isinstance(details, dict):
-                details["_cache_metadata"] = cache_metadata
-            if isinstance(data, dict):
-                data["_cache_metadata"] = cache_metadata
-            result["data"] = data
-            self.results_cache["analyze_unused_imports"] = data
-            if not hasattr(self, "_tool_cache_metadata"):
-                self._tool_cache_metadata = {}
-            self._tool_cache_metadata["analyze_unused_imports"] = cache_metadata
-            # Extract total_unused from standard format (summary.total_issues)
-            total_unused = (
-                data.get("summary", {}).get("total_issues", 0)
-                if isinstance(data, dict) and "summary" in data
-                else data.get("total_unused", 0)
-            )
-            result["issues_found"] = total_unused > 0
-            result["success"] = True
-            result["error"] = ""
-            tools_run = getattr(self, "_tools_run_in_current_tier", None)
-            if tools_run is not None:
-                tools_run.add("analyze_unused_imports")
-            try:
-                save_tool_result(
-                    "analyze_unused_imports",
-                    "imports",
-                    data,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(f"Failed to save analyze_unused_imports result: {e}")
-                import traceback
-
-                logger.debug(f"Traceback: {traceback.format_exc()}")
-        else:
-            logger.warning(
-                "analyze_unused_imports: No data extracted, skipping save_tool_result()"
-            )
-            if not result.get("error"):
-                result["error"] = "No parseable JSON output from analyze_unused_imports"
-            result["success"] = False
-        return result
-
     def run_analyze_pyright(self) -> dict:
         """Run pyright static analysis with structured JSON handling."""
         logger.debug("Analyzing pyright diagnostics...")
@@ -2209,63 +2035,3 @@ class ToolWrappersMixin:
             logger.debug(f"Could not compute source signature: {e}")
             return None
 
-    def run_generate_unused_imports_report(self) -> dict:
-        """Run generate_unused_imports_report to generate markdown report from analysis results."""
-        logger.debug("Generating unused imports report...")
-        tools_run = getattr(self, "_tools_run_in_current_tier", None)
-        if tools_run is None:
-            tools_run = set()
-            self._tools_run_in_current_tier = tools_run
-        if "analyze_unused_imports" not in tools_run:
-            logger.debug("Running unused imports analysis before generating the report.")
-            analysis_result = self.run_analyze_unused_imports()
-            if not analysis_result.get("success", False):
-                logger.warning(
-                    "Unused imports analysis failed; the report will use cached data (if available)."
-                )
-        script_path = (
-            Path(__file__).resolve().parent.parent.parent
-            / "imports"
-            / "generate_unused_imports_report.py"
-        )
-        cmd = [
-            sys.executable,
-            str(script_path),
-            "--project-root",
-            str(self.project_root),
-        ]
-
-        env = os.environ.copy()
-        env["MHM_DEV_TOOLS_RUN"] = "1"
-        try:
-            result_proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=str(self.project_root),
-                timeout=60,
-                env=env,
-            )
-            result = {
-                "success": result_proc.returncode == 0,
-                "output": result_proc.stdout,
-                "error": result_proc.stderr,
-                "returncode": result_proc.returncode,
-            }
-            if result["success"]:
-                logger.debug("Unused imports report generated successfully")
-            else:
-                logger.warning(
-                    f"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}"
-                )
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "output": "",
-                "error": "Unused imports report generation timed out after 1 minute",
-                "returncode": None,
-            }
-        except Exception as e:
-            logger.error(f"Error generating unused imports report: {e}", exc_info=True)
-            return {"success": False, "error": str(e), "output": "", "returncode": 1}
-        return result

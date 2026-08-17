@@ -25,7 +25,6 @@ _REPORT_HINT_OVERRIDES: dict[str, list[str]] = {
     "run_test_suite": ["AI_STATUS Tier 3 Tests", "CONSOLIDATED_REPORT"],
     "run_test_coverage": ["AI_STATUS Test Coverage", "TEST_COVERAGE_REPORT", "coverage.json"],
     "generate_dev_tools_coverage": ["AI_STATUS Development Tools Coverage", "coverage_dev_tools.json"],
-    "generate_unused_imports_report": ["development_docs/UNUSED_IMPORTS_REPORT.md"],
     "generate_test_coverage_report": ["development_docs/TEST_COVERAGE_REPORT.md"],
     "generate_legacy_reference_report": ["development_docs/LEGACY_REFERENCE_REPORT.md"],
 }

@@ -362,21 +362,25 @@ def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
 
 
 @pytest.mark.unit
-def test_get_tier2_groups_skips_unused_imports_report_when_dev_tools_only():
-    """Dev-tools-only audits still analyze unused imports but do not rewrite UNUSED_IMPORTS_REPORT.md (V5 Section 7.19)."""
+def test_get_tier2_groups_omits_retired_unused_imports_tools():
+    """Unused-imports analyzer/report are retired; ruff F401 covers that signal."""
     from development_tools.shared.audit_tiers import get_tier2_groups
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
     svc.audit_scope_path = None
     _ind, groups = get_tier2_groups(svc)
+    scheduled = [n for group in groups for n, _ in group] + [n for n, _ in _ind]
+    assert "analyze_unused_imports" not in scheduled
+    assert "generate_unused_imports_report" not in scheduled
     last_group = [n for n, _ in groups[-1]]
-    assert last_group == ["analyze_unused_imports", "generate_unused_imports_report"]
+    assert last_group == ["analyze_documentation_sync"]
 
     svc.dev_tools_only_mode = True
     _ind_dt, groups_dt = get_tier2_groups(svc)
-    last_dt = [n for n, _ in groups_dt[-1]]
-    assert last_dt == ["analyze_unused_imports"]
+    scheduled_dt = [n for group in groups_dt for n, _ in group] + [n for n, _ in _ind_dt]
+    assert "analyze_unused_imports" not in scheduled_dt
+    assert "generate_unused_imports_report" not in scheduled_dt
 
 
 @pytest.mark.unit
@@ -403,7 +407,7 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
 
     service.dev_tools_only_mode = True
     tier2_dt = service._get_expected_tools_for_tier(2)
-    assert "generate_unused_imports_report" not in tier2_dt
+    assert "generate_legacy_reference_report" not in tier2_dt
     tier3_dt = service._get_expected_tools_for_tier(3)
     assert "run_test_suite" in tier3_dt
     assert "generate_dev_tools_coverage" not in tier3_dt
@@ -492,6 +496,49 @@ def test_run_audit_internal_interrupt_converts_to_failed_audit(
     result = service.run_audit(full=True)
 
     assert result is False
+
+
+@pytest.mark.unit
+def test_run_audit_trims_changelog_before_tier2_doc_sync(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Changelog trim must finish before Tier 2 so doc-sync sees the edited files."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    order: list[str] = []
+
+    monkeypatch.setattr(
+        service, "_sync_todo_with_changelog", lambda: order.append("todo")
+    )
+    monkeypatch.setattr(
+        service, "_check_and_trim_changelog_entries", lambda: order.append("trim")
+    )
+    monkeypatch.setattr(
+        service, "_run_quick_audit_tools", lambda: order.append("tier1") or True
+    )
+    monkeypatch.setattr(
+        service, "_run_standard_audit_tools", lambda: order.append("tier2") or True
+    )
+    monkeypatch.setattr(service, "_save_audit_results_aggregated", lambda *_a, **_k: None)
+    monkeypatch.setattr(service, "_reload_all_cache_data", lambda *_a, **_k: None)
+    monkeypatch.setattr(service, "_validate_referenced_paths", lambda *_a, **_k: None)
+    monkeypatch.setattr(service, "_check_documentation_quality", lambda *_a, **_k: None)
+    monkeypatch.setattr(service, "_check_ascii_compliance", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        service, "_generate_ai_status_document", lambda *_a, **_k: "# AI Status\n"
+    )
+    monkeypatch.setattr(
+        service,
+        "_generate_ai_priorities_document",
+        lambda *_a, **_k: "# AI Priorities\n",
+    )
+    monkeypatch.setattr(
+        service, "_generate_consolidated_report", lambda *_a, **_k: "# Consolidated\n"
+    )
+
+    assert service.run_audit() is True
+    assert order.index("trim") < order.index("tier2")
+    assert order.index("todo") < order.index("tier2")
+    assert order.count("trim") == 1
 
 
 @pytest.mark.unit
@@ -793,8 +840,8 @@ def test_tool_cache_state_for_log_default_none_found(temp_project_copy: Path):
     """Cache-aware tool with no metadata returns none_found when allowed."""
     service = AIToolsService(project_root=str(temp_project_copy))
     service._tool_cache_metadata = {}
-    # analyze_unused_imports is typically cache-aware
-    result = service._tool_cache_state_for_log("analyze_unused_imports", True)
+    # analyze_legacy_references is typically cache-aware
+    result = service._tool_cache_state_for_log("analyze_legacy_references", True)
     assert result == "none_found"
 
 
@@ -919,10 +966,10 @@ def test_format_coverage_mode_summary_non_dict_and_partial_tools(temp_project_co
 def test_format_cache_mode_summary_skips_bad_entries_and_formats_hits(temp_project_copy: Path):
     service = AIToolsService(project_root=str(temp_project_copy))
     service._tool_cache_metadata = "bad"  # type: ignore[assignment]
-    assert service._format_cache_mode_summary(["analyze_unused_imports"]) == ""
+    assert service._format_cache_mode_summary(["analyze_documentation_sync"]) == ""
 
     service._tool_cache_metadata = {
-        "analyze_unused_imports": {
+        "analyze_documentation_sync": {
             "cache_mode": "partial_cache",
             "hits": 2,
             "misses": 3,
@@ -935,9 +982,9 @@ def test_format_cache_mode_summary_skips_bad_entries_and_formats_hits(temp_proje
         "broken_tool": "skip",  # type: ignore[dict-item]
     }
     out = service._format_cache_mode_summary(
-        ["analyze_unused_imports", "analyze_legacy_references", "broken_tool"]
+        ["analyze_documentation_sync", "analyze_legacy_references", "broken_tool"]
     )
-    assert "analyze_unused_imports=partial_cache" in out
+    assert "analyze_documentation_sync=partial_cache" in out
     assert "hits=2" in out and "misses=3" in out
     assert "analyze_legacy_references=cache_only" in out
     assert "hits=1" in out and "misses=0" in out
@@ -1038,32 +1085,6 @@ def test_record_tool_cache_metadata_uses_static_shard_hits(temp_project_copy: Pa
     assert metadata["cache_mode"] == "partial_cache"
 
 
-@pytest.mark.unit
-def test_record_tool_cache_metadata_derives_unused_imports_misses(
-    temp_project_copy: Path,
-):
-    service = AIToolsService(project_root=str(temp_project_copy))
-    service._tool_cache_metadata = {}
-    result = {
-        "data": {
-            "details": {
-                "stats": {
-                    "cache_hits": 2,
-                    "cache_misses": 0,
-                    "files_scanned": 5,
-                }
-            }
-        }
-    }
-
-    service._record_tool_cache_metadata("analyze_unused_imports", result)
-
-    metadata = service._tool_cache_metadata["analyze_unused_imports"]
-    assert metadata["hits"] == 2
-    assert metadata["misses"] == 3
-    assert metadata["total_cache_checks"] == 5
-    assert metadata["cache_mode"] == "partial_cache"
-
 
 @pytest.mark.unit
 def test_infer_cache_mode_from_hits_misses_non_positive_total(temp_project_copy: Path):
@@ -1078,13 +1099,13 @@ def test_log_tool_completion_success_maps_invalidated_cache_to_created(
 ):
     """On success, cold_scan (invalidated) cache mode is logged as created for operators."""
     service = AIToolsService(project_root=str(temp_project_copy))
-    service._tool_cache_metadata = {"analyze_unused_imports": {"cache_mode": "cold_scan"}}
+    service._tool_cache_metadata = {"analyze_legacy_references": {"cache_mode": "cold_scan"}}
     result = {"success": True, "data": {"summary": {"total_issues": 4}}}
     ctx, log = _patch_audit_logger(service)
     with ctx:
-        service._log_tool_completion("analyze_unused_imports", result, 0.42)
+        service._log_tool_completion("analyze_legacy_references", result, 0.42)
     msg = log.info.call_args[0][0]
-    assert "Completed analyze_unused_imports: PASS" in msg
+    assert "Completed analyze_legacy_references: PASS" in msg
     assert "issues=4" in msg
     assert "cache=created" in msg
 
@@ -1114,16 +1135,16 @@ def test_log_tool_completion_truthy_dict_without_success_is_fail(
 
 
 @pytest.mark.unit
-def test_log_tool_completion_generate_unused_imports_report_adds_path(
+def test_log_tool_completion_generate_legacy_reference_report_adds_path(
     temp_project_copy: Path,
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
     service._tool_cache_metadata = {}
     ctx, log = _patch_audit_logger(service)
     with ctx:
-        service._log_tool_completion("generate_unused_imports_report", {"success": True}, 0.03)
+        service._log_tool_completion("generate_legacy_reference_report", {"success": True}, 0.03)
     msg = log.info.call_args[0][0]
-    assert "detailed_report=development_docs/UNUSED_IMPORTS_REPORT.md" in msg
+    assert "detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md" in msg
 
 
 @pytest.mark.unit

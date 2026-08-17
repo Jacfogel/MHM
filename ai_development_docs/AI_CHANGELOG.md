@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-17 - Retire unused-imports analyzer (ruff F401) **COMPLETED**
+- Removed `analyze_unused_imports` / `generate_unused_imports_report` and the unused-imports CLI/report; F401 is covered by `analyze_ruff`.
+- Dropped dedicated Unused Imports sections from status/priorities/consolidated generators.
+- Use `python -m ruff check --select F401` when you want an import-only lint pass.
+- Same-session hygiene: pip-audit floors `aiohttp>=3.14.3` and `cryptography>=50.0.0`; leftover F401 on `test_tool_wrappers_cache_helpers.py`; demoted historical changelog hrefs to retired unused-imports paths to backticks.
+- Doc-sync freshness watches both changelogs. Audit changelog trim/TODO classify now run before Tier 2 doc-sync so those edits do not leave a stale path-drift cache. Qualified changelog paths in DEVELOPMENT_TOOLS_GUIDE so path-drift no longer flags bare `AI_CHANGELOG.md` / `CHANGELOG_DETAIL.md`; converted those four paths to markdown links so unconverted-links is clean.
+
 ### 2026-08-16 - Audit cache: storage leaf, scoped doc-sync, legacy I/O skip **COMPLETED**
 - `domain_dependencies.storage` is now a leaf so a storage-only edit does not walk through `core` and invalidate the whole product suite.
 - Doc-sync freshness reads scoped `docs/jsons/scopes/<scope>/` results (the old flat `docs/jsons/` path always missed).
@@ -119,15 +126,6 @@ Guidelines:
 - Portability: `analyze_vulture` no longer hardcodes project paths; uses shared `get_exclusions("vulture")` / `should_exclude_file`; MHM `tests/*` skip lives in `exclusions.tool_exclusions.vulture`. Removed `*/ui/generated/*` from portable exclusion defaults (keep generic `*/generated/*`). Underscored unused signal `frame` in `core/service.py`.
 - Follow-up: Ruff py310 f-string escape in `analyze_vulture` fixed; ASCII cleaned in CHANGELOG_DETAIL.
 - Vulture PASS (0). Paired guides Section 10 updated.
-
-### 2026-07-26 - V6 deferred trio + B-015 coverage helpers **COMPLETED**
-- B-013: gap-category map folded into DEVELOPMENT_TOOLS_GUIDE Section 10.1 (standalone matrix removed; no `analyze_gap*` tool).
-- B-012: Tier 3 `analyze_vulture` (min-confidence 80); Radon/pydeps stay manual.
-- B-016 MVP: `--audit-scope` -> `scope_*` storage + Tier 2 scan-dir tools; no AI_* overwrite.
-- B-015 slice #4: coverage argv/shard/domain-cache + report scope helpers extracted.
-- AI_PRIORITIES cleanup: path-drift/ASCII/address on scoped status + guides; Ruff UP035/SIM110 on B-015 helpers; `pyasn1>=0.6.4` floor (pip-audit clean).
-- Fixed Tier 3 test failures (scoped MagicMock + regenerated `tool_cache_inventory.json` for `analyze_vulture`); vulture always excludes `tests/data` and similar ephemeral paths.
-- Removed standalone gap matrix doc; triage map lives in DEVELOPMENT_TOOLS_GUIDE Section 10.1 only.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

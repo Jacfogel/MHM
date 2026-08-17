@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -183,35 +182,3 @@ def test_static_check_cache_metadata_includes_parity_note():
     assert meta["parity_note"] == "subset"
 
 
-@pytest.mark.unit
-def test_run_analyze_unused_imports_parses_multiline_json_output(
-    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
-):
-    service = AIToolsService(project_root=str(temp_project_copy))
-    stdout = """prelude log line
-{
-  "summary": {"total_issues": 2, "files_affected": 1},
-  "details": {"stats": {"cache_hits": 1, "cache_misses": 1, "files_scanned": 2}}
-}
-trailing log line
-"""
-    monkeypatch.setattr(
-        tool_wrappers_module.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(
-            returncode=1,
-            stdout=stdout,
-            stderr="non-zero due to findings",
-        ),
-        raising=True,
-    )
-    monkeypatch.setattr(
-        tool_wrappers_module, "save_tool_result", lambda *_args, **_kwargs: None
-    )
-
-    result = service.run_analyze_unused_imports()
-
-    assert result["success"] is True
-    assert result["issues_found"] is True
-    assert result["data"]["summary"]["total_issues"] == 2
-    assert service._tool_cache_metadata["analyze_unused_imports"]["cache_mode"] == "partial_cache"

@@ -183,7 +183,6 @@ class AIPrioritiesDocumentMixin:
         verify_process_cleanup_priority_data = self._load_tool_data(
             "verify_process_cleanup", "tests"
         )
-        unused_imports_data = self._load_tool_data("analyze_unused_imports", "imports")
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
         )
@@ -614,7 +613,7 @@ class AIPrioritiesDocumentMixin:
             Args:
                 title: Recommendation title
                 reason: Recommendation reason text
-                data_source: Source of data (e.g., 'analyze_unused_imports')
+                data_source: Source of data (e.g., 'analyze_ruff')
                 count: Actual count/value being recommended
                 expected_min: Minimum expected value (warns if count is suspiciously high)
 
@@ -695,7 +694,6 @@ class AIPrioritiesDocumentMixin:
                 "Add pytest category markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
                 "Add pytest domain-attribution markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
                 "Review orphaned pytest worker processes (Windows)": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Remove obvious unused imports": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Clean up unused/uncalled functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Consider splitting large modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -744,7 +742,6 @@ class AIPrioritiesDocumentMixin:
                 "Review orphaned pytest worker processes (Windows)": self._scoped_tool_result_path(
                     "tests", "verify_process_cleanup"
                 ),
-                "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
                 "Investigate possible duplicate functions/methods": self._scoped_tool_result_path(
                     "functions", "analyze_duplicate_functions"
                 ),
@@ -1509,7 +1506,7 @@ class AIPrioritiesDocumentMixin:
                         ),
                         bullets=pip_bullets,
                     )
-                # Vulture: Tier 4 only (advisory; overlaps unused-imports / registry noise)
+                # Vulture: Tier 4 only (advisory; overlaps registry / unused-function noise)
                 if vulture_issues > 0:
                     vulture_bullets: list[str] = [
                         f"Vulture dead-code findings: {vulture_issues} issue(s) across "
@@ -1944,104 +1941,6 @@ class AIPrioritiesDocumentMixin:
                         bullets=vpc_bullets,
                         validate=False,
                     )
-
-        # Unused imports priority
-        # Only recommend removing "Obvious Unused" imports (not test mocking, Qt testing, etc.)
-        if unused_imports_data and isinstance(unused_imports_data, dict):
-            summary = unused_imports_data.get("summary", {})
-            details = unused_imports_data.get("details", {})
-            by_category = details.get("by_category", {})
-            if self._is_dev_tools_scoped_report():
-                obvious_unused, type_only, files_dict_scoped = (
-                    self._scoped_obvious_unused_import_metrics(unused_imports_data)
-                )
-                files_dict: dict[Any, Any] = files_dict_scoped
-            else:
-                obvious_unused = (
-                    by_category.get("obvious_unused", 0)
-                    if isinstance(by_category, dict)
-                    else 0
-                )
-                type_only = (
-                    by_category.get("type_hints_only", 0)
-                    if isinstance(by_category, dict)
-                    else 0
-                )
-                files_dict = unused_imports_data.get("files", {})
-
-            # Only create recommendation if there are obvious unused imports
-            if obvious_unused and obvious_unused > 0:
-                unused_bullets: list[str] = []
-
-                # Get top files if available (showing all files, but recommendation is only for obvious)
-                if files_dict and isinstance(files_dict, dict):
-                    sorted_files = sorted(
-                        files_dict.items(),
-                        key=lambda x: (
-                            len(x[1]) if isinstance(x[1], list) else int(x[1])
-                        ),
-                        reverse=True,
-                    )[:5]
-                    if sorted_files:
-                        file_list = []
-                        for file_path, imports in sorted_files:
-                            import_count = (
-                                len(imports)
-                                if isinstance(imports, list)
-                                else int(imports)
-                            )
-                            file_name = Path(file_path).name if file_path else "Unknown"
-                            file_list.append(f"{file_name} ({import_count} imports)")
-                        if len(sorted_files) < len(files_dict):
-                            file_list.append(
-                                f"... +{len(files_dict) - len(sorted_files)} more files"
-                            )
-                        unused_bullets.append(
-                            f"Top files: {self._format_list_for_display(file_list, limit=5)}"
-                        )
-
-                unused_bullets.append(
-                    f"{obvious_unused} obvious removals (safe to delete)"
-                )
-                if type_only and type_only > 0:
-                    unused_bullets.append(
-                        f"Note: {type_only} type-only imports exist but are not recommended for removal (consider TYPE_CHECKING guard if needed)"
-                    )
-
-                unused_bullets.append(
-                    "Action: Review and remove obvious unused imports (safe to delete)"
-                )
-                unused_bullets.append(
-                    "Why this matters: Unused imports add noise, slow imports, and can hide real dependencies"
-                )
-
-                # Check if there's a detailed report
-                unused_imports_report_path = (
-                    self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-                )
-                if unused_imports_report_path.exists():
-                    href = self._markdown_href_from_dev_tools_report(
-                        unused_imports_report_path
-                    )
-                    unused_bullets.append(
-                        f"Detailed Report: [UNUSED_IMPORTS_REPORT.md]({href})"
-                    )
-
-                # Determine tier based on obvious unused count (not total)
-                tier = (
-                    1 if obvious_unused > 50 else 2
-                )  # Critical if >50 obvious, High otherwise
-
-                add_priority(
-                    tier=tier,
-                    title="Remove obvious unused imports",
-                    reason=f"{obvious_unused} obvious unused import(s) can be safely removed.",
-                    bullets=unused_bullets,
-                    validate=True,
-                    data_source="analyze_unused_imports",
-                    count=obvious_unused,
-                    expected_min=None,  # No minimum expectation - any number of obvious unused imports is valid
-                )
 
         # Duplicate functions priority
         if duplicate_functions_data and isinstance(duplicate_functions_data, dict):

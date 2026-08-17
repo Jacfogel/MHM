@@ -66,9 +66,6 @@
 - **Note**: Primary detection uses Windows command-line inspection via CIM; the fallback path is less informative when command lines are unavailable.
 - **Machine-readable**: `development_tools/tests/jsons/scopes/full/verify_process_cleanup_results.json` (audit output; regenerated each Tier 3 run)
 
-## Unused Imports
-- **Unused Imports**: CLEAN (no unused imports detected)
-
 ## Static Analysis
 - **Ruff**: PASS (0 issue(s), 0 file(s))
 - **Pyright**: PASS (0 error(s), 0 warning(s))
@@ -153,5 +150,4 @@
 - Detailed JSON results: `analysis_detailed_results.json`
 - Legacy reference report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)
 - Test coverage report: [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
-- Unused imports detail: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)
 - Historical audit data: development_tools/reports/archive

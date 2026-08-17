@@ -1,1 +1,1 @@
-"""Imports domain: import checking and cleanup."""
+"""Imports domain: module import and dependency analysis."""

@@ -169,7 +169,6 @@ Examples (non-exhaustive):
 -   [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)
 -   [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)
 -   [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)
--   [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 -   [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)
 -   [DIRECTORY_TREE.md](development_docs/DIRECTORY_TREE.md)
 -   [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)
@@ -691,7 +690,6 @@ Examples of generated Markdown files include:
 -   development_docs/FUNCTION_REGISTRY_DETAIL.md
 -   development_docs/MODULE_DEPENDENCIES_DETAIL.md
 -   development_docs/LEGACY_REFERENCE_REPORT.md
--   development_docs/UNUSED_IMPORTS_REPORT.md
 -   development_docs/TEST_COVERAGE_REPORT.md
 -   development_docs/DIRECTORY_TREE.md
 -   ai_development_docs/AI_FUNCTION_REGISTRY.md
@@ -732,7 +730,6 @@ Common generated files include:
 -   FUNCTION_REGISTRY_DETAIL.md
 -   MODULE_DEPENDENCIES_DETAIL.md
 -   LEGACY_REFERENCE_REPORT.md
--   UNUSED_IMPORTS_REPORT.md
 -   TEST_COVERAGE_REPORT.md
 -   AI_FUNCTION_REGISTRY.md
 -   AI_MODULE_DEPENDENCIES.md
@@ -748,7 +745,6 @@ Typical commands include:
 -   doc-sync
 -   coverage
 -   legacy
--   unused-imports
 -   trees
 -   status
 

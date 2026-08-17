@@ -188,9 +188,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool('analyze_module_dependencies'))
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool('analyze_function_registry'))
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
-        
 #         # Mock Tier 3 tools (should NOT be called)
 #         service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
 #         service.run_analyze_legacy_references = MagicMock(side_effect=mock_tool('analyze_legacy_references'))
@@ -248,8 +245,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool('analyze_module_dependencies'))
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool('analyze_function_registry'))
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
 #         service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
 #         service.run_dev_tools_coverage = MagicMock(side_effect=mock_tool('generate_dev_tools_coverage'))
 #         service.run_test_markers = MagicMock(side_effect=mock_tool('analyze_test_markers'))
@@ -319,9 +314,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool('analyze_module_dependencies'))
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool('analyze_function_registry'))
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
-        
 #         # Mock report generation
 #         service._generate_ai_status_document = MagicMock(return_value="# AI Status\n\nTest")
 #         service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities\n\nTest")
@@ -367,8 +359,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool('analyze_module_dependencies'))
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool('analyze_function_registry'))
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
 #         service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
 #         service.run_dev_tools_coverage = MagicMock(side_effect=mock_tool('generate_dev_tools_coverage'))
 #         service.run_test_markers = MagicMock(side_effect=mock_tool('analyze_test_markers'))
@@ -522,9 +512,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool)
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool)
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool)
-        
 #         # Mock report generation
 #         service._generate_ai_status_document = MagicMock(return_value="# AI Status\n\nTest")
 #         service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities\n\nTest")
@@ -584,8 +571,6 @@
 #         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_function_registry = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool)
-#         service.run_unused_imports = MagicMock(side_effect=mock_tool)
-#         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool)
 #         service.run_coverage_regeneration = MagicMock(side_effect=mock_tool)
 #         service.run_dev_tools_coverage = MagicMock(side_effect=mock_tool)
 #         service.run_test_markers = MagicMock(side_effect=mock_tool)

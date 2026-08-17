@@ -239,15 +239,6 @@
         "jsons/functions"
       ]
     },
-    "analyze_unused_imports": {
-      "in_tier1_quick": false,
-      "in_tier2_standard_expanded": true,
-      "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": true,
-      "report_surface_hints": [
-        "jsons/imports"
-      ]
-    },
     "analyze_vulture": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
@@ -275,15 +266,6 @@
       "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "development_docs/LEGACY_REFERENCE_REPORT.md"
-      ]
-    },
-    "generate_unused_imports_report": {
-      "in_tier1_quick": false,
-      "in_tier2_standard_expanded": true,
-      "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": false,
-      "report_surface_hints": [
-        "development_docs/UNUSED_IMPORTS_REPORT.md"
       ]
     },
     "quick_status": {

@@ -60,8 +60,6 @@ TIER2_TOOL_NAMES = [
     "analyze_module_dependencies",
     "analyze_function_registry",
     "analyze_documentation_sync",
-    "analyze_unused_imports",
-    "generate_unused_imports_report",
 ]
 
 # Tier 3: Full audit (>10s acceptable).
@@ -117,8 +115,6 @@ TIER2_GROUP_MAP: _Tier2GroupMap = {
         ["analyze_module_imports", "analyze_dependency_patterns", "analyze_module_dependencies"],
         ["analyze_function_registry"],
         ["analyze_documentation_sync"],
-        # Last dependent group is rebuilt in get_tier2_groups for unused-imports report scoping.
-        ["analyze_unused_imports", "generate_unused_imports_report"],
     ],
 }
 
@@ -214,11 +210,7 @@ def get_expected_tools_for_tier(tier: int, *, dev_tools_only: bool = False) -> l
     if tier <= 1:
         return list(TIER1_TOOL_NAMES)
     tier1_no_quick = [t for t in TIER1_TOOL_NAMES if t != "quick_status"]
-    tier2_names = (
-        [n for n in TIER2_TOOL_NAMES if n != "generate_unused_imports_report"]
-        if dev_tools_only
-        else list(TIER2_TOOL_NAMES)
-    )
+    tier2_names = list(TIER2_TOOL_NAMES)
     if tier == 2:
         return tier1_no_quick + tier2_names
     tier3_names = (
@@ -310,27 +302,13 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
         is_path_derived_storage_scope,
     )
 
-    dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
     # Only real path strings trigger B-016 scoped filtering (MagicMock attrs are truthy).
     _scope = getattr(service, "audit_scope_path", None)
     custom_scope = isinstance(_scope, str) and bool(_scope.strip())
     independent_names = list(TIER2_GROUP_MAP["independent"])
     dependent_group_names = [list(group) for group in TIER2_GROUP_MAP["dependent"]]
-    # Rebuild unused-imports dependent group for scope (last group in the map).
-    unused_imports_group = (
-        ["analyze_unused_imports"]
-        if dev_tools_only
-        else ["analyze_unused_imports", "generate_unused_imports_report"]
-    )
-    if dependent_group_names:
-        dependent_group_names[-1] = unused_imports_group
-    if dev_tools_only:
-        logger.info(
-            "Skipping generate_unused_imports_report (dev-tools-only scope); "
-            "development_docs/UNUSED_IMPORTS_REPORT.md left unchanged."
-        )
     if custom_scope:
-        # B-016 MVP: keep only scan-dir-aware tools; skip docs/unused-imports/etc.
+        # B-016 MVP: keep only scan-dir-aware tools; skip docs/sync tools, etc.
         kept_indep, skipped_indep = filter_tools_for_audit_scope_mvp(independent_names)
         independent_names = kept_indep
         filtered_dependent: list[list[str]] = []

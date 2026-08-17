@@ -391,59 +391,6 @@ def test_tier3_crash_metadata_surfaces_in_status_and_priorities(temp_project_cop
     assert "0xC0000135" in priorities_doc
 
 
-@pytest.mark.unit
-def test_quick_wins_exclude_unused_imports_when_in_immediate_focus(temp_project_copy):
-    """Unused imports are surfaced in Immediate Focus Ranked only; omitted from Quick Wins to avoid duplication."""
-    service = AIToolsService(project_root=str(temp_project_copy))
-
-    payloads = {
-        "analyze_unused_imports": {
-            "summary": {"total_issues": 7, "files_affected": 3},
-            "files": {"core/a.py": 4, "core/b.py": 2, "core/c.py": 1},
-            "details": {"by_category": {"obvious_unused": 3}},
-        }
-    }
-
-    def fake_load(tool_name, domain=None, log_source=True):
-        return payloads.get(tool_name, {})
-
-    service._load_tool_data = fake_load
-    service._load_coverage_summary = lambda: {}
-    service._load_dev_tools_coverage = lambda: None
-
-    doc = service._generate_ai_priorities_document()
-
-    # Unused imports appear in Immediate Focus, not Quick Wins
-    assert "Remove obvious unused imports" in doc
-    assert "Unused imports (obvious):" not in doc
-
-
-@pytest.mark.unit
-def test_quick_wins_skip_unused_imports_when_no_obvious_items(temp_project_copy):
-    """Unused imports quick win should be omitted when no obvious removals exist."""
-    service = AIToolsService(project_root=str(temp_project_copy))
-
-    payloads = {
-        "analyze_unused_imports": {
-            "summary": {"total_issues": 7, "files_affected": 3},
-            "files": {"core/a.py": 4, "core/b.py": 2, "core/c.py": 1},
-            "details": {
-                "by_category": {"obvious_unused": 0},
-                "findings": {"obvious_unused": []},
-            },
-        }
-    }
-
-    def fake_load(tool_name, domain=None, log_source=True):
-        return payloads.get(tool_name, {})
-
-    service._load_tool_data = fake_load
-    service._load_coverage_summary = lambda: {}
-    service._load_dev_tools_coverage = lambda: None
-
-    doc = service._generate_ai_priorities_document()
-
-    assert "Unused imports (obvious):" not in doc
 
 
 @pytest.mark.unit

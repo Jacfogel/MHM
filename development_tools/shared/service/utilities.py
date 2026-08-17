@@ -555,7 +555,7 @@ class UtilitiesMixin:
         print("  python development_tools/run_development_tools.py status")
         print("  python development_tools/run_development_tools.py audit --full")
         print("  python development_tools/run_development_tools.py docs")
-        print("  python development_tools/run_development_tools.py unused-imports")
+        print("  python development_tools/run_development_tools.py legacy")
         print()
         print("For detailed command options:")
         print("  python development_tools/run_development_tools.py <command> --help")

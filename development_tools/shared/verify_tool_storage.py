@@ -2,7 +2,7 @@
 """
 Verification script to confirm analysis tools use standardized storage correctly.
 
-Checks each tool in ``EXPECTED_TOOLS`` (currently 26):
+Checks each tool in ``EXPECTED_TOOLS`` (currently 25):
 - Saves to the correct domain directory
 - Uses ``save_tool_result()``
 - Creates archive directories
@@ -53,7 +53,6 @@ EXPECTED_TOOLS = {
     "analyze_dependency_patterns": "imports",
     "analyze_package_exports": "functions",
     "analyze_facade_shims": "functions",
-    "analyze_unused_imports": "imports",
     # Tier 3 (audit_tiers.TIER3_TOOL_NAMES)
     "analyze_test_markers": "tests",
     "analyze_legacy_references": "legacy",

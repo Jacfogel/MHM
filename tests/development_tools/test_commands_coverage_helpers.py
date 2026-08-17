@@ -663,7 +663,7 @@ def test_write_test_suite_output_file_writes_and_swallows_errors(tmp_path, monke
 def test_get_docs_tree_max_mtime_excludes_generated_reports(tmp_path):
     service = _DummyService(tmp_path)
     real = tmp_path / "development_docs" / "PLANS.md"
-    generated = tmp_path / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+    generated = tmp_path / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
     changelog = tmp_path / "ai_development_docs" / "AI_CHANGELOG.md"
     detail = tmp_path / "development_docs" / "CHANGELOG_DETAIL.md"
     real.parent.mkdir(parents=True, exist_ok=True)
@@ -677,10 +677,17 @@ def test_get_docs_tree_max_mtime_excludes_generated_reports(tmp_path):
     new = 1_800_000_000.0
     os.utime(real, (old, old))
     os.utime(generated, (new, new))
-    os.utime(changelog, (new, new))
-    os.utime(detail, (new, new))
+    os.utime(changelog, (old, old))
+    os.utime(detail, (old, old))
 
     assert service._get_docs_tree_max_mtime() == old
+
+    os.utime(changelog, (new, new))
+    assert service._get_docs_tree_max_mtime() == new
+
+    os.utime(changelog, (old, old))
+    os.utime(detail, (new, new))
+    assert service._get_docs_tree_max_mtime() == new
 
 
 @pytest.mark.unit

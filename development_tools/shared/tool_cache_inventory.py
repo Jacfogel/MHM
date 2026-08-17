@@ -87,14 +87,6 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
                 "per-test-file suite outcomes; disable with --no-domain-cache"
             ),
         }
-    if tool_name == "analyze_unused_imports":
-        return {
-            "tool": tool_name,
-            "strategy": "ruff_batch_and_optional_tool_json",
-            "implementation": "imports analyzer + optional cache stats in JSON details",
-            "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
-            "invalidation": "Ruff batch paths keyed by Path.resolve(); tool JSON mtime",
-        }
     if tool_name == "analyze_legacy_references":
         return {
             "tool": tool_name,
@@ -109,7 +101,7 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "strategy": "paired_doc_cache",
             "implementation": "orchestration cache metadata; doc sync payloads",
             "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
-            "invalidation": "Doc file mtimes and paired-doc registry; freshness compares scoped `docs/jsons/scopes/<scope>/` result JSON; ignores changelog/generated reports; path-drift uses the same skip as other subchecks",
+            "invalidation": "Doc file mtimes and paired-doc registry; freshness compares scoped `docs/jsons/scopes/<scope>/` result JSON; both changelogs invalidate; ignores generated coverage/legacy reports; changelog trim runs before Tier 2 doc-sync; path-drift uses the same skip as other subchecks",
         }
     if tool_name == "analyze_test_markers":
         return {
@@ -126,14 +118,6 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "implementation": "development_tools/tests/generate_test_coverage_report.py",
             "artifact_glob": "development_tools/tests/jsons/coverage.json; development_docs/TEST_COVERAGE_REPORT.md",
             "invalidation": "Regenerates when upstream coverage data is refreshed",
-        }
-    if tool_name == "generate_unused_imports_report":
-        return {
-            "tool": tool_name,
-            "strategy": "downstream_of_analyze_unused_imports",
-            "implementation": "development_tools/imports/generate_unused_imports_report.py",
-            "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json; development_docs/UNUSED_IMPORTS_REPORT.md",
-            "invalidation": "Regenerates from analyze_unused_imports JSON",
         }
     if tool_name == "generate_legacy_reference_report":
         return {
@@ -195,10 +179,6 @@ def build_tool_cache_inventory() -> dict:
             {
                 "tool": "analyze_pip_audit",
                 "note": "requirements_lock_signature; sharding N/A.",
-            },
-            {
-                "tool": "analyze_unused_imports",
-                "note": "Evaluate batched/chunked targets if latency warrants; not directory shards.",
             },
             {
                 "tool": "analyze_legacy_references",

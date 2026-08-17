@@ -325,7 +325,6 @@ C:.
 |   |   TASKS_PLAN.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
-|   |   UNUSED_IMPORTS_REPORT.md
 |   |
 |   \---changelog_history
 |           CHANGELOG_DETAIL_2025_08.md
@@ -421,9 +420,7 @@ C:.
 |   |   |   analyze_dev_tools_import_boundaries.py
 |   |   |   analyze_module_dependencies.py
 |   |   |   analyze_module_imports.py
-|   |   |   analyze_unused_imports.py
 |   |   |   generate_module_dependencies.py
-|   |   |   generate_unused_imports_report.py
 |   |   |   __init__.py
 |   |   |
 |   |   +---jsons
@@ -821,7 +818,6 @@ C:.
 |   |   |   test_analyze_test_markers_domain.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_functions.py
-|   |   |   test_analyze_unused_imports.py
 |   |   |   test_analyze_vulture.py
 |   |   |   test_audit_orchestration_helpers.py
 |   |   |   test_audit_scope_b016.py
@@ -887,7 +883,6 @@ C:.
 |   |   |   test_generate_error_handling_report.py
 |   |   |   test_generate_function_registry.py
 |   |   |   test_generate_module_dependencies.py
-|   |   |   test_generate_unused_imports_report.py
 |   |   |   test_import_boundary_policy.py
 |   |   |   test_integration_workflows.py
 |   |   |   test_legacy_reference_cleanup.py
