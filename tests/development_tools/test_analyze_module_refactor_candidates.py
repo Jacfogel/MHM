@@ -13,7 +13,7 @@ def module_refactor_module():
 
 @pytest.mark.unit
 def test_module_metrics_collects_expected_fields(tmp_path, module_refactor_module):
-    """_module_metrics should return stable metrics for valid Python files."""
+    """_module_metrics should return size metrics for valid Python files."""
     module_path = tmp_path / "sample.py"
     module_path.write_text(
         "class A:\n"
@@ -33,20 +33,41 @@ def test_module_metrics_collects_expected_fields(tmp_path, module_refactor_modul
     assert metrics["lines"] >= 7
     assert metrics["function_count"] == 2
     assert metrics["class_count"] == 1
-    assert metrics["total_function_complexity"] > 0
-    assert metrics["high_complexity_count"] >= 0
-    assert metrics["critical_complexity_count"] >= 0
+    assert "total_function_complexity" not in metrics
 
 
 @pytest.mark.unit
-def test_reasons_flags_when_any_threshold_is_exceeded(module_refactor_module):
-    """_reasons should emit a candidate reason when thresholds are exceeded."""
+def test_module_metrics_skips_nested_closures(tmp_path, module_refactor_module):
+    """Nested functions inside other functions should not inflate function_count."""
+    module_path = tmp_path / "nested.py"
+    module_path.write_text(
+        "def outer():\n"
+        "    def inner():\n"
+        "        return 1\n"
+        "    return inner()\n"
+        "\n"
+        "class Box:\n"
+        "    def method(self):\n"
+        "        def helper():\n"
+        "            return 2\n"
+        "        return helper()\n",
+        encoding="utf-8",
+    )
+
+    metrics = module_refactor_module._module_metrics(module_path)
+
+    assert metrics is not None
+    assert metrics["function_count"] == 2
+    assert metrics["class_count"] == 1
+
+
+@pytest.mark.unit
+def test_reasons_flags_when_size_thresholds_are_exceeded(module_refactor_module):
+    """_reasons should name the size threshold that fired."""
     metrics = {
         "lines": 10,
         "function_count": 1,
-        "total_function_complexity": 5,
-        "high_complexity_count": 0,
-        "critical_complexity_count": 0,
+        "class_count": 0,
     }
 
     reason = module_refactor_module._reasons(
@@ -54,19 +75,38 @@ def test_reasons_flags_when_any_threshold_is_exceeded(module_refactor_module):
         metrics,
         "sample.py",
     )
-    assert reason == ["exceeds size/complexity thresholds"]
+    assert reason == ["10 lines (max 10)"]
 
     no_reason = module_refactor_module._reasons(
         {
             "max_lines_per_module": 11,
             "max_functions_per_module": 2,
-            "max_total_complexity_per_module": 99,
-            "high_plus_critical_threshold": 1,
         },
         metrics,
         "sample.py",
     )
     assert no_reason == []
+
+
+@pytest.mark.unit
+def test_reasons_ignores_retired_complexity_thresholds(module_refactor_module):
+    """AST-sum / high-critical config keys must not flag a small module."""
+    metrics = {
+        "lines": 10,
+        "function_count": 1,
+        "class_count": 0,
+    }
+    reason = module_refactor_module._reasons(
+        {
+            "max_lines_per_module": 100,
+            "max_functions_per_module": 10,
+            "max_total_complexity_per_module": 1,
+            "high_plus_critical_threshold": 1,
+        },
+        metrics,
+        "sample.py",
+    )
+    assert reason == []
 
 
 @pytest.mark.unit
@@ -161,10 +201,10 @@ def test_scan_context_switches_for_include_flags(
 
 
 @pytest.mark.unit
-def test_scan_sorts_candidates_by_lines_then_complexity(
+def test_scan_sorts_candidates_by_lines_then_function_count(
     tmp_path, module_refactor_module, monkeypatch
 ):
-    """Candidates should be sorted by line count, then total complexity."""
+    """Candidates should be sorted by line count, then function count."""
     scan_dir = tmp_path / "core"
     scan_dir.mkdir(parents=True, exist_ok=True)
     small = scan_dir / "small.py"
@@ -210,3 +250,5 @@ def test_scan_sorts_candidates_by_lines_then_complexity(
 
     assert files[0] == "core/large.py"
     assert "core/small.py" in files
+    assert "total_function_complexity" not in result["details"]["thresholds_used"]
+    assert result["details"]["thresholds_used"]["max_lines_per_module"] == 1

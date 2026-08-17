@@ -40,7 +40,11 @@ One line per core module (plus related packages). **Read here first** when you a
 | `core/schedule_runtime.py` | **Runtime** schedule periods (active windows, caches, manipulation against live `get_user_data`). |
 | `core/schedule_document_defaults.py` | **On-disk** default period shapes and migrations for `schedules.json`. |
 | `core/schedule_utilities.py` | Small shared schedule helpers (active period lists) without user I/O. |
-| `storage/user_data_operations.py` | **Ops/admin**: `UserDataManager` class - backup, export, user index, analytics summaries (not the hot read/write path). |
+| `storage/user_data_operations.py` | **Ops/admin facade**: `UserDataManager` + re-exports for backup, export, index, and summaries (not the hot read/write path). |
+| `storage/user_data_user_info.py` | Shared user-info leaf: `get_user_info_for_data_manager`, message file listing, message references. |
+| `storage/user_data_backup.py` | Per-user zip backup, structured export, and complete user deletion. |
+| `storage/user_data_index.py` | `user_index.json` update/rebuild/search and `build_user_index`. |
+| `storage/user_data_summaries.py` | Disk file summaries and analytics summaries. |
 | `core/user_management.py` | User **lifecycle**: list users, create user, categories. |
 | `storage/user_data_presets.py` | Static preset options (e.g. form dropdowns). |
 | `core/tags.py` | Shared tag normalization used by notebook and elsewhere. |

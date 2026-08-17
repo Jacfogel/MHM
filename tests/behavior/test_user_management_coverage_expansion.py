@@ -1084,7 +1084,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_message_references_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating message references in user profile."""
         # Mock get_user_info_for_data_manager to return test data
-        with patch('storage.user_data_operations.get_user_info_for_data_manager', return_value={
+        with patch('storage.user_data_user_info.get_user_info_for_data_manager', return_value={
             "internal_username": self.user_id,
             "enabled_features": ["messages"],
             "message_files": []
@@ -1100,7 +1100,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_export_user_data_real_behavior(self, user_data_manager, test_path_factory):
         """Test exporting user data to JSON format."""
         # Mock get_user_data to return test data
-        with patch('storage.user_data_operations.get_user_data', return_value={
+        with patch('storage.user_data_user_info.get_user_data', return_value={
             "account": {"internal_username": self.user_id},
             "preferences": {"timezone": "UTC"},
             "messages": [{"id": "msg1", "content": "Test"}]
@@ -1119,7 +1119,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_get_user_data_summary_real_behavior(self, user_data_manager, test_path_factory):
         """Test getting user data summary."""
         # Mock get_user_data to return test data
-        with patch('storage.user_data_operations.get_user_data', return_value={
+        with patch('storage.user_data_summaries.get_user_data', return_value={
             "account": {"internal_username": self.user_id, "enabled_features": ["messages", "tasks"]},
             "preferences": {"timezone": "UTC", "language": "en"},
             "messages": [{"id": "msg1"}, {"id": "msg2"}],
@@ -1154,7 +1154,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_export_user_data_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test export user data error handling."""
         # Mock get_user_data to raise exception
-        with patch('storage.user_data_operations.get_user_data', side_effect=Exception("Test error")):
+        with patch('storage.user_data_read.get_user_data', side_effect=Exception("Test error")):
             
             result = user_data_manager.export_user_data(self.user_id, "json")
             
@@ -1167,7 +1167,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_message_references_no_user_real_behavior(self, user_data_manager, test_path_factory):
         """Test update message references when user doesn't exist."""
         # Mock get_user_info_for_data_manager to return None
-        with patch('storage.user_data_operations.get_user_info_for_data_manager', return_value=None):
+        with patch('storage.user_data_user_info.get_user_info_for_data_manager', return_value=None):
             
             result = user_data_manager.update_message_references(self.user_id)
             
@@ -1178,7 +1178,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_get_user_data_summary_no_data_real_behavior(self, user_data_manager, test_path_factory):
         """Test get user data summary when user has no data."""
         # Mock get_user_data to return minimal data
-        with patch('storage.user_data_operations.get_user_data', return_value={
+        with patch('storage.user_data_summaries.get_user_data', return_value={
             "account": {"internal_username": self.user_id}
         }):
             
@@ -1193,7 +1193,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_user_index_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test update user index error handling."""
         with patch(
-            "storage.user_data_operations.get_user_data",
+            "storage.user_data_index.get_user_data",
             side_effect=Exception("Test error"),
         ):
             result = user_data_manager.update_user_index(self.user_id)

@@ -2,20 +2,21 @@
 # TOOL_TIER: supporting
 
 """
-Identify high-complexity or very large modules as candidates for refactoring.
+Identify large modules as candidates for splitting.
 
-Scans Python modules (files) and flags those that exceed configurable thresholds
-for lines of code, function/class count, or aggregate complexity, so they can
-be considered for splitting into smaller, more focused modules.
+Scans Python modules (files) and flags those that exceed configurable
+thresholds for lines of code or function/method count, so they can be
+considered for splitting into smaller, more focused modules.
 
-**Complexity metric**: "Complexity" here means AST node count (same as
-analyze_functions): for each function, the number of AST nodes in its subtree.
-Total complexity is the sum of those counts over all functions in the file.
-High/critical counts are functions with node count >= 100 or >= 200. This is
-a rough proxy for structural size, not cyclomatic complexity. High-complexity
-*functions* are covered by the dedicated analyze_functions tool; this tool
-focuses on *module* size, so candidates are sorted by **lines of code** first
-(largest files at the top), then by total_complexity as tiebreaker.
+This tool is about *module size*, not function complexity. Dense individual
+functions are covered by analyze_functions. Candidates are sorted by lines of
+code first (largest files at the top), then by function count as tiebreaker.
+
+**Size metrics**:
+- lines: physical line count of the file (what you feel when you open it).
+- function_count: module-level functions plus class methods. Nested closures
+  inside functions are not counted (those are function-level structure).
+- class_count: module-level classes (reported, not a flagging threshold).
 
 Output: Standard JSON with summary (total_issues, files_affected) and details
 (refactor_candidates list with file, metrics, and reasons).
@@ -67,32 +68,41 @@ config.load_external_config()
 logger = get_dev_tools_logger("development_tools")
 
 
+class _ModuleShapeVisitor(ast.NodeVisitor):
+    """Count module-level functions/methods and classes; skip nested closures."""
+
+    def __init__(self) -> None:
+        self.function_count = 0
+        self.class_count = 0
+        self._function_depth = 0
+
+    def _visit_function(self, node: ast.AST) -> None:
+        if self._function_depth == 0:
+            self.function_count += 1
+        self._function_depth += 1
+        self.generic_visit(node)
+        self._function_depth -= 1
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._visit_function(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        if self._function_depth == 0:
+            self.class_count += 1
+        self.generic_visit(node)
+
+
 def _get_config() -> dict[str, Any]:
-    """Load tool config (module refactor thresholds)."""
+    """Load tool config (module size thresholds)."""
     return config.get_analyze_module_refactor_candidates_config()
-
-
-def _get_complexity_thresholds() -> tuple[int, int]:
-    """Use same high/critical thresholds as analyze_functions for consistency."""
-    fn_config = config.get_analyze_functions_config()
-    high = int(fn_config.get("high_complexity_threshold", 100))
-    critical = int(fn_config.get("critical_complexity_threshold", 200))
-    return high, critical
-
-
-def _count_lines(file_path: Path) -> int:
-    """Return number of lines in file (excluding empty lines if desired)."""
-    try:
-        text = file_path.read_text(encoding="utf-8")
-        return len(text.splitlines())
-    except Exception as e:
-        logger.debug(f"Could not read {file_path}: {e}")
-        return 0
 
 
 def _module_metrics(file_path: Path) -> dict[str, Any] | None:
     """
-    Parse a Python file and return per-module metrics.
+    Parse a Python file and return per-module size metrics.
     Returns None if parse fails.
     """
     try:
@@ -102,33 +112,12 @@ def _module_metrics(file_path: Path) -> dict[str, Any] | None:
         logger.debug(f"Parse error in {file_path}: {e}")
         return None
 
-    lines = len(content.splitlines())
-    function_count = 0
-    class_count = 0
-    total_function_complexity = 0
-    high_complexity_count = 0
-    critical_complexity_count = 0
-    high_thresh, critical_thresh = _get_complexity_thresholds()
-
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            function_count += 1
-            comp = len(list(ast.walk(node)))
-            total_function_complexity += comp
-            if comp >= critical_thresh:
-                critical_complexity_count += 1
-            elif comp >= high_thresh:
-                high_complexity_count += 1
-        elif isinstance(node, ast.ClassDef):
-            class_count += 1
-
+    visitor = _ModuleShapeVisitor()
+    visitor.visit(tree)
     return {
-        "lines": lines,
-        "function_count": function_count,
-        "class_count": class_count,
-        "total_function_complexity": total_function_complexity,
-        "high_complexity_count": high_complexity_count,
-        "critical_complexity_count": critical_complexity_count,
+        "lines": len(content.splitlines()),
+        "function_count": visitor.function_count,
+        "class_count": visitor.class_count,
     }
 
 
@@ -137,25 +126,18 @@ def _reasons(
     metrics: dict[str, Any],
     file_key: str,
 ) -> list[str]:
-    """Return a short reason this module is a refactor candidate (no per-threshold details)."""
+    """Return why this module is a split candidate (which size thresholds fired)."""
+    del file_key  # Signature kept for call-site compatibility.
     reasons = []
     max_lines = cfg.get("max_lines_per_module")
     max_functions = cfg.get("max_functions_per_module")
-    max_total_complexity = cfg.get("max_total_complexity_per_module")
-    high_critical_threshold = cfg.get("high_plus_critical_threshold")
 
     if max_lines is not None and metrics["lines"] >= max_lines:
-        reasons.append("exceeds size/complexity thresholds")
-        return reasons
+        reasons.append(f"{metrics['lines']} lines (max {max_lines})")
     if max_functions is not None and metrics["function_count"] >= max_functions:
-        reasons.append("exceeds size/complexity thresholds")
-        return reasons
-    if max_total_complexity is not None and metrics["total_function_complexity"] >= max_total_complexity:
-        reasons.append("exceeds size/complexity thresholds")
-        return reasons
-    high_plus_critical = metrics["high_complexity_count"] + metrics["critical_complexity_count"]
-    if high_critical_threshold is not None and high_plus_critical >= high_critical_threshold:
-        reasons.append("exceeds size/complexity thresholds")
+        reasons.append(
+            f"{metrics['function_count']} functions (max {max_functions})"
+        )
     return reasons
 
 
@@ -217,15 +199,12 @@ def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = Fa
                 "lines": metrics["lines"],
                 "function_count": metrics["function_count"],
                 "class_count": metrics["class_count"],
-                "total_function_complexity": metrics["total_function_complexity"],
-                "high_complexity_count": metrics["high_complexity_count"],
-                "critical_complexity_count": metrics["critical_complexity_count"],
                 "reasons": reason_list,
             })
 
-    # Sort by lines descending (large modules first), then total_function_complexity as tiebreaker
+    # Sort by lines descending (large modules first), then function_count as tiebreaker
     candidates.sort(
-        key=lambda x: (x["lines"], x["total_function_complexity"]),
+        key=lambda x: (x["lines"], x["function_count"]),
         reverse=True,
     )
 
@@ -241,8 +220,6 @@ def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = Fa
             "thresholds_used": {
                 "max_lines_per_module": cfg.get("max_lines_per_module"),
                 "max_functions_per_module": cfg.get("max_functions_per_module"),
-                "max_total_complexity_per_module": cfg.get("max_total_complexity_per_module"),
-                "high_plus_critical_threshold": cfg.get("high_plus_critical_threshold"),
             },
         },
     }
@@ -250,7 +227,7 @@ def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = Fa
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Identify large or high-complexity modules as refactoring candidates."
+        description="Identify large modules as candidates for splitting."
     )
     parser.add_argument(
         "--include-tests",
@@ -278,7 +255,10 @@ def main() -> int:
     candidates = result["details"].get("refactor_candidates", [])
     logger.info(f"Refactor candidates: {summary['total_issues']} modules (files_affected={summary['files_affected']})")
     for c in candidates[:15]:
-        logger.info(f"  {c['file']}: lines={c['lines']} functions={c['function_count']} total_function_complexity={c['total_function_complexity']} | {', '.join(c['reasons'])}")
+        logger.info(
+            f"  {c['file']}: {c['lines']} lines, {c['function_count']} functions"
+            f" | {', '.join(c['reasons'])}"
+        )
     if len(candidates) > 15:
         logger.info(f"  ... and {len(candidates) - 15} more (use --json for full list)")
     return 0

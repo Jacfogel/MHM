@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-16 - Module refactor size metrics **COMPLETED**
+- Module-split queue now uses line count and top-level function/method count (defaults 1500 / 40).
+- Dropped AST-node-sum "complexity" from that tool; function complexity stays on `analyze_functions`.
+- Restored valid `DEPRECATION_INVENTORY.json` after a broken `removed_inventory` insert failed three inventory-load tests.
+- Split `storage/user_data_operations.py` into backup/index/summaries/user-info modules; operations.py is a thin `UserDataManager` facade. Storage tests green (manager, scenarios, create/delete, coverage patches retargeted). Follow-up: docstrings/`@handle_errors` on the three new helpers; `# not_duplicate` on facade export/backup delegates.
+- AI_PRIORITIES shows `N lines, M functions` instead of unreadable `total_function_complexity` totals.
+
 ### 2026-08-11 - Discord package and bot split **COMPLETED**
 - Moved Discord modules into `events/`, `ui/`, `onboarding/`, `webhooks/` with search-and-close imports (no legacy shims).
 - Merged helpers into `ui/helpers.py`, lifecycle into `events/lifecycle.py`, and absorbed `item_form_shared` into `ui/create_item_ui.py`.
@@ -124,15 +131,6 @@ Guidelines:
 - Static logging check rejects unknown `get_component_logger("...")` names (parses `CANONICAL_COMPONENT_NAMES` + aliases from `logger.py`).
 - Failed check-in/message/confirmation/Discord-reply sends raised to ERROR; paired logging/error-handling docs corrected.
 - Audit cleanup: error-handling on logger helpers, function registry, ASCII/heading numbering, Pyright warnings from this slice.
-
-### 2026-07-20 - Nightly CI logging check + marker **COMPLETED**
-- Static logging check falls back to committed `.example` when live config is missing; example allowlist restored for core logger/config files.
-- Registered `development_tools` pytest domain marker for `--strict-markers` collection.
-- V6 deferred trio: B-011 coverage-cache numbers (cold **298.67s** / build **326.99s** / hit **0.91s**); B-014 keep memory profiler standalone/local; B-010 TODO sync workflow recipe in paired guides.
-- V6 B-009: system signals drops doc-sync re-derive; critical_alerts from severity. B-015 first extract: `coverage_json_helpers` + `report_generation_tier3_helpers` (no legacy shims).
-- V6 B-015 slice #2: `coverage_outcome_classification` (track/cache outcomes, Windows/xdist/infra detectors, `strip_xdist_args`); regenerator methods thin-delegate.
-- V6 B-015 slice #3: AI_STATUS / AI_PRIORITIES / CONSOLIDATED builders moved to dedicated mixins; `report_generation.py` composes them (no legacy shims).
-- Cleared post-split F401/Ruff noise: unused imports removed from report builder modules; linkify tests import `report_generation_linkify` directly.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

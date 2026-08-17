@@ -71,6 +71,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
+| Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
 
 ---
 
@@ -133,6 +134,18 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) module refactor candidates (`discord/bot.py`) + high-fan-out triage
 
 **Outcome**: `communication/communication_channels/discord/` uses `events/`, `ui/`, `onboarding/`, `webhooks/` subpackages. Tiny helpers merged; rich delivery, connection health, command registration, and ngrok extracted from `bot.py` (now ~545-line BaseChannel host). Stable paths kept: `discord.bot.DiscordBot`, `discord.interaction_views`. Retired flat module paths recorded in `DEPRECATION_INVENTORY.json` (`discord_flat_module_paths_2026_08_11`) via search-and-close (no long-lived bridges).
+
+---
+
+### 5.0.4 Split user_data_operations
+
+**Status**: **COMPLETED**  
+**Priority**: Medium  
+**Started**: 2026-08-16  
+**Completed**: 2026-08-16  
+**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) large-module split (`storage/user_data_operations.py`)
+
+**Outcome**: Ops/admin work lives in focused modules; [`storage/user_data_operations.py`](../storage/user_data_operations.py) is a thin `UserDataManager` facade with re-exports. Implementation: [`user_data_user_info.py`](../storage/user_data_user_info.py) (leaf), [`user_data_backup.py`](../storage/user_data_backup.py), [`user_data_index.py`](../storage/user_data_index.py), [`user_data_summaries.py`](../storage/user_data_summaries.py). Existing `from storage.user_data_operations import ...` call sites unchanged. Optional later: point high-traffic `update_user_index` callers at `user_data_index` directly.
 
 ---
 

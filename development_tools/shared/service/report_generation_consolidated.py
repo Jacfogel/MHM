@@ -2535,13 +2535,13 @@ class ConsolidatedReportDocumentMixin:
         )
         refactor_cand_count = to_int(refactor_summary_cr.get("total_issues")) or 0
         lines.append(
-            f"- **Module Refactor Candidates**: {refactor_cand_count} large/high-complexity module(s)"
+            f"- **Module Refactor Candidates**: {refactor_cand_count} large module(s)"
         )
         if refactor_cand_count > 0 and isinstance(refactor_details_cr, dict):
             candidates_cr = refactor_details_cr.get("refactor_candidates", [])
             if isinstance(candidates_cr, list) and candidates_cr:
                 top_refactor = [
-                    f"{c.get('file', '?')} (lines={c.get('lines', 0)}, total_function_complexity={c.get('total_function_complexity', c.get('total_complexity', 0))})"
+                    f"{c.get('file', '?')} ({c.get('lines', 0)} lines, {c.get('function_count', 0)} functions)"
                     for c in candidates_cr[:3]
                     if isinstance(c, dict)
                 ]

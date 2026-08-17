@@ -1213,12 +1213,11 @@ def get_analyze_duplicate_functions_config():
     return ANALYZE_DUPLICATE_FUNCTIONS
 
 
-# Module refactor candidates (large/high-complexity modules)
+# Module refactor candidates (large modules to consider splitting).
+# Function-level complexity stays in analyze_functions; this tool is size-only.
 ANALYZE_MODULE_REFACTOR_CANDIDATES = {
-    "max_lines_per_module": 1000,
+    "max_lines_per_module": 1500,
     "max_functions_per_module": 40,
-    "max_total_complexity_per_module": 2000,
-    "high_plus_critical_threshold": 5,
 }
 
 

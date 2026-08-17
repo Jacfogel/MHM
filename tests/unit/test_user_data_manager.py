@@ -427,7 +427,7 @@ class TestUserDataManagerIndex:
         assert uid1 is not None and uid2 is not None
 
         with patch(
-            "storage.user_data_operations.get_all_user_ids", return_value=[uid1, uid2]
+            "storage.user_data_index.get_all_user_ids", return_value=[uid1, uid2]
         ):
             result = manager.rebuild_full_index()
         
@@ -652,7 +652,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert uid is not None
 
         with patch(
-            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+            "storage.user_data_index.get_all_user_ids", return_value=[uid]
         ):
             result = rebuild_user_index()
         
@@ -695,7 +695,7 @@ class TestUserDataManagerConvenienceFunctions:
         # Scope to this test's user only; build_user_index scans get_all_user_ids()
         # and would otherwise walk the entire shared tests/data/users tree.
         with patch(
-            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+            "storage.user_data_index.get_all_user_ids", return_value=[uid]
         ):
             index_data = build_user_index()
 
@@ -724,7 +724,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert uid is not None, "Expected created user to resolve to a UUID"
 
         with patch(
-            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+            "storage.user_data_summaries.get_all_user_ids", return_value=[uid]
         ):
             summaries = get_all_user_summaries()
 

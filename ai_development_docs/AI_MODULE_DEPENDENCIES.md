@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 16:14:29
+> **Last Generated**: 2026-08-16 22:55:24
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 264
-- **Total Imports**: 2220
-- **Standard Library**: 661 (29.8%)
-- **Third-Party**: 218 (9.8%)
-- **Local Imports**: 1341 (60.4%)
+- **Files Scanned**: 268
+- **Total Imports**: 2267
+- **Standard Library**: 680 (30.0%)
+- **Third-Party**: 219 (9.7%)
+- **Local Imports**: 1368 (60.3%)
 
 ## Dependency Decision Trees
 
@@ -102,8 +102,8 @@ External libraries provide channel and UI support.
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
-- user_data_operations.py: storage/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, user_data_read, user_management (+8 more)
-- user_data_presets.py: storage/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
+- user_data_backup.py: storage/user_data_backup.py <- standard library (__future__, json, os, pathlib), config, error_handling, file_operations, logger, time_utilities (+2 more)
+- user_data_index.py: storage/user_data_index.py <- standard library (__future__, json, os, pathlib), error_handling, file_operations, logger, time_utilities, user_management (+7 more)
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor

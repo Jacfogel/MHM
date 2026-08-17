@@ -888,10 +888,8 @@
     "critical_complexity_threshold": 300
   },
   "analyze_module_refactor_candidates": {
-    "max_lines_per_module": 2000,
-    "max_functions_per_module": 40,
-    "max_total_complexity_per_module": 4000,
-    "high_plus_critical_threshold": 10
+    "max_lines_per_module": 1500,
+    "max_functions_per_module": 40
   },
   "analyze_config": {
     "config_schema": {},

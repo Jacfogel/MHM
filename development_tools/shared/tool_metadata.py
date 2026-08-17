@@ -326,7 +326,7 @@ _TOOLS: dict[str, ToolInfo] = {
         path="development_tools/functions/analyze_module_refactor_candidates.py",
         tier="supporting",
         trust="partial",
-        description="Identifies large or high-complexity modules as candidates for refactoring into smaller modules.",
+        description="Identifies large modules (by line or function count) as candidates for splitting into smaller modules.",
     ),
     "analyze_function_patterns": ToolInfo(
         name="analyze_function_patterns",

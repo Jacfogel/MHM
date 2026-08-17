@@ -2011,11 +2011,11 @@ class AIStatusDocumentMixin:
         )
         if refactor_count > 0:
             lines.append(
-                f"- **Large/High-Complexity Modules**: {refactor_count} candidate(s) "
-                f"for refactoring (see {prio_ref})"
+                f"- **Large Modules**: {refactor_count} candidate(s) "
+                f"for splitting (see {prio_ref})"
             )
         else:
-            lines.append("- **Large/High-Complexity Modules**: 0 candidates")
+            lines.append("- **Large Modules**: 0 candidates")
 
         lines.append("")
         lines.append("## Validation Status")

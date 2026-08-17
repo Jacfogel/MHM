@@ -199,7 +199,7 @@ class TestUserDataOperationsWrappers:
         uid = mock_user_data_with_messages["user_id"]
         manager = UserDataManager()
         with patch(
-            "storage.user_data_operations.get_user_info_for_data_manager",
+            "storage.user_data_user_info.get_user_info_for_data_manager",
             return_value={
                 "user_id": uid,
                 "internal_username": "test",
@@ -300,7 +300,7 @@ class TestUserDataOperationsWrappers:
         uid = mock_user_data_with_messages["user_id"]
         # Scope to fixture user; avoid scanning the full shared tests/data/users tree.
         with patch(
-            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+            "storage.user_data_index.get_all_user_ids", return_value=[uid]
         ):
             index = build_user_index()
         assert isinstance(index, dict)

@@ -130,7 +130,7 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 - Additional JSON files and subdirectories (for example `checkins.json`,
   `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
 
-**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations`, `schedule_runtime`, `schedule_document_defaults`) and a short explanation of tolerant profile validation versus strict v2 envelopes, see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
+**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations` facade plus `user_data_user_info` / `user_data_backup` / `user_data_index` / `user_data_summaries`, `schedule_runtime`, `schedule_document_defaults`) and a short explanation of tolerant profile validation versus strict v2 envelopes, see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 
 Important rules:
 

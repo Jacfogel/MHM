@@ -53,7 +53,7 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Weekly scheduler logic keys off `weekly_backup_*` artifacts (not generic latest backup)
 - Weekly health checks are explicit: `weekly_backup_present`, `weekly_backup_recent_enough`
 - Retention keeps weekly artifacts in a separate keep window from non-weekly backups (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
-- On-demand per-user zips: `UserDataManager.backup_user_data()` -> `user_backup_{user_id}_{timestamp}.zip`
+- On-demand per-user zips: `UserDataManager.backup_user_data()` / `storage.user_data_backup.backup_user_data()` -> `user_backup_{user_id}_{timestamp}.zip`
 - Manifest-less directories under `data/backups/` (no `manifest.json`, older than 1 hour) are removed by `cleanup_manifest_less_backup_directories()` during backup retention and monthly cleanup
 
 **AI usage:**

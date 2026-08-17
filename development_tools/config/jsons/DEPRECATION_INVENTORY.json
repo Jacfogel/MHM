@@ -82,6 +82,16 @@
   ],
   "removed_inventory": [
     {
+      "id": "module_refactor_ast_complexity_thresholds",
+      "removed_at": "2026-08-16",
+      "search_terms": [
+        "max_total_complexity_per_module",
+        "high_plus_critical_threshold"
+      ],
+      "replacement": "analyze_module_refactor_candidates size metrics (max_lines_per_module, max_functions_per_module); function complexity remains analyze_functions",
+      "notes": "Retired AST-node-sum and high/critical function counts as module-split criteria. Those proxies overlapped analyze_functions and flagged mid-size files. Module tool is now lines + top-level function/method count only."
+    },
+    {
       "id": "quick_audit_audit_scripts",
       "removed_at": "2026-08-10",
       "search_terms": [

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 16:13:58
+> **Last Generated**: 2026-08-16 22:54:55
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.4% [!] GOOD**
-- **Total Functions**: 2523
-- **Total Methods**: 1368
-- **Documented**: 3439/3891
-- **Files Scanned**: 266
+### **Documentation Coverage: 87.9% [!] GOOD**
+- **Total Functions**: 2532
+- **Total Methods**: 1353
+- **Documented**: 3414/3885
+- **Files Scanned**: 270
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -158,14 +158,14 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/48 functions undocumented (50% coverage)
 - `communication/communication_channels/discord/events/connection_health.py` - 22/22 functions undocumented (0% coverage)
-- `communication/communication_channels/discord/ui/rich_delivery.py` - 18/20 functions undocumented (10% coverage)
+- `storage/user_data_operations.py` - 22/24 functions undocumented (8% coverage)
 - `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
+- `communication/communication_channels/discord/ui/rich_delivery.py` - 16/20 functions undocumented (20% coverage)
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/30 functions undocumented (50% coverage)
-- `communication/message_processing/interaction_manager.py` - 14/30 functions undocumented (53% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -214,7 +214,7 @@ Most complex functions (may need refactoring):
 - `integrations/` -  (12 files, 114 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 105 functions)
-- `storage/` -  (12 files, 149 functions)
+- `storage/` -  (16 files, 143 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
 - `ui/` - User interface components (43 files, 954 functions)
 - `user/` - User context and preferences (5 files, 56 functions)

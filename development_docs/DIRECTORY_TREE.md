@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-11 16:14:44
+> **Last Generated**: 2026-08-16 22:55:40
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000097 5EAC:07BC
+Volume serial number is 00000058 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -629,10 +629,14 @@ C:.
 +---storage
 |   |   runtime_state_storage.py
 |   |   service_flag_storage.py
+|   |   user_data_backup.py
+|   |   user_data_index.py
 |   |   user_data_operations.py
 |   |   user_data_presets.py
 |   |   user_data_read.py
 |   |   user_data_registry.py
+|   |   user_data_summaries.py
+|   |   user_data_user_info.py
 |   |   user_data_v2_base.py
 |   |   user_data_v2_envelopes.py
 |   |   user_data_validation.py

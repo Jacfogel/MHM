@@ -132,7 +132,7 @@ This guide covers both how the systems work and how to restore from backups.
 - Historical zip artifacts may still exist with `.zip` suffix
 
 **On-demand per-user zip backups:**
-- `storage.user_data_operations.UserDataManager.backup_user_data()` creates `user_backup_{user_id}_{timestamp}.zip` in `data/backups/` when saving user data with backup enabled (separate from weekly `BackupManager` directory backups)
+- `storage.user_data_operations.UserDataManager.backup_user_data()` / `storage.user_data_backup.backup_user_data()` creates `user_backup_{user_id}_{timestamp}.zip` in `data/backups/` when saving user data with backup enabled (separate from weekly `BackupManager` directory backups)
 
 **Manifest-less directory cleanup:**
 - Canonical directory backups always include `manifest.json` (written at end of `BackupManager.create_backup`)

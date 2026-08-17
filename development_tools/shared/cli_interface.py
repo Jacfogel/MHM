@@ -610,7 +610,7 @@ def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequenc
     parser = argparse.ArgumentParser(
         prog="module-refactor-candidates",
         add_help=False,
-        description="Identify large or high-complexity modules as refactoring candidates.",
+        description="Identify large modules as candidates for splitting.",
     )
     parser.add_argument(
         "--include-tests", action="store_true", help="Include test files in analysis."
@@ -1056,7 +1056,7 @@ COMMAND_REGISTRY = OrderedDict(
             CommandRegistration(
                 "module-refactor-candidates",
                 _module_refactor_candidates_command,
-                "Identify large or high-complexity modules as refactoring candidates.",
+                "Identify large modules as candidates for splitting.",
             ),
         ),
         (

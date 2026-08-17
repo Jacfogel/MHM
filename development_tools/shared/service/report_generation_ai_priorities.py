@@ -698,7 +698,7 @@ class AIPrioritiesDocumentMixin:
                 "Remove obvious unused imports": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Clean up unused/uncalled functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Consider refactoring large or high-complexity modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consider splitting large modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Refactor high-complexity functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Investigate and correct test failures/errors": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
@@ -751,7 +751,7 @@ class AIPrioritiesDocumentMixin:
                 "Clean up unused/uncalled functions": self._scoped_tool_result_path(
                     "functions", "analyze_unused_functions"
                 ),
-                "Consider refactoring large or high-complexity modules": self._scoped_tool_result_path(
+                "Consider splitting large modules": self._scoped_tool_result_path(
                     "functions", "analyze_module_refactor_candidates"
                 ),
                 "Refactor high-complexity functions": self._scoped_tool_result_path(
@@ -2228,7 +2228,7 @@ class AIPrioritiesDocumentMixin:
                     expected_min=None,
                 )
 
-        # Module refactor candidates (large/high-complexity modules)
+        # Module refactor candidates (large modules)
         if module_refactor_candidates_data and isinstance(
             module_refactor_candidates_data, dict
         ):
@@ -2265,19 +2265,19 @@ class AIPrioritiesDocumentMixin:
                         file_key = cand.get("file", "?")
                         line_count = cand.get("lines", 0)
                         funcs = cand.get("function_count", 0)
-                        total_comp = cand.get(
-                            "total_function_complexity", cand.get("total_complexity", 0)
-                        )
                         refactor_bullets.append(
-                            f"  {idx}. {file_key} (lines={line_count}, functions={funcs}, total_function_complexity={total_comp})"
+                            f"  {idx}. {file_key} ({line_count} lines, {funcs} functions)"
                         )
                 refactor_bullets.append(
                     f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_module_refactor_candidates')}"
                 )
+                refactor_bullets.append(
+                    "Action: Split only when a file mixes unrelated responsibilities; dense functions are covered by the function-complexity priority."
+                )
                 add_priority(
                     tier=2,
-                    title="Consider refactoring large or high-complexity modules",
-                    reason=f"{refactor_count} module(s) exceed size/complexity thresholds (candidates for splitting).",
+                    title="Consider splitting large modules",
+                    reason=f"{refactor_count} module(s) exceed size thresholds (candidates for splitting).",
                     bullets=refactor_bullets,
                     validate=True,
                     data_source="analyze_module_refactor_candidates",
