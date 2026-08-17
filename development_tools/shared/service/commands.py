@@ -20,6 +20,7 @@ logger = get_dev_tools_logger("development_tools")
 
 # Import output storage
 from ..output_storage import save_tool_result
+from ..audit_storage_scope import jsons_dir_for_scope
 from ..backup_inventory import build_backup_inventory
 from ..backup_policy_models import load_backup_policy, resolve_policy_path
 from ..backup_reports import (
@@ -223,6 +224,7 @@ class CommandsMixin:
         patterns: list[str],
         exclude_prefixes: list[str] | None = None,
         exclude_paths: list[str] | None = None,
+        exclude_name_contains: tuple[str, ...] | None = None,
     ) -> float:
         """Return latest mtime for files matching any glob pattern."""
         from ..standard_exclusions import should_exclude_file
@@ -230,6 +232,9 @@ class CommandsMixin:
         latest = 0.0
         exclude_prefixes = exclude_prefixes or []
         exclude_paths_normalized = {path.replace("\\", "/") for path in (exclude_paths or [])}
+        name_markers = tuple(
+            marker.lower() for marker in (exclude_name_contains or ()) if marker
+        )
         for pattern in patterns:
             for path in self.project_root.glob(pattern):
                 if not path.is_file():
@@ -238,6 +243,10 @@ class CommandsMixin:
                 if normalized in exclude_paths_normalized:
                     continue
                 if any(normalized.startswith(prefix) for prefix in exclude_prefixes):
+                    continue
+                if name_markers and any(
+                    marker in path.name.lower() for marker in name_markers
+                ):
                     continue
                 if should_exclude_file(normalized, tool_type="analysis", context="development"):
                     continue
@@ -2453,7 +2462,12 @@ class CommandsMixin:
         return result['success']
 
     def _get_docs_tree_max_mtime(self) -> float:
-        """Return latest mtime across documentation files."""
+        """Return latest mtime across documentation files that can invalidate doc-sync.
+
+        Audit-generated reports and changelog files are excluded: the audit rewrites
+        them after doc-sync (changelog trim, unused-imports/legacy reports), which
+        would otherwise make every following audit look like docs had changed.
+        """
         patterns = [
             "*.md",
             "development_docs/**/*.md",
@@ -2464,17 +2478,19 @@ class CommandsMixin:
             "development_docs/TEST_COVERAGE_REPORT.md",
             "development_docs/LEGACY_REFERENCE_REPORT.md",
         ]
-        return self._latest_mtime_for_patterns(patterns, exclude_paths=generated_docs)
+        return self._latest_mtime_for_patterns(
+            patterns,
+            exclude_paths=generated_docs,
+            exclude_name_contains=("CHANGELOG",),
+        )
+
+    def _doc_subcheck_result_path(self, tool_name: str) -> Path:
+        """Return scoped JSON path for a documentation subcheck result."""
+        return jsons_dir_for_scope(self.project_root, "docs") / f"{tool_name}_results.json"
 
     def _is_doc_subcheck_cache_fresh(self, tool_name: str) -> bool:
         """Check whether a documentation subcheck result file is up to date."""
-        result_file = (
-            self.project_root
-            / "development_tools"
-            / "docs"
-            / "jsons"
-            / f"{tool_name}_results.json"
-        )
+        result_file = self._doc_subcheck_result_path(tool_name)
         if not result_file.exists():
             return False
         try:
@@ -2672,27 +2688,12 @@ class CommandsMixin:
                 subcheck_modes["paired_docs"] = "unknown"
 
         logger.debug("  - Analyzing path drift...")
-        path_drift_result = self.run_analyze_path_drift()
-        path_drift_data = (
-            path_drift_result.get("data")
-            if isinstance(path_drift_result, dict)
-            else {}
+        all_results["path_drift"] = self._run_doc_subcheck_with_cache(
+            "analyze_path_drift",
+            "Path drift",
+            lambda output: self._parse_path_drift_output(output),
+            lambda: self.run_analyze_path_drift(),
         )
-        if (
-            isinstance(path_drift_data, dict)
-            and isinstance(path_drift_data.get("summary"), dict)
-            and isinstance(path_drift_data.get("details"), dict)
-        ):
-            all_results["path_drift"] = path_drift_data
-            if hasattr(self, "_tool_cache_metadata"):
-                self._tool_cache_metadata["analyze_path_drift"] = {
-                    "cache_mode": "internal_mtime_cache",
-                    "invalidation_reason": "Path drift uses internal analyzer cache",
-                    "source": "run_analyze_path_drift",
-                }
-        else:
-            all_results["path_drift"] = self._create_standard_format_result(0, 0, {})
-            logger.warning("Path drift result was non-standard; defaulting to empty result")
         subcheck_modes["path_drift"] = (
             self._tool_cache_metadata.get("analyze_path_drift", {}).get("cache_mode", "unknown")
             if hasattr(self, "_tool_cache_metadata")
@@ -2703,7 +2704,7 @@ class CommandsMixin:
         all_results["ascii_compliance"] = self._run_doc_subcheck_with_cache(
             "analyze_ascii_compliance",
             "ASCII compliance",
-            self._parse_ascii_compliance_output,
+            lambda output: self._parse_ascii_compliance_output(output),
             lambda: self.run_script("analyze_ascii_compliance", "--json"),
         )
         subcheck_modes["ascii_compliance"] = (
@@ -2716,7 +2717,7 @@ class CommandsMixin:
         all_results["heading_numbering"] = self._run_doc_subcheck_with_cache(
             "analyze_heading_numbering",
             "Heading numbering",
-            self._parse_heading_numbering_output,
+            lambda output: self._parse_heading_numbering_output(output),
             lambda: self.run_script("analyze_heading_numbering", "--json"),
         )
         subcheck_modes["heading_numbering"] = (
@@ -2729,7 +2730,7 @@ class CommandsMixin:
         all_results["missing_addresses"] = self._run_doc_subcheck_with_cache(
             "analyze_missing_addresses",
             "Missing addresses",
-            self._parse_missing_addresses_output,
+            lambda output: self._parse_missing_addresses_output(output),
             lambda: self.run_script("analyze_missing_addresses", "--json"),
         )
         subcheck_modes["missing_addresses"] = (
@@ -2742,7 +2743,7 @@ class CommandsMixin:
         all_results["unconverted_links"] = self._run_doc_subcheck_with_cache(
             "analyze_unconverted_links",
             "Unconverted links",
-            self._parse_unconverted_links_output,
+            lambda output: self._parse_unconverted_links_output(output),
             lambda: self.run_script("analyze_unconverted_links", "--json"),
         )
         subcheck_modes["unconverted_links"] = (

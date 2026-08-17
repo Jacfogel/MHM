@@ -76,7 +76,7 @@ def _default_domain_mapper_config() -> dict:
             "scheduler": ["communication", "core"],
             "checkins": ["communication", "user"],
             "messages": ["communication"],
-            "storage": ["core", "user"],
+            "storage": [],
             "integrations": ["core", "communication", "scheduler"],
             "development_tools": [],
         },
@@ -390,6 +390,11 @@ class DomainMapper:
     def expand_domains_with_dependencies(self, domains: set[str]) -> set[str]:
         """
         Expand domains to include transitive cross-domain dependencies.
+
+        ``domain_dependencies[X]`` is the set of domains to also invalidate when
+        *X* changes. Keep leaves such as ``storage`` empty so a persistence-only
+        edit does not walk through ``core`` and invalidate the whole product suite.
+        ``core`` may still list ``storage`` (core edits still rerun storage tests).
 
         Args:
             domains: Initial changed domains

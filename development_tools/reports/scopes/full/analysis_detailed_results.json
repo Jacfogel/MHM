@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-08-16 23:13:28",
+  "last_generated": "2026-08-17 00:04:10",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-08-16T23:13:28.252316",
+  "timestamp": "2026-08-17T00:04:10.019568",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -61,7 +61,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-08-16T23:01:30"
+      "timestamp": "2026-08-17T00:00:22"
     },
     "analyze_config": {
       "success": true,
@@ -134,7 +134,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:01:30"
+      "timestamp": "2026-08-17T00:00:22"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -152,7 +152,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-16T23:02:51"
+      "timestamp": "2026-08-16T23:48:49"
     },
     "analyze_documentation": {
       "success": true,
@@ -392,7 +392,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 12923,
+              "content_length": 12519,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -401,11 +401,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-08-16 - Audit cache: storage leaf, scoped doc-sync, legacy I/O skip **COMPLETED**",
                 "2026-08-16 - Module refactor size metrics **COMPLETED**",
                 "2026-08-11 - Discord package and bot split **COMPLETED**",
                 "2026-08-11 - Appropriate coupling reductions (inverted edges) **COMPLETED**",
-                "2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup **COMPLETED**",
-                "2026-08-06 - LIST_OF_LISTS consolidation scan, rewrite, and SSOT cleanup **COMPLETED**"
+                "2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -594,9 +594,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 811271,
+              "content_length": 812568,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 261,
+              "section_count": 262,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -604,10 +604,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-08-16 - Audit cache: storage leaf, scoped doc-sync, legacy I/O skip",
                 "2026-08-16 - Module refactor candidates use size metrics",
                 "2026-08-11 - Discord package reorganization and bot split",
-                "2026-08-11 - Appropriate coupling reductions (inverted edges)",
-                "2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup (A+B)"
+                "2026-08-11 - Appropriate coupling reductions (inverted edges)"
               ]
             },
             "development_docs/PLANS.md": {
@@ -642,7 +642,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 32410,
+              "content_length": 32810,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 16,
               "sections": [
@@ -659,7 +659,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 68814,
+              "content_length": 69532,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
               "section_count": 33,
               "sections": [
@@ -1016,7 +1016,7 @@
           "total_issues": 13
         }
       },
-      "timestamp": "2026-08-16T23:01:30"
+      "timestamp": "2026-08-17T00:00:22"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1099,7 +1099,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-08-16T23:03:18"
+      "timestamp": "2026-08-17T00:01:15"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1114,7 +1114,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-16T23:02:51"
+      "timestamp": "2026-08-16T23:47:32"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1129,7 +1129,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-16T23:03:18"
+      "timestamp": "2026-08-16T23:48:01"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1144,7 +1144,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-08-16T23:02:51"
+      "timestamp": "2026-08-16T23:47:32"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1159,7 +1159,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-16T23:03:18"
+      "timestamp": "2026-08-16T23:48:01"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1188,10 +1188,10 @@
             "error_handler_usage": 8,
             "handle_validation_error": 2,
             "AIError": 2,
-            "FileOperationError": 10,
             "safe_file_operation": 1,
-            "MHMError": 2,
             "handle_file_error": 3,
+            "FileOperationError": 10,
+            "MHMError": 2,
             "CommunicationError": 15
           },
           "missing_error_handling": [],
@@ -1240,7 +1240,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-16T23:02:04"
+      "timestamp": "2026-08-17T00:00:58"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -2426,7 +2426,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-08-16T23:02:07"
+      "timestamp": "2026-08-17T00:01:02"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2442,7 +2442,7 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-08-16T23:02:20"
+      "timestamp": "2026-08-17T00:01:15"
     },
     "analyze_functions": {
       "success": true,
@@ -2647,7 +2647,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-08-16T23:02:04"
+      "timestamp": "2026-08-17T00:00:58"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5298,7 +5298,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-16T23:01:45"
+      "timestamp": "2026-08-17T00:00:39"
     },
     "analyze_function_registry": {
       "success": true,
@@ -8891,7 +8891,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-08-16T23:02:37"
+      "timestamp": "2026-08-17T00:01:32"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8957,7 +8957,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:02:20"
+      "timestamp": "2026-08-17T00:01:15"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14409,6 +14409,346 @@
                 "test_lm_studio_connection",
                 "try_action_unavailable_response",
                 "try_conversational_support"
+              ]
+            },
+            "checkins": {
+              "package": "checkins",
+              "current_exports_count": 12,
+              "should_export_count": 16,
+              "already_exported": [
+                "CheckinAnalytics",
+                "CheckinStartStatus",
+                "DynamicCheckinManager",
+                "RecentCheckinSummary",
+                "checkin_display_date",
+                "checkin_runtime_timestamp",
+                "get_checkin_start_status",
+                "get_checkins_by_days",
+                "get_recent_checkin_summary",
+                "get_recent_checkins",
+                "is_user_checkins_enabled",
+                "store_checkin_response"
+              ],
+              "missing_exports": [
+                "CheckinCollectionV2Model",
+                "CheckinV2Model",
+                "dynamic_checkin_manager",
+                "validate_checkins_v2_document"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "checkin_runtime_timestamp": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_service.py",
+                    "storage/user_data_summaries.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/message_processing/user_suggestions.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "get_checkins_by_days": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "core/health_context_builder.py",
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "dynamic_checkin_manager": {
+                  "import_count": 13,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_analytics.py",
+                    "communication/message_processing/flows/checkin_flow.py",
+                    "communication/message_processing/flows/checkin_flow.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_dynamic_manager"
+                },
+                "get_recent_checkins": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "checkins/checkin_service.py",
+                    "core/response_tracking.py",
+                    "storage/user_data_summaries.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/flows/checkin_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "is_user_checkins_enabled": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "checkins/checkin_service.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/user_suggestions.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "store_checkin_response": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/response_tracking.py",
+                    "communication/message_processing/flows/checkin_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "get_checkin_start_status": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/command_handlers/checkin_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_service"
+                },
+                "get_recent_checkin_summary": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/command_handlers/checkin_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_service"
+                }
+              },
+              "import_usage_details": {
+                "checkin_runtime_timestamp": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_service.py",
+                    "storage/user_data_summaries.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/message_processing/user_suggestions.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "get_checkins_by_days": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "core/health_context_builder.py",
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "dynamic_checkin_manager": {
+                  "import_count": 13,
+                  "import_locations": [
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_analytics.py",
+                    "checkins/checkin_analytics.py",
+                    "communication/message_processing/flows/checkin_flow.py",
+                    "communication/message_processing/flows/checkin_flow.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py",
+                    "ui/widgets/checkin_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_dynamic_manager"
+                },
+                "get_recent_checkins": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "checkins/checkin_service.py",
+                    "core/response_tracking.py",
+                    "storage/user_data_summaries.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/flows/checkin_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "is_user_checkins_enabled": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "checkins/checkin_service.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/user_suggestions.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "store_checkin_response": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/response_tracking.py",
+                    "communication/message_processing/flows/checkin_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_data_manager"
+                },
+                "CheckinCollectionV2Model": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_schemas"
+                },
+                "CheckinV2Model": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_schemas"
+                },
+                "validate_checkins_v2_document": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_schemas"
+                },
+                "get_checkin_start_status": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/command_handlers/checkin_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_service"
+                },
+                "get_recent_checkin_summary": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/command_handlers/checkin_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_service"
+                },
+                "checkin_display_date": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/checkin_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_service"
+                },
+                "CheckinAnalytics": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "checkins.checkin_analytics"
+                }
+              },
+              "package_api_items": [
+                "CheckinAnalytics",
+                "CheckinCollectionV2Model",
+                "CheckinStartStatus",
+                "CheckinV2Model",
+                "DynamicCheckinManager",
+                "RecentCheckinSummary",
+                "checkin_display_date",
+                "checkin_runtime_timestamp",
+                "get_checkin_start_status",
+                "get_checkins_by_days",
+                "get_recent_checkin_summary",
+                "get_recent_checkins",
+                "is_user_checkins_enabled",
+                "store_checkin_response",
+                "validate_checkins_v2_document"
+              ],
+              "registry_items": [
+                "__init__",
+                "_bucket_scale_value",
+                "_build_v2_checkin_from_response_payload",
+                "_calculate_sleep_chunk_hours",
+                "_checkin_to_runtime_response",
+                "checkin_display_date",
+                "get_checkin_start_status",
+                "validate_checkins_v2_document",
+                "validate_timestamp"
               ]
             },
             "core": {
@@ -19918,344 +20258,414 @@
                 "wait_for_network"
               ]
             },
-            "checkins": {
-              "package": "checkins",
+            "scheduler": {
+              "package": "scheduler",
               "current_exports_count": 12,
-              "should_export_count": 16,
+              "should_export_count": 38,
               "already_exported": [
-                "CheckinAnalytics",
-                "CheckinStartStatus",
-                "DynamicCheckinManager",
-                "RecentCheckinSummary",
-                "checkin_display_date",
-                "checkin_runtime_timestamp",
-                "get_checkin_start_status",
-                "get_checkins_by_days",
-                "get_recent_checkin_summary",
-                "get_recent_checkins",
-                "is_user_checkins_enabled",
-                "store_checkin_response"
+                "SchedulerManager",
+                "clear_all_accumulated_jobs_standalone",
+                "clear_scheduler_manager",
+                "get_scheduler_manager",
+                "process_category_schedule",
+                "process_user_schedules",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "set_scheduler_delivery_factory",
+                "set_scheduler_manager"
               ],
               "missing_exports": [
-                "CheckinCollectionV2Model",
-                "CheckinV2Model",
-                "dynamic_checkin_manager",
-                "validate_checkins_v2_document"
+                "build_sync_slot_key",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "get_due_sync_slot_key",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "localized_now_for_user",
+                "perform_daily_log_archival",
+                "register_full_daily_maintenance_jobs",
+                "register_health_sync_jobs",
+                "register_system_daily_jobs",
+                "resolve_user_timezone_str",
+                "run_scheduled_health_sync",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "task_selection_key",
+                "user_local_date",
+                "user_local_now_naive"
               ],
               "potentially_unnecessary": [],
               "cross_module_usage": {
-                "checkin_runtime_timestamp": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_service.py",
-                    "storage/user_data_summaries.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/message_processing/user_suggestions.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "get_checkins_by_days": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "core/health_context_builder.py",
-                    "ui/dialogs/user_analytics_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "dynamic_checkin_manager": {
-                  "import_count": 13,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_analytics.py",
-                    "communication/message_processing/flows/checkin_flow.py",
-                    "communication/message_processing/flows/checkin_flow.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_dynamic_manager"
-                },
-                "get_recent_checkins": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "checkins/checkin_service.py",
-                    "core/response_tracking.py",
-                    "storage/user_data_summaries.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/flows/checkin_flow.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "is_user_checkins_enabled": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "checkins/checkin_service.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/user_suggestions.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "store_checkin_response": {
+                "user_local_date": {
                   "import_count": 2,
                   "import_locations": [
-                    "core/response_tracking.py",
-                    "communication/message_processing/flows/checkin_flow.py"
+                    "checkins/checkin_service.py",
+                    "ai/context/phraser.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_data_manager"
+                  "module_path": "scheduler.user_timezone"
                 },
-                "get_checkin_start_status": {
+                "get_scheduler_manager": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/admin_account_provisioning.py",
+                    "scheduler/__init__.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access"
+                },
+                "SchedulerManager": {
                   "import_count": 2,
                   "import_locations": [
-                    "ai/context/service.py",
-                    "communication/command_handlers/checkin_handler.py"
+                    "core/service.py",
+                    "scheduler/__init__.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_service"
+                  "module_path": "scheduler.manager"
                 },
-                "get_recent_checkin_summary": {
+                "set_scheduler_delivery_factory": {
                   "import_count": 2,
                   "import_locations": [
-                    "ai/context/service.py",
-                    "communication/command_handlers/checkin_handler.py"
+                    "core/service.py",
+                    "scheduler/__init__.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_service"
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access"
+                },
+                "clear_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access"
+                },
+                "localized_now_for_user": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "scheduler/health_sync_schedule.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone"
+                },
+                "resolve_user_timezone_str": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone"
                 }
               },
               "import_usage_details": {
-                "checkin_runtime_timestamp": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_service.py",
-                    "storage/user_data_summaries.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/message_processing/user_suggestions.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "get_checkins_by_days": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "core/health_context_builder.py",
-                    "ui/dialogs/user_analytics_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "dynamic_checkin_manager": {
-                  "import_count": 13,
-                  "import_locations": [
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_analytics.py",
-                    "checkins/checkin_analytics.py",
-                    "communication/message_processing/flows/checkin_flow.py",
-                    "communication/message_processing/flows/checkin_flow.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py",
-                    "ui/widgets/checkin_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_dynamic_manager"
-                },
-                "get_recent_checkins": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "checkins/checkin_service.py",
-                    "core/response_tracking.py",
-                    "storage/user_data_summaries.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/flows/checkin_flow.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "is_user_checkins_enabled": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "checkins/checkin_service.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/user_suggestions.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_data_manager"
-                },
-                "store_checkin_response": {
+                "user_local_date": {
                   "import_count": 2,
                   "import_locations": [
-                    "core/response_tracking.py",
-                    "communication/message_processing/flows/checkin_flow.py"
+                    "checkins/checkin_service.py",
+                    "ai/context/phraser.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_data_manager"
+                  "module_path": "scheduler.user_timezone"
                 },
-                "CheckinCollectionV2Model": {
-                  "import_count": 1,
+                "get_scheduler_manager": {
+                  "import_count": 4,
                   "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
+                    "core/admin_account_provisioning.py",
+                    "scheduler/__init__.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_schemas"
+                  "module_path": "scheduler.runtime_access"
                 },
-                "CheckinV2Model": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_schemas"
-                },
-                "validate_checkins_v2_document": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "checkins.checkin_schemas"
-                },
-                "get_checkin_start_status": {
+                "SchedulerManager": {
                   "import_count": 2,
                   "import_locations": [
-                    "ai/context/service.py",
-                    "communication/command_handlers/checkin_handler.py"
+                    "core/service.py",
+                    "scheduler/__init__.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_service"
+                  "module_path": "scheduler.manager"
                 },
-                "get_recent_checkin_summary": {
+                "set_scheduler_delivery_factory": {
                   "import_count": 2,
                   "import_locations": [
-                    "ai/context/service.py",
-                    "communication/command_handlers/checkin_handler.py"
+                    "core/service.py",
+                    "scheduler/__init__.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_service"
+                  "module_path": "scheduler.manager"
                 },
-                "checkin_display_date": {
+                "_get_scheduler_manager": {
                   "import_count": 1,
                   "import_locations": [
-                    "communication/command_handlers/checkin_handler.py"
+                    "core/service.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_service"
+                  "module_path": "scheduler.runtime_access"
                 },
-                "CheckinAnalytics": {
+                "set_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access"
+                },
+                "clear_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access"
+                },
+                "localized_now_for_user": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "scheduler/health_sync_schedule.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone"
+                },
+                "register_health_sync_jobs": {
                   "import_count": 1,
                   "import_locations": [
-                    "ui/dialogs/user_analytics_dialog.py"
+                    "scheduler/jobs.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "checkins.checkin_analytics"
+                  "module_path": "scheduler.health_sync_jobs"
+                },
+                "resolve_user_timezone_str": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone"
+                },
+                "clear_all_accumulated_jobs_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_category_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_user_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "schedule_all_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "user_local_now_naive": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone"
+                },
+                "get_due_sync_slot_key": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "integrations/google_health/sync_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.health_sync_schedule"
                 }
               },
               "package_api_items": [
-                "CheckinAnalytics",
-                "CheckinCollectionV2Model",
-                "CheckinStartStatus",
-                "CheckinV2Model",
-                "DynamicCheckinManager",
-                "RecentCheckinSummary",
-                "checkin_display_date",
-                "checkin_runtime_timestamp",
-                "get_checkin_start_status",
-                "get_checkins_by_days",
-                "get_recent_checkin_summary",
-                "get_recent_checkins",
-                "is_user_checkins_enabled",
-                "store_checkin_response",
-                "validate_checkins_v2_document"
+                "SchedulerManager",
+                "build_sync_slot_key",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "clear_all_accumulated_jobs_standalone",
+                "clear_scheduler_manager",
+                "get_due_sync_slot_key",
+                "get_random_time_within_task_period",
+                "get_scheduler_manager",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "localized_now_for_user",
+                "perform_daily_log_archival",
+                "process_category_schedule",
+                "process_user_schedules",
+                "register_full_daily_maintenance_jobs",
+                "register_health_sync_jobs",
+                "register_system_daily_jobs",
+                "resolve_user_timezone_str",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_scheduled_health_sync",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "set_scheduler_delivery_factory",
+                "set_scheduler_manager",
+                "task_selection_key",
+                "user_local_date",
+                "user_local_now_naive"
               ],
               "registry_items": [
                 "__init__",
-                "_bucket_scale_value",
-                "_build_v2_checkin_from_response_payload",
-                "_calculate_sleep_chunk_hours",
-                "_checkin_to_runtime_response",
-                "checkin_display_date",
-                "get_checkin_start_status",
-                "validate_checkins_v2_document",
-                "validate_timestamp"
+                "_is_weekly_backup_entry",
+                "_slot_datetime_local",
+                "_sorted_sync_times",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "check_and_perform_weekly_backup",
+                "cleanup_scheduler_wake_tasks",
+                "clear_scheduler_manager",
+                "get_scheduler_manager",
+                "localized_now_for_user",
+                "register_full_daily_maintenance_jobs",
+                "register_health_sync_jobs",
+                "register_system_daily_jobs",
+                "resolve_user_timezone_str",
+                "run_scheduled_health_sync"
               ]
             },
             "messages": {
@@ -21539,6 +21949,648 @@
                 "empty_daily_summaries_document",
                 "is_auth_sync_failure",
                 "maybe_send_reconnect_notice"
+              ]
+            },
+            "tasks": {
+              "package": "tasks",
+              "current_exports_count": 20,
+              "should_export_count": 75,
+              "already_exported": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
+              ],
+              "missing_exports": [
+                "ALLOWED_UPDATE_FIELDS",
+                "CompletionModel",
+                "DueModel",
+                "PreparedTaskCreateData",
+                "RecurrenceModel",
+                "TASKS_V2_FILENAME",
+                "TaskCollectionV2Model",
+                "TaskTemplate",
+                "TaskV2Model",
+                "VALID_PRIORITIES",
+                "add_one_calendar_month",
+                "append_task_description",
+                "build_task_data_from_template",
+                "create_task_from_template",
+                "default_due_date_for_recurring_time",
+                "filter_tasks",
+                "find_most_urgent_task",
+                "find_task_by_identifier",
+                "format_due_date_status",
+                "format_task_detail_display",
+                "format_templates_for_help",
+                "get_builtin_task_template",
+                "get_completed_task_candidates",
+                "get_contextual_task_suggestion",
+                "get_recurring_task_defaults",
+                "get_task_candidates",
+                "get_task_templates_help_text",
+                "get_template",
+                "is_valid_due_date",
+                "is_valid_normalized_task_tag",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "list_builtin_templates",
+                "list_task_templates",
+                "lookup_builtin_template_id",
+                "normalize_task_tag_filter",
+                "parse_relative_date",
+                "parse_time_string",
+                "prepare_create_task_data",
+                "runtime_task_completed_at",
+                "runtime_task_due_date",
+                "runtime_task_due_time",
+                "runtime_task_is_completed",
+                "runtime_task_quick_reminder_values",
+                "runtime_task_recurrence_interval",
+                "runtime_task_recurrence_pattern",
+                "runtime_task_scheduled_reminder_periods",
+                "sanitize_task_tags",
+                "sort_tasks_by_priority_and_due_date",
+                "t",
+                "task_identifier",
+                "task_services",
+                "task_short_identifier",
+                "validate_tasks_v2_document",
+                "validate_update_field"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "TASKS_V2_FILENAME": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/file_operations.py",
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "parse_time_string": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/natural_language_defaults.py",
+                    "ui/widgets/natural_language_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_time_parsing"
+                },
+                "runtime_task_is_completed": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "communication/reminders/reminder_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_due_date": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_service.py",
+                    "ai/context/assembly.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/reminders/reminder_dispatcher.py",
+                    "communication/communication_channels/discord/ui/task_list_ui.py",
+                    "communication/message_processing/flows/task_flow.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "TaskCollectionV2Model": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TaskV2Model": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "sanitize_task_tags": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_schemas.py",
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_tag_helpers"
+                },
+                "runtime_task_due_time": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/flows/task_flow.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "VALID_PRIORITIES": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "tasks/task_validation.py",
+                    "communication/message_processing/flows/task_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "format_templates_for_help": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "communication/command_handlers/create_menu_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_templates"
+                }
+              },
+              "import_usage_details": {
+                "TASKS_V2_FILENAME": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/file_operations.py",
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "parse_time_string": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/natural_language_defaults.py",
+                    "ui/widgets/natural_language_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_time_parsing"
+                },
+                "runtime_task_is_completed": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "communication/reminders/reminder_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_due_date": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_service.py",
+                    "ai/context/assembly.py",
+                    "ai/context/phraser.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/reminders/reminder_dispatcher.py",
+                    "communication/communication_channels/discord/ui/task_list_ui.py",
+                    "communication/message_processing/flows/task_flow.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "TaskCollectionV2Model": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TaskV2Model": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "validate_tasks_v2_document": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "load_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "load_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "is_valid_task_title": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "is_valid_priority": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "validate_update_field": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "sanitize_task_tags": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_schemas.py",
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_tag_helpers"
+                },
+                "runtime_task_due_time": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/user_suggestions.py",
+                    "communication/message_processing/flows/task_flow.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_scheduled_reminder_periods": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "normalize_task_tag_filter": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_tag_helpers"
+                },
+                "VALID_PRIORITIES": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "tasks/task_validation.py",
+                    "communication/message_processing/flows/task_flow.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TaskTemplate": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_templates"
+                },
+                "format_templates_for_help": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_service.py",
+                    "communication/command_handlers/create_menu_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_templates"
+                },
+                "get_template": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_templates"
+                },
+                "list_builtin_templates": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_templates"
+                },
+                "_parse_time_string": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_time_parsing"
+                },
+                "t": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_service.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                },
+                "ALLOWED_UPDATE_FIELDS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "_tasks_mod": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                },
+                "task_services": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/task_analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                },
+                "runtime_task_recurrence_interval": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_recurrence_pattern": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_completed_at": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                }
+              },
+              "package_api_items": [
+                "CompletionModel",
+                "DueModel",
+                "PreparedTaskCreateData",
+                "RecurrenceModel",
+                "TaskCollectionV2Model",
+                "TaskManagementError",
+                "TaskTemplate",
+                "TaskV2Model",
+                "add_one_calendar_month",
+                "add_user_task_tag",
+                "append_task_description",
+                "are_tasks_enabled",
+                "build_task_data_from_template",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "create_task_from_template",
+                "default_due_date_for_recurring_time",
+                "delete_task",
+                "ensure_task_directory",
+                "filter_tasks",
+                "find_most_urgent_task",
+                "find_task_by_identifier",
+                "format_due_date_status",
+                "format_task_detail_display",
+                "format_templates_for_help",
+                "get_builtin_task_template",
+                "get_completed_task_candidates",
+                "get_contextual_task_suggestion",
+                "get_recurring_task_defaults",
+                "get_task_by_id",
+                "get_task_candidates",
+                "get_task_templates_help_text",
+                "get_tasks_due_soon",
+                "get_template",
+                "get_user_task_stats",
+                "is_valid_due_date",
+                "is_valid_normalized_task_tag",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "list_builtin_templates",
+                "list_task_templates",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "lookup_builtin_template_id",
+                "normalize_task_tag_filter",
+                "parse_relative_date",
+                "parse_time_string",
+                "prepare_create_task_data",
+                "remove_user_task_tag",
+                "restore_task",
+                "runtime_task_completed_at",
+                "runtime_task_due_date",
+                "runtime_task_due_time",
+                "runtime_task_is_completed",
+                "runtime_task_quick_reminder_values",
+                "runtime_task_recurrence_interval",
+                "runtime_task_recurrence_pattern",
+                "runtime_task_scheduled_reminder_periods",
+                "sanitize_task_tags",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "sort_tasks_by_priority_and_due_date",
+                "task_identifier",
+                "task_short_identifier",
+                "update_task",
+                "validate_tasks_v2_document",
+                "validate_update_field"
+              ],
+              "registry_items": [
+                "_calculate_next_due_date",
+                "_canonical_timestamp",
+                "_load_v2_tasks",
+                "_tasks",
+                "add_one_calendar_month",
+                "append_task_description",
+                "format_templates_for_help",
+                "get_template",
+                "is_valid_due_date",
+                "is_valid_normalized_task_tag",
+                "is_valid_priority",
+                "normalize_task_tag_filter",
+                "parse_time_string",
+                "sanitize_tags",
+                "validate_completed_at"
               ]
             },
             "notebook": {
@@ -23425,753 +24477,6 @@
                 "write_service_flag_json"
               ]
             },
-            "tasks": {
-              "package": "tasks",
-              "current_exports_count": 20,
-              "should_export_count": 75,
-              "already_exported": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "missing_exports": [
-                "ALLOWED_UPDATE_FIELDS",
-                "CompletionModel",
-                "DueModel",
-                "PreparedTaskCreateData",
-                "RecurrenceModel",
-                "TASKS_V2_FILENAME",
-                "TaskCollectionV2Model",
-                "TaskTemplate",
-                "TaskV2Model",
-                "VALID_PRIORITIES",
-                "add_one_calendar_month",
-                "append_task_description",
-                "build_task_data_from_template",
-                "create_task_from_template",
-                "default_due_date_for_recurring_time",
-                "filter_tasks",
-                "find_most_urgent_task",
-                "find_task_by_identifier",
-                "format_due_date_status",
-                "format_task_detail_display",
-                "format_templates_for_help",
-                "get_builtin_task_template",
-                "get_completed_task_candidates",
-                "get_contextual_task_suggestion",
-                "get_recurring_task_defaults",
-                "get_task_candidates",
-                "get_task_templates_help_text",
-                "get_template",
-                "is_valid_due_date",
-                "is_valid_normalized_task_tag",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "list_builtin_templates",
-                "list_task_templates",
-                "lookup_builtin_template_id",
-                "normalize_task_tag_filter",
-                "parse_relative_date",
-                "parse_time_string",
-                "prepare_create_task_data",
-                "runtime_task_completed_at",
-                "runtime_task_due_date",
-                "runtime_task_due_time",
-                "runtime_task_is_completed",
-                "runtime_task_quick_reminder_values",
-                "runtime_task_recurrence_interval",
-                "runtime_task_recurrence_pattern",
-                "runtime_task_scheduled_reminder_periods",
-                "sanitize_task_tags",
-                "sort_tasks_by_priority_and_due_date",
-                "t",
-                "task_identifier",
-                "task_services",
-                "task_short_identifier",
-                "validate_tasks_v2_document",
-                "validate_update_field"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "TASKS_V2_FILENAME": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/file_operations.py",
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "parse_time_string": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/natural_language_defaults.py",
-                    "ui/widgets/natural_language_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_time_parsing"
-                },
-                "runtime_task_is_completed": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/task_reminders.py",
-                    "communication/reminders/reminder_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "runtime_task_due_date": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "scheduler/task_reminders.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_service.py",
-                    "ai/context/assembly.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/reminders/reminder_dispatcher.py",
-                    "communication/communication_channels/discord/ui/task_list_ui.py",
-                    "communication/message_processing/flows/task_flow.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "TaskCollectionV2Model": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TaskV2Model": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "sanitize_task_tags": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_schemas.py",
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_tag_helpers"
-                },
-                "runtime_task_due_time": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/flows/task_flow.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "VALID_PRIORITIES": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "tasks/task_validation.py",
-                    "communication/message_processing/flows/task_flow.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "format_templates_for_help": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "communication/command_handlers/create_menu_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_templates"
-                }
-              },
-              "import_usage_details": {
-                "TASKS_V2_FILENAME": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/file_operations.py",
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "parse_time_string": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/natural_language_defaults.py",
-                    "ui/widgets/natural_language_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_time_parsing"
-                },
-                "runtime_task_is_completed": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/task_reminders.py",
-                    "communication/reminders/reminder_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "runtime_task_due_date": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "scheduler/task_reminders.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_service.py",
-                    "ai/context/assembly.py",
-                    "ai/context/phraser.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/reminders/reminder_dispatcher.py",
-                    "communication/communication_channels/discord/ui/task_list_ui.py",
-                    "communication/message_processing/flows/task_flow.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "TaskCollectionV2Model": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TaskV2Model": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "validate_tasks_v2_document": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "load_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "load_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "is_valid_task_title": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "is_valid_priority": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "validate_update_field": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "sanitize_task_tags": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_schemas.py",
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_tag_helpers"
-                },
-                "runtime_task_due_time": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/user_suggestions.py",
-                    "communication/message_processing/flows/task_flow.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "runtime_task_scheduled_reminder_periods": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "normalize_task_tag_filter": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_tag_helpers"
-                },
-                "VALID_PRIORITIES": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "tasks/task_validation.py",
-                    "communication/message_processing/flows/task_flow.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TaskTemplate": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_templates"
-                },
-                "format_templates_for_help": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_service.py",
-                    "communication/command_handlers/create_menu_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_templates"
-                },
-                "get_template": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_templates"
-                },
-                "list_builtin_templates": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_templates"
-                },
-                "_parse_time_string": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_time_parsing"
-                },
-                "t": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_service.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                },
-                "ALLOWED_UPDATE_FIELDS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "_tasks_mod": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                },
-                "task_services": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/task_analytics_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                },
-                "runtime_task_recurrence_interval": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "runtime_task_recurrence_pattern": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "runtime_task_completed_at": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                }
-              },
-              "package_api_items": [
-                "CompletionModel",
-                "DueModel",
-                "PreparedTaskCreateData",
-                "RecurrenceModel",
-                "TaskCollectionV2Model",
-                "TaskManagementError",
-                "TaskTemplate",
-                "TaskV2Model",
-                "add_one_calendar_month",
-                "add_user_task_tag",
-                "append_task_description",
-                "are_tasks_enabled",
-                "build_task_data_from_template",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "create_task_from_template",
-                "default_due_date_for_recurring_time",
-                "delete_task",
-                "ensure_task_directory",
-                "filter_tasks",
-                "find_most_urgent_task",
-                "find_task_by_identifier",
-                "format_due_date_status",
-                "format_task_detail_display",
-                "format_templates_for_help",
-                "get_builtin_task_template",
-                "get_completed_task_candidates",
-                "get_contextual_task_suggestion",
-                "get_recurring_task_defaults",
-                "get_task_by_id",
-                "get_task_candidates",
-                "get_task_templates_help_text",
-                "get_tasks_due_soon",
-                "get_template",
-                "get_user_task_stats",
-                "is_valid_due_date",
-                "is_valid_normalized_task_tag",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "list_builtin_templates",
-                "list_task_templates",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "lookup_builtin_template_id",
-                "normalize_task_tag_filter",
-                "parse_relative_date",
-                "parse_time_string",
-                "prepare_create_task_data",
-                "remove_user_task_tag",
-                "restore_task",
-                "runtime_task_completed_at",
-                "runtime_task_due_date",
-                "runtime_task_due_time",
-                "runtime_task_is_completed",
-                "runtime_task_quick_reminder_values",
-                "runtime_task_recurrence_interval",
-                "runtime_task_recurrence_pattern",
-                "runtime_task_scheduled_reminder_periods",
-                "sanitize_task_tags",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "sort_tasks_by_priority_and_due_date",
-                "task_identifier",
-                "task_short_identifier",
-                "update_task",
-                "validate_tasks_v2_document",
-                "validate_update_field"
-              ],
-              "registry_items": [
-                "_calculate_next_due_date",
-                "_canonical_timestamp",
-                "_load_v2_tasks",
-                "_tasks",
-                "add_one_calendar_month",
-                "append_task_description",
-                "format_templates_for_help",
-                "get_template",
-                "is_valid_due_date",
-                "is_valid_normalized_task_tag",
-                "is_valid_priority",
-                "normalize_task_tag_filter",
-                "parse_time_string",
-                "sanitize_tags",
-                "validate_completed_at"
-              ]
-            },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 8,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "UserContext": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                },
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chat/chatbot.py",
-                    "ai/context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                }
-              },
-              "import_usage_details": {
-                "UserContext": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                },
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chat/chatbot.py",
-                    "ai/context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "apply_profile_updates": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                },
-                "load_profile_sections": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                }
-              },
-              "package_api_items": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "_list_from_command_value",
-                "apply_profile_updates",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
-            },
             "ui": {
               "package": "ui",
               "current_exports_count": 34,
@@ -24971,420 +25276,115 @@
                 "update_status_labels"
               ]
             },
-            "scheduler": {
-              "package": "scheduler",
-              "current_exports_count": 12,
-              "should_export_count": 38,
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 8,
               "already_exported": [
-                "SchedulerManager",
-                "clear_all_accumulated_jobs_standalone",
-                "clear_scheduler_manager",
-                "get_scheduler_manager",
-                "process_category_schedule",
-                "process_user_schedules",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "set_scheduler_delivery_factory",
-                "set_scheduler_manager"
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
               ],
               "missing_exports": [
-                "build_sync_slot_key",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "get_due_sync_slot_key",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "localized_now_for_user",
-                "perform_daily_log_archival",
-                "register_full_daily_maintenance_jobs",
-                "register_health_sync_jobs",
-                "register_system_daily_jobs",
-                "resolve_user_timezone_str",
-                "run_scheduled_health_sync",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "task_selection_key",
-                "user_local_date",
-                "user_local_now_naive"
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "apply_profile_updates",
+                "load_profile_sections"
               ],
               "potentially_unnecessary": [],
               "cross_module_usage": {
-                "user_local_date": {
+                "UserContext": {
                   "import_count": 2,
                   "import_locations": [
-                    "checkins/checkin_service.py",
-                    "ai/context/phraser.py"
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.user_timezone"
+                  "module_path": "user.user_context"
                 },
-                "get_scheduler_manager": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "scheduler/__init__.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "SchedulerManager": {
+                "user_context_manager": {
                   "import_count": 2,
                   "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
+                    "ai/chat/chatbot.py",
+                    "ai/context/assembly.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "clear_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "localized_now_for_user": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "scheduler/health_sync_schedule.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone"
-                },
-                "resolve_user_timezone_str": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone"
+                  "module_path": "user.context_manager"
                 }
               },
               "import_usage_details": {
-                "user_local_date": {
+                "UserContext": {
                   "import_count": 2,
                   "import_locations": [
-                    "checkins/checkin_service.py",
-                    "ai/context/phraser.py"
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.user_timezone"
+                  "module_path": "user.user_context"
                 },
-                "get_scheduler_manager": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "scheduler/__init__.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "SchedulerManager": {
+                "user_context_manager": {
                   "import_count": 2,
                   "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
+                    "ai/chat/chatbot.py",
+                    "ai/context/assembly.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.manager"
+                  "module_path": "user.context_manager"
                 },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "_get_scheduler_manager": {
+                "apply_profile_updates": {
                   "import_count": 1,
                   "import_locations": [
-                    "core/service.py"
+                    "communication/command_handlers/profile_handler.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.runtime_access"
+                  "module_path": "user.profile_service"
                 },
-                "set_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "clear_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access"
-                },
-                "localized_now_for_user": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "scheduler/health_sync_schedule.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone"
-                },
-                "register_health_sync_jobs": {
+                "load_profile_sections": {
                   "import_count": 1,
                   "import_locations": [
-                    "scheduler/jobs.py"
+                    "communication/command_handlers/profile_handler.py"
                   ],
                   "import_types": [
                     "from_import"
                   ],
-                  "module_path": "scheduler.health_sync_jobs"
-                },
-                "resolve_user_timezone_str": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone"
-                },
-                "clear_all_accumulated_jobs_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_category_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_user_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "schedule_all_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "user_local_now_naive": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone"
-                },
-                "get_due_sync_slot_key": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "integrations/google_health/sync_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.health_sync_schedule"
+                  "module_path": "user.profile_service"
                 }
               },
               "package_api_items": [
-                "SchedulerManager",
-                "build_sync_slot_key",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "clear_all_accumulated_jobs_standalone",
-                "clear_scheduler_manager",
-                "get_due_sync_slot_key",
-                "get_random_time_within_task_period",
-                "get_scheduler_manager",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "localized_now_for_user",
-                "perform_daily_log_archival",
-                "process_category_schedule",
-                "process_user_schedules",
-                "register_full_daily_maintenance_jobs",
-                "register_health_sync_jobs",
-                "register_system_daily_jobs",
-                "resolve_user_timezone_str",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_scheduled_health_sync",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "set_scheduler_delivery_factory",
-                "set_scheduler_manager",
-                "task_selection_key",
-                "user_local_date",
-                "user_local_now_naive"
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "apply_profile_updates",
+                "load_profile_sections"
               ],
               "registry_items": [
+                "__getattr__",
                 "__init__",
-                "_is_weekly_backup_entry",
-                "_slot_datetime_local",
-                "_sorted_sync_times",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "check_and_perform_weekly_backup",
-                "cleanup_scheduler_wake_tasks",
-                "clear_scheduler_manager",
-                "get_scheduler_manager",
-                "localized_now_for_user",
-                "register_full_daily_maintenance_jobs",
-                "register_health_sync_jobs",
-                "register_system_daily_jobs",
-                "resolve_user_timezone_str",
-                "run_scheduled_health_sync"
+                "__new__",
+                "_get_conversation_history",
+                "_list_from_command_value",
+                "apply_profile_updates",
+                "get_all_preferences",
+                "get_instance_context"
               ]
             }
           }
         }
       },
-      "timestamp": "2026-08-16T23:02:04"
+      "timestamp": "2026-08-17T00:00:59"
     },
     "analyze_unused_functions": {
       "success": true,
@@ -25406,7 +25406,7 @@
           "by_file": {}
         }
       },
-      "timestamp": "2026-08-16T23:02:22"
+      "timestamp": "2026-08-17T00:01:17"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -28916,7 +28916,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-16T23:02:23"
+      "timestamp": "2026-08-17T00:01:17"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -28933,7 +28933,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:01:31"
+      "timestamp": "2026-08-17T00:00:23"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -28944,7 +28944,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-08-16T23:02:38"
+      "timestamp": "2026-08-17T00:01:32"
     },
     "analyze_module_imports": {
       "success": true,
@@ -48544,7 +48544,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:02:23"
+      "timestamp": "2026-08-17T00:01:17"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -48572,25 +48572,25 @@
             "files_scanned": 855,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 855,
-            "cache_misses": 0,
-            "changed_files": 0,
-            "cache_mode": "cache_only",
+            "cache_hits": 851,
+            "cache_misses": 4,
+            "changed_files": 4,
+            "cache_mode": "partial_cache",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cache_only",
+            "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 15.3886,
-              "detection_seconds": 0.1067,
-              "categorization_seconds": 0.0086,
-              "total_seconds": 15.9083
+              "discovery_seconds": 16.1593,
+              "detection_seconds": 0.3303,
+              "categorization_seconds": 0.0083,
+              "total_seconds": 16.9003
             },
-            "files_per_second": 53.75,
-            "cache_hits": 855,
-            "cache_misses": 0,
-            "changed_files": 0,
+            "files_per_second": 50.59,
+            "cache_hits": 851,
+            "cache_misses": 4,
+            "changed_files": 4,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -48617,22 +48617,22 @@
             "stats_reflect": "cache_hits / cache_misses / changed_files per scan"
           },
           "_cache_metadata": {
-            "cache_mode": "cache_only",
-            "hits": 855,
-            "misses": 0,
+            "cache_mode": "partial_cache",
+            "hits": 851,
+            "misses": 4,
             "total_cache_checks": 855,
-            "hit_rate": 100.0
+            "hit_rate": 99.5
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "hits": 855,
-          "misses": 0,
+          "cache_mode": "partial_cache",
+          "hits": 851,
+          "misses": 4,
           "total_cache_checks": 855,
-          "hit_rate": 100.0
+          "hit_rate": 99.5
         }
       },
-      "timestamp": "2026-08-16T23:02:38"
+      "timestamp": "2026-08-17T00:01:32"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -48669,12 +48669,12 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:03:55"
+      "timestamp": "2026-08-17T00:02:23"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-08-16T23:13:27",
+        "generated_at": "2026-08-17T00:04:09",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -48719,7 +48719,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-08-02T23:13:27",
+                "recent_cutoff": "2026-08-03T00:04:09",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-08-11_01-00-09",
                 "latest_weekly_created_at": "2026-08-11 01:00:09"
               }
@@ -48730,7 +48730,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-08-11_01-00-09",
                 "latest_created_at": "2026-08-11 01:00:09",
-                "recent_cutoff": "2026-08-02T23:13:27"
+                "recent_cutoff": "2026-08-03T00:04:09"
               }
             },
             {
@@ -48785,7 +48785,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-08-02T23:13:27",
+              "recent_cutoff": "2026-08-03T00:04:09",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-08-11_01-00-09",
               "latest_weekly_created_at": "2026-08-11 01:00:09"
             }
@@ -48796,7 +48796,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-08-11_01-00-09",
               "latest_created_at": "2026-08-11 01:00:09",
-              "recent_cutoff": "2026-08-02T23:13:27"
+              "recent_cutoff": "2026-08-03T00:04:09"
             }
           },
           {
@@ -48819,7 +48819,7 @@
           }
         ]
       },
-      "timestamp": "2026-08-16T23:13:27"
+      "timestamp": "2026-08-17T00:04:09"
     },
     "analyze_system_signals": {
       "success": true,
@@ -48830,7 +48830,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-08-16T23:01:29.738064",
+          "timestamp": "2026-08-17T00:00:22.431225",
           "system_health": {
             "overall_status": "OK",
             "core_files": {
@@ -48855,7 +48855,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-08-16T22:59:57.748281",
+            "last_audit": "2026-08-16T23:48:34.350399",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "health_indicators": [
@@ -48872,16 +48872,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "communication/communication_channels/discord/ui/__init__.py",
-              "storage/user_data_operations.py",
-              "development_tools/shared/service/report_generation_consolidated.py",
-              "tests/unit/test_webhook_handler_gap_coverage.py",
-              "communication/communication_channels/discord/ui/helpers.py",
-              "tests/behavior/test_webhook_handler_behavior.py",
-              "communication/communication_channels/discord/events/status.py",
-              "communication/communication_channels/discord/webhooks/server.py",
-              "tests/unit/test_item_form_shared.py",
-              "development_tools/functions/analyze_module_refactor_candidates.py"
+              "development_tools/shared/service/report_generation_ai_status.py",
+              "development_tools/shared/tool_metadata.py",
+              "storage/user_data_user_info.py",
+              "development_tools/tests/domain_mapper.py",
+              "development_tools/legacy/analyze_legacy_references.py",
+              "tests/core/test_storage_scenarios.py",
+              "development_tools/legacy/fix_legacy_references.py",
+              "tests/development_tools/test_legacy_reference_cleanup.py",
+              "development_tools/functions/analyze_module_refactor_candidates.py",
+              "development_tools/shared/service/report_generation_consolidated.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -48908,7 +48908,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:01:29"
+      "timestamp": "2026-08-17T00:00:22"
     },
     "decision_support": {
       "success": true,
@@ -49073,7 +49073,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-16T23:01:44"
+      "timestamp": "2026-08-17T00:00:37"
     },
     "quick_status": {
       "success": true,
@@ -60262,10 +60262,10 @@
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\parallel.xml",
               "return_code_hex": "0x0",
               "return_code": 0,
-              "passed_count": 5787,
+              "passed_count": 2222,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 4,
+              "skipped_count": 0,
               "failed_node_ids": []
             },
             "no_parallel": {
@@ -60274,12 +60274,12 @@
               "classification_reason": "pytest_passed",
               "actionable_context": "",
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\no_parallel.xml",
-              "return_code_hex": "0x0",
-              "return_code": 0,
-              "passed_count": 121,
+              "return_code_hex": "0x5",
+              "return_code": 5,
+              "passed_count": 1,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 20,
+              "skipped_count": 0,
               "failed_node_ids": []
             },
             "failed_node_ids": [],
@@ -60290,13 +60290,13 @@
               "name": "parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 381.565,
+              "duration_seconds": 70.071,
               "counts": {
-                "total": 5791,
-                "passed": 5787,
+                "total": 2222,
+                "passed": 2222,
                 "failed": 0,
                 "errors": 0,
-                "skipped": 4
+                "skipped": 0
               },
               "classification": "passed",
               "failed_node_ids": [],
@@ -60306,14 +60306,14 @@
             {
               "name": "no_parallel",
               "command": [],
-              "return_code": 0,
-              "duration_seconds": 68.935,
+              "return_code": 5,
+              "duration_seconds": 7.981,
               "counts": {
-                "total": 141,
-                "passed": 121,
+                "total": 1,
+                "passed": 1,
                 "failed": 0,
                 "errors": 0,
-                "skipped": 20
+                "skipped": 0
               },
               "classification": "passed",
               "failed_node_ids": [],
@@ -60326,21 +60326,11 @@
             "cache_mode": "selective_run",
             "source": "run_test_suite",
             "suite_profile": "quick",
-            "invalidation_reason": "source_domain_changed",
+            "invalidation_reason": "test_file_content_or_mapping_changed",
             "changed_domains": [
-              "ai",
-              "checkins",
-              "communication",
-              "core",
-              "messages",
-              "notebook",
-              "scheduler",
-              "storage",
-              "tasks",
-              "ui",
-              "user"
+              "development_tools"
             ],
-            "test_files_to_run": 314,
+            "test_files_to_run": 138,
             "test_files_cached": 187,
             "has_full_suite_cache": true
           }
@@ -60349,26 +60339,16 @@
           "cache_mode": "selective_run",
           "source": "run_test_suite",
           "suite_profile": "quick",
-          "invalidation_reason": "source_domain_changed",
+          "invalidation_reason": "test_file_content_or_mapping_changed",
           "changed_domains": [
-            "ai",
-            "checkins",
-            "communication",
-            "core",
-            "messages",
-            "notebook",
-            "scheduler",
-            "storage",
-            "tasks",
-            "ui",
-            "user"
+            "development_tools"
           ],
-          "test_files_to_run": 314,
+          "test_files_to_run": 138,
           "test_files_cached": 187,
           "has_full_suite_cache": true
         }
       },
-      "timestamp": "2026-08-16T23:13:26"
+      "timestamp": "2026-08-17T00:04:08"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -60384,7 +60364,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-08-16T23:13:28"
+      "timestamp": "2026-08-17T00:04:09"
     },
     "analyze_ruff": {
       "success": true,
@@ -60403,14 +60383,14 @@
           "top_rules": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 0,
+            "subprocesses": 2,
             "merged": true,
-            "fragment_cache_hits": 9,
-            "fragment_cache_misses": 0
+            "fragment_cache_hits": 7,
+            "fragment_cache_misses": 2
           }
         }
       },
-      "timestamp": "2026-08-16T23:13:28.252316"
+      "timestamp": "2026-08-17T00:04:10.019568"
     },
     "analyze_pyright": {
       "success": true,
@@ -60433,15 +60413,15 @@
           "top_warning_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 0,
+            "subprocesses": 2,
             "merged": true,
-            "fragment_cache_hits": 9,
-            "fragment_cache_misses": 0,
+            "fragment_cache_hits": 7,
+            "fragment_cache_misses": 2,
             "parity_note": "Sharded Pyright may omit cross-package diagnostics; run a full-project Pyright periodically (e.g. pyright_shard_scan false or CI) for strict parity."
           }
         }
       },
-      "timestamp": "2026-08-16T23:13:28.252316"
+      "timestamp": "2026-08-17T00:04:10.019568"
     },
     "analyze_bandit": {
       "success": true,
@@ -60456,12 +60436,12 @@
           "tool_available": true,
           "returncode": 1,
           "severity_counts": {
-            "LOW": 199,
+            "LOW": 197,
             "MEDIUM": 0,
             "HIGH": 0
           },
-          "low_severity_count": 199,
-          "total_findings_including_low": 199,
+          "low_severity_count": 197,
+          "total_findings_including_low": 197,
           "top_files": [],
           "shard_run": {
             "mode": "sharded",
@@ -60472,7 +60452,7 @@
           }
         }
       },
-      "timestamp": "2026-08-16T23:13:28.252316"
+      "timestamp": "2026-08-17T00:04:10.019568"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -60494,7 +60474,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-08-16T23:13:28.252316"
+      "timestamp": "2026-08-17T00:04:10.019568"
     },
     "analyze_vulture": {
       "success": true,
@@ -60513,7 +60493,7 @@
           "findings_sample": []
         }
       },
-      "timestamp": "2026-08-16T23:13:28.252316"
+      "timestamp": "2026-08-17T00:04:10.019568"
     }
   }
 }

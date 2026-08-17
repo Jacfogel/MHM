@@ -75,6 +75,23 @@ def test_domain_mapper_expands_cross_domain_dependencies() -> None:
 
 
 @pytest.mark.unit
+def test_domain_mapper_storage_change_does_not_fan_out_through_core() -> None:
+    """Storage is a dependency leaf: it must not invalidate core's dependents."""
+    temp_dir = _make_local_scratch_dir()
+    try:
+        mapper = DomainMapper(temp_dir)
+        expanded = mapper.expand_domains_with_dependencies({"storage"})
+
+        assert expanded == {"storage"}
+        assert "core" not in expanded
+        assert "communication" not in expanded
+        assert "ui" not in expanded
+        assert "user" not in expanded
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
 def test_domain_mapper_get_test_files_for_source_includes_domain_tests() -> None:
     """Domain mapper should include relevant non-excluded test files."""
     temp_dir = _make_local_scratch_dir()

@@ -80,6 +80,41 @@ class TestLegacyScanning:
         with contextlib.suppress(OSError):
             excluded_file.parent.rmdir()
 
+    @pytest.mark.unit
+    def test_scan_cache_hit_skips_content_read_and_intentional_probe(self, tmp_path):
+        """Unchanged files must not be re-read on a cache hit, including the 10-line probe."""
+        src = tmp_path / "legacy_mod.py"
+        src.write_text(
+            "# LEGACY COMPATIBILITY: keep for cache-hit test\nVALUE = 1\n",
+            encoding="utf-8",
+        )
+        analyzer = LegacyReferenceAnalyzer(str(tmp_path))
+        first = analyzer.scan_for_legacy_references()
+        assert analyzer.cache_stats["misses"] >= 1
+        assert any(
+            "legacy_mod.py" in path.replace("\\", "/")
+            for files in first.values()
+            for path, _, _ in files
+        )
+
+        probe_calls = {"n": 0}
+        orig_probe = analyzer._has_intentional_legacy_skip
+
+        def _count_probe(file_path, rel_path_str):
+            probe_calls["n"] += 1
+            return orig_probe(file_path, rel_path_str)
+
+        analyzer._has_intentional_legacy_skip = _count_probe
+        second = analyzer.scan_for_legacy_references()
+        assert analyzer.cache_stats["hits"] >= 1
+        assert probe_calls["n"] == 0
+        assert any(
+            path.replace("\\", "/").endswith("legacy_mod.py") and content == ""
+            for files in second.values()
+            for path, content, matches in files
+            if matches
+        )
+
 
 class TestReferenceFinding:
     """Test finding specific legacy references."""

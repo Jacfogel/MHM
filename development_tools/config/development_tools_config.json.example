@@ -340,10 +340,7 @@
       "messages": [
         "communication"
       ],
-      "storage": [
-        "core",
-        "user"
-      ],
+      "storage": [],
       "development_tools": []
     },
     "keyword_map": {

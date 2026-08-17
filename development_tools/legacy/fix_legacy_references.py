@@ -174,6 +174,12 @@ class LegacyReferenceFixer:
                 if not file_path_obj.exists():
                     continue
 
+                if not content:
+                    try:
+                        content = file_path_obj.read_text(encoding="utf-8")
+                    except OSError:
+                        continue
+
                 # Sort matches by position (reverse order to avoid offset issues)
                 sorted_matches = sorted(matches, key=lambda x: x["start"], reverse=True)
 

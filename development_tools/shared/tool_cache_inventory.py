@@ -109,7 +109,7 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "strategy": "paired_doc_cache",
             "implementation": "orchestration cache metadata; doc sync payloads",
             "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
-            "invalidation": "Doc file mtimes and paired-doc registry",
+            "invalidation": "Doc file mtimes and paired-doc registry; freshness compares scoped `docs/jsons/scopes/<scope>/` result JSON; ignores changelog/generated reports; path-drift uses the same skip as other subchecks",
         }
     if tool_name == "analyze_test_markers":
         return {

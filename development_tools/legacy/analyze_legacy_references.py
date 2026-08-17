@@ -270,23 +270,25 @@ class LegacyReferenceAnalyzer:
         """Expose inventory metadata for wrappers/reporting."""
         return dict(self.deprecation_inventory_summary)
 
-    def should_skip_file(self, file_path: Path) -> bool:
-        """Check if a file should be skipped from scanning."""
-        # Get relative path from project root for exclusion checking
+    def _relative_path_str(self, file_path: Path) -> str:
+        """Return a repo-relative path string, or the original path if outside the root."""
         try:
-            rel_path = file_path.relative_to(self.project_root)
-            rel_path_str = str(rel_path).replace("\\", "/")
+            return str(file_path.relative_to(self.project_root)).replace("\\", "/")
         except ValueError:
-            # File is outside project root, use absolute path
-            rel_path_str = str(file_path).replace("\\", "/")
+            return str(file_path).replace("\\", "/")
 
-        # Keep key runtime entry points visible to legacy scanning even when
-        # broad exclusions are enabled in shared tooling config.
+    def _is_main_project_root(self) -> bool:
+        """Return True when this analyzer is scanning the live repo, not a demo/temp tree."""
+        try:
+            return str(self.project_root.resolve()) == str(Path(".").resolve())
+        except (OSError, ValueError):
+            return False
+
+    def _path_should_skip(self, file_path: Path, rel_path_str: str) -> bool:
+        """Return True when path/exclusion rules skip *file_path* without reading it."""
         if rel_path_str.endswith("run_tests.py"):
             return False
 
-        # Apply standard exclusion logic first to keep behavior consistent
-        # across development tools and ensure test data stays isolated.
         from development_tools.shared.standard_exclusions import should_exclude_file
 
         if should_exclude_file(
@@ -294,56 +296,19 @@ class LegacyReferenceAnalyzer:
         ):
             return True
 
-        # Skip the analyzer's own file to avoid false positives
         if "analyze_legacy_references.py" in rel_path_str:
             return True
 
-        # Skip test fixtures directory (intentional legacy patterns for testing)
-        # Only skip if the file is in the main project's tests/fixtures directory
-        # Don't skip if it's in a demo/test project (different project_root) - tests need to scan those
-        try:
-            main_project_root = Path(".").resolve()
-            is_main_project = str(self.project_root.resolve()) == str(main_project_root)
-        except (OSError, ValueError):
-            # If we can't resolve paths, assume it's not the main project
-            is_main_project = False
-
-        if is_main_project and (
+        if self._is_main_project_root() and (
             "tests/fixtures/" in rel_path_str or "tests\\fixtures\\" in rel_path_str
         ):
             return True
 
-        # Check for INTENTIONAL LEGACY marker at the top of the file
-        # Only apply this check for files in the main project (not demo/test projects)
-        # Demo/test projects need their legacy_code.py to be scanned for testing
-        if is_main_project:
-            try:
-                with open(file_path, encoding="utf-8", errors="ignore") as f:
-                    # Read first 10 lines to check for marker
-                    first_lines = "".join(f.readlines()[:10])
-                    if (
-                        "INTENTIONAL LEGACY" in first_lines
-                        or "# INTENTIONAL LEGACY:" in first_lines
-                    ):
-                        # Only skip if it's in tests/fixtures directory or is a test file
-                        if (
-                            "tests/fixtures/" in rel_path_str
-                            or "tests\\fixtures\\" in rel_path_str
-                            or "test_" in file_path.name
-                            or rel_path_str.startswith("tests/")
-                        ):
-                            return True
-            except (OSError, UnicodeDecodeError):
-                # If we can't read the file, skip it
-                pass
-
-        # Skip generated files
         from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
 
         if rel_path_str in ALL_GENERATED_FILES:
             return True
 
-        # Skip certain directories (check relative path, not absolute)
         from development_tools.shared.standard_exclusions import (
             BASE_EXCLUSION_SHORTLIST,
         )
@@ -360,7 +325,6 @@ class LegacyReferenceAnalyzer:
                 if path_parts[: len(skip_parts)] == skip_parts:
                     return True
 
-        # Skip preserved files
         for preserve_pattern in self.preserve_files:
             if preserve_pattern.endswith("/"):
                 if (
@@ -377,8 +341,37 @@ class LegacyReferenceAnalyzer:
             elif preserve_pattern in rel_path_str:
                 return True
 
-        # Skip certain file extensions
         return file_path.suffix.lower() in self.skip_extensions
+
+    def _has_intentional_legacy_skip(self, file_path: Path, rel_path_str: str) -> bool:
+        """Read the first 10 lines to honor INTENTIONAL LEGACY markers on test files."""
+        if not self._is_main_project_root():
+            return False
+        try:
+            with open(file_path, encoding="utf-8", errors="ignore") as handle:
+                first_lines = "".join(handle.readlines()[:10])
+        except (OSError, UnicodeDecodeError):
+            return False
+        if (
+            "INTENTIONAL LEGACY" not in first_lines
+            and "# INTENTIONAL LEGACY:" not in first_lines
+        ):
+            return False
+        return (
+            "tests/fixtures/" in rel_path_str
+            or "tests\\fixtures\\" in rel_path_str
+            or "test_" in file_path.name
+            or rel_path_str.startswith("tests/")
+        )
+
+    def should_skip_file(self, file_path: Path) -> bool:
+        """Check if a file should be skipped from scanning."""
+        rel_path_str = self._relative_path_str(file_path)
+        if rel_path_str.endswith("run_tests.py"):
+            return False
+        if self._path_should_skip(file_path, rel_path_str):
+            return True
+        return self._has_intentional_legacy_skip(file_path, rel_path_str)
 
     def analyze_file_content(
         self, file_path: Path, content: str
@@ -417,6 +410,60 @@ class LegacyReferenceAnalyzer:
 
         return findings
 
+    def _record_cached_findings(
+        self,
+        file_path: Path,
+        cached_result: dict[str, list[dict[str, Any]]],
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]],
+    ) -> None:
+        """Apply cached matches without re-reading file contents."""
+        rel_path_str = self._relative_path_str(file_path)
+        for pattern_type, matches in cached_result.items():
+            if pattern_type in self.legacy_patterns and matches:
+                findings[pattern_type].append((rel_path_str, "", matches))
+
+    def _scan_files_for_legacy(
+        self,
+        glob_pattern: str,
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]],
+        cache_stats: dict[str, int],
+    ) -> None:
+        """Scan files matching *glob_pattern*, using mtime cache to skip unchanged I/O."""
+        for file_path in self.project_root.rglob(glob_pattern):
+            rel_path_str = self._relative_path_str(file_path)
+            if (
+                not rel_path_str.endswith("run_tests.py")
+                and self._path_should_skip(file_path, rel_path_str)
+            ):
+                continue
+
+            cached_result = None
+            if self.use_cache and self.cache:
+                cached_result = self.cache.get_cached(file_path)
+            if isinstance(cached_result, dict):
+                cache_stats["hits"] += 1
+                self._record_cached_findings(file_path, cached_result, findings)
+                continue
+
+            if self._has_intentional_legacy_skip(file_path, rel_path_str):
+                continue
+
+            cache_stats["misses"] += 1
+            try:
+                with open(file_path, encoding="utf-8") as handle:
+                    content = handle.read()
+            except Exception as exc:
+                if logger:
+                    logger.warning(f"Error reading {file_path}: {exc}")
+                continue
+
+            file_findings = self.analyze_file_content(file_path, content)
+            if self.use_cache and self.cache:
+                self.cache.cache_results(file_path, file_findings)
+            for pattern_type, matches in file_findings.items():
+                if matches:
+                    findings[pattern_type].append((rel_path_str, content, matches))
+
     def scan_for_legacy_references(
         self,
     ) -> dict[str, list[tuple[str, str, list[dict[str, Any]]]]]:
@@ -424,124 +471,14 @@ class LegacyReferenceAnalyzer:
         if logger:
             logger.debug("Analyzing legacy references...")
 
-        findings = defaultdict(list)
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]] = defaultdict(
+            list
+        )
         cache_stats = {"hits": 0, "misses": 0}
 
-        # Scan Python files
-        for py_file in self.project_root.rglob("*.py"):
-            if self.should_skip_file(py_file):
-                continue
+        self._scan_files_for_legacy("*.py", findings, cache_stats)
+        self._scan_files_for_legacy("*.md", findings, cache_stats)
 
-            # Check cache first
-            cached_result = None
-            if self.use_cache and self.cache:
-                cached_result = self.cache.get_cached(py_file)
-
-            if cached_result is not None:
-                cache_stats["hits"] += 1
-                # Cached result is a dict with pattern_type -> matches
-                # Filter to only include pattern types that are currently in config
-                for pattern_type, matches in cached_result.items():
-                    # Only use cached results for patterns that are still in the current config
-                    if pattern_type in self.legacy_patterns and matches:
-                        # Need to read content for the tuple format
-                        try:
-                            with open(py_file, encoding="utf-8") as f:
-                                content = f.read()
-                            findings[pattern_type].append(
-                                (
-                                    str(py_file.relative_to(self.project_root)),
-                                    content,
-                                    matches,
-                                )
-                            )
-                        except Exception:
-                            # If we can't read the file, skip it
-                            pass
-            else:
-                cache_stats["misses"] += 1
-                try:
-                    with open(py_file, encoding="utf-8") as f:
-                        content = f.read()
-
-                    file_findings = self.analyze_file_content(py_file, content)
-
-                    # Cache the results
-                    if self.use_cache and self.cache:
-                        self.cache.cache_results(py_file, file_findings)
-
-                    for pattern_type, matches in file_findings.items():
-                        if matches:
-                            findings[pattern_type].append(
-                                (
-                                    str(py_file.relative_to(self.project_root)),
-                                    content,
-                                    matches,
-                                )
-                            )
-
-                except Exception as e:
-                    if logger:
-                        logger.warning(f"Error reading {py_file}: {e}")
-
-        # Scan Markdown files
-        for md_file in self.project_root.rglob("*.md"):
-            if self.should_skip_file(md_file):
-                continue
-
-            # Check cache first
-            cached_result = None
-            if self.use_cache and self.cache:
-                cached_result = self.cache.get_cached(md_file)
-
-            if cached_result is not None:
-                cache_stats["hits"] += 1
-                # Cached result is a dict with pattern_type -> matches
-                # Filter to only include pattern types that are currently in config
-                for pattern_type, matches in cached_result.items():
-                    # Only use cached results for patterns that are still in the current config
-                    if pattern_type in self.legacy_patterns and matches:
-                        # Need to read content for the tuple format
-                        try:
-                            with open(md_file, encoding="utf-8") as f:
-                                content = f.read()
-                            findings[pattern_type].append(
-                                (
-                                    str(md_file.relative_to(self.project_root)),
-                                    content,
-                                    matches,
-                                )
-                            )
-                        except Exception:
-                            # If we can't read the file, skip it
-                            pass
-            else:
-                cache_stats["misses"] += 1
-                try:
-                    with open(md_file, encoding="utf-8") as f:
-                        content = f.read()
-
-                    file_findings = self.analyze_file_content(md_file, content)
-
-                    # Cache the results
-                    if self.use_cache and self.cache:
-                        self.cache.cache_results(md_file, file_findings)
-
-                    for pattern_type, matches in file_findings.items():
-                        if matches:
-                            findings[pattern_type].append(
-                                (
-                                    str(md_file.relative_to(self.project_root)),
-                                    content,
-                                    matches,
-                                )
-                            )
-
-                except Exception as e:
-                    if logger:
-                        logger.warning(f"Error reading {md_file}: {e}")
-
-        # Save cache
         if self.use_cache and self.cache:
             self.cache.save_cache()
             if logger and (cache_stats["hits"] > 0 or cache_stats["misses"] > 0):

@@ -664,16 +664,75 @@ def test_get_docs_tree_max_mtime_excludes_generated_reports(tmp_path):
     service = _DummyService(tmp_path)
     real = tmp_path / "development_docs" / "PLANS.md"
     generated = tmp_path / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+    changelog = tmp_path / "ai_development_docs" / "AI_CHANGELOG.md"
+    detail = tmp_path / "development_docs" / "CHANGELOG_DETAIL.md"
     real.parent.mkdir(parents=True, exist_ok=True)
+    changelog.parent.mkdir(parents=True, exist_ok=True)
     real.write_text("plans", encoding="utf-8")
     generated.write_text("generated", encoding="utf-8")
+    changelog.write_text("changelog", encoding="utf-8")
+    detail.write_text("detail", encoding="utf-8")
 
     old = 1_700_000_000.0
     new = 1_800_000_000.0
     os.utime(real, (old, old))
     os.utime(generated, (new, new))
+    os.utime(changelog, (new, new))
+    os.utime(detail, (new, new))
 
     assert service._get_docs_tree_max_mtime() == old
+
+
+@pytest.mark.unit
+def test_run_doc_sync_check_path_drift_uses_doc_subcheck_cache(tmp_path, monkeypatch):
+    """Path-drift must use the same outer skip as the other doc subchecks."""
+    service = _DummyService(tmp_path)
+    service._tool_cache_metadata = {}
+    service.results_cache = {}
+    called = []
+    path_drift_ran = {"n": 0}
+
+    def _subcheck(tool_name, _log_label, _parser, _run_callable):
+        called.append(tool_name)
+        service._tool_cache_metadata[tool_name] = {"cache_mode": "cache_only"}
+        return {"summary": {"total_issues": 0}, "details": {}}
+
+    monkeypatch.setattr(service, "_run_doc_subcheck_with_cache", _subcheck)
+    monkeypatch.setattr(service, "_is_doc_subcheck_cache_fresh", lambda _tool: True)
+    monkeypatch.setattr(
+        service,
+        "_aggregate_doc_sync_results",
+        lambda _all: {"status": "PASS", "total_issues": 0, "path_drift_files": []},
+        raising=False,
+    )
+    monkeypatch.setattr(
+        service,
+        "run_analyze_path_drift",
+        lambda: path_drift_ran.__setitem__("n", path_drift_ran["n"] + 1) or {},
+        raising=False,
+    )
+
+    cached_sync = {
+        "summary": {"total_issues": 0},
+        "details": {"paired_docs": {}, "example_marker_findings": {}},
+    }
+    output_storage = load_development_tools_module("shared.output_storage")
+    monkeypatch.setattr(
+        output_storage, "load_tool_result", lambda *a, **k: cached_sync, raising=True
+    )
+    live = sys.modules.get("development_tools.shared.output_storage")
+    if live is not None and live is not output_storage:
+        monkeypatch.setattr(
+            live, "load_tool_result", lambda *a, **k: cached_sync, raising=True
+        )
+
+    assert service._run_doc_sync_check() is True
+    assert "analyze_path_drift" in called
+    assert path_drift_ran["n"] == 0
+    meta = service._tool_cache_metadata["analyze_documentation_sync"]
+    assert meta["cache_mode"] == "cache_only"
+    assert meta["cache_hits"] == 6
+    assert meta["cache_misses"] == 0
 
 
 @pytest.mark.unit
@@ -684,7 +743,9 @@ def test_is_doc_subcheck_cache_fresh_missing_and_mtime_compare(tmp_path, monkeyp
 
     docs = tmp_path / "README.md"
     docs.write_text("doc", encoding="utf-8")
-    result_dir = tmp_path / "development_tools" / "docs" / "jsons"
+    result_dir = (
+        tmp_path / "development_tools" / "docs" / "jsons" / "scopes" / "full"
+    )
     result_dir.mkdir(parents=True, exist_ok=True)
     result = result_dir / f"{tool_name}_results.json"
     result.write_text("{}", encoding="utf-8")
@@ -704,6 +765,15 @@ def test_is_doc_subcheck_cache_fresh_missing_and_mtime_compare(tmp_path, monkeyp
 
     os.utime(docs, (future + 10, future + 10))
     assert service._is_doc_subcheck_cache_fresh(tool_name) is False
+
+    stale_flat = tmp_path / "development_tools" / "docs" / "jsons" / f"{tool_name}_results.json"
+    stale_flat.parent.mkdir(parents=True, exist_ok=True)
+    stale_flat.write_text("{}", encoding="utf-8")
+    os.utime(stale_flat, (future + 20, future + 20))
+    os.utime(docs, (past, past))
+    os.utime(result, (past - 10, past - 10))
+    assert service._is_doc_subcheck_cache_fresh(tool_name) is False
+    assert service._doc_subcheck_result_path(tool_name) == result
 
 
 @pytest.mark.unit

@@ -48,12 +48,19 @@ def test_latest_mtime_for_patterns_respects_excludes(tmp_path: Path):
     keep.write_text("pass", encoding="utf-8")
     skip_prefix.write_text("pass", encoding="utf-8")
     skip_exact.write_text("pass", encoding="utf-8")
+    changelog = project_root / "tests" / "development_tools" / "AI_CHANGELOG.md"
+    changelog.write_text("pass", encoding="utf-8")
+    future = time.time() + 60
+    import os
+
+    os.utime(changelog, (future, future))
 
     service = AIToolsService(project_root=str(project_root))
     latest = service._latest_mtime_for_patterns(
-        patterns=["tests/**/*.py"],
+        patterns=["tests/**/*.py", "tests/**/*.md"],
         exclude_prefixes=["tests/data/"],
         exclude_paths=["tests/development_tools/test_skip_exact.py"],
+        exclude_name_contains=("CHANGELOG",),
     )
 
     assert latest > 0

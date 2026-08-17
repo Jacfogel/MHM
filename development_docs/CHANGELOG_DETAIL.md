@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-16 - Audit cache: storage leaf, scoped doc-sync, legacy I/O skip
+- **Dev tools**: `domain_dependencies.storage` is now `[]` (a leaf). Storage-only source changes no longer expand through `core` and invalidate communication/ui/tasks/ai/etc. `core` still lists `storage`, so core edits still rerun storage-marked tests.
+- **Doc-sync**: `_is_doc_subcheck_cache_fresh` compares mtimes against scoped JSON at `development_tools/docs/jsons/scopes/<full|dev_tools>/`, matching `load_tool_result`. The pre-scopes flat `docs/jsons/` path never existed after the scopes migration, so all six subchecks were cold-scanning every audit.
+- **Doc-sync skip**: Path-drift now goes through `_run_doc_subcheck_with_cache` like ASCII/headings/links (it previously always ran and was counted as a miss). Freshness ignores changelog files and generated reports the audit rewrites after the scan, so changelog trim no longer dirties the next audit.
+- **Legacy scan**: Cache hits reuse stored matches without re-reading file contents. The INTENTIONAL LEGACY 10-line probe runs only on cache misses. Cleanup (`fix_legacy_references`) reads the file only when applying replacements if scan content was omitted.
+- **Docs**: Paired development-tools guides and `tool_cache_inventory` invalidation text updated.
+
 ### 2026-08-16 - Module refactor candidates use size metrics
 - **Dev tools**: `analyze_module_refactor_candidates` now flags modules by **line count** and **top-level function/method count** only. Retired AST-node-sum (`max_total_complexity_per_module`) and high/critical function counts (`high_plus_critical_threshold`), which mostly restated file size and overlapped `analyze_functions`. Nested closures no longer inflate function count.
 - **Thresholds**: Portable/project defaults are `max_lines_per_module` 1500 and `max_functions_per_module` 40 (was 2000/40 plus complexity 4000 / high+critical 10). AI_PRIORITIES shows `{N} lines, {M} functions` instead of `total_function_complexity`.
