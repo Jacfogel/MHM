@@ -146,11 +146,13 @@ def test_cleanup_old_message_archives_user_iteration_warnings(monkeypatch, tmp_p
 @pytest.mark.unit
 @pytest.mark.core
 def test_cleanup_old_backup_files_branches_with_zip_artifacts(monkeypatch, tmp_path):
+    import core.backup_manager as backup_module
+
     backup_dir = tmp_path / "backups"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     now = 2_100_000_000
-    monkeypatch.setattr(auto_cleanup.time, "time", lambda: now)
+    monkeypatch.setattr(backup_module.time, "time", lambda: now)
     monkeypatch.setenv("BACKUP_RETENTION_DAYS", "invalid")
     monkeypatch.setenv("WEEKLY_BACKUP_MAX_KEEP", "invalid")
     monkeypatch.setattr(core_config, "get_backups_dir", lambda: str(backup_dir), raising=False)
@@ -170,9 +172,9 @@ def test_cleanup_old_backup_files_branches_with_zip_artifacts(monkeypatch, tmp_p
         os.utime(p, (now - 100 - i, now - 100 - i))
 
     warnings = []
-    monkeypatch.setattr(auto_cleanup.logger, "warning", lambda msg: warnings.append(msg))
+    monkeypatch.setattr(backup_module.logger, "warning", lambda msg: warnings.append(msg))
 
-    real_remove = auto_cleanup.os.remove
+    real_remove = backup_module.os.remove
 
     def patched_remove(path):
         name = Path(path).name
@@ -180,7 +182,7 @@ def test_cleanup_old_backup_files_branches_with_zip_artifacts(monkeypatch, tmp_p
             raise PermissionError("locked")
         return real_remove(path)
 
-    monkeypatch.setattr(auto_cleanup.os, "remove", patched_remove)
+    monkeypatch.setattr(backup_module.os, "remove", patched_remove)
 
     assert auto_cleanup.cleanup_old_backup_files() is True
     assert any("Failed to remove old weekly backup" in msg for msg in warnings)

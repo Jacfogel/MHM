@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 13:06:14
+> **Last Generated**: 2026-08-19 14:40:19
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 268
-- **Total Imports Found**: 2268
+- **Total Imports Found**: 2267
 - **Dependencies Documented**: 268 (100% coverage)
 - **Standard Library Imports**: 681 (30.0%)
 - **Third-Party Imports**: 217 (9.6%)
-- **Local Imports**: 1370 (60.4%)
+- **Local Imports**: 1369 (60.4%)
 - **Last Updated**: 2026-08-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 681 imports (30.0%)
 - **Third-Party**: 217 imports (9.6%)
-- **Local**: 1370 imports (60.4%)
+- **Local**: 1369 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -3282,7 +3282,7 @@
 - **Dependencies**:
   - **Local**:
     - `core (get_all_user_ids)` (NEW)
-    - `core.backup_manager (cleanup_manifest_less_backup_directories)` (NEW)
+    - `core.backup_manager (cleanup_old_backup_artifacts)` (NEW)
     - `core.config (BASE_DATA_DIR, get_backups_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)

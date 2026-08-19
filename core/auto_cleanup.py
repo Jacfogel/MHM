@@ -309,125 +309,19 @@ def perform_cleanup(root_path="."):
 def cleanup_old_backup_files():
     """
     Clean up old backup files from data/backups directory.
-    Uses same retention policy as BackupManager (30 days default, separate
+
+    Uses the shared BackupManager retention policy (age cutoff plus separate
     weekly and non-weekly keep limits).
     """
     try:
         from core.config import get_backups_dir
+        from core.backup_manager import cleanup_old_backup_artifacts
 
         backup_dir = Path(get_backups_dir())
-
         if not backup_dir.exists():
             return True
 
-        # Get retention settings (same as BackupManager)
-        try:
-            backup_retention_days = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
-        except Exception:
-            backup_retention_days = 30
-        max_backups = 10
-        try:
-            weekly_max_backups = int(os.getenv("WEEKLY_BACKUP_MAX_KEEP", "4"))
-        except Exception:
-            weekly_max_backups = 4
-        # Gather backup artifacts (zip files and directory backups) with mtime
-        backup_files = []
-        now_ts = time.time()
-
-        for file_path in backup_dir.iterdir():
-            is_backup_dir = file_path.is_dir() and (file_path / "manifest.json").exists()
-            if (file_path.is_file() and file_path.suffix == ".zip") or is_backup_dir:
-                try:
-                    mtime = file_path.stat().st_mtime
-                    backup_files.append((str(file_path), mtime))
-                except Exception:
-                    continue
-
-        removed_count = 0
-
-        if not backup_files:
-            from core.backup_manager import cleanup_manifest_less_backup_directories
-
-            cleanup_manifest_less_backup_directories(backup_dir)
-            return True
-
-        # Age-based retention: remove files older than retention_days
-        age_cutoff = now_ts - (backup_retention_days * 24 * 3600)
-        for file_path, mtime in list(backup_files):
-            if mtime < age_cutoff:
-                try:
-                    if os.path.exists(file_path):
-                        if Path(file_path).is_dir():
-                            shutil.rmtree(file_path, ignore_errors=True)
-                        else:
-                            os.remove(file_path)
-                        logger.info(
-                            f"Removed old backup file (> {backup_retention_days}d): {file_path}"
-                        )
-                        backup_files.remove((file_path, mtime))
-                        removed_count += 1
-                except Exception as e:
-                    logger.warning(f"Failed to remove old backup {file_path}: {e}")
-
-        @handle_errors(
-            "checking weekly backup artifact name during cleanup", default_return=False
-        )
-        def _is_weekly_backup_artifact(path: str) -> bool:
-            """Return True when a backup artifact belongs to weekly scheduler cadence."""
-            return Path(path).name.startswith("weekly_backup_")
-
-        # Count-based retention mirrors BackupManager:
-        # weekly backups are retained in a separate bucket from non-weekly backups.
-        weekly_backups = []
-        non_weekly_backups = []
-        for file_path, mtime in backup_files:
-            if _is_weekly_backup_artifact(file_path):
-                weekly_backups.append((file_path, mtime))
-            else:
-                non_weekly_backups.append((file_path, mtime))
-
-        weekly_backups.sort(key=lambda x: x[1], reverse=True)
-        non_weekly_backups.sort(key=lambda x: x[1], reverse=True)
-
-        for file_path, _ in weekly_backups[weekly_max_backups:]:
-            try:
-                if os.path.exists(file_path):
-                    if Path(file_path).is_dir():
-                        shutil.rmtree(file_path, ignore_errors=True)
-                    else:
-                        os.remove(file_path)
-                    logger.info(
-                        f"Removed old weekly backup file (>{weekly_max_backups} weekly backups): {file_path}"
-                    )
-                    removed_count += 1
-            except Exception as e:
-                logger.warning(f"Failed to remove old weekly backup {file_path}: {e}")
-
-        for file_path, _ in non_weekly_backups[max_backups:]:
-            try:
-                if os.path.exists(file_path):
-                    if Path(file_path).is_dir():
-                        shutil.rmtree(file_path, ignore_errors=True)
-                    else:
-                        os.remove(file_path)
-                    logger.info(
-                        f"Removed old backup file (>{max_backups} backups): {file_path}"
-                    )
-                    removed_count += 1
-            except Exception as e:
-                logger.warning(f"Failed to remove old backup {file_path}: {e}")
-
-        if removed_count > 0:
-            logger.info(f"Backup cleanup: removed {removed_count} old backup file(s)")
-
-        from core.backup_manager import cleanup_manifest_less_backup_directories
-
-        orphan_removed = cleanup_manifest_less_backup_directories(backup_dir)
-        if orphan_removed > 0:
-            logger.info(
-                f"Backup cleanup: removed {orphan_removed} manifest-less backup director(ies)"
-            )
-
+        cleanup_old_backup_artifacts(backup_dir)
         return True
     except Exception as e:
         logger.warning(f"Backup cleanup failed (non-critical): {e}")

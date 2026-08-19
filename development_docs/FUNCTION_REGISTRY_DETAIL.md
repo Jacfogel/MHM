@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 13:05:57
+> **Last Generated**: 2026-08-19 14:40:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2553
+- **Functions Found**: 2555
 - **Methods Found**: 1375
 - **Classes Found**: 257
-- **Total Items**: 3928
-- **Functions Documented**: 2234
+- **Total Items**: 3930
+- **Functions Documented**: 2236
 - **Methods Documented**: 1224
 - **Classes Documented**: 187
-- **Total Documented**: 3458
+- **Total Documented**: 3460
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-19
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (482)
+### **Core System Functions** (481)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (667)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (520)
+### **User Interface Functions** (523)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
@@ -3395,7 +3395,6 @@ Returns the new user_id on success, or None on failure.
 - [OK] `_get_cleanup_status__format_next_cleanup_date(last_date)` - Format the next cleanup date or return 'Overdue'.
 - [OK] `_get_cleanup_status__get_invalid_tracker_status()` - Get status when cleanup tracker exists but contains an invalid timestamp.
 - [OK] `_get_cleanup_status__get_never_cleaned_status()` - Get status when cleanup has never been performed.
-- [OK] `_is_weekly_backup_artifact(path)` - Return True when a backup artifact belongs to weekly scheduler cadence.
 - [OK] `_perform_cleanup__discover_cache_files(root_path)` - Discover all cache files and directories in the given root path.
 - [OK] `_perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)` - Log the final cleanup results and statistics.
 - [OK] `_perform_cleanup__log_discovery_results(pycache_dirs, pyc_files)` - Calculate total size and log discovery results.
@@ -3411,7 +3410,8 @@ Returns True if cleanup was performed, False if not needed.
 This can be called independently of the full auto_cleanup cycle.
 Returns True if cleanup was performed, False otherwise.
 - [OK] `cleanup_old_backup_files()` - Clean up old backup files from data/backups directory.
-Uses same retention policy as BackupManager (30 days default, separate
+
+Uses the shared BackupManager retention policy (age cutoff plus separate
 weekly and non-weekly keep limits).
 - [OK] `cleanup_old_message_archives()` - Clean up old message archive files from user directories.
 Removes archive files older than 90 days (archives are already compressed).
@@ -6738,6 +6738,9 @@ Returns:
 #### `ui/dialogs/task_edit_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id, task_data)` - Initialize the task edit dialog.
+- [OK] `_add_time_combos_to_layout(layout, hhmm)` - Create hour/minute/AM-PM combos, optionally set from HH:MM, and add them to layout.
+- [OK] `_hhmm_from_combos(hour_combo, minute_combo, ampm_combo)` - Return 24-hour HH:MM from hour/minute/AM-PM combos, or empty if incomplete.
+- [OK] `_time_combos_from_hhmm(hour_combo, minute_combo, ampm_combo, hhmm)` - Set hour/minute/AM-PM combos from a 24-hour HH:MM string.
 - [OK] `add_reminder_period(self)` - Add a new reminder period.
 - [OK] `collect_quick_reminders(self)` - Collect quick reminder options.
 - [OK] `collect_recurring_task_data(self)` - Collect recurring task settings from the form.

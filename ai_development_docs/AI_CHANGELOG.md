@@ -32,7 +32,8 @@ Guidelines:
 
 ### 2026-08-19 - High-complexity function helpers where splits add value **COMPLETED**
 - Notebook entity extraction, profile text, and the custom-question dialog now use named helpers for the real parsing/formatting/template jobs.
-- Left constructor-style complexity scores alone; those are not mixed responsibilities.
+- Left constructor-style complexity scores and other dense single-job functions alone.
+- Shared backup retention in `cleanup_old_backup_artifacts`; reminder HH:MM combo helpers; `parse()` keyword/intent lists moved to module constants.
 - `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`.
 
 ### 2026-08-18 - Notebook handler uses public conversation flow APIs **COMPLETED**

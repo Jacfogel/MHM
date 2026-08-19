@@ -28,6 +28,71 @@ setup_logging()
 logger = get_component_logger("ui")
 dialog_logger = logger
 
+_REMINDER_HOUR_ITEMS = [""] + [f"{h:02d}" for h in range(1, 13)]
+_REMINDER_MINUTE_ITEMS = [""] + [f"{m:02d}" for m in range(0, 60, 5)]
+_REMINDER_AMPM_ITEMS = ["", "AM", "PM"]
+
+
+@handle_errors("setting reminder time combos from HH:MM", default_return=None)
+def _time_combos_from_hhmm(
+    hour_combo: QComboBox, minute_combo: QComboBox, ampm_combo: QComboBox, hhmm: str
+) -> None:
+    """Set hour/minute/AM-PM combos from a 24-hour HH:MM string."""
+    if not hhmm:
+        return
+    try:
+        hour_24, minute = map(int, hhmm.split(":"))
+        ampm_combo.setCurrentText("AM" if hour_24 < 12 or hour_24 == 24 else "PM")
+        hour_12 = hour_24 % 12
+        if hour_12 == 0:
+            hour_12 = 12
+        hour_combo.setCurrentText(f"{hour_12:02d}")
+        minute_combo.setCurrentText(f"{minute:02d}")
+    except Exception:
+        return
+
+
+@handle_errors("reading HH:MM from reminder time combos", default_return="")
+def _hhmm_from_combos(
+    hour_combo: QComboBox | None,
+    minute_combo: QComboBox | None,
+    ampm_combo: QComboBox | None,
+) -> str:
+    """Return 24-hour HH:MM from hour/minute/AM-PM combos, or empty if incomplete."""
+    if hour_combo is None or minute_combo is None or ampm_combo is None:
+        return ""
+    hour_text = hour_combo.currentText()
+    minute_text = minute_combo.currentText()
+    ampm_text = ampm_combo.currentText()
+    if not (hour_text and minute_text and ampm_text):
+        return ""
+    hour = int(hour_text)
+    minute = int(minute_text)
+    if ampm_text == "PM" and hour != 12:
+        hour += 12
+    elif ampm_text == "AM" and hour == 12:
+        hour = 0
+    return f"{hour:02d}:{minute:02d}"
+
+
+@handle_errors("adding reminder time combos to a row layout", re_raise=True)
+def _add_time_combos_to_layout(
+    layout: QHBoxLayout, hhmm: str = ""
+) -> tuple[QComboBox, QComboBox, QComboBox]:
+    """Create hour/minute/AM-PM combos, optionally set from HH:MM, and add them to layout."""
+    hour_combo = QComboBox()
+    minute_combo = QComboBox()
+    ampm_combo = QComboBox()
+    hour_combo.addItems(_REMINDER_HOUR_ITEMS)
+    minute_combo.addItems(_REMINDER_MINUTE_ITEMS)
+    ampm_combo.addItems(_REMINDER_AMPM_ITEMS)
+    _time_combos_from_hhmm(hour_combo, minute_combo, ampm_combo, hhmm)
+    layout.addWidget(hour_combo)
+    layout.addWidget(QLabel(":"))
+    layout.addWidget(minute_combo)
+    layout.addWidget(ampm_combo)
+    return hour_combo, minute_combo, ampm_combo
+
 
 class TaskEditDialog(QDialog):
     """Dialog for creating or editing tasks."""
@@ -426,59 +491,15 @@ class TaskEditDialog(QDialog):
 
         # Start time fields
         row_layout.addWidget(QLabel("Start:"))
-        start_hour = QComboBox()
-        start_hour.addItems([""] + [f"{h:02d}" for h in range(1, 13)])
-        start_minute = QComboBox()
-        start_minute.addItems([""] + [f"{m:02d}" for m in range(0, 60, 5)])
-        start_ampm = QComboBox()
-        start_ampm.addItems(["", "AM", "PM"])
-
-        # Set start time values
-        start_time = period.get("start_time", "")
-        if start_time:
-            try:
-                h, m = map(int, start_time.split(":"))
-                start_ampm.setCurrentText("AM" if h < 12 or h == 24 else "PM")
-                h12 = h % 12
-                if h12 == 0:
-                    h12 = 12
-                start_hour.setCurrentText(f"{h12:02d}")
-                start_minute.setCurrentText(f"{m:02d}")
-            except Exception:
-                pass
-
-        row_layout.addWidget(start_hour)
-        row_layout.addWidget(QLabel(":"))
-        row_layout.addWidget(start_minute)
-        row_layout.addWidget(start_ampm)
+        start_hour, start_minute, start_ampm = _add_time_combos_to_layout(
+            row_layout, period.get("start_time", "")
+        )
 
         # End time fields
         row_layout.addWidget(QLabel("End:"))
-        end_hour = QComboBox()
-        end_hour.addItems([""] + [f"{h:02d}" for h in range(1, 13)])
-        end_minute = QComboBox()
-        end_minute.addItems([""] + [f"{m:02d}" for m in range(0, 60, 5)])
-        end_ampm = QComboBox()
-        end_ampm.addItems(["", "AM", "PM"])
-
-        # Set end time values
-        end_time = period.get("end_time", "")
-        if end_time:
-            try:
-                h, m = map(int, end_time.split(":"))
-                end_ampm.setCurrentText("AM" if h < 12 or h == 24 else "PM")
-                h12 = h % 12
-                if h12 == 0:
-                    h12 = 12
-                end_hour.setCurrentText(f"{h12:02d}")
-                end_minute.setCurrentText(f"{m:02d}")
-            except Exception:
-                pass
-
-        row_layout.addWidget(end_hour)
-        row_layout.addWidget(QLabel(":"))
-        row_layout.addWidget(end_minute)
-        row_layout.addWidget(end_ampm)
+        end_hour, end_minute, end_ampm = _add_time_combos_to_layout(
+            row_layout, period.get("end_time", "")
+        )
 
         # Delete button
         delete_btn = QPushButton("Delete")
@@ -526,35 +547,16 @@ class TaskEditDialog(QDialog):
             date_widget = widgets.get("date")
             date = date_widget.date().toString("yyyy-MM-dd") if date_widget else ""
 
-            # Get start time
-            start_hour = widgets.get("start_hour", QComboBox()).currentText()
-            start_minute = widgets.get("start_minute", QComboBox()).currentText()
-            start_ampm = widgets.get("start_ampm", QComboBox()).currentText()
-
-            start_time = ""
-            if start_hour and start_minute and start_ampm:
-                h = int(start_hour)
-                m = int(start_minute)
-                if start_ampm == "PM" and h != 12:
-                    h += 12
-                elif start_ampm == "AM" and h == 12:
-                    h = 0
-                start_time = f"{h:02d}:{m:02d}"
-
-            # Get end time
-            end_hour = widgets.get("end_hour", QComboBox()).currentText()
-            end_minute = widgets.get("end_minute", QComboBox()).currentText()
-            end_ampm = widgets.get("end_ampm", QComboBox()).currentText()
-
-            end_time = ""
-            if end_hour and end_minute and end_ampm:
-                h = int(end_hour)
-                m = int(end_minute)
-                if end_ampm == "PM" and h != 12:
-                    h += 12
-                elif end_ampm == "AM" and h == 12:
-                    h = 0
-                end_time = f"{h:02d}:{m:02d}"
+            start_time = _hhmm_from_combos(
+                widgets.get("start_hour"),
+                widgets.get("start_minute"),
+                widgets.get("start_ampm"),
+            )
+            end_time = _hhmm_from_combos(
+                widgets.get("end_hour"),
+                widgets.get("end_minute"),
+                widgets.get("end_ampm"),
+            )
 
             if date and start_time and end_time:
                 periods.append(

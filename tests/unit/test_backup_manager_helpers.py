@@ -262,3 +262,9 @@ class TestBackupManagerHelpers:
         assert "auto_backup_4.zip" not in remaining  # oldest non-weekly evicted
         assert {"weekly_backup_1.zip", "weekly_backup_2.zip"}.issubset(remaining)
         assert {"auto_backup_1.zip", "auto_backup_2.zip"}.issubset(remaining)
+
+    def test_is_weekly_backup_artifact_uses_filename_prefix(self):
+        from core.backup_manager import is_weekly_backup_artifact
+
+        assert is_weekly_backup_artifact("data/backups/weekly_backup_1") is True
+        assert is_weekly_backup_artifact("data/backups/auto_backup_1") is False

@@ -286,3 +286,18 @@ class TestCommandParserHelpers:
         assert title == "Tasks"
         assert items == []
 
+
+@pytest.mark.unit
+@pytest.mark.communication
+def test_parse_uses_module_level_command_keyword_lists():
+    from communication.message_processing.command_parser import (
+        _PARSE_COMMAND_KEYWORDS,
+        _PARSE_HIGH_PRIORITY_INTENTS,
+    )
+
+    assert "task_stats" in _PARSE_HIGH_PRIORITY_INTENTS
+    assert "wellness_score" in _PARSE_HIGH_PRIORITY_INTENTS
+    assert "task" in _PARSE_COMMAND_KEYWORDS
+    assert "chekin" in _PARSE_COMMAND_KEYWORDS
+    assert "how am i doing" in _PARSE_COMMAND_KEYWORDS
+
