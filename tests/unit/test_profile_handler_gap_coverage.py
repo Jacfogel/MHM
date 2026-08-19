@@ -301,23 +301,19 @@ def test_show_profile_normalization_try_exception_is_swallowed(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.communication
-def test_format_profile_text_outer_exception_uses_fallback(monkeypatch):
+def test_format_profile_text_outer_exception_uses_fallback():
     handler = ProfileHandler()
 
-    class _ExplodesOnGet:
+    class _ExplodesOnGet(dict):
+        def __bool__(self):
+            return True
+
         def get(self, key, default=None):  # noqa: A003
             raise RuntimeError("boom")
-
-    error_messages = []
-    monkeypatch.setattr(
-        "communication.command_handlers.profile_handler.logger.error",
-        lambda msg, **kwargs: error_messages.append(msg),
-    )
 
     text = handler._format_profile_text({}, _ExplodesOnGet(), {})
     assert "- Name: Not set" in text
     assert "- Check-ins: Unknown" in text
-    assert any("Error formatting profile text" in msg for msg in error_messages)
 
 
 @pytest.mark.unit

@@ -262,3 +262,27 @@ class TestCommandParserHelpers:
         entities = command_parser._extract_update_entities("")
         assert isinstance(entities, dict), "Should return dict for empty string"
 
+    def test_parse_create_list_title_and_items_splits_common_shapes(self, command_parser):
+        """List-create text splits on colon, semicolon, or newlines."""
+        title, items = command_parser._parse_create_list_title_and_items(
+            "Groceries: Milk, Bread"
+        )
+        assert title == "Groceries"
+        assert items == ["Milk", "Bread"]
+
+        title, items = command_parser._parse_create_list_title_and_items(
+            "Chores: sweep; mop"
+        )
+        assert title == "Chores"
+        assert items == ["sweep", "mop"]
+
+        title, items = command_parser._parse_create_list_title_and_items(
+            "Weekend\nPack bag\nCharge laptop"
+        )
+        assert title == "Weekend"
+        assert items == ["Pack bag", "Charge laptop"]
+
+        title, items = command_parser._parse_create_list_title_and_items("Tasks")
+        assert title == "Tasks"
+        assert items == []
+

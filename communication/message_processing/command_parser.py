@@ -35,6 +35,21 @@ logger = parser_logger
 # Populated when EnhancedCommandParser is constructed (single source for AI command lists).
 RULE_BASED_INTENT_PATTERNS: dict[str, list] | None = None
 
+# Notebook intents whose entities are regex groups copied onto keys.
+_NOTEBOOK_GROUP_ENTITY_MAP: dict[str, tuple[tuple[str, int], ...]] = {
+    "show_entry": (("entry_ref", 1),),
+    "edit_entry": (("entry_ref", 1),),
+    "search_entries": (("query", 1),),
+    "pin_entry": (("entry_ref", 1),),
+    "unpin_entry": (("entry_ref", 1),),
+    "archive_entry": (("entry_ref", 1),),
+    "unarchive_entry": (("entry_ref", 1),),
+    "add_list_item": (("entry_ref", 1), ("item_text", 2)),
+    "set_entry_group": (("entry_ref", 1), ("group", 2)),
+    "list_entries_by_group": (("group", 1),),
+    "list_entries_by_tag": (("tag", 1),),
+}
+
 
 @dataclass
 class ParsingResult:
@@ -1608,6 +1623,98 @@ class EnhancedCommandParser:
             tags.extend(remaining.split())
         return normalize_tags(tags)
 
+    @staticmethod
+    @handle_errors("assigning match groups to entities", default_return=None)
+    def _assign_match_groups(
+        match: re.Match,
+        entities: dict[str, Any],
+        fields: tuple[tuple[str, int], ...],
+    ) -> None:
+        """Copy required regex groups onto entity keys when all groups are present."""
+        required = max(index for _, index in fields)
+        if len(match.groups()) < required:
+            return
+        for key, index in fields:
+            entities[key] = match.group(index).strip()
+
+    @staticmethod
+    @handle_errors("stripping optional pipe prefix", default_return="")
+    def _strip_optional_pipe_prefix(text: str) -> str:
+        """Allow optional `|` after an entry ref (help shows `!append EntryRef | text`)."""
+        stripped = text.strip()
+        if stripped.startswith("|"):
+            return stripped[1:].strip()
+        return stripped
+
+    @staticmethod
+    @handle_errors("assigning optional integer match group", default_return=None)
+    def _assign_optional_int_group(
+        match: re.Match,
+        entities: dict[str, Any],
+        *,
+        key: str,
+        group_index: int,
+        default: int,
+    ) -> None:
+        """Assign an optional integer capture, using default when missing or invalid."""
+        if match.groups():
+            with suppress(ValueError, TypeError):
+                entities[key] = int(match.group(group_index))
+                return
+        entities[key] = default
+
+    @staticmethod
+    @handle_errors("assigning list item index from match", default_return=None)
+    def _assign_entry_ref_and_item_index(
+        match: re.Match, entities: dict[str, Any]
+    ) -> None:
+        """Assign entry_ref and optional item_index from a two-group list-item match."""
+        if len(match.groups()) < 2:
+            return
+        entities["entry_ref"] = match.group(1).strip()
+        with suppress(ValueError, TypeError):
+            entities["item_index"] = int(match.group(2))
+
+    @staticmethod
+    @handle_errors("parsing create-list title and items", default_return=("", []))
+    def _parse_create_list_title_and_items(content: str) -> tuple[str, list[str]]:
+        """Split list-create text into title and item strings."""
+        if ":" in content and "\n" not in content:
+            parts = content.split(":", 1)
+            title = parts[0].strip()
+            items_text = parts[1].strip() if len(parts) > 1 else ""
+            if "," in items_text:
+                items = [item.strip() for item in items_text.split(",")]
+            elif ";" in items_text:
+                items = [item.strip() for item in items_text.split(";")]
+            elif items_text:
+                items = [items_text]
+            else:
+                items = []
+            return title, items
+        if "\n" in content:
+            lines = content.split("\n")
+            return lines[0].strip(), [line.strip() for line in lines[1:] if line.strip()]
+        return content, []
+
+    @handle_errors("assigning create-note title and body", default_return=None)
+    def _assign_create_note_title_and_body(
+        self, match: re.Match, entities: dict[str, Any]
+    ) -> None:
+        """Fill title/description from a create_note match (two groups or title:body text)."""
+        if not match.groups():
+            return
+        if len(match.groups()) >= 2:
+            entities["title"] = match.group(1).strip() if match.group(1) else None
+            if match.group(2) is not None and match.group(2).strip():
+                entities["description"] = match.group(2).strip()
+            else:
+                entities["description"] = None
+            return
+        title, description = self._parse_title_body_from_content(match.group(1).strip())
+        entities["title"] = title
+        entities["description"] = description
+
     # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting help entities from rule-based patterns", default_return=False)
     def _extract_help_entities_rule_based(
@@ -1645,20 +1752,7 @@ class EnhancedCommandParser:
     ) -> bool:
         """Extract notebook and list-related entities."""
         if intent == "create_note":
-            if match.groups():
-                if len(match.groups()) >= 2:
-                    entities["title"] = (
-                        match.group(1).strip() if match.group(1) else None
-                    )
-                    if match.group(2) is not None and match.group(2).strip():
-                        entities["description"] = match.group(2).strip()
-                    else:
-                        entities["description"] = None
-                else:
-                    content = match.group(1).strip()
-                    title, description = self._parse_title_body_from_content(content)
-                    entities["title"] = title
-                    entities["description"] = description
+            self._assign_create_note_title_and_body(match, entities)
             return True
 
         if intent == "create_quick_note":
@@ -1670,40 +1764,23 @@ class EnhancedCommandParser:
             entities["description"] = None
             return True
 
-        if intent in ["list_recent_entries", "list_recent_notes"]:
-            if match.groups():
-                try:
-                    entities["limit"] = int(match.group(1))
-                except (ValueError, TypeError):
-                    entities["limit"] = 5
-            else:
-                entities["limit"] = 5
-            return True
-
-        if intent == "show_entry":
-            if match.groups():
-                entities["entry_ref"] = match.group(1).strip()
+        if intent in ("list_recent_entries", "list_recent_notes"):
+            self._assign_optional_int_group(
+                match, entities, key="limit", group_index=1, default=5
+            )
             return True
 
         if intent in ("append_to_entry", "set_entry_body"):
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
-                # Allow optional `|` after the entry ref (help shows `!append EntryRef | text`).
-                text = match.group(2).strip()
-                if text.startswith("|"):
-                    text = text[1:].strip()
-                entities["text"] = text
-            return True
-
-        if intent == "edit_entry":
-            if match.groups():
-                entities["entry_ref"] = match.group(1).strip()
+                entities["text"] = self._strip_optional_pipe_prefix(match.group(2))
             return True
 
         if intent == "create_journal":
             if match.groups():
-                content = match.group(1).strip()
-                title, description = self._parse_title_body_from_content(content)
+                title, description = self._parse_title_body_from_content(
+                    match.group(1).strip()
+                )
                 entities["title"] = title
                 entities["description"] = description
             return True
@@ -1714,85 +1791,33 @@ class EnhancedCommandParser:
                 entities["tags"] = self._parse_tags_from_tag_text(match.group(2).strip())
             return True
 
-        if intent == "search_entries":
-            if match.groups():
-                entities["query"] = match.group(1).strip()
-            return True
-
-        if intent in ["pin_entry", "unpin_entry", "archive_entry", "unarchive_entry"]:
-            if match.groups():
-                entities["entry_ref"] = match.group(1).strip()
-            return True
-
         if intent == "create_list":
             if match.groups():
-                content = match.group(1).strip()
-                if ":" in content and "\n" not in content:
-                    parts = content.split(":", 1)
-                    title = parts[0].strip()
-                    items_text = parts[1].strip() if len(parts) > 1 else ""
-                    items: list[str] = []
-                    if "," in items_text:
-                        items = [item.strip() for item in items_text.split(",")]
-                    elif ";" in items_text:
-                        items = [item.strip() for item in items_text.split(";")]
-                    elif items_text:
-                        items = [items_text]
-                    entities["items"] = items
-                elif "\n" in content:
-                    lines = content.split("\n")
-                    title = lines[0].strip()
-                    entities["items"] = [
-                        line.strip() for line in lines[1:] if line.strip()
-                    ]
-                else:
-                    title = content
-                    entities["items"] = []
-
                 from core.tags import parse_tags_from_text
 
+                title, items = self._parse_create_list_title_and_items(
+                    match.group(1).strip()
+                )
                 title, tags = parse_tags_from_text(title)
                 entities["title"] = title
+                entities["items"] = items
                 if tags:
                     entities["tags"] = tags
             return True
 
-        if intent == "add_list_item":
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                entities["item_text"] = match.group(2).strip()
+        if intent in (
+            "toggle_list_item_done",
+            "toggle_list_item_undone",
+            "remove_list_item",
+        ):
+            self._assign_entry_ref_and_item_index(match, entities)
+            if intent == "toggle_list_item_undone" and len(match.groups()) >= 2:
+                entities["done"] = False
             return True
 
-        if intent in ["toggle_list_item_done", "toggle_list_item_undone"]:
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                with suppress(ValueError, TypeError):
-                    entities["item_index"] = int(match.group(2))
-                if intent == "toggle_list_item_undone":
-                    entities["done"] = False
-            return True
-
-        if intent == "remove_list_item":
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                with suppress(ValueError, TypeError):
-                    entities["item_index"] = int(match.group(2))
-            return True
-
-        if intent == "set_entry_group":
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                entities["group"] = match.group(2).strip()
-            return True
-
-        if intent == "list_entries_by_group":
-            if match.groups():
-                entities["group"] = match.group(1).strip()
-            return True
-
-        if intent == "list_entries_by_tag":
-            if match.groups():
-                entities["tag"] = match.group(1).strip()
+        mapped_fields = _NOTEBOOK_GROUP_ENTITY_MAP.get(intent)
+        if mapped_fields is not None:
+            self._assign_match_groups(match, entities, mapped_fields)
             return True
 
         return intent == "list_archived_entries"

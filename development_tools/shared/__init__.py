@@ -16,6 +16,7 @@ from .exclusion_utilities import (
     is_generated_file,
     is_generated_function,
     is_special_python_method,
+    is_constructor_name,
     is_test_function,
 )
 from .constants import (
@@ -34,6 +35,7 @@ __all__ = [
     "is_generated_file",
     "is_generated_function",
     "is_special_python_method",
+    "is_constructor_name",
     "is_test_function",
     # Module classification
     "is_local_module",

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.shared.exclusion_utilities import is_constructor_name
 
 logger = get_dev_tools_logger("development_tools")
 
@@ -1932,29 +1933,41 @@ class ConsolidatedReportDocumentMixin:
                             )
 
         all_examples = []
-        for item in critical_examples[:5]:
-            if isinstance(item, dict):
-                complexity = item.get("complexity", item.get("nodes", 0))
-                all_examples.append(
-                    {
-                        "function": item.get("function", "Unknown"),
-                        "file": item.get("file", "Unknown"),
-                        "complexity": complexity,
-                        "priority": "critical",
-                    }
-                )
+        for item in critical_examples:
+            if not isinstance(item, dict):
+                continue
+            func_name = item.get("function", item.get("name", "Unknown"))
+            if is_constructor_name(func_name):
+                continue
+            complexity = item.get("complexity", item.get("nodes", 0))
+            all_examples.append(
+                {
+                    "function": func_name,
+                    "file": item.get("file", "Unknown"),
+                    "complexity": complexity,
+                    "priority": "critical",
+                }
+            )
+            if len(all_examples) >= 5:
+                break
 
-        for item in high_examples[:3]:
-            if isinstance(item, dict):
-                complexity = item.get("complexity", item.get("nodes", 0))
-                all_examples.append(
-                    {
-                        "function": item.get("function", "Unknown"),
-                        "file": item.get("file", "Unknown"),
-                        "complexity": complexity,
-                        "priority": "high",
-                    }
-                )
+        for item in high_examples:
+            if not isinstance(item, dict):
+                continue
+            func_name = item.get("function", item.get("name", "Unknown"))
+            if is_constructor_name(func_name):
+                continue
+            complexity = item.get("complexity", item.get("nodes", 0))
+            all_examples.append(
+                {
+                    "function": func_name,
+                    "file": item.get("file", "Unknown"),
+                    "complexity": complexity,
+                    "priority": "high",
+                }
+            )
+            if len([e for e in all_examples if e["priority"] == "high"]) >= 3:
+                break
 
         if all_examples:
             all_examples.sort(key=lambda x: x.get("complexity", 0), reverse=True)

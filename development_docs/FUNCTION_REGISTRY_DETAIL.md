@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-18 14:33:58
+> **Last Generated**: 2026-08-19 13:05:57
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 87.9% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2538
-- **Methods Found**: 1359
+- **Functions Found**: 2553
+- **Methods Found**: 1375
 - **Classes Found**: 257
-- **Total Items**: 3897
-- **Functions Documented**: 2218
-- **Methods Documented**: 1208
+- **Total Items**: 3928
+- **Functions Documented**: 2234
+- **Methods Documented**: 1224
 - **Classes Documented**: 187
-- **Total Documented**: 3426
+- **Total Documented**: 3458
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-18
+- **Last Updated**: 2026-08-19
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,10 +42,10 @@
 ### **Core System Functions** (482)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (655)
+### **Communication Functions** (667)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (517)
+### **User Interface Functions** (520)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
@@ -1509,7 +1509,13 @@ Explains substring search, archived exclusion, and next-step commands.
 
 #### `communication/command_handlers/profile_handler.py`
 **Functions:**
+- [OK] `_format_account_features_section(self, account_data)` - Format the account features block, using Unknown when features cannot be read.
+- [OK] `_format_gender_identity(self, gender_identity)` - Format gender identity from a list or string.
+- [OK] `_format_notes_for_ai_line(self, context_data)` - Format the first notes-for-AI value, truncated for channel display.
+- [OK] `_format_profile_health_lines(self, context_data)` - Format health-related custom fields, skipping the section on error.
+- [OK] `_format_profile_list_section(self, context_data, key, label, warning_noun)` - Format a simple list field from context, skipping the line on error.
 - [OK] `_format_profile_text(self, account_data, context_data, preferences_data)` - Create a clean, readable profile string for channels like Discord.
+- [OK] `_format_support_network_section(self, context_data)` - Format the first few loved-ones entries for the profile display.
 - [MISSING] `_get_tasks()` - No description
 - [OK] `_handle_profile_stats(self, user_id)` - Handle profile statistics
 - [OK] `_handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
@@ -1521,7 +1527,13 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `handle_show_profile(self, user_id, entities)` - Public entry point for /profile.
 **Classes:**
 - [OK] `ProfileHandler` - Handler for profile management interactions
+  - [OK] `ProfileHandler._format_account_features_section(self, account_data)` - Format the account features block, using Unknown when features cannot be read.
+  - [OK] `ProfileHandler._format_gender_identity(self, gender_identity)` - Format gender identity from a list or string.
+  - [OK] `ProfileHandler._format_notes_for_ai_line(self, context_data)` - Format the first notes-for-AI value, truncated for channel display.
+  - [OK] `ProfileHandler._format_profile_health_lines(self, context_data)` - Format health-related custom fields, skipping the section on error.
+  - [OK] `ProfileHandler._format_profile_list_section(self, context_data, key, label, warning_noun)` - Format a simple list field from context, skipping the line on error.
   - [OK] `ProfileHandler._format_profile_text(self, account_data, context_data, preferences_data)` - Create a clean, readable profile string for channels like Discord.
+  - [OK] `ProfileHandler._format_support_network_section(self, context_data)` - Format the first few loved-ones entries for the profile display.
   - [OK] `ProfileHandler._handle_profile_stats(self, user_id)` - Handle profile statistics
   - [OK] `ProfileHandler._handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
   - [OK] `ProfileHandler._handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
@@ -2710,6 +2722,10 @@ and initializes rule-based intent patterns for common commands.
 Bare `group Quick Notes` must list the multi-word group, not set group
 "Notes" on a title-like ref "Quick".
 - [OK] `_ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
+- [OK] `_assign_create_note_title_and_body(self, match, entities)` - Fill title/description from a create_note match (two groups or title:body text).
+- [OK] `_assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
+- [OK] `_assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
+- [OK] `_assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
 - [OK] `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
@@ -2729,6 +2745,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
 - [OK] `_normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
+- [OK] `_parse_create_list_title_and_items(content)` - Split list-create text into title and item strings.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
 - [OK] `_parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
@@ -2742,6 +2759,7 @@ Separator priority matches notebook help / phone UX:
 - [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
 - [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
+- [OK] `_strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_rule_based_intent_names()` - Return sorted rule-based intent names for AI command prompts.
 - [OK] `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
@@ -2761,6 +2779,10 @@ and initializes rule-based intent patterns for common commands.
 Bare `group Quick Notes` must list the multi-word group, not set group
 "Notes" on a title-like ref "Quick".
   - [OK] `EnhancedCommandParser._ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
+  - [OK] `EnhancedCommandParser._assign_create_note_title_and_body(self, match, entities)` - Fill title/description from a create_note match (two groups or title:body text).
+  - [OK] `EnhancedCommandParser._assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
+  - [OK] `EnhancedCommandParser._assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
+  - [OK] `EnhancedCommandParser._assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
   - [OK] `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
@@ -2779,6 +2801,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
   - [OK] `EnhancedCommandParser._match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
   - [OK] `EnhancedCommandParser._normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
+  - [OK] `EnhancedCommandParser._parse_create_list_title_and_items(content)` - Split list-create text into title and item strings.
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
   - [OK] `EnhancedCommandParser._parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
@@ -2792,6 +2815,7 @@ Separator priority matches notebook help / phone UX:
   - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
   - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
+  - [OK] `EnhancedCommandParser._strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
   - [OK] `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
   - [OK] `EnhancedCommandParser.parse(self, message, user_id)` - Parse a user message into a structured command.
 
@@ -7248,6 +7272,7 @@ Args:
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
+- [OK] `_apply_question_template_to_form(self, template, question_text_edit, display_name_edit, type_combo, category_combo)` - Copy template fields onto the add/edit custom-question form.
 - [OK] `_build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
 - [OK] `_build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
 - [OK] `_build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
@@ -7257,6 +7282,7 @@ Args:
 - [OK] `_delete_custom_question(self, question_key)` - Delete a custom question.
 - [OK] `_edit_custom_question(self, question_key)` - Edit an existing custom question.
 - [OK] `_handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
+- [OK] `_handle_question_template_selected(self, index, template_combo, templates, dialog, question_text_edit, display_name_edit, type_combo, category_combo)` - Apply a selected template, or warn if loading it fails.
 - [OK] `_on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
 - [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
 - [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
@@ -7264,12 +7290,14 @@ Args:
 - [OK] `_refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
 Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
+- [OK] `_set_combo_current_by_data(combo, data)` - Select the combo item whose user data matches `data`.
 - [OK] `_setup_question_count_controls(self)` - Add min/max question count controls below the questions list.
 - [OK] `_show_question_dialog(self, question_key, question_def)` - Show dialog for adding or editing a custom question.
 
 Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
+- [OK] `_strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
 - [OK] `_validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
 
 Args:
@@ -7285,7 +7313,6 @@ Args:
 - [OK] `load_existing_data(self)` - Load existing check-in data.
 - [MISSING] `number_from_widget(w)` - No description
 - [OK] `on_question_toggled(self, checked)` - Handle question checkbox toggle.
-- [MISSING] `on_template_selected(index)` - No description
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `set_checkin_settings(self, settings)` - Set the check-in settings.
 - [OK] `set_question_checkboxes(self, questions)` - Set question checkboxes based on saved preferences.
@@ -7304,6 +7331,7 @@ Args:
 **Classes:**
 - [OK] `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - [OK] `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
+  - [OK] `CheckinSettingsWidget._apply_question_template_to_form(self, template, question_text_edit, display_name_edit, type_combo, category_combo)` - Copy template fields onto the add/edit custom-question form.
   - [OK] `CheckinSettingsWidget._build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
   - [OK] `CheckinSettingsWidget._build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
   - [OK] `CheckinSettingsWidget._build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
@@ -7313,6 +7341,7 @@ Args:
   - [OK] `CheckinSettingsWidget._delete_custom_question(self, question_key)` - Delete a custom question.
   - [OK] `CheckinSettingsWidget._edit_custom_question(self, question_key)` - Edit an existing custom question.
   - [OK] `CheckinSettingsWidget._handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
+  - [OK] `CheckinSettingsWidget._handle_question_template_selected(self, index, template_combo, templates, dialog, question_text_edit, display_name_edit, type_combo, category_combo)` - Apply a selected template, or warn if loading it fails.
   - [OK] `CheckinSettingsWidget._on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
   - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
   - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
@@ -7320,12 +7349,14 @@ Args:
   - [OK] `CheckinSettingsWidget._refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
 Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
+  - [OK] `CheckinSettingsWidget._set_combo_current_by_data(combo, data)` - Select the combo item whose user data matches `data`.
   - [OK] `CheckinSettingsWidget._setup_question_count_controls(self)` - Add min/max question count controls below the questions list.
   - [OK] `CheckinSettingsWidget._show_question_dialog(self, question_key, question_def)` - Show dialog for adding or editing a custom question.
 
 Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
+  - [OK] `CheckinSettingsWidget._strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
   - [OK] `CheckinSettingsWidget._validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
 
 Args:

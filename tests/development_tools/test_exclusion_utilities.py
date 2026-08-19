@@ -14,6 +14,7 @@ exclusion_utilities = load_development_tools_module("shared.exclusion_utilities"
 is_generated_file = exclusion_utilities.is_generated_file
 is_generated_function = exclusion_utilities.is_generated_function
 is_special_python_method = exclusion_utilities.is_special_python_method
+is_constructor_name = exclusion_utilities.is_constructor_name
 is_test_function = exclusion_utilities.is_test_function
 parse_devtools_markers = exclusion_utilities.parse_devtools_markers
 has_devtools_ignore_marker = exclusion_utilities.has_devtools_ignore_marker
@@ -114,6 +115,17 @@ class TestSpecialPythonMethods:
         assert not is_special_python_method("handle_message")
         assert not is_special_python_method("process_request")
         assert not is_special_python_method("validate_input")
+
+
+class TestConstructorName:
+    """Constructor names are exempt from complexity queues."""
+
+    @pytest.mark.unit
+    def test_init_and_qualified_init(self):
+        assert is_constructor_name("__init__")
+        assert is_constructor_name("ComponentLogger.__init__")
+        assert not is_constructor_name("__repr__")
+        assert not is_constructor_name("setup_logging")
 
 
 class TestTestFunction:

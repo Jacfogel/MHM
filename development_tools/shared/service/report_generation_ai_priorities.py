@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.shared.exclusion_utilities import is_constructor_name
 
 logger = get_dev_tools_logger("development_tools")
 
@@ -2250,8 +2251,17 @@ class AIPrioritiesDocumentMixin:
                                 )
 
             if critical_examples:
+                non_init_examples = [
+                    ex
+                    for ex in critical_examples
+                    if not is_constructor_name(
+                        ex.get("name", ex.get("function", ""))
+                        if isinstance(ex, dict)
+                        else str(ex)
+                    )
+                ]
                 sorted_examples = sorted(
-                    critical_examples[:10],
+                    non_init_examples,
                     key=lambda x: (
                         x.get("complexity", x.get("nodes", 0))
                         if isinstance(x, dict)
@@ -2306,8 +2316,17 @@ class AIPrioritiesDocumentMixin:
         elif high_complex and high_complex > 0:
             high_complexity_bullets: list[str] = []
             if high_examples:
+                non_init_high_examples = [
+                    ex
+                    for ex in high_examples
+                    if not is_constructor_name(
+                        ex.get("name", ex.get("function", ""))
+                        if isinstance(ex, dict)
+                        else str(ex)
+                    )
+                ]
                 sorted_examples = sorted(
-                    high_examples[:10],
+                    non_init_high_examples,
                     key=lambda x: x.get("complexity", 0) if isinstance(x, dict) else 0,
                     reverse=True,
                 )[:3]

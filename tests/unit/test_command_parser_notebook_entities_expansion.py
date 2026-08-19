@@ -258,6 +258,7 @@ class TestCommandParserNotebookEntityExtraction:
         "intent, pattern, message, expected_text",
         [
             ("append_to_entry", r"^append\s+(\S+)\s+(.+)$", "append n123 more text", "more text"),
+            ("append_to_entry", r"^append\s+(\S+)\s+(.+)$", "append n123 | more text", "more text"),
             ("append_to_entry", r"^add\s+(\S+)\s+(.+)$", "add n123 extra", "extra"),
             ("set_entry_body", r"^set\s+(\S+)\s+(.+)$", "set n123 New body", "New body"),
             ("set_entry_body", r"^replace\s+(\S+)\s+(.+)$", "replace n123 Updated", "Updated"),

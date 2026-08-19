@@ -16,6 +16,10 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QComboBox,
     QFormLayout,
+    QDialog,
+    QLineEdit,
+    QDialogButtonBox,
+    QTextEdit,
 )
 from PySide6.QtCore import Qt
 from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
@@ -785,6 +789,80 @@ class CheckinSettingsWidget(QWidget):
 
         self._show_question_dialog()
 
+    @staticmethod
+    @handle_errors("stripping type hint from display name", default_return="")
+    def _strip_type_hint_from_display_name(display_name: str) -> str:
+        """Remove a trailing ` (type hint)` suffix from UI display names."""
+        if " (" in display_name:
+            return display_name.split(" (")[0]
+        return display_name
+
+    @staticmethod
+    @handle_errors("setting combo box to data value", default_return=None)
+    def _set_combo_current_by_data(combo: QComboBox, data) -> None:
+        """Select the combo item whose user data matches `data`."""
+        for i in range(combo.count()):
+            if combo.itemData(i) == data:
+                combo.setCurrentIndex(i)
+                return
+
+    @handle_errors("applying check-in question template", re_raise=True)
+    def _apply_question_template_to_form(
+        self,
+        template: dict,
+        question_text_edit: QTextEdit,
+        display_name_edit: QLineEdit,
+        type_combo: QComboBox,
+        category_combo: QComboBox,
+    ) -> None:
+        """Copy template fields onto the add/edit custom-question form."""
+        question_text_edit.setText(template.get("question_text", ""))
+        display_name_edit.setText(
+            self._strip_type_hint_from_display_name(template.get("ui_display_name", ""))
+        )
+        self._set_combo_current_by_data(type_combo, template.get("type", "yes_no"))
+        self._set_combo_current_by_data(
+            category_combo, template.get("category", "health")
+        )
+
+    @handle_errors("handling check-in question template selection", default_return=None)
+    def _handle_question_template_selected(
+        self,
+        index: int,
+        template_combo: QComboBox,
+        templates: dict,
+        dialog: QDialog,
+        question_text_edit: QTextEdit,
+        display_name_edit: QLineEdit,
+        type_combo: QComboBox,
+        category_combo: QComboBox,
+    ) -> None:
+        """Apply a selected template, or warn if loading it fails."""
+        if index <= 0:
+            return
+        template_key = template_combo.currentData()
+        if not template_key or template_key not in templates:
+            return
+        try:
+            self._apply_question_template_to_form(
+                templates[template_key],
+                question_text_edit,
+                display_name_edit,
+                type_combo,
+                category_combo,
+            )
+        except Exception as e:
+            logger.error(f"Error handling template selection: {e}", exc_info=True)
+            QMessageBox.warning(
+                dialog,
+                "Template Selection Error",
+                (
+                    "An error occurred while loading the template. "
+                    "Please try again or start from scratch.\n\n"
+                    f"Error: {str(e)}"
+                ),
+            )
+
     @handle_errors("showing question dialog")
     def _show_question_dialog(self, question_key=None, question_def=None):
         """Show dialog for adding or editing a custom question.
@@ -793,101 +871,24 @@ class CheckinSettingsWidget(QWidget):
             question_key: If provided, edit existing question; otherwise create new
             question_def: Existing question definition (for editing)
         """
-        from PySide6.QtWidgets import (
-            QDialog,
-            QVBoxLayout,
-            QLabel,
-            QLineEdit,
-            QDialogButtonBox,
-            QFormLayout,
-            QGroupBox,
-            QTextEdit,
-        )
         from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
-        # Create dialog
         dialog = QDialog(self)
         dialog.setWindowTitle(
             "Edit Custom Check-in Question"
             if question_key
             else "Add Custom Check-in Question"
         )
-        dialog.resize(600, 500)  # Make it wider
+        dialog.resize(600, 500)
 
         main_layout = QVBoxLayout(dialog)
         main_layout.setSpacing(10)
 
-        # Template selection (only for new questions)
-        if not question_key:
-            template_group = QGroupBox("Start from Template (Optional)")
-            template_layout = QVBoxLayout(template_group)
-
-            template_combo = QComboBox()
-            template_combo.addItem("-- Start from scratch --", None)
-
-            templates = dynamic_checkin_manager.get_question_templates()
-            for template_key, template_data in templates.items():
-                display_name = template_data.get("ui_display_name", template_key)
-                template_combo.addItem(display_name, template_key)
-
-            template_layout.addWidget(template_combo)
-            main_layout.addWidget(template_group)
-
-            def on_template_selected(index):
-                try:
-                    if index > 0:  # Not "Start from scratch"
-                        template_key = template_combo.currentData()
-                        if template_key and template_key in templates:
-                            template = templates[template_key]
-                            # Get question text without type hints
-                            question_text = template.get("question_text", "")
-                            question_text_edit.setText(question_text)
-
-                            # Get display name without type hints
-                            display_name = template.get("ui_display_name", "")
-                            # Remove type hint if present (e.g., "CPAP use (yes/no)" -> "CPAP use")
-                            display_name = (
-                                display_name.split(" (")[0]
-                                if " (" in display_name
-                                else display_name
-                            )
-                            display_name_edit.setText(display_name)
-
-                            # Set type
-                            type_key = template.get("type", "yes_no")
-                            for i in range(type_combo.count()):
-                                if type_combo.itemData(i) == type_key:
-                                    type_combo.setCurrentIndex(i)
-                                    break
-
-                            # Set category
-                            cat_key = template.get("category", "health")
-                            for i in range(category_combo.count()):
-                                if category_combo.itemData(i) == cat_key:
-                                    category_combo.setCurrentIndex(i)
-                                    break
-                except Exception as e:
-                    logger.error(
-                        f"Error handling template selection: {e}", exc_info=True
-                    )
-                    # Show user-friendly error message
-                    from PySide6.QtWidgets import QMessageBox
-
-                    QMessageBox.warning(
-                        dialog,
-                        "Template Selection Error",
-                        f"An error occurred while loading the template. Please try again or start from scratch.\n\nError: {str(e)}",
-                    )
-
-            template_combo.currentIndexChanged.connect(on_template_selected)
-
-        # Form layout for question fields
         form_group = QGroupBox("Question Details")
         form_layout = QFormLayout(form_group)
         form_layout.setSpacing(8)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
-        # Question text input with guidance
         question_text_edit = QTextEdit()
         question_text_edit.setMaximumHeight(60)
         question_text_edit.setPlaceholderText("Enter your question...")
@@ -902,10 +903,8 @@ class CheckinSettingsWidget(QWidget):
         )
         question_text_hint.setWordWrap(True)
         form_layout.addRow(question_text_label, question_text_edit)
-        # Add hint with minimal spacing (empty label to align with form field)
         form_layout.addRow("", question_text_hint)
 
-        # Question type selection with formatted options
         type_combo = QComboBox()
         type_options = {
             "scale_1_5": "Scale of 1 (Low) to 5 (High)",
@@ -917,14 +916,11 @@ class CheckinSettingsWidget(QWidget):
         for type_key, type_display in type_options.items():
             type_combo.addItem(type_display, type_key)
         if question_def:
-            type_key = question_def.get("type", "yes_no")
-            for i in range(type_combo.count()):
-                if type_combo.itemData(i) == type_key:
-                    type_combo.setCurrentIndex(i)
-                    break
+            self._set_combo_current_by_data(
+                type_combo, question_def.get("type", "yes_no")
+            )
         form_layout.addRow("Question Type:", type_combo)
 
-        # Category selection with titlecase display
         category_combo = QComboBox()
         categories = dynamic_checkin_manager.get_categories()
         category_keys = (
@@ -940,23 +936,19 @@ class CheckinSettingsWidget(QWidget):
             )
             category_combo.addItem(cat_name, cat_key)
         if question_def:
-            cat_key = question_def.get("category", "health")
-            for i in range(category_combo.count()):
-                if category_combo.itemData(i) == cat_key:
-                    category_combo.setCurrentIndex(i)
-                    break
+            self._set_combo_current_by_data(
+                category_combo, question_def.get("category", "health")
+            )
         form_layout.addRow("Category:", category_combo)
 
-        # Display name input with guidance
         display_name_edit = QLineEdit()
         display_name_edit.setPlaceholderText("Leave empty to use question text")
         if question_def:
-            display_name = question_def.get("ui_display_name", "")
-            # Remove type hint if present (for editing existing questions)
-            display_name = (
-                display_name.split(" (")[0] if " (" in display_name else display_name
+            display_name_edit.setText(
+                self._strip_type_hint_from_display_name(
+                    question_def.get("ui_display_name", "")
+                )
             )
-            display_name_edit.setText(display_name)
         display_name_label = QLabel("Display Name (for UI):")
         display_name_hint = QLabel(
             "Short name shown in the question list. Type hint will be added automatically."
@@ -965,9 +957,32 @@ class CheckinSettingsWidget(QWidget):
         form_layout.addRow(display_name_label, display_name_edit)
         form_layout.addRow("", display_name_hint)
 
+        if not question_key:
+            template_group = QGroupBox("Start from Template (Optional)")
+            template_layout = QVBoxLayout(template_group)
+            template_combo = QComboBox()
+            template_combo.addItem("-- Start from scratch --", None)
+            templates = dynamic_checkin_manager.get_question_templates()
+            for template_key, template_data in templates.items():
+                display_name = template_data.get("ui_display_name", template_key)
+                template_combo.addItem(display_name, template_key)
+            template_layout.addWidget(template_combo)
+            main_layout.addWidget(template_group)
+            template_combo.currentIndexChanged.connect(
+                lambda index, combo=template_combo: self._handle_question_template_selected(
+                    index,
+                    combo,
+                    templates,
+                    dialog,
+                    question_text_edit,
+                    display_name_edit,
+                    type_combo,
+                    category_combo,
+                )
+            )
+
         main_layout.addWidget(form_group)
 
-        # Buttons
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
@@ -983,8 +998,8 @@ class CheckinSettingsWidget(QWidget):
                 )
                 return
 
-            question_type = type_combo.currentData()  # Get the actual type key
-            category = category_combo.currentData()  # Get the actual category key
+            question_type = type_combo.currentData()
+            category = category_combo.currentData()
             display_name = display_name_edit.text().strip() or question_text
 
             final_key = self._build_custom_question_key(
@@ -997,25 +1012,22 @@ class CheckinSettingsWidget(QWidget):
                 display_name, question_type
             )
 
-            # Create question definition
-            # New questions default to always_include=True
             is_new_question = question_key is None
             new_question_def = {
                 "type": question_type,
                 "question_text": question_text,
-                "ui_display_name": display_name_with_hint,  # Include type hint
+                "ui_display_name": display_name_with_hint,
                 "category": category,
                 "validation": validation,
-                "enabled": True,  # Always enabled when created
+                "enabled": True,
                 "always_include": (
                     True
                     if is_new_question
                     else question_def.get("always_include", False)
-                ),  # Default to always for new questions
-                "sometimes_include": False,  # Never sometimes for new questions
+                ),
+                "sometimes_include": False,
             }
 
-            # Save the custom question
             if dynamic_checkin_manager.save_custom_question(
                 self.user_id, final_key, new_question_def
             ):

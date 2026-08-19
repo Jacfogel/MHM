@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-19 - High-complexity function helpers where splits add value **COMPLETED**
+- Notebook entity extraction, profile text, and the custom-question dialog now use named helpers for the real parsing/formatting/template jobs.
+- Left constructor-style complexity scores alone; those are not mixed responsibilities.
+- `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`.
+
 ### 2026-08-18 - Notebook handler uses public conversation flow APIs **COMPLETED**
 - Public `start_note_body_flow` / `start_journal_body_flow` / `start_list_items_flow` / `start_entry_edit_flow` (and `get_note_body_flow_data`) on the note-flow mixin.
 - `notebook_handler` no longer writes `conversation_manager.user_states` or calls `_save_user_states`.
@@ -113,14 +118,6 @@ Guidelines:
 - Shared short IDs: [`core/ids.py`](../core/ids.py) owns `t`/`n`/`l`/`j` generate/parse/display; notebook rejects `t...` as entry refs; Section 5.1 Done.
 - Audit follow-up: domain marker on `test_core_ids`; `user_data_v2_base` `__all__` re-export; legacy dashed-id scan clean; registry includes `ids.py`.
 - Fix: `edit_entry` no longer steals `edit profile`; function registry regenerated; changelog ASCII cleaned.
-
-### 2026-07-28 - Close V6 B-012 / B-013; archive V6 and Google Health plans **COMPLETED**
-- B-013: Combined `analyze_gap*` declined; Section 10.1 map + `AI_PRIORITIES` is triage.
-- B-012: Radon/pydeps uniqueness spikes duplicated existing complexity/coupling signals; pre-commit and deeper Ruff declined. Vulture remains the only B-012 Tier 3 add.
-- Archived [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual **B-016** carried in PLANS Section 6.4 / TODO. Live triage = `AI_PRIORITIES.md`.
-- Archived [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md); monitoring in GOOGLE_HEALTH_GUIDE; deferred leftovers in TODO; PLANS Section 8 updated.
-- TODO.md ASCII/link hygiene via `doc-fix` (`--fix-ascii`, `--convert-links`) + `doc-sync`.
-- Docs: TODO, PLANS, paired DEVELOPMENT_TOOLS guides, HOW_TO_RUN, LIST_OF_LISTS, legacy guide links retargeted; radon/pydeps stay optional manual recipes (not in requirements).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

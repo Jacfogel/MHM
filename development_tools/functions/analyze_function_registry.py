@@ -24,6 +24,7 @@ try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
     from ..shared.standard_exclusions import should_exclude_file
+    from ..shared.exclusion_utilities import is_constructor_name
 except ImportError:
     import sys
     from pathlib import Path
@@ -40,6 +41,7 @@ except ImportError:
         run_cli,
     )
     from development_tools.shared.standard_exclusions import should_exclude_file
+    from development_tools.shared.exclusion_utilities import is_constructor_name
 
 # Import component logger
 from development_tools.shared.logging import get_dev_tools_logger
@@ -341,6 +343,7 @@ def build_analysis(inventory: dict[str, InventoryEntry]) -> dict[str, Any]:
             if (
                 record.complexity > HIGH_COMPLEXITY_MIN
                 and not record.is_test
+                and not is_constructor_name(record.name)
                 and not ("generated" in file_path and "_pyqt.py" in file_path)
                 and record.name not in {"setupUi", "retranslateUi"}
             ):

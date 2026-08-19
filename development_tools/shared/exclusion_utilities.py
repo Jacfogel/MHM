@@ -15,6 +15,7 @@ Usage:
         is_generated_file,
         is_generated_function,
         is_special_python_method,
+        is_constructor_name,
         is_test_function
     )
 
@@ -316,6 +317,18 @@ def is_special_python_method(func_name: str, complexity: int | None = None) -> b
 
     # Exclude special methods but not context managers
     return bool(func_name in SPECIAL_METHODS and func_name not in CONTEXT_METHODS)
+
+
+@handle_errors("checking if function is a constructor name", default_return=False)
+def is_constructor_name(func_name: str) -> bool:
+    """True for ``__init__``, including ``Class.__init__`` qualified names.
+
+    Constructor AST-node counts measure setup size, not mixed-responsibility
+    complexity, so complexity queues skip them.
+    """
+    if not func_name:
+        return False
+    return func_name == "__init__" or func_name.endswith(".__init__")
 
 
 @handle_errors("checking if function is a test function", default_return=False)

@@ -621,6 +621,22 @@ class TestRegistryHelpers:
         assert "Complexity: 300" in content
 
     @pytest.mark.unit
+    def test_generate_complexity_section_skips_init(self):
+        """Constructors are omitted from the complexity top list."""
+        actual_functions = {
+            "core/logger.py": {
+                "functions": [
+                    {"name": "__init__", "complexity": 800, "has_docstring": True},
+                    {"name": "setup_logging", "complexity": 250, "has_docstring": True},
+                ],
+                "classes": [],
+            }
+        }
+        content = registry_module.generate_complexity_section(actual_functions)
+        assert "__init__" not in content
+        assert "setup_logging" in content
+
+    @pytest.mark.unit
     def test_generate_file_organization_section_includes_known_and_extra_dirs(self):
         """Organization section should include priority and non-priority directories."""
         actual_functions = {

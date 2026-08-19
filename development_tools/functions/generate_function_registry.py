@@ -26,6 +26,7 @@ if str(project_root) not in sys.path:
 
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
+from development_tools.shared.exclusion_utilities import is_constructor_name
 
 # Import config for project name
 try:
@@ -1030,7 +1031,11 @@ def generate_complexity_section(actual_functions: dict[str, dict]) -> str:
 
     # Find most complex functions (using AST node count as complexity metric)
     complex_functions = sorted(
-        [f for f in all_functions if f["complexity"] > 200],
+        [
+            f
+            for f in all_functions
+            if f["complexity"] > 200 and not is_constructor_name(f.get("name", ""))
+        ],
         key=lambda x: x["complexity"],
         reverse=True,
     )[:5]

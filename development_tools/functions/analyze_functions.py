@@ -30,6 +30,7 @@ try:
         is_generated_file,
         is_generated_function,
         is_special_python_method,
+        is_constructor_name,
         is_test_function,
     )
 except ImportError:
@@ -39,6 +40,7 @@ except ImportError:
         is_generated_file,
         is_generated_function,
         is_special_python_method,
+        is_constructor_name,
         is_test_function,
     )
 
@@ -705,6 +707,9 @@ def categorize_functions(functions: list[dict]) -> dict[str, list[dict]]:
             categories["tests"].append(func)
         elif func["is_handler"]:
             categories["handlers"].append(func)
+        elif is_constructor_name(func.get("name", "")):
+            # Constructor AST size is sequential setup, not mixed-responsibility complexity.
+            categories["special_methods"].append(func)
         elif func["complexity"] >= CRITICAL_COMPLEXITY:
             categories["critical_complex"].append(func)
         elif func["complexity"] >= HIGH_COMPLEXITY:

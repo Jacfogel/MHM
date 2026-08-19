@@ -666,6 +666,25 @@ class TestCategorizeFunctions:
             len(categories["special_methods"]) == 1
         ), "Should categorize special methods"
 
+    @pytest.mark.unit
+    def test_categorize_init_skips_complexity_buckets(self):
+        """Constructors are not complexity-queue work even when AST-heavy."""
+        functions = [
+            {
+                "name": "__init__",
+                "is_handler": False,
+                "is_test": False,
+                "complexity": 800,
+                "is_special": False,
+                "docstring": "Doc",
+            },
+        ]
+
+        categories = categorize_functions(functions)
+        assert categories["critical_complex"] == []
+        assert categories["high_complex"] == []
+        assert len(categories["special_methods"]) == 1
+
 
 class TestValidateResults:
     """Test result validation."""

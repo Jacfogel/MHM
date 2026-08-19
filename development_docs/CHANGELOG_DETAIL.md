@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-19 - High-complexity function helpers where splits add value
+- **Refactor**: Broke down the three highest-complexity functions only where the pieces are real jobs, not metric-chasing. `_extract_notebook_entities_rule_based` now uses a group-to-entity map plus helpers for create-note title/body, create-list item splitting, optional ints, and `|` prefixes. `_format_profile_text` delegates health, lists, support network, notes, and features. `_show_question_dialog` shares type-hint stripping and combo selection, and applies templates after form widgets exist.
+- **Skipped**: Logger/parser `__init__` and other AST-heavy sequential setup; those scores are size, not mixed responsibilities.
+- **Impact**: Adding a simple notebook intent is a map row; list-create and profile sections are independently testable. User-visible parsing, profile text, and the custom-question dialog are unchanged.
+- **Hygiene**: `_format_profile_text` now uses `@handle_errors` with a shared fallback string (Phase 1 decorator migration). Removed a stray decorator that had landed on `_format_gender_identity`. Profile fallback test uses a truthy `dict` stub so Pyright `reportArgumentType` is clean. Regenerated function registry for the new helpers. Complexity queues skip `__init__` (constructor AST size is not a split signal).
+- **Testing**: Notebook entity/helper units (including newline lists and `append | text`); profile format gap and behavior tests; `tests/unit/test_checkin_settings_widget_helpers.py` for type-hint strip and combo selection.
+
 ### 2026-08-18 - Notebook handler uses public conversation flow APIs
 - **Architecture**: Added public notebook flow start/get methods on [`NoteFlowMixin`](../communication/message_processing/flows/note_flow.py) (`start_note_body_flow`, `start_journal_body_flow`, `start_list_items_flow`, `start_entry_edit_flow`, `get_note_body_flow_data`). [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now starts create/edit sessions through those APIs instead of writing `conversation_manager.user_states` or calling `_save_user_states`.
 - **Impact**: Same class of coupling fix as the Aug 11 check-in public API: command handlers no longer reach private flow persistence. User-visible note/list/journal/edit prompts are unchanged.

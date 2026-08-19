@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-18 14:34:45
+> **Last Generated**: 2026-08-19 13:06:46
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000E5 5EAC:07BC
+Volume serial number is 000000EC 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -1049,6 +1049,7 @@ C:.
 |   |   |   test_checkin_runtime_timestamp.py
 |   |   |   test_checkin_schemas.py
 |   |   |   test_checkin_service.py
+|   |   |   test_checkin_settings_widget_helpers.py
 |   |   |   test_checkin_view.py
 |   |   |   test_cleanup.py
 |   |   |   test_command_interpreter.py
