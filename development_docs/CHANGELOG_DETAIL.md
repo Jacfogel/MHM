@@ -33,6 +33,11 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-18 - Notebook handler uses public conversation flow APIs
+- **Architecture**: Added public notebook flow start/get methods on [`NoteFlowMixin`](../communication/message_processing/flows/note_flow.py) (`start_note_body_flow`, `start_journal_body_flow`, `start_list_items_flow`, `start_entry_edit_flow`, `get_note_body_flow_data`). [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now starts create/edit sessions through those APIs instead of writing `conversation_manager.user_states` or calling `_save_user_states`.
+- **Impact**: Same class of coupling fix as the Aug 11 check-in public API: command handlers no longer reach private flow persistence. User-visible note/list/journal/edit prompts are unchanged.
+- **Testing**: Unit tests in [`test_notebook_handler_edge_cases.py`](../tests/unit/test_notebook_handler_edge_cases.py); behavior coverage in [`test_conversation_flow_manager_behavior.py`](../tests/behavior/test_conversation_flow_manager_behavior.py) plus existing notebook handler flow-completion tests.
+
 ### 2026-08-17 - Retire unused-imports analyzer (ruff F401)
 - **Dev tools**: Removed `analyze_unused_imports` / `generate_unused_imports_report`, the `unused-imports` / `unused-imports-report` CLI commands, and `development_docs/UNUSED_IMPORTS_REPORT.md`. Detection was a second `ruff check --select F401` pass; unused imports now come from Tier 3 `analyze_ruff` (Static Analysis in AI_STATUS / AI_PRIORITIES).
 - **Cleanup**: Dropped `UNUSED_IMPORTS` / `get_unused_imports_config()`, audit-tier scheduling, wrappers, report sections, and dedicated tests. Recorded in [DEPRECATION_INVENTORY.json](../development_tools/config/jsons/DEPRECATION_INVENTORY.json).

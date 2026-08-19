@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-16 22:54:55
+> **Last Generated**: 2026-08-18 14:33:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 87.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2532
-- **Methods Found**: 1353
+- **Functions Found**: 2538
+- **Methods Found**: 1359
 - **Classes Found**: 257
-- **Total Items**: 3885
-- **Functions Documented**: 2212
-- **Methods Documented**: 1202
+- **Total Items**: 3897
+- **Functions Documented**: 2218
+- **Methods Documented**: 1208
 - **Classes Documented**: 187
-- **Total Documented**: 3414
+- **Total Documented**: 3426
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-16
+- **Last Updated**: 2026-08-18
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (482)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (649)
+### **Communication Functions** (655)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -3056,6 +3056,12 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_journal_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 - [OK] `_list_items_step_back(self, user_id, user_state)` - Remove the last item batch and prompt for more or end list.
 - [OK] `_note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
+- [OK] `_start_notebook_flow(self, user_id, flow, data, log_label)` - Persist a notebook conversation flow for the next inbound message.
+- [OK] `get_note_body_flow_data(self, user_id)` - Return a copy of note-body flow data when that flow is active.
+- [OK] `start_entry_edit_flow(self, user_id)` - Start a replace-edit session. Next free-text message becomes the new body.
+- [OK] `start_journal_body_flow(self, user_id)` - Start a journal-body prompt flow. Called after a title-only create-journal command.
+- [OK] `start_list_items_flow(self, user_id)` - Start a list-item collection flow. Called after a title-only create-list command.
+- [OK] `start_note_body_flow(self, user_id)` - Start a note-body prompt flow. Called after a title-only create-note command.
 **Classes:**
 - [MISSING] `NoteFlowMixin` - No description
   - [OK] `NoteFlowMixin._cancel_entry_edit(self, user_id, user_state)` - Abandon edit session without writing (entry already exists).
@@ -3073,6 +3079,12 @@ Safe no-op if no flow or different flow is active.
   - [OK] `NoteFlowMixin._journal_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
   - [OK] `NoteFlowMixin._list_items_step_back(self, user_id, user_state)` - Remove the last item batch and prompt for more or end list.
   - [OK] `NoteFlowMixin._note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
+  - [OK] `NoteFlowMixin._start_notebook_flow(self, user_id, flow, data, log_label)` - Persist a notebook conversation flow for the next inbound message.
+  - [OK] `NoteFlowMixin.get_note_body_flow_data(self, user_id)` - Return a copy of note-body flow data when that flow is active.
+  - [OK] `NoteFlowMixin.start_entry_edit_flow(self, user_id)` - Start a replace-edit session. Next free-text message becomes the new body.
+  - [OK] `NoteFlowMixin.start_journal_body_flow(self, user_id)` - Start a journal-body prompt flow. Called after a title-only create-journal command.
+  - [OK] `NoteFlowMixin.start_list_items_flow(self, user_id)` - Start a list-item collection flow. Called after a title-only create-list command.
+  - [OK] `NoteFlowMixin.start_note_body_flow(self, user_id)` - Start a note-body prompt flow. Called after a title-only create-note command.
 
 #### `communication/message_processing/flows/task_flow.py`
 **Functions:**

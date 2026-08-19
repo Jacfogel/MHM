@@ -2,9 +2,19 @@
 
 """Note, journal, and list conversation flow mixin."""
 
+from typing import Any
+
 from core.error_handling import handle_errors
 from core.ids import display_short_id
 from core.logger import get_component_logger
+from core.time_utilities import now_timestamp_full
+
+from communication.message_processing.flows.flow_constants import (
+    FLOW_ENTRY_EDIT,
+    FLOW_JOURNAL_BODY,
+    FLOW_LIST_ITEMS,
+    FLOW_NOTE_BODY,
+)
 
 from communication.message_processing.flows.flow_command_helpers import (
     ENTRY_EDIT_CANCEL_KEYWORDS,
@@ -453,4 +463,106 @@ class NoteFlowMixin(FlowControlMixin):
         return (
             "❌ Failed to update. Entry not found or cannot be edited (lists use item commands).",
             True,
+        )
+
+    # not_duplicate: notebook flow persist (no task identifier/history)
+    @handle_errors("starting notebook conversation flow", default_return=None)
+    def _start_notebook_flow(
+        self,
+        user_id: str,
+        flow: int,
+        data: dict[str, Any],
+        log_label: str,
+    ) -> None:
+        """Persist a notebook conversation flow for the next inbound message."""
+        self.user_states[user_id] = {
+            "flow": flow,
+            "state": 0,
+            "data": dict(data),
+            "started_at": now_timestamp_full(),
+        }
+        self._save_user_states()
+        logger.debug(f"Started {log_label} for user {user_id}")
+
+    @handle_errors("getting note body flow data", default_return=None)
+    def get_note_body_flow_data(self, user_id: str) -> dict[str, Any] | None:
+        """Return a copy of note-body flow data when that flow is active."""
+        state = self.user_states.get(user_id) or {}
+        if state.get("flow") != FLOW_NOTE_BODY:
+            return None
+        data = state.get("data")
+        return dict(data) if isinstance(data, dict) else {}
+
+    @handle_errors("starting note body flow", default_return=None)
+    def start_note_body_flow(
+        self,
+        user_id: str,
+        *,
+        title: str,
+        tags: list[str] | None = None,
+        group: str | None = None,
+    ) -> None:
+        """Start a note-body prompt flow. Called after a title-only create-note command."""
+        self._start_notebook_flow(
+            user_id,
+            FLOW_NOTE_BODY,
+            {"title": title, "tags": list(tags or []), "group": group},
+            "note body flow",
+        )
+
+    @handle_errors("starting journal body flow", default_return=None)
+    def start_journal_body_flow(
+        self,
+        user_id: str,
+        *,
+        title: str,
+        tags: list[str] | None = None,
+        group: str | None = None,
+    ) -> None:
+        """Start a journal-body prompt flow. Called after a title-only create-journal command."""
+        self._start_notebook_flow(
+            user_id,
+            FLOW_JOURNAL_BODY,
+            {"title": title, "tags": list(tags or []), "group": group},
+            "journal body flow",
+        )
+
+    @handle_errors("starting list items flow", default_return=None)
+    def start_list_items_flow(
+        self,
+        user_id: str,
+        *,
+        title: str,
+        tags: list[str] | None = None,
+        group: str | None = None,
+    ) -> None:
+        """Start a list-item collection flow. Called after a title-only create-list command."""
+        self._start_notebook_flow(
+            user_id,
+            FLOW_LIST_ITEMS,
+            {
+                "title": title,
+                "tags": list(tags or []),
+                "group": group,
+                "items": [],
+                "item_batches": [],
+            },
+            "list items flow",
+        )
+
+    @handle_errors("starting entry edit flow", default_return=None)
+    def start_entry_edit_flow(
+        self,
+        user_id: str,
+        *,
+        entry_ref: str,
+        short_id: str,
+        title: str,
+    ) -> None:
+        """Start a replace-edit session. Next free-text message becomes the new body."""
+        self._start_notebook_flow(
+            user_id,
+            FLOW_ENTRY_EDIT,
+            {"entry_ref": entry_ref, "short_id": short_id, "title": title},
+            "entry edit flow",
         )

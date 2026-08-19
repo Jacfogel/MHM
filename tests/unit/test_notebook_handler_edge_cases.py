@@ -124,3 +124,119 @@ class TestNotebookHandlerEdgeCases:
         assert action.offset == 0
         assert action.next_offset == 3
         assert action.remaining_count == 3
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+@pytest.mark.notebook
+class TestNotebookHandlerPublicFlowStart:
+    """Notebook handler starts conversation flows through public APIs only."""
+
+    def test_create_note_title_only_starts_note_body_flow(self):
+        handler = NotebookHandler()
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm:
+            mock_cm.get_note_body_flow_data.return_value = None
+            response = handler._handle_create_note("user-1", {"title": "Hello"})
+
+        mock_cm.start_note_body_flow.assert_called_once_with(
+            "user-1", title="Hello", tags=[], group=None
+        )
+        mock_cm._save_user_states.assert_not_called()
+        assert response.completed is False
+        assert "body" in response.message.lower()
+
+    def test_create_note_with_body_does_not_start_flow(self):
+        handler = NotebookHandler()
+        created = _entry("Hello")
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm, patch(
+            "communication.command_handlers.notebook_handler.create_note_from_command",
+            return_value=type("Result", (), {"entry": created})(),
+        ):
+            mock_cm.get_note_body_flow_data.return_value = None
+            response = handler._handle_create_note(
+                "user-1", {"title": "Hello", "description": "body"}
+            )
+
+        mock_cm.start_note_body_flow.assert_not_called()
+        mock_cm._save_user_states.assert_not_called()
+        assert response.completed is True
+        assert "created" in response.message.lower()
+
+    def test_create_note_merges_active_note_body_flow_data(self):
+        handler = NotebookHandler()
+        captured: dict = {}
+
+        def _create(_user_id, entities):
+            captured.update(entities)
+            return type("Result", (), {"entry": _entry(entities["title"])})()
+
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm, patch(
+            "communication.command_handlers.notebook_handler.create_note_from_command",
+            side_effect=_create,
+        ):
+            mock_cm.get_note_body_flow_data.return_value = {
+                "title": "FromFlow",
+                "tags": ["keep"],
+                "group": "Inbox",
+            }
+            handler._handle_create_note("user-1", {"description": "body text"})
+
+        assert captured["title"] == "FromFlow"
+        assert captured["tags"] == ["keep"]
+        assert captured["group"] == "Inbox"
+        mock_cm.start_note_body_flow.assert_not_called()
+
+    def test_create_list_title_only_starts_list_items_flow(self):
+        handler = NotebookHandler()
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm:
+            response = handler._handle_create_list("user-1", {"title": "Groceries"})
+
+        mock_cm.start_list_items_flow.assert_called_once_with(
+            "user-1", title="Groceries", tags=[], group=None
+        )
+        mock_cm._save_user_states.assert_not_called()
+        assert response.completed is False
+
+    def test_create_journal_title_only_starts_journal_body_flow(self):
+        handler = NotebookHandler()
+        with patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm:
+            response = handler._handle_create_journal("user-1", {"title": "Today"})
+
+        mock_cm.start_journal_body_flow.assert_called_once_with(
+            "user-1", title="Today", tags=[], group=None
+        )
+        mock_cm._save_user_states.assert_not_called()
+        assert response.completed is False
+
+    def test_edit_entry_starts_entry_edit_flow(self):
+        handler = NotebookHandler()
+        entry = _entry("Editable")
+        with patch(
+            "communication.command_handlers.notebook_handler.get_entry",
+            return_value=entry,
+        ), patch(
+            "communication.message_processing.conversation_flow_manager.conversation_manager"
+        ) as mock_cm:
+            response = handler._handle_edit_entry(
+                "user-1", {"entry_ref": str(entry.id)}
+            )
+
+        mock_cm.start_entry_edit_flow.assert_called_once_with(
+            "user-1",
+            entry_ref=str(entry.id),
+            short_id=handler._format_entry_id(entry),
+            title="Editable",
+        )
+        mock_cm._save_user_states.assert_not_called()
+        assert response.completed is False
+        assert "editing" in response.message.lower()

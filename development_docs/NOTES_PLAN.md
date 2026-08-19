@@ -45,7 +45,7 @@ Current shared support:
 - `core/tags.py` provides shared tag normalization and validation.
 - `core/pagination.py` provides channel-neutral pagination helpers.
 - `core/ids.py` provides shared external short-ID create/parse/display (`t`/`n`/`l`/`j`, ...).
-- `communication/command_handlers/notebook_handler.py` handles notebook interactions and calls `notebook/notebook_service.py` rather than doing all business operations directly.
+- `communication/command_handlers/notebook_handler.py` handles notebook interactions and calls `notebook/notebook_service.py` rather than doing all business operations directly. Multi-step create/edit prompts start through public `ConversationManager` APIs (`start_note_body_flow`, `start_list_items_flow`, `start_journal_body_flow`, `start_entry_edit_flow`); the handler does not write private flow state.
 
 The old plan sections that said to create these modules have been removed because they are completed.
 

@@ -120,6 +120,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 - Public `get_first_checkin_question_text` on check-in flow; `core.service_requests` no longer calls private conversation-flow helpers.
 - `scheduler.runtime_access` holds the process SchedulerManager handle; `tasks.task_data_manager` no longer imports `core.service`.
 - Coupling analyzer threshold raised to > 10 with `__init__.py` exclusion; AI_PRIORITIES action text updated for triage (not hub shrink).
+- Public notebook flow start APIs on `NoteFlowMixin` (`start_note_body_flow`, `start_journal_body_flow`, `start_list_items_flow`, `start_entry_edit_flow`, `get_note_body_flow_data`); `notebook_handler` no longer writes `conversation_manager.user_states` or calls `_save_user_states`.
 
 **Later candidates** (not automatic refactors): storage -> feature-domain managers; duplicated multi-domain reads in `ai/context`; optional delivery ownership for AI personalized send only if ownership pressure appears; optional hub vs inappropriate-edge classification in the analyzer.
 

@@ -21,7 +21,11 @@ from communication.message_processing.flows.flow_constants import (
     CHECKIN_INACTIVITY_MINUTES,
     CHECKIN_MOOD,
     FLOW_CHECKIN,
+    FLOW_ENTRY_EDIT,
+    FLOW_JOURNAL_BODY,
+    FLOW_LIST_ITEMS,
     FLOW_NONE,
+    FLOW_NOTE_BODY,
     FLOW_TASK_REMINDER,
 )
 from core.time_utilities import (
@@ -728,3 +732,54 @@ class TestConversationFlowManagerBehavior:
         assert completed is True
         assert user_id not in manager.user_states, "Flow should be cleared on command interruption"
         assert save_calls["count"] == 1, "Flow clear should persist exactly once"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_start_note_body_flow_persists_public_state(self, test_data_dir):
+        """Public note-body start API persists flow data for the next inbound message."""
+        manager = ConversationManager()
+        user_id = "test_user_start_note_body"
+        manager.start_note_body_flow(
+            user_id, title="Hello", tags=["a"], group="Inbox"
+        )
+
+        state = manager.user_states[user_id]
+        assert state["flow"] == FLOW_NOTE_BODY
+        assert state["data"]["title"] == "Hello"
+        assert state["data"]["tags"] == ["a"]
+        assert state["data"]["group"] == "Inbox"
+        assert "started_at" in state
+
+        data = manager.get_note_body_flow_data(user_id)
+        assert data is not None
+        data["title"] = "mutated"
+        assert manager.get_note_body_flow_data(user_id)["title"] == "Hello"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_start_journal_and_list_and_edit_flows_persist_state(self, test_data_dir):
+        """Public journal, list, and edit start APIs persist the expected flow payloads."""
+        manager = ConversationManager()
+
+        manager.start_journal_body_flow("j-user", title="Today", tags=["mood"])
+        journal_state = manager.user_states["j-user"]
+        assert journal_state["flow"] == FLOW_JOURNAL_BODY
+        assert journal_state["data"]["title"] == "Today"
+        assert manager.get_note_body_flow_data("j-user") is None
+
+        manager.start_list_items_flow("l-user", title="Groceries", group=None)
+        list_state = manager.user_states["l-user"]
+        assert list_state["flow"] == FLOW_LIST_ITEMS
+        assert list_state["data"]["items"] == []
+        assert list_state["data"]["item_batches"] == []
+
+        manager.start_entry_edit_flow(
+            "e-user", entry_ref="entry-1", short_id="n123abc", title="Editable"
+        )
+        edit_state = manager.user_states["e-user"]
+        assert edit_state["flow"] == FLOW_ENTRY_EDIT
+        assert edit_state["data"]["entry_ref"] == "entry-1"
+        assert edit_state["data"]["short_id"] == "n123abc"
+        assert edit_state["data"]["title"] == "Editable"

@@ -14,7 +14,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.pagination import PageRequest, paginate_items
 from core.time_format_constants import DATE_DISPLAY_MONTH_DAY
-from core.time_utilities import format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full
+from core.time_utilities import format_timestamp, now_datetime_full, parse_timestamp_full
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler
@@ -331,7 +331,6 @@ class NotebookHandler(InteractionHandler):
             conversation_manager,
         )
         from communication.message_processing.flows.flow_constants import (
-            FLOW_NOTE_BODY,
             NOTEBOOK_BODY_SUGGESTIONS,
         )
 
@@ -343,10 +342,8 @@ class NotebookHandler(InteractionHandler):
         # Check if user is in a note body flow (continuing from previous prompt)
         # This shouldn't happen here since flow is handled in conversation_manager,
         # but handle it just in case
-        user_state = conversation_manager.user_states.get(user_id, {})
-        if user_state.get("flow") == FLOW_NOTE_BODY and description:
-            # Flow was already handled, but we have the body now
-            flow_data = user_state.get("data", {})
+        flow_data = conversation_manager.get_note_body_flow_data(user_id)
+        if flow_data is not None and description:
             title = flow_data.get("title", title)
             tags = flow_data.get("tags", tags)
             group = flow_data.get("group", group)
@@ -364,14 +361,9 @@ class NotebookHandler(InteractionHandler):
             title, parsed_tags = parse_tags_from_text(title)
             tags.extend(parsed_tags)
 
-            # Start flow to prompt for body
-            conversation_manager.user_states[user_id] = {
-                "flow": FLOW_NOTE_BODY,
-                "state": 0,
-                "data": {"title": title, "tags": tags, "group": group},
-                "started_at": now_timestamp_full(),
-            }
-            conversation_manager._save_user_states()
+            conversation_manager.start_note_body_flow(
+                user_id, title=title, tags=tags, group=group
+            )
             return InteractionResponse(
                 f"📝 Note title: '{title}'\n\nWhat would you like to add as the body text?",
                 False,
@@ -431,7 +423,6 @@ class NotebookHandler(InteractionHandler):
             conversation_manager,
         )
         from communication.message_processing.flows.flow_constants import (
-            FLOW_LIST_ITEMS,
             LIST_ITEMS_SUGGESTIONS,
         )
 
@@ -451,20 +442,9 @@ class NotebookHandler(InteractionHandler):
             title, parsed_tags = parse_tags_from_text(title)
             tags.extend(parsed_tags)
 
-            # Start flow to prompt for items
-            conversation_manager.user_states[user_id] = {
-                "flow": FLOW_LIST_ITEMS,
-                "state": 0,
-                "data": {
-                    "title": title,
-                    "tags": tags,
-                    "group": group,
-                    "items": [],
-                    "item_batches": [],
-                },
-                "started_at": now_timestamp_full(),
-            }
-            conversation_manager._save_user_states()
+            conversation_manager.start_list_items_flow(
+                user_id, title=title, tags=tags, group=group
+            )
             return InteractionResponse(
                 f"📋 List: '{title}'\n\nAdd list items (separated by commas, semicolons, or new lines). Type `!end`, `/end`, or 'end' to finish.",
                 False,
@@ -499,7 +479,6 @@ class NotebookHandler(InteractionHandler):
             conversation_manager,
         )
         from communication.message_processing.flows.flow_constants import (
-            FLOW_JOURNAL_BODY,
             JOURNAL_BODY_SUGGESTIONS,
         )
 
@@ -518,13 +497,9 @@ class NotebookHandler(InteractionHandler):
             title, parsed_tags = parse_tags_from_text(title)
             tags.extend(parsed_tags)
 
-            conversation_manager.user_states[user_id] = {
-                "flow": FLOW_JOURNAL_BODY,
-                "state": 0,
-                "data": {"title": title, "tags": tags, "group": group},
-                "started_at": now_timestamp_full(),
-            }
-            conversation_manager._save_user_states()
+            conversation_manager.start_journal_body_flow(
+                user_id, title=title, tags=tags, group=group
+            )
             return InteractionResponse(
                 f"📔 Journal entry: '{title}'\n\nWhat would you like to write?",
                 False,
@@ -683,7 +658,6 @@ class NotebookHandler(InteractionHandler):
         )
         from communication.message_processing.flows.flow_constants import (
             ENTRY_EDIT_SUGGESTIONS,
-            FLOW_ENTRY_EDIT,
         )
 
         entry_ref = entities.get("entry_ref")
@@ -707,13 +681,12 @@ class NotebookHandler(InteractionHandler):
 
         short_id = self._format_entry_id(entry)
         title = entry.title or "Untitled"
-        conversation_manager.user_states[user_id] = {
-            "flow": FLOW_ENTRY_EDIT,
-            "state": 0,
-            "data": {"entry_ref": str(entry.id), "short_id": short_id, "title": title},
-            "started_at": now_timestamp_full(),
-        }
-        conversation_manager._save_user_states()
+        conversation_manager.start_entry_edit_flow(
+            user_id,
+            entry_ref=str(entry.id),
+            short_id=short_id,
+            title=title,
+        )
         return InteractionResponse(
             f"✏️ Editing '{title}' ({short_id}).\n\n"
             "Send the new body text as your next message. "
