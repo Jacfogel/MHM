@@ -373,21 +373,21 @@ def append_task_reminder(parts: list[str], recent_sent_all: list[dict[str, Any]]
     parts.append(f'They received a task reminder at {t_ts}: "{t_text}"')
 
 
-@handle_errors("appending task data context", default_return=None)
-def append_task_data(parts: list[str], user_id: str) -> None:
-    if not are_tasks_enabled(user_id):
-        return
-
-    active_tasks = load_active_tasks(user_id)
-    task_stats = get_user_task_stats(user_id)
-    tasks_due_soon = get_tasks_due_soon(user_id, days_ahead=7)
-
-    if task_stats.get("total_count", 0) <= 0:
+@handle_errors("phrasing task data context", default_return=None)
+def _phrase_task_data(
+    parts: list[str],
+    *,
+    stats: dict[str, Any],
+    active_tasks: list[dict[str, Any]],
+    due_soon: list[dict[str, Any]],
+) -> None:
+    """Append the shared task-information prompt lines."""
+    if stats.get("total_count", 0) <= 0:
         return
 
     parts.append("Their task information:")
-    active_count = task_stats.get("active_count", 0)
-    completed_count = task_stats.get("completed_count", 0)
+    active_count = stats.get("active_count", 0)
+    completed_count = stats.get("completed_count", 0)
     parts.append(
         f"  - They have {active_count} active task{'s' if active_count != 1 else ''}"
     )
@@ -395,12 +395,12 @@ def append_task_data(parts: list[str], user_id: str) -> None:
         f"  - They have completed {completed_count} task{'s' if completed_count != 1 else ''} total"
     )
 
-    if tasks_due_soon:
+    if due_soon:
         parts.append(
-            f"  - They have {len(tasks_due_soon)} task{'s' if len(tasks_due_soon) != 1 else ''} "
+            f"  - They have {len(due_soon)} task{'s' if len(due_soon) != 1 else ''} "
             "due within the next 7 days"
         )
-        for task in tasks_due_soon[:3]:
+        for task in due_soon[:3]:
             title = task.get("title", "Untitled task")
             due_date = runtime_task_due_date(task) or ""
             priority = task.get("priority", "normal")
@@ -408,28 +408,23 @@ def append_task_data(parts: list[str], user_id: str) -> None:
             priority_desc = f" ({priority} priority)" if priority != "normal" else ""
             parts.append(f'    * "{title}"{due_desc}{priority_desc}')
 
-    if len(active_tasks) > len(tasks_due_soon[:3]):
-        other_active = [t for t in active_tasks if t not in tasks_due_soon[:3]][:3]
+    if len(active_tasks) > len(due_soon[:3]):
+        other_active = [t for t in active_tasks if t not in due_soon[:3]][:3]
         if other_active:
             parts.append("  - Other active tasks:")
             for task in other_active:
                 parts.append(f'    * "{task.get("title", "Untitled task")}"')
 
 
-@handle_errors("appending schedule details context", default_return=None)
-def append_schedule_details(parts: list[str], user_id: str, context: dict[str, Any]) -> None:
-    if not is_automated_messages_enabled(user_id):
-        return
-
-    profile = context.get("user_profile", {})
-    active_schedules = profile.get("active_schedules", [])
-    if not active_schedules:
-        return
-
-    schedules_data = get_user_data(
-        user_id, "schedules", normalize_on_read=True
-    ).get("schedules", {})
-    if not schedules_data:
+@handle_errors("phrasing schedule details context", default_return=None)
+def _phrase_schedule_details(
+    parts: list[str],
+    *,
+    active_schedules: list[Any],
+    schedules_data: dict[str, Any],
+) -> None:
+    """Append the shared active-schedule prompt lines."""
+    if not active_schedules or not schedules_data:
         return
 
     parts.append("Their active schedules:")
@@ -459,3 +454,35 @@ def append_schedule_details(parts: list[str], user_id: str, context: dict[str, A
                 f"  - {schedule_name} ({schedule_info['category']}): "
                 f"{days_str} from {start_time} to {end_time}"
             )
+
+
+# not_duplicate: task_prompt_section_loads_then_phrases
+@handle_errors("appending task data context", default_return=None)
+def append_task_data(parts: list[str], user_id: str) -> None:
+    if not are_tasks_enabled(user_id):
+        return
+
+    _phrase_task_data(
+        parts,
+        stats=get_user_task_stats(user_id),
+        active_tasks=load_active_tasks(user_id),
+        due_soon=get_tasks_due_soon(user_id, days_ahead=7),
+    )
+
+
+# not_duplicate: schedule_prompt_section_loads_then_phrases
+@handle_errors("appending schedule details context", default_return=None)
+def append_schedule_details(parts: list[str], user_id: str, context: dict[str, Any]) -> None:
+    if not is_automated_messages_enabled(user_id):
+        return
+
+    profile = context.get("user_profile", {})
+    active_schedules = profile.get("active_schedules", [])
+    schedules_data = get_user_data(
+        user_id, "schedules", normalize_on_read=True
+    ).get("schedules", {})
+    _phrase_schedule_details(
+        parts,
+        active_schedules=active_schedules,
+        schedules_data=schedules_data,
+    )

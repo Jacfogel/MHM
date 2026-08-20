@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 14:40:03
+> **Last Generated**: 2026-08-19 15:04:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.0% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2555
-- **Methods Found**: 1375
+- **Functions Found**: 2558
+- **Methods Found**: 1376
 - **Classes Found**: 257
-- **Total Items**: 3930
-- **Functions Documented**: 2236
-- **Methods Documented**: 1224
+- **Total Items**: 3934
+- **Functions Documented**: 2239
+- **Methods Documented**: 1225
 - **Classes Documented**: 187
-- **Total Documented**: 3460
+- **Total Documented**: 3464
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-19
 
@@ -560,6 +560,8 @@ Returns:
 - [MISSING] `_checkin_completed_today(ts, user_id)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
 - [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
+- [OK] `_phrase_schedule_details(parts)` - Append the shared active-schedule prompt lines.
+- [OK] `_phrase_task_data(parts)` - Append the shared task-information prompt lines.
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from chatbot context dict.
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``analyze_checkin_entries``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
@@ -3116,7 +3118,6 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
 - [OK] `_build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
 - [OK] `_continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
-- [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
 - [OK] `_generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
 
 Examples:
@@ -3135,6 +3136,9 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
 - [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Date phrases use ``parse_relative_date`` (same policy as task create).
+Time is parsed separately. Absolute dates still use ``parse_flexible_date_only``.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
 - [OK] `_parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
@@ -3157,6 +3161,7 @@ Examples:
 - [OK] `_skip_priority_question()` - Skip priority and continue to reminders or finish.
 - [OK] `_skip_reminders()` - Skip reminder setup and finalize the task.
 - [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
+- [OK] `_strip_time_tokens_from_date_phrase(text)` - Remove clock tokens so the leftover phrase can go through parse_relative_date.
 - [OK] `_task_flow_due_date_prompt(self)` - User-facing prompt for the due date/time follow-up step.
 - [OK] `_task_flow_priority_prompt(self)` - User-facing prompt for the priority follow-up step.
 - [OK] `_task_flow_skip_all(self, user_id)` - Finish task follow-up with defaults (Skip All / timeout).
@@ -3192,6 +3197,9 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
   - [OK] `TaskFlowMixin._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
   - [OK] `TaskFlowMixin._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Date phrases use ``parse_relative_date`` (same policy as task create).
+Time is parsed separately. Absolute dates still use ``parse_flexible_date_only``.
 
 Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
   - [OK] `TaskFlowMixin._parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
@@ -5560,6 +5568,9 @@ Args:
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
+- [OK] `_schedule_user_jobs(self, user_id)` - Schedule daily categories, check-ins, and task reminders for one user.
+
+Returns how many daily category/check-in jobs were requested.
 - [OK] `check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:
@@ -5664,6 +5675,9 @@ Args:
   - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
   - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
+  - [OK] `SchedulerManager._schedule_user_jobs(self, user_id)` - Schedule daily categories, check-ins, and task reminders for one user.
+
+Returns how many daily category/check-in jobs were requested.
   - [OK] `SchedulerManager.check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:

@@ -10,6 +10,8 @@ import pytest
 
 from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
 from ai.context.phraser import (
+    _phrase_schedule_details,
+    _phrase_task_data,
     append_checkin_summary,
     append_profile_sections,
     append_task_data,
@@ -109,6 +111,44 @@ class TestContextPhraser:
         text = "\n".join(parts)
         assert "task information" in text
         assert "active task" in text
+
+    def test_phrase_task_data_matches_envelope_and_disk_wording(self):
+        stats = {"total_count": 2, "active_count": 2, "completed_count": 0}
+        due_soon = [{"title": "Call pharmacy", "due": {"date": "2026-07-08"}, "priority": "high"}]
+        active = [due_soon[0], {"title": "Buy milk"}]
+        parts: list[str] = []
+        _phrase_task_data(
+            parts, stats=stats, active_tasks=active, due_soon=due_soon
+        )
+        text = "\n".join(parts)
+        assert "Their task information:" in text
+        assert "2 active tasks" in text
+        assert 'Call pharmacy' in text
+        assert "due on 2026-07-08" in text
+        assert "Other active tasks:" in text
+        assert "Buy milk" in text
+
+    def test_phrase_schedule_details_uses_period_hours(self):
+        parts: list[str] = []
+        _phrase_schedule_details(
+            parts,
+            active_schedules=["morning"],
+            schedules_data={
+                "motivational": {
+                    "periods": {
+                        "morning": {
+                            "days": ["ALL"],
+                            "start_time": "09:00",
+                            "end_time": "12:00",
+                        }
+                    }
+                }
+            },
+        )
+        assert parts == [
+            "Their active schedules:",
+            "  - morning (motivational): every day from 09:00 to 12:00",
+        ]
 
     def test_append_profile_sections_empty_context(self):
         parts: list[str] = []

@@ -4,6 +4,7 @@
 
 from datetime import datetime, timedelta
 import random
+import re
 from typing import Any
 
 from core.error_handling import handle_errors
@@ -16,9 +17,11 @@ from core.time_utilities import (
     now_timestamp_full,
     parse_date_and_time_minute,
     parse_date_only,
+    parse_flexible_date_only,
     parse_time_only_minute,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
+from tasks.task_service import parse_relative_date
 
 from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_DUE_DATE,
@@ -45,6 +48,18 @@ from communication.message_processing.flows.flow_command_helpers import (
 from communication.message_processing.flows.flow_control_mixin import FlowControlMixin
 
 logger = get_component_logger("communication_manager")
+
+_TIME_TOKEN_RE = re.compile(
+    r"\b(?:at\s+)?(?:\d{1,2}:\d{2}\s*(?:am|pm)?|\d{1,2}\s*(?:am|pm))\b",
+    re.IGNORECASE,
+)
+
+
+@handle_errors("stripping time tokens from a due-date phrase", default_return="")
+def _strip_time_tokens_from_date_phrase(text: str) -> str:
+    """Remove clock tokens so the leftover phrase can go through parse_relative_date."""
+    stripped = _TIME_TOKEN_RE.sub(" ", text or "")
+    return re.sub(r"\s+", " ", stripped).strip(" ,.-")
 
 
 class TaskFlowMixin(FlowControlMixin):
@@ -929,7 +944,9 @@ class TaskFlowMixin(FlowControlMixin):
             return ("❌ Could not find task. Please try creating the task again.", True)
 
         # Parse date/time from message
-        parsed_date, parsed_time = self._parse_date_time_from_text(message_text)
+        parsed_date, parsed_time = self._parse_date_time_from_text(
+            message_text, user_id=user_id
+        )
 
         if not parsed_date:
             # Couldn't parse date - ask for clarification
@@ -983,73 +1000,40 @@ class TaskFlowMixin(FlowControlMixin):
                 "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
                 True,
             )
+
     @handle_errors("parsing date and time from text", default_return=(None, None))
-    def _parse_date_time_from_text(self, text: str) -> tuple[str | None, str | None]:
+    def _parse_date_time_from_text(
+        self, text: str, *, user_id: str | None = None
+    ) -> tuple[str | None, str | None]:
         """
         Parse date and time from natural language text.
 
+        Date phrases use ``parse_relative_date`` (same policy as task create).
+        Time is parsed separately. Absolute dates still use ``parse_flexible_date_only``.
+
         Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
         """
-        # not_duplicate: task_due_date_natural_language_parsers
-        import re
-        from datetime import datetime, timedelta
+        raw = (text or "").strip()
+        if not raw:
+            return (None, None)
 
-        # Canonical formats live in core.time_utilities
-        # - DATE_ONLY is still useful for parsing/strptime in other places,
-        #   and for date-only string output we use core.time_utilities.format_timestamp(..., DATE_ONLY).
-        from core.time_utilities import (
-            DATE_ONLY,
-            parse_flexible_date_only,
-        )  # noqa: F401 (documented canonical)
+        text_lower = raw.lower()
+        time_str = self._parse_time_from_text(text_lower)
+        date_phrase = _strip_time_tokens_from_date_phrase(text_lower)
 
-        text_lower = (text or "").lower().strip()
-        today_dt = now_datetime_full()
+        candidates: list[str] = []
+        if date_phrase:
+            candidates.append(date_phrase)
+        if text_lower not in candidates:
+            candidates.append(text_lower)
 
-        def _date_str(dt: datetime) -> str:
-            """Return YYYY-MM-DD without sprinkling strftime format strings."""
-            try:
-                return format_timestamp(dt, DATE_ONLY)
-            except Exception as exc:
-                logger.error(
-                    f"Failed to format date for natural language parser: {exc}",
-                    exc_info=True,
-                )
-                return ""
+        now_dt = now_datetime_full()
+        for candidate in candidates:
+            parsed = parse_relative_date(candidate, now_dt=now_dt, user_id=user_id)
+            if parse_date_only(parsed) is not None:
+                return (parsed, time_str)
 
-        # Try to parse relative dates first
-        if text_lower == "today":
-            return (_date_str(today_dt), None)
-
-        if text_lower == "tomorrow":
-            tomorrow_dt = today_dt + timedelta(days=1)
-            return (_date_str(tomorrow_dt), None)
-
-        if text_lower.startswith("tomorrow"):
-            # "tomorrow at 10am" or "tomorrow 2pm"
-            tomorrow_dt = today_dt + timedelta(days=1)
-            time_str = self._parse_time_from_text(text_lower)
-            return (_date_str(tomorrow_dt), time_str)
-
-        if "next week" in text_lower:
-            next_week_dt = today_dt + timedelta(days=7)
-            time_str = self._parse_time_from_text(text_lower)
-            return (_date_str(next_week_dt), time_str)
-
-        if "next month" in text_lower:
-            # Preserve your existing behavior: "same day next month" using replace().
-            # Note: this can raise ValueError for dates like Jan 31 -> Feb 31.
-            # We are not changing behavior here unless you explicitly want it.
-            if today_dt.month == 12:
-                next_month_dt = today_dt.replace(year=today_dt.year + 1, month=1)
-            else:
-                next_month_dt = today_dt.replace(month=today_dt.month + 1)
-
-            time_str = self._parse_time_from_text(text_lower)
-            return (_date_str(next_month_dt), time_str)
-
-        # Try to parse date patterns like "Monday", "Jan 15", "2026-01-15"
-        # Day of week
-        days_of_week = [
+        for day in (
             "monday",
             "tuesday",
             "wednesday",
@@ -1057,40 +1041,26 @@ class TaskFlowMixin(FlowControlMixin):
             "friday",
             "saturday",
             "sunday",
-        ]
-        for i, day in enumerate(days_of_week):
-            if day in text_lower:
-                # Find next occurrence of this day
-                days_ahead = (i - today_dt.weekday()) % 7
-                if days_ahead == 0:  # Today is that day, use next week
-                    days_ahead = 7
-                target_dt = today_dt + timedelta(days=days_ahead)
-                time_str = self._parse_time_from_text(text_lower)
-                return (_date_str(target_dt), time_str)
+        ):
+            if re.search(rf"\b{day}\b", text_lower):
+                weekday_phrase = (
+                    f"next {day}"
+                    if re.search(rf"\bnext\s+{day}\b", text_lower)
+                    else day
+                )
+                parsed = parse_relative_date(
+                    weekday_phrase, now_dt=now_dt, user_id=user_id
+                )
+                if parse_date_only(parsed) is not None:
+                    return (parsed, time_str)
+                break
 
-        # YYYY-MM-DD, YYYY/MM/DD, YYYY MM DD, optional trailing time
-        flexible_date = parse_flexible_date_only(text or "")
+        flexible_date = parse_flexible_date_only(raw)
         if flexible_date:
-            time_str = self._parse_time_from_text(text_lower)
             return (flexible_date, time_str)
 
-        # Try to parse relative days like "in 3 days", "in 2 weeks"
-        days_match = re.search(r"in\s+(\d+)\s+days?", text_lower)
-        if days_match:
-            days = int(days_match.group(1))
-            target_dt = today_dt + timedelta(days=days)
-            time_str = self._parse_time_from_text(text_lower)
-            return (_date_str(target_dt), time_str)
-
-        weeks_match = re.search(r"in\s+(\d+)\s+weeks?", text_lower)
-        if weeks_match:
-            weeks = int(weeks_match.group(1))
-            target_dt = today_dt + timedelta(weeks=weeks)
-            time_str = self._parse_time_from_text(text_lower)
-            return (_date_str(target_dt), time_str)
-
-        # If we can't parse, return None
         return (None, None)
+
     @handle_errors("parsing time from text", default_return=None)
     def _parse_time_from_text(self, text: str) -> str | None:
         """

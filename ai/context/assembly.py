@@ -12,11 +12,12 @@ from ai.context.phraser import (
     phrase_checkin_summary,
     _checkin_completed_today,
     _phrase_recent_sent_messages,
+    _phrase_schedule_details,
+    _phrase_task_data,
 )
 from ai.prompts.manager import MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager
 from ai.prompts.flows import get_product_ai_prompt_flow
 from core.error_handling import handle_errors
-from tasks.task_data_handlers import runtime_task_due_date
 
 
 @handle_errors("building conversational context parts", default_return=[])
@@ -382,6 +383,7 @@ def _append_task_reminder_from_messages(
     parts.append(f'They received a task reminder at {timestamp}: "{text}"')
 
 
+# not_duplicate: task_prompt_section_loads_then_phrases
 @handle_errors("appending task data from AI envelope", default_return=None)
 def _append_task_data_from_envelope(
     parts: list[str], structured: dict[str, Any]
@@ -390,40 +392,15 @@ def _append_task_data_from_envelope(
     tasks = structured.get("tasks") or {}
     if not tasks.get("enabled"):
         return
-    stats = tasks.get("stats") or {}
-    if stats.get("total_count", 0) <= 0:
-        return
-    active_tasks = list(tasks.get("active") or [])
-    due_soon = list(tasks.get("due_soon") or [])
-    parts.append("Their task information:")
-    active_count = stats.get("active_count", 0)
-    completed_count = stats.get("completed_count", 0)
-    parts.append(
-        f"  - They have {active_count} active task{'s' if active_count != 1 else ''}"
+    _phrase_task_data(
+        parts,
+        stats=tasks.get("stats") or {},
+        active_tasks=list(tasks.get("active") or []),
+        due_soon=list(tasks.get("due_soon") or []),
     )
-    parts.append(
-        f"  - They have completed {completed_count} task{'s' if completed_count != 1 else ''} total"
-    )
-    if due_soon:
-        parts.append(
-            f"  - They have {len(due_soon)} task{'s' if len(due_soon) != 1 else ''} "
-            "due within the next 7 days"
-        )
-        for task in due_soon[:3]:
-            title = task.get("title", "Untitled task")
-            due_date = runtime_task_due_date(task) or ""
-            priority = task.get("priority", "normal")
-            due_desc = f", due on {due_date}" if due_date else ""
-            priority_desc = f" ({priority} priority)" if priority != "normal" else ""
-            parts.append(f'    * "{title}"{due_desc}{priority_desc}')
-    if len(active_tasks) > len(due_soon[:3]):
-        other_active = [t for t in active_tasks if t not in due_soon[:3]][:3]
-        if other_active:
-            parts.append("  - Other active tasks:")
-            for task in other_active:
-                parts.append(f'    * "{task.get("title", "Untitled task")}"')
 
 
+# not_duplicate: schedule_prompt_section_loads_then_phrases
 @handle_errors("appending schedule details from AI envelope", default_return=None)
 def _append_schedule_details_from_envelope(
     parts: list[str], structured: dict[str, Any]
@@ -433,33 +410,8 @@ def _append_schedule_details_from_envelope(
     if not messages.get("enabled"):
         return
     schedules = structured.get("schedules") or {}
-    active_schedules = schedules.get("active_schedules") or []
-    schedules_data = schedules.get("raw") or {}
-    if not active_schedules or not schedules_data:
-        return
-    parts.append("Their active schedules:")
-    for schedule_name in active_schedules[:5]:
-        schedule_info = None
-        for category, category_data in schedules_data.items():
-            if not isinstance(category_data, dict) or "periods" not in category_data:
-                continue
-            for period_name, period_data in category_data["periods"].items():
-                if period_name == schedule_name:
-                    schedule_info = {
-                        "category": category,
-                        "period": period_name,
-                        "data": period_data,
-                    }
-                    break
-            if schedule_info:
-                break
-        if schedule_info:
-            period_data = schedule_info["data"]
-            days = period_data.get("days", ["ALL"])
-            start_time = period_data.get("start_time", "00:00")
-            end_time = period_data.get("end_time", "23:59")
-            days_str = ", ".join(days) if days != ["ALL"] else "every day"
-            parts.append(
-                f"  - {schedule_name} ({schedule_info['category']}): "
-                f"{days_str} from {start_time} to {end_time}"
-            )
+    _phrase_schedule_details(
+        parts,
+        active_schedules=schedules.get("active_schedules") or [],
+        schedules_data=schedules.get("raw") or {},
+    )

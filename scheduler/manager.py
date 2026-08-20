@@ -262,6 +262,64 @@ class SchedulerManager:
                 return False
             return bool(hasattr(job_func, "func") and job_func.func == self.schedule_daily_message_job and hasattr(job_func, "keywords") and job_func.keywords.get("user_id") == user_id and job_func.keywords.get("category") == category)
 
+    @handle_errors(
+        "scheduling category, check-in, and reminder jobs for a user", re_raise=True
+    )
+    def _schedule_user_jobs(self, user_id: str, *, verbose: bool = False) -> int:
+        """Schedule daily categories, check-ins, and task reminders for one user.
+
+        Returns how many daily category/check-in jobs were requested.
+        """
+        log = logger.info if verbose else logger.debug
+        scheduled = 0
+
+        prefs_result = get_user_data(user_id, "preferences")
+        categories = prefs_result.get("preferences", {}).get("categories", [])
+        if isinstance(categories, list):
+            for category in categories:
+                try:
+                    self.schedule_daily_message_job(user_id, category)
+                    scheduled += 1
+                    log(
+                        f"Scheduled messages for user {user_id}, category {category}"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to schedule for user {user_id}, category {category}: {e}"
+                    )
+        else:
+            logger.warning(
+                f"Expected list for categories, got {type(categories)} for user '{user_id}'"
+            )
+
+        try:
+            user_data_result = get_user_data(user_id, "account")
+            user_account = user_data_result.get("account")
+            if (
+                user_account
+                and user_account.get("features", {}).get("checkins") == "enabled"
+            ):
+                time_periods = get_schedule_time_periods(user_id, "checkin")
+                if time_periods:
+                    self.schedule_daily_message_job(user_id, "checkin")
+                    scheduled += 1
+                    log(f"Scheduled check-ins for user {user_id}")
+                else:
+                    logger.debug(f"No check-in schedule found for user {user_id}")
+        except Exception as e:
+            logger.error(f"Failed to schedule check-ins for user {user_id}: {e}")
+
+        try:
+            self.schedule_all_task_reminders(user_id)
+            if verbose:
+                logger.info(f"Scheduled task reminders for user {user_id}")
+        except Exception as e:
+            logger.error(
+                f"Failed to schedule task reminders for user {user_id}: {e}"
+            )
+
+        return scheduled
+
     @handle_errors("scheduling all users immediately", default_return=None)
     def schedule_all_users_immediately(self):
         """Schedule daily messages immediately for all users"""
@@ -277,61 +335,7 @@ class SchedulerManager:
 
         for user_id in user_ids:
             try:
-                # Schedule regular message categories
-                prefs_result = get_user_data(user_id, "preferences")
-                categories = prefs_result.get("preferences", {}).get("categories", [])
-                if isinstance(categories, list):
-                    if categories:  # Only process if list is not empty
-                        for category in categories:
-                            try:
-                                self.schedule_daily_message_job(user_id, category)
-                                total_scheduled += 1
-                                logger.debug(
-                                    f"Scheduled messages for user {user_id}, category {category}"
-                                )
-                            except Exception as e:
-                                logger.error(
-                                    f"Failed to schedule for user {user_id}, category {category}: {e}"
-                                )
-                    # Empty list is fine - no warning needed
-                else:
-                    logger.warning(
-                        f"Expected list for categories, got {type(categories)} for user '{user_id}'"
-                    )
-
-                # Schedule check-ins if enabled
-                try:
-                    # Get user account data
-                    user_data_result = get_user_data(user_id, "account")
-                    user_account = user_data_result.get("account")
-                    if (
-                        user_account
-                        and user_account.get("features", {}).get("checkins")
-                        == "enabled"
-                    ):
-                        # Check if check-in category exists in schedules
-                        time_periods = get_schedule_time_periods(user_id, "checkin")
-                        if time_periods:
-                            self.schedule_daily_message_job(user_id, "checkin")
-                            total_scheduled += 1
-                            logger.debug(f"Scheduled check-ins for user {user_id}")
-                        else:
-                            logger.debug(
-                                f"No check-in schedule found for user {user_id}"
-                            )
-                except Exception as e:
-                    logger.error(
-                        f"Failed to schedule check-ins for user {user_id}: {e}"
-                    )
-
-                # Schedule task reminders if tasks are enabled
-                try:
-                    self.schedule_all_task_reminders(user_id)
-                except Exception as e:
-                    logger.error(
-                        f"Failed to schedule task reminders for user {user_id}: {e}"
-                    )
-
+                total_scheduled += self._schedule_user_jobs(user_id)
             except Exception as e:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
 
@@ -376,55 +380,8 @@ class SchedulerManager:
         logger.info(f"Scheduling new user: {user_id}")
 
         try:
-            # Schedule regular message categories
-            prefs_result = get_user_data(user_id, "preferences")
-            categories = prefs_result.get("preferences", {}).get("categories", [])
-            if isinstance(categories, list) and categories:
-                for category in categories:
-                    try:
-                        self.schedule_daily_message_job(user_id, category)
-                        logger.info(
-                            f"Scheduled messages for new user {user_id}, category {category}"
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f"Failed to schedule for new user {user_id}, category {category}: {e}"
-                        )
-
-            # Schedule check-ins if enabled
-            try:
-                # Get user account data
-                user_data_result = get_user_data(user_id, "account")
-                user_account = user_data_result.get("account")
-                if (
-                    user_account
-                    and user_account.get("features", {}).get("checkins") == "enabled"
-                ):
-                    # Check if check-in category exists in schedules
-                    time_periods = get_schedule_time_periods(user_id, "checkin")
-                    if time_periods:
-                        self.schedule_daily_message_job(user_id, "checkin")
-                        logger.info(f"Scheduled check-ins for new user {user_id}")
-                    else:
-                        logger.debug(
-                            f"No check-in schedule found for new user {user_id}"
-                        )
-            except Exception as e:
-                logger.error(
-                    f"Failed to schedule check-ins for new user {user_id}: {e}"
-                )
-
-            # Schedule task reminders if tasks are enabled
-            try:
-                self.schedule_all_task_reminders(user_id)
-                logger.info(f"Scheduled task reminders for new user {user_id}")
-            except Exception as e:
-                logger.error(
-                    f"Failed to schedule task reminders for new user {user_id}: {e}"
-                )
-
+            self._schedule_user_jobs(user_id, verbose=True)
             logger.info(f"Successfully scheduled new user: {user_id}")
-
         except Exception as e:
             logger.error(f"Failed to schedule new user {user_id}: {e}")
             raise

@@ -34,7 +34,8 @@ Guidelines:
 - Notebook entity extraction, profile text, and the custom-question dialog now use named helpers for the real parsing/formatting/template jobs.
 - Left constructor-style complexity scores and other dense single-job functions alone.
 - Shared backup retention in `cleanup_old_backup_artifacts`; reminder HH:MM combo helpers; `parse()` keyword/intent lists moved to module constants.
-- `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`.
+- Per-user scheduler jobs, AI task/schedule prompt wording, and due-date flow phrases now share one implementation instead of copied policy.
+- `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`. Changelog ASCII: replaced Unicode arrows with `->`.
 
 ### 2026-08-18 - Notebook handler uses public conversation flow APIs **COMPLETED**
 - Public `start_note_body_flow` / `start_journal_body_flow` / `start_list_items_flow` / `start_entry_edit_flow` (and `get_note_body_flow_data`) on the note-flow mixin.
