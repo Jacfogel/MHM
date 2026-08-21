@@ -889,3 +889,75 @@ def test_linkify_review_paths_leaves_non_review_lines():
 
     line = "Action: run pytest"
     assert linkify_review_paths_bullet(line) == line
+
+
+@pytest.mark.unit
+def test_quick_wins_read_documentation_placeholders_from_details(temp_project_copy):
+    """Placeholder TODO hits live under details and should become Quick Wins."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    payloads = {
+        "analyze_documentation": {
+            "summary": {"total_issues": 3, "files_affected": 0},
+            "details": {
+                "artifacts": [],
+                "duplicates": [],
+                "placeholders": [
+                    {"file": "README.md", "matches": ["TODO"]},
+                    {"file": "TODO.md", "matches": ["TODO"]},
+                    {"file": "development_docs/PLANS.md", "matches": ["TODO"]},
+                ],
+            },
+        }
+    }
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "placeholder section(s) flagged by docs scan" in doc
+    assert "README.md" in doc
+    assert "PLANS.md" in doc
+    assert "Replace 2 placeholder" in doc
+    assert "TODO.md" not in doc.split("## Quick Wins", 1)[-1]
+
+
+@pytest.mark.unit
+def test_watch_list_includes_stale_function_registry_extras(temp_project_copy):
+    """Registry extras (documented but not in the scan) belong on the Watch List."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    payloads = {
+        "analyze_function_registry": {
+            "summary": {"total_issues": 3, "files_affected": 0},
+            "details": {
+                "missing": {"count": 0, "files": {}, "missing_files": []},
+                "extra": {
+                    "count": 3,
+                    "files": {
+                        "run_tests.py": ["main", "run_command"],
+                        "run_mhm.py": ["main"],
+                    },
+                },
+            },
+        }
+    }
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Stale function-registry extras" in doc
+    assert "3 registry entries are documented but not found" in doc
+    assert "run_tests.py (2)" in doc
+    assert "Update function registry" not in doc

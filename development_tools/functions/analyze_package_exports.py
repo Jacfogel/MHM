@@ -4,18 +4,15 @@
 """
 Package Exports Audit Script
 
-Systematically identifies what should be exported at package level
-based on:
-1. Actual imports across the codebase (what's actually used)
-2. Public API items (not starting with `_`)
-3. Cross-module usage patterns
-4. FUNCTION_REGISTRY_DETAIL.md documented functions
-5. Module-level public functions/classes
+Flags names that callers import from the package root
+(`from package import Name`) but that are missing from `__all__` or
+package `__init__.py` re-exports. Submodule imports
+(`from package.mod import Name`) and unused public module names are
+not missing package exports.
 
 Usage:
-    python functions/analyze_package_exports.py.py
-    python functions/analyze_package_exports.py.py --package core
-    python functions/analyze_package_exports.py.py --package communication
+    python functions/analyze_package_exports.py --package core
+    python functions/analyze_package_exports.py --package communication
 """
 
 import ast
@@ -57,6 +54,29 @@ class UsageStats(TypedDict):
     import_locations: list[str]
     import_types: list[str]
     module_path: str | None
+    external_import_count: int
+    package_import_count: int
+
+
+def _empty_usage_stats() -> dict[str, Any]:
+    """Return a mutable usage-stats bucket for one imported name."""
+    return {
+        "import_count": 0,
+        "import_locations": [],
+        "import_types": set(),
+        "module_path": None,
+        "external_import_count": 0,
+        "package_import_count": 0,
+    }
+
+
+def _import_is_inside_package(file_key: str, package_name: str) -> bool:
+    """Return True when file_key lives in the audited package tree."""
+    normalized = str(file_key).replace("\\", "/")
+    return (
+        normalized == f"{package_name}.py"
+        or normalized.startswith(f"{package_name}/")
+    )
 
 
 def extract_imports_from_file(file_path: str) -> dict[str, Any]:
@@ -191,15 +211,7 @@ def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str
     package_set = set(package_names)
     # Intermediate structure uses set() for import_types; result converts to List for UsageStats
     usage_stats_by_package: dict[str, dict[str, Any]] = {
-        package: defaultdict(
-            lambda: {
-                "import_count": 0,
-                "import_locations": [],
-                "import_types": set(),
-                "module_path": None,
-            }
-        )
-        for package in package_set
+        package: defaultdict(_empty_usage_stats) for package in package_set
     }
 
     # Scan all Python files once for all packages
@@ -221,35 +233,30 @@ def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str
             if package_name not in package_set:
                 continue
 
-            module_parts = imp["module"].split(".")
-            if len(module_parts) <= 1 or module_parts[0] != package_name:
+            module_parts = (imp.get("module") or "").split(".")
+            if not module_parts or module_parts[0] != package_name:
                 continue
 
-            item_name = imp["asname"]
-            module_path = imp["module"]
+            item_name = str(imp.get("name") or "")
+            if not item_name or item_name == "*":
+                continue
+
+            is_package_root = len(module_parts) == 1
+            module_path = imp.get("module") or ""
             package_stats = usage_stats_by_package[package_name]
+            bucket = package_stats[item_name]
+            if not bucket["module_path"]:
+                bucket["module_path"] = module_path
 
-            if item_name not in package_stats:
-                package_stats[item_name]["module_path"] = module_path
-
-            package_stats[item_name]["import_count"] += 1
-            package_stats[item_name]["import_locations"].append(file_key)
-            package_stats[item_name]["import_types"].add("from_import")
-
-        for imp in imports.get("direct_imports") or []:
-            if not isinstance(imp, dict):
-                continue
-            package_name = imp.get("package")
-            if package_name not in package_set:
-                continue
-            if "." in imp["module"]:
-                continue
-
-            item_name = imp["asname"]
-            package_stats = usage_stats_by_package[package_name]
-            package_stats[item_name]["import_count"] += 1
-            package_stats[item_name]["import_locations"].append(file_key)
-            package_stats[item_name]["import_types"].add("direct_import")
+            bucket["import_count"] += 1
+            bucket["import_locations"].append(file_key)
+            if is_package_root:
+                bucket["import_types"].add("package_import")
+                bucket["package_import_count"] += 1
+            else:
+                bucket["import_types"].add("from_import")
+            if not _import_is_inside_package(file_key, package_name):
+                bucket["external_import_count"] += 1
 
     result: dict[str, dict[str, UsageStats]] = {}
     for package_name, stats_map in usage_stats_by_package.items():
@@ -260,6 +267,8 @@ def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str
                 "import_locations": stats["import_locations"],
                 "import_types": list(stats["import_types"]),
                 "module_path": stats["module_path"],
+                "external_import_count": stats["external_import_count"],
+                "package_import_count": stats["package_import_count"],
             }
     return result
 
@@ -286,19 +295,21 @@ def _normalize_public_items(package_api: dict[str, list[str]]) -> set[str]:
 def _build_should_export(
     package_name: str,
     import_usage: dict[str, UsageStats],
-    all_package_items: set[str],
-    registry_items: set[str],
 ) -> set[str]:
-    """Build should-export set using usage, registry, and public module API."""
-    should_export = set()
+    """Names that belong in package `__all__` / re-exports.
 
-    registry_items_module_level = {
-        item for item in registry_items if item in all_package_items or item in import_usage
-    }
-    should_export.update(registry_items_module_level)
-    should_export.update(import_usage.keys())
-    should_export.update(all_package_items)
-    should_export = {item for item in should_export if not item.startswith("_")}
+    A name should be exported when callers import it from the package root
+    (`from package import Name`). Deep imports from submodules are not a
+    missing package-export signal.
+    """
+    should_export: set[str] = set()
+    for name, stats in import_usage.items():
+        if not name or name.startswith("_") or name == "*":
+            continue
+        types = set(stats.get("import_types") or [])
+        package_import_count = int(stats.get("package_import_count") or 0)
+        if "package_import" in types or package_import_count > 0:
+            should_export.add(name)
 
     if package_name == "ui":
         generated_ui_classes = {
@@ -307,7 +318,9 @@ def _build_should_export(
             if item.startswith("Ui_")
             or (
                 item in import_usage
-                and str(import_usage[item].get("module_path", "")).startswith("ui.generated")
+                and str(import_usage[item].get("module_path", "")).startswith(
+                    "ui.generated"
+                )
             )
         }
         should_export -= generated_ui_classes
@@ -316,77 +329,14 @@ def _build_should_export(
         config_constants = {
             item
             for item in should_export
-            if item.startswith(("AI_", "BASE_", "DEFAULT_", "LOG_", "USER_", "MAX_", "MIN_"))
+            if item.startswith(
+                ("AI_", "BASE_", "DEFAULT_", "LOG_", "USER_", "MAX_", "MIN_")
+            )
             and item in import_usage
         }
         should_export -= config_constants
 
     return should_export
-    usage_stats: dict[str, Any] = defaultdict(
-        lambda: {
-            "import_count": 0,
-            "import_locations": [],
-            "import_types": set(),  # 'from_import', 'direct_import'
-            "module_path": None,
-        }
-    )
-
-    # Scan all Python files
-    for py_file in project_root.rglob("*.py"):
-        if should_exclude_file(str(py_file), "analysis", "production"):
-            continue
-
-        # Skip __pycache__ and test data directories
-        if "__pycache__" in str(py_file) or "pytest-of-" in str(py_file):
-            continue
-
-        imports = extract_imports_from_file(str(py_file))
-
-        rel_path = py_file.relative_to(project_root)
-        file_key = str(rel_path).replace("\\", "/")
-
-        # Check from_imports
-        for imp in imports.get("from_imports") or []:
-            if not isinstance(imp, dict) or imp.get("package") != package_name:
-                continue
-
-            # If importing from package directly or subpackage
-            module_parts = (imp.get("module") or "").split(".")
-            if len(module_parts) > 1 and module_parts[0] == package_name:
-                # Extract what's being imported
-                item_name = imp.get("asname") or ""
-                module_path = imp.get("module") or ""
-
-                if item_name not in usage_stats:
-                    usage_stats[item_name]["module_path"] = module_path
-
-                usage_stats[item_name]["import_count"] += 1
-                usage_stats[item_name]["import_locations"].append(file_key)
-                usage_stats[item_name]["import_types"].add("from_import")
-
-        # Check direct imports (import package)
-        for imp in imports.get("direct_imports") or []:
-            if not isinstance(imp, dict):
-                continue
-            if imp.get("package") != package_name or "." in (imp.get("module") or ""):
-                continue
-            # Direct package import
-            item_name = imp.get("asname") or ""
-            usage_stats[item_name]["import_count"] += 1
-            usage_stats[item_name]["import_locations"].append(file_key)
-            usage_stats[item_name]["import_types"].add("direct_import")
-
-    # Convert sets to lists for JSON serialization
-    result = {}
-    for name, stats in usage_stats.items():
-        result[name] = {
-            "import_count": stats["import_count"],
-            "import_locations": stats["import_locations"],
-            "import_types": list(stats["import_types"]),
-            "module_path": stats["module_path"],
-        }
-
-    return result
 
 
 def check_current_exports(package_name: str) -> set[str]:
@@ -531,8 +481,6 @@ def generate_audit_report(
     should_export = _build_should_export(
         package_name=package_name,
         import_usage=import_usage,
-        all_package_items=all_package_items,
-        registry_items=registry_items,
     )
 
     # Items currently exported
@@ -576,7 +524,7 @@ def generate_recommended_exports(report: dict) -> str:
 
     for item in missing:
         usage = report["import_usage_details"].get(item, {})
-        count = usage.get("import_count", 0)
+        count = usage.get("package_import_count", usage.get("import_count", 0))
         module_path = usage.get("module_path", "unknown")
 
         if count >= 5:
@@ -604,7 +552,7 @@ def generate_recommended_exports(report: dict) -> str:
             output.append(f"# from {module} import {item}  # used {count} times")
 
     if low_usage:
-        output.append("\n# Low usage (0-1 imports, but part of public API):")
+        output.append("\n# Low usage (0-1 package-root imports):")
         output.append(f"# {len(low_usage)} items - see full report for details")
 
     return "\n".join(output)

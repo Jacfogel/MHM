@@ -995,7 +995,8 @@ DOCUMENTATION_ANALYSIS = {
     "heading_patterns": ["## ", "### "],
     "placeholder_patterns": [
         r"TBD",
-        r"TODO",
+        r"\[TODO\]",
+        r"(?<![A-Za-z_-])TODO:",
         r"to be filled",
         r"\[insert[^\]]*\]",
     ],

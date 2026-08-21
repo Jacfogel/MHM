@@ -80,36 +80,38 @@ def test_check_current_exports_reads_dunder_all_and_reexports(
         shutil.rmtree(temp_path, ignore_errors=True)
 
 
+def _make_export_package(temp_path: Path) -> None:
+    """Create a tiny alpha package plus registry stub under temp_path."""
+    package_dir = temp_path / "alpha"
+    package_dir.mkdir(parents=True, exist_ok=True)
+    (package_dir / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
+    (package_dir / "module.py").write_text(
+        "def public_func():\n    return 1\n",
+        encoding="utf-8",
+    )
+    docs_dir = temp_path / "development_docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    (docs_dir / "FUNCTION_REGISTRY_DETAIL.md").write_text(
+        "#### `alpha/module.py`\n"
+        "**Functions:**\n"
+        "- [OK] `public_func()` - Example\n",
+        encoding="utf-8",
+    )
+
+
 @pytest.mark.unit
-def test_generate_audit_report_finds_missing_exports(
+def test_generate_audit_report_flags_package_root_imports(
     exports_module, monkeypatch
 ):
-    """generate_audit_report should flag public API missing from __all__."""
+    """Missing export means from package import Name, not every public name."""
     temp_root = Path(__file__).parent.parent / "data" / "tmp"
     temp_root.mkdir(parents=True, exist_ok=True)
     temp_path = temp_root / f"tmp_{uuid.uuid4().hex}"
     temp_path.mkdir(parents=True, exist_ok=True)
     try:
-        package_dir = temp_path / "alpha"
-        package_dir.mkdir(parents=True, exist_ok=True)
-        (package_dir / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
-        (package_dir / "module.py").write_text(
-            "def public_func():\n    return 1\n",
-            encoding="utf-8",
-        )
-
-        # File that imports the public function to simulate usage
+        _make_export_package(temp_path)
         (temp_path / "consumer.py").write_text(
-            "from alpha.module import public_func\n",
-            encoding="utf-8",
-        )
-
-        docs_dir = temp_path / "development_docs"
-        docs_dir.mkdir(parents=True, exist_ok=True)
-        (docs_dir / "FUNCTION_REGISTRY_DETAIL.md").write_text(
-            "#### `alpha/module.py`\n"
-            "**Functions:**\n"
-            "- [OK] `public_func()` - Example\n",
+            "from alpha import public_func\n",
             encoding="utf-8",
         )
 
@@ -127,3 +129,77 @@ def test_generate_audit_report_finds_missing_exports(
         assert report["should_export_count"] >= 1
     finally:
         shutil.rmtree(temp_path, ignore_errors=True)
+
+
+@pytest.mark.unit
+def test_generate_audit_report_ignores_submodule_only_imports(
+    exports_module, monkeypatch
+):
+    """Deep imports from package.mod are not missing package-level exports."""
+    temp_root = Path(__file__).parent.parent / "data" / "tmp"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    temp_path = temp_root / f"tmp_{uuid.uuid4().hex}"
+    temp_path.mkdir(parents=True, exist_ok=True)
+    try:
+        _make_export_package(temp_path)
+        (temp_path / "consumer.py").write_text(
+            "from alpha.module import public_func\n",
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(exports_module, "project_root", temp_path, raising=False)
+        monkeypatch.setattr(
+            exports_module,
+            "should_exclude_file",
+            lambda *args, **kwargs: False,
+            raising=False,
+        )
+
+        report = exports_module.generate_audit_report("alpha")
+
+        assert "public_func" not in report["missing_exports"]
+        assert report["should_export_count"] == 0
+    finally:
+        shutil.rmtree(temp_path, ignore_errors=True)
+
+
+@pytest.mark.unit
+def test_build_should_export_uses_package_root_imports_only(exports_module):
+    """_build_should_export should ignore submodule-only usage."""
+    import_usage = {
+        "root_name": {
+            "import_count": 1,
+            "import_locations": ["consumer.py"],
+            "import_types": ["package_import"],
+            "module_path": "alpha",
+            "external_import_count": 1,
+            "package_import_count": 1,
+        },
+        "deep_name": {
+            "import_count": 4,
+            "import_locations": ["other.py"],
+            "import_types": ["from_import"],
+            "module_path": "alpha.module",
+            "external_import_count": 4,
+            "package_import_count": 0,
+        },
+        "_private": {
+            "import_count": 1,
+            "import_locations": ["consumer.py"],
+            "import_types": ["package_import"],
+            "module_path": "alpha",
+            "external_import_count": 1,
+            "package_import_count": 1,
+        },
+    }
+
+    should_export = exports_module._build_should_export("alpha", import_usage)
+    assert should_export == {"root_name"}
+
+
+@pytest.mark.unit
+def test_import_is_inside_package_matches_package_tree(exports_module):
+    """Package-local paths should not count as external consumers."""
+    assert exports_module._import_is_inside_package("alpha/module.py", "alpha")
+    assert exports_module._import_is_inside_package("alpha.py", "alpha")
+    assert not exports_module._import_is_inside_package("communication/bot.py", "alpha")

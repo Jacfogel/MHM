@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Audit issue counts reach AI_PRIORITIES
+- **Reports**: `AI_PRIORITIES.md` now reads documentation placeholders, duplicates, and artifacts from `analyze_documentation` `details` (standard `{summary, details}` payloads). Those hits become Quick Wins; [TODO.md](../TODO.md) matching the TODO pattern is skipped. Function-registry **extra** rows (documented names the current scan does not find) are a Watch List item; **missing** registry rows stay Immediate Focus.
+- **Package exports**: `analyze_package_exports` no longer treats every public module-level name (or every submodule import) as a missing package export. Missing means callers do `from package import Name` but that name is not in `__all__` or `__init__.py` re-exports. Removed leftover unreachable import-scan code after `_build_should_export`.
+- **Impact**: Log `issues=` counts for documentation placeholders, registry extras, and package exports now map to the intended report surfaces instead of being dropped or flooding the JSON with hundreds of false missing exports.
+- **Follow-up**: The first refresh treated every TODO / [TODO.md](../TODO.md) mention as a placeholder and every excluded key-file registry row as stale. Placeholder TODO now means `TODO:` / `[TODO]` (and still ignores [TODO.md](../TODO.md) / sync-todo). Registry extras now scan `project.key_files` even when those paths are in analysis exclusions, matching `generate_function_registry`. Code fences, inline backticks, and changelog files are ignored so example/history `TODO:` lines are not Quick Wins.
+- **Testing**: `tests/development_tools/test_report_generation_quick_wins.py`, `tests/development_tools/test_analyze_package_exports.py`, `tests/development_tools/test_audit_tool_matrix_policy.py`, `tests/development_tools/test_analyze_documentation.py`, `tests/development_tools/test_analyze_function_registry.py`.
+
 ### 2026-08-21 - Shared function scan for audit pipeline
 - **Performance**: Full and standard audits now parse the function-analysis file set once. `analyze_functions` runs first in Tier 2 and reuses that parse for function patterns, decision support, duplicates, unused functions, facades, and module-refactor candidates. `analyze_function_patterns` and `decision_support` moved out of Tier 1 (`audit --quick`) so the quick tier stays on the fast tools.
 - **Cache**: Analyzer, test-suite, and coverage caches now treat `development_tools_config.json` as changed only when its **content hash** changes. mtime is a cheap first check; a save that only updates the timestamp no longer reruns ~450 tests.

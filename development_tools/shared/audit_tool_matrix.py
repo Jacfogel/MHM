@@ -53,6 +53,8 @@ def _default_report_surface_hints(tool_name: str, domain: str | None) -> list[st
         "analyze_duplicate_functions",
         "analyze_facade_shims",
         "analyze_module_refactor_candidates",
+        "analyze_function_registry",
+        "analyze_documentation",
     }:
         hints.append("AI_PRIORITIES")
     if tool_name == "analyze_facade_shims":

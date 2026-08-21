@@ -387,6 +387,9 @@ class TestCollectProjectInventory:
             registry_module.config, "get_scan_directories", lambda: []
         )
         monkeypatch.setattr(
+            registry_module.config, "get_project_key_files", lambda default=None: []
+        )
+        monkeypatch.setattr(
             registry_module,
             "should_exclude_file",
             lambda path, *_args, **_kwargs: str(path).endswith("excluded.py"),
@@ -397,6 +400,36 @@ class TestCollectProjectInventory:
 
         assert "included.py" in inventory
         assert "excluded.py" not in inventory
+        assert errors == []
+
+    @pytest.mark.unit
+    def test_collect_inventory_includes_key_files_despite_exclusions(
+        self, tmp_path, monkeypatch
+    ):
+        key_file = tmp_path / "run_tests.py"
+        key_file.write_text("def main():\n    return 0\n", encoding="utf-8")
+
+        monkeypatch.setattr(registry_module.PATHS, "root", tmp_path)
+        monkeypatch.setattr(registry_module, "CURRENT_DIR", tmp_path)
+        monkeypatch.setattr(
+            registry_module.config, "get_scan_directories", lambda: []
+        )
+        monkeypatch.setattr(
+            registry_module.config,
+            "get_project_key_files",
+            lambda default=None: ["run_tests.py"],
+        )
+        monkeypatch.setattr(
+            registry_module,
+            "should_exclude_file",
+            lambda *_args, **_kwargs: True,
+        )
+
+        errors = []
+        inventory = registry_module.collect_project_inventory(errors)
+
+        assert "run_tests.py" in inventory
+        assert any(record.name == "main" for record in inventory["run_tests.py"]["functions"])
         assert errors == []
 
 

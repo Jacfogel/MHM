@@ -64,7 +64,8 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "CONSOLIDATED_REPORT",
-        "jsons/docs"
+        "jsons/docs",
+        "AI_PRIORITIES"
       ]
     },
     "analyze_documentation_sync": {
@@ -123,7 +124,8 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "jsons/functions"
+        "jsons/functions",
+        "AI_PRIORITIES"
       ]
     },
     "analyze_functions": {

@@ -219,6 +219,40 @@ to be filled: placeholder
         # Should detect various placeholder patterns
 
     @pytest.mark.unit
+    def test_detect_placeholders_ignores_todo_md_and_sync_todo(self):
+        """References to TODO.md / sync-todo are process docs, not holes."""
+        docs = {
+            "README.md": "See [TODO.md](TODO.md) and `TODO.md` for open work.\n",
+            "guide.md": "Run sync-todo then TODO sync after the changelog.\n",
+        }
+        assert detect_placeholders(docs) == []
+
+    @pytest.mark.unit
+    def test_detect_placeholders_still_flags_todo_colon(self):
+        """Incomplete TODO: markers remain placeholder hits."""
+        docs = {"guide.md": "TODO: fill in this section before publish.\n"}
+        hits = detect_placeholders(docs)
+        assert hits
+        assert hits[0]["file"] == "guide.md"
+
+    @pytest.mark.unit
+    def test_detect_placeholders_ignores_code_fences_and_changelogs(self):
+        """Example TODO: in fences/changelogs is documentation, not a hole."""
+        docs = {
+            "logs/LOGGING_GUIDE.md": (
+                "Use this template:\n"
+                "```python\n"
+                "# TODO: Remove after [specific condition]\n"
+                "```\n"
+            ),
+            "development_docs/CHANGELOG_DETAIL.md": (
+                "- TODO: Moved headless issues from Low to Medium.\n"
+            ),
+            "ai_development_docs/AI_CHANGELOG.md": "Placeholder TODO now means `TODO:`.\n",
+        }
+        assert detect_placeholders(docs) == []
+
+    @pytest.mark.unit
     def test_analyse_topics_groups_by_keyword(self):
         docs = {
             "a.md": "## X\npytest and coverage are used in the test suite.",

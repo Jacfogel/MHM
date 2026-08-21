@@ -71,7 +71,8 @@ def _build_placeholder_patterns() -> tuple[re.Pattern[str], ...]:
         "placeholder_patterns",
         [
             r"TBD",
-            r"TODO",
+            r"\[TODO\]",
+            r"(?<![A-Za-z_-])TODO:",
             r"to be filled",
             r"\[insert[^\]]*\]",
         ],
@@ -194,12 +195,41 @@ def detect_duplicates(docs: dict[str, str]) -> list[dict[str, object]]:
     return duplicates
 
 
+_TODO_FILENAME_RE = re.compile(
+    r"\[TODO\.md\]\([^)]+\)|`?TODO\.md`?",
+    re.IGNORECASE,
+)
+_TODO_PROCESS_RE = re.compile(
+    r"sync-todo|TODO sync|TODO classify",
+    re.IGNORECASE,
+)
+_FENCED_CODE_RE = re.compile(r"```[\s\S]*?```")
+_INLINE_CODE_RE = re.compile(r"`[^`]+`")
+_CHANGELOG_NAME_RE = re.compile(r"changelog", re.IGNORECASE)
+
+
+def _placeholder_source_text(content: str) -> str:
+    """Strip process-doc and example text so they are not treated as holes."""
+    text = _FENCED_CODE_RE.sub(" ", content)
+    text = _INLINE_CODE_RE.sub(" ", text)
+    text = _TODO_FILENAME_RE.sub(" ", text)
+    return _TODO_PROCESS_RE.sub(" ", text)
+
+
+def _is_changelog_doc(name: str) -> bool:
+    """Return True when *name* is a changelog file (history, not incomplete docs)."""
+    return bool(_CHANGELOG_NAME_RE.search(Path(name).name))
+
+
 def detect_placeholders(docs: dict[str, str]) -> list[dict[str, object]]:
     matches: list[dict[str, object]] = []
     for name, content in docs.items():
+        if _is_changelog_doc(name):
+            continue
+        source = _placeholder_source_text(content)
         hits = []
         for pattern in PLACEHOLDER_PATTERNS:
-            found = pattern.findall(content)
+            found = pattern.findall(source)
             if found:
                 hits.extend(found)
         if hits:

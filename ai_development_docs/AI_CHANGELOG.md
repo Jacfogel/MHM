@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Audit issue counts reach AI_PRIORITIES **COMPLETED**
+- Documentation placeholder hits are read from `analyze_documentation` `details` and become Quick Wins ([TODO.md](../TODO.md) skipped).
+- Function-registry extras (documented but not in the scan) are a Watch List item; missing rows stay Immediate Focus.
+- Package-export "missing" now means `from package import Name` without `__all__`/re-export, not every public submodule name.
+- Follow-up: bare TODO / [TODO.md](../TODO.md) mentions are not placeholders; registry extras scan `project.key_files` even when those paths are excluded. Code fences, inline backticks, and changelog files are also ignored.
+
 ### 2026-08-21 - Shared function scan for audit pipeline **COMPLETED**
 - Audits parse the function-analysis file set once; `analyze_functions` runs first in Tier 2 and feeds patterns, decision support, duplicates, unused, facades, and refactor.
 - `analyze_function_patterns` and `decision_support` moved out of `audit --quick` (Tier 1).
@@ -114,11 +120,6 @@ Guidelines:
 - `strip_letter_signoffs()` strips dash signatures, `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta text.
 - `collapse_salutation_newlines()` puts the body on the same line as `Hi/Hey/Dear Name`.
 - Schedule save flake: `coerce_schedules_to_in_memory()` in `profile_v2_io` unwraps v2 envelope/cache pollution in merge/validate/read; loaders do not cache failed validation payloads. Breaks `user_data_read` <-> `user_data_validation` circular import.
-
-### 2026-07-30 - Fix `ids` logger; consolidate component logger aliases **COMPLETED**
-- `core/ids.py` uses canonical `get_component_logger("main")` (no new alias/sink).
-- Domain/AI/UI/Discord/communication call sites use canonical sinks; `COMPONENT_NAME_ALIASES` emptied (temporary bridges only).
-- Logging guide + channel-logger/logging tests updated.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

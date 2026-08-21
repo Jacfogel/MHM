@@ -267,6 +267,21 @@ class AIPrioritiesDocumentMixin:
         else:
             missing_docs_count = to_int(missing_docs_raw) or 0
 
+        extra_raw = (
+            doc_metrics_details.get("extra", {})
+            if isinstance(doc_metrics_details, dict)
+            else {}
+        )
+        if isinstance(extra_raw, dict):
+            extra_registry_count = to_int(extra_raw.get("count")) or 0
+            extra_files_raw = extra_raw.get("files")
+            extra_registry_files = (
+                extra_files_raw if isinstance(extra_files_raw, dict) else {}
+            )
+        else:
+            extra_registry_count = to_int(extra_raw) or 0
+            extra_registry_files = {}
+
         missing_doc_files = (
             missing_docs_raw.get("missing_files")
             if isinstance(missing_docs_raw, dict)
@@ -436,9 +451,30 @@ class AIPrioritiesDocumentMixin:
             _ = self.dev_tools_coverage_results.get("overall", {})
         dev_tools_insights = self._get_dev_tools_coverage_insights()
 
-        analyze_artifacts = analyze_data.get("artifacts") or []
-        analyze_duplicates = analyze_data.get("duplicates") or []
-        analyze_placeholders = analyze_data.get("placeholders") or []
+        def _analyze_doc_list(key: str) -> list[Any]:
+            if isinstance(analyze_details, dict) and key in analyze_details:
+                value = analyze_details.get(key)
+                return value if isinstance(value, list) else []
+            if isinstance(analyze_data, dict):
+                value = analyze_data.get(key)
+                return value if isinstance(value, list) else []
+            return []
+
+        def _exclude_todo_filename(entries: list[Any]) -> list[Any]:
+            filtered: list[Any] = []
+            for entry in entries:
+                if isinstance(entry, dict):
+                    file_name = Path(str(entry.get("file", ""))).name
+                    if file_name.lower() == "todo.md":
+                        continue
+                filtered.append(entry)
+            return filtered
+
+        analyze_artifacts = _analyze_doc_list("artifacts")
+        analyze_duplicates = _analyze_doc_list("duplicates")
+        analyze_placeholders = _exclude_todo_filename(
+            _analyze_doc_list("placeholders")
+        )
 
         function_metrics_details = (
             function_metrics.get("details", {})
@@ -994,6 +1030,55 @@ class AIPrioritiesDocumentMixin:
                 title="Update function registry",
                 reason=f"{missing_docs_count} items missing from FUNCTION_REGISTRY_DETAIL.md registry.",
                 bullets=registry_bullets,
+            )
+
+        extras_for_watch = extra_registry_files
+        extras_count_for_watch = extra_registry_count
+        if self._is_dev_tools_scoped_report() and extras_for_watch:
+            extras_for_watch = {
+                path: names
+                for path, names in extras_for_watch.items()
+                if self._path_is_under_development_tools_dir(str(path))
+            }
+            extras_count_for_watch = sum(
+                len(names) if isinstance(names, list) else 1
+                for names in extras_for_watch.values()
+            )
+        if extras_count_for_watch and extras_count_for_watch > 0:
+            extra_watch_bullets: list[str] = []
+            if extras_for_watch:
+                sorted_extra_files = sorted(
+                    extras_for_watch.items(),
+                    key=lambda item: len(item[1]) if isinstance(item[1], list) else 1,
+                    reverse=True,
+                )[:3]
+                extra_file_labels = []
+                for file_path, funcs in sorted_extra_files:
+                    func_count = len(funcs) if isinstance(funcs, list) else 1
+                    extra_file_labels.append(
+                        f"{Path(str(file_path)).name} ({func_count})"
+                    )
+                if extra_file_labels:
+                    extra_watch_bullets.append(
+                        "Top files: "
+                        f"{self._format_list_for_display(extra_file_labels, limit=3)}"
+                    )
+            extra_watch_bullets.append(
+                "Action: Drop stale registry rows after confirming the functions "
+                "were retired, then run `python development_tools/run_development_tools.py docs`."
+            )
+            extra_watch_bullets.append(
+                "Why this matters: Extra registry rows drift from the scan and hide real gaps."
+            )
+            watch_items.append(
+                {
+                    "title": "Stale function-registry extras",
+                    "reason": (
+                        f"{extras_count_for_watch} registry entries are documented "
+                        "but not found in the current scan."
+                    ),
+                    "bullets": extra_watch_bullets,
+                }
             )
 
         # Error handling to missing functions (before Phase 1/2, as it's more critical)
@@ -2833,8 +2918,19 @@ class AIPrioritiesDocumentMixin:
                 f"Merge {len(analyze_duplicates)} duplicate documentation block(s)."
             )
         if analyze_placeholders:
+            placeholder_files: list[str] = []
+            for entry in analyze_placeholders:
+                if isinstance(entry, dict) and entry.get("file"):
+                    placeholder_files.append(str(entry.get("file")))
+                elif entry:
+                    placeholder_files.append(str(entry))
+            files_text = (
+                self._format_list_for_display(placeholder_files, limit=3)
+                if placeholder_files
+                else "see analyze_documentation details"
+            )
             quick_wins.append(
-                f"Replace {len(analyze_placeholders)} placeholder section(s) flagged by docs scan."
+                f"Replace {len(analyze_placeholders)} placeholder section(s) flagged by docs scan ({files_text})."
             )
 
         def add_doc_quick_win(

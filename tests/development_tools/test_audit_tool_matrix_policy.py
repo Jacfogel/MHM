@@ -91,3 +91,11 @@ def test_facade_shims_runs_in_tier2_groups_and_reports() -> None:
     assert "AI_PRIORITIES" in hints
     assert "AI_STATUS" in hints
     assert "CONSOLIDATED_REPORT" in hints
+
+
+@pytest.mark.unit
+def test_documentation_and_registry_surface_on_ai_priorities() -> None:
+    """Placeholder Quick Wins and registry extras Watch List are AI_PRIORITIES surfaces."""
+    tools = build_audit_tool_matrix()["audit_tools"]
+    assert "AI_PRIORITIES" in tools["analyze_documentation"]["report_surface_hints"]
+    assert "AI_PRIORITIES" in tools["analyze_function_registry"]["report_surface_hints"]

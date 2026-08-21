@@ -368,7 +368,7 @@ _TOOLS: dict[str, ToolInfo] = {
         path="development_tools/functions/analyze_package_exports.py",
         tier="supporting",
         trust="partial",
-        description="Checks declared exports align with package contents.",
+        description="Flags from package import Name missing from __all__ or re-exports.",
     ),
     "analyze_config": ToolInfo(
         name="analyze_config",

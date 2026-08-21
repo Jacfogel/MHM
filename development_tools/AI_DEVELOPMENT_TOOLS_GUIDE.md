@@ -127,7 +127,7 @@ python development_tools/run_development_tools.py help
 
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
-- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
+- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items. Documentation placeholder hits from `analyze_documentation` `details` are Quick Wins ([TODO.md](../TODO.md), fenced/inline code, and changelog files skipped). Function-registry extras (documented but not in the scan) are Watch List.
 - **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 
 **Tool Output Format (Standard Format)**:

@@ -259,7 +259,8 @@ Pipeline artifacts:
 
 - **`PASS` / `FAIL`** indicates whether the orchestration run for that tool **completed successfully** (`success` in the tool result), not whether `total_issues` is zero.
 - When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
-- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
+- **How counts reach reports**: `AI_PRIORITIES.md` is a filtered action queue, not a dump of `issues=`. Documentation placeholders/duplicates/artifacts are read from `analyze_documentation` **`details`** and become Quick Wins (`TODO.md` itself is skipped; fenced/inline code and changelog files are not treated as placeholders). Function-registry **missing** rows are Immediate Focus; **extra** (stale) rows are Watch List. Package-export `issues` count names imported via `from package import Name` that are missing from `__all__`/re-exports (submodule imports and unused public names are not missing exports).
+- For other **per-tool meanings** and remaining report surfaces, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
@@ -341,10 +342,10 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_module_refactor_candidates.py | supporting | partial | Identifies large modules (by line or function count) as candidates for splitting into smaller modules. |
 | analyze_function_patterns.py | core | stable | Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption. |
 | generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. 
-| analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. |
-| analyze_function_registry.py | supporting | partial | Validates generated function registry output. |
+| analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. Placeholder/duplicate/artifact hits from `details` surface as AI_PRIORITIES Quick Wins ([TODO.md](../TODO.md) skipped). |
+| analyze_function_registry.py | supporting | partial | Validates generated function registry output. Missing rows are Immediate Focus; extra (stale) rows are Watch List. |
 | analyze_module_dependencies.py | supporting | partial | Cross-checks generated dependency graphs for accuracy. |
-| analyze_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
+| analyze_package_exports.py | supporting | partial | Flags names imported via `from package import Name` that are missing from `__all__` or package re-exports. Submodule imports and unused public module names are not missing exports. |
 | analyze_config.py | supporting | partial | Detects configuration drift and missing values across tools. |
 | analyze_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |

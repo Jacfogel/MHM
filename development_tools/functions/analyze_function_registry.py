@@ -218,12 +218,19 @@ def collect_project_inventory(errors: list[str]) -> dict[str, InventoryEntry]:
             "total_classes": len(classes),
         }
 
+    key_file_names = {
+        Path(name).name for name in (config.get_project_key_files([]) or [])
+    }
+
     for source_path in PATHS.root.glob("*.py"):
         resolved = source_path.resolve()
-        if should_exclude_file(str(resolved), "analysis", "production"):
-            continue
         if resolved in seen or resolved == (
             CURRENT_DIR / "analyze_function_registry.py"
+        ):
+            continue
+        is_key_file = source_path.name in key_file_names
+        if not is_key_file and should_exclude_file(
+            str(resolved), "analysis", "production"
         ):
             continue
         functions, classes = extract_functions_and_classes(resolved, errors)
