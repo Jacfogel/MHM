@@ -25,6 +25,13 @@ def tracker_file(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_auto_cleanup_logs_to_file_ops_component():
+    """Data-directory and cache cleanup belong in file_ops.log, not app.log."""
+    assert auto_cleanup.logger.component_name == "file_ops"
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_get_last_cleanup_timestamp_invalid_json(tracker_file):
     tracker_file.write_text("not json")
     assert auto_cleanup.get_last_cleanup_timestamp() == 0.0

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 19:04:56
+> **Last Generated**: 2026-08-21 13:33:07
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 268
-- **Total Imports Found**: 2265
+- **Total Imports Found**: 2264
 - **Dependencies Documented**: 268 (100% coverage)
-- **Standard Library Imports**: 679 (30.0%)
+- **Standard Library Imports**: 678 (29.9%)
 - **Third-Party Imports**: 217 (9.6%)
-- **Local Imports**: 1369 (60.4%)
-- **Last Updated**: 2026-08-19
+- **Local Imports**: 1369 (60.5%)
+- **Last Updated**: 2026-08-21
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 679 imports (30.0%)
+- **Standard Library**: 678 imports (29.9%)
 - **Third-Party**: 217 imports (9.6%)
-- **Local**: 1369 imports (60.4%)
+- **Local**: 1369 imports (60.5%)
 
 ## Module Dependencies by Directory
 
@@ -4345,7 +4345,6 @@
     - `storage.user_data_read (get_user_data)`
   - **Standard Library**:
     - `atexit`
-    - `contextlib`
     - `logging`
     - `os`
     - `pathlib (Path)`
@@ -5966,7 +5965,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: core/natural_language_defaults.py, tasks/task_service.py, ui/widgets/natural_language_settings_widget.py
+- Removed: communication/message_processing/flows/task_flow.py, core/natural_language_defaults.py, tasks/task_service.py, ui/widgets/natural_language_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

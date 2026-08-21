@@ -276,6 +276,11 @@ class TestSchedulerManagerUncoveredPaths:
             )
             mock_run.assert_not_called()
 
+    def test_get_active_job_count_returns_schedule_job_length(self, scheduler_manager):
+        with patch("scheduler.manager.schedule") as mock_schedule:
+            mock_schedule.jobs = [object(), object(), object()]
+            assert scheduler_manager.get_active_job_count() == 3
+
 
 @pytest.mark.unit
 @pytest.mark.scheduler

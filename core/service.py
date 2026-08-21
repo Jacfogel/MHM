@@ -87,8 +87,6 @@ from core.service_utilities import get_flags_dir
 from core.time_utilities import parse_timestamp_full, now_datetime_full
 from core.file_operations import verify_file_access
 
-import contextlib
-
 import core.service_requests as service_requests
 
 
@@ -556,23 +554,19 @@ class MHMService:
         status_metrics = [f"{loop_minutes}m uptime"]
 
         scheduler_mgr = getattr(self, "scheduler_manager", None)
-        if scheduler_mgr:
+        if scheduler_mgr is not None:
             try:
-                get_active_jobs_fn = getattr(scheduler_mgr, "get_active_jobs", None)
-                if callable(get_active_jobs_fn):
-                    jobs_result = get_active_jobs_fn()
-                    active_jobs = (
-                        len(jobs_result) if isinstance(jobs_result, (list, tuple)) else 0
-                    )
-                else:
+                get_job_count = getattr(scheduler_mgr, "get_active_job_count", None)
+                active_jobs = get_job_count() if callable(get_job_count) else 0
+                if not isinstance(active_jobs, int):
                     active_jobs = 0
                 status_metrics.append(f"{active_jobs} active jobs")
             except Exception:
                 status_metrics.append("jobs: unknown")
 
         try:
-            user_mgr = getattr(self, "user_manager", None)
-            user_count = len(user_mgr.get_all_user_ids()) if user_mgr is not None else 0
+            user_ids = get_all_user_ids()
+            user_count = len(user_ids) if isinstance(user_ids, (list, tuple)) else 0
             status_metrics.append(f"{user_count} users")
         except Exception:
             status_metrics.append("users: unknown")
@@ -587,13 +581,15 @@ class MHMService:
             pass
 
         if self.communication_manager:
-            with contextlib.suppress(Exception):
+            try:
                 get_channels = getattr(
-                    self.communication_manager, "get_available_channels", None
+                    self.communication_manager, "get_active_channels", None
                 )
                 raw = get_channels() if callable(get_channels) else []
                 channels = list(raw) if isinstance(raw, (list, tuple)) else []
                 status_metrics.append(f"{len(channels)} channels")
+            except Exception:
+                status_metrics.append("channels: unknown")
 
         return status_metrics
 

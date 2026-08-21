@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Fix hourly status zeros and cleanup log routing
+- **Fix**: Hourly service status in `app.log` reported `0 active jobs, 0 users, 0 channels` because `_collect_service_status_metrics` called APIs that do not exist (`user_manager`, `SchedulerManager.get_active_jobs`, `CommunicationManager.get_available_channels`) and treated the misses as zero. It now uses `get_all_user_ids()`, `SchedulerManager.get_active_job_count()`, and `get_active_channels()`.
+- **Fix**: Data-directory cleanup (backup/request/archive retention) logged through `get_component_logger("main")`, so it landed in `app.log`. `core/auto_cleanup.py` now uses `file_ops`, matching `logs/LOGGING_GUIDE.md`. Backup deletions in `cleanup_old_backup_artifacts` log at INFO with a removal summary.
+- **Impact**: Hourly status reflects a live service; backup cleanup is findable in `file_ops.log`. Restart the headless service to pick up both changes.
+- **Testing**: `tests/unit/test_service_status_metrics.py`, `test_auto_cleanup_logs_to_file_ops_component`, `test_get_active_job_count_returns_schedule_job_length`.
+
 ### 2026-08-21 - Audit issue counts reach AI_PRIORITIES
 - **Reports**: `AI_PRIORITIES.md` now reads documentation placeholders, duplicates, and artifacts from `analyze_documentation` `details` (standard `{summary, details}` payloads). Those hits become Quick Wins; [TODO.md](../TODO.md) matching the TODO pattern is skipped. Function-registry **extra** rows (documented names the current scan does not find) are a Watch List item; **missing** registry rows stay Immediate Focus.
 - **Package exports**: `analyze_package_exports` no longer treats every public module-level name (or every submodule import) as a missing package export. Missing means callers do `from package import Name` but that name is not in `__all__` or `__init__.py` re-exports. Removed leftover unreachable import-scan code after `_build_should_export`.

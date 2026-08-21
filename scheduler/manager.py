@@ -88,6 +88,11 @@ class SchedulerManager:
         self._reminder_selection_state: dict[str, float] = {}
         logger.info("SchedulerManager ready")
 
+    @handle_errors("getting active job count", default_return=0)
+    def get_active_job_count(self) -> int:
+        """Return how many jobs are currently registered with the scheduler."""
+        return len(schedule.jobs)
+
     @handle_errors("running daily scheduler")
     def run_daily_scheduler(self):
         """

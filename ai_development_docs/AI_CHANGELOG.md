@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Fix hourly status zeros and cleanup log routing **COMPLETED**
+- Hourly `Service status` now counts real scheduler jobs, users, and active channels instead of missing APIs that always reported 0.
+- Data-directory/auto-cleanup logs go to `file_ops.log`; backup deletions log at INFO with a removal summary.
+
 ### 2026-08-21 - Audit issue counts reach AI_PRIORITIES **COMPLETED**
 - Documentation placeholder hits are read from `analyze_documentation` `details` and become Quick Wins ([TODO.md](../TODO.md) skipped).
 - Function-registry extras (documented but not in the scan) are a Watch List item; missing rows stay Immediate Focus.
@@ -115,11 +119,6 @@ Guidelines:
 - Signals carry optional `steps` and `active_minutes`; `build_recent_health_patterns()` feeds scheduled messages and chat (`recent_patterns` in health envelope).
 - Personalized prompt may use approximate sleep/steps/active minutes and streaks from Data only; truncate limit 700; guidance summary stays tone-only.
 - Follow-up: regenerated function registry for health context helpers; Ruff SIM108 cleaned in sleep-hour formatting; doc path drift + ASCII cleanup; shared `activity_effort_band()` for personalization and streak phrasing.
-
-### 2026-08-01 - Personalized cleanup; schedule envelope save flake **COMPLETED**
-- `strip_letter_signoffs()` strips dash signatures, `Best,` / `Wellness Assistant` lines, and trailing `(Note: ...)` meta text.
-- `collapse_salutation_newlines()` puts the body on the same line as `Hi/Hey/Dear Name`.
-- Schedule save flake: `coerce_schedules_to_in_memory()` in `profile_v2_io` unwraps v2 envelope/cache pollution in merge/validate/read; loaders do not cache failed validation payloads. Breaks `user_data_read` <-> `user_data_validation` circular import.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

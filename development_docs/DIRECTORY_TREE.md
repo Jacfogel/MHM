@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 15:05:46
+> **Last Generated**: 2026-08-21 13:33:45
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000005 5EAC:07BC
+Volume serial number is 00000043 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -411,6 +411,7 @@ C:.
 |   |   |   analyze_unused_functions.py
 |   |   |   fix_function_docstrings.py
 |   |   |   generate_function_registry.py
+|   |   |   shared_function_scan.py
 |   |   |   __init__.py
 |   |   |
 |   |   +---jsons
@@ -908,6 +909,7 @@ C:.
 |   |   |   test_service_utilities.py
 |   |   |   test_sharded_static_analysis.py
 |   |   |   test_sharded_static_scan_wiring.py
+|   |   |   test_shared_function_scan.py
 |   |   |   test_shared_logging.py
 |   |   |   test_shared_maintenance_scripts.py
 |   |   |   test_standard_exclusions.py
@@ -1142,6 +1144,7 @@ C:.
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py
 |   |   |   test_scripts_exclusion_policy.py
+|   |   |   test_service_status_metrics.py
 |   |   |   test_service_utilities_network.py
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
@@ -1159,6 +1162,7 @@ C:.
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
 |   |   |   test_user_data_handlers.py
+|   |   |   test_user_data_index_entries.py
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py

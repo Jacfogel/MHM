@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 19:04:57
+> **Last Generated**: 2026-08-21 13:32:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2568
-- **Methods Found**: 1376
+- **Functions Found**: 2569
+- **Methods Found**: 1377
 - **Classes Found**: 257
-- **Total Items**: 3944
-- **Functions Documented**: 2249
-- **Methods Documented**: 1225
+- **Total Items**: 3946
+- **Functions Documented**: 2250
+- **Methods Documented**: 1226
 - **Classes Documented**: 187
-- **Total Documented**: 3474
+- **Total Documented**: 3476
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-19
+- **Last Updated**: 2026-08-21
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -5596,6 +5596,7 @@ Returns:
 - [OK] `clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
 - [OK] `clear_all_accumulated_jobs_standalone()` - Standalone function to clear all accumulated scheduler jobs.
 This can be called from the admin UI or service to fix job accumulation issues.
+- [OK] `get_active_job_count(self)` - Return how many jobs are currently registered with the scheduler.
 - [OK] `get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
 - [OK] `get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
 Args:
@@ -5701,6 +5702,7 @@ Args:
 Returns:
     bool: True if cleanup succeeded (or no reminders found), False on error
   - [OK] `SchedulerManager.clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
+  - [OK] `SchedulerManager.get_active_job_count(self)` - Return how many jobs are currently registered with the scheduler.
   - [OK] `SchedulerManager.get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
   - [OK] `SchedulerManager.get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
 Args:

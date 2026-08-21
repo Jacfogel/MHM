@@ -32,8 +32,8 @@ try:
 except Exception:  # pragma: no cover - fallback for early import failures
     BASE_DATA_DIR = None
 
-# Get component logger for this module
-logger = get_component_logger("main")
+# File operations, backups, and auto-cleanup belong in file_ops.log
+logger = get_component_logger("file_ops")
 
 # File to track last cleanup timestamp
 if BASE_DATA_DIR:

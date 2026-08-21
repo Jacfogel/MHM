@@ -155,6 +155,7 @@ def cleanup_old_backup_artifacts(
     except Exception:
         return False
 
+    removed_count = 0
     if backup_files:
         age_cutoff = now_ts - (retention_days * 24 * 3600)
         for file_path, mtime in list(backup_files):
@@ -162,10 +163,11 @@ def cleanup_old_backup_artifacts(
                 continue
             try:
                 if _remove_backup_artifact(file_path):
-                    logger.debug(
+                    logger.info(
                         f"Removed backup by age (> {retention_days}d): {file_path}"
                     )
                     backup_files.remove((file_path, mtime))
+                    removed_count += 1
             except Exception as e:
                 logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
@@ -183,9 +185,10 @@ def cleanup_old_backup_artifacts(
         for file_path, _ in weekly_backups[weekly_keep:]:
             try:
                 if _remove_backup_artifact(file_path):
-                    logger.debug(
+                    logger.info(
                         f"Removed weekly backup by count (>{weekly_keep}): {file_path}"
                     )
+                    removed_count += 1
             except Exception as e:
                 logger.warning(
                     f"Failed to remove old weekly backup {file_path}: {e}"
@@ -194,13 +197,16 @@ def cleanup_old_backup_artifacts(
         for file_path, _ in non_weekly_backups[keep_count:]:
             try:
                 if _remove_backup_artifact(file_path):
-                    logger.debug(
+                    logger.info(
                         f"Removed backup by count (>{keep_count}): {file_path}"
                     )
+                    removed_count += 1
             except Exception as e:
                 logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
-    cleanup_manifest_less_backup_directories(resolved_dir)
+    removed_count += cleanup_manifest_less_backup_directories(resolved_dir)
+    if removed_count > 0:
+        logger.info(f"Backup cleanup: removed {removed_count} old backup file(s)")
     return True
 
 
