@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 15:05:10
+> **Last Generated**: 2026-08-19 19:04:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -18,9 +18,9 @@
 - **Files Scanned**: 268
 - **Total Imports Found**: 2265
 - **Dependencies Documented**: 268 (100% coverage)
-- **Standard Library Imports**: 680 (30.0%)
+- **Standard Library Imports**: 679 (30.0%)
 - **Third-Party Imports**: 217 (9.6%)
-- **Local Imports**: 1368 (60.4%)
+- **Local Imports**: 1369 (60.4%)
 - **Last Updated**: 2026-08-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 680 imports (30.0%)
+- **Standard Library**: 679 imports (30.0%)
 - **Third-Party**: 217 imports (9.6%)
-- **Local**: 1368 imports (60.4%)
+- **Local**: 1369 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -422,7 +422,7 @@
 - **Dependencies**:
   - **Local**:
     - `ai.context.analytics (analyze_checkin_entries)` (NEW)
-    - `ai.context.phraser (_checkin_completed_today, _phrase_recent_sent_messages, _phrase_schedule_details, _phrase_task_data, append_current_datetime_context, append_profile_sections, phrase_checkin_summary)` (NEW)
+    - `ai.context.phraser (_append_feature_availability_line, _checkin_completed_today, _phrase_feature_status_lines, _phrase_mood_trend, _phrase_recent_checkin_count, _phrase_recent_sent_messages, _phrase_schedule_details, _phrase_task_data, _phrase_task_reminder, _phrase_today_checkin_status, append_current_datetime_context, append_profile_sections, phrase_checkin_summary)` (NEW)
     - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
     - `ai.prompts.flows (get_product_ai_prompt_flow)` (NEW)
     - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager)` (NEW)
@@ -2941,6 +2941,7 @@
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
     - `tasks.task_service (parse_relative_date)` (NEW)
+    - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `random`
@@ -2950,7 +2951,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_constants, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas, tasks.task_service
+- Added: communication.message_processing.flows.flow_command_helpers, communication.message_processing.flows.flow_constants, communication.message_processing.flows.flow_control_mixin, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas, tasks.task_service, tasks.task_time_parsing
 - Removed: communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5809,7 +5810,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities
-- Removed: ai/context/assembly.py, ai/context/phraser.py, communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_list_ui.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, communication/reminders/reminder_dispatcher.py, scheduler/task_reminders.py, tasks/task_data_manager.py, tasks/task_service.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py
+- Removed: ai/context/phraser.py, communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_list_ui.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, communication/reminders/reminder_dispatcher.py, scheduler/task_reminders.py, tasks/task_data_manager.py, tasks/task_service.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5899,6 +5900,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.ids, core.natural_language_defaults, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas, tasks.task_tag_helpers, tasks.task_templates, tasks.task_time_parsing
+- Removed: communication/message_processing/flows/task_flow.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5957,6 +5959,7 @@
     - `__future__ (annotations)`
     - `re`
 - **Used by**:
+  - `communication/message_processing/flows/task_flow.py`
   - `core/natural_language_defaults.py`
   - `tasks/task_service.py`
   - `ui/widgets/natural_language_settings_widget.py`

@@ -25,6 +25,28 @@ from storage.user_data_v2_envelopes import validate_v2_document
 logger = get_component_logger("main")
 
 
+@handle_errors("building user index lookup entries", default_return={})
+def _index_entries_for_account(
+    user_id: str, account: dict[str, Any] | None
+) -> dict[str, str]:
+    """Return username / email / discord / phone lookup keys for one account."""
+    account = account or {}
+    entries: dict[str, str] = {}
+    internal_username = account.get("internal_username") or ""
+    if internal_username:
+        entries[str(internal_username)] = user_id
+    email = account.get("email") or ""
+    if email:
+        entries[f"email:{email}"] = user_id
+    discord_user_id = account.get("discord_user_id") or ""
+    if discord_user_id:
+        entries[f"discord:{discord_user_id}"] = user_id
+    phone = account.get("phone") or ""
+    if phone:
+        entries[f"phone:{phone}"] = user_id
+    return entries
+
+
 @handle_errors("resolving user index path", re_raise=True)
 def _index_file_path(index_file: str | None = None) -> str:
     """Return the user_index.json path, using BASE_DATA_DIR when none is given."""
@@ -78,10 +100,6 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
                 time.sleep(retry_delay)
 
         internal_username = user_account.get("internal_username", "")
-        email = user_account.get("email", "")
-        discord_user_id = user_account.get("discord_user_id", "")
-        phone = user_account.get("phone", "")
-
         if not internal_username:
             if os.getenv("MHM_TESTING") == "1":
                 logger.debug(
@@ -93,18 +111,16 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
                 )
             return False
 
+        entries = _index_entries_for_account(user_id, user_account)
         if (
             internal_username not in index_data
             or index_data[internal_username] == user_id
         ):
             index_data[internal_username] = user_id
-
-        if email:
-            index_data[f"email:{email}"] = user_id
-        if discord_user_id:
-            index_data[f"discord:{discord_user_id}"] = user_id
-        if phone:
-            index_data[f"phone:{phone}"] = user_id
+        for key, mapped_user_id in entries.items():
+            if key == internal_username:
+                continue
+            index_data[key] = mapped_user_id
 
         index_data["last_updated"] = now_timestamp_full()
 
@@ -150,20 +166,11 @@ def remove_from_index(user_id: str, index_file: str | None = None) -> bool:
 
         user_data_result = get_user_data(user_id, "account")
         user_account = user_data_result.get("account") or {}
-
         internal_username = user_account.get("internal_username")
-        email = user_account.get("email")
-        discord_user_id = user_account.get("discord_user_id")
-        phone = user_account.get("phone")
 
-        if internal_username and internal_username in index_data:
-            del index_data[internal_username]
-        if email and f"email:{email}" in index_data:
-            del index_data[f"email:{email}"]
-        if discord_user_id and f"discord:{discord_user_id}" in index_data:
-            del index_data[f"discord:{discord_user_id}"]
-        if phone and f"phone:{phone}" in index_data:
-            del index_data[f"phone:{phone}"]
+        for key in _index_entries_for_account(user_id, user_account):
+            if key in index_data:
+                del index_data[key]
 
         index_data["last_updated"] = now_timestamp_full()
 
@@ -220,12 +227,7 @@ def rebuild_full_index(index_file: str | None = None) -> bool:
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
 
-            internal_username = user_account.get("internal_username", "")
-            email = user_account.get("email", "")
-            discord_user_id = user_account.get("discord_user_id", "")
-            phone = user_account.get("phone", "")
-
-            if not internal_username:
+            if not user_account.get("internal_username"):
                 if os.getenv("MHM_TESTING") == "1":
                     logger.debug(
                         f"No internal_username found for user {user_id} after {max_retries} attempts, skipping"
@@ -237,13 +239,7 @@ def rebuild_full_index(index_file: str | None = None) -> bool:
                 failed_count += 1
                 continue
 
-            index_data[internal_username] = user_id
-            if email:
-                index_data[f"email:{email}"] = user_id
-            if discord_user_id:
-                index_data[f"discord:{discord_user_id}"] = user_id
-            if phone:
-                index_data[f"phone:{phone}"] = user_id
+            index_data.update(_index_entries_for_account(user_id, user_account))
             successful_count += 1
 
         max_write_retries = 3

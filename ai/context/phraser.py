@@ -155,12 +155,21 @@ def append_profile_sections(parts: list[str], context: dict[str, Any]) -> None:
         parts.append(f"Their goals include: {', '.join(goals)}")
 
 
-@handle_errors("reading feature enablement flags", default_return=None)
-def _feature_status_lines(user_id: str) -> list[str] | None:
-    checkins_enabled = is_user_checkins_enabled(user_id)
-    tasks_enabled = are_tasks_enabled(user_id) if user_id else False
-    messages_enabled = is_automated_messages_enabled(user_id) if user_id else False
+_MOOD_TREND_DESC = {
+    "improving": "improving",
+    "declining": "declining",
+    "stable": "staying stable",
+}
 
+
+@handle_errors("phrasing feature enablement flags", default_return=None)
+def _phrase_feature_status_lines(
+    *,
+    checkins_enabled: bool,
+    tasks_enabled: bool,
+    messages_enabled: bool,
+) -> list[str]:
+    """Return the shared feature-availability phrases."""
     feature_status: list[str] = []
     if checkins_enabled:
         feature_status.append("check-ins are enabled")
@@ -169,7 +178,6 @@ def _feature_status_lines(user_id: str) -> list[str] | None:
             "check-ins are disabled - do NOT mention check-ins, check-in data, "
             "or suggest starting check-ins"
         )
-
     if tasks_enabled:
         feature_status.append("task management is enabled")
     else:
@@ -177,7 +185,6 @@ def _feature_status_lines(user_id: str) -> list[str] | None:
             "task management is disabled - do NOT mention tasks, task creation, "
             "or task reminders"
         )
-
     if messages_enabled:
         feature_status.append("automated messages are enabled")
     else:
@@ -189,15 +196,32 @@ def _feature_status_lines(user_id: str) -> list[str] | None:
     return feature_status
 
 
-@handle_errors("appending feature enablement context", default_return=None)
-def append_feature_enablement(parts: list[str], user_id: str) -> None:
-    """Tell the model which product features are enabled for this user."""
-    feature_status = _feature_status_lines(user_id)
+@handle_errors("appending feature availability prompt line", default_return=None)
+def _append_feature_availability_line(
+    parts: list[str], feature_status: list[str] | None
+) -> None:
+    """Append the IMPORTANT feature-availability line, or the unknown fallback."""
     if feature_status is None:
         parts.append(_FEATURE_STATUS_UNKNOWN)
         return
     if feature_status:
         parts.append(f"IMPORTANT - Feature availability: {'; '.join(feature_status)}")
+
+
+@handle_errors("reading feature enablement flags", default_return=None)
+def _feature_status_lines(user_id: str) -> list[str] | None:
+    return _phrase_feature_status_lines(
+        checkins_enabled=is_user_checkins_enabled(user_id),
+        tasks_enabled=are_tasks_enabled(user_id) if user_id else False,
+        messages_enabled=is_automated_messages_enabled(user_id) if user_id else False,
+    )
+
+
+# not_duplicate: feature_prompt_section_loads_then_phrases
+@handle_errors("appending feature enablement context", default_return=None)
+def append_feature_enablement(parts: list[str], user_id: str) -> None:
+    """Tell the model which product features are enabled for this user."""
+    _append_feature_availability_line(parts, _feature_status_lines(user_id))
 
 
 @handle_errors("appending check-in summary context", default_return=None)
@@ -231,6 +255,28 @@ def append_health_guidance(parts: list[str], user_id: str) -> None:
         parts.append(summary)
 
 
+@handle_errors("phrasing recent check-in count", default_return=None)
+def _phrase_recent_checkin_count(parts: list[str], count: int) -> None:
+    """Append the shared recent check-in count line."""
+    if count <= 0:
+        return
+    parts.append(
+        f"They have completed {count} check-in{'s' if count != 1 else ''} recently"
+    )
+
+
+@handle_errors("phrasing mood trend", default_return=None)
+def _phrase_mood_trend(parts: list[str], avg_mood: float | None, trend: str) -> None:
+    """Append the shared mood-average prompt line."""
+    if avg_mood is None:
+        return
+    trend_desc = _MOOD_TREND_DESC.get(trend, trend)
+    parts.append(
+        f"Their mood has been averaging {avg_mood:.1f} out of 5 and is {trend_desc}"
+    )
+
+
+# not_duplicate: mood_prompt_section_loads_then_phrases
 @handle_errors("appending activity and mood trend context", default_return=None)
 def append_activity_and_mood_trends(
     parts: list[str], user_id: str, context: dict[str, Any]
@@ -240,24 +286,15 @@ def append_activity_and_mood_trends(
         return
 
     recent_activity = context.get("recent_activity", {})
-    if recent_activity.get("recent_responses_count", 0) > 0:
-        count = recent_activity["recent_responses_count"]
-        parts.append(
-            f"They have completed {count} check-in{'s' if count != 1 else ''} recently"
-        )
-
+    _phrase_recent_checkin_count(
+        parts, int(recent_activity.get("recent_responses_count", 0) or 0)
+    )
     mood_trends = context.get("mood_trends", {})
-    if mood_trends.get("average_mood") is not None:
-        avg_mood = mood_trends["average_mood"]
-        trend = mood_trends.get("trend", "stable")
-        trend_desc = {
-            "improving": "improving",
-            "declining": "declining",
-            "stable": "staying stable",
-        }.get(trend, trend)
-        parts.append(
-            f"Their mood has been averaging {avg_mood:.1f} out of 5 and is {trend_desc}"
-        )
+    _phrase_mood_trend(
+        parts,
+        mood_trends.get("average_mood"),
+        str(mood_trends.get("trend", "stable") or "stable"),
+    )
 
 
 @handle_errors("appending conversation history context", default_return=None)
@@ -286,6 +323,34 @@ def _checkin_completed_today(ts: str, user_id: str | None = None) -> tuple[bool,
     return False, ""
 
 
+@handle_errors("phrasing today's check-in status", default_return=None)
+def _phrase_today_checkin_status(
+    parts: list[str],
+    *,
+    completed_today: bool,
+    completed_at: str,
+    mood_val: Any,
+    energy_val: Any,
+) -> None:
+    """Append the shared today-check-in prompt line."""
+    if completed_today:
+        details = []
+        if mood_val is not None:
+            details.append(f"mood was {mood_val} out of 5")
+        if energy_val is not None:
+            details.append(f"energy was {energy_val} out of 5")
+        if details:
+            parts.append(
+                f"They completed their check-in today at {completed_at}, "
+                f"reporting that their {' and '.join(details)}"
+            )
+        else:
+            parts.append(f"They completed their check-in today at {completed_at}")
+        return
+    parts.append("They have not completed their check-in for today yet")
+
+
+# not_duplicate: today_checkin_prompt_section_loads_then_phrases
 @handle_errors("appending today check-in status context", default_return=None)
 def append_today_checkin_status(parts: list[str], user_id: str) -> None:
     if not is_user_checkins_enabled(user_id):
@@ -304,21 +369,13 @@ def append_today_checkin_status(parts: list[str], user_id: str) -> None:
         if ts:
             completed_today, completed_at = _checkin_completed_today(ts, user_id)
 
-    if completed_today:
-        details = []
-        if mood_val is not None:
-            details.append(f"mood was {mood_val} out of 5")
-        if energy_val is not None:
-            details.append(f"energy was {energy_val} out of 5")
-        if details:
-            parts.append(
-                f"They completed their check-in today at {completed_at}, "
-                f"reporting that their {' and '.join(details)}"
-            )
-        else:
-            parts.append(f"They completed their check-in today at {completed_at}")
-    else:
-        parts.append("They have not completed their check-in for today yet")
+    _phrase_today_checkin_status(
+        parts,
+        completed_today=completed_today,
+        completed_at=completed_at,
+        mood_val=mood_val,
+        energy_val=energy_val,
+    )
 
 
 @handle_errors("phrasing recent sent messages", default_return=None)
@@ -360,17 +417,26 @@ def append_recent_sent_messages(
     return _phrase_recent_sent_messages(parts, recent_sent_all)
 
 
-@handle_errors("appending task reminder context", default_return=None)
-def append_task_reminder(parts: list[str], recent_sent_all: list[dict[str, Any]] | None) -> None:
+@handle_errors("phrasing task reminder context", default_return=None)
+def _phrase_task_reminder(
+    parts: list[str], recent_sent_all: list[dict[str, Any]] | None
+) -> None:
+    """Append the shared latest-task-reminder prompt line."""
     if not recent_sent_all:
         return
     task_msgs = [m for m in recent_sent_all if m.get("category") == "task_reminders"]
     if not task_msgs:
         return
     latest_task = task_msgs[0]
-    t_text = str(latest_task.get("sent_text") or "").strip()
-    t_ts = str(latest_task.get("sent_at") or "").strip()
-    parts.append(f'They received a task reminder at {t_ts}: "{t_text}"')
+    text = str(latest_task.get("sent_text") or "").strip()
+    timestamp = str(latest_task.get("sent_at") or "").strip()
+    parts.append(f'They received a task reminder at {timestamp}: "{text}"')
+
+
+# not_duplicate: task_reminder_prompt_section_loads_then_phrases
+@handle_errors("appending task reminder context", default_return=None)
+def append_task_reminder(parts: list[str], recent_sent_all: list[dict[str, Any]] | None) -> None:
+    _phrase_task_reminder(parts, recent_sent_all)
 
 
 @handle_errors("phrasing task data context", default_return=None)

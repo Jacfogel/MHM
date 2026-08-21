@@ -7,13 +7,19 @@ from typing import Any
 from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
 from ai.context.phraser import (
-    append_current_datetime_context,
-    append_profile_sections,
-    phrase_checkin_summary,
+    _append_feature_availability_line,
     _checkin_completed_today,
+    _phrase_feature_status_lines,
+    _phrase_mood_trend,
+    _phrase_recent_checkin_count,
     _phrase_recent_sent_messages,
     _phrase_schedule_details,
     _phrase_task_data,
+    _phrase_task_reminder,
+    _phrase_today_checkin_status,
+    append_current_datetime_context,
+    append_profile_sections,
+    phrase_checkin_summary,
 )
 from ai.prompts.manager import MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager
 from ai.prompts.flows import get_product_ai_prompt_flow
@@ -176,6 +182,7 @@ def _profile_context_from_envelope(
     }
 
 
+# not_duplicate: feature_prompt_section_loads_then_phrases
 @handle_errors("appending feature enablement from AI envelope", default_return=None)
 def _append_feature_enablement_from_envelope(
     parts: list[str], structured: dict[str, Any]
@@ -184,30 +191,14 @@ def _append_feature_enablement_from_envelope(
     checkins = structured.get("checkins") or {}
     tasks = structured.get("tasks") or {}
     messages = structured.get("messages") or {}
-    feature_status = []
-    if checkins.get("enabled"):
-        feature_status.append("check-ins are enabled")
-    else:
-        feature_status.append(
-            "check-ins are disabled - do NOT mention check-ins, check-in data, "
-            "or suggest starting check-ins"
-        )
-    if tasks.get("enabled"):
-        feature_status.append("task management is enabled")
-    else:
-        feature_status.append(
-            "task management is disabled - do NOT mention tasks, task creation, "
-            "or task reminders"
-        )
-    if messages.get("enabled"):
-        feature_status.append("automated messages are enabled")
-    else:
-        feature_status.append(
-            "automated messages are disabled - do NOT mention scheduled message "
-            "categories, suggest enabling automated messages, or reference recent "
-            "automated sends"
-        )
-    parts.append(f"IMPORTANT - Feature availability: {'; '.join(feature_status)}")
+    _append_feature_availability_line(
+        parts,
+        _phrase_feature_status_lines(
+            checkins_enabled=bool(checkins.get("enabled")),
+            tasks_enabled=bool(tasks.get("enabled")),
+            messages_enabled=bool(messages.get("enabled")),
+        ),
+    )
 
 
 # not_duplicate: checkin_prompt_sections_share_guard_shape
@@ -241,6 +232,7 @@ def _append_health_guidance_from_envelope(
         parts.append(summary)
 
 
+# not_duplicate: mood_prompt_section_loads_then_phrases
 @handle_errors("appending activity and mood trends from AI envelope", default_return=None)
 def _append_activity_and_mood_trends_from_envelope(
     parts: list[str], structured: dict[str, Any]
@@ -250,21 +242,13 @@ def _append_activity_and_mood_trends_from_envelope(
     if not checkins.get("enabled"):
         return
     recent = list(checkins.get("recent") or [])
-    if recent:
-        count = len(recent)
-        parts.append(
-            f"They have completed {count} check-in{'s' if count != 1 else ''} recently"
-        )
+    _phrase_recent_checkin_count(parts, len(recent))
     analysis = analyze_checkin_entries(recent)
-    if analysis.avg_mood is not None:
-        trend_desc = {
-            "improving": "improving",
-            "declining": "declining",
-            "stable": "staying stable",
-        }.get(analysis.mood_trend, analysis.mood_trend)
-        parts.append(
-            f"Their mood has been averaging {analysis.avg_mood:.1f} out of 5 and is {trend_desc}"
-        )
+    _phrase_mood_trend(
+        parts,
+        analysis.avg_mood,
+        str(analysis.mood_trend or "stable"),
+    )
 
 
 @handle_errors("loading session conversation history for prompts", default_return=[])
@@ -322,7 +306,7 @@ def _append_conversation_history_from_envelope(
         parts.append(f'  - User said: "{clipped}{suffix}"')
 
 
-# not_duplicate: checkin_prompt_sections_share_guard_shape
+# not_duplicate: today_checkin_prompt_section_loads_then_phrases
 @handle_errors("appending today's check-in status from AI envelope", default_return=None)
 def _append_today_checkin_status_from_envelope(
     parts: list[str], structured: dict[str, Any], user_id: str
@@ -338,21 +322,13 @@ def _append_today_checkin_status_from_envelope(
     completed_at = ""
     if ts:
         completed_today, completed_at = _checkin_completed_today(ts, user_id)
-    if completed_today:
-        details = []
-        if latest.get("mood") is not None:
-            details.append(f"mood was {latest['mood']} out of 5")
-        if latest.get("energy") is not None:
-            details.append(f"energy was {latest['energy']} out of 5")
-        if details:
-            parts.append(
-                f"They completed their check-in today at {completed_at}, "
-                f"reporting that their {' and '.join(details)}"
-            )
-        else:
-            parts.append(f"They completed their check-in today at {completed_at}")
-    else:
-        parts.append("They have not completed their check-in for today yet")
+    _phrase_today_checkin_status(
+        parts,
+        completed_today=completed_today,
+        completed_at=completed_at,
+        mood_val=latest.get("mood"),
+        energy_val=latest.get("energy"),
+    )
 
 
 @handle_errors("appending recent sent messages from AI envelope", default_return=None)
@@ -367,20 +343,13 @@ def _append_recent_sent_messages_from_envelope(
     return _phrase_recent_sent_messages(parts, recent_sent_all)
 
 
+# not_duplicate: task_reminder_prompt_section_loads_then_phrases
 @handle_errors("appending task reminder from recent messages", default_return=None)
 def _append_task_reminder_from_messages(
     parts: list[str], recent_sent_all: list[dict[str, Any]] | None
 ) -> None:
     """Append task-reminder context from recent sent messages."""
-    if not recent_sent_all:
-        return
-    task_msgs = [m for m in recent_sent_all if m.get("category") == "task_reminders"]
-    if not task_msgs:
-        return
-    latest_task = task_msgs[0]
-    text = str(latest_task.get("sent_text") or "").strip()
-    timestamp = str(latest_task.get("sent_at") or "").strip()
-    parts.append(f'They received a task reminder at {timestamp}: "{text}"')
+    _phrase_task_reminder(parts, recent_sent_all)
 
 
 # not_duplicate: task_prompt_section_loads_then_phrases

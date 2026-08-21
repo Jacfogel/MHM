@@ -22,6 +22,7 @@ from core.time_utilities import (
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 from tasks.task_service import parse_relative_date
+from tasks.task_time_parsing import parse_time_string
 
 from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_DUE_DATE,
@@ -1063,50 +1064,6 @@ class TaskFlowMixin(FlowControlMixin):
 
     @handle_errors("parsing time from text", default_return=None)
     def _parse_time_from_text(self, text: str) -> str | None:
-        """
-        Parse time from natural language text.
-
-        Examples:
-        - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
-        - "2pm", "14:00" -> "14:00"
-        - "at 3pm" -> "15:00"
-        """
-        # not_duplicate: task_due_date_natural_language_parsers
-        import re
-
-        text_lower = text.lower().strip()
-
-        # Pattern for time like "10am", "10:30am", "2pm", "14:00"
-        time_patterns = [
-            r"(\d{1,2}):(\d{2})\s*(am|pm)?",  # "10:30am" or "14:30"
-            r"(\d{1,2})\s*(am|pm)",  # "10am" or "2pm"
-            r"at\s+(\d{1,2}):(\d{2})",  # "at 10:30"
-            r"at\s+(\d{1,2})\s*(am|pm)",  # "at 10am"
-        ]
-
-        for pattern in time_patterns:
-            match = re.search(pattern, text_lower)
-            if match:
-                groups = match.groups()
-                hour = int(groups[0])
-                minute = (
-                    int(groups[1])
-                    if len(groups) > 1 and groups[1] and groups[1].isdigit()
-                    else 0
-                )
-
-                # Check for AM/PM
-                if len(groups) > 2 and groups[-1]:
-                    am_pm = groups[-1].lower()
-                    if am_pm == "pm" and hour != 12:
-                        hour += 12
-                    elif am_pm == "am" and hour == 12:
-                        hour = 0
-                elif hour < 12 and "pm" in text_lower:
-                    hour += 12
-                elif hour == 12 and "am" in text_lower:
-                    hour = 0
-
-                return f"{hour:02d}:{minute:02d}"
-
-        return None
+        """Parse clock time with the same helper as create-task (noon / midnight included)."""
+        cleaned = re.sub(r"\bat\b", " ", text or "", flags=re.IGNORECASE)
+        return parse_time_string(re.sub(r"\s+", " ", cleaned).strip())

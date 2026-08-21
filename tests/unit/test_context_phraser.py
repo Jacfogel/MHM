@@ -128,6 +128,64 @@ class TestContextPhraser:
         assert "Other active tasks:" in text
         assert "Buy milk" in text
 
+    def test_phrase_feature_status_lines_disabled_wording(self):
+        from ai.context.phraser import _phrase_feature_status_lines
+
+        lines = _phrase_feature_status_lines(
+            checkins_enabled=False,
+            tasks_enabled=False,
+            messages_enabled=True,
+        )
+        assert any("do NOT mention check-ins" in line for line in lines)
+        assert any("do NOT mention tasks" in line for line in lines)
+        assert "automated messages are enabled" in lines
+
+    def test_phrase_today_checkin_status_completed_with_mood(self):
+        from ai.context.phraser import _phrase_today_checkin_status
+
+        parts: list[str] = []
+        _phrase_today_checkin_status(
+            parts,
+            completed_today=True,
+            completed_at="09:15",
+            mood_val=4,
+            energy_val=3,
+        )
+        assert parts == [
+            "They completed their check-in today at 09:15, "
+            "reporting that their mood was 4 out of 5 and energy was 3 out of 5"
+        ]
+
+    def test_phrase_task_reminder_uses_latest_task_message(self):
+        from ai.context.phraser import _phrase_task_reminder
+
+        parts: list[str] = []
+        _phrase_task_reminder(
+            parts,
+            [
+                {
+                    "category": "task_reminders",
+                    "sent_text": "Don't forget the pharmacy.",
+                    "sent_at": "2026-07-01 09:00:00",
+                }
+            ],
+        )
+        assert parts == [
+            'They received a task reminder at 2026-07-01 09:00:00: '
+            '"Don\'t forget the pharmacy."'
+        ]
+
+    def test_phrase_mood_trend_stable_wording(self):
+        from ai.context.phraser import _phrase_mood_trend, _phrase_recent_checkin_count
+
+        parts: list[str] = []
+        _phrase_recent_checkin_count(parts, 2)
+        _phrase_mood_trend(parts, 3.5, "stable")
+        assert parts == [
+            "They have completed 2 check-ins recently",
+            "Their mood has been averaging 3.5 out of 5 and is staying stable",
+        ]
+
     def test_phrase_schedule_details_uses_period_hours(self):
         parts: list[str] = []
         _phrase_schedule_details(

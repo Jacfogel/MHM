@@ -48,6 +48,17 @@ class TestCommandInterpreter:
         assert "import" not in result
         assert "ACTION:" in result
 
+    def test_extract_command_from_response_skips_nlp_boilerplate(self, interpreter):
+        raw = (
+            "This function takes in a message\n"
+            "user_intent_re\n"
+            "Please create a task for groceries"
+        )
+        result = interpreter.extract_command_from_response(raw)
+        assert "This function" not in result
+        assert "user_intent_re" not in result
+        assert "create a task for groceries" in result
+
     def test_command_extraction_not_open_ended_prose(self, interpreter):
         raw = "ACTION: create_task\nTITLE: dentist"
         result = interpreter.extract_command_from_response(raw)

@@ -13,6 +13,49 @@ from core.file_operations import load_json_data
 
 logger = get_component_logger("user_activity")
 
+_WRITTEN_NUMBERS = {
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "twenty one": 21,
+    "twenty two": 22,
+    "twenty three": 23,
+    "twenty four": 24,
+}
+
+
+@handle_errors("parsing half-suffix numerical answer", default_return=None)
+def _parse_half_suffix(answer: str) -> float | None:
+    """Parse 'N and a half' / 'N and half' into N + 0.5."""
+    for suffix in (" and a half", " and half"):
+        if suffix not in answer:
+            continue
+        base_part = answer.replace(suffix, "").strip()
+        try:
+            return float(base_part) + 0.5
+        except ValueError:
+            if base_part in _WRITTEN_NUMBERS:
+                return _WRITTEN_NUMBERS[base_part] + 0.5
+    return None
+
 
 class DynamicCheckinManager:
     """Manages dynamic check-in questions and responses loaded from JSON files."""
@@ -331,57 +374,12 @@ class DynamicCheckinManager:
             pass
 
         # Handle written numbers
-        written_numbers = {
-            "zero": 0,
-            "one": 1,
-            "two": 2,
-            "three": 3,
-            "four": 4,
-            "five": 5,
-            "six": 6,
-            "seven": 7,
-            "eight": 8,
-            "nine": 9,
-            "ten": 10,
-            "eleven": 11,
-            "twelve": 12,
-            "thirteen": 13,
-            "fourteen": 14,
-            "fifteen": 15,
-            "sixteen": 16,
-            "seventeen": 17,
-            "eighteen": 18,
-            "nineteen": 19,
-            "twenty": 20,
-            "twenty one": 21,
-            "twenty two": 22,
-            "twenty three": 23,
-            "twenty four": 24,
-        }
+        if answer in _WRITTEN_NUMBERS:
+            return float(_WRITTEN_NUMBERS[answer])
 
-        # Handle simple written numbers
-        if answer in written_numbers:
-            return float(written_numbers[answer])
-
-        # Handle "and a half" patterns (e.g., "three and a half", "2 and a half")
-        if " and a half" in answer:
-            base_part = answer.replace(" and a half", "").strip()
-            try:
-                base_value = float(base_part)
-                return base_value + 0.5
-            except ValueError:
-                if base_part in written_numbers:
-                    return written_numbers[base_part] + 0.5
-
-        # Handle "and half" patterns (e.g., "three and half")
-        if " and half" in answer:
-            base_part = answer.replace(" and half", "").strip()
-            try:
-                base_value = float(base_part)
-                return base_value + 0.5
-            except ValueError:
-                if base_part in written_numbers:
-                    return written_numbers[base_part] + 0.5
+        half_value = _parse_half_suffix(answer)
+        if half_value is not None:
+            return half_value
 
         # Handle decimal written numbers (e.g., "three point five", "2 point 75")
         if " point " in answer:
@@ -391,7 +389,7 @@ class DynamicCheckinManager:
                     whole_part = (
                         float(parts[0])
                         if parts[0].isdigit()
-                        else written_numbers.get(parts[0])
+                        else _WRITTEN_NUMBERS.get(parts[0])
                     )
                     decimal_part = parts[1]
 
@@ -400,22 +398,22 @@ class DynamicCheckinManager:
                         decimal_words = decimal_part.split()
                         decimal_str = ""
                         for word in decimal_words:
-                            if word in written_numbers:
-                                decimal_str += str(written_numbers[word])
+                            if word in _WRITTEN_NUMBERS:
+                                decimal_str += str(_WRITTEN_NUMBERS[word])
                             elif word.isdigit():
                                 decimal_str += word
                         if decimal_str:
                             decimal_part = decimal_str
                     else:
                         # Handle single word decimal parts
-                        if decimal_part in written_numbers:
-                            decimal_part = str(written_numbers[decimal_part])
+                        if decimal_part in _WRITTEN_NUMBERS:
+                            decimal_part = str(_WRITTEN_NUMBERS[decimal_part])
 
                     if whole_part is not None and (
-                        decimal_part.isdigit() or decimal_part in written_numbers
+                        decimal_part.isdigit() or decimal_part in _WRITTEN_NUMBERS
                     ):
-                        if decimal_part in written_numbers:
-                            decimal_part = str(written_numbers[decimal_part])
+                        if decimal_part in _WRITTEN_NUMBERS:
+                            decimal_part = str(_WRITTEN_NUMBERS[decimal_part])
                         # Convert whole_part to int to avoid "2.0.5" issue
                         whole_part_int = (
                             int(whole_part)

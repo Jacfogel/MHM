@@ -10,7 +10,10 @@ Tests the new response parsing features:
 
 import pytest
 from unittest.mock import patch
-from checkins.checkin_dynamic_manager import DynamicCheckinManager
+from checkins.checkin_dynamic_manager import (
+    DynamicCheckinManager,
+    _parse_half_suffix,
+)
 from checkins.checkin_analytics import CheckinAnalytics
 
 
@@ -81,6 +84,11 @@ class TestEnhancedNumericalParsing:
         for input_val, expected in test_cases:
             result = self.manager._parse_numerical_response(input_val)
             assert result == expected, f"Failed for input: {input_val}"
+
+    def test_parse_half_suffix_helper(self):
+        assert _parse_half_suffix("three and a half") == 3.5
+        assert _parse_half_suffix("2 and half") == 2.5
+        assert _parse_half_suffix("not a number") is None
     
     def test_decimal_written_numbers(self):
         """Test decimal written numbers."""

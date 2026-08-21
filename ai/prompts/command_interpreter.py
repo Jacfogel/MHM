@@ -13,6 +13,39 @@ _CLARIFICATION_PROMPT_SUFFIX = (
     "plain language. Do not return ACTION: lines unless you can identify a specific action."
 )
 
+
+@handle_errors("checking command-response skip line", default_return=False)
+def _is_code_or_fence_line(line_stripped: str) -> bool:
+    """True for import/def/class/comment/fence lines that should not become commands."""
+    return (
+        line_stripped.startswith("import ")
+        or line_stripped.startswith("from ")
+        or line_stripped.startswith("def ")
+        or line_stripped.startswith("class ")
+        or line_stripped.startswith('"""')
+        or line_stripped.startswith("'''")
+        or line_stripped.startswith("#")
+        or line_stripped.startswith("```")
+    )
+
+
+@handle_errors("checking command-response boilerplate line", default_return=False)
+def _is_nlp_boilerplate_line(line_stripped: str) -> bool:
+    """True for interpreter-style boilerplate leftover in natural-language responses."""
+    lowered = line_stripped.lower()
+    return (
+        "This function takes" in line_stripped
+        or "This function" in line_stripped
+        or "takes in a message" in lowered
+        or "returns the user" in lowered
+        or line_stripped.endswith("_re")
+        or (
+            len(line_stripped.split()) == 1
+            and "_" in line_stripped
+            and not line_stripped.startswith("ACTION")
+        )
+    )
+
 # Mode-detection vocabulary aligned with rule-based intents in command_parser (not exhaustive).
 _COMMAND_KEYWORDS = (
     "remind",
@@ -337,18 +370,7 @@ class CommandInterpreter:
             command_lines = []
             for line in lines:
                 line_stripped = line.strip()
-                if (
-                    line_stripped.startswith("import ")
-                    or line_stripped.startswith("from ")
-                    or line_stripped.startswith("def ")
-                    or line_stripped.startswith("class ")
-                    or line_stripped.startswith('"""')
-                    or line_stripped.startswith("'''")
-                    or line_stripped.startswith("#")
-                    or line_stripped.startswith("```python")
-                    or line_stripped.startswith("```")
-                    or line_stripped == "```"
-                ):
+                if _is_code_or_fence_line(line_stripped):
                     continue
                 if ":" in line_stripped and (
                     line_stripped.startswith("ACTION")
@@ -387,27 +409,8 @@ class CommandInterpreter:
         clean_lines = []
         for line in lines:
             line_stripped = line.strip()
-            if (
-                line_stripped.startswith("import ")
-                or line_stripped.startswith("from ")
-                or line_stripped.startswith("def ")
-                or line_stripped.startswith("class ")
-                or line_stripped.startswith('"""')
-                or line_stripped.startswith("'''")
-                or line_stripped.startswith("#")
-                or line_stripped.startswith("```python")
-                or line_stripped.startswith("```")
-                or line_stripped == "```"
-                or "This function takes" in line_stripped
-                or "This function" in line_stripped
-                or "takes in a message" in line_stripped.lower()
-                or "returns the user" in line_stripped.lower()
-                or line_stripped.endswith("_re")
-                or (
-                    len(line_stripped.split()) == 1
-                    and "_" in line_stripped
-                    and not line_stripped.startswith("ACTION")
-                )
+            if _is_code_or_fence_line(line_stripped) or _is_nlp_boilerplate_line(
+                line_stripped
             ):
                 continue
             if line_stripped:

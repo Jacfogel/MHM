@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-19 15:04:51
+> **Last Generated**: 2026-08-19 19:04:57
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 270
-- **Functions Found**: 2558
+- **Functions Found**: 2568
 - **Methods Found**: 1376
 - **Classes Found**: 257
-- **Total Items**: 3934
-- **Functions Documented**: 2239
+- **Total Items**: 3944
+- **Functions Documented**: 2249
 - **Methods Documented**: 1225
 - **Classes Documented**: 187
-- **Total Documented**: 3464
+- **Total Documented**: 3474
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-19
 
@@ -557,11 +557,17 @@ Returns:
 
 #### `ai/context/phraser.py`
 **Functions:**
+- [OK] `_append_feature_availability_line(parts, feature_status)` - Append the IMPORTANT feature-availability line, or the unknown fallback.
 - [MISSING] `_checkin_completed_today(ts, user_id)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
+- [OK] `_phrase_feature_status_lines()` - Return the shared feature-availability phrases.
+- [OK] `_phrase_mood_trend(parts, avg_mood, trend)` - Append the shared mood-average prompt line.
+- [OK] `_phrase_recent_checkin_count(parts, count)` - Append the shared recent check-in count line.
 - [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
 - [OK] `_phrase_schedule_details(parts)` - Append the shared active-schedule prompt lines.
 - [OK] `_phrase_task_data(parts)` - Append the shared task-information prompt lines.
+- [OK] `_phrase_task_reminder(parts, recent_sent_all)` - Append the shared latest-task-reminder prompt line.
+- [OK] `_phrase_today_checkin_status(parts)` - Append the shared today-check-in prompt line.
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from chatbot context dict.
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``analyze_checkin_entries``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
@@ -728,6 +734,8 @@ Required-field checks happen in the planner parser.
 #### `ai/prompts/command_interpreter.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
+- [OK] `_is_code_or_fence_line(line_stripped)` - True for import/def/class/comment/fence lines that should not become commands.
+- [OK] `_is_nlp_boilerplate_line(line_stripped)` - True for interpreter-style boilerplate leftover in natural-language responses.
 - [OK] `create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
 - [OK] `detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
 - [OK] `extract_command_from_response(self, response)` - Extract command structure from command mode responses.
@@ -1015,6 +1023,7 @@ Supports formats like:
 - "9" -> "09:00"
 - "noon" -> "12:00"
 - "midnight" -> "00:00"
+- [OK] `_parse_half_suffix(answer)` - Parse 'N and a half' / 'N and half' into N + 0.5.
 - [OK] `_parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
 - [OK] `_parse_time_pair_response(self, answer)` - Parse sleep data from user response.
 
@@ -3150,12 +3159,7 @@ Examples:
 
 Returns list of reminder period dicts with date, start_time, end_time.
 - [OK] `_parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
-- [OK] `_parse_time_from_text(self, text)` - Parse time from natural language text.
-
-Examples:
-- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
-- "2pm", "14:00" -> "14:00"
-- "at 3pm" -> "15:00"
+- [OK] `_parse_time_from_text(self, text)` - Parse clock time with the same helper as create-task (noon / midnight included).
 - [OK] `_restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - Re-enter a prior task follow-up step after back/undo navigation.
 - [OK] `_skip_due_date_question()` - Skip due date; go to priority or finish without reminders.
 - [OK] `_skip_priority_question()` - Skip priority and continue to reminders or finish.
@@ -3211,12 +3215,7 @@ Examples:
 
 Returns list of reminder period dicts with date, start_time, end_time.
   - [OK] `TaskFlowMixin._parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
-  - [OK] `TaskFlowMixin._parse_time_from_text(self, text)` - Parse time from natural language text.
-
-Examples:
-- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
-- "2pm", "14:00" -> "14:00"
-- "at 3pm" -> "15:00"
+  - [OK] `TaskFlowMixin._parse_time_from_text(self, text)` - Parse clock time with the same helper as create-task (noon / midnight included).
   - [OK] `TaskFlowMixin._restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - Re-enter a prior task follow-up step after back/undo navigation.
   - [OK] `TaskFlowMixin._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
   - [OK] `TaskFlowMixin._task_flow_due_date_prompt(self)` - User-facing prompt for the due date/time follow-up step.
@@ -5827,6 +5826,7 @@ Returns:
 
 #### `storage/user_data_index.py`
 **Functions:**
+- [OK] `_index_entries_for_account(user_id, account)` - Return username / email / discord / phone lookup keys for one account.
 - [OK] `_index_file_path(index_file)` - Return the user_index.json path, using BASE_DATA_DIR when none is given.
 - [OK] `build_user_index()` - Build an index of all users and their message data.
 - [OK] `rebuild_full_index(index_file)` - Rebuild the complete user index from scratch.

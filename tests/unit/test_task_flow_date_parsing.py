@@ -71,3 +71,24 @@ class TestTaskFlowDateParsing:
         date_str, time_str = manager._parse_date_time_from_text("2026-07-01 14:30")
         assert date_str == "2026-07-01"
         assert time_str == "14:30"
+
+    def test_parse_time_from_text_uses_shared_helper(self, manager):
+        assert manager._parse_time_from_text("at 10am") == "10:00"
+        assert manager._parse_time_from_text("at 10:30") == "10:30"
+        assert manager._parse_time_from_text("noon") == "12:00"
+        assert manager._parse_time_from_text("midnight") == "00:00"
+
+    def test_tomorrow_at_ten_thirty(self, manager):
+        fixed_now = datetime(2026, 5, 11, 9, 0)
+        with patch(
+            "communication.message_processing.flows.task_flow.now_datetime_full",
+            return_value=fixed_now,
+        ), patch(
+            "tasks.task_service.now_datetime_full",
+            return_value=fixed_now,
+        ):
+            date_str, time_str = manager._parse_date_time_from_text(
+                "tomorrow at 10:30"
+            )
+        assert date_str == "2026-05-12"
+        assert time_str == "10:30"
