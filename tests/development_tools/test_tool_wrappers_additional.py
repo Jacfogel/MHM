@@ -3,6 +3,7 @@
 import json
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -85,20 +86,17 @@ def test_run_analyze_module_dependencies_builds_standard_summary(
 def test_run_analyze_module_refactor_candidates_includes_cli_flags(
     temp_project_copy, monkeypatch
 ):
-    """Wrapper should pass include flags and store parsed JSON output."""
+    """Wrapper should pass include flags into the in-process scan."""
     service = AIToolsService(project_root=str(temp_project_copy))
-    captured: dict[str, tuple[object, ...] | None] = {"args": None}
+    captured: dict[str, dict] = {}
 
-    def _fake_run_script(_script_name, *args, **_kwargs):
-        captured["args"] = args
-        return {
-            "success": True,
-            "output": '{"summary":{"total_issues":3,"files_affected":2},"details":{"modules":[]}}',
-            "error": "",
-            "returncode": 0,
-        }
+    def _fake_scan(**kwargs):
+        captured["kwargs"] = kwargs
+        return {"summary": {"total_issues": 3, "files_affected": 2}, "details": {"modules": []}}
 
-    monkeypatch.setattr(service, "run_script", _fake_run_script, raising=True)
+    import development_tools.functions.analyze_module_refactor_candidates as refactor_mod
+
+    monkeypatch.setattr(refactor_mod, "_scan_and_evaluate", _fake_scan, raising=True)
     monkeypatch.setattr(
         tool_wrappers_module, "save_tool_result", lambda *_a, **_k: None, raising=True
     )
@@ -107,29 +105,23 @@ def test_run_analyze_module_refactor_candidates_includes_cli_flags(
         include_tests=True, include_dev_tools=True
     )
 
-    captured_args = captured["args"]
-    assert captured_args is not None
-    assert "--include-tests" in captured_args
-    assert "--include-dev-tools" in captured_args
+    assert captured["kwargs"]["include_tests"] is True
+    assert captured["kwargs"]["include_dev_tools"] is True
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 3
 
 
 @pytest.mark.unit
 def test_run_analyze_facade_shims_saves_scoped_result(temp_project_copy, monkeypatch):
-    """Facade/shim wrapper should parse JSON and save through scoped output storage."""
+    """Facade/shim wrapper should save through scoped output storage."""
     service = AIToolsService(project_root=str(temp_project_copy))
     saved: list[tuple[str, str, dict]] = []
+    import development_tools.functions.analyze_facade_shims as facade_mod
 
     monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_args, **_kwargs: {
-            "success": True,
-            "output": '{"summary":{"total_issues":1,"files_affected":1},"details":{"findings":[]}}',
-            "error": "",
-            "returncode": 0,
-        },
+        facade_mod,
+        "analyze_project",
+        lambda **_k: {"summary": {"total_issues": 1, "files_affected": 1}, "details": {"findings": []}},
         raising=True,
     )
     monkeypatch.setitem(
@@ -147,21 +139,14 @@ def test_run_analyze_facade_shims_saves_scoped_result(temp_project_copy, monkeyp
 
 @pytest.mark.unit
 def test_run_decision_support_saves_error_when_no_json_data(temp_project_copy, monkeypatch):
-    """Wrapper should emit a standard error payload when decision support returns no JSON."""
+    """Wrapper should emit a standard error payload when insights extraction yields nothing."""
     service = AIToolsService(project_root=str(temp_project_copy))
     saved_payload = {}
+    import development_tools.functions.analyze_functions as funcs_mod
+    import development_tools.reports.decision_support as decision_mod
 
-    monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_args, **_kwargs: {
-            "success": True,
-            "output": "plain text output only",
-            "error": "",
-            "returncode": 0,
-        },
-        raising=True,
-    )
+    monkeypatch.setattr(funcs_mod, "scan_all_functions", lambda **_k: [], raising=True)
+    monkeypatch.setattr(decision_mod, "print_dashboard", lambda _funcs: None, raising=True)
     monkeypatch.setattr(
         service, "_extract_decision_insights", lambda _result: None, raising=True
     )
@@ -324,17 +309,20 @@ def test_run_analyze_documentation_keyword_fallback_marks_issues(
 def test_run_analyze_functions_parses_and_saves_json(temp_project_copy, monkeypatch):
     service = AIToolsService(project_root=str(temp_project_copy))
     service.exclusion_config = {"include_tests": True, "include_dev_tools": True}
-    captured: dict[str, tuple] = {}
+    payload = {"summary": {"total_issues": 0}, "details": {"total_functions": 1}}
+    captured: dict[str, dict] = {}
+    import development_tools.functions.analyze_functions as funcs_mod
 
-    def _fake_run_script(_name, *args, **_kwargs):
-        captured["args"] = args
-        return {
-            "success": True,
-            "output": '{"summary":{"total_issues":0},"details":{"total_functions":1}}',
-            "error": "",
-        }
+    monkeypatch.setattr(service, "_ensure_shared_function_scan", lambda: None, raising=True)
+    service._shared_functions_list = [{"name": "foo"}]
+    monkeypatch.setattr(funcs_mod, "categorize_functions", lambda _funcs: {}, raising=True)
+    monkeypatch.setattr(funcs_mod, "validate_results", lambda _cats: True, raising=True)
 
-    monkeypatch.setattr(service, "run_script", _fake_run_script)
+    def _fake_build(functions, **kwargs):
+        captured["kwargs"] = {"functions": functions, **kwargs}
+        return payload
+
+    monkeypatch.setattr(funcs_mod, "build_analyze_functions_result", _fake_build, raising=True)
     saved: list[dict] = []
     monkeypatch.setitem(
         service.run_analyze_functions.__func__.__globals__,
@@ -344,8 +332,7 @@ def test_run_analyze_functions_parses_and_saves_json(temp_project_copy, monkeypa
 
     result = service.run_analyze_functions()
 
-    assert "--include-tests" in captured["args"]
-    assert "--include-dev-tools" in captured["args"]
+    assert captured["kwargs"]["functions"] == [{"name": "foo"}]
     assert result["data"]["details"]["total_functions"] == 1
     assert service.results_cache["analyze_functions"] == saved[-1]
 
@@ -377,19 +364,15 @@ def test_run_analyze_unused_functions_parses_flags_and_saves(
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
     service.exclusion_config = {"include_tests": True, "include_dev_tools": True}
-    captured: dict[str, tuple] = {}
+    captured: dict[str, dict] = {}
     saved: list[tuple[str, str, dict]] = []
+    import development_tools.functions.analyze_unused_functions as unused_mod
 
-    def _fake_run_script(_name, *args, **_kwargs):
-        captured["args"] = args
-        return {
-            "success": True,
-            "output": '{"summary":{"total_issues":2},"details":{}}',
-            "error": "",
-            "returncode": 0,
-        }
+    def _fake_analyze(**kwargs):
+        captured["kwargs"] = kwargs
+        return {"summary": {"total_issues": 2}, "details": {}}
 
-    monkeypatch.setattr(service, "run_script", _fake_run_script, raising=True)
+    monkeypatch.setattr(unused_mod, "analyze_unused_functions", _fake_analyze, raising=True)
     monkeypatch.setitem(
         service.run_analyze_unused_functions.__func__.__globals__,
         "save_tool_result",
@@ -398,11 +381,10 @@ def test_run_analyze_unused_functions_parses_flags_and_saves(
 
     result = service.run_analyze_unused_functions(private_only=True, max_results=25)
 
-    assert "--include-tests" in captured["args"]
-    assert "--include-dev-tools" in captured["args"]
-    assert "--private-only" in captured["args"]
-    assert "--max-results" in captured["args"]
-    assert "25" in captured["args"]
+    assert captured["kwargs"]["include_tests"] is True
+    assert captured["kwargs"]["include_dev_tools"] is True
+    assert captured["kwargs"]["include_private_only"] is True
+    assert captured["kwargs"]["max_results"] == 25
     assert result["issues_found"] is True
     assert result["success"] is True
     assert saved and saved[0][0] == "analyze_unused_functions"
@@ -415,19 +397,23 @@ def test_run_analyze_duplicate_functions_parses_flags_and_saves(
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
     service.exclusion_config = {"include_tests": False, "include_dev_tools": True}
-    captured: dict[str, tuple] = {}
+    captured: dict[str, Any] = {}
     saved: list[tuple[str, str, dict]] = []
+    import development_tools.functions.analyze_duplicate_functions as dup_mod
 
-    def _fake_run_script(_name, *args, **_kwargs):
-        captured["args"] = args
-        return {
-            "success": True,
-            "output": '{"summary":{"total_issues":1},"details":{"groups":[]}}',
-            "error": "",
-            "returncode": 0,
-        }
+    monkeypatch.setattr(dup_mod, "_get_analysis_config", lambda: {}, raising=True)
 
-    monkeypatch.setattr(service, "run_script", _fake_run_script, raising=True)
+    def _fake_gather(**kwargs):
+        captured.update(kwargs)
+        return ([], {"total_files": 0})
+
+    monkeypatch.setattr(dup_mod, "_gather_function_records", _fake_gather, raising=True)
+
+    def _fake_analyze(records, config_values, cache_stats=None):
+        captured["config"] = config_values
+        return {"summary": {"total_issues": 1}, "details": {"groups": []}}
+
+    monkeypatch.setattr(dup_mod, "_analyze_duplicates", _fake_analyze, raising=True)
     monkeypatch.setitem(
         service.run_analyze_duplicate_functions.__func__.__globals__,
         "save_tool_result",
@@ -441,12 +427,11 @@ def test_run_analyze_duplicate_functions_parses_flags_and_saves(
         body_for_near_miss_only=True,
     )
 
-    assert "--include-tests" not in captured["args"]
-    assert "--include-dev-tools" in captured["args"]
-    assert "--consider-body-similarity" in captured["args"]
-    assert "--body-for-near-miss" in captured["args"]
-    assert "--min-overall" in captured["args"]
-    assert "0.8" in captured["args"]
+    assert captured["include_tests"] is False
+    assert captured["include_dev_tools"] is True
+    assert captured["consider_body_similarity"] is True
+    assert captured["config"]["min_overall_similarity"] == 0.8
+    assert captured["config"]["min_name_similarity"] == 0.9
     assert result["issues_found"] is True
     assert saved[0][0] == "analyze_duplicate_functions"
 
@@ -536,20 +521,17 @@ def test_run_analyze_unused_functions_non_json_and_save_failure(
     temp_project_copy, monkeypatch
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
+    import development_tools.functions.analyze_unused_functions as unused_mod
+
     monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_a, **_k: {
-            "success": False,
-            "output": "not-json",
-            "error": "bad",
-            "returncode": 1,
-        },
+        unused_mod,
+        "analyze_unused_functions",
+        lambda **_k: (_ for _ in ()).throw(RuntimeError("bad")),
         raising=True,
     )
     result = service.run_analyze_unused_functions()
-    assert "data" not in result or result.get("data") is None
     assert result.get("success") is False
+    assert "bad" in result.get("error", "")
 
     saved_calls = {"n": 0}
 
@@ -558,14 +540,9 @@ def test_run_analyze_unused_functions_non_json_and_save_failure(
         raise OSError("disk full")
 
     monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_a, **_k: {
-            "success": True,
-            "output": '{"summary":{"total_issues":1},"details":{}}',
-            "error": "",
-            "returncode": 0,
-        },
+        unused_mod,
+        "analyze_unused_functions",
+        lambda **_k: {"summary": {"total_issues": 1}, "details": {}},
         raising=True,
     )
     monkeypatch.setitem(
@@ -575,8 +552,8 @@ def test_run_analyze_unused_functions_non_json_and_save_failure(
     )
     result = service.run_analyze_unused_functions()
     assert saved_calls["n"] == 1
-    assert result["success"] is True
-    assert result["issues_found"] is True
+    assert result["success"] is False
+    assert "disk full" in result.get("error", "")
 
 
 @pytest.mark.unit
@@ -584,44 +561,35 @@ def test_run_analyze_facade_shims_include_low_signal_and_bad_json(
     temp_project_copy, monkeypatch
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
-    captured: dict[str, tuple] = {}
+    captured: dict[str, dict] = {}
     saved: list = []
+    import development_tools.functions.analyze_facade_shims as facade_mod
 
-    def _fake_run(_name, *args, **_k):
-        captured["args"] = args
-        return {
-            "success": True,
-            "output": '{"summary":{"total_issues":0},"details":{}}',
-            "error": "",
-            "returncode": 0,
-        }
+    def _fake_analyze(**kwargs):
+        captured["kwargs"] = kwargs
+        return {"summary": {"total_issues": 0}, "details": {}}
 
-    monkeypatch.setattr(service, "run_script", _fake_run, raising=True)
+    monkeypatch.setattr(facade_mod, "analyze_project", _fake_analyze, raising=True)
     monkeypatch.setitem(
         service.run_analyze_facade_shims.__func__.__globals__,
         "save_tool_result",
         lambda *a, **k: saved.append(a),
     )
     result = service.run_analyze_facade_shims(include_low_signal=True)
-    assert "--include-low-signal" in captured["args"]
+    assert captured["kwargs"]["include_low_signal"] is True
     assert result["success"] is True
     assert saved
 
     saved.clear()
     monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_a, **_k: {
-            "success": False,
-            "output": "plain text failure",
-            "error": "x",
-            "returncode": 1,
-        },
+        facade_mod,
+        "analyze_project",
+        lambda **_k: (_ for _ in ()).throw(RuntimeError("x")),
         raising=True,
     )
     result = service.run_analyze_facade_shims()
     assert not saved
-    assert "data" not in result or result.get("data") is None
+    assert result.get("success") is False
 
 
 @pytest.mark.unit
@@ -634,11 +602,9 @@ def test_run_analyze_function_patterns_success_and_exception(
     import development_tools.functions.analyze_function_patterns as real_patterns
     import development_tools.functions.analyze_functions as real_funcs
 
+    service._shared_files_index_data = {"mod.py": {"functions": [{"name": "foo"}], "classes": []}}
     monkeypatch.setattr(
         real_patterns, "analyze_function_patterns", lambda _funcs: {"handlers": 1}
-    )
-    monkeypatch.setattr(
-        real_funcs, "scan_all_python_files", lambda: [{"name": "foo"}]
     )
     monkeypatch.setitem(
         service.run_analyze_function_patterns.__func__.__globals__,
@@ -651,6 +617,7 @@ def test_run_analyze_function_patterns_success_and_exception(
     assert result["data"]["details"]["handlers"] == 1
     assert saved
 
+    service._shared_files_index_data = None
     monkeypatch.setattr(
         real_funcs,
         "scan_all_python_files",

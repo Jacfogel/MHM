@@ -369,16 +369,16 @@ def test_get_tier2_groups_omits_retired_unused_imports_tools():
     svc = MagicMock()
     svc.dev_tools_only_mode = False
     svc.audit_scope_path = None
-    _ind, groups = get_tier2_groups(svc)
-    scheduled = [n for group in groups for n, _ in group] + [n for n, _ in _ind]
+    _core, _ind, groups = get_tier2_groups(svc)
+    scheduled = [n for group in groups for n, _ in group] + [n for n, _ in _ind] + [n for n, _ in _core]
     assert "analyze_unused_imports" not in scheduled
     assert "generate_unused_imports_report" not in scheduled
     last_group = [n for n, _ in groups[-1]]
     assert last_group == ["analyze_documentation_sync"]
 
     svc.dev_tools_only_mode = True
-    _ind_dt, groups_dt = get_tier2_groups(svc)
-    scheduled_dt = [n for group in groups_dt for n, _ in group] + [n for n, _ in _ind_dt]
+    _core_dt, _ind_dt, groups_dt = get_tier2_groups(svc)
+    scheduled_dt = [n for group in groups_dt for n, _ in group] + [n for n, _ in _ind_dt] + [n for n, _ in _core_dt]
     assert "analyze_unused_imports" not in scheduled_dt
     assert "generate_unused_imports_report" not in scheduled_dt
 
@@ -395,6 +395,10 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "quick_status" in tier1
     assert "quick_status" not in tier2
     assert "analyze_functions" in tier2
+    assert "analyze_function_patterns" in tier2
+    assert "decision_support" in tier2
+    assert "analyze_function_patterns" not in tier1
+    assert "decision_support" not in tier1
     assert "run_test_suite" in tier3
     assert "run_test_coverage" not in tier3
     assert "generate_dev_tools_coverage" not in tier3

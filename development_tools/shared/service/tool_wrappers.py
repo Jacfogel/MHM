@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
@@ -395,33 +396,82 @@ class ToolWrappersMixin:
         self.results_cache["analyze_module_dependencies"] = standard_format
         return result
 
+    def _shared_scan_flags(self) -> tuple[bool, bool]:
+        include_tests = bool(self.exclusion_config.get("include_tests", False))
+        include_dev_tools = bool(self.exclusion_config.get("include_dev_tools", False))
+        return include_tests, include_dev_tools
+
+    def _ensure_shared_function_scan(self):
+        """Parse the function-analysis file set once per audit/service run."""
+        existing = getattr(self, "_shared_function_scan", None)
+        if existing is not None:
+            return existing
+        from development_tools.functions import analyze_functions as functions_mod
+        from development_tools.functions.shared_function_scan import (
+            build_shared_function_scan,
+        )
+
+        include_tests, include_dev_tools = self._shared_scan_flags()
+        scan = build_shared_function_scan(
+            Path(self.project_root),
+            include_tests=include_tests,
+            include_dev_tools=include_dev_tools,
+        )
+        self._shared_function_scan = scan
+        self._shared_functions_list = functions_mod.scan_all_functions(
+            include_tests=include_tests,
+            include_dev_tools=include_dev_tools,
+            parsed_modules=scan.modules,
+            project_root=Path(self.project_root),
+        )
+        self._shared_files_index_data = functions_mod.scan_all_python_files(
+            parsed_modules=scan.modules
+        )
+        return scan
+
+    def _shared_parsed_modules(self):
+        scan = getattr(self, "_shared_function_scan", None)
+        if scan is None:
+            return None
+        return scan.modules
+
     def run_analyze_functions(self) -> dict:
         """Run analyze_functions with structured JSON handling."""
         logger.debug("Analyzing functions...")
-        args = ["--json"]
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        result = self.run_script("analyze_functions", *args)
-        if result.get("success") and result.get("output"):
-            try:
-                json_data = json.loads(result["output"])
-                result["data"] = json_data
-                # Script output is the source of truth (includes examples and files_affected)
-                try:
-                    save_tool_result(
-                        "analyze_functions",
-                        "functions",
-                        json_data,
-                        project_root=self.project_root,
-                    )
-                    self.results_cache["analyze_functions"] = json_data
-                except Exception as e:
-                    logger.warning(f"Failed to save analyze_functions result: {e}")
-            except (json.JSONDecodeError, ValueError) as e:
-                logger.warning(f"Failed to parse analyze_functions JSON output: {e}")
-        return result
+        try:
+            from development_tools.functions import analyze_functions as functions_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            self._ensure_shared_function_scan()
+            functions = getattr(self, "_shared_functions_list", None)
+            if functions is None:
+                functions = functions_mod.scan_all_functions(
+                    include_tests=include_tests,
+                    include_dev_tools=include_dev_tools,
+                    project_root=Path(self.project_root),
+                )
+                self._shared_functions_list = functions
+            categories = functions_mod.categorize_functions(functions)
+            if not functions_mod.validate_results(categories):
+                logger.warning(
+                    "analyze_functions results may be inflated; check generated-code detection."
+                )
+            json_data = functions_mod.build_analyze_functions_result(
+                functions,
+                project_root=Path(self.project_root),
+                categories=categories,
+            )
+            save_tool_result(
+                "analyze_functions",
+                "functions",
+                json_data,
+                project_root=self.project_root,
+            )
+            self.results_cache["analyze_functions"] = json_data
+            return {"success": True, "data": json_data}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_functions: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_duplicate_functions(
         self,
@@ -432,45 +482,49 @@ class ToolWrappersMixin:
     ) -> dict:
         """Run analyze_duplicate_functions with structured JSON handling."""
         logger.debug("Analyzing duplicate functions...")
-        args = ["--json"]
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        if consider_body_similarity:
-            args.append("--consider-body-similarity")
-        if body_for_near_miss_only:
-            args.append("--body-for-near-miss")
-        if min_overall is not None:
-            args.extend(["--min-overall", str(min_overall)])
-        if min_name is not None:
-            args.extend(["--min-name", str(min_name)])
-        result = self.run_script("analyze_duplicate_functions", *args)
-        output = result.get("output", "")
-        data = None
-        if output:
-            try:
-                data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        if data is not None:
-            result["data"] = data
-            try:
-                save_tool_result(
-                    "analyze_duplicate_functions",
-                    "functions",
-                    data,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to save analyze_duplicate_functions result: {e}"
-                )
+        try:
+            from development_tools.functions import analyze_duplicate_functions as dup_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            analysis_config = dict(dup_mod._get_analysis_config())
+            if consider_body_similarity:
+                analysis_config["consider_body_similarity"] = True
+            if body_for_near_miss_only:
+                analysis_config["body_for_near_miss_only"] = True
+                analysis_config["consider_body_similarity"] = True
+            if min_overall is not None:
+                analysis_config["min_overall_similarity"] = min_overall
+            if min_name is not None:
+                analysis_config["min_name_similarity"] = min_name
+            use_body = bool(
+                analysis_config.get("consider_body_similarity", False)
+                or analysis_config.get("body_for_near_miss_only", False)
+            )
+            records, cache_stats = dup_mod._gather_function_records(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                consider_body_similarity=use_body,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            data = dup_mod._analyze_duplicates(
+                records, analysis_config, cache_stats=cache_stats
+            )
+            save_tool_result(
+                "analyze_duplicate_functions",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
             summary = data.get("summary", {}) if isinstance(data, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            result["success"] = True
-            result["error"] = ""
-        return result
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_duplicate_functions: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_unused_functions(
         self,
@@ -479,135 +533,123 @@ class ToolWrappersMixin:
     ) -> dict:
         """Run analyze_unused_functions with structured JSON handling."""
         logger.debug("Analyzing unused/uncalled functions...")
-        args = ["--json"]
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        if private_only:
-            args.append("--private-only")
-        if max_results != 100:
-            args.extend(["--max-results", str(max_results)])
-        result = self.run_script("analyze_unused_functions", *args)
-        output = result.get("output", "")
-        data = None
-        if output:
-            try:
-                data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        if data is not None:
-            result["data"] = data
-            try:
-                save_tool_result(
-                    "analyze_unused_functions",
-                    "functions",
-                    data,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to save analyze_unused_functions result: {e}"
-                )
+        try:
+            from development_tools.functions import analyze_unused_functions as unused_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            data = unused_mod.analyze_unused_functions(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                include_private_only=private_only,
+                max_results=max_results,
+                project_root=Path(self.project_root),
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_unused_functions",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
             summary = data.get("summary", {}) if isinstance(data, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            result["success"] = True
-            result["error"] = ""
-        return result
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_unused_functions: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_facade_shims(self, include_low_signal: bool = False) -> dict:
         """Run analyze_facade_shims with structured JSON handling."""
         logger.debug("Analyzing facade/shim candidates...")
-        args = ["--json"]
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        if include_low_signal:
-            args.append("--include-low-signal")
-        result = self.run_script("analyze_facade_shims", *args)
-        output = result.get("output", "")
-        data = None
-        if output:
-            try:
-                data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        if data is not None:
-            result["data"] = data
-            try:
-                save_tool_result(
-                    "analyze_facade_shims",
-                    "functions",
-                    data,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(f"Failed to save analyze_facade_shims result: {e}")
+        try:
+            from development_tools.functions import analyze_facade_shims as facade_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            data = facade_mod.analyze_project(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                include_low_signal=include_low_signal,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_facade_shims",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
             summary = data.get("summary", {}) if isinstance(data, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            result["success"] = True
-            result["error"] = ""
-        return result
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_facade_shims: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_module_refactor_candidates(
         self, include_tests: bool = False, include_dev_tools: bool = False
     ) -> dict:
         """Run analyze_module_refactor_candidates with structured JSON handling."""
         logger.debug("Analyzing module refactor candidates...")
-        args = ["--json"]
-        if include_tests or self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if include_dev_tools or self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        result = self.run_script("analyze_module_refactor_candidates", *args)
-        output = result.get("output", "")
-        data = None
-        if output:
-            try:
-                data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        if data is not None:
-            result["data"] = data
-            try:
-                save_tool_result(
-                    "analyze_module_refactor_candidates",
-                    "functions",
-                    data,
-                    project_root=self.project_root,
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to save analyze_module_refactor_candidates result: {e}"
-                )
+        try:
+            from development_tools.functions import (
+                analyze_module_refactor_candidates as refactor_mod,
+            )
+
+            flag_tests, flag_dev = self._shared_scan_flags()
+            data = refactor_mod._scan_and_evaluate(
+                include_tests=include_tests or flag_tests,
+                include_dev_tools=include_dev_tools or flag_dev,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_module_refactor_candidates",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
             summary = data.get("summary", {}) if isinstance(data, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            result["success"] = True
-            result["error"] = ""
-        return result
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_module_refactor_candidates: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_decision_support(self) -> dict:
         """Run decision_support with structured JSON handling."""
         logger.debug("Running decision_support...")
-        args = []
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        result = self.run_script("decision_support", *args)
-        self._extract_decision_insights(result)
         try:
-            data = None
-            if "decision_support" in self.results_cache:
-                data = self.results_cache["decision_support"]
-            elif result.get("data"):
-                data = result.get("data")
-            elif result.get("output"):
-                try:
-                    data = json.loads(result.get("output", ""))
-                except (json.JSONDecodeError, TypeError):
-                    data = None
+            from development_tools.functions import analyze_functions as functions_mod
+            from development_tools.reports import decision_support as decision_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            functions = getattr(self, "_shared_functions_list", None)
+            if functions is None:
+                functions = functions_mod.scan_all_functions(
+                    include_tests=include_tests,
+                    include_dev_tools=include_dev_tools,
+                    project_root=Path(self.project_root),
+                )
+            buf = StringIO()
+            with contextlib.redirect_stdout(buf):
+                decision_mod.print_dashboard(functions)
+            result = {
+                "success": True,
+                "output": buf.getvalue(),
+                "error": "",
+            }
+            self._extract_decision_insights(result)
+            data = self.results_cache.get("decision_support")
             if data is not None:
                 try:
                     from ..result_format import normalize_to_standard_format
@@ -640,25 +682,22 @@ class ToolWrappersMixin:
                     error_result,
                     project_root=self.project_root,
                 )
-        except Exception as save_error:
-            logger.error(
-                f"Failed to save decision_support results: {save_error}", exc_info=True
-            )
-        return result
+            return result
+        except Exception as e:
+            logger.warning(f"Failed to run decision_support: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_function_patterns(self) -> dict:
         """Run analyze_function_patterns and save results."""
         logger.debug("Analyzing function patterns...")
         try:
-            from development_tools.functions.analyze_function_patterns import (
-                analyze_function_patterns,
-            )
-            from development_tools.functions.analyze_functions import (
-                scan_all_python_files,
-            )
+            from development_tools.functions import analyze_function_patterns as patterns_mod
+            from development_tools.functions import analyze_functions as functions_mod
 
-            actual_functions = scan_all_python_files()
-            patterns = analyze_function_patterns(actual_functions)
+            actual_functions = getattr(self, "_shared_files_index_data", None)
+            if not actual_functions:
+                actual_functions = functions_mod.scan_all_python_files()
+            patterns = patterns_mod.analyze_function_patterns(actual_functions)
             standard_format = {
                 "summary": {"total_issues": 0, "files_affected": 0},
                 "details": patterns,

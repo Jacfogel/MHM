@@ -100,6 +100,16 @@ def _get_config() -> dict[str, Any]:
     return config.get_analyze_module_refactor_candidates_config()
 
 
+def _module_metrics_from_source(content: str, tree: ast.AST) -> dict[str, Any]:
+    visitor = _ModuleShapeVisitor()
+    visitor.visit(tree)
+    return {
+        "lines": len(content.splitlines()),
+        "function_count": visitor.function_count,
+        "class_count": visitor.class_count,
+    }
+
+
 def _module_metrics(file_path: Path) -> dict[str, Any] | None:
     """
     Parse a Python file and return per-module size metrics.
@@ -111,14 +121,7 @@ def _module_metrics(file_path: Path) -> dict[str, Any] | None:
     except Exception as e:
         logger.debug(f"Parse error in {file_path}: {e}")
         return None
-
-    visitor = _ModuleShapeVisitor()
-    visitor.visit(tree)
-    return {
-        "lines": len(content.splitlines()),
-        "function_count": visitor.function_count,
-        "class_count": visitor.class_count,
-    }
+    return _module_metrics_from_source(content, tree)
 
 
 def _reasons(
@@ -149,58 +152,65 @@ def _is_top_level_tests(file_key: str) -> bool:
     return file_key.count("/") == 1
 
 
-def _scan_and_evaluate(include_tests: bool = False, include_dev_tools: bool = False) -> dict[str, Any]:
+def _scan_and_evaluate(
+    include_tests: bool = False,
+    include_dev_tools: bool = False,
+    parsed_modules: list[Any] | tuple[Any, ...] | None = None,
+) -> dict[str, Any]:
     """
     Scan all included Python modules, compute metrics, and return standard-format result.
     Uses same scan directories and exclusions as analyze_functions (production context).
     """
     cfg = _get_config()
     root = Path(config.get_project_root())
-    scan_dirs = config.get_scan_directories()
-
-    # Respect include_tests / include_dev_tools by context
-    context = "analysis"
-    if include_dev_tools:
-        context = "development"
-    elif include_tests:
-        context = "testing"
-    else:
-        context = "production"
-
     candidates: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    for scan_dir in scan_dirs:
-        dir_path = root / scan_dir
-        if not dir_path.exists():
-            continue
-        for py_file in dir_path.rglob("*.py"):
-            rel = py_file.relative_to(root)
-            file_key = str(rel).replace("\\", "/")
-            excluded = should_exclude_file(str(py_file), context, "production")
-            if excluded and context == "production" and _is_top_level_tests(file_key):
-                excluded = False  # Include top-level tests/ (e.g. conftest.py) only
-            if excluded:
-                continue
-            if file_key in seen:
-                continue
-            seen.add(file_key)
+    def _consider(file_key: str, metrics: dict[str, Any] | None) -> None:
+        if metrics is None or file_key in seen:
+            return
+        seen.add(file_key)
+        reason_list = _reasons(cfg, metrics, file_key)
+        if not reason_list:
+            return
+        candidates.append({
+            "file": file_key,
+            "lines": metrics["lines"],
+            "function_count": metrics["function_count"],
+            "class_count": metrics["class_count"],
+            "reasons": reason_list,
+        })
 
-            metrics = _module_metrics(py_file)
-            if metrics is None:
-                continue
+    if parsed_modules is not None:
+        for module in parsed_modules:
+            _consider(
+                str(module.relative).replace("\\", "/"),
+                _module_metrics_from_source(module.source, module.tree),
+            )
+    else:
+        scan_dirs = config.get_scan_directories()
 
-            reason_list = _reasons(cfg, metrics, file_key)
-            if not reason_list:
-                continue
+        context = "analysis"
+        if include_dev_tools:
+            context = "development"
+        elif include_tests:
+            context = "testing"
+        else:
+            context = "production"
 
-            candidates.append({
-                "file": file_key,
-                "lines": metrics["lines"],
-                "function_count": metrics["function_count"],
-                "class_count": metrics["class_count"],
-                "reasons": reason_list,
-            })
+        for scan_dir in scan_dirs:
+            dir_path = root / scan_dir
+            if not dir_path.exists():
+                continue
+            for py_file in dir_path.rglob("*.py"):
+                rel = py_file.relative_to(root)
+                file_key = str(rel).replace("\\", "/")
+                excluded = should_exclude_file(str(py_file), context, "production")
+                if excluded and context == "production" and _is_top_level_tests(file_key):
+                    excluded = False  # Include top-level tests/ (e.g. conftest.py) only
+                if excluded:
+                    continue
+                _consider(file_key, _module_metrics(py_file))
 
     # Sort by lines descending (large modules first), then function_count as tiebreaker
     candidates.sort(

@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Shared function scan for audit pipeline **COMPLETED**
+- Audits parse the function-analysis file set once; `analyze_functions` runs first in Tier 2 and feeds patterns, decision support, duplicates, unused, facades, and refactor.
+- `analyze_function_patterns` and `decision_support` moved out of `audit --quick` (Tier 1).
+- Config caches use content hash after mtime; timestamp-only saves of `development_tools_config.json` no longer bust the test suite.
+- Shared-scan unit tests skip path exclusions so pytest temp dirs are scanned.
+- Standalone CLI for those tools still scans when no shared parse exists.
+
 ### 2026-08-19 - High-complexity function helpers where splits add value **COMPLETED**
 - Notebook entity extraction, profile text, and the custom-question dialog now use named helpers for the real parsing/formatting/template jobs.
 - Left constructor-style complexity scores and other dense single-job functions alone.
@@ -112,15 +119,6 @@ Guidelines:
 - `core/ids.py` uses canonical `get_component_logger("main")` (no new alias/sink).
 - Domain/AI/UI/Discord/communication call sites use canonical sinks; `COMPONENT_NAME_ALIASES` emptied (temporary bridges only).
 - Logging guide + channel-logger/logging tests updated.
-
-### 2026-07-29 - NOTES_PLAN refresh; `|` separators; group disambiguation; `!edit`; shared short IDs **COMPLETED**
-- Validated/refreshed NOTES_PLAN + PLANS notebook status (help polish, AI context privacy remaining).
-- Parser: title/body accepts newline / `|` / `:`; append strips optional leading `|`.
-- Group ambiguity: `!setgroup` aliases; bare `!group` set only for short-ID/UUID; multi-word groups list; anchored `quick note(s)`.
-- `!edit` sessions: `FLOW_ENTRY_EDIT` replace-body flow with cancel/skip/timeout leaving entry unchanged.
-- Shared short IDs: [`core/ids.py`](../core/ids.py) owns `t`/`n`/`l`/`j` generate/parse/display; notebook rejects `t...` as entry refs; Section 5.1 Done.
-- Audit follow-up: domain marker on `test_core_ids`; `user_data_v2_base` `__all__` re-export; legacy dashed-id scan clean; registry includes `ids.py`.
-- Fix: `edit_entry` no longer steals `edit profile`; function registry regenerated; changelog ASCII cleaned.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

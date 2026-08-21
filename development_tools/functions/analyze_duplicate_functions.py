@@ -358,16 +358,12 @@ class _FunctionCollector(ast.NodeVisitor):
         self._handle_function(node)
 
 
-def _scan_file(
-    file_path: Path, consider_body_similarity: bool = False
+def _scan_source(
+    file_path: Path,
+    content: str,
+    tree: ast.AST,
+    consider_body_similarity: bool = False,
 ) -> list[FunctionRecord]:
-    try:
-        content = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(content)
-    except Exception as exc:
-        logger.warning(f"Failed to parse {file_path}: {exc}")
-        return []
-
     imports_used = _collect_imports(tree)
     collector = _FunctionCollector(
         str(file_path),
@@ -377,6 +373,20 @@ def _scan_file(
     )
     collector.visit(tree)
     return collector.records
+
+
+def _scan_file(
+    file_path: Path, consider_body_similarity: bool = False
+) -> list[FunctionRecord]:
+    try:
+        content = file_path.read_text(encoding="utf-8")
+        tree = ast.parse(content)
+    except Exception as exc:
+        logger.warning(f"Failed to parse {file_path}: {exc}")
+        return []
+    return _scan_source(
+        file_path, content, tree, consider_body_similarity=consider_body_similarity
+    )
 
 
 def _serialize_records(
@@ -454,7 +464,26 @@ def _gather_function_records(
     include_tests: bool,
     include_dev_tools: bool,
     consider_body_similarity: bool = False,
+    parsed_modules: list[Any] | tuple[Any, ...] | None = None,
 ) -> tuple[list[FunctionRecord], dict[str, int]]:
+    if parsed_modules is not None:
+        records = []
+        for module in parsed_modules:
+            records.extend(
+                _scan_source(
+                    module.path,
+                    module.source,
+                    module.tree,
+                    consider_body_similarity=consider_body_similarity,
+                )
+            )
+        count = len(parsed_modules)
+        return records, {
+            "total_files": count,
+            "cached_files": 0,
+            "scanned_files": count,
+        }
+
     project_root = Path(config.get_project_root())
     scan_dirs = list(config.get_scan_directories())
     analysis_config = _get_analysis_config()

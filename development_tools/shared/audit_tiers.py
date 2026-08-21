@@ -27,6 +27,7 @@ class _Tier1GroupMap(TypedDict):
 
 
 class _Tier2GroupMap(TypedDict):
+    core: list[str]
     independent: list[str]
     dependent: list[list[str]]
 
@@ -40,15 +41,16 @@ TIER1_TOOL_NAMES = [
     "analyze_documentation",
     "analyze_config",
     "analyze_ai_work",
-    "analyze_function_patterns",
     "analyze_dev_tools_import_boundaries",
-    "decision_support",
     "quick_status",
 ]
 
 # Tier 2: Standard audit (>2s but <=10s per tool).
+# analyze_functions runs first (core) and shares one parse with the function-scan consumers.
 TIER2_TOOL_NAMES = [
     "analyze_functions",
+    "analyze_function_patterns",
+    "decision_support",
     "analyze_error_handling",
     "analyze_package_exports",
     "analyze_duplicate_functions",
@@ -95,21 +97,20 @@ TIER1_GROUP_MAP: _Tier1GroupMap = {
         "analyze_ai_work",
         "analyze_dev_tools_import_boundaries",
     ],
-    "dependent": [
-        ["analyze_function_patterns"],
-        ["decision_support"],
-    ],
+    "dependent": [],
 }
 
 TIER2_GROUP_MAP: _Tier2GroupMap = {
+    "core": ["analyze_functions"],
     "independent": [
-        "analyze_functions",
         "analyze_error_handling",
         "analyze_package_exports",
         "analyze_duplicate_functions",
         "analyze_unused_functions",
         "analyze_facade_shims",
         "analyze_module_refactor_candidates",
+        "analyze_function_patterns",
+        "decision_support",
     ],
     "dependent": [
         ["analyze_module_imports", "analyze_dependency_patterns", "analyze_module_dependencies"],
@@ -295,8 +296,14 @@ def get_tier1_groups(service: Any) -> tuple[list[tuple[str, Any]], list[tuple[st
     return core_tools, independent_tools, dependent_groups
 
 
-def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tuple[str, Any]]]]:
-    """Return (independent_tools, dependent_groups) for Tier 2."""
+def get_tier2_groups(
+    service: Any,
+) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[list[tuple[str, Any]]]]:
+    """Return (core_tools, independent_tools, dependent_groups) for Tier 2.
+
+    ``core_tools`` (``analyze_functions``) must run first so later function-scan
+    consumers can reuse the shared parse.
+    """
     from development_tools.shared.audit_scope import (
         filter_tools_for_audit_scope_mvp,
         is_path_derived_storage_scope,
@@ -305,10 +312,13 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
     # Only real path strings trigger B-016 scoped filtering (MagicMock attrs are truthy).
     _scope = getattr(service, "audit_scope_path", None)
     custom_scope = isinstance(_scope, str) and bool(_scope.strip())
+    core_names = list(TIER2_GROUP_MAP["core"])
     independent_names = list(TIER2_GROUP_MAP["independent"])
     dependent_group_names = [list(group) for group in TIER2_GROUP_MAP["dependent"]]
     if custom_scope:
         # B-016 MVP: keep only scan-dir-aware tools; skip docs/sync tools, etc.
+        kept_core, skipped_core = filter_tools_for_audit_scope_mvp(core_names)
+        core_names = kept_core
         kept_indep, skipped_indep = filter_tools_for_audit_scope_mvp(independent_names)
         independent_names = kept_indep
         filtered_dependent: list[list[str]] = []
@@ -319,7 +329,7 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
             if kept:
                 filtered_dependent.append(kept)
         dependent_group_names = filtered_dependent
-        skipped_all = sorted(set(skipped_indep + skipped_dep))
+        skipped_all = sorted(set(skipped_core + skipped_indep + skipped_dep))
         if skipped_all:
             logger.info(
                 "Skipping tools unsupported by --audit-scope MVP (%s): %s",
@@ -331,9 +341,10 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
         slug = getattr(service, "audit_scope_slug", None)
         if slug and not is_path_derived_storage_scope(str(slug)):
             logger.warning("Unexpected audit_scope_slug (not path-derived): %s", slug)
+    core_tools = _names_to_runnables(service, core_names)
     independent_tools = _names_to_runnables(service, independent_names)
     dependent_groups = [_names_to_runnables(service, group) for group in dependent_group_names]
-    return independent_tools, dependent_groups
+    return core_tools, independent_tools, dependent_groups
 
 
 def get_tier3_groups(

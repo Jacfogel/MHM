@@ -28,11 +28,67 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Generic, Any, TypeVar
+from typing import Generic, Any, Literal, NamedTuple, TypeVar
 from collections.abc import Iterable
 import hashlib
 
 T = TypeVar("T")  # Generic type for cached results
+ConfigIdentityVerdict = Literal["missing", "first_seen", "unchanged", "content_changed"]
+
+
+class ConfigIdentity(NamedTuple):
+    """Result of hybrid config mtime + content-hash comparison."""
+
+    mtime: float | None
+    content_hash: str | None
+    verdict: ConfigIdentityVerdict
+
+
+def hash_file_sha256(path: Path) -> str | None:
+    """Return the SHA-256 hex digest of ``path``, or None if it cannot be read."""
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except Exception:
+        return None
+
+
+def resolve_config_identity(
+    config_path: Path | None,
+    *,
+    cached_mtime: float | None,
+    cached_hash: str | None,
+) -> ConfigIdentity:
+    """Decide whether config *content* changed.
+
+    ``mtime`` is a cheap first check. Bytes are hashed only when mtime differs
+    or when the cache has no hash yet (backfill). A rewrite that only updates
+    the timestamp does not count as a change.
+    """
+    if config_path is None:
+        return ConfigIdentity(None, None, "missing")
+    try:
+        if not config_path.exists():
+            return ConfigIdentity(None, None, "missing")
+        current_mtime = config_path.stat().st_mtime
+    except OSError:
+        return ConfigIdentity(None, None, "missing")
+
+    cached_hash_value = cached_hash if isinstance(cached_hash, str) and cached_hash else None
+    has_cached_mtime = isinstance(cached_mtime, (int, float))
+    mtime_matches = has_cached_mtime and current_mtime == cached_mtime
+
+    if not has_cached_mtime and cached_hash_value is None:
+        return ConfigIdentity(current_mtime, hash_file_sha256(config_path), "first_seen")
+
+    if mtime_matches:
+        if cached_hash_value is not None:
+            return ConfigIdentity(current_mtime, cached_hash_value, "unchanged")
+        return ConfigIdentity(current_mtime, hash_file_sha256(config_path), "unchanged")
+
+    current_hash = hash_file_sha256(config_path)
+    if cached_hash_value is not None and current_hash is not None and cached_hash_value == current_hash:
+        return ConfigIdentity(current_mtime, current_hash, "unchanged")
+    return ConfigIdentity(current_mtime, current_hash, "content_changed")
 
 try:
     from development_tools.shared.logging import get_dev_tools_logger
@@ -148,39 +204,42 @@ class MtimeFileCache(Generic[T]):
 
         return None
 
+    def _cached_config_identity(self) -> tuple[float | None, str | None]:
+        """Return (mtime, hash) stored in cache metadata."""
+        meta = self.cache_data.get(_CONFIG_MTIME_KEY)
+        if not isinstance(meta, dict):
+            return None, None
+        mtime = meta.get("mtime")
+        content_hash = meta.get("hash")
+        return (
+            mtime if isinstance(mtime, (int, float)) else None,
+            content_hash if isinstance(content_hash, str) else None,
+        )
+
     def _check_config_staleness(self) -> None:
         """
-        Check if config file has changed since cache was created.
-        If so, clear the cache to force regeneration with new config.
+        Clear the cache when config *content* changes.
+
+        A newer mtime with the same bytes (save/format/copy) is not a change.
         """
         if not self.config_file_path or not self.config_file_path.exists():
             return
 
         try:
-            # Get current config file mtime
-            current_config_mtime = self.config_file_path.stat().st_mtime
-
-            # Check cached config mtime
-            cached_config_mtime = None
-            if _CONFIG_MTIME_KEY in self.cache_data:
-                cached_config_mtime = self.cache_data[_CONFIG_MTIME_KEY].get("mtime")
-
-            # If config file is newer than cached mtime, clear cache
-            if (
-                cached_config_mtime is not None
-                and current_config_mtime > cached_config_mtime
-            ):
+            cached_mtime, cached_hash = self._cached_config_identity()
+            identity = resolve_config_identity(
+                self.config_file_path,
+                cached_mtime=cached_mtime,
+                cached_hash=cached_hash,
+            )
+            if identity.verdict == "content_changed":
                 if logger:
                     logger.info(
-                        f"Config file changed (mtime: {current_config_mtime} > {cached_config_mtime}), "
-                        f"invalidating cache for {self.tool_name or 'tool'}"
+                        "Config file content changed, invalidating cache for "
+                        f"{self.tool_name or 'tool'}"
                     )
                 self.clear_cache()
-                # Update config mtime in cache immediately
-                self._update_config_mtime_in_cache()
-            elif cached_config_mtime is None:
-                # No cached config mtime (first run or cache was cleared), store current mtime
-                self._update_config_mtime_in_cache()
+            self._store_config_identity(identity)
         except Exception as e:
             if logger:
                 logger.debug(f"Error checking config file staleness: {e}")
@@ -194,14 +253,13 @@ class MtimeFileCache(Generic[T]):
         if not self.config_file_path or not self.config_file_path.exists():
             return "no_config"
 
-        try:
-            config_hash = hashlib.sha256(self.config_file_path.read_bytes()).hexdigest()
+        config_hash = hash_file_sha256(self.config_file_path)
+        if config_hash:
             return config_hash[:16]
+        try:
+            return f"mtime:{self.config_file_path.stat().st_mtime}"
         except Exception:
-            try:
-                return f"mtime:{self.config_file_path.stat().st_mtime}"
-            except Exception:
-                return "config_unavailable"
+            return "config_unavailable"
 
     def _build_cache_namespace(self) -> str:
         """Build namespace that scopes cache keys to tool/domain/config/tool-code inputs."""
@@ -209,19 +267,28 @@ class MtimeFileCache(Generic[T]):
         tool_hash = self._compute_tool_hash() or "no_tool_hash"
         return f"{self.tool_name}|{self.domain}|cfg:{config_sig}|tool:{tool_hash[:16]}"
 
+    def _store_config_identity(self, identity: ConfigIdentity) -> None:
+        """Store current config mtime and content hash in cache metadata."""
+        if identity.verdict == "missing":
+            return
+        self.cache_data[_CONFIG_MTIME_KEY] = {
+            "mtime": identity.mtime,
+            "hash": identity.content_hash,
+            "results": {},
+        }
+
     def _update_config_mtime_in_cache(self) -> None:
-        """Store current config file mtime in cache metadata."""
+        """Store current config file mtime and content hash in cache metadata."""
         if not self.config_file_path or not self.config_file_path.exists():
             return
-
-        try:
-            config_mtime = self.config_file_path.stat().st_mtime
-            self.cache_data[_CONFIG_MTIME_KEY] = {
-                "mtime": config_mtime,
-                "results": {},  # Empty results, just storing mtime
-            }
-        except Exception:
-            pass
+        cached_mtime, cached_hash = self._cached_config_identity()
+        self._store_config_identity(
+            resolve_config_identity(
+                self.config_file_path,
+                cached_mtime=cached_mtime,
+                cached_hash=cached_hash,
+            )
+        )
 
     def _compute_tool_hash(self) -> str | None:
         """Compute a hash for tool source files to detect code changes."""

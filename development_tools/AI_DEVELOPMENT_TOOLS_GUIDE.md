@@ -89,20 +89,18 @@ python development_tools/run_development_tools.py help
 - **Duration**: ~5-10 seconds (with parallel execution)
 - **Tools**: All tools <=2s execution time
   - **Core tools**: `analyze_system_signals`, `quick_status`
-  - **Quick checks**: `analyze_documentation`, `analyze_config`, `analyze_ai_work`
-  - **Module imports**: `analyze_module_imports`, `analyze_dependency_patterns`
-  - **Function analysis**: `analyze_function_patterns`, `decision_support`, `analyze_function_registry`
+  - **Quick checks**: `analyze_documentation`, `analyze_config`, `analyze_ai_work`, `analyze_dev_tools_import_boundaries`
 - **Execution**: Tools run in parallel where possible, with dependency-aware grouping
 - **Use case**: Fast health check, pre-commit validation
 
 ### 3.2. Tier 2: Standard Audit - `audit` (default)
 - **Duration**: ~15-25 seconds (with parallel execution)
 - **Tools**: All tools >2s but <=10s execution time
-  - **Function discovery**: `analyze_functions` (required by dependent tools)
+  - **Function discovery**: `analyze_functions` runs first and shares one parse with `analyze_function_patterns`, `decision_support`, `analyze_duplicate_functions`, `analyze_unused_functions`, `analyze_facade_shims`, and `analyze_module_refactor_candidates`
   - **Quality checks**: `analyze_error_handling`, `analyze_package_exports`
   - **Documentation sync**: `analyze_documentation_sync` (includes multiple sub-tools)
-  - **Module dependencies**: `analyze_module_dependencies` (depends on `analyze_module_imports` from Tier 1)
-- **Execution**: Tools run in parallel where possible, with dependency-aware grouping
+  - **Module dependencies**: `analyze_module_imports` then `analyze_dependency_patterns` / `analyze_module_dependencies`; `analyze_function_registry`
+- **Execution**: `analyze_functions` is core; remaining tools run in parallel where possible, with dependency-aware grouping
 - **Use case**: Standard quality checks, daily development workflow
 
 ### 3.3. Tier 3: Full Audit - `audit --full`
@@ -226,7 +224,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `development_tools/config/config.py`, `shared/mtime_cache.py`
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Caching**:
-  - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when either `development_tools/config/development_tools_config.json` or the tool source changes. Cache keys are namespaced by tool/domain/config-signature/tool-hash, and cache payload includes tool hash, tool mtimes, and last run status for failure-aware invalidation. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`. Legacy cache hits reuse stored matches without re-reading file contents; the INTENTIONAL LEGACY probe runs only on cache misses. Doc-sync freshness uses scoped `docs/jsons/scopes/<scope>/` result JSON, includes both changelogs, skips generated coverage/legacy-report mtimes, runs changelog trim before Tier 2 doc-sync, and path-drift uses the same skip as the other subchecks.
+  - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when `development_tools/config/development_tools_config.json` *content* or the tool source changes. A timestamp-only rewrite of the config file does not bust the cache. Cache keys are namespaced by tool/domain/config-signature/tool-hash, and cache payload includes tool hash, tool mtimes, config hash, and last run status for failure-aware invalidation. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`. Legacy cache hits reuse stored matches without re-reading file contents; the INTENTIONAL LEGACY probe runs only on cache misses. Doc-sync freshness uses scoped `docs/jsons/scopes/<scope>/` result JSON, includes both changelogs, skips generated coverage/legacy-report mtimes, runs changelog trim before Tier 2 doc-sync, and path-drift uses the same skip as the other subchecks.
   - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
   - **Domain test suite cache (`tests/test_file_suite_cache.py`)**:
     - Per-test-file pytest outcomes for `run_test_suite`; reuses domain invalidation from `tests/test_file_coverage_cache.py`.
@@ -235,10 +233,10 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
     - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
     - `domain_dependencies.storage` is a leaf so storage-only edits do not fan out through `core`.
     - Stores run status and failed domains for failure-aware invalidation.
-    - Stores tool hash/tool mtimes and config mtime for global invalidation when cache logic/config changes.
+    - Stores tool hash/tool mtimes and config mtime plus content hash for global invalidation when cache logic or config *content* changes (mtime-only rewrites do not bust).
     - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
   - **Dev tools coverage cache (`tests/dev_tools_coverage_cache.py`)**:
-    - Caches `development_tools` coverage JSON keyed by dev-tools source/test/config mtimes.
+    - Caches `development_tools` coverage JSON keyed by dev-tools source/test mtimes and config content hash.
     - Stores tool hash/tool mtimes for invalidation when coverage tooling code changes.
     - Stores last run success/exit code and invalidates after failed previous runs.
     - Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).

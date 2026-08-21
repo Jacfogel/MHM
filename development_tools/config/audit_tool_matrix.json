@@ -109,7 +109,7 @@
       ]
     },
     "analyze_function_patterns": {
-      "in_tier1_quick": true,
+      "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
@@ -250,7 +250,7 @@
       ]
     },
     "decision_support": {
-      "in_tier1_quick": true,
+      "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,

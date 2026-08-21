@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Shared function scan for audit pipeline
+- **Performance**: Full and standard audits now parse the function-analysis file set once. `analyze_functions` runs first in Tier 2 and reuses that parse for function patterns, decision support, duplicates, unused functions, facades, and module-refactor candidates. `analyze_function_patterns` and `decision_support` moved out of Tier 1 (`audit --quick`) so the quick tier stays on the fast tools.
+- **Cache**: Analyzer, test-suite, and coverage caches now treat `development_tools_config.json` as changed only when its **content hash** changes. mtime is a cheap first check; a save that only updates the timestamp no longer reruns ~450 tests.
+- **Impact**: Warm `audit --full` no longer pays six extra ~20s AST walks for the same files. Standalone CLI for those tools still scans itself when no shared parse exists.
+- **Testing**: Shared-scan tests now pass `apply_exclusions=False` so pytest temp dirs are not skipped. Wrapper, tier, scope, mtime-cache, and coverage-cache tests updated. Regenerated `tool_cache_inventory.json` for the Tier 2 function-scan tools.
+
 ### 2026-08-19 - High-complexity function helpers where splits add value
 - **Refactor**: Broke down the three highest-complexity functions only where the pieces are real jobs, not metric-chasing. `_extract_notebook_entities_rule_based` now uses a group-to-entity map plus helpers for create-note title/body, create-list item splitting, optional ints, and `|` prefixes. `_format_profile_text` delegates health, lists, support network, notes, and features. `_show_question_dialog` shares type-hint stripping and combo selection, and applies templates after form widgets exist.
 - **Skipped**: Logger/parser `__init__` and other AST-heavy sequential setup; those scores are size, not mixed responsibilities. Left `_show_question_dialog`, wellness-snippet formatters, and `_extract_task_entities` as dense single jobs after inspecting ranks 4-15.

@@ -12,7 +12,9 @@ if available, making this tool portable across different projects.
 
 import ast
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -99,6 +101,28 @@ def _log_parse_error(file_path: str, error: Exception, *, exc_info: bool = False
         logger.debug(message)
         return
     logger.error(message, exc_info=exc_info)
+
+
+def _load_source_tree(
+    file_path: str,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
+) -> tuple[str, str, ast.AST] | None:
+    """Return (resolved_path, source, tree), or None when the file cannot be parsed."""
+    file_path_obj = Path(file_path)
+    try:
+        resolved = str(file_path_obj.resolve())
+    except (OSError, RuntimeError):
+        resolved = str(file_path_obj)
+    if tree is not None:
+        return resolved, content if content is not None else "", tree
+    try:
+        source = content if content is not None else Path(resolved).read_text(encoding="utf-8")
+        return resolved, source, ast.parse(source)
+    except Exception as exc:
+        _log_parse_error(resolved, exc)
+        return None
 
 
 # Note: is_generated_function, is_special_python_method, and is_test_function
@@ -222,29 +246,24 @@ def generate_function_template(
 
 
 @handle_errors("extracting functions from file", default_return=[])
-def extract_functions(file_path: str) -> list[dict]:
+def extract_functions(
+    file_path: str,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
+) -> list[dict]:
     """Extract all function definitions from a Python file."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
     # so we don't apply exclusions here. This allows tests to pass file paths directly.
 
-    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
-    from pathlib import Path
-
-    file_path_obj = Path(file_path)
-    # Resolve the path (handles relative paths, symlinks, etc.)
-    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
-    try:
-        file_path = str(file_path_obj.resolve())
-    except (OSError, RuntimeError):
-        # If resolve fails (e.g., broken symlink), use the path as-is
-        file_path = str(file_path_obj)
+    loaded = _load_source_tree(file_path, content=content, tree=tree)
+    if loaded is None:
+        return []
+    file_path, _source, tree = loaded
 
     functions = []
     try:
-        with open(file_path, encoding="utf-8") as f:
-            content = f.read()
-        tree = ast.parse(content)
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 name = node.name
@@ -309,32 +328,25 @@ def extract_functions(file_path: str) -> list[dict]:
 
 
 @handle_errors("extracting functions from file for registry", default_return=[])
-def extract_functions_from_file(file_path: str) -> list[dict]:
+def extract_functions_from_file(
+    file_path: str,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
+) -> list[dict]:
     """Extract all function definitions from a Python file (registry format with templates)."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
     # so we don't apply exclusions here. This allows tests to pass file paths directly.
 
-    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
-    from pathlib import Path
-
-    file_path_obj = Path(file_path)
-    # Resolve the path (handles relative paths, symlinks, etc.)
-    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
-    try:
-        file_path = str(file_path_obj.resolve())
-    except (OSError, RuntimeError):
-        # If resolve fails (e.g., broken symlink), use the path as-is
-        file_path = str(file_path_obj)
+    loaded = _load_source_tree(file_path, content=content, tree=tree)
+    if loaded is None:
+        return []
+    file_path, _source, tree = loaded
 
     functions = []
 
     try:
-        with open(file_path, encoding="utf-8") as f:
-            content = f.read()
-
-        tree = ast.parse(content)
-
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 # Get function signature
@@ -414,32 +426,25 @@ def extract_functions_from_file(file_path: str) -> list[dict]:
 
 
 @handle_errors("extracting classes from file", default_return=[])
-def extract_classes_from_file(file_path: str) -> list[dict]:
+def extract_classes_from_file(
+    file_path: str,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
+) -> list[dict]:
     """Extract all class definitions from a Python file."""
     # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
     # This function processes any file passed to it (including test fixtures and files in tests/),
     # so we don't apply exclusions here. This allows tests to pass file paths directly.
 
-    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
-    from pathlib import Path
-
-    file_path_obj = Path(file_path)
-    # Resolve the path (handles relative paths, symlinks, etc.)
-    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
-    try:
-        file_path = str(file_path_obj.resolve())
-    except (OSError, RuntimeError):
-        # If resolve fails (e.g., broken symlink), use the path as-is
-        file_path = str(file_path_obj)
+    loaded = _load_source_tree(file_path, content=content, tree=tree)
+    if loaded is None:
+        return []
+    file_path, _source, tree = loaded
 
     classes = []
 
     try:
-        with open(file_path, encoding="utf-8") as f:
-            content = f.read()
-
-        tree = ast.parse(content)
-
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 # Get class methods
@@ -508,9 +513,34 @@ def extract_classes_from_file(file_path: str) -> list[dict]:
     return classes
 
 
+def _index_parsed_module(module: Any) -> dict[str, Any]:
+    """Build the scan_all_python_files entry for one already-parsed module."""
+    functions = extract_functions_from_file(
+        str(module.path), content=module.source, tree=module.tree
+    )
+    classes = extract_classes_from_file(
+        str(module.path), content=module.source, tree=module.tree
+    )
+    return {
+        "functions": functions,
+        "classes": classes,
+        "total_functions": len(functions),
+        "total_classes": len(classes),
+    }
+
+
 @handle_errors("scanning all Python files", default_return={})
-def scan_all_python_files() -> dict[str, dict]:
+def scan_all_python_files(
+    parsed_modules: Sequence[Any] | None = None,
+) -> dict[str, dict]:
     """Scan all Python files in the project and extract function/class information."""
+    if parsed_modules is not None:
+        results: dict[str, dict] = {}
+        for module in parsed_modules:
+            file_key = getattr(module, "relative", None) or Path(module.path).name
+            results[str(file_key).replace("\\", "/")] = _index_parsed_module(module)
+        return results
+
     # Import config - check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
     if __name__ != "__main__" and __package__ and "." in __package__:
         from .. import config  # Go up one level from functions/ to development_tools/
@@ -600,6 +630,7 @@ def scan_all_functions(
     include_dev_tools: bool = False,
     scan_directories: list[str] | None = None,
     project_root: Path | None = None,
+    parsed_modules: Sequence[Any] | None = None,
 ) -> list[dict]:
     """
     Scan all Python files in scan directories and extract functions.
@@ -609,10 +640,21 @@ def scan_all_functions(
         include_dev_tools: Whether to include development tools files
         scan_directories: Optional list of directories to scan (overrides config)
         project_root: Optional project root path (overrides config)
+        parsed_modules: Optional pre-parsed modules from a shared function scan
 
     Returns:
         List of function dictionaries
     """
+    if parsed_modules is not None:
+        all_from_scan: list[dict] = []
+        for module in parsed_modules:
+            all_from_scan.extend(
+                extract_functions(
+                    str(module.path), content=module.source, tree=module.tree
+                )
+            )
+        return all_from_scan
+
     all_functions = []
     cache = None
     try:
@@ -821,6 +863,100 @@ def validate_results(categories: dict[str, list[dict]]) -> bool:
     return True
 
 
+def build_analyze_functions_result(
+    all_functions: list[dict],
+    *,
+    project_root: Path | None = None,
+    categories: dict[str, list[dict]] | None = None,
+) -> dict[str, Any]:
+    """Build the standard analyze_functions JSON payload from a function list."""
+    root = Path(project_root) if project_root is not None else PROJECT_ROOT
+    if categories is None:
+        categories = categorize_functions(all_functions)
+    if not categories:
+        categories = {}
+
+    def _rel_file(fpath: str) -> str:
+        if not fpath:
+            return ""
+        try:
+            p = Path(fpath).resolve()
+            root_resolved = Path(root).resolve()
+            if not p.is_absolute():
+                return str(p).replace("\\", "/")
+            r = p.relative_to(root_resolved)
+            return str(r).replace("\\", "/")
+        except (ValueError, TypeError, OSError):
+            return Path(fpath).name if fpath else ""
+
+    def _make_example(func: dict) -> dict:
+        return {
+            "name": func.get("name", "unknown"),
+            "function": func.get("name", "unknown"),
+            "file": _rel_file(func.get("file", "")),
+            "complexity": func.get("complexity", 0),
+        }
+
+    undocumented_list = categories.get("undocumented", [])
+    undocumented_examples = []
+    if undocumented_list:
+        sorted_undoc = sorted(
+            undocumented_list, key=lambda x: x.get("complexity", 0), reverse=True
+        )[:5]
+        undocumented_examples = [_make_example(f) for f in sorted_undoc]
+
+    critical_list = categories.get("critical_complex", [])
+    high_list = categories.get("high_complex", [])
+    critical_complexity_examples = [
+        _make_example(f)
+        for f in sorted(
+            critical_list, key=lambda x: x.get("complexity", 0), reverse=True
+        )[:15]
+    ]
+    high_complexity_examples = [
+        _make_example(f)
+        for f in sorted(
+            high_list, key=lambda x: x.get("complexity", 0), reverse=True
+        )[:15]
+    ]
+
+    issue_funcs = (
+        categories.get("moderate_complex", [])
+        + categories.get("high_complex", [])
+        + categories.get("critical_complex", [])
+        + undocumented_list
+    )
+    files_affected = len(
+        {_rel_file(f.get("file", "")) for f in issue_funcs if f.get("file")}
+    )
+    moderate_complexity = len(categories.get("moderate_complex", []))
+    high_complexity = len(categories.get("high_complex", []))
+    critical_complexity = len(categories.get("critical_complex", []))
+    undocumented = len(undocumented_list)
+    total_issues = (
+        moderate_complexity + high_complexity + critical_complexity + undocumented
+    )
+    return {
+        "summary": {
+            "total_issues": total_issues,
+            "files_affected": files_affected,
+        },
+        "details": {
+            "total_functions": len(all_functions),
+            "moderate_complexity": moderate_complexity,
+            "high_complexity": high_complexity,
+            "critical_complexity": critical_complexity,
+            "undocumented": undocumented,
+            "undocumented_examples": undocumented_examples,
+            "critical_complexity_examples": critical_complexity_examples,
+            "high_complexity_examples": high_complexity_examples,
+            "handlers": len(categories.get("handlers", [])),
+            "tests": len(categories.get("tests", [])),
+            "utilities": len(categories.get("utilities", [])),
+        },
+    }
+
+
 def main():
     import argparse
     import json
@@ -846,100 +982,13 @@ def main():
     logger.debug(f"Found {len(all_functions)} functions.")
     categories = categorize_functions(all_functions)
 
-    # Validate results before showing
     if not validate_results(categories):
         logger.warning("Results may be inflated. Check auto-generated code detection.")
 
     if args.json:
-        # Output JSON for programmatic use
-        root = PROJECT_ROOT
-
-        def _rel_file(fpath: str) -> str:
-            """Return path relative to project root, or basename if outside root."""
-            if not fpath:
-                return ""
-            try:
-                p = Path(fpath).resolve()
-                root_resolved = Path(root).resolve()
-                if not p.is_absolute():
-                    return str(p).replace("\\", "/")
-                r = p.relative_to(root_resolved)
-                return str(r).replace("\\", "/")
-            except (ValueError, TypeError, OSError):
-                return Path(fpath).name if fpath else ""
-
-        def _make_example(func: dict) -> dict:
-            return {
-                "name": func.get("name", "unknown"),
-                "function": func.get("name", "unknown"),
-                "file": _rel_file(func.get("file", "")),
-                "complexity": func.get("complexity", 0),
-            }
-
-        # Undocumented examples (top 5 by complexity)
-        undocumented_list = categories.get("undocumented", [])
-        undocumented_examples = []
-        if undocumented_list:
-            sorted_undoc = sorted(
-                undocumented_list, key=lambda x: x.get("complexity", 0), reverse=True
-            )[:5]
-            undocumented_examples = [_make_example(f) for f in sorted_undoc]
-
-        # Critical and high complexity examples (top 15 each, by complexity)
-        critical_list = categories.get("critical_complex", [])
-        high_list = categories.get("high_complex", [])
-        critical_complexity_examples = [
-            _make_example(f)
-            for f in sorted(
-                critical_list, key=lambda x: x.get("complexity", 0), reverse=True
-            )[:15]
-        ]
-        high_complexity_examples = [
-            _make_example(f)
-            for f in sorted(
-                high_list, key=lambda x: x.get("complexity", 0), reverse=True
-            )[:15]
-        ]
-
-        # Unique files with at least one issue (moderate/high/critical/undocumented)
-        issue_funcs = (
-            categories.get("moderate_complex", [])
-            + categories.get("high_complex", [])
-            + categories.get("critical_complex", [])
-            + undocumented_list
-        )
-        files_affected = len({_rel_file(f.get("file", "")) for f in issue_funcs if f.get("file")})
-
-        # Calculate total issues
-        moderate_complexity = len(categories.get("moderate_complex", []))
-        high_complexity = len(categories.get("high_complex", []))
-        critical_complexity = len(categories.get("critical_complex", []))
-        undocumented = len(undocumented_list)
-        total_issues = (
-            moderate_complexity + high_complexity + critical_complexity + undocumented
-        )
-
-        # Return standard format
-        metrics = {
-            "summary": {
-                "total_issues": total_issues,
-                "files_affected": files_affected,
-            },
-            "details": {
-                "total_functions": len(all_functions),
-                "moderate_complexity": moderate_complexity,
-                "high_complexity": high_complexity,
-                "critical_complexity": critical_complexity,
-                "undocumented": undocumented,
-                "undocumented_examples": undocumented_examples,
-                "critical_complexity_examples": critical_complexity_examples,
-                "high_complexity_examples": high_complexity_examples,
-                "handlers": len(categories.get("handlers", [])),
-                "tests": len(categories.get("tests", [])),
-                "utilities": len(categories.get("utilities", [])),
-            },
-        }
-        print(json.dumps(metrics, indent=2))
+        print(json.dumps(build_analyze_functions_result(
+            all_functions, categories=categories
+        ), indent=2))
     else:
         print_summary(categories)
         logger.info(

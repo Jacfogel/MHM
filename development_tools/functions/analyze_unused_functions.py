@@ -335,15 +335,20 @@ def _normalize_path(path: str, project_root: Path) -> str:
 # ---------------------------------------------------------------------------
 
 def _scan_file_definitions(
-    file_path: Path, project_root: Path
+    file_path: Path,
+    project_root: Path,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
 ) -> list[FunctionDef]:
     """Parse a file and return all non-implicit function definitions."""
-    try:
-        content = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(content)
-    except Exception as exc:
-        logger.warning(f"Failed to parse {file_path}: {exc}")
-        return []
+    if tree is None or content is None:
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            tree = ast.parse(content)
+        except Exception as exc:
+            logger.warning(f"Failed to parse {file_path}: {exc}")
+            return []
 
     rel_path = _normalize_path(str(file_path), project_root)
     collector = _DefinitionCollector(rel_path, content)
@@ -351,13 +356,19 @@ def _scan_file_definitions(
     return collector.defs
 
 
-def _scan_file_references(file_path: Path) -> _FileRefs:
+def _scan_file_references(
+    file_path: Path,
+    *,
+    content: str | None = None,
+    tree: ast.AST | None = None,
+) -> _FileRefs:
     """Parse a file and return all name/attribute references."""
-    try:
-        content = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(content)
-    except Exception:
-        return _FileRefs()
+    if tree is None:
+        try:
+            source = content if content is not None else file_path.read_text(encoding="utf-8")
+            tree = ast.parse(source)
+        except Exception:
+            return _FileRefs()
 
     collector = _ReferenceCollector()
     collector.visit(tree)
@@ -423,6 +434,7 @@ def analyze_unused_functions(
     project_root: Path | str | None = None,
     scan_directories: list[str] | None = None,
     apply_exclusions: bool = True,
+    parsed_modules: list[Any] | tuple[Any, ...] | None = None,
 ) -> dict[str, Any]:
     """
     Scan the codebase and return functions that are never referenced.
@@ -444,26 +456,43 @@ def analyze_unused_functions(
         if project_root is not None
         else Path(config.get_project_root()).resolve()
     )
-    files = _collect_python_files(
-        root,
-        include_tests,
-        include_dev_tools,
-        scan_directories=scan_directories,
-        apply_exclusions=apply_exclusions,
-    )
+    if parsed_modules is not None:
+        files = [module.path for module in parsed_modules]
+        all_defs: list[FunctionDef] = []
+        global_name_refs: set[str] = set()
+        global_attr_refs: set[str] = set()
+        for module in parsed_modules:
+            all_defs.extend(
+                _scan_file_definitions(
+                    module.path, root, content=module.source, tree=module.tree
+                )
+            )
+            refs = _scan_file_references(
+                module.path, content=module.source, tree=module.tree
+            )
+            global_name_refs.update(refs.name_refs)
+            global_attr_refs.update(refs.attr_refs)
+    else:
+        files = _collect_python_files(
+            root,
+            include_tests,
+            include_dev_tools,
+            scan_directories=scan_directories,
+            apply_exclusions=apply_exclusions,
+        )
 
-    # Phase 1: collect all definitions
-    all_defs: list[FunctionDef] = []
-    for f in files:
-        all_defs.extend(_scan_file_definitions(f, root))
+        # Phase 1: collect all definitions
+        all_defs = []
+        for f in files:
+            all_defs.extend(_scan_file_definitions(f, root))
 
-    # Phase 2: collect all references across the entire codebase
-    global_name_refs: set[str] = set()
-    global_attr_refs: set[str] = set()
-    for f in files:
-        refs = _scan_file_references(f)
-        global_name_refs.update(refs.name_refs)
-        global_attr_refs.update(refs.attr_refs)
+        # Phase 2: collect all references across the entire codebase
+        global_name_refs = set()
+        global_attr_refs = set()
+        for f in files:
+            refs = _scan_file_references(f)
+            global_name_refs.update(refs.name_refs)
+            global_attr_refs.update(refs.attr_refs)
 
     # Phase 3: cross-reference
     unused: list[FunctionDef] = []

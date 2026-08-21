@@ -536,3 +536,30 @@ def test_get_test_files_domains_fallback_uses_directory_when_no_attribution_mark
         assert "core" in doms
     finally:
         _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_config_changed_ignores_mtime_only_rewrite() -> None:
+    """Rewriting config with the same bytes must not count as a config change."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        cfg = (
+            temp_path
+            / "development_tools"
+            / "config"
+            / "development_tools_config.json"
+        )
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        cfg.write_text('{"k": 1}\n', encoding="utf-8")
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache._get_config_file_path = lambda: cfg
+        cache._update_config_mtime()
+        assert cache._config_changed() is False
+        os.utime(cfg, None)
+        assert cache._config_changed() is False
+        cached_mtime = cache.cache_data["config_mtime"]
+        cfg.write_text('{"k": 2}\n', encoding="utf-8")
+        os.utime(cfg, (cached_mtime + 10, cached_mtime + 10))
+        assert cache._config_changed() is True
+    finally:
+        _cleanup_local_scratch_dir(temp_path)

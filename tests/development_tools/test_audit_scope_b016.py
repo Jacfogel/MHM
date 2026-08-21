@@ -98,13 +98,17 @@ def test_get_tier2_groups_filters_for_custom_scope() -> None:
     service.run_analyze_dependency_patterns = MagicMock()
     service.run_analyze_module_dependencies = MagicMock()
     service.run_analyze_function_registry = MagicMock()
+    service.run_analyze_function_patterns = MagicMock()
+    service.run_decision_support = MagicMock()
     # Unsupported callables still present on service but should be filtered out
     service.run_analyze_documentation_sync = MagicMock()
 
-    independent, dependent = get_tier2_groups(service)
+    core, independent, dependent = get_tier2_groups(service)
     indep_names = [n for n, _ in independent]
     dep_names = [n for group in dependent for n, _ in group]
-    assert "analyze_functions" in indep_names
+    core_names = [n for n, _ in core]
+    assert "analyze_functions" in core_names
+    assert "analyze_functions" not in indep_names
     assert "analyze_documentation_sync" not in dep_names
     assert "analyze_documentation_sync" in service._audit_scope_skipped_tools
 

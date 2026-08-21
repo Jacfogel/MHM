@@ -111,9 +111,11 @@ def test_dev_tools_cache_backfills_missing_metadata_on_load() -> None:
         assert isinstance(cache.cache_data.get("tool_hash"), str)
         assert cache.get_tool_change_reason() is None
         assert "config_mtime" in cache.cache_data
+        assert "config_hash" in cache.cache_data
 
         persisted = json.loads(cache_file.read_text(encoding="utf-8"))
         assert isinstance(persisted.get("tool_hash"), str)
         assert "config_mtime" in persisted
+        assert "config_hash" in persisted
     finally:
         _cleanup_local_scratch_dir(temp_path)

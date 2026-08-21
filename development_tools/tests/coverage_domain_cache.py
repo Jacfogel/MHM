@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from development_tools.shared.mtime_cache import resolve_config_identity
 from development_tools.shared.standard_exclusions import should_exclude_file
 
 
@@ -62,8 +63,8 @@ def get_dev_tools_test_mtimes(project_root: Path) -> dict[str, float]:
     return mtimes
 
 
-def get_config_mtime(project_root: Path) -> float | None:
-    """Get current development_tools_config.json mtime if available."""
+def get_config_file_path(project_root: Path) -> Path | None:
+    """Resolve development_tools_config.json if it exists."""
     root = Path(project_root).resolve()
     try:
         import development_tools.config.config as config_module
@@ -81,10 +82,21 @@ def get_config_mtime(project_root: Path) -> float | None:
                 / "development_tools_config.json"
             )
         if config_path.exists():
-            return config_path.stat().st_mtime
+            return config_path
     except Exception:
         return None
     return None
+
+
+def get_config_mtime(project_root: Path) -> float | None:
+    """Get current development_tools_config.json mtime if available."""
+    config_path = get_config_file_path(project_root)
+    if config_path is None:
+        return None
+    try:
+        return config_path.stat().st_mtime
+    except OSError:
+        return None
 
 
 def check_dev_tools_changed(
@@ -104,21 +116,23 @@ def check_dev_tools_changed(
             log.info(f"Dev tools coverage cache invalidation: {tool_change_reason}")
         return True
 
-    current_config_mtime = get_config_mtime(project_root)
-    cached_config_mtime = dev_tools_cache.get_cached_config_mtime()
-    if current_config_mtime is not None:
-        if cached_config_mtime is None:
-            if log:
-                log.info(
-                    "Config mtime missing from dev tools coverage cache - invalidating cache"
-                )
-            return True
-        if current_config_mtime != cached_config_mtime:
-            if log:
-                log.info(
-                    "Config file changed - invalidating dev tools coverage cache"
-                )
-            return True
+    identity = resolve_config_identity(
+        get_config_file_path(project_root),
+        cached_mtime=dev_tools_cache.get_cached_config_mtime(),
+        cached_hash=getattr(dev_tools_cache, "get_cached_config_hash", lambda: None)(),
+    )
+    if identity.verdict == "first_seen":
+        if log:
+            log.info(
+                "Config identity missing from dev tools coverage cache - invalidating cache"
+            )
+        return True
+    if identity.verdict == "content_changed":
+        if log:
+            log.info(
+                "Config file content changed - invalidating dev tools coverage cache"
+            )
+        return True
 
     last_run_ok = dev_tools_cache.get_last_run_ok()
     if last_run_ok is False:

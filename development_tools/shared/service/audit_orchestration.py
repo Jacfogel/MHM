@@ -976,7 +976,38 @@ class AuditOrchestrationMixin:
         failed = []
         
         # Tier 2 tools from canonical audit_tiers (single source of truth)
-        tier2_independent_tools, tier2_dependent_groups = get_tier2_groups(self)
+        tier2_core_tools, tier2_independent_tools, tier2_dependent_groups = get_tier2_groups(self)
+
+        for tool_name, tool_func in tier2_core_tools:
+            try:
+                result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
+                self._tool_timings[tool_name] = elapsed_time
+                if isinstance(result, dict):
+                    success = result.get('success', False)
+                    if 'data' in result:
+                        self._extract_key_info(tool_name, result)
+                else:
+                    success = bool(result)
+                self._record_tool_cache_metadata(tool_name, result)
+                if success:
+                    self._tool_execution_status[tool_name] = 'success'
+                    successful.append(tool_name)
+                    self._tools_run_in_current_tier.add(tool_name)
+                else:
+                    self._tool_execution_status[tool_name] = 'failed'
+                    failed.append(tool_name)
+                    logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                    if isinstance(result, dict) and result.get("error"):
+                        _err = (result.get("error") or "").strip()[:800]
+                        if _err:
+                            logger.warning(f"  {tool_name} error detail: {_err}")
+            except Exception as exc:
+                elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                self._tool_timings[tool_name] = elapsed_time
+                self._tool_execution_status[tool_name] = 'failed'
+                failed.append(tool_name)
+                logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
+                logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
         # Run independent tools and dependent groups in parallel
         from concurrent.futures import ThreadPoolExecutor, as_completed

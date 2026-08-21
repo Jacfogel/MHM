@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -13,6 +14,7 @@ from development_tools.tests.coverage_domain_cache import (
     get_dev_tools_source_mtimes,
     get_dev_tools_test_mtimes,
 )
+from development_tools.shared.mtime_cache import hash_file_sha256
 from development_tools.tests.coverage_pytest_argv import (
     build_dev_tools_coverage_pytest_cmd,
     build_main_coverage_pytest_cmd,
@@ -185,21 +187,45 @@ def test_check_dev_tools_changed_tool_reason_and_mtimes(tmp_path: Path) -> None:
     source_mtimes = get_dev_tools_source_mtimes(tmp_path)
     test_mtimes = get_dev_tools_test_mtimes(tmp_path)
     config_mtime = cfg.stat().st_mtime
+    config_hash = hash_file_sha256(cfg)
     cache2 = SimpleNamespace(
         get_tool_change_reason=lambda: None,
         get_cached_config_mtime=lambda: config_mtime,
+        get_cached_config_hash=lambda: config_hash,
         get_last_run_ok=lambda: True,
         get_cached_mtimes=lambda: dict(source_mtimes),
         get_cached_test_mtimes=lambda: dict(test_mtimes),
     )
     with patch(
-        "development_tools.tests.coverage_domain_cache.get_config_mtime",
-        return_value=config_mtime,
+        "development_tools.tests.coverage_domain_cache.get_config_file_path",
+        return_value=cfg,
     ):
         assert (
             check_dev_tools_changed(
                 use_domain_cache=True,
                 dev_tools_cache=cache2,
+                project_root=tmp_path,
+            )
+            is False
+        )
+
+    os.utime(cfg, None)
+    cache_touched = SimpleNamespace(
+        get_tool_change_reason=lambda: None,
+        get_cached_config_mtime=lambda: config_mtime,
+        get_cached_config_hash=lambda: config_hash,
+        get_last_run_ok=lambda: True,
+        get_cached_mtimes=lambda: dict(source_mtimes),
+        get_cached_test_mtimes=lambda: dict(test_mtimes),
+    )
+    with patch(
+        "development_tools.tests.coverage_domain_cache.get_config_file_path",
+        return_value=cfg,
+    ):
+        assert (
+            check_dev_tools_changed(
+                use_domain_cache=True,
+                dev_tools_cache=cache_touched,
                 project_root=tmp_path,
             )
             is False

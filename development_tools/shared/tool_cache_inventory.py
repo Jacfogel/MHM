@@ -84,6 +84,7 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             ),
             "invalidation": (
                 "Shared domain/test-file invalidation with coverage cache; "
+                "config content hash (mtime-only rewrites do not bust); "
                 "per-test-file suite outcomes; disable with --no-domain-cache"
             ),
         }

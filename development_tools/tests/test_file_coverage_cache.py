@@ -63,6 +63,7 @@ except ImportError:
     logger = None
 
 from .domain_mapper import DomainMapper
+from development_tools.shared.mtime_cache import hash_file_sha256, resolve_config_identity
 from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
@@ -92,7 +93,8 @@ class TestFileCoverageCache:
     2. **previous_run_failed** - Uses ``last_failed_domains`` if set, else ``last_run_domains``,
        else **all** domains if no domain list was recorded.
     3. **previous_run_missing_no_parallel_coverage** - **all** domains.
-    4. **config_changed** - ``development_tools_config.json`` mtime changed -> **all** domains.
+    4. **config_changed** - ``development_tools_config.json`` *content* changed -> **all** domains.
+       mtime-only rewrites (same bytes) do not invalidate.
     5. **test_file_set_changed** - Test path set differs from cache:
 
        - If cache had no prior ``test_files`` entries -> **all** domains (cold/first mapping).
@@ -172,6 +174,7 @@ class TestFileCoverageCache:
             "test_files": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}
             "test_files_mtime": {},  # test_file_path -> mtime
             "config_mtime": None,
+            "config_hash": None,
             "tool_hash": None,
             "tool_mtimes": {},
             "last_run_ok": None,
@@ -215,6 +218,11 @@ class TestFileCoverageCache:
             self.cache_data["config_mtime"] = None
             changed = True
 
+        config_hash = self.cache_data.get("config_hash")
+        if config_hash is not None and not isinstance(config_hash, str):
+            self.cache_data["config_hash"] = None
+            changed = True
+
         tool_hash = self.cache_data.get("tool_hash")
         if tool_hash is not None and not isinstance(tool_hash, str):
             self.cache_data["tool_hash"] = None
@@ -238,6 +246,15 @@ class TestFileCoverageCache:
             before_mtime = self.cache_data.get("config_mtime")
             self._update_config_mtime()
             if self.cache_data.get("config_mtime") != before_mtime:
+                changed = True
+        elif not self.cache_data.get("config_hash"):
+            identity = resolve_config_identity(
+                self._get_config_file_path(),
+                cached_mtime=self.cache_data.get("config_mtime"),
+                cached_hash=None,
+            )
+            if identity.verdict == "unchanged" and identity.content_hash:
+                self.cache_data["config_hash"] = identity.content_hash
                 changed = True
 
         return changed
@@ -503,26 +520,28 @@ class TestFileCoverageCache:
         return None
 
     def _update_config_mtime(self) -> None:
-        """Store current config file mtime in cache metadata."""
+        """Store current config file mtime and content hash in cache metadata."""
         config_path = self._get_config_file_path()
         if not config_path or not config_path.exists():
             return
         with contextlib.suppress(Exception):
             self.cache_data["config_mtime"] = config_path.stat().st_mtime
+        content_hash = hash_file_sha256(config_path)
+        if content_hash is not None:
+            self.cache_data["config_hash"] = content_hash
 
     def _config_changed(self) -> bool:
-        """Return True if config file mtime differs from cached value."""
-        config_path = self._get_config_file_path()
-        if not config_path or not config_path.exists():
-            return False
-        try:
-            current_mtime = config_path.stat().st_mtime
-        except Exception:
-            return False
-        cached_mtime = self.cache_data.get("config_mtime")
-        if cached_mtime is None:
-            return True
-        return current_mtime != cached_mtime
+        """Return True if config file *content* differs from the cached identity."""
+        identity = resolve_config_identity(
+            self._get_config_file_path(),
+            cached_mtime=self.cache_data.get("config_mtime"),
+            cached_hash=self.cache_data.get("config_hash"),
+        )
+        if identity.mtime is not None:
+            self.cache_data["config_mtime"] = identity.mtime
+        if identity.content_hash is not None:
+            self.cache_data["config_hash"] = identity.content_hash
+        return identity.verdict in {"first_seen", "content_changed"}
 
     def _tool_changed(self) -> bool:
         """Return True if tool hash differs from cached value."""
@@ -885,7 +904,7 @@ class TestFileCoverageCache:
             }
             if logger:
                 logger.info(
-                    "Config file changed - invalidating test-file coverage cache"
+                    "Config file content changed - invalidating test-file coverage cache"
                 )
             self._cached_changed_domains = set(all_domains)
             return set(all_domains)

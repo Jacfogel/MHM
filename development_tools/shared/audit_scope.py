@@ -30,6 +30,8 @@ AUDIT_SCOPE_MVP_SUPPORTED_TOOLS: frozenset[str] = frozenset(
         "analyze_dependency_patterns",
         "analyze_module_dependencies",
         "analyze_function_registry",
+        "analyze_function_patterns",
+        "decision_support",
         "analyze_config",
         "analyze_package_exports",
     }

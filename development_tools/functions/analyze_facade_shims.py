@@ -277,44 +277,56 @@ def analyze_project(
     include_tests: bool = False,
     include_dev_tools: bool = False,
     include_low_signal: bool = False,
+    parsed_modules: list[Any] | tuple[Any, ...] | None = None,
 ) -> dict[str, Any]:
     root = Path(config.get_project_root()).resolve()
-    scan_dirs = list(config.get_scan_directories())
-    if include_tests and "tests" not in scan_dirs:
-        scan_dirs.append("tests")
-    if include_dev_tools and "development_tools" not in scan_dirs:
-        scan_dirs.append("development_tools")
-    context = "development" if include_tests or include_dev_tools else "production"
     _entries, term_to_id = _load_inventory(root)
 
     findings: list[FacadeShimFinding] = []
     low_signal_count = 0
-    for scan_dir in scan_dirs:
-        dir_path = root / scan_dir
-        if not dir_path.exists():
-            continue
-        for py_file in dir_path.rglob("*.py"):
-            rel = _normalize_path(py_file, root)
-            if should_exclude_file(rel, "analysis", context):
-                continue
-            try:
-                content = py_file.read_text(encoding="utf-8")
-                tree = ast.parse(content)
-            except Exception as exc:
-                logger.warning(f"Failed to parse {py_file}: {exc}")
-                continue
-            if has_devtools_ignore_marker(content, "facade-shims"):
-                continue
-            collector = _FacadeShimCollector(
-                py_file,
-                root,
-                content,
-                term_to_id,
-                include_low_signal=include_low_signal,
+
+    def _collect_from_source(py_file: Path, rel: str, content: str, tree: ast.AST) -> None:
+        nonlocal low_signal_count
+        if has_devtools_ignore_marker(content, "facade-shims"):
+            return
+        collector = _FacadeShimCollector(
+            py_file,
+            root,
+            content,
+            term_to_id,
+            include_low_signal=include_low_signal,
+        )
+        collector.visit(tree)
+        findings.extend(collector.findings)
+        low_signal_count += len(collector.low_signal_findings)
+
+    if parsed_modules is not None:
+        for module in parsed_modules:
+            _collect_from_source(
+                module.path, module.relative, module.source, module.tree
             )
-            collector.visit(tree)
-            findings.extend(collector.findings)
-            low_signal_count += len(collector.low_signal_findings)
+    else:
+        scan_dirs = list(config.get_scan_directories())
+        if include_tests and "tests" not in scan_dirs:
+            scan_dirs.append("tests")
+        if include_dev_tools and "development_tools" not in scan_dirs:
+            scan_dirs.append("development_tools")
+        context = "development" if include_tests or include_dev_tools else "production"
+        for scan_dir in scan_dirs:
+            dir_path = root / scan_dir
+            if not dir_path.exists():
+                continue
+            for py_file in dir_path.rglob("*.py"):
+                rel = _normalize_path(py_file, root)
+                if should_exclude_file(rel, "analysis", context):
+                    continue
+                try:
+                    content = py_file.read_text(encoding="utf-8")
+                    tree = ast.parse(content)
+                except Exception as exc:
+                    logger.warning(f"Failed to parse {py_file}: {exc}")
+                    continue
+                _collect_from_source(py_file, rel, content, tree)
 
     findings.sort(key=lambda item: (item["file"], item["line"], item["symbol"]))
     files_affected = {finding["file"] for finding in findings}

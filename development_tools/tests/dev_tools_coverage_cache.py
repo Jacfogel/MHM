@@ -13,6 +13,7 @@ import hashlib
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from development_tools.shared.mtime_cache import hash_file_sha256, resolve_config_identity
 from development_tools.shared.cache_dependency_paths import (
     coverage_config_paths,
     static_check_config_paths,
@@ -102,6 +103,7 @@ class DevToolsCoverageCache:
             "source_files_mtime": {},
             "test_files_mtime": {},
             "config_mtime": None,
+            "config_hash": None,
             "tool_hash": None,
             "tool_mtimes": {},
             "coverage_json": None,
@@ -169,6 +171,11 @@ class DevToolsCoverageCache:
             self.cache_data["config_mtime"] = None
             changed = True
 
+        config_hash = self.cache_data.get("config_hash")
+        if config_hash is not None and not isinstance(config_hash, str):
+            self.cache_data["config_hash"] = None
+            changed = True
+
         tool_hash = self.cache_data.get("tool_hash")
         if tool_hash is not None and not isinstance(tool_hash, str):
             self.cache_data["tool_hash"] = None
@@ -197,6 +204,15 @@ class DevToolsCoverageCache:
             current_config_mtime = self._get_config_mtime()
             if current_config_mtime is not None:
                 self.cache_data["config_mtime"] = current_config_mtime
+                changed = True
+        if not self.cache_data.get("config_hash"):
+            identity = resolve_config_identity(
+                self._get_config_file_path(),
+                cached_mtime=self.cache_data.get("config_mtime"),
+                cached_hash=None,
+            )
+            if identity.verdict == "unchanged" and identity.content_hash:
+                self.cache_data["config_hash"] = identity.content_hash
                 changed = True
 
         return changed
@@ -307,9 +323,13 @@ class DevToolsCoverageCache:
             )
             self.cache_data["tool_hash"] = self._compute_tool_hash()
             self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
-            current_config_mtime = self._get_config_mtime()
-            if current_config_mtime is not None:
-                self.cache_data["config_mtime"] = current_config_mtime
+            config_path = self._get_config_file_path()
+            if config_path is not None:
+                with contextlib.suppress(OSError):
+                    self.cache_data["config_mtime"] = config_path.stat().st_mtime
+                content_hash = hash_file_sha256(config_path)
+                if content_hash is not None:
+                    self.cache_data["config_hash"] = content_hash
 
             temp_file = self.cache_file.with_suffix(".tmp")
             max_retries = 5
@@ -365,6 +385,11 @@ class DevToolsCoverageCache:
         """Return cached config file mtime."""
         config_mtime = self.cache_data.get("config_mtime")
         return config_mtime if isinstance(config_mtime, (int, float)) else None
+
+    def get_cached_config_hash(self) -> str | None:
+        """Return cached config file content hash."""
+        config_hash = self.cache_data.get("config_hash")
+        return config_hash if isinstance(config_hash, str) else None
 
     def get_last_run_ok(self) -> bool | None:
         """Return whether the last dev tools coverage run succeeded."""

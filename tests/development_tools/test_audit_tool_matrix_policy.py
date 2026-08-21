@@ -78,8 +78,9 @@ def test_facade_shims_runs_in_tier2_groups_and_reports() -> None:
                 return lambda: {"success": True}
             raise AttributeError(name)
 
-    independent, dependent = get_tier2_groups(_Service())
-    scheduled = [name for name, _runner in independent]
+    core, independent, dependent = get_tier2_groups(_Service())
+    scheduled = [name for name, _runner in core]
+    scheduled.extend(name for name, _runner in independent)
     scheduled.extend(name for group in dependent for name, _runner in group)
 
     assert "analyze_facade_shims" in scheduled
