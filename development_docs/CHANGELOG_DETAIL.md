@@ -33,6 +33,18 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Quiet missing personalized.json on startup
+- **Fix**: [`MHMService.initialize_paths()`](../core/service.py) skips AI-generated message categories (`personalized`) so startup does not `verify_file_access` a library file that is never created. Missing `personalized.json` was logging `FileOperationError` in `errors.log` on service start.
+- **Tests**: [`test_core_service_coverage_expansion.py`](../tests/behavior/test_core_service_coverage_expansion.py) covers skip plus `verify_file_access` succeeding when that file is absent.
+- **Flakes**: Rechecked the v1/v2 ordering note in [TODO.md](../TODO.md). Latest `audit --full` passed (0 failures). A serial pytest of the listed files still failed 4 tests that pass alone (empty `categories`, `KeyError: preferred_name`, `KeyError: morning`, and `test_sync_completes_with_mocked_api`).
+- **Impact**: Cleaner startup logs after a service restart. Flake list is still real, just quieter than "~10 full-suite failures" implied.
+
+### 2026-08-21 - Google Health dead refresh token logging
+- **Fix**: Token refresh HTTP 400/`invalid_grant` now logs that the refresh token is invalid or revoked and that `connect google health` is required, instead of only `Token refresh failed with status 400 (body redacted)`. Safe OAuth `error` / `error_description` fields are included; token values stay out of logs. HTTP 5xx refresh failures log as transient retries.
+- **Refactor**: One `is_google_health_testing_mode()` helper in [`integrations/google_health/testing.py`](../integrations/google_health/testing.py) replaces duplicated `MHM_TESTING` guards in auth, client, sync, and reconnect notices.
+- **Impact**: Auto-pause and the one-time reconnect notice still fire; sync `last_error` stores the dead-token message so logs match the user-facing reconnect path.
+- **Testing**: `tests/unit/test_google_health_auth.py`, `tests/unit/test_google_health_notifications.py`.
+
 ### 2026-08-21 - Fix hourly status zeros and cleanup log routing
 - **Fix**: Hourly service status in `app.log` reported `0 active jobs, 0 users, 0 channels` because `_collect_service_status_metrics` called APIs that do not exist (`user_manager`, `SchedulerManager.get_active_jobs`, `CommunicationManager.get_available_channels`) and treated the misses as zero. It now uses `get_all_user_ids()`, `SchedulerManager.get_active_job_count()`, and `get_active_channels()`.
 - **Fix**: Data-directory cleanup (backup/request/archive retention) logged through `get_component_logger("main")`, so it landed in `app.log`. `core/auto_cleanup.py` now uses `file_ops`, matching `logs/LOGGING_GUIDE.md`. Backup deletions in `cleanup_old_backup_artifacts` log at INFO with a removal summary.

@@ -152,9 +152,11 @@ class MHMService:
     @handle_errors("initializing paths")
     def initialize_paths(self):
         """
-        Initialize and verify all required file paths for the service.
+        Initialize and verify required file paths for the service.
 
-        Creates paths for log files, user data directories, and message files for all users.
+        Includes log files, user data directories, and on-disk message library
+        files. AI-generated categories such as personalized have no library file
+        and are skipped.
 
         Returns:
             List[str]: List of all initialized file paths
@@ -174,7 +176,13 @@ class MHMService:
             categories = user_data.get("preferences", {}).get("categories", [])
             if isinstance(categories, list):
                 if categories:  # Only process if list is not empty
+                    from messages.message_data_manager import (
+                        is_ai_generated_message_category,
+                    )
+
                     for category in categories:
+                        if is_ai_generated_message_category(category):
+                            continue
                         try:
                             # Use new user-specific message file structure
                             from pathlib import Path

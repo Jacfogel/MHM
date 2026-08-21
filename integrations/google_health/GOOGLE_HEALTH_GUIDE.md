@@ -105,7 +105,8 @@ Add the output to `.env`. Existing plaintext tokens migrate automatically on the
 |---------|--------|
 | **403 access_denied** — “has not completed the Google verification process” / “only accessed by developer-approved testers” | In [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **OAuth consent screen** → **Test users** → **Add users** → add the exact Gmail you use in the browser (e.g. `jacfogel@gmail.com`). Wait ~1 minute, then run `connect google health` again. Use the same Google account in Chrome that you added. |
 | 403 on data reads (after connect) | Reconnect; ensure no `include_granted_scopes`; request only `googlehealth.*` scopes |
-| Token refresh fails | Run `connect google health` once; check refresh token in auth file. You should also receive a one-time reconnect notice on Discord/email when sync auto-pauses. |
+| Token refresh fails with HTTP 400 / `invalid_grant` | The refresh token is dead or revoked. `logs/google_health.log` will say **refresh token is invalid or revoked** (includes Google's `error=` code, never the token). Run `connect google health` once. After `GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD` failures, sync auto-pauses and you get one reconnect notice. |
+| Token refresh fails with HTTP 5xx | Treated as transient; next scheduled sync retries. Persistent failures still auto-pause. |
 | No personalization | Check `health status`, signal confidence, and `features.google_health` |
 | **Sync succeeds but `daily_summaries.json` is empty** | Restart MHM after updating (`python run_headless_service.py restart`), then run `sync health`. Check `logs/google_health.log` for lines like `listed N data point(s) for sleep`. If N is 0 for all types, confirm Fitbit has synced into Google Health (Fitbit app open + device synced). If N > 0 but summaries still empty, report — date parsing may need adjustment for your device payload. |
 | **Steps/active minutes missing** | Google `dailyRollUp` rejects requests when `window_size_days * page_size > 90` (`INVALID_ROLLUP_QUERY_DURATION`). MHM clamps page size to 90 and chunks civil ranges to **14 days**. If rollup still fails, sync falls back to chunked `dataPoints` list. Restart after updates, then `sync health`. |
@@ -133,6 +134,7 @@ Deferred low-priority follow-ups (admin Sync now, `health_personalization` prefs
 
 All paths relative to project root.
 
+- `integrations/google_health/testing.py` — shared `MHM_TESTING` guard for live OAuth/API skips
 - `integrations/google_health/auth.py` — OAuth and token refresh
 - `integrations/google_health/token_crypto.py` — optional Fernet encryption for auth tokens at rest
 - `integrations/google_health/client.py` — API fetch + normalize

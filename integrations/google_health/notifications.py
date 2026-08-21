@@ -4,11 +4,10 @@ Channel notifications for Google Health integration events.
 
 from __future__ import annotations
 
-import os
-
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from integrations.google_health.testing import is_google_health_testing_mode
 
 logger = get_component_logger("google_health")
 
@@ -25,6 +24,7 @@ _AUTH_FAILURE_MARKERS = (
     "token refresh",
     "reconnect required",
     "unable to obtain valid access token",
+    "invalid or revoked",
 )
 
 
@@ -38,7 +38,7 @@ def is_auth_sync_failure(error: str) -> bool:
 @handle_errors("sending Google Health reconnect notice", default_return=False)
 def send_reconnect_notice(user_id: str) -> bool:
     """Send a one-time low-key reconnect message on the user's primary channel."""
-    if os.getenv("MHM_TESTING") == "1":
+    if is_google_health_testing_mode():
         logger.debug(f"Skipping reconnect notice in testing mode for user {user_id}")
         return False
 

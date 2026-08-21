@@ -6,7 +6,7 @@ One-time browser connect + automated refresh thereafter.
 
 from __future__ import annotations
 
-import os
+import json
 import threading
 import urllib.parse
 from collections.abc import Callable
@@ -28,18 +28,19 @@ from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_datetime_full, now_timestamp_full, parse_timestamp_full
 from integrations.google_health.data_handlers import load_auth, save_auth
+from integrations.google_health.testing import is_google_health_testing_mode
 
 logger = get_component_logger("google_health")
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
-
-@handle_errors("checking Google Health testing mode", default_return=False)
-# not_duplicate: google_health_testing_mode_guard
-def _testing_mode() -> bool:
-    """Return True when MHM_TESTING skips live OAuth network calls."""
-    return os.getenv("MHM_TESTING") == "1"
+DEAD_REFRESH_TOKEN_ERROR = (
+    "Google Health refresh token is invalid or revoked; reconnect required"
+)
+_DEAD_REFRESH_OAUTH_ERRORS = frozenset(
+    {"invalid_grant", "invalid_client", "unauthorized_client"}
+)
 
 
 @handle_errors("building Google Health authorization URL", default_return="")
@@ -61,7 +62,7 @@ def build_authorization_url(state: str = "") -> str:
 @handle_errors("exchanging authorization code", default_return=None)
 def exchange_code_for_tokens(code: str) -> dict[str, Any] | None:
     """Exchange OAuth authorization code for access + refresh tokens."""
-    if _testing_mode():
+    if is_google_health_testing_mode():
         logger.info("Skipping real token exchange in testing mode")
         return None
 
@@ -84,10 +85,37 @@ def exchange_code_for_tokens(code: str) -> dict[str, Any] | None:
     return response.json()
 
 
+@handle_errors("extracting OAuth error fields", default_return=("", ""))
+def _oauth_error_fields(response: Any) -> tuple[str, str]:
+    """Return OAuth error and error_description from a token response (never tokens)."""
+    raw = getattr(response, "text", None)
+    if not isinstance(raw, str) or "{" not in raw:
+        return "", ""
+    try:
+        payload = json.loads(raw)
+    except (TypeError, ValueError):
+        return "", ""
+    if not isinstance(payload, dict):
+        return "", ""
+    error = str(payload.get("error") or "").strip()
+    description = str(payload.get("error_description") or "").strip()
+    return error, description
+
+
+@handle_errors("classifying Google Health refresh token failure", default_return=False)
+def _is_dead_refresh_token_failure(status_code: int, oauth_error: str = "") -> bool:
+    """Return True when Google rejected the refresh token (reconnect, not retry)."""
+    if str(oauth_error or "").strip().lower() in _DEAD_REFRESH_OAUTH_ERRORS:
+        return True
+    return int(status_code) in (400, 401)
+
+
 @handle_errors("refreshing Google Health access token", default_return=None)
-def refresh_access_token(refresh_token: str) -> dict[str, Any] | None:
+def refresh_access_token(
+    refresh_token: str, *, user_id: str = ""
+) -> dict[str, Any] | None:
     """Refresh an access token using a stored refresh token."""
-    if _testing_mode():
+    if is_google_health_testing_mode():
         logger.info("Skipping real token refresh in testing mode")
         return None
 
@@ -101,12 +129,27 @@ def refresh_access_token(refresh_token: str) -> dict[str, Any] | None:
         },
         timeout=30,
     )
-    if response.status_code != 200:
+    if response.status_code == 200:
+        return response.json()
+
+    oauth_error, description = _oauth_error_fields(response)
+    user_bit = f" for user {user_id}" if user_id else ""
+    extra = f" HTTP {response.status_code}"
+    if oauth_error:
+        extra += f", error={oauth_error}"
+    if description:
+        extra += f" ({description})"
+    if _is_dead_refresh_token_failure(response.status_code, oauth_error):
         logger.error(
-            f"Token refresh failed with status {response.status_code} (body redacted)"
+            f"{DEAD_REFRESH_TOKEN_ERROR}{user_bit}{extra}. "
+            "Run connect google health to link again."
         )
-        return None
-    return response.json()
+    else:
+        logger.warning(
+            f"Google Health token refresh failed{user_bit} with HTTP "
+            f"{response.status_code} (may be transient; next sync will retry)"
+        )
+    return None
 
 
 @handle_errors("computing token expiry timestamp", default_return="")
@@ -148,10 +191,12 @@ def ensure_valid_access_token(user_id: str) -> str | None:
         return access
 
     if not refresh:
-        logger.warning(f"No refresh token for user {user_id} - reconnect required")
+        logger.warning(
+            f"Google Health has no refresh token for user {user_id}; reconnect required"
+        )
         return None
 
-    token_data = refresh_access_token(refresh)
+    token_data = refresh_access_token(refresh, user_id=user_id)
     if not token_data:
         return None
 
@@ -235,7 +280,7 @@ def run_oauth_connect_flow(
 
     Blocks until callback or timeout. Intended for one-time connect.
     """
-    if _testing_mode():
+    if is_google_health_testing_mode():
         logger.info(f"OAuth connect flow skipped in testing mode for user {user_id}")
         return None
 

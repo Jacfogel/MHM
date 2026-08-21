@@ -6,7 +6,6 @@ Automated polling path - idempotent daily upsert + signal rebuild.
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from core import get_user_data, update_user_account
@@ -19,7 +18,10 @@ from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
 from core.user_management import get_all_user_ids
-from integrations.google_health.auth import ensure_valid_access_token
+from integrations.google_health.auth import (
+    DEAD_REFRESH_TOKEN_ERROR,
+    ensure_valid_access_token,
+)
 from integrations.google_health.client import fetch_daily_summaries
 from integrations.google_health.data_handlers import (
     has_valid_auth,
@@ -32,15 +34,9 @@ from integrations.google_health.data_handlers import (
 )
 from integrations.google_health.notifications import maybe_send_reconnect_notice
 from integrations.google_health.signal_builder import rebuild_signals_for_summaries
+from integrations.google_health.testing import is_google_health_testing_mode
 
 logger = get_component_logger("google_health")
-
-
-@handle_errors("checking Google Health testing mode", default_return=False)
-# not_duplicate: google_health_testing_mode_guard
-def _testing_mode() -> bool:
-    """Return True when automated sync should skip live API calls."""
-    return os.getenv("MHM_TESTING") == "1"
 
 
 @handle_errors("checking google health feature enabled", default_return=False)
@@ -143,7 +139,7 @@ def sync_user_health_data(
     """
     if not GOOGLE_HEALTH_ENABLED and not force:
         return False
-    if _testing_mode() and not force:
+    if is_google_health_testing_mode() and not force:
         logger.debug(f"Skipping health sync in testing mode for user {user_id}")
         return False
     if not _google_health_feature_enabled(user_id):
@@ -158,7 +154,7 @@ def sync_user_health_data(
     try:
         token = ensure_valid_access_token(user_id)
         if not token:
-            raise CommunicationError("Unable to obtain valid access token")
+            raise CommunicationError(DEAD_REFRESH_TOKEN_ERROR)
 
         incoming = fetch_daily_summaries(
             token, lookback_days=GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS
@@ -219,7 +215,7 @@ def sync_all_enabled_users() -> int:
     """Run sync for every user with google_health enabled (ignores schedule slots)."""
     if not GOOGLE_HEALTH_ENABLED:
         return 0
-    if _testing_mode():
+    if is_google_health_testing_mode():
         return 0
 
     count = 0
@@ -234,7 +230,7 @@ def sync_users_due_for_schedule() -> int:
     """Sync enabled users whose local wall-clock schedule slot is due."""
     if not GOOGLE_HEALTH_ENABLED:
         return 0
-    if _testing_mode():
+    if is_google_health_testing_mode():
         return 0
 
     from scheduler.health_sync_schedule import get_due_sync_slot_key

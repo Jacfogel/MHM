@@ -6,7 +6,6 @@ Fetches sleep, activity, and health metrics via health.googleapis.com/v4.
 
 from __future__ import annotations
 
-import os
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
@@ -20,6 +19,7 @@ from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
 from integrations.google_health.schemas import DailySummaryModel, SleepStagesSummaryModel
+from integrations.google_health.testing import is_google_health_testing_mode
 
 logger = get_component_logger("google_health")
 
@@ -54,13 +54,6 @@ class _Fetcher:
     filter_mode: FilterMode
     merge: Callable[[dict[str, Any], dict[str, Any]], None]
     source: FetchSource = "list"
-
-
-@handle_errors("checking Google Health testing mode", default_return=False)
-# not_duplicate: google_health_testing_mode_guard
-def _testing_mode() -> bool:
-    """Return True when MHM_TESTING skips live Google Health API calls."""
-    return os.getenv("MHM_TESTING") == "1"
 
 
 @handle_errors("building Google Health list filter", default_return="")
@@ -115,7 +108,7 @@ def list_data_points(
     page_size: int = 25,
 ) -> list[dict[str, Any]]:
     """List data points for a data type (users/me)."""
-    if _testing_mode():
+    if is_google_health_testing_mode():
         return []
 
     endpoint, filter_prefix, filter_mode = _resolve_data_type_spec(data_type)
@@ -257,7 +250,7 @@ def list_daily_rollups(
     page_size: int = _ROLLUP_DEFAULT_PAGE_SIZE,
 ) -> list[dict[str, Any]]:
     """Fetch daily rollup totals in <=14-day civil chunks (Google API limit)."""
-    if _testing_mode():
+    if is_google_health_testing_mode():
         return []
 
     endpoint, _, _ = _resolve_data_type_spec(data_type)
@@ -702,7 +695,7 @@ def fetch_daily_summaries(
     lookback_days: int = 3,
 ) -> list[dict[str, Any]]:
     """Fetch and normalize daily summaries for the lookback window."""
-    if _testing_mode():
+    if is_google_health_testing_mode():
         return []
 
     end = datetime.now(timezone.utc)

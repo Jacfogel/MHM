@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-07-28 (V6 plan archived; Google Health plan archived)
+> **Last Updated**: 2026-08-21 (Google Health shared testing-mode helper shipped)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -58,15 +58,9 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 **Confirm and retire `core/schemas.py` in-memory profile validators** - Live `data/users/` (4 users) and the latest weekly backup are v2-only (`schema_version: 2` on account/profile/preferences envelopes; no legacy `profile.json` / `preferences.json` without v2). Runtime on-disk path is already v2 per [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md). Remaining work: verify no code path still depends on v1 in-memory `AccountModel` / `PeriodModel` validators before removal.
 - *Created*: 2026-07-02
 - *Estimated effort*: Large
-- *Known flakes*: ~10 ordering-dependent full-suite failures caused by v1/v2 schedule format mismatch (tests write v1 flat format but read back v2 envelope after earlier tests trigger v2 validation). Affected files: `tests/integration/test_account_lifecycle.py`, `tests/behavior/test_account_management_real_behavior.py`, `tests/behavior/test_user_management_coverage_expansion.py`, `tests/integration/test_user_creation.py`, `tests/ui/test_account_creation_ui.py`, `tests/unit/test_health_sync_schedule.py`, `tests/unit/test_google_health_sync_manager.py`, `tests/core/test_storage_scenarios.py`, `tests/core/test_user_data_read_scenarios.py`. All pass individually; fail only during full suite runs.
+- *Known flakes (rechecked 2026-08-21)*: Still ordering-dependent when the listed files run together. Latest `audit --full` was green (0 failures). A serial pytest of those files failed 4 tests that pass alone: `test_load_preferences_data_real_behavior` (empty `categories`), `test_load_context_data_real_behavior` (`KeyError: preferred_name`), `test_load_schedules_data_real_behavior` (`KeyError: morning`), and `test_sync_completes_with_mocked_api` (sync returned False; may be shared test-user leftover rather than schedule envelopes). Affected files: `tests/integration/test_account_lifecycle.py`, `tests/behavior/test_account_management_real_behavior.py`, `tests/behavior/test_user_management_coverage_expansion.py`, `tests/integration/test_user_creation.py`, `tests/ui/test_account_creation_ui.py`, `tests/unit/test_health_sync_schedule.py`, `tests/unit/test_google_health_sync_manager.py`, `tests/core/test_storage_scenarios.py`, `tests/core/test_user_data_read_scenarios.py`.
 
 ### Integrations / refactor hygiene
-
-**Extract shared Google Health `_testing_mode()` helper** - `integrations/google_health/auth.py`, `client.py`, and `sync_manager.py` each define an identical `MHM_TESTING` guard. Add a small shared helper (e.g. `integrations/google_health/testing.py`) and replace the three copies without introducing circular imports.
-- *What it means*: One function owns the testing-mode check; modules import it instead of duplicating the body.
-- *Why it helps*: Removes real duplication while keeping the guard local to the Google Health package.
-- *Created*: 2026-07-02
-- *Estimated effort*: Small
 
 **Google Health deferred leftovers (from archived plan)** - Optional follow-ups after V0/V1 ship; not required for personal use. Live monitoring checklist is in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](archive/HEALTH_INTEGRATION_PLAN.md).
 - *Created*: 2026-07-28

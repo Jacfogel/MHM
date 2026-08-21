@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from integrations.google_health.auth import DEAD_REFRESH_TOKEN_ERROR
 from integrations.google_health.notifications import (
     RECONNECT_NOTICE_TEXT,
     is_auth_sync_failure,
@@ -18,6 +19,7 @@ from integrations.google_health.notifications import (
 def test_is_auth_sync_failure_detects_token_errors():
     assert is_auth_sync_failure("Unable to obtain valid access token")
     assert is_auth_sync_failure("No refresh token for user — reconnect required")
+    assert is_auth_sync_failure(DEAD_REFRESH_TOKEN_ERROR)
     assert not is_auth_sync_failure("Google Health API error for sleep")
     assert not is_auth_sync_failure("")
 
@@ -151,6 +153,83 @@ def test_sync_sends_reconnect_notice_on_auth_pause(test_data_dir, monkeypatch):
 
     state = load_sync_state(user_id) or {}
     assert state.get("reconnect_notice_sent") is True
+
+    account = get_user_data(user_id, "account").get("account", {})
+    assert account.get("features", {}).get("google_health") == "paused"
+
+
+@pytest.mark.unit
+@pytest.mark.user
+@pytest.mark.integrations
+def test_sync_pauses_once_on_refresh_http_400(test_data_dir):
+    from core import get_user_data, update_user_account
+    from integrations.google_health.data_handlers import (
+        ensure_health_directory,
+        load_sync_state,
+        save_auth,
+        save_sync_state,
+    )
+    from integrations.google_health.sync_manager import sync_user_health_data
+    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
+
+    user_id = f"health-notice-user-400-{uuid.uuid4().hex[:10]}"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    update_user_account(user_id, {"features": {"google_health": "enabled"}})
+    ensure_health_directory(user_id)
+    save_auth(
+        user_id,
+        {
+            "schema_version": 2,
+            "updated_at": "2026-06-27 12:00:00",
+            "access_token": "expired",
+            "refresh_token": "dead-refresh",
+            "expires_at": "2000-01-01 00:00:00",
+        },
+    )
+    save_sync_state(
+        user_id,
+        {
+            "schema_version": 2,
+            "consecutive_failures": 0,
+            "reconnect_notice_sent": False,
+            "last_error": "",
+        },
+    )
+    mock_resp = MagicMock()
+    mock_resp.status_code = 400
+    mock_resp.text = (
+        '{"error":"invalid_grant","error_description":"Token has been expired or revoked."}'
+    )
+    with patch.dict("os.environ", {"MHM_TESTING": "0"}, clear=False), patch(
+        "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
+    ), patch(
+        "integrations.google_health.sync_manager._google_health_feature_enabled",
+        return_value=True,
+    ), patch(
+        "integrations.google_health.sync_manager.has_valid_auth",
+        return_value=True,
+    ), patch(
+        "integrations.google_health.sync_manager.GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD",
+        2,
+    ), patch(
+        "integrations.google_health.auth.requests.post",
+        return_value=mock_resp,
+    ), patch(
+        "integrations.google_health.notifications.send_reconnect_notice",
+        return_value=True,
+    ) as send_mock:
+        assert sync_user_health_data(user_id, force=True) is False
+        send_mock.assert_not_called()
+        first_state = load_sync_state(user_id) or {}
+        assert first_state.get("consecutive_failures") == 1
+        assert DEAD_REFRESH_TOKEN_ERROR in (first_state.get("last_error") or "")
+
+        assert sync_user_health_data(user_id, force=True) is False
+        send_mock.assert_called_once_with(user_id)
+
+    state = load_sync_state(user_id) or {}
+    assert state.get("reconnect_notice_sent") is True
+    assert state.get("consecutive_failures") == 2
 
     account = get_user_data(user_id, "account").get("account", {})
     assert account.get("features", {}).get("google_health") == "paused"

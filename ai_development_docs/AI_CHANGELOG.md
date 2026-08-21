@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Quiet missing personalized.json on startup **COMPLETED**
+- Service startup no longer verifies AI-generated message categories (`personalized` has no library file).
+- Rechecked v1/v2 ordering flakes: `audit --full` is green; a serial run of the listed files still fails 4 tests that pass alone.
+
+### 2026-08-21 - Google Health dead refresh token logging **COMPLETED**
+- Shared `is_google_health_testing_mode()` in `integrations/google_health/testing.py`; HTTP 400 refresh now logs reconnect-required instead of a generic status.
+- Sync auto-pause still sends one reconnect notice; `last_error` uses the dead-token message.
+
 ### 2026-08-21 - Fix hourly status zeros and cleanup log routing **COMPLETED**
 - Hourly `Service status` now counts real scheduler jobs, users, and active channels instead of missing APIs that always reported 0.
 - Data-directory/auto-cleanup logs go to `file_ops.log`; backup deletions log at INFO with a removal summary.
@@ -107,18 +115,6 @@ Guidelines:
 - Strip `Best regards`, soft day-wishes, help-offer closers, and `--[Your Name]` signatures.
 - Normalize to `Hi Name.` on one line (including `Hi Name.\nBody`); drop ungrounded check-in sentences when Data has no `Recent check-ins`.
 - Prompts ban Dear/newline-after-name, fake check-in claims, and letter/help-offer closings.
-
-### 2026-08-03 - Personalized prompt + Google Health steps/AZM sync **COMPLETED**
-- Removed concrete sample metrics from `generate_personalized_message()` instructions so models cannot parrot `~5.5h` / `~2,400 steps` / `~45 active minutes` when Data has no recent wellness patterns.
-- Prompt now: copy only `~` values from the Data block; otherwise write a warm general message with no fabricated sleep/steps/activity numbers.
-- Fixed steps/active-zone-minutes `dailyRollUp` 400s: clamp `pageSize` so `window_size_days * page_size <= 90`; re-raise rollup errors so list fallback works.
-
-### 2026-08-02 - Richer Google Health context (rounded sleep/steps) **COMPLETED**
-- Pattern text may include rounded sleep/steps/active minutes; HR/HRV remain categorical bands only.
-- Multi-day streaks (>=2 days): shorter sleep, lighter activity, or higher activity.
-- Signals carry optional `steps` and `active_minutes`; `build_recent_health_patterns()` feeds scheduled messages and chat (`recent_patterns` in health envelope).
-- Personalized prompt may use approximate sleep/steps/active minutes and streaks from Data only; truncate limit 700; guidance summary stays tone-only.
-- Follow-up: regenerated function registry for health context helpers; Ruff SIM108 cleaned in sleep-hour formatting; doc path drift + ASCII cleanup; shared `activity_effort_band()` for personalization and streak phrasing.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

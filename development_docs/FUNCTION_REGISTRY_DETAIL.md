@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-21 13:32:48
+> **Last Generated**: 2026-08-21 14:19:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,7 +15,7 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 270
+- **Files Scanned**: 271
 - **Functions Found**: 2569
 - **Methods Found**: 1377
 - **Classes Found**: 257
@@ -4689,9 +4689,11 @@ Prefer ``scheduler.runtime_access.get_scheduler_manager`` for new call sites.
 
 Call from service entry points (``MHMService`` construction / ``start()``) instead of running
 ``setup_logging()`` at ``core.service`` import time.
-- [OK] `initialize_paths(self)` - Initialize and verify all required file paths for the service.
+- [OK] `initialize_paths(self)` - Initialize and verify required file paths for the service.
 
-Creates paths for log files, user data directories, and message files for all users.
+Includes log files, user data directories, and on-disk message library
+files. AI-generated categories such as personalized have no library file
+and are skipped.
 
 Returns:
     List[str]: List of all initialized file paths
@@ -4742,9 +4744,11 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService.cleanup_reschedule_requests(self)` - Clean up any remaining reschedule request files
   - [OK] `MHMService.cleanup_test_message_requests(self)` - Clean up any remaining test message request files
   - [OK] `MHMService.emergency_shutdown(self)` - Emergency shutdown invoked via signal handling or the process-wide atexit hook.
-  - [OK] `MHMService.initialize_paths(self)` - Initialize and verify all required file paths for the service.
+  - [OK] `MHMService.initialize_paths(self)` - Initialize and verify required file paths for the service.
 
-Creates paths for log files, user data directories, and message files for all users.
+Includes log files, user data directories, and on-disk message library
+files. AI-generated categories such as personalized have no library file
+and are skipped.
 
 Returns:
     List[str]: List of all initialized file paths
@@ -5023,8 +5027,9 @@ Returns None if path resolution fails (caller treats as no users dir).
 #### `integrations/google_health/auth.py`
 **Functions:**
 - [OK] `_expires_at_from_token_response(token_data)` - Convert OAuth expires_in seconds to a local expiry timestamp string.
+- [OK] `_is_dead_refresh_token_failure(status_code, oauth_error)` - Return True when Google rejected the refresh token (reconnect, not retry).
+- [OK] `_oauth_error_fields(response)` - Return OAuth error and error_description from a token response (never tokens).
 - [OK] `_respond(self, status, message)` - Send a minimal HTML response to the browser after OAuth redirect.
-- [OK] `_testing_mode()` - Return True when MHM_TESTING skips live OAuth network calls.
 - [OK] `_token_needs_refresh(auth)` - Return True when the access token is missing, unparseable, or near expiry.
 - [OK] `build_authorization_url(state)` - Build OAuth authorization URL (never include include_granted_scopes).
 - [OK] `do_GET(self)` - Parse authorization code or error from the OAuth redirect query string.
@@ -5072,7 +5077,6 @@ Blocks until callback or timeout. Intended for one-time connect.
 - [OK] `_parse_iso_datetime(raw)` - Parse ISO-8601 timestamps from Google Health API responses.
 - [OK] `_resolve_data_type_spec(data_type)` - Resolve endpoint slug and filter prefix for a data type key.
 - [OK] `_sleep_payload(point)` - Return nested sleep object or the point itself when sleep is top-level.
-- [OK] `_testing_mode()` - Return True when MHM_TESTING skips live Google Health API calls.
 - [OK] `fetch_daily_summaries(access_token)` - Fetch and normalize daily summaries for the lookback window.
 - [OK] `list_daily_rollups(access_token, data_type)` - Fetch daily rollup totals in <=14-day civil chunks (Google API limit).
 - [OK] `list_data_points(access_token, data_type)` - List data points for a data type (users/me).
@@ -5150,7 +5154,6 @@ Returns empty list when confidence is low or data insufficient.
 #### `integrations/google_health/sync_manager.py`
 **Functions:**
 - [OK] `_google_health_feature_enabled(user_id)` - Return True when account.features.google_health is enabled.
-- [OK] `_testing_mode()` - Return True when automated sync should skip live API calls.
 - [OK] `main()` - Dev entry: python -m integrations.google_health.sync_manager --user-id ID
 - [MISSING] `merge_health_signals(existing, rebuilt)` - No description
 - [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
@@ -5161,6 +5164,10 @@ Returns empty list when confidence is low or data insufficient.
 Skips when globally disabled, testing mode, feature not enabled, or no auth.
 - [OK] `sync_users_due_for_schedule()` - Sync enabled users whose local wall-clock schedule slot is due.
 - [MISSING] `upsert_daily_summaries(existing, incoming)` - No description
+
+#### `integrations/google_health/testing.py`
+**Functions:**
+- [OK] `is_google_health_testing_mode()` - Return True when MHM_TESTING skips live Google Health OAuth and API calls.
 
 #### `integrations/google_health/token_crypto.py`
 **Functions:**

@@ -212,6 +212,61 @@ class TestCoreServiceCoverageExpansion:
             assert isinstance(paths, list)
 
     @pytest.mark.behavior
+    def test_initialize_paths_skips_ai_generated_categories(self, service):
+        """AI-generated categories have no library file and must not be verified at startup."""
+        with (
+            patch("core.service.get_all_user_ids") as mock_get_users,
+            patch("core.service.get_user_data") as mock_get_data,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
+            patch("core.config.LOG_MAIN_FILE", "app.log"),
+            patch("core.config.USER_INFO_DIR_PATH", "users"),
+        ):
+            mock_get_users.return_value = ["user1"]
+            mock_get_data.return_value = {
+                "preferences": {
+                    "categories": ["motivational", "personalized", "health"]
+                }
+            }
+            mock_get_dir.return_value = str(Path("users") / "user1")
+
+            paths = service.initialize_paths()
+
+            assert any(path.endswith("motivational.json") for path in paths)
+            assert any(path.endswith("health.json") for path in paths)
+            assert not any(path.endswith("personalized.json") for path in paths)
+
+    @pytest.mark.behavior
+    def test_startup_file_check_allows_missing_personalized_library(
+        self, service, temp_base_dir
+    ):
+        """Missing personalized.json is expected; startup must not treat it as a hard error."""
+        from core.file_operations import verify_file_access
+
+        user_id = "user1"
+        user_dir = Path(temp_base_dir) / user_id
+        messages_dir = user_dir / "messages"
+        messages_dir.mkdir(parents=True)
+        (messages_dir / "motivational.json").write_text("{}", encoding="utf-8")
+        log_file = Path(temp_base_dir) / "app.log"
+        log_file.write_text("ok", encoding="utf-8")
+
+        with (
+            patch("core.service.get_all_user_ids", return_value=[user_id]),
+            patch(
+                "core.service.get_user_data",
+                return_value={
+                    "preferences": {"categories": ["motivational", "personalized"]}
+                },
+            ),
+            patch("core.config.get_user_data_dir", return_value=str(user_dir)),
+            patch("core.config.LOG_MAIN_FILE", str(log_file)),
+            patch("core.config.USER_INFO_DIR_PATH", str(temp_base_dir)),
+        ):
+            paths = service.initialize_paths()
+            assert not (messages_dir / "personalized.json").exists()
+            assert verify_file_access(paths) is True
+
+    @pytest.mark.behavior
     def test_initialize_paths_with_path_generation_error_real_behavior(self, service):
         """Test path initialization with path generation error."""
         with (
