@@ -10,9 +10,27 @@ understand their patterns and progress over time.
 import statistics
 from typing import Any
 from core.logger import get_component_logger
+from checkins.analysis import (
+    MIN_CHECKINS_FOR_NAMED_SCORE,
+    analyze_checkin_entries,
+    calculate_sleep_duration,
+    coerce_numeric,
+    coerce_sleep_hours,
+    coerce_yes_no,
+    convert_score_100_to_5 as to_score_5,
+    convert_score_5_to_100 as to_score_100,
+    determine_numeric_trend,
+    format_wellness_score_report,
+    get_questions_asked,
+    is_answered_value,
+    is_question_asked,
+    response_value,
+    wellness_recommendations,
+    wellness_score_level,
+)
 from checkins.checkin_data_manager import checkin_runtime_timestamp, get_checkins_by_days
 from core.error_handling import ValidationError, handle_errors
-from core.time_utilities import parse_timestamp_full, parse_time_only_minute
+from core.time_utilities import parse_timestamp_full
 
 logger = get_component_logger("user_activity")
 analytics_logger = get_component_logger("user_activity")
@@ -41,145 +59,31 @@ class CheckinAnalytics:
     @handle_errors("getting questions asked", default_return=[])
     def _get_questions_asked(self, checkin: dict) -> list[str]:
         """Return the list of questions asked for a check-in."""
-        questions_asked = checkin.get("questions_asked")
-        if isinstance(questions_asked, list):
-            return [q for q in questions_asked if isinstance(q, str) and q]
-        responses = checkin.get("responses")
-        if isinstance(responses, dict):
-            return [key for key in responses if isinstance(key, str) and key]
-        return []
+        return get_questions_asked(checkin)
 
     @handle_errors("checking question asked", default_return=False)
     def _is_question_asked(self, checkin: dict, question_key: str) -> bool:
         """Check if a question was asked for a check-in."""
-        questions_asked = checkin.get("questions_asked")
-        if isinstance(questions_asked, list):
-            return question_key in questions_asked
-        responses = checkin.get("responses")
-        if isinstance(responses, dict):
-            return question_key in responses
-        return False
+        return is_question_asked(checkin, question_key)
 
     @handle_errors("getting check-in response value", default_return=None)
     def _response_value(self, checkin: dict[str, Any], key: str) -> Any:
-        responses = checkin.get("responses")
-        if isinstance(responses, dict) and key in responses:
-            return responses.get(key)
-        return None
+        return response_value(checkin, key)
 
     @handle_errors("checking answered value", default_return=False)
     def _is_answered_value(self, value: Any) -> bool:
         """Return True if the value counts as answered."""
-        if value is None:
-            return False
-        if value == "SKIPPED":
-            return True
-        if isinstance(value, str):
-            return bool(value.strip())
-        if isinstance(value, (list, dict)):
-            return bool(value)
-        return True
+        return is_answered_value(value)
 
     @handle_errors("coercing yes/no value", default_return=None)
     def _coerce_yes_no(self, value: Any) -> bool | None:
         """Convert yes/no-like values to bool."""
-        if value is None or value == "SKIPPED":
-            return None
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, (int, float)):
-            if value in (0, 1):
-                return bool(value)
-            return None
-        if isinstance(value, str):
-            text = value.strip().lower()
-            if text in {
-                "yes",
-                "y",
-                "yeah",
-                "yep",
-                "true",
-                "1",
-                "absolutely",
-                "definitely",
-                "sure",
-                "of course",
-                "i did",
-                "i have",
-                "100",
-                "100%",
-                "correct",
-                "affirmative",
-                "indeed",
-                "certainly",
-                "positively",
-            }:
-                return True
-            if text in {
-                "no",
-                "n",
-                "nope",
-                "false",
-                "0",
-                "not",
-                "never",
-                "i didn't",
-                "i did not",
-                "i haven't",
-                "i have not",
-                "no way",
-                "absolutely not",
-                "definitely not",
-                "negative",
-                "incorrect",
-                "wrong",
-                "0%",
-            }:
-                return False
-        return None
+        return coerce_yes_no(value)
 
     @handle_errors("coercing sleep hours", default_return=None)
     def _coerce_sleep_hours(self, value: Any) -> float | None:
         """Convert sleep schedule values into hours."""
-        if value is None or value == "SKIPPED":
-            return None
-        if isinstance(value, dict):
-            total_sleep_hours = value.get("total_sleep_hours")
-            if isinstance(total_sleep_hours, (int, float)):
-                return float(total_sleep_hours)
-            sleep_chunks = value.get("sleep_chunks")
-            if isinstance(sleep_chunks, list) and sleep_chunks:
-                chunk_total = 0.0
-                for chunk in sleep_chunks:
-                    if not isinstance(chunk, dict):
-                        return None
-                    duration = chunk.get("duration_hours")
-                    if isinstance(duration, (int, float)):
-                        chunk_total += float(duration)
-                        continue
-                    sleep_time = chunk.get("sleep_time")
-                    wake_time = chunk.get("wake_time")
-                    if sleep_time and wake_time:
-                        chunk_duration = self._calculate_sleep_duration(
-                            sleep_time, wake_time
-                        )
-                        if chunk_duration is None:
-                            return None
-                        chunk_total += chunk_duration
-                        continue
-                    return None
-                return round(chunk_total, 1)
-            sleep_time = value.get("sleep_time")
-            wake_time = value.get("wake_time")
-            if sleep_time and wake_time:
-                return self._calculate_sleep_duration(sleep_time, wake_time)
-            return None
-        if isinstance(value, str):
-            cleaned = value.strip()
-            if "-" in cleaned:
-                parts = cleaned.split("-", 1)
-                return self._calculate_sleep_duration(parts[0].strip(), parts[1].strip())
-        return None
+        return coerce_sleep_hours(value)
 
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
     def get_mood_trends(self, user_id: str, days: int = 30) -> dict:
@@ -219,18 +123,7 @@ class CheckinAnalytics:
         avg_mood = statistics.mean(moods)
         mood_std = statistics.stdev(moods) if len(moods) > 1 else 0
 
-        # Identify trends
-        recent_moods = moods[:7] if len(moods) >= 7 else moods
-        older_moods = moods[7:14] if len(moods) >= 14 else []
-
-        trend = "stable"
-        if len(older_moods) > 0:
-            recent_avg = statistics.mean(recent_moods)
-            older_avg = statistics.mean(older_moods)
-            if recent_avg > older_avg + 0.5:
-                trend = "improving"
-            elif recent_avg < older_avg - 0.5:
-                trend = "declining"
+        trend = determine_numeric_trend(moods, recent_count=7)
 
         # Find best and worst days
         best_day = max(mood_data, key=lambda x: x["mood"])
@@ -302,18 +195,7 @@ class CheckinAnalytics:
         avg_energy = statistics.mean(energies)
         energy_std = statistics.stdev(energies) if len(energies) > 1 else 0
 
-        # Identify trends
-        recent_energies = energies[:7] if len(energies) >= 7 else energies
-        older_energies = energies[7:14] if len(energies) >= 14 else []
-
-        trend = "stable"
-        if len(older_energies) > 0:
-            recent_avg = statistics.mean(recent_energies)
-            older_avg = statistics.mean(older_energies)
-            if recent_avg > older_avg + 0.5:
-                trend = "improving"
-            elif recent_avg < older_avg - 0.5:
-                trend = "declining"
+        trend = determine_numeric_trend(energies, recent_count=7)
 
         # Find best and worst days
         best_day = max(energy_data, key=lambda x: x["energy"])
@@ -656,41 +538,15 @@ class CheckinAnalytics:
                 "data_completeness": 0.0,
             }
 
-        # Additional validation: check if we have meaningful data
-        if len(checkins) < 3:  # Need at least 3 check-ins for meaningful analysis
+        if len(checkins) < MIN_CHECKINS_FOR_NAMED_SCORE:
             return {
                 "error": "Insufficient data for analysis",
                 "total_checkins": len(checkins),
                 "data_completeness": (len(checkins) / days) * 100,
             }
 
-        mood_score = self._calculate_mood_score(checkins)
-        energy_score = self._calculate_energy_score(checkins)
-        habit_score = self._calculate_habit_score(checkins)
-        sleep_score = self._calculate_sleep_score(checkins)
-
-        # Weighted average: mood 30%, energy 20%, habits 30%, sleep 20%
-        overall_score = (
-            (mood_score * 0.3)
-            + (energy_score * 0.2)
-            + (habit_score * 0.3)
-            + (sleep_score * 0.2)
-        )
-
-        return {
-            "score": round(overall_score, 1),
-            "level": self._get_score_level(overall_score),
-            "components": {
-                "mood_score": round(mood_score, 1),
-                "energy_score": round(energy_score, 1),
-                "habit_score": round(habit_score, 1),
-                "sleep_score": round(sleep_score, 1),
-            },
-            "period_days": days,
-            "recommendations": self._get_wellness_recommendations(
-                mood_score, energy_score, habit_score, sleep_score
-            ),
-        }
+        analysis = analyze_checkin_entries(checkins)
+        return format_wellness_score_report(analysis, period_days=days)
 
     @handle_errors(
         "getting check-in history", default_return={"error": "History retrieval failed"}
@@ -1075,26 +931,6 @@ class CheckinAnalytics:
         return task_stats
 
     @staticmethod
-    @handle_errors("coercing numeric value", default_return=None)
-    def _coerce_numeric(value: Any) -> float | None:
-        """Convert numeric-like values to float, skipping invalid or skipped entries."""
-        if value is None or value == "SKIPPED":
-            return None
-        if isinstance(value, bool):
-            return None
-        if isinstance(value, (int, float)):
-            return float(value)
-        if isinstance(value, str):
-            value_str = value.strip()
-            if not value_str:
-                return None
-            try:
-                return float(value_str)
-            except ValueError:
-                return None
-        return None
-
-    @staticmethod
     @handle_errors("bucketing scale value", default_return=None)
     def _bucket_scale_value(value: float | None) -> int | None:
         """Bucket a numeric value to the nearest 1-5 integer (half-up)."""
@@ -1219,174 +1055,33 @@ class CheckinAnalytics:
     @staticmethod
     @handle_errors("converting score from 0-100 to 1-5 scale", default_return=0.0)
     def convert_score_100_to_5(score_100: float) -> float:
-        """
-        Convert a score from 0-100 scale to 1-5 scale for display.
-
-        Args:
-            score_100: Score on 0-100 scale
-
-        Returns:
-            Score on 1-5 scale, rounded to 1 decimal place
-        """
-        if score_100 <= 0:
-            return 0.0
-        return round((score_100 / 25) + 1, 1)
+        """Convert a score from 0-100 scale to 1-5 scale for display."""
+        return to_score_5(score_100)
 
     # not_duplicate: inverse_score_scale_conversion
     @staticmethod
     @handle_errors("converting score from 1-5 to 0-100 scale", default_return=0.0)
     def convert_score_5_to_100(score_5: float) -> float:
-        """
-        Convert a score from 1-5 scale to 0-100 scale for calculations.
+        """Convert a score from 1-5 scale to 0-100 scale for calculations."""
+        return to_score_100(score_5)
 
-        Args:
-            score_5: Score on 1-5 scale
-
-        Returns:
-            Score on 0-100 scale
-        """
-        if score_5 <= 0:
-            return 0.0
-        return (score_5 - 1) * 25
-
-    @handle_errors("calculating mood score", default_return=50.0)
-    def _calculate_mood_score(self, checkins: list[dict]) -> float:
-        """Calculate mood score (0-100)"""
-        moods = []
-        for checkin in checkins:
-            if not self._is_question_asked(checkin, "mood"):
-                continue
-            mood_value = self._coerce_numeric(self._response_value(checkin, "mood"))
-            if mood_value is not None:
-                moods.append(mood_value)
-        if not moods:
-            return 50
-
-        # Convert 1-5 scale to 0-100
-        avg_mood = statistics.mean(moods)
-        return self.convert_score_5_to_100(avg_mood)
-
-    @handle_errors("calculating energy score", default_return=50.0)
-    def _calculate_energy_score(self, checkins: list[dict]) -> float:
-        """Calculate energy score (0-100)"""
-        energies = []
-        for checkin in checkins:
-            if not self._is_question_asked(checkin, "energy"):
-                continue
-            energy_value = self._coerce_numeric(self._response_value(checkin, "energy"))
-            if energy_value is not None:
-                energies.append(energy_value)
-        if not energies:
-            return 50
-
-        # Convert 1-5 scale to 0-100
-        avg_energy = statistics.mean(energies)
-        return self.convert_score_5_to_100(avg_energy)
-
-    @handle_errors("calculating habit score", default_return=50.0)
-    def _calculate_habit_score(self, checkins: list[dict]) -> float:
-        """Calculate habit score (0-100)"""
-        habits = [
-            "ate_breakfast",
-            "brushed_teeth",
-            "medication_taken",
-            "exercise",
-            "hydration",
-        ]
-        total_completion = 0
-        total_possible = 0
-
-        for checkin in checkins:
-            for habit in habits:
-                if not self._is_question_asked(checkin, habit):
-                    continue
-                value = self._coerce_yes_no(self._response_value(checkin, habit))
-                if value is None:
-                    continue
-                total_possible += 1
-                if value:
-                    total_completion += 1
-
-        if total_possible == 0:
-            return 50
-
-        return (total_completion / total_possible) * 100
+    @staticmethod
+    @handle_errors("coercing numeric value", default_return=None)
+    def _coerce_numeric(value: Any) -> float | None:
+        """Convert numeric-like values to float, skipping invalid or skipped entries."""
+        return coerce_numeric(value)
 
     @handle_errors("calculating sleep duration", default_return=None)
     def _calculate_sleep_duration(
         self, sleep_time: str, wake_time: str
     ) -> float | None:
         """Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format)."""
-        try:
-            from datetime import timedelta
-
-            # Parse times
-            sleep_dt = parse_time_only_minute(sleep_time)
-            wake_dt = parse_time_only_minute(wake_time)
-            if sleep_dt is None or wake_dt is None:
-                return None
-
-            # Calculate duration (handle overnight sleep)
-            if wake_dt < sleep_dt:
-                # Sleep spans midnight
-                duration = (
-                    wake_dt + timedelta(days=1) - sleep_dt
-                ).total_seconds() / 3600
-            else:
-                duration = (wake_dt - sleep_dt).total_seconds() / 3600
-
-            return round(duration, 1)
-        except (ValueError, TypeError):
-            return None
-
-    @handle_errors("calculating sleep score", default_return=50.0)
-    def _calculate_sleep_score(self, checkins: list[dict]) -> float:
-        """Calculate sleep score (0-100)"""
-        sleep_records = []
-        for checkin in checkins:
-            hours = None
-            quality = None
-
-            # Get sleep quality
-            if self._is_question_asked(checkin, "sleep_quality"):
-                quality = self._coerce_numeric(self._response_value(checkin, "sleep_quality"))
-
-            # Get sleep hours from sleep_schedule
-            if self._is_question_asked(checkin, "sleep_schedule"):
-                hours = self._coerce_sleep_hours(self._response_value(checkin, "sleep_schedule"))
-
-            # Need both hours and quality to calculate score
-            if hours is not None and quality is not None:
-                # Score based on hours (optimal: 7-9 hours)
-                if 7 <= hours <= 9:
-                    hour_score = 100
-                elif 6 <= hours <= 10:
-                    hour_score = 80
-                else:
-                    hour_score = 40
-
-                # Score based on quality (1-5 scale)
-                quality_score = (quality - 1) * 25
-
-                # Average the scores
-                sleep_records.append((hour_score + quality_score) / 2)
-
-        if not sleep_records:
-            return 50
-
-        return statistics.mean(sleep_records)
+        return calculate_sleep_duration(sleep_time, wake_time)
 
     @handle_errors("determining score level", default_return="unknown")
     def _get_score_level(self, score: float) -> str:
         """Get wellness score level description"""
-        if score >= 80:
-            return "Excellent"
-        elif score >= 65:
-            return "Good"
-        elif score >= 50:
-            return "Fair"
-        else:
-            return "Needs Attention"
+        return wellness_score_level(score)
 
     @handle_errors("generating wellness recommendations", default_return=[])
     def _get_wellness_recommendations(
@@ -1397,28 +1092,9 @@ class CheckinAnalytics:
         sleep_score: float,
     ) -> list[str]:
         """Generate wellness recommendations based on component scores"""
-        recommendations = []
-
-        if mood_score < 60:
-            recommendations.append("Focus on activities that boost your mood")
-
-        if energy_score < 60:
-            recommendations.append(
-                "Consider rest, nutrition, and gentle movement to boost energy"
-            )
-
-        if habit_score < 60:
-            recommendations.append("Work on building consistent daily habits")
-
-        if sleep_score < 60:
-            recommendations.append("Prioritize improving your sleep routine")
-
-        if not recommendations:
-            recommendations.append(
-                "Your wellness is looking good! Keep up the great work!"
-            )
-
-        return recommendations
+        return wellness_recommendations(
+            mood_score, energy_score, habit_score, sleep_score
+        )
 
 
 # Create a global instance for convenience

@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - One shared check-in analysis core
+- **Feature**: Added [`checkins/analysis.py`](../checkins/analysis.py) as the only check-in calculator (`CheckinAnalysis`, `analyze_checkin_entries`). Chat, fallback, and [`CheckinAnalytics.get_wellness_score`](../checkins/checkin_analytics.py) now share one wellness formula (mood 30 / energy 20 / habits 30 / sleep 20). Missing components are omitted and weights renormalized instead of scoring 50.
+- **Context**: [`build_ai_context_envelope`](../ai/context/service.py) stores `checkin_analysis` on the analytics section. Assembly, chatbot summary dict, and fallback read that object instead of recalculating. [`generate_contextual_response`](../ai/chat/chatbot.py) builds one envelope and passes it through overlay, fallback, and prompt assembly.
+- **Docs**: [`SYSTEM_AI_GUIDE.md`](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 now describes envelope-owned analysis and session overlay only. [PLANS.md](PLANS.md) Section 5.0.5 records the consolidation. Retired private score calculators and the old AI wellness weights in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json).
+- **Tests**: [`tests/unit/test_checkin_analysis_shared.py`](../tests/unit/test_checkin_analysis_shared.py) proves AI analysis and the wellness report match for the same rows. Envelope reuse test covers assemble-with-supplied-envelope. Targeted unit/behavior suite: 108 passed.
+
 ### 2026-08-21 - Stop personalized message homework leaks
 - **Fix**: [`generate_response()`](../ai/chat/chatbot.py) now post-processes with the real generation `mode`. Personalized Discord sends were cleaned as `chat`, so letter-sign-off stripping never ran. Live leak: `Best wishes, [Your Name]` plus a `Use Case 1: Supporting a Friend's Wellness Journey` / Samantha-and-Emily writing-prompt dump.
 - **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) cuts at the first sign-off after the message body (junk after `[Your Name]` no longer protects the signature), strips `Take care of yourself and have a wonderful day`, and removes leftover `[Your Name]`.

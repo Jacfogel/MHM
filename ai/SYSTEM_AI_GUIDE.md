@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-08-21
+> **Last Updated**: 2026-08-22
 
 ## 1. Overview
 
@@ -37,7 +37,7 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | `ai/prompts/flows.py` | Named product-AI flows and category ownership (`chat_response`, `action_interpretation`, `action_result_response`, `fallback_response`). |
 | `ai/client/cache_manager.py` | Response and context caching with TTL and LRU cleanup. |
 | `ai/context/service.py` | Canonical `AIContextEnvelope` for structured product-AI context. |
-| `ai/context/analytics.py` | Check-in metrics (`ContextAnalysis`, `analyze_checkin_entries`). |
+| `ai/context/analytics.py` | AI re-export of shared check-in analysis (`CheckinAnalysis`, `analyze_checkin_entries`). |
 | `ai/context/chatbot_context.py` | Envelope-backed chatbot summary dict for contextual fallback personalization. |
 | `ai/context/history.py` | Persists and retrieves per-user conversational history. |
 | `ai/client/lm_studio_manager.py` | Detects LM Studio status and model readiness. |
@@ -53,7 +53,7 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 Supporting modules:
 
 - `user/context_manager.py`  
-  - Aggregates user profile, preferences, recent activity, insights, and schedules into an AI context structure.
+  - In-memory session-history overlay on envelope-backed chatbot context.
 - `core/response_tracking.py`  
   - Stores and retrieves recent responses and check-ins for use in context.
 - `core/config.py`  
@@ -74,7 +74,7 @@ At a high level:
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
 4. The chatbot:
    - Detects mode (`chat`, `command`, `command_with_clarification`, or `personalized`).
-   - Builds context via `build_ai_context_envelope()` (`ai/context/service.py`) and, for contextual chat summaries, `build_chatbot_context_dict()` / session overlay (`user/context_manager.py`).
+   - Builds one `AIContextEnvelope` and reuses it for session overlay, fallback, and conversational prompt assembly.
    - Builds prompts via `PromptManager.compose_product_prompt()` plus envelope prompt sections (not duplicated behavioral rules in code).
    - Calls LM Studio (if available) with timeouts and error handling.
    - Applies **mode-specific** cleaning (`_post_process_generated_response(mode, ...)`): personalized messages strip letter sign-offs, homework-style `Use Case` / `Scenario` dumps, and placeholder names like `[Your Name]`.
@@ -187,23 +187,20 @@ The command system prompt must list the same intents as the rule-based parser. D
 
 ### 4.1. Context envelope and user context manager
 
-Product-AI context is envelope-first; `UserContextManager` remains for integration paths and in-memory session history.
+Product-AI context is envelope-first. Derived check-in metrics are computed once and stored on the envelope.
 
+- `checkins/analysis.py` (`CheckinAnalysis`, `analyze_checkin_entries`)  
+  - Canonical check-in calculator for chat, fallback, and `CheckinAnalytics` wellness/reports. One wellness formula (mood 30 / energy 20 / habits 30 / sleep 20); missing components are omitted and weights renormalized. Named wellness score still requires at least 3 check-ins.
 - `ai/context/service.py` (`build_ai_context_envelope`, `AIContextEnvelope`)  
-  - Canonical structured context: account, preferences, tasks, check-ins, messages, schedules, notebooks, health, conversation, and action catalog sections.
+  - Canonical structured context: account, preferences, tasks, check-ins, messages, schedules, notebooks, health, conversation, action catalog, and analytics (`checkin_analysis` plus counts).
 - `ai/context/analytics.py`  
-  - Shared check-in analytics (`analyze_checkin_entries`) for phrasing, assembly, and fallback routing.
+  - Thin AI re-export of `checkins.analysis` so existing imports keep working.
 - `ai/context/chatbot_context.py` (`build_chatbot_context_dict`)  
-  - Envelope-backed legacy summary dict for contextual chat fallback personalization.
+  - Envelope-backed summary dict for contextual fallback personalization. Accepts an existing envelope.
 - `user/context_manager.py` (`UserContextManager`)  
-  - Manages user profile, preferences, schedules, check-ins, and derived insights.
-  - Uses `get_user_data`, `get_recent_checkins`, and schedule utilities to build a structured `ai_context` dictionary.
-  - Key fields include:
-    - `preferred_name`
-    - `active_categories`
-    - `messaging_service`
-    - `active_schedules`
-    - Recent activity and mood trends
+  - Session-history overlay only. Prefer `build_chatbot_context_dict` when overlay is not needed. Accepts an existing envelope.
+
+`generate_contextual_response` builds the envelope once and passes it through overlay, fallback, and prompt assembly.
 
 If context cannot be built (for example, missing data, file corruption), envelope builders fall back to safe empty sections rather than failing the entire AI request.
 
@@ -221,14 +218,15 @@ Conversation history lives through:
 
 `analyze_checkin_entries` uses recent check-in rows to include:
 
-- A short summary of recent check-ins (for example, average mood over recent days).
-- A compact representation of recent conversation topics when available.
+- Average mood/energy, breakfast and brushing rates, trends, and the shared wellness score.
+- Insights used by phrasing and fallback copy.
 
 When you add new forms of tracked data, prefer:
 
 1. Extending `core/response_tracking.py` (or related tracking utilities).
-2. Updating `build_ai_context_envelope` section builders and `UserContextManager` where still needed.
-3. Keeping the context summary short and stable to avoid prompt bloat.
+2. Updating `build_ai_context_envelope` section builders.
+3. Putting new derived check-in metrics in `checkins/analysis.py`, not in assembly or `CheckinAnalytics`.
+4. Keeping the context summary short and stable to avoid prompt bloat.
 
 ### 4.3. Conversational context and actionability
 

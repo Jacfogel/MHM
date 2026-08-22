@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - One shared check-in analysis core **COMPLETED**
+- Chat, fallback, and the analytics UI now use `checkins/analysis.py` for breakfast/mood/energy/wellness.
+- The envelope stores that analysis once; contextual chat builds the envelope once and reuses it.
+- Wellness no longer invents a 50 for missing sleep/habits; named scores still need 3 check-ins.
+
 ### 2026-08-21 - Stop personalized message homework leaks **COMPLETED**
 - Scheduled personalized Discord messages now run personalized post-process (the live path had been cleaning them as chat).
 - Letter sign-offs, `[Your Name]`, and `Use Case` / `Scenario` writing-prompt dumps are cut before send.
@@ -109,12 +114,6 @@ Guidelines:
 - Omitted default-copy JSON sections/keys; retired dead `quick_audit.audit_scripts` (Tier 1 = `audit_tiers`).
 - Fixed `audit --quick` guide prose; `STORAGE_SCOPE_*` re-exported from `audit_scope`; prompt category/flow alignment test.
 - Follow-up: doc-sync path-drift + F401/SIM300 from that SSOT work cleared (`doc-sync` PASS).
-
-### 2026-08-06 - LIST_OF_LISTS consolidation scan, rewrite, and SSOT cleanup **COMPLETED**
-- Rewrote LIST_OF_LISTS as current ownership map; trimmed completed-history tables.
-- Follow-up: live/example `base_exclusions` -> additions/removals; emptied portable `CONFIG_VALIDATOR` / `DOMAIN_MAPPER_DEFAULTS` / `known_deleted_files`; omitted duplicate JSON keys (`test_run`, `analyze_duplicate_functions`, identity `directory_to_marker`, matching error_handling scalars).
-- Same-day hygiene: documented MHM `derived_prefix_excludes.core` (includes `development_tools` in `CORE_MODULES`); fixed `EXPECTED_TOOLS` tier comments/count; shared `_PYTHON_KEYWORDS_SHARED` for path-drift keyword tuples.
-- Updated config.py comments that pointed at old LIST_OF_LISTS section numbers.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

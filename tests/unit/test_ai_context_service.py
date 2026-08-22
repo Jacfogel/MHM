@@ -85,6 +85,8 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert "guidance_summary" in structured["health"]
     assert "recent_patterns" in structured["health"]
     assert structured["analytics"]["recent_checkin_count"] == 1
+    assert structured["analytics"]["checkin_analysis"].total_entries == 1
+    assert structured["analytics"]["checkin_analysis"].avg_mood == 4.0
     assert "recent_chat_interactions" in structured["conversation"]
     assert "create_task" in structured["action_catalog"]["available"]
     assert structured["action_catalog"]["actions"]["create_task"]["domain"] == "tasks"

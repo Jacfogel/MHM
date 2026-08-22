@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-21 14:20:21
+> **Last Generated**: 2026-08-22 15:18:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 269
-- **Total Imports**: 2269
+- **Files Scanned**: 270
+- **Total Imports**: 2275
 - **Standard Library**: 677 (29.8%)
-- **Third-Party**: 217 (9.6%)
-- **Local Imports**: 1375 (60.6%)
+- **Third-Party**: 218 (9.6%)
+- **Local Imports**: 1380 (60.7%)
 
 ## Dependency Decision Trees
 
@@ -92,7 +92,7 @@ External libraries provide channel and UI support.
 - `ai/client/lm_studio_client.py` -> requests
 - `ai/client/lm_studio_manager.py` -> requests
 - `checkins/checkin_schemas.py` -> pydantic
-- `checkins/__init__.py` -> checkin_analytics, checkin_data_manager
+- `checkins/__init__.py` -> analysis, checkin_analytics
 
 
 ## Critical Dependencies for AI Context
@@ -115,10 +115,10 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
-- `ai/chat/chatbot.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
+- `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
+- `ai/context/service.py` -> 15 unique local dependencies (high fan-out; review for inappropriate edges) (16 import statements; 1 duplicate)
 - `core/service.py` -> 15 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 5 duplicate)
-- `ai/context/service.py` -> 14 unique local dependencies (high fan-out; review for inappropriate edges) (15 import statements; 1 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)

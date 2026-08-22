@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.context.analytics import analyze_checkin_entries
-from ai.context.service import build_ai_context_envelope
+from ai.context.service import AIContextEnvelope, build_ai_context_envelope
+from checkins.analysis import analysis_from_structured
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
@@ -17,13 +17,14 @@ def build_chatbot_context_dict(
     user_id: str,
     *,
     include_conversation_history: bool = True,
+    envelope: AIContextEnvelope | None = None,
 ) -> dict[str, Any]:
     """
     Build the chatbot summary dict used by ``generate_contextual_response``.
 
     New product-AI code should use ``AIContextEnvelope`` directly.
     """
-    envelope = build_ai_context_envelope(
+    envelope = envelope or build_ai_context_envelope(
         user_id,
         include_conversation_history=include_conversation_history,
         requested_intent="chatbot_context_summary",
@@ -50,7 +51,7 @@ def build_chatbot_context_dict(
     conversation = structured.get("conversation") or {}
 
     recent_checkins = list(checkins.get("recent") or [])
-    analysis = analyze_checkin_entries(recent_checkins)
+    analysis = analysis_from_structured(structured)
 
     user_profile = {
         "preferred_name": (

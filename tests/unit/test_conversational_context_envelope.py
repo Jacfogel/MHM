@@ -89,6 +89,28 @@ def test_build_context_parts_phrases_from_supplied_envelope(monkeypatch):
     assert "Their task information:" in joined
 
 
+def test_assemble_comprehensive_messages_reuses_supplied_envelope(monkeypatch):
+    calls = []
+
+    def _fake_build_envelope(user_id, **kwargs):
+        calls.append((user_id, kwargs))
+        return _envelope()
+
+    monkeypatch.setattr(
+        "ai.context.assembly.build_ai_context_envelope",
+        _fake_build_envelope,
+    )
+
+    messages = assemble_comprehensive_messages(
+        "user-1",
+        "hello",
+        envelope=_envelope(),
+    )
+
+    assert messages[1] == {"role": "user", "content": "hello"}
+    assert calls == []
+
+
 def test_assemble_comprehensive_messages_uses_chat_response_flow(monkeypatch):
     calls = []
 

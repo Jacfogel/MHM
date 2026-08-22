@@ -4,8 +4,8 @@
 
 from typing import Any
 
-from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
+from checkins.analysis import analysis_from_structured
 from ai.context.phraser import (
     _append_feature_availability_line,
     _checkin_completed_today,
@@ -76,10 +76,11 @@ def _assemble_product_flow_messages(
     user_prompt: str,
     *,
     result_metadata: dict[str, Any] | None = None,
+    envelope: AIContextEnvelope | None = None,
 ) -> list[dict[str, Any]]:
     """Shared builder for product-AI flow message arrays."""
     flow = get_product_ai_prompt_flow(flow_name)
-    envelope = build_ai_context_envelope(
+    envelope = envelope or build_ai_context_envelope(
         user_id,
         requested_intent=flow.name,
         prompt_request=user_prompt,
@@ -127,10 +128,15 @@ def _assemble_product_flow_messages(
     ],
 )
 def assemble_comprehensive_messages(
-    user_id: str, user_prompt: str
+    user_id: str,
+    user_prompt: str,
+    *,
+    envelope: AIContextEnvelope | None = None,
 ) -> list[dict[str, Any]]:
     """Build system + user messages for comprehensive conversational generation."""
-    return _assemble_product_flow_messages("chat_response", user_id, user_prompt)
+    return _assemble_product_flow_messages(
+        "chat_response", user_id, user_prompt, envelope=envelope
+    )
 
 
 @handle_errors(
@@ -214,7 +220,7 @@ def _append_checkin_summary_from_envelope(
     if not recent:
         parts.append("They have not completed any check-ins yet.")
         return
-    analysis = analyze_checkin_entries(recent)
+    analysis = analysis_from_structured(structured)
     parts.append(phrase_checkin_summary(analysis, recent))
 
 
@@ -243,7 +249,7 @@ def _append_activity_and_mood_trends_from_envelope(
         return
     recent = list(checkins.get("recent") or [])
     _phrase_recent_checkin_count(parts, len(recent))
-    analysis = analyze_checkin_entries(recent)
+    analysis = analysis_from_structured(structured)
     _phrase_mood_trend(
         parts,
         analysis.avg_mood,

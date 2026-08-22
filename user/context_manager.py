@@ -27,7 +27,11 @@ class UserContextManager:
 
     @handle_errors("building context with session overlay", default_return=None)
     def build_context_with_session_overlay(
-        self, user_id: str, *, include_session_history: bool = True
+        self,
+        user_id: str,
+        *,
+        include_session_history: bool = True,
+        envelope=None,
     ) -> dict[str, Any]:
         """
         Build envelope-backed chatbot context with in-memory session exchanges overlaid.
@@ -37,7 +41,9 @@ class UserContextManager:
         from ai.context.chatbot_context import build_chatbot_context_dict
 
         context = build_chatbot_context_dict(
-            user_id, include_conversation_history=include_session_history
+            user_id,
+            include_conversation_history=include_session_history,
+            envelope=envelope,
         )
         if not context:
             return self._get_minimal_context(user_id)

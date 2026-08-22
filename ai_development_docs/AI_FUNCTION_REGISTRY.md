@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-21 14:19:46
+> **Last Generated**: 2026-08-22 15:17:56
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.1% [!] GOOD**
-- **Total Functions**: 2569
-- **Total Methods**: 1377
-- **Documented**: 3476/3946
-- **Files Scanned**: 271
+### **Documentation Coverage: 88.2% [!] GOOD**
+- **Total Functions**: 2583
+- **Total Methods**: 1373
+- **Documented**: 3489/3956
+- **Files Scanned**: 272
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -170,7 +170,6 @@ Core System Decision Tree:
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `ai/context/analytics.py` - 3/6 functions undocumented (50% coverage)
 - `communication/communication_channels/discord/ui/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
@@ -207,8 +206,8 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (38 files, 409 functions)
-- `checkins/` -  (6 files, 136 functions)
+- `ai/` - AI chatbot functionality (38 files, 404 functions)
+- `checkins/` -  (7 files, 151 functions)
 - `communication/` - Communication channels and message processing (90 files, 1191 functions)
 - `core/` - System utilities and data management (34 files, 629 functions)
 - `integrations/` -  (13 files, 114 functions)

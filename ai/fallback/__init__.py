@@ -39,8 +39,16 @@ class FallbackResponses:
         "getting contextual fallback",
         default_return="I'd like to help with that! How can I assist you today?",
     )
-    def contextual(self, user_prompt: str, user_id: str | None = None) -> str:
-        text, _category = build_contextual_fallback(user_prompt, user_id)
+    def contextual(
+        self,
+        user_prompt: str,
+        user_id: str | None = None,
+        *,
+        envelope=None,
+    ) -> str:
+        text, _category = build_contextual_fallback(
+            user_prompt, user_id, envelope=envelope
+        )
         return text
 
     @handle_errors(

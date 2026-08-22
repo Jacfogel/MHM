@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
+from checkins.analysis import analysis_from_structured
 from ai.fallback.profile_helpers import name_prefix_from_context, preferred_name_from_context
 from core.error_handling import handle_errors
 
@@ -86,4 +86,4 @@ def analyze_fallback_checkins(context: FallbackContext | None):
     rows = context.recent_checkin_rows
     if not rows:
         return None
-    return analyze_checkin_entries(rows)
+    return analysis_from_structured(context.structured)

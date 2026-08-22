@@ -29,10 +29,12 @@ class ResponseGenerator:
         ],
     )
     def create_comprehensive_context_prompt(
-        self, user_id: str, user_prompt: str
+        self, user_id: str, user_prompt: str, envelope=None
     ) -> list:
         """Create a comprehensive context prompt with all user data for LM Studio."""
-        return assemble_comprehensive_messages(user_id, user_prompt)
+        return assemble_comprehensive_messages(
+            user_id, user_prompt, envelope=envelope
+        )
 
 
 _response_generator: ResponseGenerator | None = None

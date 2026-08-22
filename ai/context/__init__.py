@@ -2,6 +2,7 @@
 
 from ai.context.assembly import assemble_comprehensive_messages, build_context_parts
 from ai.context.analytics import (
+    CheckinAnalysis,
     ContextAnalysis,
     analyze_checkin_entries,
 )
@@ -20,6 +21,7 @@ from ai.context.service import (
 __all__ = [
     "assemble_comprehensive_messages",
     "build_context_parts",
+    "CheckinAnalysis",
     "ContextAnalysis",
     "analyze_checkin_entries",
     "ConversationHistory",

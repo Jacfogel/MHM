@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-21 14:19:46
+> **Last Generated**: 2026-08-22 15:17:56
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 271
-- **Functions Found**: 2569
-- **Methods Found**: 1377
+### **Function Documentation Coverage: 88.2% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 272
+- **Functions Found**: 2583
+- **Methods Found**: 1373
 - **Classes Found**: 257
-- **Total Items**: 3946
-- **Functions Documented**: 2250
-- **Methods Documented**: 1226
+- **Total Items**: 3956
+- **Functions Documented**: 2267
+- **Methods Documented**: 1222
 - **Classes Documented**: 187
-- **Total Documented**: 3476
+- **Total Documented**: 3489
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-21
+- **Last Updated**: 2026-08-22
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -212,12 +212,12 @@ answer with the stated fact instead of a vague or forgetful reply.
 #### `ai/chat/response_generator.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
-- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
+- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for LM Studio.
 - [OK] `get_response_generator()` - Return the shared response generator.
 **Classes:**
 - [OK] `ResponseGenerator` - Build conversational prompts for LM Studio chat calls.
   - [OK] `ResponseGenerator.__init__(self)` - Special Python method
-  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
+  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for LM Studio.
 
 #### `ai/chat/response_postprocess.py`
 **Functions:**
@@ -237,8 +237,8 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
-- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') and homework-style `Use Case` / `Scenario` dumps from model output.
-- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, meta notes, leftover `[Your Name]`, and any junk that follows the first sign-off line.
+- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, and meta notes.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
 - [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
 - [OK] `strip_ungrounded_checkin_claims(text)` - Drop sentences that cite check-ins when the prompt had no Recent check-ins data.
@@ -329,15 +329,6 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 #### `ai/context/__init__.py`
 
 #### `ai/context/analytics.py`
-**Functions:**
-- [OK] `__post_init__(self)` - Special Python method
-- [MISSING] `_calculate_wellness_score(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate)` - No description
-- [MISSING] `_determine_trend(values)` - No description
-- [MISSING] `_generate_insights(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - No description
-- [OK] `analyze_checkin_entries(recent_checkins)` - Compute check-in metrics from raw recent-response rows.
-**Classes:**
-- [OK] `ContextAnalysis` - Canonical check-in analytics from recent response rows.
-  - [OK] `ContextAnalysis.__post_init__(self)` - Special Python method
 
 #### `ai/context/assembly.py`
 **Functions:**
@@ -871,19 +862,43 @@ Returns:
 
 #### `checkins/__init__.py`
 
+#### `checkins/analysis.py`
+**Functions:**
+- [OK] `__post_init__(self)` - Special Python method
+- [OK] `analysis_from_structured(structured)` - Return envelope analytics when present, otherwise analyze recent check-in rows.
+- [OK] `analyze_checkin_entries(recent_checkins)` - Compute check-in metrics from raw recent-response rows.
+- [OK] `calculate_habit_score(checkins)` - Return 0-100 habit completion among asked wellness habits, or None if none asked.
+- [OK] `calculate_sleep_duration(sleep_time, wake_time)` - Calculate sleep duration in hours from HH:MM sleep and wake times.
+- [OK] `calculate_sleep_score(checkins)` - Return 0-100 sleep score from hours plus quality, or None if incomplete.
+- [OK] `calculate_wellness_score(mood_score, energy_score, habit_score, sleep_score)` - Weighted wellness score; missing components are omitted and weights renormalized.
+- [OK] `coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
+- [OK] `coerce_sleep_hours(value)` - Convert sleep schedule values into hours.
+- [OK] `coerce_yes_no(value)` - Convert yes/no-like values to bool.
+- [OK] `collect_numeric_values(checkins, key)` - Collect asked-and-answered numeric values for one check-in field.
+- [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale.
+- [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale.
+- [OK] `determine_numeric_trend(values, recent_count)` - Return improving, declining, or stable from a numeric series.
+- [OK] `format_wellness_score_report(analysis)` - Shape CheckinAnalysis into the UI/command wellness-score payload.
+- [OK] `generate_insights(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - Phrase compact check-in insights for prompts and fallback copy.
+- [OK] `get_questions_asked(checkin)` - Return the list of questions asked for a check-in.
+- [OK] `is_answered_value(value)` - Return True if the value counts as answered.
+- [OK] `is_question_asked(checkin, question_key)` - Return True when a question was asked or is present on the row.
+- [OK] `response_value(checkin, key)` - Read a check-in answer from nested responses or a flattened top-level key.
+- [OK] `wellness_recommendations(mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations from present component scores.
+- [OK] `wellness_score_level(score)` - Get wellness score level description.
+**Classes:**
+- [OK] `CheckinAnalysis` - Canonical check-in metrics from recent response rows.
+  - [OK] `CheckinAnalysis.__post_init__(self)` - Special Python method
+
 #### `checkins/checkin_analytics.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the CheckinAnalytics instance.
 
 This class provides analytics and insights from check-in data.
 - [OK] `_bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
-- [OK] `_calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
-- [OK] `_calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
-- [OK] `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
 - [OK] `_calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
 - [OK] `_calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
 - [OK] `_calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
-- [OK] `_calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
 - [OK] `_calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
 - [OK] `_coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
 - [OK] `_coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
@@ -899,19 +914,7 @@ This class provides analytics and insights from check-in data.
 - [OK] `_is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
 - [MISSING] `_response_value(self, checkin, key)` - No description
 - [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
-
-Args:
-    score_100: Score on 0-100 scale
-
-Returns:
-    Score on 1-5 scale, rounded to 1 decimal place
 - [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
-
-Args:
-    score_5: Score on 1-5 scale
-
-Returns:
-    Score on 0-100 scale
 - [OK] `get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
 - [OK] `get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
 - [OK] `get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
@@ -937,13 +940,9 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 
 This class provides analytics and insights from check-in data.
   - [OK] `CheckinAnalytics._bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
-  - [OK] `CheckinAnalytics._calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
-  - [OK] `CheckinAnalytics._calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
-  - [OK] `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
   - [OK] `CheckinAnalytics._calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
   - [OK] `CheckinAnalytics._calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
   - [OK] `CheckinAnalytics._calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
-  - [OK] `CheckinAnalytics._calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
   - [OK] `CheckinAnalytics._calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
   - [OK] `CheckinAnalytics._coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
   - [OK] `CheckinAnalytics._coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
@@ -959,19 +958,7 @@ This class provides analytics and insights from check-in data.
   - [OK] `CheckinAnalytics._is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
   - [MISSING] `CheckinAnalytics._response_value(self, checkin, key)` - No description
   - [OK] `CheckinAnalytics.convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
-
-Args:
-    score_100: Score on 0-100 scale
-
-Returns:
-    Score on 1-5 scale, rounded to 1 decimal place
   - [OK] `CheckinAnalytics.convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
-
-Args:
-    score_5: Score on 1-5 scale
-
-Returns:
-    Score on 0-100 scale
   - [OK] `CheckinAnalytics.get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
   - [OK] `CheckinAnalytics.get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
   - [OK] `CheckinAnalytics.get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting

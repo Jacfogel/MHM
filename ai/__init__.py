@@ -36,7 +36,7 @@ from ai.prompts.command_registry import (
     get_command_intent_names,
     inject_command_actions_into_prompt,
 )
-from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
+from ai.context.analytics import CheckinAnalysis, ContextAnalysis, analyze_checkin_entries
 from ai.context.service import (
     AIContextEnvelope,
     AIContextSection,
@@ -97,6 +97,7 @@ __all__ = [
     "get_command_intent_names",
     "format_command_actions_for_prompt",
     "inject_command_actions_into_prompt",
+    "CheckinAnalysis",
     "ContextAnalysis",
     "analyze_checkin_entries",
     "AIContextEnvelope",

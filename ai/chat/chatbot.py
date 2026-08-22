@@ -830,8 +830,17 @@ class AIChatBotSingleton:
         if timeout is None:
             timeout = AI_CONTEXTUAL_RESPONSE_TIMEOUT
 
-        # Envelope-backed context dict with in-memory session overlay.
-        context = user_context_manager.build_context_with_session_overlay(user_id)
+        from ai.context.service import build_ai_context_envelope
+
+        envelope = build_ai_context_envelope(
+            user_id,
+            requested_intent="chat_response",
+            prompt_request=user_prompt,
+            include_conversation_history=True,
+        )
+        context = user_context_manager.build_context_with_session_overlay(
+            user_id, envelope=envelope
+        )
         if not context:
             context = {}
         profile, context_summary, context_str = self._build_contextual_summary(context)
@@ -846,7 +855,9 @@ class AIChatBotSingleton:
             return response
 
         if not self.lm_studio_available:
-            fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
+            fallback_response = get_fallback_responses().contextual(
+                user_prompt, user_id, envelope=envelope
+            )
             fallback_response = get_fallback_responses().personalize_with_profile_name(
                 fallback_response, context_summary, profile
             )
@@ -860,7 +871,7 @@ class AIChatBotSingleton:
 
         # Create comprehensive context-aware messages for LM Studio with all user data
         messages = get_response_generator().create_comprehensive_context_prompt(
-            user_id, user_prompt
+            user_id, user_prompt, envelope=envelope
         )
 
         # Skip contextual cache when prior turns exist so follow-ups can use

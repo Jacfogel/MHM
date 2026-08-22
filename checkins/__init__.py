@@ -1,5 +1,10 @@
 """Check-in domain package."""
 
+from .analysis import (
+    CheckinAnalysis,
+    ContextAnalysis,
+    analyze_checkin_entries,
+)
 from .checkin_analytics import CheckinAnalytics
 from .checkin_data_manager import (
     checkin_runtime_timestamp,
@@ -18,7 +23,10 @@ from .checkin_service import (
 )
 
 __all__ = [
+    "CheckinAnalysis",
     "CheckinAnalytics",
+    "ContextAnalysis",
+    "analyze_checkin_entries",
     "CheckinStartStatus",
     "DynamicCheckinManager",
     "RecentCheckinSummary",

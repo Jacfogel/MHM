@@ -3,8 +3,9 @@
 """
 Format computed context facts into natural-language prompt sections.
 
-Analytics and aggregation live in ``ai.context.analytics`` (``analyze_checkin_entries``).
+Analytics and aggregation live in ``checkins.analysis`` (re-exported by ``ai.context.analytics``).
 This module only phrases those facts for comprehensive conversational prompts.
+Production chat uses envelope wrappers in ``ai.context.assembly``; ``append_checkin_summary(parts, user_id)`` is a test helper that still loads rows by user id.
 """
 
 from datetime import date

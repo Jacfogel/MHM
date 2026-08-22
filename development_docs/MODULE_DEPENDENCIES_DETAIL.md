@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-21 14:20:05
+> **Last Generated**: 2026-08-22 15:18:15
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 269
-- **Total Imports Found**: 2269
-- **Dependencies Documented**: 269 (100% coverage)
+- **Files Scanned**: 270
+- **Total Imports Found**: 2275
+- **Dependencies Documented**: 270 (100% coverage)
 - **Standard Library Imports**: 677 (29.8%)
-- **Third-Party Imports**: 217 (9.6%)
-- **Local Imports**: 1375 (60.6%)
-- **Last Updated**: 2026-08-21
+- **Third-Party Imports**: 218 (9.6%)
+- **Local Imports**: 1380 (60.7%)
+- **Last Updated**: 2026-08-22
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 677 imports (29.8%)
-- **Third-Party**: 217 imports (9.6%)
-- **Local**: 1375 imports (60.6%)
+- **Third-Party**: 218 imports (9.6%)
+- **Local**: 1380 imports (60.7%)
 
 ## Module Dependencies by Directory
 
@@ -47,7 +47,7 @@
     - `ai.chat.response_generator (ResponseGenerator, get_response_generator)` (NEW)
     - `ai.client.cache_manager (CacheEntry, ContextCache, ResponseCache, get_context_cache, get_response_cache)` (NEW)
     - `ai.client.lm_studio_manager (LMStudioManager, ensure_lm_studio_ready, get_lm_studio_manager, is_lm_studio_ready)` (NEW)
-    - `ai.context.analytics (ContextAnalysis, analyze_checkin_entries)` (NEW)
+    - `ai.context.analytics (CheckinAnalysis, ContextAnalysis, analyze_checkin_entries)` (NEW)
     - `ai.context.assembly (assemble_action_result_messages, assemble_comprehensive_messages, build_context_parts)` (NEW)
     - `ai.context.history (ConversationHistory, ConversationMessage, ConversationSession, get_conversation_history)` (NEW)
     - `ai.context.service (AIContextEnvelope, AIContextSection, build_ai_context_envelope)` (NEW)
@@ -147,6 +147,7 @@
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)
     - `ai.client.lm_studio_manager (is_lm_studio_ready)` (NEW)
+    - `ai.context.service (build_ai_context_envelope)` (NEW)
     - `ai.fallback (data_access, get_fallback_responses)` (NEW)
     - `ai.fallback.profile_helpers (name_prefix_from_context)` (NEW)
     - `ai.prompts.command_interpreter (get_command_interpreter)` (NEW)
@@ -175,7 +176,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.context.service, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, ai/chat/action_planner.py, communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -376,7 +377,7 @@
 - **Purpose**: Communication channel implementation for __init__
 - **Dependencies**:
   - **Local**:
-    - `ai.context.analytics (ContextAnalysis, analyze_checkin_entries)` (NEW)
+    - `ai.context.analytics (CheckinAnalysis, ContextAnalysis, analyze_checkin_entries)` (NEW)
     - `ai.context.assembly (assemble_comprehensive_messages, build_context_parts)` (NEW)
     - `ai.context.history (ConversationHistory, ConversationMessage, ConversationSession, get_conversation_history)` (NEW)
     - `ai.context.service (AIContextEnvelope, AIContextSection, build_ai_context_envelope)` (NEW)
@@ -393,24 +394,15 @@
 - **Purpose**: Communication channel implementation for analytics
 - **Dependencies**:
   - **Local**:
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `__future__ (annotations)`
-    - `dataclasses (dataclass)`
-    - `typing (Any)`
+    - `checkins.analysis (CheckinAnalysis, ContextAnalysis, _calculate_wellness_score, _determine_trend, _generate_insights, analyze_checkin_entries, calculate_wellness_score, determine_numeric_trend, generate_insights)` (NEW)
 - **Used by**:
   - `ai/__init__.py`
   - `ai/context/__init__.py`
-  - `ai/context/assembly.py`
-  - `ai/context/chatbot_context.py`
   - `ai/context/phraser.py`
   - `ai/fallback/checkin_summary.py`
-  - `ai/fallback/context.py`
-  - `ai/fallback/coordinator.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: checkins.analysis
 - Removed: ai/__init__.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/context/phraser.py, ai/fallback/checkin_summary.py, ai/fallback/context.py, ai/fallback/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -421,11 +413,11 @@
 - **Purpose**: Communication channel implementation for assembly
 - **Dependencies**:
   - **Local**:
-    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
     - `ai.context.phraser (_append_feature_availability_line, _checkin_completed_today, _phrase_feature_status_lines, _phrase_mood_trend, _phrase_recent_checkin_count, _phrase_recent_sent_messages, _phrase_schedule_details, _phrase_task_data, _phrase_task_reminder, _phrase_today_checkin_status, append_current_datetime_context, append_profile_sections, phrase_checkin_summary)` (NEW)
     - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
     - `ai.prompts.flows (get_product_ai_prompt_flow)` (NEW)
     - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager)` (NEW)
+    - `checkins.analysis (analysis_from_structured)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
@@ -438,7 +430,7 @@
   - `communication/message_processing/response_enhancer.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, core.error_handling, user.context_manager
+- Added: ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, checkins.analysis, core.error_handling, user.context_manager
 - Removed: ai/__init__.py, ai/chat/response_generator.py, ai/context/__init__.py, communication/message_processing/action_plan_executor.py, communication/message_processing/response_enhancer.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -449,8 +441,8 @@
 - **Purpose**: Communication channel implementation for chatbot_context
 - **Dependencies**:
   - **Local**:
-    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
-    - `ai.context.service (build_ai_context_envelope)` (NEW)
+    - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
+    - `checkins.analysis (analysis_from_structured)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.health_context_builder (health_wellness_snippet_from_context)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -461,7 +453,7 @@
   - `user/context_manager.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.service, core.error_handling, core.health_context_builder, core.logger
+- Added: ai.context.service, checkins.analysis, core.error_handling, core.health_context_builder, core.logger
 - Removed: user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -527,6 +519,7 @@
   - **Local**:
     - `ai.context.phraser (phrase_current_datetime_context)` (NEW)
     - `ai.prompts.action_catalog (get_action_catalog)` (NEW)
+    - `checkins.analysis (analyze_checkin_entries)` (NEW)
     - `checkins.checkin_service (get_checkin_start_status, get_recent_checkin_summary)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -545,6 +538,7 @@
     - `typing (Any)`
 - **Used by**:
   - `ai/__init__.py`
+  - `ai/chat/chatbot.py`
   - `ai/context/__init__.py`
   - `ai/context/assembly.py`
   - `ai/context/chatbot_context.py`
@@ -553,7 +547,7 @@
   - `ai/prompts/command_interpreter.py`
 
 **Dependency Changes**:
-- Added: ai.context.phraser, ai.prompts.action_catalog, checkins.checkin_service, core, core.error_handling, core.health_context_builder, core.response_tracking, core.schedule_utilities, core.time_format_constants, core.time_utilities, messages.message_data_manager, notebook, scheduler.user_timezone, tasks
+- Added: ai.context.phraser, ai.prompts.action_catalog, checkins.analysis, checkins.checkin_service, core, core.error_handling, core.health_context_builder, core.response_tracking, core.schedule_utilities, core.time_format_constants, core.time_utilities, messages.message_data_manager, notebook, scheduler.user_timezone, tasks
 - Removed: ai/__init__.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/fallback/context.py, ai/fallback/coordinator.py, ai/prompts/command_interpreter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -649,9 +643,9 @@
 - **Purpose**: Communication channel implementation for context
 - **Dependencies**:
   - **Local**:
-    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
     - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
     - `ai.fallback.profile_helpers (name_prefix_from_context, preferred_name_from_context)` (NEW)
+    - `checkins.analysis (analysis_from_structured)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -664,7 +658,7 @@
   - `ai/fallback/envelope_summaries.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.service, ai.fallback.profile_helpers, core.error_handling
+- Added: ai.context.service, ai.fallback.profile_helpers, checkins.analysis, core.error_handling
 - Removed: ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -692,7 +686,6 @@
 - **Purpose**: Communication channel implementation for coordinator
 - **Dependencies**:
   - **Local**:
-    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
     - `ai.context.service (AIContextEnvelope)` (NEW)
     - `ai.fallback.action_hints (try_action_unavailable_response)` (NEW)
     - `ai.fallback.categories (FallbackCategory)` (NEW)
@@ -702,6 +695,7 @@
     - `ai.fallback.data_access` (NEW)
     - `ai.fallback.envelope_summaries (try_envelope_summary_response)` (NEW)
     - `ai.fallback.profile_helpers (load_user_context, name_prefix_from_context, preferred_name_from_context)` (NEW)
+    - `checkins.analysis (analysis_from_structured)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.health_context_builder (health_wellness_snippet_from_context)` (NEW)
   - **Standard Library**:
@@ -710,7 +704,7 @@
   - `ai/fallback/__init__.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.service, ai.fallback.action_hints, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.envelope_summaries, ai.fallback.profile_helpers, core.error_handling, core.health_context_builder
+- Added: ai.context.service, ai.fallback.action_hints, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.envelope_summaries, ai.fallback.profile_helpers, checkins.analysis, core.error_handling, core.health_context_builder
 - Removed: ai/fallback/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -951,6 +945,7 @@
 - **Purpose**: Module for checkins/__init__.py
 - **Dependencies**:
   - **Third-party**:
+    - `analysis (CheckinAnalysis, ContextAnalysis, analyze_checkin_entries)`
     - `checkin_analytics (CheckinAnalytics)`
     - `checkin_data_manager (checkin_runtime_timestamp, get_checkins_by_days, get_recent_checkins, is_user_checkins_enabled, store_checkin_response)`
     - `checkin_dynamic_manager (DynamicCheckinManager)`
@@ -961,25 +956,53 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `checkins/analysis.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (parse_time_only_minute)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+    - `datetime (timedelta)`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/context/analytics.py`
+  - `ai/context/assembly.py`
+  - `ai/context/chatbot_context.py`
+  - `ai/context/service.py`
+  - `ai/fallback/context.py`
+  - `ai/fallback/coordinator.py`
+  - `checkins/checkin_analytics.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, core.time_utilities
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `checkins/checkin_analytics.py`
 - **Purpose**: Module for checkins/checkin_analytics.py
 - **Dependencies**:
   - **Local**:
+    - `checkins.analysis (MIN_CHECKINS_FOR_NAMED_SCORE, analyze_checkin_entries, calculate_sleep_duration, coerce_numeric, coerce_sleep_hours, coerce_yes_no, convert_score_100_to_5, convert_score_5_to_100, determine_numeric_trend, format_wellness_score_report, get_questions_asked, is_answered_value, is_question_asked, response_value, wellness_recommendations, wellness_score_level)` (NEW)
     - `checkins.checkin_data_manager (checkin_runtime_timestamp, get_checkins_by_days)` (NEW)
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (parse_time_only_minute, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
-    - `datetime (timedelta)`
     - `statistics`
     - `typing (Any)`
 - **Used by**:
   - `ui/dialogs/user_analytics_dialog.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_data_manager, checkins.checkin_dynamic_manager, core, core.error_handling, core.logger, core.time_utilities
+- Added: checkins.analysis, checkins.checkin_data_manager, checkins.checkin_dynamic_manager, core, core.error_handling, core.logger, core.time_utilities
 - Removed: ui/dialogs/user_analytics_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3427,7 +3450,6 @@
   - `ai/client/cache_manager.py`
   - `ai/client/lm_studio_client.py`
   - `ai/client/lm_studio_manager.py`
-  - `ai/context/analytics.py`
   - `ai/context/assembly.py`
   - `ai/context/chatbot_context.py`
   - `ai/context/history.py`
@@ -3447,6 +3469,7 @@
   - `ai/prompts/command_registry.py`
   - `ai/prompts/flows.py`
   - `ai/prompts/manager.py`
+  - `checkins/analysis.py`
   - `checkins/checkin_analytics.py`
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_dynamic_manager.py`
@@ -3893,12 +3916,12 @@
   - `ai/client/cache_manager.py`
   - `ai/client/lm_studio_client.py`
   - `ai/client/lm_studio_manager.py`
-  - `ai/context/analytics.py`
   - `ai/context/chatbot_context.py`
   - `ai/context/history.py`
   - `ai/context/phraser.py`
   - `ai/fallback/__init__.py`
   - `ai/prompts/manager.py`
+  - `checkins/analysis.py`
   - `checkins/checkin_analytics.py`
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_dynamic_manager.py`
@@ -4496,6 +4519,7 @@
   - `ai/context/history.py`
   - `ai/context/phraser.py`
   - `ai/context/service.py`
+  - `checkins/analysis.py`
   - `checkins/checkin_analytics.py`
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_schemas.py`
@@ -5032,7 +5056,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

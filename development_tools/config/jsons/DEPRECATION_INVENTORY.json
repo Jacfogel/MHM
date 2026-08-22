@@ -82,6 +82,29 @@
   ],
   "removed_inventory": [
     {
+      "id": "ai_independent_checkin_wellness_formula",
+      "removed_at": "2026-08-22",
+      "search_terms": [
+        "ai.context.analytics._calculate_wellness_score",
+        "breakfast_rate / 100) * 25",
+        "(avg_mood / 5) * 30"
+      ],
+      "replacement": "checkins.analysis.calculate_wellness_score (mood 30 / energy 20 / habits 30 / sleep 20, omit missing)",
+      "notes": "Retired the AI-only wellness weights (breakfast 25 / mood 30 / energy 30 / brushing 15). Chat, fallback, and CheckinAnalytics now share checkins.analysis."
+    },
+    {
+      "id": "checkin_analytics_private_score_calculators",
+      "removed_at": "2026-08-22",
+      "search_terms": [
+        "CheckinAnalytics._calculate_mood_score",
+        "CheckinAnalytics._calculate_energy_score",
+        "CheckinAnalytics._calculate_habit_score",
+        "CheckinAnalytics._calculate_sleep_score"
+      ],
+      "replacement": "checkins.analysis.analyze_checkin_entries and format_wellness_score_report",
+      "notes": "Private score methods removed after search-and-close. CheckinAnalytics.get_wellness_score formats shared CheckinAnalysis. Thin extractor wrappers remain for report helpers."
+    },
+    {
       "id": "analyze_unused_imports_tool",
       "removed_at": "2026-08-17",
       "search_terms": [

@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import ai.fallback.data_access as data_access
 
-from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope
+from checkins.analysis import analysis_from_structured
 from ai.fallback.action_hints import try_action_unavailable_response
 from ai.fallback.categories import FallbackCategory
 from ai.fallback.checkin_summary import (
@@ -88,7 +88,11 @@ def build_contextual_fallback(
     is_new_user = bool(not user_context or (user_id and not recent_data))
 
     if recent_data:
-        analysis = analyze_checkin_entries(recent_data)
+        analysis = (
+            analysis_from_structured(context.structured)
+            if context is not None
+            else analysis_from_structured({"checkins": {"recent": recent_data}})
+        )
         checkin_result = try_checkin_summary_response(
             prompt_lower,
             analysis,

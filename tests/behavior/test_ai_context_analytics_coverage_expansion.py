@@ -85,12 +85,29 @@ class TestContextAnalyticsCoverageExpansion:
 
     def test_calculate_wellness_score_all_factors(self, test_data_dir):
         TestUserFactory.create_basic_user("test-user", test_data_dir=test_data_dir)
-        score = _calculate_wellness_score(80.0, 4.0, 4.0, 90.0)
+        score = _calculate_wellness_score(
+            mood_score=75.0,
+            energy_score=75.0,
+            habit_score=80.0,
+            sleep_score=90.0,
+        )
         assert 0 < score <= 100
 
     def test_calculate_wellness_score_no_factors(self, test_data_dir):
         TestUserFactory.create_basic_user("test-user", test_data_dir=test_data_dir)
-        assert _calculate_wellness_score(0.0, None, None, 0.0) == 0.0
+        assert _calculate_wellness_score() == 0.0
+
+    def test_calculate_wellness_score_omits_missing_components(self, test_data_dir):
+        TestUserFactory.create_basic_user("test-user", test_data_dir=test_data_dir)
+        all_present = _calculate_wellness_score(
+            mood_score=100.0,
+            energy_score=0.0,
+            habit_score=0.0,
+            sleep_score=0.0,
+        )
+        mood_only = _calculate_wellness_score(mood_score=100.0)
+        assert mood_only == 100.0
+        assert all_present < mood_only
 
     def test_generate_insights_excellent_breakfast(self, test_data_dir):
         TestUserFactory.create_basic_user("test-user", test_data_dir=test_data_dir)

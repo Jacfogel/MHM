@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from checkins.analysis import analyze_checkin_entries
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.health_context_builder import (
@@ -382,10 +383,12 @@ def _build_analytics_context(sections: dict[str, AIContextSection]) -> dict[str,
     task_data = sections["tasks"].data if "tasks" in sections else {}
     checkin_data = sections["checkins"].data if "checkins" in sections else {}
     message_data = sections["messages"].data if "messages" in sections else {}
+    recent_checkins = list((checkin_data or {}).get("recent") or [])
     return {
         "task_counts": (task_data or {}).get("stats", {}),
-        "recent_checkin_count": len((checkin_data or {}).get("recent") or []),
+        "recent_checkin_count": len(recent_checkins),
         "recent_message_count": len((message_data or {}).get("recent_sent") or []),
+        "checkin_analysis": analyze_checkin_entries(recent_checkins),
     }
 
 

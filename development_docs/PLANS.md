@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-08-11  
+> **Last Updated**: 2026-08-22  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -72,6 +72,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
+| Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
 
 ---
 
@@ -147,6 +148,19 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) large-module split (`storage/user_data_operations.py`)
 
 **Outcome**: Ops/admin work lives in focused modules; [`storage/user_data_operations.py`](../storage/user_data_operations.py) is a thin `UserDataManager` facade with re-exports. Implementation: [`user_data_user_info.py`](../storage/user_data_user_info.py) (leaf), [`user_data_backup.py`](../storage/user_data_backup.py), [`user_data_index.py`](../storage/user_data_index.py), [`user_data_summaries.py`](../storage/user_data_summaries.py). Existing `from storage.user_data_operations import ...` call sites unchanged. Optional later: point high-traffic `update_user_index` callers at `user_data_index` directly.
+
+---
+
+### 5.0.5 Context analysis consolidation
+
+**Status**: **COMPLETED**  
+**Priority**: High  
+**Started**: 2026-08-22  
+**Completed**: 2026-08-22
+
+**Outcome**: Check-in metrics have one calculator in [`checkins/analysis.py`](../checkins/analysis.py). `AIContextEnvelope.analytics` stores `checkin_analysis` once. Chat assembly, fallback, chatbot summary dict, and `CheckinAnalytics.get_wellness_score` consume that analysis. Wellness weights are mood 30 / energy 20 / habits 30 / sleep 20; missing components are omitted and renormalized. `generate_contextual_response` builds one envelope and passes it through. `UserContextManager` remains session overlay only.
+
+**Leftover**: [`phraser.append_checkin_summary(parts, user_id)`](../ai/context/phraser.py) still loads rows by user id for tests; production chat uses the envelope wrappers.
 
 ---
 
