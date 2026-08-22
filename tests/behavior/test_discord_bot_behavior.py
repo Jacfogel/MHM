@@ -225,32 +225,37 @@ class TestDiscordBotBehavior:
         # Note: In a real environment, the bot.close() would be called
         assert bot.get_status() == ChannelStatus.STOPPED, "Status should be STOPPED"
 
-    @pytest.mark.communication
-    @pytest.mark.critical
-    def test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot):
-        """Test that Discord bot send_message actually sends messages"""
+    def _ready_bot_with_queued_send_result(self, mock_discord_bot, result=True):
+        """READY bot whose worker already posted a send result (no 10s empty-queue poll)."""
         bot = DiscordBot()
         bot.bot = mock_discord_bot
         bot._set_status(ChannelStatus.READY)
-        
+        bot._result_queue.put(result)
+        return bot
+
+    @pytest.mark.communication
+    @pytest.mark.critical
+    def test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot):
+        """Test that send_message queues the send and returns the worker result."""
+        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, True)
+
         result = asyncio.run(bot.send_message("test_channel", "Test message"))
-        
-        assert isinstance(result, bool), "Message sending should return boolean"
-        # Note: In a real test, we'd verify the message was actually sent to Discord
+
+        assert result is True, "Queued send should return the worker success result"
+        command, args = bot._command_queue.get_nowait()
+        assert command == "send_message"
+        assert args[0] == "test_channel"
+        assert args[1] == "Test message"
 
     @pytest.mark.communication
     @pytest.mark.regression
     def test_discord_bot_send_message_handles_errors(self, test_data_dir, mock_discord_bot):
-        """Test that Discord bot send_message handles errors gracefully"""
-        bot = DiscordBot()
-        bot.bot = mock_discord_bot
-        bot._set_status(ChannelStatus.READY)
-        
-        # Mock the internal send method to raise an exception
-        with patch.object(bot, '_send_message_internal', side_effect=Exception("Send failed")):
-            result = asyncio.run(bot.send_message("test_channel", "Test message"))
-            
-            assert result is False, "Message sending should fail gracefully"
+        """Test that send_message returns False when the worker reports failure."""
+        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, False)
+
+        result = asyncio.run(bot.send_message("test_channel", "Test message"))
+
+        assert result is False, "Message sending should fail when the worker reports failure"
 
     @pytest.mark.communication
     @pytest.mark.regression
@@ -618,15 +623,16 @@ class TestDiscordBotBehavior:
     @pytest.mark.communication
     @pytest.mark.regression
     def test_discord_bot_send_dm_actually_sends_direct_message(self, test_data_dir, mock_discord_bot):
-        """Test that Discord bot send_dm actually sends direct messages"""
-        bot = DiscordBot()
-        bot.bot = mock_discord_bot
-        bot._set_status(ChannelStatus.READY)
-        
+        """Test that send_dm queues a send_message and returns the worker result."""
+        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, True)
+
         result = asyncio.run(bot.send_dm("user123", "Test DM"))
-        
-        assert isinstance(result, bool), "Send DM should return boolean"
-        # Note: In a real test, we'd verify the DM was actually sent
+
+        assert result is True, "Queued DM should return the worker success result"
+        command, args = bot._command_queue.get_nowait()
+        assert command == "send_message"
+        assert args[0] == "user123"
+        assert args[1] == "Test DM"
 
 
 @pytest.mark.behavior

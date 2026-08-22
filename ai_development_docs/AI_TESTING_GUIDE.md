@@ -173,13 +173,13 @@ Preferred commands (via `run_tests.py`):
   python run_tests.py --process-priority low
   ```
 
-- Disable LM Studio pause (pause is enabled by default for run_tests.py modes):
+- Pause LM Studio during tests (off by default; pausing a loaded model can hang leaked AI HTTP calls):
 
   ```bash
-  python run_tests.py --no-pause-lm-studio
+  python run_tests.py --pause-lm-studio
   ```
 
-- Fast local iteration (quiet output, skip static logging check, LM Studio pause, and post-failure reruns):
+- Fast local iteration (quiet output, skip static logging check and post-failure reruns):
 
   ```bash
   python run_tests.py --quick

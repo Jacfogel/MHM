@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - Stop Discord send tests waiting 10s on an empty queue **COMPLETED**
+- Three Discord send tests now seed `_result_queue` instead of waiting out the 10s poll.
+- `run_tests.py` no longer pauses LM Studio by default (that combo hung the full suite at 98%).
+- Autouse fixture blocks leaked LM Studio HTTP; chatbot tests mock `_call_lm_studio_api`.
+
 ### 2026-08-22 - One shared check-in analysis core **COMPLETED**
 - Chat, fallback, and the analytics UI now use `checkins/analysis.py` for breakfast/mood/energy/wellness.
 - The envelope stores that analysis once; contextual chat builds the envelope once and reuses it.
@@ -108,12 +113,6 @@ Guidelines:
 - Public check-in first-question API; `service_requests` no longer calls private flow helpers.
 - Scheduler runtime handle in `scheduler.runtime_access`; tasks/admin no longer import `core.service` for the locator.
 - Coupling audit signal improved: unique fan-out > 10, exclude `__init__.py`; priorities triage inappropriate edges (not hub shrink).
-
-### 2026-08-10 - LIST_OF_LISTS move and list SSOT cleanup **COMPLETED**
-- Moved `LIST_OF_LISTS.md` into `development_tools/`; retargeted pointers.
-- Omitted default-copy JSON sections/keys; retired dead `quick_audit.audit_scripts` (Tier 1 = `audit_tiers`).
-- Fixed `audit --quick` guide prose; `STORAGE_SCOPE_*` re-exported from `audit_scope`; prompt category/flow alignment test.
-- Follow-up: doc-sync path-drift + F401/SIM300 from that SSOT work cleared (`doc-sync` PASS).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

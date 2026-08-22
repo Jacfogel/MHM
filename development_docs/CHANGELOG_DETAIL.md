@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - Stop Discord send tests waiting 10s on an empty queue
+- **Fix**: [`test_discord_bot_send_message_actually_sends`](../tests/behavior/test_discord_bot_behavior.py), `test_discord_bot_send_message_handles_errors`, and `test_discord_bot_send_dm_actually_sends_direct_message` now seed `_result_queue` before calling `send_message` / `send_dm`. Those methods poll that queue for 10s; the tests never started a worker, so each sat on `time.sleep(0.1)` until timeout (~30s per suite).
+- **Tests**: Success cases assert the command was queued. The error case asserts a worker `False` result (the old `_send_message_internal` patch was never on this path).
+- **Fix (full-suite hang)**: `run_tests.py` no longer pauses LM Studio by default (`--pause-lm-studio` is opt-in). Pause + 6 workers was the 98% freeze: leaked `requests.get`/`call_lm_studio_api` hung 15-35s on the frozen process.
+- **Fix (34s AI leaks)**: Autouse [`block_live_lm_studio_http`](../tests/test_helpers/test_support/conftest_mocks.py) fails LM Studio HTTP immediately. Chatbot tests now mock `_call_lm_studio_api` (they had patched the unused global `requests.post`).
+- **Impact**: Default `python run_tests.py` should finish instead of stalling at 98%. Discord send tests no longer add a 30s poll tax.
+
 ### 2026-08-22 - One shared check-in analysis core
 - **Feature**: Added [`checkins/analysis.py`](../checkins/analysis.py) as the only check-in calculator (`CheckinAnalysis`, `analyze_checkin_entries`). Chat, fallback, and [`CheckinAnalytics.get_wellness_score`](../checkins/checkin_analytics.py) now share one wellness formula (mood 30 / energy 20 / habits 30 / sleep 20). Missing components are omitted and weights renormalized instead of scoring 50.
 - **Context**: [`build_ai_context_envelope`](../ai/context/service.py) stores `checkin_analysis` on the analytics section. Assembly, chatbot summary dict, and fallback read that object instead of recalculating. [`generate_contextual_response`](../ai/chat/chatbot.py) builds one envelope and passes it through overlay, fallback, and prompt assembly.

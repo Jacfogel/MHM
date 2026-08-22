@@ -2787,7 +2787,8 @@ def print_test_mode_info():
         "  --burnin-mode - Enable burn-in mode (combines --no-shim and --random-order)"
     )
     print("  --process-priority {default|low|high} - Runner/pytest priority profile")
-    print("  --no-pause-lm-studio - Keep LM Studio running during test runs")
+    print("  --pause-lm-studio - Freeze LM Studio during tests (off by default)")
+    print("  --no-pause-lm-studio - Keep LM Studio running during test runs (default)")
     print("  --no-post-failure-rerun - Disable auto detailed reruns on failures")
     print("\nExamples:")
     print("  python run_tests.py                    # Run all tests in parallel")
@@ -3104,15 +3105,16 @@ def main():
     )
     parser.add_argument(
         "--pause-lm-studio",
+        dest="pause_lm_studio",
         action="store_true",
-        default=True,
-        help="Temporarily pause LM Studio during test runs (default: enabled)",
+        default=False,
+        help="Temporarily pause LM Studio during test runs (default: disabled; pause hangs leaked AI HTTP)",
     )
     parser.add_argument(
         "--no-pause-lm-studio",
         dest="pause_lm_studio",
         action="store_false",
-        help="Do not pause LM Studio during test runs",
+        help="Do not pause LM Studio during test runs (default)",
     )
     parser.add_argument(
         "--post-failure-rerun",
@@ -3141,7 +3143,7 @@ def main():
     parser.add_argument(
         "--quick",
         action="store_true",
-        help="Fast iteration profile: quiet output, skip static logging check, LM Studio pause, and post-failure reruns",
+        help="Fast iteration profile: quiet output, skip static logging check and post-failure reruns",
     )
 
     args = parser.parse_args()

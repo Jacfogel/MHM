@@ -20,6 +20,17 @@ from core import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
 
 
+def _use_mocked_lm_studio_api(chatbot, return_value=None, side_effect=None):
+    """Route generate_response through a fake API (not live LM Studio HTTP)."""
+    chatbot.lm_studio_available = True
+    return patch.object(
+        chatbot,
+        "_call_lm_studio_api",
+        return_value=return_value,
+        side_effect=side_effect,
+    )
+
+
 @pytest.mark.behavior
 @pytest.mark.ai
 class TestAIChatBotBehavior:
@@ -128,13 +139,8 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot actually generates responses with real behavior."""
         chatbot = AIChatBotSingleton()
         
-        # Force AI availability and mock HTTP call to ensure deterministic success without shim
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Test AI response"}}]}
-        mock_response.status_code = 200
-        with patch.object(AIChatBotSingleton, 'is_ai_available', return_value=True):
-            with patch('requests.post', return_value=mock_response):
-                response = chatbot.generate_response("Hello", user_id="test_user")
+        with _use_mocked_lm_studio_api(chatbot, return_value="Test AI response"):
+            response = chatbot.generate_response("Hello", user_id="test_user")
             
             # Verify response is generated and reflects mocked content
             assert response is not None, "AI should generate a response"
@@ -194,12 +200,7 @@ class TestAIChatBotBehavior:
         
         chatbot = AIChatBotSingleton()
         
-        # Mock API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Personalized response"}}]}
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(chatbot, return_value="Personalized response"):
             # Generate contextual response
             response = chatbot.generate_contextual_response(user_id, "How am I doing?")
             
@@ -239,14 +240,9 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot command parsing actually creates structured output."""
         chatbot = AIChatBotSingleton()
 
-        # Mock API response with JSON structure
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "choices": [{"message": {"content": '{"action": "remind", "details": {"task": "test"}}'}}]
-        }
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(
+            chatbot, return_value='{"action": "remind", "details": {"task": "test"}}'
+        ):
             response = chatbot.generate_response("remind me to test", mode="command")
             
             # Verify response is generated
@@ -425,7 +421,7 @@ class TestAIChatBotBehavior:
         ]
         
         for error in error_scenarios:
-            with patch('requests.post', side_effect=error):
+            with _use_mocked_lm_studio_api(chatbot, side_effect=error):
                 # Should not crash the system
                 response = chatbot.generate_response("test", user_id="test_user")
                 
@@ -441,13 +437,9 @@ class TestAIChatBotBehavior:
         
         conversation_manager = ConversationManager()
         user_id = "test_conv_user"
+        chatbot = AIChatBotSingleton()
         
-        # Mock AI response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Conversation response"}}]}
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(chatbot, return_value="Conversation response"):
             # Test conversation flow
             reply, completed = conversation_manager.handle_inbound_message(user_id, "Hello")
             
@@ -496,12 +488,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot performs well under load."""
         chatbot = AIChatBotSingleton()
         
-        # Mock API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Load test response"}}]}
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(chatbot, return_value="Load test response"):
             # Test multiple rapid requests
             responses = []
             for i in range(5):
@@ -518,12 +505,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot cache actually improves performance."""
         chatbot = AIChatBotSingleton()
         
-        # Mock API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Cached response"}}]}
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(chatbot, return_value="Cached response"):
             # First request - should call API
             response1 = chatbot.generate_response("Cached test", user_id="cache_user")
             
@@ -544,12 +526,7 @@ class TestAIChatBotBehavior:
         
         # Test that chatbot can be used multiple times without resource leaks
         for i in range(3):
-            # Mock API response
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"choices": [{"message": {"content": f"Response {i}"}}]}
-            mock_response.status_code = 200
-            
-            with patch('requests.post', return_value=mock_response):
+            with _use_mocked_lm_studio_api(chatbot, return_value=f"Response {i}"):
                 response = chatbot.generate_response(f"Test {i}", user_id="cleanup_user")
                 assert response is not None, f"Response {i} should be generated"
         
@@ -607,12 +584,7 @@ class TestAIChatBotIntegration:
         # Test AI chatbot with this user data
         chatbot = AIChatBotSingleton()
         
-        # Mock API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "Integration test response"}}]}
-        mock_response.status_code = 200
-        
-        with patch('requests.post', return_value=mock_response):
+        with _use_mocked_lm_studio_api(chatbot, return_value="Integration test response"):
             response = chatbot.generate_contextual_response(actual_user_id, "How are my schedules looking?")
             
             # Verify response is generated
@@ -639,8 +611,7 @@ class TestAIChatBotIntegration:
         # Test AI chatbot handles problematic data gracefully
         chatbot = AIChatBotSingleton()
         
-        # Mock API failure
-        with patch('requests.post', side_effect=Exception("API Error")):
+        with _use_mocked_lm_studio_api(chatbot, side_effect=Exception("API Error")):
             response = chatbot.generate_contextual_response(user_id, "Test message")
             
             # Should provide fallback response
@@ -659,12 +630,7 @@ class TestAIChatBotIntegration:
         
         def generate_response(thread_id):
             try:
-                # Mock API response
-                mock_response = MagicMock()
-                mock_response.json.return_value = {"choices": [{"message": {"content": f"Thread {thread_id} response"}}]}
-                mock_response.status_code = 200
-                
-                with patch('requests.post', return_value=mock_response):
+                with _use_mocked_lm_studio_api(chatbot, return_value=f"Thread {thread_id} response"):
                     response = chatbot.generate_response(f"Thread {thread_id} message", user_id=f"thread_user_{thread_id}")
                     results.append((thread_id, response))
             except Exception as e:

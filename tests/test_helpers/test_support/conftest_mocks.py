@@ -8,9 +8,62 @@ import os
 import tempfile
 
 import pytest
+import requests
 from unittest.mock import Mock, patch
 
 from tests.conftest import tests_data_dir
+
+_LIVE_LM_STUDIO_TEST_FILES = {
+    "test_lm_studio_manager.py",
+    "test_ai_errors.py",
+}
+
+
+@pytest.fixture(autouse=True)
+def block_live_lm_studio_http(request):
+    """Fail LM Studio HTTP immediately so leaked calls cannot hang for 15-35s.
+
+    Chatbot init and command parsing call ``test_lm_studio_connection`` /
+    ``is_lm_studio_ready`` / ``call_lm_studio_api``. Patching the global
+    ``requests`` module does not intercept those already-imported clients.
+    Tests that exercise the real HTTP helpers keep the live wrappers.
+    """
+    path = getattr(request, "path", None) or getattr(request, "fspath", None)
+    test_file = getattr(path, "name", None) or getattr(path, "basename", "") or ""
+    if callable(test_file):
+        test_file = test_file()
+    if test_file in _LIVE_LM_STUDIO_TEST_FILES:
+        yield
+        return
+
+    blocked = requests.ConnectionError("LM Studio HTTP blocked in tests")
+    with (
+        patch(
+            "ai.chat.chatbot.test_lm_studio_connection",
+            return_value=False,
+        ),
+        patch(
+            "ai.client.lm_studio_manager.is_lm_studio_ready",
+            return_value=False,
+        ),
+        patch(
+            "ai.client.lm_studio_client.requests.get",
+            side_effect=blocked,
+        ),
+        patch(
+            "ai.client.lm_studio_client.requests.post",
+            side_effect=blocked,
+        ),
+        patch(
+            "ai.client.lm_studio_manager.requests.get",
+            side_effect=blocked,
+        ),
+        patch(
+            "ai.client.lm_studio_manager.requests.post",
+            side_effect=blocked,
+        ),
+    ):
+        yield
 
 # Use same tmp dir as root conftest for temp_file fixture
 tests_data_tmp_dir = tests_data_dir / "tmp"
