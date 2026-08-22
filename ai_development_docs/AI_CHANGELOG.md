@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Stop personalized message homework leaks **COMPLETED**
+- Scheduled personalized Discord messages now run personalized post-process (the live path had been cleaning them as chat).
+- Letter sign-offs, `[Your Name]`, and `Use Case` / `Scenario` writing-prompt dumps are cut before send.
+- Follow-up: `_line_is_letter_signoff()` uses `@handle_errors` and is in the function registry.
+
 ### 2026-08-21 - Quiet missing personalized.json on startup **COMPLETED**
 - Service startup no longer verifies AI-generated message categories (`personalized` has no library file).
 - Rechecked v1/v2 ordering flakes: `audit --full` is green; a serial run of the listed files still fails 4 tests that pass alone.
@@ -110,11 +115,6 @@ Guidelines:
 - Follow-up: live/example `base_exclusions` -> additions/removals; emptied portable `CONFIG_VALIDATOR` / `DOMAIN_MAPPER_DEFAULTS` / `known_deleted_files`; omitted duplicate JSON keys (`test_run`, `analyze_duplicate_functions`, identity `directory_to_marker`, matching error_handling scalars).
 - Same-day hygiene: documented MHM `derived_prefix_excludes.core` (includes `development_tools` in `CORE_MODULES`); fixed `EXPECTED_TOOLS` tier comments/count; shared `_PYTHON_KEYWORDS_SHARED` for path-drift keyword tuples.
 - Updated config.py comments that pointed at old LIST_OF_LISTS section numbers.
-
-### 2026-08-04 - Personalized greetings/closings cleanup **COMPLETED**
-- Strip `Best regards`, soft day-wishes, help-offer closers, and `--[Your Name]` signatures.
-- Normalize to `Hi Name.` on one line (including `Hi Name.\nBody`); drop ungrounded check-in sentences when Data has no `Recent check-ins`.
-- Prompts ban Dear/newline-after-name, fake check-in claims, and letter/help-offer closings.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

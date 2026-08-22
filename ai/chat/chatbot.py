@@ -308,7 +308,14 @@ class AIChatBotSingleton:
 
         try:
             stop_sequences = (
-                ["## INPUT", "## OUTPUT", "### Input:", "### Output:"]
+                [
+                    "## INPUT",
+                    "## OUTPUT",
+                    "### Input:",
+                    "### Output:",
+                    "Use Case",
+                    "Scenario:",
+                ]
                 if mode == "personalized"
                 else None
             )
@@ -323,7 +330,7 @@ class AIChatBotSingleton:
 
             if result:
                 response = self._post_process_generated_response(
-                    "chat", result, user_prompt
+                    mode, result, user_prompt
                 )
                 if (
                     mode in ("chat", "personalized")
@@ -539,7 +546,7 @@ class AIChatBotSingleton:
         response = strip_instruction_tuning_markers(response)
         response = clean_system_prompt_leaks(response)
         response = polish_greeting_response(response, user_prompt)
-        if mode in ("chat", "personalized"):
+        if mode in ("chat", "personalized", "command_with_clarification"):
             response = sanitize_false_crud_claims(response)
             if not response.strip():
                 response = UNCLEAR_USER_INPUT_REPLY

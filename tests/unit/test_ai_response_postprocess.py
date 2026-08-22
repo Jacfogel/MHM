@@ -9,6 +9,7 @@ from ai.chat.response_postprocess import (
     polish_greeting_response,
     repair_truncated_response_tail,
     strip_instruction_tuning_markers,
+    strip_letter_signoffs,
     strip_markup_and_tutorial_leaks,
 )
 from ai.chat.action_boundaries import find_false_crud_claims
@@ -144,6 +145,16 @@ _LEAK_FIXTURES: list[tuple[str, str, str | None, list[str]]] = [
         "That's an interesting question",
         ["user context below is reference", "never reveal raw context"],
     ),
+    (
+        "homework_use_case",
+        (
+            "Hi Julie. Rest looked light last night. Keep today gentler.\n\n"
+            "Use Case 1: Supporting a Friend's Wellness Journey\n"
+            "Scenario:\nSamantha and Emily are close friends."
+        ),
+        "Keep today gentler",
+        ["Use Case", "Scenario", "Samantha"],
+    ),
 ]
 
 
@@ -175,6 +186,40 @@ def test_strip_instruction_tuning_includes_meta_headings():
     assert cleaned == "Hello there."
 
 
+def test_strip_instruction_tuning_cuts_use_case_homework_dump():
+    text = (
+        "Hi Julie. Keep today gentler than usual.\n\n"
+        "Use Case 1: Supporting a Friend's Wellness Journey\n"
+        "Scenario:\nSamantha and Emily are close friends."
+    )
+    cleaned = strip_instruction_tuning_markers(text)
+    assert cleaned == "Hi Julie. Keep today gentler than usual."
+    assert "Use Case" not in cleaned
+    assert "Samantha" not in cleaned
+
+
+def test_strip_letter_signoffs_cuts_junk_after_signature():
+    text = (
+        "Hi Julie. Rest looked light last night. Keep today gentler.\n\n"
+        "Best wishes,\n"
+        "[Your Name]\n\n"
+        "Use Case 1: Supporting a Friend's Wellness Journey"
+    )
+    cleaned = strip_letter_signoffs(text)
+    assert cleaned == "Hi Julie. Rest looked light last night. Keep today gentler."
+    assert "[Your Name]" not in cleaned
+    assert "Best wishes" not in cleaned
+    assert "Use Case" not in cleaned
+
+
+def test_line_is_letter_signoff_returns_false_on_bad_input():
+    from ai.chat.response_postprocess import _line_is_letter_signoff
+
+    assert _line_is_letter_signoff("Best wishes,") is True
+    assert _line_is_letter_signoff("Keep today gentler.") is False
+    assert _line_is_letter_signoff(None) is False
+
+
 def test_strip_markup_truncates_mid_response_code():
     raw = "Connection refused.\n\nimport json\nfrom argparse import ArgumentParser"
     cleaned = strip_markup_and_tutorial_leaks(raw)
@@ -198,6 +243,19 @@ def test_find_response_leak_markers_detects_data_honesty_leak():
     markers = find_response_leak_markers(text)
     assert "user context below is reference" in markers
     assert "never reveal raw context" in markers
+
+
+def test_find_response_leak_markers_detects_placeholder_signoff_and_use_case():
+    from ai.chat.response_postprocess import find_response_leak_markers
+
+    text = (
+        "Hi Julie. Keep today gentler.\n\n"
+        "Best wishes,\n[Your Name]\n\n"
+        "Use Case 1: Supporting a Friend's Wellness Journey"
+    )
+    markers = find_response_leak_markers(text)
+    assert "[your name]" in markers
+    assert "use case 1:" in markers
 
 
 def test_repair_truncated_response_tail_adds_period_after_fake_turn():

@@ -221,6 +221,8 @@ _INSTRUCTION_TUNING_MARKERS = (
     re.compile(r"###\s*Next\s+Step\s*:", re.IGNORECASE),
     re.compile(r"##\s*Expected\s+Outcome\s*:", re.IGNORECASE),
     re.compile(r"###\s*Response\s*:", re.IGNORECASE),
+    re.compile(r"(?m)^Use\s+Case(?:\s+\d+)?\s*:", re.IGNORECASE),
+    re.compile(r"(?m)^Scenario\s*:", re.IGNORECASE),
 )
 
 _META_HEADING_LEAK = re.compile(
@@ -234,7 +236,11 @@ _FAKE_CONVERSATION_TURN_LEAK = re.compile(
 _DANGLING_AI_HEADING_TAIL = re.compile(r"\n\s*#{1,3}\s*AI\s*$", re.IGNORECASE)
 _TUTORIAL_SECTION_LEAK = re.compile(
     r"\n\s*#{1,3}\s*(?:Your task|Example|Exercise|Conversation flow|"
-    r"Task management|Tasks|How to use)\b",
+    r"Task management|Tasks|How to use|Use Case|Scenario)\b",
+    re.IGNORECASE,
+)
+_HOMEWORK_EXAMPLE_LEAK = re.compile(
+    r"(?:^|\n)\s*(?:Use\s+Case(?:\s+\d+)?\s*:|Scenario\s*:)",
     re.IGNORECASE,
 )
 _EXAMPLE_HEADING_LEAK = re.compile(
@@ -321,6 +327,7 @@ _META_TRUNCATION_PATTERNS = (
     _TUTORIAL_SECTION_LEAK,
     _EXAMPLE_HEADING_LEAK,
     _HOW_TO_USE_LEAK,
+    _HOMEWORK_EXAMPLE_LEAK,
     _SINGLE_HASH_HEADING_LEAK,
     _INSTRUCTION_BODY_LEAK,
 )
@@ -445,6 +452,8 @@ RESPONSE_LEAK_MARKERS: tuple[str, ...] = (
     "[user's response]",
     "You are MHM's in-app assistant",
     "Return ONLY natural language",
+    "[your name]",
+    "use case 1:",
 )
 
 
@@ -644,9 +653,14 @@ _INLINE_SIGNOFF = re.compile(
 )
 
 # Soft day-wish / help-offer closings
+_DAY_WISH = r"have a (?:wonderful|great|nice|lovely|good) day"
+_TAKE_CARE_CLOSING = (
+    r"take care of yourself(?:\s+and(?:\s+" + _DAY_WISH + r")?)?"
+)
 _SOFT_CLOSING_LINE = re.compile(
     r"^\s*(?:"
-    r"have a (?:wonderful|great|nice|lovely|good) day"
+    rf"{_DAY_WISH}"
+    rf"|{_TAKE_CARE_CLOSING}"
     r"|wishing you(?:\s+\w+){0,8}"
     r"|i hope your day\b.*"
     r"|let me know if\b.*"
@@ -658,6 +672,7 @@ _SOFT_CLOSING_LINE = re.compile(
 _TRAILING_SOFT_CLOSING = re.compile(
     r"(?<=[.!?])\s+"
     r"(?:Have a (?:wonderful|great|nice|lovely|good) day"
+    r"|Take care of yourself(?:\s+and(?:\s+have a (?:wonderful|great|nice|lovely|good) day)?)?"
     r"|I hope your day\b[^.!?]*"
     r"|Wishing you\b[^.!?]*"
     r"|Let me know if\b[^.!?]*"
@@ -667,6 +682,7 @@ _TRAILING_SOFT_CLOSING = re.compile(
     r"\s*[!.:\-)(\s]*$",
     re.IGNORECASE,
 )
+_PLACEHOLDER_NAME_LEAK = re.compile(r"\s*\[Your Name\]", re.IGNORECASE)
 
 # Model meta-commentary like "(Note: This response uses supportive language...)"
 _META_NOTE_LINE = re.compile(r"^\s*\(\s*Note\s*:.*\)\s*$", re.IGNORECASE | re.DOTALL)
@@ -727,6 +743,16 @@ def strip_ungrounded_checkin_claims(text: str) -> str:
     return " ".join(kept).strip()
 
 
+@handle_errors("detecting letter sign-off line", user_friendly=False, default_return=False)
+def _line_is_letter_signoff(line: str) -> bool:
+    """True when a line is a letter closing, signature, soft closer, or meta note."""
+    return bool(
+        _SIGNOFF_TAIL_LINE.match(line)
+        or _META_NOTE_LINE.match(line)
+        or _SOFT_CLOSING_LINE.match(line)
+    )
+
+
 @handle_errors("stripping letter sign-offs", default_return="")
 def strip_letter_signoffs(text: str) -> str:
     """Remove email-style closings, soft day-wishes, dash signatures, and meta notes."""
@@ -734,17 +760,28 @@ def strip_letter_signoffs(text: str) -> str:
         return text
 
     lines = [line for line in text.strip().split("\n")]
-    while lines and (
-        _SIGNOFF_TAIL_LINE.match(lines[-1])
-        or _META_NOTE_LINE.match(lines[-1])
-        or _SOFT_CLOSING_LINE.match(lines[-1])
-    ):
+    seen_body = False
+    cut_index = None
+    for index, line in enumerate(lines):
+        if not line.strip():
+            continue
+        if _line_is_letter_signoff(line):
+            if seen_body:
+                cut_index = index
+                break
+            continue
+        seen_body = True
+    if cut_index is not None:
+        lines = lines[:cut_index]
+
+    while lines and _line_is_letter_signoff(lines[-1]):
         lines.pop()
 
     result = "\n".join(lines).strip()
     result = _TRAILING_META_NOTE.sub("", result)
     result = _INLINE_SIGNOFF.sub("", result)
     result = _TRAILING_SOFT_CLOSING.sub("", result)
+    result = _PLACEHOLDER_NAME_LEAK.sub("", result)
     return result.strip()
 
 

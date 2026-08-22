@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-21 - Stop personalized message homework leaks
+- **Fix**: [`generate_response()`](../ai/chat/chatbot.py) now post-processes with the real generation `mode`. Personalized Discord sends were cleaned as `chat`, so letter-sign-off stripping never ran. Live leak: `Best wishes, [Your Name]` plus a `Use Case 1: Supporting a Friend's Wellness Journey` / Samantha-and-Emily writing-prompt dump.
+- **Fix**: [`strip_letter_signoffs()`](../ai/chat/response_postprocess.py) cuts at the first sign-off after the message body (junk after `[Your Name]` no longer protects the signature), strips `Take care of yourself and have a wonderful day`, and removes leftover `[Your Name]`.
+- **Fix**: [`strip_instruction_tuning_markers()`](../ai/chat/response_postprocess.py) and markup truncation cut `Use Case N:` / `Scenario:` homework dumps. Personalized LM Studio stop sequences include `Use Case` and `Scenario:`.
+- **Hygiene**: [`_line_is_letter_signoff()`](../ai/chat/response_postprocess.py) now uses `@handle_errors` (`default_return=False`) and is listed in [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md).
+- **Impact**: The next scheduled personalized message keeps the wellness note and drops the fake letter ending and example scenario.
+- **Testing**: [`test_ai_chatbot_helpers.py`](../tests/unit/test_ai_chatbot_helpers.py) (exact leaked sample plus `generate_response(mode="personalized")`), [`test_ai_response_postprocess.py`](../tests/unit/test_ai_response_postprocess.py), T-17.19 in [`test_ai_postprocess.py`](../tests/ai/test_ai_postprocess.py).
+
 ### 2026-08-21 - Quiet missing personalized.json on startup
 - **Fix**: [`MHMService.initialize_paths()`](../core/service.py) skips AI-generated message categories (`personalized`) so startup does not `verify_file_access` a library file that is never created. Missing `personalized.json` was logging `FileOperationError` in `errors.log` on service start.
 - **Tests**: [`test_core_service_coverage_expansion.py`](../tests/behavior/test_core_service_coverage_expansion.py) covers skip plus `verify_file_access` succeeding when that file is absent.

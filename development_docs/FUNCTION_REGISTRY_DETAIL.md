@@ -222,6 +222,7 @@ answer with the stated fact instead of a vague or forgetful reply.
 #### `ai/chat/response_postprocess.py`
 **Functions:**
 - [MISSING] `_first_nonempty_line_looks_like_user_prose(text)` - No description
+- [OK] `_line_is_letter_signoff(line)` - True when a line is a letter closing, signature, soft closer, or meta note.
 - [OK] `_response_is_mostly_instruction_leak(text)` - True when the remaining text looks like leaked prompt instructions, not chat.
 - [MISSING] `_response_starts_with_code_artifact(text)` - No description
 - [OK] `_truncate_at_first_leak(text, patterns)` - Return text truncated before the earliest leak pattern match.
@@ -236,8 +237,8 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
-- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
-- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, and meta notes.
+- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') and homework-style `Use Case` / `Scenario` dumps from model output.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, meta notes, leftover `[Your Name]`, and any junk that follows the first sign-off line.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
 - [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
 - [OK] `strip_ungrounded_checkin_claims(text)` - Drop sentences that cite check-ins when the prompt had no Recent check-ins data.

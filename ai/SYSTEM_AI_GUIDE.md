@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-07-17
+> **Last Updated**: 2026-08-21
 
 ## 1. Overview
 
@@ -73,11 +73,11 @@ At a high level:
    - Planner disabled: low-confidence messages go straight to contextual chat.
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
 4. The chatbot:
-   - Detects mode (chat vs command).
+   - Detects mode (`chat`, `command`, `command_with_clarification`, or `personalized`).
    - Builds context via `build_ai_context_envelope()` (`ai/context/service.py`) and, for contextual chat summaries, `build_chatbot_context_dict()` / session overlay (`user/context_manager.py`).
    - Builds prompts via `PromptManager.compose_product_prompt()` plus envelope prompt sections (not duplicated behavioral rules in code).
    - Calls LM Studio (if available) with timeouts and error handling.
-   - Applies cleaning and coherence rules (including stated-fact recall on follow-ups).
+   - Applies **mode-specific** cleaning (`_post_process_generated_response(mode, ...)`): personalized messages strip letter sign-offs, homework-style `Use Case` / `Scenario` dumps, and placeholder names like `[Your Name]`.
    - Caches appropriate responses via `ResponseCache` (skip contextual cache when prior session turns exist).
 5. The final response goes back through the communication layer to the user.
 

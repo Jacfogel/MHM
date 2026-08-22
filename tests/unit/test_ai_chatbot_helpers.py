@@ -693,3 +693,71 @@ class TestAIChatBotHelpers:
         assert "INPUT" not in result
         assert "hopeless" not in result
 
+    def test_post_process_strips_homework_use_case_after_signature(
+        self, chatbot_instance
+    ):
+        """Letter sign-off plus a writing-prompt dump must not reach Discord."""
+        raw = (
+            "Hi Julie,\n\n"
+            "I noticed you've been struggling with your sleep and activity patterns lately. "
+            "I hope this message finds you well. It's important to take things one step at a "
+            "time, especially when it comes to wellness. Today, I suggest focusing on small "
+            "resets like drinking water, having a nutritious meal, taking a few deep breaths, "
+            "or even just taking a short rest if needed. Remember that your health and "
+            "well-being are always the top priority.\n\n"
+            "Take care of yourself and have a wonderful day!\n\n"
+            "Best wishes,\n"
+            "[Your Name]\n\n"
+            "Use Case 1: Supporting a Friend's Wellness Journey\n"
+            "Scenario:\n"
+            "Samantha and Emily are close friends who have been supporting each"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result.startswith("Hi Julie.")
+        assert "sleep and activity" in result
+        assert "[Your Name]" not in result
+        assert "Best wishes" not in result
+        assert "Use Case" not in result
+        assert "Scenario" not in result
+        assert "Samantha" not in result
+        assert "wonderful day" not in result.lower()
+
+    def test_generate_response_personalized_mode_applies_personalized_cleanup(
+        self, chatbot_instance
+    ):
+        """Live generate_response must use personalized post-process, not chat."""
+        raw = (
+            "Hi Julie,\n\n"
+            "I noticed you've been struggling with your sleep and activity patterns lately. "
+            "Small resets like water and rest can help.\n\n"
+            "Best wishes,\n"
+            "[Your Name]\n\n"
+            "Use Case 1: Supporting a Friend's Wellness Journey\n"
+            "Scenario:\n"
+            "Samantha and Emily are close friends"
+        )
+        chatbot_instance.response_cache.clear()
+        chatbot_instance.lm_studio_available = True
+        try:
+            with (
+                patch.object(
+                    chatbot_instance, "_ensure_lm_studio_available", return_value=True
+                ),
+                patch.object(
+                    chatbot_instance, "_call_lm_studio_api", return_value=raw
+                ),
+            ):
+                result = chatbot_instance.generate_response(
+                    "Create a brief encouraging wellness message.",
+                    user_id="personalized-cleanup-user",
+                    mode="personalized",
+                )
+        finally:
+            chatbot_instance.lm_studio_available = False
+
+        assert "sleep and activity" in result
+        assert "[Your Name]" not in result
+        assert "Use Case" not in result
+        assert "Samantha" not in result
+        assert "Best wishes" not in result
+

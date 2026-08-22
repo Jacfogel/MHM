@@ -193,6 +193,17 @@ class TestAIPostprocess(AITestBase):
                 "internal section names",
             ],
         },
+        {
+            "id": "T-17.19",
+            "name": "Strip homework Use Case dump after a wellness note",
+            "raw": (
+                "Hi Julie. Rest looked light last night. Keep today gentler.\n\n"
+                "Use Case 1: Supporting a Friend's Wellness Journey\n"
+                "Scenario:\nSamantha and Emily are close friends."
+            ),
+            "must_contain": "Keep today gentler",
+            "must_not_contain": ["Use Case", "Scenario", "Samantha"],
+        },
     ]
 
     def test_postprocess_leak_contract(self):
