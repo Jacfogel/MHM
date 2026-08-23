@@ -820,8 +820,11 @@ That guide provides:
   - Scheduling and reminders.
   - UI workflows.
   - Email (if configured).
+- Section 10. "Automated checklist map" (item-to-pytest tables; leftovers in `tests/behavior/test_manual_*.py`).
 - How to record results and file issues.
 - Triggers that indicate when manual testing is required.
+
+After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md) section 10. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
 
 ### 8.3. Discord-specific testing
 

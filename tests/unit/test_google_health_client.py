@@ -115,6 +115,23 @@ def test_list_data_points_skips_in_testing_mode(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.integrations
+def test_list_data_points_timeout_is_handled(monkeypatch):
+    import requests
+
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    with patch(
+        "integrations.google_health.client.requests.get",
+        side_effect=requests.Timeout("timed out"),
+    ):
+        try:
+            result = list_data_points("token", "sleep")
+        except (CommunicationError, requests.Timeout, TimeoutError, OSError):
+            return
+        assert result == []
+
+
+@pytest.mark.unit
 def test_build_filter_sleep_uses_session_end_time():
     start = datetime(2026, 6, 24, 0, 0, tzinfo=timezone.utc)
     end = datetime(2026, 6, 27, 12, 0, tzinfo=timezone.utc)

@@ -61,9 +61,10 @@ class TestHandleDialogEscapeEnterKeys:
         assert confirmed == []
         event.accept.assert_called_once()
 
-    def test_return_key_ignores_event(self):
+    @pytest.mark.parametrize("key", [Qt.Key.Key_Return, Qt.Key.Key_Enter])
+    def test_return_and_enter_keys_ignore_event(self, key):
         event = MagicMock()
-        event.key.return_value = Qt.Key.Key_Return
+        event.key.return_value = key
 
         assert (
             handle_dialog_escape_enter_keys(

@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Map project-wide manual testing checklist to real tests
+- **Feature**: [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md) section 10 maps startup, UI, schedule/reminder, email, Google Health, and restart-persistence checklist items to pytest. Leftover gaps live in `tests/behavior/test_manual_startup_shutdown.py`, `test_manual_schedule_reminder_checklist.py`, `test_manual_email_checklist.py`, and `test_feature_restart_persistence.py`.
+- **Fix**: `handle_task_reminder` skips when `reminder_sent` is already true, and that flag now persists on the v2 task schema (`ALLOWED_UPDATE_FIELDS` + save/load conversion).
+- **Docs**: Tray shutdown and reminder snooze are N/A. Live leftovers: inbox receipt, OAuth/Fitbit, visual layout, AI tone. [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) 8.2 and [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md) point at the map.
+- **Tests**: Launcher, startup/shutdown logs, overlapping periods (allowed), schedule reload, reminder duplicate/update, dirty-cancel, SMTP formatting/auth/timeout, Google Health API/timeout/sync_state, and cross-feature persistence tests. Targeted pytest: 94 passed.
+- **Impact**: After non-Discord product changes, run the mapped pytest instead of walking the whole manual guide.
+
 ### 2026-08-23 - Map Discord checklist items to real tests
 - **Feature**: Every item in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) now maps to a real pytest. Leftover gaps (set/untag/unpin/archive/group/journal/quick-note aliases, list undo/remove, entries.json checks, Discord cancel/sequence/no-due-date, More-button hints) live in [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py).
 - **Fix**: `toggle_list_item_undone` now passes `done=False` into `_handle_toggle_list_item_done` (the handler accepts that kwarg). `/start` DM-disabled coverage is its own test. `!recent` is in the notebook pagination parametrize.

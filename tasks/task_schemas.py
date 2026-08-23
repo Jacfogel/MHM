@@ -50,6 +50,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "repeat_after_completion",
     "next_due_date",
     "recurrence",
+    "reminder_sent",
 )
 
 TASKS_V2_FILENAME = "tasks.json"
@@ -118,6 +119,7 @@ class TaskV2Model(BaseItemModel):
     reminders: list[dict[str, Any]] = Field(default_factory=list)
     recurrence: RecurrenceModel = Field(default_factory=RecurrenceModel)
     completion: CompletionModel = Field(default_factory=CompletionModel)
+    reminder_sent: bool = False
 
     @field_validator("tags", mode="before")
     @classmethod

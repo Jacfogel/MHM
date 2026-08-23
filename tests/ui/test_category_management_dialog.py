@@ -209,6 +209,24 @@ class TestCategoryManagementDialogSaving:
                             mock_update_prefs.assert_called()
                             mock_update_account.assert_called()
                             mock_msgbox.information.assert_called()
+
+    @pytest.mark.ui
+    @pytest.mark.unit
+    def test_reject_does_not_persist_dirty_category_changes(self, dialog, test_user):
+        from core import clear_user_caches, get_user_data
+
+        before = get_user_data(test_user, "preferences")
+        before_categories = list(
+            (before.get("preferences") or {}).get("categories") or []
+        )
+        dialog.category_widget.set_selected_categories(["health"])
+        dialog.reject()
+        clear_user_caches(test_user)
+        after = get_user_data(test_user, "preferences")
+        after_categories = list(
+            (after.get("preferences") or {}).get("categories") or []
+        )
+        assert after_categories == before_categories
     
     @pytest.mark.ui
     @pytest.mark.unit

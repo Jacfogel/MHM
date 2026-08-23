@@ -362,6 +362,7 @@ Routing:
     - Section 2. "Core Manual Flows".
     - Section 3. "UI Manual Testing".
     - Section 4. "Scheduling & Reminder Manual Tests".
+    - Section 10. "Automated checklist map" (run the named pytest files; leftover gaps in `tests/behavior/test_manual_*.py`).
 - For Discord checklist coverage (tasks, notebook, onboarding):
   - Run [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py) plus the mapped files in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6.
   - Live Discord is optional for tone and the real client.

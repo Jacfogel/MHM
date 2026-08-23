@@ -11,13 +11,14 @@
 
 ## 1. Purpose and Scope
 
-Automated tests are the primary safety net for MHM, but they cannot cover every scenario-especially those involving UI, real integrations, and nuanced user experience.
+Automated tests are the primary safety net for MHM, but they cannot cover every scenario-especially those involving live inboxes, OAuth, visual layout, and nuanced user experience.
 
 This guide defines:
 
 - When manual testing is required.
 - Which manual flows must be exercised.
-- How to run manual checks across UI, scheduling, reminders, email, Discord, and AI behavior.
+- How those flows map to pytest (section 10).
+- How to run remaining live checks across UI, scheduling, reminders, email, Discord, Google Health, and AI tone.
 - How to record and report the results.
 
 Use this guide:
@@ -45,15 +46,17 @@ Checklist:
 - [ ] Confirm that:
   - [ ] The main window or headless service starts without uncaught exceptions.
   - [ ] Logs show a clean startup sequence (no critical or unexpected errors).
-- [ ] Shut down the application using the normal mechanisms (UI exit button, tray icon, or service stop command).
+- [ ] Shut down the application using the normal mechanisms (UI exit button or service stop command).
 - [ ] Confirm that:
   - [ ] No orphan processes remain.
   - [ ] Shutdown logs show a clean termination.
 
 Notes:
 
+- There is no tray icon today; skip tray shutdown until one exists.
 - If any unexpected warnings or errors appear in logs, capture them and decide whether they are acceptable or must be fixed.
 - If shutdown hangs or requires forced termination, file an issue.
+- After startup/shutdown code changes, run the mapped pytest in section 10.1 before a live start/stop pass.
 
 ### 2.2. Basic configuration and environment
 
@@ -142,9 +145,7 @@ Checklist:
 
 - [ ] Edit an existing reminder (change text, schedule periods, or metadata).
 - [ ] Confirm the updated reminder behaves correctly on the next send time.
-- [ ] If snooze is supported:
-  - [ ] Trigger a reminder and snooze it.
-  - [ ] Confirm it is re-scheduled correctly.
+- [ ] Snooze / "Remind Me Later" reschedule is **N/A** until that feature exists (the Discord button currently only acknowledges).
 - [ ] Cancel/remove a reminder:
   - [ ] Confirm it no longer sends.
   - [ ] Confirm dependent UI and internal state are updated.
@@ -156,6 +157,8 @@ Any discrepancy (duplicates, missed reminders, reminders firing at the wrong tim
 ## 5. Email Manual Tests
 
 If email delivery is enabled in your environment, use this section. If not, skip it.
+
+Subject/body formatting and SMTP failure handling are automated (section 10.4). Live inbox receipt stays manual.
 
 ### 5.1. Outbound email checks
 
@@ -293,8 +296,86 @@ When in doubt:
 
 1. Check section 1 of [TESTING_GUIDE.md](TESTING_GUIDE.md) to understand the testing philosophy.
 2. Decide which parts of this manual guide apply to your change.
-3. Run at least the relevant subsets of sections 2-7 here, plus any detailed steps in subordinate guides:
+3. Run the mapped pytest in section 10 for the relevant subsets of sections 2-7, plus any detailed steps in subordinate guides:
    - [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md).
    - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md).
 
 This manual guide is part of the testing surface. Any significant behavior change must remain compatible with the flows and expectations described here, or this guide must be updated alongside the code.
+
+---
+
+## 10. Automated checklist map
+
+Behavior in sections 2-5 is automated unless marked **Live** or **N/A**. After startup, schedule, reminder, UI, email, or Google Health changes, run the named tests instead of walking the checklist by hand. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
+
+Leftover gap tests live in:
+
+- [test_manual_startup_shutdown.py](behavior/test_manual_startup_shutdown.py)
+- [test_manual_schedule_reminder_checklist.py](behavior/test_manual_schedule_reminder_checklist.py)
+- [test_manual_email_checklist.py](behavior/test_manual_email_checklist.py)
+- [test_feature_restart_persistence.py](behavior/test_feature_restart_persistence.py)
+- [test_run_mhm_launcher.py](unit/test_run_mhm_launcher.py)
+- [test_run_headless_service_launcher.py](unit/test_run_headless_service_launcher.py)
+
+### 10.1. Startup, shutdown, and configuration
+
+| Checklist item | Automated test |
+|---|---|
+| Start via `run_mhm.py` | `test_main_launches_ui_with_venv_python_and_launch_env`; missing UI file: `test_main_returns_1_when_ui_app_missing` |
+| Start via `run_headless_service.py` | `test_main_start_delegates_and_returns_0`; stop/status: `test_main_stop_delegates_and_returns_0`; `test_main_status_delegates_without_starting_a_process` |
+| Headless/service start without uncaught exceptions | `test_start_logs_startup_sequence_without_errors`; manager-layer start/stop in `tests/behavior/test_service_behavior.py` and `tests/behavior/test_headless_service_behavior.py` |
+| Clean startup logs | `test_start_logs_startup_sequence_without_errors` |
+| UI exit | `test_ui_close_event_shuts_down_components_without_qt_window` |
+| Tray-icon shutdown | **N/A** (no tray icon) |
+| Service stop | `test_main_stop_delegates_and_returns_0`; `test_stop_service_real_behavior`; `test_shutdown_logs_clean_termination` |
+| No orphan processes after stop | `test_get_service_processes_empty_after_mocked_stop` (mocked `psutil`). Live OS scan after a real start/stop stays manual. |
+| Env / Discord credentials / config errors | `tests/unit/test_config.py`; `tests/unit/test_config_branch_coverage.py`; UI invalid-config in `tests/ui/test_ui_app_qt_core.py` |
+
+### 10.2. UI cancel, save, and validation
+
+| Checklist item | Automated test |
+|---|---|
+| Dialogs open without errors | Instantiation/open tests in `tests/ui/test_dialogs.py`, `tests/ui/test_dialog_behavior.py`, `tests/ui/test_ui_app_qt_main.py` |
+| Layout / alignment / styling | **Live** (visual) |
+| Tab order | **Live** |
+| Escape / Enter | `test_return_and_enter_keys_ignore_event`; Escape cases in `tests/unit/test_dialog_helpers.py`; account/profile key handlers |
+| Cancel does not commit | `test_cancel_does_not_persist_schedule`; `test_reject_does_not_persist_dirty_category_changes`; `test_category_save_persists_and_is_separate_from_reject`; `test_channel_save_is_not_reject` |
+| Invalid time range rejected | `test_save_schedule_invalid_time_range_does_not_persist`; `tests/unit/test_validation.py` (`TestSchedulePeriodsValidation`) |
+| Valid save accepted | `test_save_schedule_success_persists_clears_cache_triggers_and_calls_callback` plus existing account/channel/category save tests |
+
+### 10.3. Scheduling and reminders
+
+| Checklist item | Automated test |
+|---|---|
+| Create / store schedule periods | `test_schedule_period_lifecycle`; `test_set_schedule_periods_persists_complete_data`; `test_schedule_handler_add_schedule_period_success` |
+| Overlapping ranges | `test_validate_schedule_periods_allows_overlapping_ranges` (current design: overlap is allowed) |
+| Invalid times | `tests/unit/test_validation.py` (`test_validate_schedule_periods_invalid_time_order`, `_invalid_time_format`) |
+| Persist after restart | `test_schedule_edits_persist_across_cache_clear_and_reload`; `test_schedule_survives_cache_clear_and_reload` |
+| Delete period; messages/tasks do not crash | `test_delete_schedule_period_with_message_refs_does_not_crash` |
+| Eligible only in valid windows | `test_scheduled_message_not_scheduled_for_wrong_day`; `test_is_schedule_active_time_before_range` / `_after_range`; `test_schedule_all_task_reminders_skips_inactive_period` |
+| Trigger sending | `test_handle_sending_scheduled_message_success`; `test_handle_task_reminder_success` |
+| Edit reminder text used on next send | `test_task_reminder_update_text_used_on_next_send` |
+| Duplicate prevention | `test_task_reminder_already_sent_is_not_delivered_again`; `test_task_reminder_sent_flag_persists_and_blocks_duplicate` |
+| Cancel / complete / delete cleanup | `tests/integration/test_orphaned_reminder_cleanup.py`; `test_task_completion_cleans_up_reminders` |
+| Snooze / Remind Me Later reschedule | **N/A** until implemented |
+
+### 10.4. Email
+
+| Checklist item | Automated test |
+|---|---|
+| Reminder routes to email with subject/body | `test_task_reminder_email_smtp_payload_has_subject_and_body` |
+| SMTP timeout (no hang) | `test_email_send_uses_smtp_timeout` |
+| Invalid SMTP / auth failure, no crash | `test_email_send_smtp_auth_failure_logs_and_does_not_raise`; `test_email_bot_error_handling_preserves_system_stability` |
+| Live inbox receipt | **Live** |
+
+### 10.5. Google Health and restart persistence
+
+| Checklist item | Automated test |
+|---|---|
+| Auth pause + one reconnect notice | `tests/unit/test_google_health_auth.py`; `tests/unit/test_google_health_notifications.py` |
+| Non-auth API failure (no reconnect notice) | `test_sync_api_error_increments_failures_without_reconnect_notice` |
+| Timeout / network failure | `test_sync_timeout_returns_false_without_crash`; `test_list_data_points_timeout_is_handled` |
+| Success clears failures and reconnect flag | `test_sync_success_clears_reconnect_notice_and_failures` |
+| Sync state survives reload | `test_google_health_sync_state_survives_reload` |
+| Preferences / check-in / notebook survive reload | `test_preferences_channel_survives_new_loader`; `test_completed_checkin_survives_reload`; `test_notebook_entry_survives_reload` |
+| Live OAuth, empty Fitbit payloads, 7-14 day confidence | **Live** ([GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md)) |

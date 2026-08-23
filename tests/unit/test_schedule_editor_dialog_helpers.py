@@ -201,3 +201,41 @@ def test_save_schedule_success_persists_clears_cache_triggers_and_calls_callback
     clear_cache.assert_called_once_with("user-1", "motivational")
     trigger.assert_called_once()
     callback.assert_called_once()
+
+
+@pytest.mark.unit
+@pytest.mark.ui
+def test_save_schedule_invalid_time_range_does_not_persist(monkeypatch: pytest.MonkeyPatch):
+    dialog = _dialog()
+    periods = {
+        "Morning": {
+            "start_time": "12:00",
+            "end_time": "08:00",
+            "active": True,
+            "days": ["ALL"],
+        }
+    }
+    monkeypatch.setattr(dialog, "collect_period_data", lambda: periods)
+    set_schedule = MagicMock()
+    monkeypatch.setattr(schedule_editor_dialog, "set_schedule_periods", set_schedule)
+    monkeypatch.setattr(schedule_editor_dialog.QMessageBox, "information", MagicMock())
+    monkeypatch.setattr(dialog, "raise_", MagicMock())
+    monkeypatch.setattr(dialog, "activateWindow", MagicMock())
+
+    assert dialog.save_schedule() is False
+    set_schedule.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.ui
+def test_cancel_does_not_persist_schedule(monkeypatch: pytest.MonkeyPatch):
+    dialog = _dialog()
+    set_schedule = MagicMock()
+    reject = MagicMock()
+    monkeypatch.setattr(schedule_editor_dialog, "set_schedule_periods", set_schedule)
+    monkeypatch.setattr(dialog, "reject", reject)
+
+    dialog.cancel()
+
+    reject.assert_called_once()
+    set_schedule.assert_not_called()

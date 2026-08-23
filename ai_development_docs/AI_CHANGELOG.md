@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Map project-wide manual testing checklist to real tests **COMPLETED**
+- MANUAL_TESTING_GUIDE section 10 maps startup/UI/schedule/email/health/restart items to pytest; leftovers are in `tests/behavior/test_manual_*.py`.
+- Task reminders skip a second send when `reminder_sent` is already true, and that flag now persists.
+- Live leftovers: inbox, OAuth, visual layout, AI tone. Tray and snooze are N/A.
+
 ### 2026-08-23 - Map Discord checklist items to real tests **COMPLETED**
 - Every MANUAL_DISCORD_TEST_GUIDE item maps to a real pytest; leftovers are in `tests/behavior/test_discord_manual_checklist.py`.
 - Fixed `toggle_list_item_undone` (`done=False` kwarg) and extracted `/start` DM-disabled coverage.

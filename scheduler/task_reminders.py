@@ -61,6 +61,12 @@ def handle_task_reminder(
                 )
                 return
 
+            if task.get("reminder_sent"):
+                logger.info(
+                    f"Task {task_identifier} reminder already sent, skipping duplicate"
+                )
+                return
+
             delivery.handle_task_reminder(user_id, task_identifier)
             update_task(user_id, task_identifier, {"reminder_sent": True})
 

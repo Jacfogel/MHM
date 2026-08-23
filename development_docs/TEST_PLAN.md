@@ -203,6 +203,7 @@ This document is the canonical testing roadmap.
 - [ ] Track coverage variance only when it blocks confidence in the reports.
 - [x] Add mocked AI journeys that replace the manual safety/capability checklist (2026-08-22). Live LM Studio review remains tone-only.
 - [x] Map every MANUAL_DISCORD_TEST_GUIDE checklist item to a real pytest (2026-08-23). Leftover gaps live in `tests/behavior/test_discord_manual_checklist.py`. Live Discord is visual/tone only.
+- [x] Map every MANUAL_TESTING_GUIDE checklist item to a real pytest (2026-08-23). Leftover gaps live in `tests/behavior/test_manual_startup_shutdown.py`, `test_manual_schedule_reminder_checklist.py`, `test_manual_email_checklist.py`, and `test_feature_restart_persistence.py`. Live leftovers: inbox, OAuth, visual layout, AI tone. Tray and snooze are N/A.
 
 **Acceptance**:
 - [ ] Coverage trend improves without new flakiness.
