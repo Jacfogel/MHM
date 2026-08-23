@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - Automated AI user journeys replace safety manual checks
+- **Feature**: Added [`tests/behavior/test_ai_user_journeys.py`](../tests/behavior/test_ai_user_journeys.py) so Discord/email-style AI checks run in the main pytest suite with mocked LM Studio. Journeys cover false-CRUD sanitization on `generate_response` and `handle_user_message`, clear `create task` persistence, ambiguous-task clarification, check-in honesty (with and without data), disabled-task capability limits, and numeric-only unclear input. Live counterpart: [`tests/ai/test_ai_live_journeys.py`](../tests/ai/test_ai_live_journeys.py) (T-18.x) is wired into `run_ai_functionality_tests.py` and FAILs on the same safety contracts when the real model slips.
+- **Docs**: Manual AI checklist is tone/phrasing only ([MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md) section 7.3). [TEST_PLAN.md](TEST_PLAN.md) section 2.6 no longer deprioritizes AI/context coverage. Paired testing guides and the live-suite guide route safety/routing to pytest. Path-drift fix: [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) now links [test_ai_live_journeys.py](../tests/ai/test_ai_live_journeys.py) so the filename resolves.
+- **Tests**: `pytest tests/behavior/test_ai_user_journeys.py` (9 passed); related slice `test_conversational_action_boundaries.py`, `test_ai_chatbot_behavior.py`, `test_ai_deterministic.py` (68 passed). Live T-18.x is invoked by `python tests/ai/run_ai_functionality_tests.py` (needs LM Studio for model replies; T-18.6/T-18.7 are deterministic).
+- **Impact**: After AI prompt, routing, or sanitizer changes, run pytest instead of walking Discord for safety and capability. Open LM Studio only when you care about tone.
+
 ### 2026-08-22 - Stop Discord send tests waiting 10s on an empty queue
 - **Fix**: [`test_discord_bot_send_message_actually_sends`](../tests/behavior/test_discord_bot_behavior.py), `test_discord_bot_send_message_handles_errors`, and `test_discord_bot_send_dm_actually_sends_direct_message` now seed `_result_queue` before calling `send_message` / `send_dm`. Those methods poll that queue for 10s; the tests never started a worker, so each sat on `time.sleep(0.1)` until timeout (~30s per suite).
 - **Tests**: Success cases assert the command was queued. The error case asserts a worker `False` result (the old `_send_message_internal` patch was never on this path).

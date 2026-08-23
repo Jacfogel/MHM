@@ -803,7 +803,7 @@ Manual testing is especially important when:
   - Scheduling logic.
   - UI dialogs and flows.
   - Communication channels (Discord, email, future channels).
-  - AI behavior that affects user-facing interactions.
+  - AI persona tone (safety/routing/capability: run [test_ai_user_journeys.py](behavior/test_ai_user_journeys.py) first).
 - Preparing for tagged releases or deployments to new environments.
 - Fixing bugs that are primarily UX or integration issues.
 
@@ -840,7 +840,19 @@ Run these tests when:
 
 ### 8.4. AI functionality testing
 
-For AI conversation behavior, routing, and functionality tests, use:
+Safety, routing, and capability limits are automated in the main pytest suite:
+
+- [test_ai_user_journeys.py](behavior/test_ai_user_journeys.py)
+  - False-CRUD sanitization on `generate_response` and `handle_user_message`
+  - Clear create-task persistence
+  - Ambiguous task clarification (no fake create)
+  - Check-in honesty (with and without data)
+  - Disabled-task capability limits
+  - Numeric-only / unclear input
+
+Run `pytest tests/behavior/test_ai_user_journeys.py` after AI prompt, routing, or sanitizer changes. These tests mock LM Studio and run with `python run_tests.py`.
+
+For live LM Studio conversation quality (tone and phrasing), use:
 
 - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
   - Section 1. "Quick Start".
@@ -850,11 +862,12 @@ For AI conversation behavior, routing, and functionality tests, use:
 
 For a system-level view of the AI behavior these tests exercise, see [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md).
 
-Run these tests when:
+When you run the live suite, category 18 ([test_ai_live_journeys.py](ai/test_ai_live_journeys.py)) re-checks the same safety contracts against a real model and FAILs automatically. Use the rest of that suite for tone and phrasing.
 
-- Changing AI interaction flows.
-- Modifying how prompts or responses are constructed.
-- Adjusting how AI integrates with message scheduling or user data.
+Run the live suite when:
+
+- You changed persona wording and need to hear the tone.
+- You are reviewing conversational quality that pytest cannot score.
 
 ### 8.5. Development tools testing
 

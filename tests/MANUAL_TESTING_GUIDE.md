@@ -247,15 +247,12 @@ Use that guide to:
 
 ### 7.3. Manual AI behavior checks
 
-In addition to automated tests:
+Safety, routing, and capability limits are automated in [test_ai_user_journeys.py](behavior/test_ai_user_journeys.py) (false CRUD sanitization, create-task persistence, ambiguous-task clarification, check-in honesty, disabled-task limits, numeric-only input). Run `pytest tests/behavior/test_ai_user_journeys.py` after AI prompt, routing, or sanitizer changes instead of walking those Discord flows by hand.
 
-- [ ] Perform a few realistic conversations that match current user journeys (for example, setting up reminders, responding to check-ins).
-- [ ] Confirm:
-  - [ ] The AI uses correct tone and phrasing.
-  - [ ] The AI does not suggest unsafe or invalid actions.
-  - [ ] The AI stays within documented capabilities and constraints.
+Manual review is **tone and phrasing only**:
 
-Capture any unexpected or unsafe suggestions as high-priority issues.
+- [ ] If you changed persona wording or care about how replies sound, run a few live LM Studio conversations and confirm the tone still fits.
+- [ ] Capture any unexpected or unsafe suggestions as high-priority issues (those should also fail the journey tests).
 
 ---
 
@@ -292,7 +289,7 @@ Examples of triggers:
 
 - Changes to how reminder windows are calculated or enforced.
 - Changes to how tasks are created, parsed, or acknowledged in Discord.
-- Changes to AI prompts or conversation-handling logic.
+- Changes to AI persona tone (run live LM Studio). Safety/routing/capability: run [test_ai_user_journeys.py](behavior/test_ai_user_journeys.py) first.
 - Major UI reworks (any dialog that affects configuration, schedules, or messaging).
 
 When in doubt:

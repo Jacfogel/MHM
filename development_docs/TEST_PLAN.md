@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-05-17  
+> **Last Updated**: 2026-08-22  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -192,15 +192,16 @@ This document is the canonical testing roadmap.
   - check-in flow
   - tasks
   - notebook
+  - AI user journeys (routing, sanitization, capability limits) via [test_ai_user_journeys.py](../tests/behavior/test_ai_user_journeys.py)
   - core storage/persistence boundaries
   - UI only where tests are stable and worthwhile
-- Deprioritize AI/context coverage until the AI overhaul makes those surfaces more stable.
 - Development-tools coverage is tracked primarily in the AI development tools roadmap, not duplicated here.
 
 **Work**:
 - [ ] Pick small, behavior-relevant coverage slices from live coverage reports.
 - [ ] Avoid percentage-only tests that lock in bad design or brittle implementation details.
 - [ ] Track coverage variance only when it blocks confidence in the reports.
+- [x] Add mocked AI journeys that replace the manual safety/capability checklist (2026-08-22). Live LM Studio review remains tone-only.
 
 **Acceptance**:
 - [ ] Coverage trend improves without new flakiness.

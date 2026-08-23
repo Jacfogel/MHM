@@ -44,6 +44,7 @@ The AI functionality test suite is organized into focused, maintainable modules:
 - `tests/ai/test_ai_quality.py`: Response quality validation and edge cases
 - `tests/ai/test_ai_postprocess.py`: Deterministic post-process leak contract tests (category 17)
 - `tests/ai/test_ai_advanced.py`: Advanced tests (multi-turn conversations, personality consistency, error recovery)
+- `tests/ai/test_ai_live_journeys.py`: Live safety/honesty journeys (T-18.x; FAIL on false CRUD, invented check-ins, fake creates)
 - `tests/ai/run_ai_functionality_tests.py`: Main runner that orchestrates all tests
 
 ---
@@ -108,6 +109,11 @@ The test suite covers categories such as:
 10. Performance and resource management
 11. Advanced multi-turn and coherence checks
 12. Post-process leak contract (T-17.x fixture tests; deterministic, no LM Studio)
+13. Live safety and honesty journeys (T-18.x; real model when LM Studio is up)
+
+Do **not** re-review mocked routing after a pytest-green run of [test_ai_user_journeys.py](../behavior/test_ai_user_journeys.py). When you run this live suite, treat **T-18.x failures as blockers** (false CRUD, invented check-ins, fake creates). Skip re-reading categories 3, 4, 5, and 6 for those same contracts if T-18 passed.
+
+Keep live LM Studio **tone** review for categories 1, 2, and 11.
 
 ---
 

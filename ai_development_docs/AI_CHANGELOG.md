@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-22 - Automated AI user journeys replace safety manual checks **COMPLETED**
+- Mocked pytest journeys in `tests/behavior/test_ai_user_journeys.py` cover false-CRUD sanitization, create-task persistence, ambiguous-task clarification, check-in honesty, disabled-task limits, and numeric-only input.
+- Live suite category 18 (`tests/ai/test_ai_live_journeys.py`) runs the same contracts against LM Studio and FAILs automatically instead of PARTIAL.
+- Path-drift fix: `TESTING_GUIDE.md` links that file as `ai/test_ai_live_journeys.py` so doc-sync can resolve it.
+- Manual AI review is tone/phrasing only. Live suite stays out of `run_tests.py`.
+
 ### 2026-08-22 - Stop Discord send tests waiting 10s on an empty queue **COMPLETED**
 - Three Discord send tests now seed `_result_queue` instead of waiting out the 10s poll.
 - `run_tests.py` no longer pauses LM Studio by default (that combo hung the full suite at 98%).
@@ -108,11 +114,6 @@ Guidelines:
 - Merged helpers into `ui/helpers.py`, lifecycle into `events/lifecycle.py`, and absorbed `item_form_shared` into `ui/create_item_ui.py`.
 - Extracted rich delivery, connection health, command registration, and webhook tunneling; `bot.py` is now a 545-line lifecycle host.
 - Post-audit hygiene: DISCORD_GUIDE path drift, changelog link retargets, docstrings/`@handle_errors`, Ruff/Pyright clean, legacy false-positive comment fixed; `doc-sync` PASS.
-
-### 2026-08-11 - Appropriate coupling reductions (inverted edges) **COMPLETED**
-- Public check-in first-question API; `service_requests` no longer calls private flow helpers.
-- Scheduler runtime handle in `scheduler.runtime_access`; tasks/admin no longer import `core.service` for the locator.
-- Coupling audit signal improved: unique fan-out > 10, exclude `__init__.py`; priorities triage inappropriate edges (not hub shrink).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

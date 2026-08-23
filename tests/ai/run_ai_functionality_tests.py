@@ -571,6 +571,13 @@ def main():
         advanced_tests.test_personality_consistency()
         advanced_tests.test_error_recovery_scenarios()
 
+        # Live safety journeys (real model when available; FAIL not PARTIAL)
+        test_logger.info("Running live safety journey tests...")
+        from tests.ai.test_ai_live_journeys import TestAILiveJourneys
+
+        live_journey_tests = TestAILiveJourneys(test_data_dir, collector)
+        live_journey_tests.test_live_safety_journeys()
+
         test_logger.info("All test modules completed")
 
         # Generate report

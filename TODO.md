@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-08-21 (Google Health shared testing-mode helper shipped)
+> **Last Updated**: 2026-08-22 (AI user journeys automate safety/capability checks)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -141,7 +141,7 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
-- *Remaining*: Live LM Studio review of conversational replies under `tests/ai/run_ai_functionality_tests.py` (static boundaries shipped 2026-05-22). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/context/`; shipped 2026-05-22: [`ai/chat/action_boundaries.py`](ai/chat/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py) - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3.
+- *Remaining*: Live LM Studio review of **tone and phrasing** only (categories 1, 2, 11). Safety/honesty on a real model is T-18.x in [`tests/ai/test_ai_live_journeys.py`](tests/ai/test_ai_live_journeys.py). Mocked journeys: [`tests/behavior/test_ai_user_journeys.py`](tests/behavior/test_ai_user_journeys.py). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/context/`; shipped 2026-05-22: [`ai/chat/action_boundaries.py`](ai/chat/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py) - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing
