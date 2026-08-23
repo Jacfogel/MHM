@@ -82,6 +82,19 @@
   ],
   "removed_inventory": [
     {
+      "id": "placeholder_automation_and_debug_tests",
+      "removed_at": "2026-08-23",
+      "search_terms": [
+        "tests/behavior/test_discord_advanced_automation.py",
+        "tests/behavior/test_ui_automation_complete.py",
+        "tests/unit/debug_file_paths.py",
+        "assert True  # Placeholder",
+        "assert True  # Always pass for debugging"
+      ],
+      "replacement": "Real handler/UI tests (test_discord_automation_complete.py remaining real cases, test_checkin_handler_behavior.py, tests/ui/* dialog tests). Policy: tests/unit/test_test_policy_guards.py::test_no_assert_true_placeholders",
+      "notes": "Deleted stub suites that only created a user and asserted True. Remaining assert True placeholders were converted to real checks or removed."
+    },
+    {
       "id": "ai_independent_checkin_wellness_formula",
       "removed_at": "2026-08-22",
       "search_terms": [

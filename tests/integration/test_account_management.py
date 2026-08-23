@@ -193,7 +193,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                 
                 if not missing_fields:
                     logging.getLogger("mhm_tests").debug("Account data structure: all required fields present")
-                    assert True, "Account structure is valid"
+                    assert not missing_fields
                 else:
                     logging.getLogger("mhm_tests").warning(f"Account data structure: missing fields - {missing_fields}")
                     raise AssertionError(f"Account structure missing fields: {missing_fields}")
@@ -214,7 +214,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                 
                 if not missing_fields:
                     logging.getLogger("mhm_tests").debug("Preferences data structure: all required fields present")
-                    assert True, "Preferences structure is valid"
+                    assert not missing_fields
                 else:
                     logging.getLogger("mhm_tests").warning(f"Preferences data structure: missing fields - {missing_fields}")
                     raise AssertionError(f"Preferences structure missing fields: {missing_fields}")
@@ -231,11 +231,11 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             if context_data and 'context' in context_data:
                 context_data['context']
                 logging.getLogger("mhm_tests").debug("Context data structure: data present")
-                assert True, "Context structure is valid"
+                assert "context" in context_data
             else:
                 logging.getLogger("mhm_tests").warning("Context data structure: no context data found (optional)")
                 # Context is optional, so this is not a failure
-                assert True, "Context data is optional"
+                assert not context_data or "context" not in context_data
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"Context data structure: error - {e}")
             raise AssertionError(f"Context data structure error: {e}") from e
@@ -268,7 +268,7 @@ def test_account_management_validation():
             
             if is_valid:
                 logging.getLogger("mhm_tests").info("Account validation: Valid updates accepted")
-                assert True, "Valid account updates should be accepted"
+                assert is_valid
             else:
                 logging.getLogger("mhm_tests").warning(f"Account validation: Valid updates rejected - {errors}")
                 raise AssertionError(f"Valid account updates were rejected: {errors}")
@@ -286,7 +286,7 @@ def test_account_management_validation():
             
             if not is_valid:
                 logging.getLogger("mhm_tests").info("Account validation: Invalid updates correctly rejected")
-                assert True, "Invalid account updates should be rejected"
+                assert not is_valid
             else:
                 logging.getLogger("mhm_tests").warning("Account validation: Invalid updates incorrectly accepted")
                 raise AssertionError("Invalid account updates were incorrectly accepted")
@@ -304,7 +304,7 @@ def test_account_management_validation():
             
             if is_valid:
                 logging.getLogger("mhm_tests").info("Preferences validation: Valid updates accepted")
-                assert True, "Valid preferences updates should be accepted"
+                assert is_valid
             else:
                 logging.getLogger("mhm_tests").warning(f"Preferences validation: Valid updates rejected - {errors}")
                 raise AssertionError(f"Valid preferences updates were rejected: {errors}")
@@ -360,7 +360,7 @@ def test_account_management_safe_operations():
             
             if save_result.get('account') and save_result.get('preferences'):
                 logging.getLogger("mhm_tests").info("Temporary user creation: Successful")
-                assert True, "Temporary user creation should succeed"
+                assert save_result.get('account') and save_result.get('preferences')
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user creation: Failed - {save_result}")
                 raise AssertionError(f"Temporary user creation failed: {save_result}")
@@ -386,7 +386,7 @@ def test_account_management_safe_operations():
             
             if account_data and prefs_data:
                 logging.getLogger("mhm_tests").info("Temporary user data access: Successful")
-                assert True, "Temporary user data access should succeed"
+                assert account_data and prefs_data
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user data access: Failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
                 raise AssertionError(f"Temporary user data access failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
@@ -402,7 +402,7 @@ def test_account_management_safe_operations():
             
             if update_result.get('account'):
                 logging.getLogger("mhm_tests").info("Temporary user update: Successful")
-                assert True, "Temporary user update should succeed"
+                assert update_result.get('account')
             else:
                 logging.getLogger("mhm_tests").warning(f"Temporary user update: Failed - {update_result}")
                 raise AssertionError(f"Temporary user update failed: {update_result}")
@@ -415,7 +415,7 @@ def test_account_management_safe_operations():
             # We could delete the temporary user here, but for safety we'll let it remain
             # The system has automatic cleanup mechanisms
             logging.getLogger("mhm_tests").info("Temporary user cleanup: Left for automatic cleanup")
-            assert True, "Temporary user cleanup should succeed"
+            assert temp_user_id
         except Exception as e:
             logging.getLogger("mhm_tests").warning(f"Temporary user cleanup: Error - {e}")
             raise AssertionError(f"Temporary user cleanup error: {e}") from e
@@ -464,7 +464,7 @@ def test_account_management_integration():
             # This should update the user index
             update_user_index(test_user)
             logging.getLogger("mhm_tests").info("User index integration: Index update successful")
-            assert True, "User index integration should succeed"
+            assert test_user
         except Exception as e:
             logging.getLogger("mhm_tests").error(f"User index integration: Error - {e}")
             raise AssertionError(f"User index integration error: {e}") from e
@@ -477,7 +477,7 @@ def test_account_management_integration():
             
             if account_data1 == account_data2:
                 logging.getLogger("mhm_tests").info("Data consistency: Consistent across reads")
-                assert True, "Data consistency should be maintained"
+                assert account_data1 == account_data2
             else:
                 logging.getLogger("mhm_tests").warning("Data consistency: Inconsistent data")
                 raise AssertionError("Data consistency failed")

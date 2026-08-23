@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Remove placeholder and always-pass tests **COMPLETED**
+- Deleted Discord/UI automation stub files and `debug_file_paths.py` (they only asserted True).
+- Converted remaining `assert True` tests to real checks; factory demo fallbacks now fail instead of hiding lookup bugs.
+- Policy guard `test_no_assert_true_placeholders` keeps new placeholders out.
+- Typed the helper as `ast.Module` so the audit Pyright warning is gone.
+- Fast interaction-manager helper no longer leaks `AI_ACTION_PLANNER_ENABLED=False`; ambiguous-task journey enables the planner via monkeypatch.
+- Added the missing `unit` marker on the v2 envelope schedule-cache validation test.
+
 ### 2026-08-22 - Automated AI user journeys replace safety manual checks **COMPLETED**
 - Mocked pytest journeys in `tests/behavior/test_ai_user_journeys.py` cover false-CRUD sanitization, create-task persistence, ambiguous-task clarification, check-in honesty, disabled-task limits, and numeric-only input.
 - Live suite category 18 (`tests/ai/test_ai_live_journeys.py`) runs the same contracts against LM Studio and FAILs automatically instead of PARTIAL.
@@ -108,12 +116,6 @@ Guidelines:
 - Restored valid `DEPRECATION_INVENTORY.json` after a broken `removed_inventory` insert failed three inventory-load tests.
 - Split `storage/user_data_operations.py` into backup/index/summaries/user-info modules; operations.py is a thin `UserDataManager` facade. Storage tests green (manager, scenarios, create/delete, coverage patches retargeted). Follow-up: docstrings/`@handle_errors` on the three new helpers; `# not_duplicate` on facade export/backup delegates.
 - AI_PRIORITIES shows `N lines, M functions` instead of unreadable `total_function_complexity` totals.
-
-### 2026-08-11 - Discord package and bot split **COMPLETED**
-- Moved Discord modules into `events/`, `ui/`, `onboarding/`, `webhooks/` with search-and-close imports (no legacy shims).
-- Merged helpers into `ui/helpers.py`, lifecycle into `events/lifecycle.py`, and absorbed `item_form_shared` into `ui/create_item_ui.py`.
-- Extracted rich delivery, connection health, command registration, and webhook tunneling; `bot.py` is now a 545-line lifecycle host.
-- Post-audit hygiene: DISCORD_GUIDE path drift, changelog link retargets, docstrings/`@handle_errors`, Ruff/Pyright clean, legacy false-positive comment fixed; `doc-sync` PASS.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

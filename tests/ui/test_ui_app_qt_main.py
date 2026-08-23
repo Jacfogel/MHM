@@ -295,77 +295,6 @@ class TestMHMManagerUI:
                     # Assert
                     assert ui.current_user_categories is not None, "Categories should be loaded"
     
-    def test_on_category_selected_handles_selection(self, test_data_dir, qapp):
-        """Test that on_category_selected handles category selection."""
-        from ui.ui_app_qt import MHMManagerUI
-        from tests.test_helpers.test_utilities import TestUserFactory
-        
-        # Arrange
-        user_id = "test_user"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    mock_ui_instance = Mock()
-                    mock_ui.return_value = mock_ui_instance
-                    mock_timer_instance = Mock()
-                    mock_timer.return_value = mock_timer_instance
-                    mock_path.return_value.exists.return_value = True
-                    
-                    ui = MHMManagerUI()
-                    ui.current_user = user_id
-                    
-                    # Act
-                    ui.on_category_selected("test_category")
-                    
-                    # Assert - Should not raise exception
-                    assert True
-    
-    def test_enable_content_management_enables_ui(self, qapp):
-        """Test that enable_content_management enables UI elements."""
-        from ui.ui_app_qt import MHMManagerUI
-        
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    mock_ui_instance = Mock()
-                    mock_ui.return_value = mock_ui_instance
-                    mock_timer_instance = Mock()
-                    mock_timer.return_value = mock_timer_instance
-                    mock_path.return_value.exists.return_value = True
-                    
-                    ui = MHMManagerUI()
-                    
-                    # Act
-                    ui.enable_content_management()
-                    
-                    # Assert - UI elements should be enabled
-                    # The method should not raise exceptions
-                    assert True
-    
-    def test_disable_content_management_disables_ui(self, qapp):
-        """Test that disable_content_management disables UI elements."""
-        from ui.ui_app_qt import MHMManagerUI
-        
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    mock_ui_instance = Mock()
-                    mock_ui.return_value = mock_ui_instance
-                    mock_timer_instance = Mock()
-                    mock_timer.return_value = mock_timer_instance
-                    mock_path.return_value.exists.return_value = True
-                    
-                    ui = MHMManagerUI()
-                    
-                    # Act
-                    ui.disable_content_management()
-                    
-                    # Assert - UI elements should be disabled
-                    # The method should not raise exceptions
-                    assert True
-    
     def test_run_category_scheduler_runs_scheduler(self, qapp):
         """Test that run_category_scheduler runs the category scheduler."""
         from ui.ui_app_qt import MHMManagerUI
@@ -753,7 +682,7 @@ class TestMHMManagerUI:
                     
                     # Verify combo box was cleared and items added
                     mock_ui_instance.comboBox_user_categories.clear.assert_called()
-                    assert mock_ui_instance.comboBox_user_categories.addItem.call_count >= 0
+                    mock_ui_instance.comboBox_user_categories.addItem.assert_called()
     
     def test_on_category_selected_handles_selection_extended(self, qapp):
         """Test that on_category_selected handles category selection."""
@@ -767,18 +696,17 @@ class TestMHMManagerUI:
                     mock_timer_instance = Mock()
                     mock_timer.return_value = mock_timer_instance
                     mock_path.return_value.exists.return_value = True
-                    # Mock currentIndex to return an integer (1 = valid selection)
                     mock_ui_instance.comboBox_user_categories.currentIndex.return_value = 1
                     mock_ui_instance.comboBox_user_categories.itemData.return_value = "test_category"
                     
                     ui = MHMManagerUI()
                     ui.current_user = "test_user"
                     
-                    # Test on_category_selected
                     ui.on_category_selected("test_category")
                     
-                    # Verify method completes without error
-                    assert True
+                    mock_ui_instance.pushButton_edit_messages.setEnabled.assert_called_with(True)
+                    mock_ui_instance.pushButton_edit_schedules.setEnabled.assert_called_with(True)
+                    mock_ui_instance.pushButton_send_test_message.setEnabled.assert_called_with(True)
     
     def test_create_new_user_opens_dialog(self, qapp):
         """Test that create_new_user opens account creation dialog."""

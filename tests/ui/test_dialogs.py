@@ -106,12 +106,7 @@ def test_ui_files_exist():
     ]
     
     for ui_name, file_path in ui_files_to_test:
-        if os.path.exists(file_path):
-            # logging via mhm_tests logger preferred over print
-            assert True, f"{ui_name}: UI file should exist"
-        else:
-            # logging via mhm_tests logger preferred over print
-            raise AssertionError(f"{ui_name}: UI file missing - {file_path}")
+        assert os.path.exists(file_path), f"{ui_name}: UI file missing - {file_path}"
 
 
 @pytest.mark.ui
@@ -134,12 +129,7 @@ def test_generated_files_exist():
     ]
     
     for file_name, file_path in generated_files_to_test:
-        if os.path.exists(file_path):
-            # logging via mhm_tests logger preferred over print
-            assert True, f"{file_name}: Generated file should exist"
-        else:
-            # logging via mhm_tests logger preferred over print
-            raise AssertionError(f"{file_name}: Generated file missing - {file_path}")
+        assert os.path.exists(file_path), f"{file_name}: Generated file missing - {file_path}"
 
 
 @pytest.mark.ui

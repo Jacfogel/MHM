@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Remove placeholder and always-pass tests
+- **Hygiene**: Deleted stub suites that never tested behavior: `tests/behavior/test_discord_advanced_automation.py`, `tests/behavior/test_ui_automation_complete.py`, and `tests/unit/debug_file_paths.py`. Removed placeholder flow/edge methods from `test_discord_automation_complete.py`.
+- **Fix**: Converted remaining `assert True` tests (logger, UI dialogs, comm manager, factories) into real assertions or deleted duplicate smoke cases. Failure-hiding fallbacks in `test_utilities_demo.py` now fail instead of passing.
+- **Policy**: `tests/unit/test_test_policy_guards.py::test_no_assert_true_placeholders` blocks new `assert True` placeholders. Specs/coverage matrix no longer cite the deleted stub files.
+- **Types**: Typed that helper as `ast.Module` so Pyright no longer warns that `AST` has no `.body`.
+- **Fix**: `_create_fast_interaction_manager` no longer assigns `AI_ACTION_PLANNER_ENABLED = False` on the process-global config. That leak skipped the planner in later xdist workers and failed `test_ambiguous_add_task_clarifies_without_creating`. Journey tests now enable the planner via monkeypatch.
+- **Hygiene**: Added the missing `@pytest.mark.unit` on `test_save_user_data_schedules_recovers_from_v2_envelope_cache`.
+- **Impact**: The suite no longer reports green for tests that only create a user and pass. Parallel AI journeys keep the planner path when other comm tests run first.
+
 ### 2026-08-22 - Automated AI user journeys replace safety manual checks
 - **Feature**: Added [`tests/behavior/test_ai_user_journeys.py`](../tests/behavior/test_ai_user_journeys.py) so Discord/email-style AI checks run in the main pytest suite with mocked LM Studio. Journeys cover false-CRUD sanitization on `generate_response` and `handle_user_message`, clear `create task` persistence, ambiguous-task clarification, check-in honesty (with and without data), disabled-task capability limits, and numeric-only unclear input. Live counterpart: [`tests/ai/test_ai_live_journeys.py`](../tests/ai/test_ai_live_journeys.py) (T-18.x) is wired into `run_ai_functionality_tests.py` and FAILs on the same safety contracts when the real model slips.
 - **Docs**: Manual AI checklist is tone/phrasing only ([MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md) section 7.3). [TEST_PLAN.md](TEST_PLAN.md) section 2.6 no longer deprioritizes AI/context coverage. Paired testing guides and the live-suite guide route safety/routing to pytest. Path-drift fix: [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) now links [test_ai_live_journeys.py](../tests/ai/test_ai_live_journeys.py) so the filename resolves.

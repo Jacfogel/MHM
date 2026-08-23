@@ -296,42 +296,28 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_check_and_fix_logging_success_real_behavior(self, service):
         """Test successful logging check and fix."""
-        with (
-            patch("core.logger.setup_logging") as mock_setup,
-            patch("core.logger.get_component_logger") as mock_get_logger,
-        ):
-
-            # Mock successful logging setup
-            mock_setup.return_value = True
-            mock_logger = Mock()
-            mock_get_logger.return_value = mock_logger
-
-            # [OK] VERIFY REAL BEHAVIOR: Logging check and fix succeeds
-            # The check_and_fix_logging method should not raise an exception
+        with patch.object(
+            service, "_check_and_fix_logging__test_logging_functionality"
+        ) as mock_test:
             service.check_and_fix_logging()
-
-            # The method should complete successfully
-            assert True  # If we get here, the method worked
+            mock_test.assert_called()
 
     @pytest.mark.behavior
     def test_check_and_fix_logging_failure_real_behavior(self, service):
         """Test logging check and fix failure."""
         with (
-            patch("core.logger.setup_logging") as mock_setup,
-            patch("core.logger.get_component_logger") as mock_get_logger,
+            patch.object(
+                service,
+                "_check_and_fix_logging__test_logging_functionality",
+                side_effect=RuntimeError("logging down"),
+            ),
+            patch.object(
+                service, "_check_and_fix_logging__force_restart_logging_system"
+            ) as mock_restart,
         ):
-
-            # Mock logging setup failure
-            mock_setup.return_value = False
-            mock_logger = Mock()
-            mock_get_logger.return_value = mock_logger
-
-            # [OK] VERIFY REAL BEHAVIOR: Logging check and fix failure is handled
-            # The method should handle failures gracefully
+            mock_restart.return_value = False
             service.check_and_fix_logging()
-
-            # The method should complete without raising an exception
-            assert True  # If we get here, the method handled the failure gracefully
+            mock_restart.assert_called()
 
     @pytest.mark.behavior
     def test_signal_handler_real_behavior(self, service):
@@ -626,15 +612,16 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_signal_handlers_real_behavior(self, service):
         """Test service signal handlers setup."""
-        # [OK] VERIFY REAL BEHAVIOR: Signal handlers are set up correctly
-        # This test verifies that signal handlers can be set without errors
+        previous_int = signal.getsignal(signal.SIGINT)
+        previous_term = signal.getsignal(signal.SIGTERM)
         try:
             signal.signal(signal.SIGINT, service.signal_handler)
             signal.signal(signal.SIGTERM, service.signal_handler)
-            # If we get here, signal handlers were set successfully
-            assert True
-        except Exception as e:
-            pytest.fail(f"Signal handler setup failed: {e}")
+            assert signal.getsignal(signal.SIGINT) == service.signal_handler
+            assert signal.getsignal(signal.SIGTERM) == service.signal_handler
+        finally:
+            signal.signal(signal.SIGINT, previous_int)
+            signal.signal(signal.SIGTERM, previous_term)
 
     @pytest.mark.behavior
     def test_service_retry_mechanism_real_behavior(self, service, mock_config):

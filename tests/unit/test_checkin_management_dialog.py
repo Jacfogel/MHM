@@ -280,12 +280,9 @@ class TestCheckinManagementDialogData:
         dialog = CheckinManagementDialog()
         
         try:
-            # Act
             dialog.load_user_checkin_data()
             
-            # Assert
-            # Should return early without error
-            assert True, "Should return early without error"
+            assert not dialog.user_id
         finally:
             dialog.deleteLater()
     
@@ -370,12 +367,9 @@ class TestCheckinManagementDialogSave:
         dialog = CheckinManagementDialog()
         
         try:
-            # Act
-            dialog.save_checkin_settings()
-            
-            # Assert
-            # Should accept and close dialog
-            assert True, "Should accept dialog without user_id"
+            with patch.object(dialog, 'accept') as mock_accept:
+                dialog.save_checkin_settings()
+                mock_accept.assert_called_once()
         finally:
             dialog.deleteLater()
     

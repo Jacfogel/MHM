@@ -665,7 +665,7 @@ Follow these guidelines:
 - Do not re-implement the same setup logic in multiple tests; extract it into a fixture or helper.
 
 - Keep policy guard tests green:
-  - `tests/unit/test_test_policy_guards.py` enforces key test-policy constraints (test-data path safety, category and product-domain marker compliance, time usage, and no-parallel reason expectations).
+  - `tests/unit/test_test_policy_guards.py` enforces key test-policy constraints (no `assert True` placeholders, test-data path safety, category and product-domain marker compliance, time usage, and no-parallel reason expectations).
   - Full audits (`audit --full`, Tier 3) also run `analyze_test_markers --check`; missing category or domain markers fail the audit.
 
 ### 6.4. Test Time Rules (Canonical Time Utilities)

@@ -308,8 +308,9 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'base_dir': str(tmp_path / "logs")
             }
             
-            # This should not crash
-            compress_old_logs()
+            compressed = compress_old_logs()
+            assert isinstance(compressed, int)
+            assert compressed >= 0
 
     def test_cleanup_old_archives_simple(self, tmp_path):
         """Test cleanup_old_archives with simple conditions"""
@@ -327,8 +328,9 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'archive_dir': str(archive_dir)
             }
             
-            # This should not crash
-            cleanup_old_archives()
+            cleaned = cleanup_old_archives()
+            assert isinstance(cleaned, int)
+            assert cleaned >= 0
 
     def test_cleanup_old_logs_simple(self, tmp_path):
         """Test cleanup_old_logs with simple conditions"""
@@ -346,8 +348,9 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'backup_dir': str(backup_dir)
             }
             
-            # This should not crash
-            cleanup_old_logs()
+            cleaned = cleanup_old_logs()
+            assert isinstance(cleaned, int)
+            assert cleaned >= 0
 
     def test_suppress_noisy_logging_simple(self, tmp_path):
         """Test suppress_noisy_logging function"""
@@ -373,11 +376,10 @@ class TestLoggerCoverageExpansionPhase3Simple:
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
         
-        # Test suppress_noisy_logging
         suppress_noisy_logging()
         
-        # The function should not crash
-        assert True  # If we get here, the function didn't crash
+        assert logging.getLogger("httpx").level == logging.WARNING
+        assert logging.getLogger("discord").level == logging.WARNING
 
     def test_setup_logging_environment_detection_simple(self, tmp_path):
         """Test setup_logging with different environment configurations"""
@@ -394,11 +396,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'errors_file': str(log_dir / "errors.log")
             }
             
-            # Test setup_logging
-            setup_logging()
-            
-            # The function should not crash
-            assert True  # If we get here, the function didn't crash
+            assert setup_logging() is None
+            mock_paths.assert_not_called()
 
     def test_component_logger_error_handling_during_creation_simple(self, tmp_path):
         """Test ComponentLogger error handling during creation"""
@@ -410,16 +409,9 @@ class TestLoggerCoverageExpansionPhase3Simple:
         
         log_file = log_dir / "test.log"
         
-        # Test with invalid log file path (should handle gracefully)
-        with patch('os.makedirs', side_effect=OSError("Permission denied")):
-            # This should not crash
-            try:
-                ComponentLogger('test', str(log_file))
-                # If it doesn't crash, that's good
-                assert True
-            except Exception:
-                # If it does crash, that's also acceptable as long as it's handled
-                assert True
+        logger = ComponentLogger('test', str(log_file))
+        assert logger is not None
+        assert logger.component_name == 'test'
 
     def test_backup_directory_rotating_file_handler_initialization_simple(self, tmp_path):
         """Test BackupDirectoryRotatingFileHandler initialization with simple parameters"""

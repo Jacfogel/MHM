@@ -140,7 +140,7 @@ class TestCheckinView:
             # If view is None, function handled error gracefully - skip button handler test
             if view is None:
                 # Function returned None gracefully - acceptable behavior in test environment
-                assert True, "Function should handle Discord unavailability gracefully"
+                pytest.skip("Check-in view unavailable without Discord")
                 return
             
             # Create mock interaction
@@ -168,7 +168,7 @@ class TestCheckinView:
         # If view is None, function handled error gracefully - skip button handler test
         if view is None:
             # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
+            pytest.skip("Check-in view unavailable without Discord")
             return
         
         # Create mock interaction with non-existent Discord user ID
@@ -234,7 +234,7 @@ class TestCheckinView:
             # If view is None, function handled error gracefully - skip button handler test
             if view is None:
                 # Function returned None gracefully - acceptable behavior in test environment
-                assert True, "Function should handle Discord unavailability gracefully"
+                pytest.skip("Check-in view unavailable without Discord")
                 return
             
             # Create mock interaction
@@ -262,7 +262,7 @@ class TestCheckinView:
         # If view is None, function handled error gracefully - skip button handler test
         if view is None:
             # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
+            pytest.skip("Check-in view unavailable without Discord")
             return
         
         # Create mock interaction
@@ -295,7 +295,7 @@ class TestCheckinView:
         # If view is None, function handled error gracefully - skip button handler test
         if view is None:
             # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
+            pytest.skip("Check-in view unavailable without Discord")
             return
         
         # Create mock interaction that will raise an error
@@ -319,7 +319,7 @@ class TestCheckinView:
         # Note: If error occurs before defer, it may not be called
         if hasattr(mock_interaction.response, 'defer'):
             # Just verify the mock exists, actual call depends on error handling
-            assert True, "Interaction mock is set up"
+            assert mock_interaction.response is not None
 
     def test_checkin_view_custom_ids_are_unique(self, test_data_dir):
         """Test that button custom_ids are unique per user."""
@@ -333,7 +333,7 @@ class TestCheckinView:
         # If views are None, function handled error gracefully - verify it doesn't crash
         if view_1 is None or view_2 is None:
             # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
+            pytest.skip("Check-in view unavailable without Discord")
             return
         
         # Get custom_ids from buttons

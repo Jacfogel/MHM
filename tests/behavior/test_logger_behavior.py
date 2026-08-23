@@ -129,12 +129,15 @@ class TestLoggerVerbosityBehavior:
             # Setup logging first
             setup_logging()
             
-            # Set to DEBUG level
-            set_console_log_level(logging.DEBUG)
-            
-            # Verify the level was set (we can't easily test the actual handler level
-            # without more complex mocking, but we can verify the function doesn't crash)
-            assert True, "Setting console log level should not crash"
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.WARNING)
+            root_logger = logging.getLogger()
+            root_logger.handlers.insert(0, console_handler)
+            try:
+                set_console_log_level(logging.DEBUG)
+                assert console_handler.level == logging.DEBUG, "Console handler should be set to DEBUG"
+            finally:
+                root_logger.removeHandler(console_handler)
 @pytest.mark.core
 
 

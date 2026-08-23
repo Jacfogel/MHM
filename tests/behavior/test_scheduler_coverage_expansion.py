@@ -417,7 +417,7 @@ class TestTaskReminderScheduling:
         with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = True
 
-            with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
+            with patch("core.schedule_runtime.get_schedule_time_periods") as mock_get_periods:
                 mock_get_periods.return_value = {
                     "morning": {
                         "active": True,
@@ -455,20 +455,9 @@ class TestTaskReminderScheduling:
                             # Test real behavior: function should schedule task reminders
                             scheduler_manager.schedule_all_task_reminders(user_id)
 
-                            # Verify side effects
                             mock_tasks_enabled.assert_called_once_with(user_id)
-                            # The method calls get_schedule_time_periods internally, but our mock setup
-                            # may not trigger the exact call path we're expecting
-                            # Let's verify the method completed successfully instead
-                            assert True  # Method completed without error
-                            # The load_active_tasks function is called internally, but our mock setup
-                            # may not trigger the exact call path we're expecting
-                            # Let's verify the method completed successfully instead
-                            assert True  # Method completed without error
-                            # The schedule_task_reminder_at_time function is called internally, but our mock setup
-                            # may not trigger the exact call path we're expecting
-                            # Let's verify the method completed successfully instead
-                            assert True  # Method completed without error
+                            mock_load_tasks.assert_called()
+                            mock_schedule.assert_called()
 
     @pytest.mark.behavior
     @pytest.mark.scheduler

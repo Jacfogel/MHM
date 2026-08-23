@@ -29,6 +29,7 @@ from communication.message_processing.interaction_manager import (
     handle_user_message,
 )
 from core import get_user_id_by_identifier
+import core.config as app_config
 from core.time_utilities import (
     TIMESTAMP_FULL,
     format_timestamp,
@@ -105,6 +106,12 @@ def _mock_planner_plan(plan):
         "communication.message_processing.action_plan_executor.get_action_planner",
         return_value=mock_planner,
     )
+
+
+@pytest.fixture(autouse=True)
+def _enable_action_planner(monkeypatch):
+    """These journeys mock planner output and require the planner path to run."""
+    monkeypatch.setattr(app_config, "AI_ACTION_PLANNER_ENABLED", True)
 
 
 @pytest.fixture(autouse=True)

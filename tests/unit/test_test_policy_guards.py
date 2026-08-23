@@ -41,7 +41,6 @@ PRODUCTION_LOG_REFERENCE_ALLOWED_FILES = {
 REAL_USER_PATH_ALLOWED_FILES = {
     "tests/conftest.py",
     "tests/core/test_file_auditor.py",
-    "tests/unit/debug_file_paths.py",
     "tests/behavior/test_scheduler_coverage_expansion.py",
     "tests/unit/test_config.py",
 }
@@ -465,6 +464,57 @@ def test_no_real_user_path_usage_in_tests():
             violations.append(f"{rel}:{line_no} references real-user path pattern")
 
     assert not violations, "Real user path policy violations found:\n" + "\n".join(sorted(violations))
+
+
+def _collect_assert_true_only_tests(tree: ast.Module, rel: str) -> list[str]:
+    violations: list[str] = []
+
+    def is_assert_true(node: ast.AST) -> bool:
+        return (
+            isinstance(node, ast.Assert)
+            and isinstance(node.test, ast.Constant)
+            and node.test.value is True
+        )
+
+    def visit_test_fn(fn: ast.FunctionDef | ast.AsyncFunctionDef, prefix: str) -> None:
+        asserts = [n for n in ast.walk(fn) if isinstance(n, ast.Assert)]
+        true_asserts = [n for n in asserts if is_assert_true(n)]
+        if true_asserts:
+            for node in true_asserts:
+                violations.append(
+                    f"{rel}:{node.lineno} {prefix}{fn.name} uses assert True"
+                )
+
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_"):
+            visit_test_fn(node, "")
+        elif isinstance(node, ast.ClassDef):
+            for member in node.body:
+                if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)) and member.name.startswith("test_"):
+                    visit_test_fn(member, f"{node.name}.")
+    return violations
+
+
+@pytest.mark.unit
+@pytest.mark.user
+def test_no_assert_true_placeholders():
+    """Policy: tests must assert a real condition, not `assert True`."""
+    violations: list[str] = []
+    for path in _iter_test_python_files():
+        rel = path.relative_to(PROJECT_ROOT).as_posix()
+        if rel == "tests/unit/test_test_policy_guards.py":
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        try:
+            tree = ast.parse(text, filename=str(path))
+        except SyntaxError:
+            continue
+        violations.extend(_collect_assert_true_only_tests(tree, rel))
+
+    assert not violations, (
+        "Placeholder assert True found (tests must check a real condition):\n"
+        + "\n".join(sorted(violations))
+    )
 
 
 @pytest.mark.unit

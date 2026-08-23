@@ -135,12 +135,9 @@ class TestAdminPanelDialogData:
         # Arrange
         test_data = {"key1": "value1", "key2": "value2"}
         
-        # Act
         dialog.set_admin_data(test_data)
         
-        # Assert
-        # Should complete without error (placeholder implementation)
-        assert True, "Should accept dictionary"
+        assert dialog.get_admin_data() == {}
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -199,12 +196,9 @@ class TestAdminPanelDialogData:
         # Arrange
         test_data = {}
         
-        # Act
         dialog.set_admin_data(test_data)
         
-        # Assert
-        # Should complete without error
-        assert True, "Should accept empty dictionary"
+        assert dialog.get_admin_data() == {}
 
 
 class TestAdminPanelDialogErrorHandling:
@@ -241,16 +235,8 @@ class TestAdminPanelDialogErrorHandling:
         test_data = {"key": "value"}
         
         with patch('ui.dialogs.admin_panel.logger'):
-            # Act & Assert
-            # Should raise DataError on error (not caught by decorator)
-            # This is expected behavior for set_admin_data
-            try:
-                dialog.set_admin_data(test_data)
-                # If no error, that's fine (placeholder implementation)
-                assert True, "Should handle errors gracefully"
-            except DataError:
-                # If DataError is raised, that's also fine
-                assert True, "Should raise DataError on error"
+            dialog.set_admin_data(test_data)
+            assert dialog.get_admin_data() == {}
 
 
 class TestAdminPanelDialogUI:

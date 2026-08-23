@@ -1824,30 +1824,24 @@ class TestAccountCreatorDialogHelperMethods:
     @pytest.mark.unit
     def test_on_feature_toggled_updates_tabs(self, dialog):
         """Test that on_feature_toggled updates tab visibility."""
-        # Arrange
-        dialog.ui.tabWidget.count()
-
-        # Act - Toggle a feature
         dialog.ui.checkBox_enable_messages.setChecked(True)
-        dialog.on_feature_toggled(True)
+        dialog.ui.checkBox_enable_messages.toggled.emit(True)
+        dialog.update_tab_visibility()
 
-        # Assert - Should update tab visibility
-        assert True, "Should update tab visibility without error"
+        assert dialog.ui.tabWidget.isTabEnabled(2) is True
 
     @pytest.mark.ui
     @pytest.mark.unit
     def test_update_tab_visibility_shows_hides_tabs(self, dialog):
         """Test that update_tab_visibility shows/hides tabs based on features."""
-        # Arrange
         dialog.ui.checkBox_enable_messages.setChecked(True)
         dialog.ui.checkBox_enable_task_management.setChecked(False)
         dialog.ui.checkBox_enable_checkins.setChecked(False)
 
-        # Act
         dialog.update_tab_visibility()
 
-        # Assert - Should update tab visibility
-        assert True, "Should update tab visibility without error"
+        assert dialog.ui.tabWidget.isTabEnabled(2) is True
+        assert dialog.ui.tabWidget.isTabEnabled(3) is False
 
     @pytest.mark.ui
     @pytest.mark.unit
@@ -1900,10 +1894,7 @@ class TestAccountCreatorDialogHelperMethods:
                     )
                 dialog.keyPressEvent(event)
 
-                # Assert - The method should handle the escape key
-                # If the event is properly created, it should call QMessageBox.question
-                # If not, at least verify it doesn't crash
-                assert True, "Should handle escape key without error"
+                mock_question.assert_called()
 
     @pytest.mark.ui
     @pytest.mark.unit
@@ -1916,10 +1907,10 @@ class TestAccountCreatorDialogHelperMethods:
         event = QKeyEvent(
             QEvent.Type.KeyPress, Qt.Key.Key_Return, Qt.KeyboardModifier.NoModifier
         )
+        visible_before = dialog.isVisible()
         dialog.keyPressEvent(event)
 
-        # Assert - Should ignore event (not crash)
-        assert True, "Should handle Enter key without error"
+        assert dialog.isVisible() == visible_before
 
     @pytest.mark.ui
     @pytest.mark.unit
@@ -1927,13 +1918,9 @@ class TestAccountCreatorDialogHelperMethods:
         """Test that close_dialog calls accept."""
         # Arrange
         # close_dialog calls super().accept(), so we need to patch the parent's accept
-        with patch.object(dialog.__class__.__bases__[0], "accept"):
-            # Act
+        with patch.object(dialog.__class__.__bases__[0], "accept") as mock_accept:
             dialog.close_dialog()
-
-            # Assert
-            # The method calls super().accept(), which should be called
-            assert True, "close_dialog should call accept without error"
+            mock_accept.assert_called_once()
 
     @pytest.mark.ui
     @pytest.mark.unit
@@ -1954,11 +1941,10 @@ class TestAccountCreatorDialogHelperMethods:
     @pytest.mark.unit
     def test_center_dialog_centers_dialog(self, dialog):
         """Test that center_dialog centers the dialog."""
-        # Act
+        before = dialog.pos()
         dialog.center_dialog()
-
-        # Assert - Should complete without error
-        assert True, "Should center dialog without error"
+        assert dialog.pos() is not None
+        assert dialog.x() == before.x() or dialog.parent() is not None
 
     @pytest.mark.ui
     @pytest.mark.unit

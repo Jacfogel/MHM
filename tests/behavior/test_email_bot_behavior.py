@@ -395,13 +395,9 @@ class TestEmailBotBehavior:
             
             # Act & Assert - Test async initialize method failure behavior
             # This tests the actual behavior rather than expected behavior
-            try:
-                result = asyncio.run(self.email_bot.initialize())
-                # If no exception is raised, that's also valid behavior
-                assert isinstance(result, bool), "Should return boolean result"
-            except Exception:
-                # If exception is raised, that's also valid behavior
-                assert True, "Initialize method should handle errors gracefully"
+            result = asyncio.run(self.email_bot.initialize())
+            assert result is False, "Initialize should fail when SMTP server is missing"
+            assert self.email_bot.status != ChannelStatus.READY
     
     def test_email_bot_async_shutdown_method_behavior(self, test_data_dir):
         """Test async shutdown method behavior."""

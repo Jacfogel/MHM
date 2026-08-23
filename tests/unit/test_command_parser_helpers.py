@@ -249,8 +249,7 @@ class TestCommandParserHelpers:
         entities = command_parser._extract_update_entities(update_text)
         
         assert isinstance(entities, dict), "Should return dict"
-        # Verify entities were extracted (exact structure depends on implementation)
-        assert True, "Function should extract update entities"
+        assert entities, "Update text should produce at least one extracted entity"
 
     def test_extract_update_entities_handles_errors(self, command_parser):
         """Test _extract_update_entities handles errors gracefully."""

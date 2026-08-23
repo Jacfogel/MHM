@@ -20,7 +20,7 @@ ensure_qt_runtime()
 import pytest
 import json
 from pathlib import Path
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDialog
 from PySide6.QtTest import QTest
 
 # Project imports rely on pytest and conftest path setup
@@ -232,7 +232,7 @@ class TestCategoryManagementDialogBehavior:
         
         # [OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
         # Note: The dialog doesn't save data directly, it calls save_category_settings on accept
-        assert True, "Dialog should accept successfully"
+        assert dialog.result() == QDialog.DialogCode.Accepted
 
 
 class TestChannelManagementDialogBehavior:
@@ -303,7 +303,7 @@ class TestChannelManagementDialogBehavior:
         dialog.accept()
         
         # [OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
-        assert True, "Dialog should accept successfully"
+        assert dialog.result() == QDialog.DialogCode.Accepted
 
 
 class TestCheckinManagementDialogBehavior:
@@ -373,7 +373,7 @@ class TestCheckinManagementDialogBehavior:
         dialog.accept()
         
         # [OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
-        assert True, "Dialog should accept successfully"
+        assert dialog.result() == QDialog.DialogCode.Accepted
 
 
 class TestTaskManagementDialogBehavior:
@@ -452,4 +452,4 @@ class TestTaskManagementDialogBehavior:
         dialog.accept()
         
         # [OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
-        assert True, "Dialog should accept successfully" 
+        assert dialog.result() == QDialog.DialogCode.Accepted 

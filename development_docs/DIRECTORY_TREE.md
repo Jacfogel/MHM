@@ -716,7 +716,6 @@ C:.
 |   |   |   test_core_message_management_coverage_expansion.py
 |   |   |   test_core_service_coverage_expansion.py
 |   |   |   test_create_menu_handler.py
-|   |   |   test_discord_advanced_automation.py
 |   |   |   test_discord_automation_complete.py
 |   |   |   test_discord_bot_behavior.py
 |   |   |   test_discord_checkin_retry_behavior.py
@@ -761,7 +760,6 @@ C:.
 |   |   |   test_task_reminder_followup_behavior.py
 |   |   |   test_task_suggestion_relevance.py
 |   |   |   test_ui_app_behavior.py
-|   |   |   test_ui_automation_complete.py
 |   |   |   test_user_context_behavior.py
 |   |   |   test_user_data_flow_architecture.py
 |   |   |   test_user_management_coverage_expansion.py
@@ -1023,7 +1021,6 @@ C:.
 |   |   |   test_widget_behavior_simple.py
 |   |   |
 |   +---unit
-|   |   |   debug_file_paths.py
 |   |   |   test_admin_account_provisioning.py
 |   |   |   test_admin_panel.py
 |   |   |   test_ai_action_catalog.py

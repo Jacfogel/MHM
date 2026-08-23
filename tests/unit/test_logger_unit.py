@@ -171,11 +171,16 @@ class TestApplyTestContextFormatter:
         """Test: apply_test_context_formatter does nothing when not testing"""
         with patch.dict(os.environ, {}, clear=True), \
              patch('core.logger._is_testing_environment', return_value=False):
-            # Apply formatter
+            before = [
+                getattr(handler, "formatter", None)
+                for handler in logging.getLogger().handlers
+            ]
             apply_test_context_formatter_to_all_loggers()
-            
-            # Should not raise error
-            assert True, "Should not raise error when not testing"
+            after = [
+                getattr(handler, "formatter", None)
+                for handler in logging.getLogger().handlers
+            ]
+            assert after == before, "Non-test runs should leave existing formatters unchanged"
 
 
 @pytest.mark.core

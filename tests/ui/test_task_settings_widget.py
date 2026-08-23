@@ -264,14 +264,12 @@ class TestTaskSettingsWidgetDataManagement:
     @pytest.mark.unit
     def test_set_task_settings_handles_empty_settings(self, widget):
         """Test that set_task_settings handles empty settings gracefully."""
-        # Arrange
-        len(widget.period_widgets)
+        initial_count = len(widget.period_widgets)
         
-        # Act
         widget.set_task_settings({})
         
-        # Assert - Should not crash, may clear or keep existing
-        assert True, "Should handle empty settings without error"
+        assert isinstance(widget.period_widgets, list)
+        assert len(widget.period_widgets) <= initial_count
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -361,11 +359,10 @@ class TestTaskSettingsWidgetRecurringSettings:
     @pytest.mark.unit
     def test_set_recurring_task_settings_handles_empty(self, widget):
         """Test that set_recurring_task_settings handles empty settings."""
-        # Act
         widget.set_recurring_task_settings({})
         
-        # Assert - Should not crash
-        assert True, "Should handle empty settings without error"
+        settings = widget.get_recurring_task_settings()
+        assert isinstance(settings, dict)
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -390,13 +387,10 @@ class TestTaskSettingsWidgetRecurringSettings:
             # Also need to patch it in the module namespace if it's used directly
             import ui.widgets.task_settings_widget as task_widget_module
             with patch.object(task_widget_module, 'get_user_data', mock_get_data, create=True):
-                # Act
                 widget.load_recurring_task_settings()
                 
-                # Assert - Should load pattern (monthly = index 3)
-                # The method may not call get_user_data if it's not imported
-                # Just verify it doesn't crash
-                assert True, "Should load settings without error"
+                loaded = widget.get_recurring_task_settings()
+                assert isinstance(loaded, dict)
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -419,13 +413,10 @@ class TestTaskSettingsWidgetRecurringSettings:
                 # Also need to patch it in the module namespace if it's used directly
                 import ui.widgets.task_settings_widget as task_widget_module
                 with patch.object(task_widget_module, 'get_user_data', mock_get_data, create=True):
-                    # Act
                     widget.save_recurring_task_settings()
                     
-                    # Assert - Should save preferences
-                    # The method may not call get_user_data if it's not imported
-                    # Just verify it doesn't crash
-                    assert True, "Should save settings without error"
+                    saved = widget.get_recurring_task_settings()
+                    assert isinstance(saved, dict)
 
 
 class TestTaskSettingsWidgetTagManagement:
@@ -479,12 +470,11 @@ class TestTaskSettingsWidgetShowEvent:
         # Arrange
         from PySide6.QtGui import QShowEvent
         
-        # Act - Should not crash
+        period_count = len(widget.period_widgets)
         event = QShowEvent()
         widget.showEvent(event)
         
-        # Assert - Should complete without error
-        assert True, "showEvent should complete without error"
+        assert len(widget.period_widgets) == period_count
 
 
 class TestTaskSettingsWidgetRealBehavior:

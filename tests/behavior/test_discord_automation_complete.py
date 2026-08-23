@@ -408,82 +408,6 @@ class TestDiscordCompleteAutomation:
         message = response.message
         assert "task" in message.lower() or "no tasks" in message.lower()
 
-    # ===== FLOW MANAGEMENT TESTING (Manual Tests 11-12) =====
-
-    def test_checkin_flow_start(self, test_data_dir):
-        """Test: Check-in flow start - Manual Test 11."""
-        # Test check-in flow initiation
-        user_id = "test_user_checkin_flow"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        # Test: "start a check-in"
-        # This would test actual check-in flow initiation
-        # For now, we'll verify the pattern works
-        assert True  # Placeholder for actual check-in flow testing
-        
-        # Test: "/checkin" 
-        # This would test slash command check-in flow
-        assert True  # Placeholder for slash command check-in testing
-
-    def test_flow_cancel(self, test_data_dir):
-        """Test: Flow cancel - Manual Test 11 continued."""
-        # Test that flows can be cancelled
-        user_id = "test_user_flow_cancel"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        # Test that flows can be cancelled properly
-        # (This would be expanded with actual flow management testing)
-        assert True  # Placeholder for now
-
-    def test_flow_clear(self, test_data_dir):
-        """Test: Flow clear - Manual Test 12."""
-        # Test that flows can be cleared
-        user_id = "test_user_flow_clear"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        # Test that flows can be cleared properly
-        # (This would be expanded with actual flow management testing)
-        assert True  # Placeholder for now
-
-    # ===== EDGE CASES TESTING (Manual Tests 13-15) =====
-
-    def test_unknown_commands(self, test_data_dir):
-        """Test: Unknown commands - Manual Test 13."""
-        # Test unknown command handling
-        user_id = "test_user_unknown_commands"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        # Test: "unknown command" - Test actual unknown command handling
-        # This tests that the system handles unknown commands gracefully
-        # We verify that the system doesn't crash and provides some response
-        assert True  # Unknown command handling test
-        
-        # Test: Graceful fallback response
-        # This tests that unknown commands get helpful responses
-        # We verify that the system provides guidance rather than errors
-        assert True  # Fallback response testing
-
-    def test_malformed_commands(self, test_data_dir):
-        """Test: Malformed commands - Manual Test 14."""
-        # Test malformed command handling
-        user_id = "test_user_malformed_commands"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
-        # Test: "!invalid" - Test actual malformed command handling
-        # This tests that the system handles malformed commands gracefully
-        # We verify that the system doesn't crash and provides helpful error messages
-        assert True  # Malformed command handling test
-        
-        # Test: Helpful error message
-        # This tests that malformed commands get helpful error messages
-        # We verify that the system provides guidance rather than cryptic errors
-        assert True  # Error message testing
-        
-        # Test: Suggestion to use help
-        # This tests that error responses suggest using help
-        # We verify that the system guides users to available help resources
-        assert True  # Help suggestion testing
-
     def test_incomplete_profile_data(self, test_data_dir):
         """Test: Incomplete profile data - Manual Test 15."""
         handler = ProfileHandler()
@@ -512,26 +436,3 @@ class TestDiscordCompleteAutomation:
         # Verify: Shows "Not set" or "Unknown" for missing data
         # (This depends on the actual implementation)
         assert "Not set" in message or "Unknown" in message or "Not configured" in message
-
-    # ===== COMPREHENSIVE COVERAGE VERIFICATION =====
-
-    def test_all_manual_scenarios_covered(self, test_data_dir):
-        """Verify that all 15 manual test scenarios are covered by automation."""
-        # This test verifies that all manual test scenarios are covered:
-        # 1. Natural Language Profile Request ✓
-        # 2. Slash Command Profile ✓
-        # 3. Bang Command Profile ✓
-        # 4. General Help ✓
-        # 5. Commands List ✓
-        # 6. Examples ✓
-        # 7. Category-Specific Help (Tasks, Checkin, Profile) ✓
-        # 8. Natural Language Commands ✓
-        # 9. Slash Commands ✓
-        # 10. Bang Commands ✓
-        # 11. Flow Management Cancel ✓
-        # 12. Flow Clear ✓
-        # 13. Unknown Commands ✓
-        # 14. Malformed Commands ✓
-        # 15. Incomplete Profile Data ✓
-        
-        assert True  # All scenarios covered by automated tests

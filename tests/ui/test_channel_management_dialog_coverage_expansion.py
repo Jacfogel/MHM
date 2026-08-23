@@ -350,17 +350,12 @@ class TestChannelManagementDialogCoverageExpansion:
             ChannelManagementDialog.save_channel_settings(dialog)
             
             # Verify that update_channel_preferences was called with cleaned preferences
-            if mock_update_prefs.called:
-                call_args = mock_update_prefs.call_args[0]
-                prefs = call_args[1]
-                assert 'settings' not in prefs.get('channel', {})
-                assert 'email' not in prefs
-                assert 'phone' not in prefs
-                assert 'discord_user_id' not in prefs
-            else:
-                # If the method wasn't called, that means validation failed
-                # This is also a valid test outcome
-                assert True
+            mock_update_prefs.assert_called()
+            prefs = mock_update_prefs.call_args[0][1]
+            assert 'settings' not in prefs.get('channel', {})
+            assert 'email' not in prefs
+            assert 'phone' not in prefs
+            assert 'discord_user_id' not in prefs
 
     def test_get_selected_channel(self, mock_user_data):
         """Test get_selected_channel method."""

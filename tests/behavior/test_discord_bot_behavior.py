@@ -1726,8 +1726,7 @@ class TestDiscordBotAdditionalBehavior:
         # Act: Process command queue
         await bot.initialize__process_command_queue()
         
-        # Assert: Should exit loop (no exception means it processed stop)
-        assert True, "Should process stop command and exit loop"
+        assert bot._command_queue.empty(), "Stop command should be consumed and exit the queue loop"
 
     @pytest.mark.communication
     @pytest.mark.behavior

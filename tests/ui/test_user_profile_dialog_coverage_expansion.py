@@ -412,31 +412,8 @@ class TestUserProfileDialogCoverageExpansion:
         
         # The method should exist but may not be implemented
         # We're testing that it doesn't crash
-        try:
-            dialog.closeEvent(close_event)
-            assert True  # If we get here, no exception was raised
-        except NotImplementedError:
-            assert True  # Expected if method is not implemented
-    
-    @pytest.mark.ui
-    @pytest.mark.critical
-    def test_close_event_declined_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test close event handling when user declines."""
-        # Note: closeEvent is not implemented in the current UserProfileDialog
-        # This test verifies that the method exists and can be called
-        assert hasattr(dialog, 'closeEvent')
-        
-        # Test that closeEvent can be called without error
-        from PySide6.QtGui import QCloseEvent
-        close_event = QCloseEvent()
-        
-        # The method should exist but may not be implemented
-        # We're testing that it doesn't crash
-        try:
-            dialog.closeEvent(close_event)
-            assert True  # If we get here, no exception was raised
-        except NotImplementedError:
-            assert True  # Expected if method is not implemented
+        dialog.closeEvent(close_event)
+        assert dialog.isWidgetType()
     
     @pytest.mark.ui
     @pytest.mark.critical
@@ -494,12 +471,8 @@ class TestUserProfileDialogCoverageExpansion:
         assert hasattr(added_widget, 'checkbox')
         assert hasattr(added_widget, 'entry')
         
-        # Test removing the field
         dialog.remove_custom_field(added_widget)
-        
-        # Verify field was removed (these are real Qt methods, not mocks)
-        # We can't easily mock them, so we just verify the method was called
-        assert True  # Method completed without error
+        assert added_widget.parent() is None
     
     @pytest.mark.ui
     @pytest.mark.critical
@@ -524,12 +497,8 @@ class TestUserProfileDialogCoverageExpansion:
         # Get the added widget
         added_widget = mock_layout.addWidget.call_args[0][0]
         
-        # Test removing the widget
         dialog.remove_loved_one_widget(added_widget)
-        
-        # Verify widget was removed (these are real Qt methods, not mocks)
-        # We can't easily mock them, so we just verify the method was called
-        assert True  # Method completed without error
+        assert added_widget.parent() is None
     
     @pytest.mark.ui
     @pytest.mark.critical
@@ -557,12 +526,9 @@ class TestUserProfileDialogCoverageExpansion:
         assert dialog is not None
         assert dialog.parent == parent_widget
         
-        # Test centering
         dialog.center_dialog()
-        # Note: We can't easily verify the centering behavior with real widgets
-        assert True  # Method completed without error
+        assert dialog.parent is parent_widget
         
-        # Cleanup
         dialog.deleteLater()
     
     @pytest.mark.ui
@@ -626,12 +592,3 @@ class TestUserProfileDialogCoverageExpansion:
                 # Verify error was handled
                 mock_critical.assert_called_once()
     
-    @pytest.mark.ui
-    @pytest.mark.critical
-    def test_dialog_cleanup_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test dialog cleanup on destruction."""
-        # Verify dialog can be properly cleaned up
-        dialog.deleteLater()
-        
-        # Verify no exceptions are raised during cleanup
-        assert True  # If we get here, cleanup was successful

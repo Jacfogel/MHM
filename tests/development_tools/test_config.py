@@ -324,13 +324,7 @@ class TestConfigPaths:
     def test_project_root_path_exists(self):
         """Test that project root path exists."""
         project_root = config.get_project_root()
-        # Resolve relative to current working directory
-        if not project_root.is_absolute():
-            # If relative, check if it exists relative to the test location
-            # Tests run from project root, so relative paths should work
-            assert True  # Path validation is context-dependent
-        else:
-            assert project_root.exists()
+        assert project_root.exists(), f"Project root should exist: {project_root}"
 
     @pytest.mark.unit
     def test_scan_directories_are_valid_names(self):

@@ -171,10 +171,9 @@ class TestLoggerCoverageExpansion:
         # Act - Trigger rollover
         handler.doRollover()
         
-        # Assert - Verify rollover behavior
-        # The rollover may or may not create backup files depending on timing
-        # The important thing is that the function executes without error
-        assert True, "Rollover should execute without error"
+        assert os.path.exists(self.log_file) or os.path.exists(self.backup_dir), (
+            "Rollover should leave the log path or backup directory in place"
+        )
         
         # Check if backup files were created (may not happen in test environment)
         backup_files = os.listdir(self.backup_dir)
@@ -311,11 +310,11 @@ class TestLoggerCoverageExpansion:
     
     def test_suppress_noisy_logging_real_behavior(self):
         """Test suppress_noisy_logging function with real behavior."""
-        # Act - Should not raise exception
         suppress_noisy_logging()
         
-        # Assert - Function should execute without error
-        assert True, "Function should execute without error"
+        assert logging.getLogger("httpx").level == logging.WARNING
+        assert logging.getLogger("discord").level == logging.WARNING
+        assert logging.getLogger("schedule").level == logging.WARNING
     
     def test_compress_old_logs_real_behavior(self):
         """Test compression of old log files with real behavior."""
@@ -326,20 +325,16 @@ class TestLoggerCoverageExpansion:
             with open(log_file, 'w', encoding='utf-8') as f:
                 f.write(test_log_content)
         
-        # Act
-        compress_old_logs()
+        compressed = compress_old_logs()
         
-        # Assert - Should process files without error
-        # The function should execute without error
-        assert True, "Function should execute without error"
+        assert isinstance(compressed, int), "compress_old_logs should return a count"
+        assert compressed >= 0
     
     def test_compress_old_logs_no_files_real_behavior(self):
         """Test compression when no files exist."""
-        # Act - Should handle gracefully
-        compress_old_logs()
+        compressed = compress_old_logs()
         
-        # Assert - Should not crash
-        assert True, "Function should execute without error"
+        assert compressed == 0, "No files should be compressed when none exist"
     
     def test_cleanup_old_archives_real_behavior(self):
         """Test cleanup of old archives with real behavior."""
@@ -352,12 +347,10 @@ class TestLoggerCoverageExpansion:
             with open(archive_file, 'w', encoding='utf-8') as f:
                 f.write(f"Archive content {i}\n")
         
-        # Act
-        cleanup_old_archives(max_days=30)
+        cleaned = cleanup_old_archives(max_days=30)
         
-        # Assert - Should process files without error
-        # The function should execute without error
-        assert True, "Function should execute without error"
+        assert isinstance(cleaned, int), "cleanup_old_archives should return a count"
+        assert cleaned >= 0
     
     def test_cleanup_old_logs_real_behavior(self):
         """Test cleanup of old log files with real behavior."""
@@ -369,26 +362,16 @@ class TestLoggerCoverageExpansion:
                 f.write(f"Old log content {i}\n")
             old_logs.append(log_file)
         
-        # Act - Use correct function signature
-        cleanup_old_logs(max_total_size_mb=50)
+        cleaned = cleanup_old_logs(max_total_size_mb=50)
         
-        # Assert - Should process files without error
-        # The function should execute without error
-        assert True, "Function should execute without error"
+        assert isinstance(cleaned, int), "cleanup_old_logs should return a count"
+        assert cleaned >= 0
     
     def test_logger_error_handling_real_behavior(self):
         """Test logger error handling with real behavior."""
-        # Arrange - Create logger with invalid path
-        invalid_log_file = os.path.join('/invalid/path', 'test.log')
-        
-        # Act - Should handle gracefully
-        try:
-            ComponentLogger('test_component', invalid_log_file)
-            # If it doesn't crash, that's also valid behavior
-            assert True, "Should handle invalid path gracefully"
-        except Exception:
-            # If it raises an exception, that's also valid behavior
-            assert True, "Should handle invalid path with exception"
+        invalid_log_file = os.path.join(self.test_dir, 'missing_parent', 'nested', 'test.log')
+        logger = ComponentLogger('test_component', invalid_log_file)
+        assert logger is not None, "ComponentLogger should construct even when the path needs creating"
     
     def test_logger_performance_under_load(self):
         """Test logger performance under load."""
@@ -619,20 +602,17 @@ class TestLoggerCoverageExpansion:
         assert isinstance(info, dict), "Should return dictionary"
     
     def test_setup_logging_real_behavior(self):
-        """Test setup_logging function with real behavior."""
-        # Act - Should not raise exception
-        setup_logging()
-        
-        # Assert - Function should execute without error
-        assert True, "Function should execute without error"
+        """Test setup_logging is a no-op in the test environment."""
+        assert setup_logging() is None
     
     def test_toggle_verbose_logging_real_behavior(self):
         """Test toggle_verbose_logging function with real behavior."""
-        # Act - Should not raise exception
+        initial = get_verbose_mode()
+        toggled = toggle_verbose_logging()
+        assert isinstance(toggled, bool)
+        assert get_verbose_mode() is not initial
         toggle_verbose_logging()
-        
-        # Assert - Function should execute without error
-        assert True, "Function should execute without error"
+        assert get_verbose_mode() is initial
     
     def test_get_verbose_mode_real_behavior(self):
         """Test get_verbose_mode function with real behavior."""
@@ -644,12 +624,10 @@ class TestLoggerCoverageExpansion:
     
     def test_set_verbose_mode_real_behavior(self):
         """Test set_verbose_mode function with real behavior."""
-        # Act - Test both enabled and disabled
         set_verbose_mode(True)
+        assert get_verbose_mode() is True
         set_verbose_mode(False)
-        
-        # Assert - Function should execute without error
-        assert True, "Function should execute without error"
+        assert get_verbose_mode() is False
 
 
 @pytest.mark.core
@@ -718,15 +696,9 @@ class TestLoggerIntegration:
         problematic_dir = os.path.join(self.test_dir, 'problematic')
         problematic_log = os.path.join(problematic_dir, 'test.log')
         
-        # Act - Try to create logger (may fail, but should handle gracefully)
-        try:
-            logger = ComponentLogger('test_component', problematic_log)
-            # If successful, test logging
-            logger.info("Test message")
-            assert True, "Should handle problematic path gracefully"
-        except Exception:
-            # If it fails, that's also valid behavior
-            assert True, "Should handle problematic path with exception"
+        logger = ComponentLogger('test_component', problematic_log)
+        logger.info("Test message")
+        assert os.path.exists(problematic_dir), "Logger should create the missing parent directory"
     
     def test_logger_concurrent_access_safety(self):
         """Test that logger handles concurrent access safely."""

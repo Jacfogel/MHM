@@ -18,7 +18,7 @@ import contextlib
 import pytest
 from unittest.mock import patch, Mock
 import uuid
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 import logging
 logger = logging.getLogger("mhm_tests")
 
@@ -147,12 +147,16 @@ class TestTaskManagementDialogToggle:
         # Arrange
         initial_state = dialog.ui.groupBox_checkBox_enable_task_management.isChecked()
         
-        # Act - Toggle to opposite state
-        dialog.on_enable_task_management_toggled(not initial_state)
+        enabled = not initial_state
+        dialog.on_enable_task_management_toggled(enabled)
         
-        # Assert - Widget children should be enabled/disabled
-        # The exact behavior depends on widget structure, but we verify it doesn't crash
-        assert True, "Toggle should not crash"
+        children = [
+            child
+            for child in dialog.ui.groupBox_checkBox_enable_task_management.findChildren(QWidget)
+            if child is not dialog.ui.groupBox_checkBox_enable_task_management
+        ]
+        assert children, "Task management group box should have child widgets"
+        assert all(child.isEnabled() is enabled for child in children)
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -288,11 +292,9 @@ class TestTaskManagementDialogSaving:
         dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
         
         try:
-            # Act
-            dialog.save_task_settings()
-            
-            # Assert - Should accept dialog without saving
-            assert True, "Should handle missing user_id gracefully"
+            with patch.object(dialog, 'accept') as mock_accept:
+                dialog.save_task_settings()
+                mock_accept.assert_called_once()
         finally:
             dialog.deleteLater()
     

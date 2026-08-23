@@ -247,9 +247,7 @@ class TestUserContextLoadSave:
         # Act
         context.load_user_data(None)
         
-        # Assert
-        # Should return early without error
-        assert True, "Should return early without error"
+        assert context.user_data == {}
     
     @pytest.mark.unit
     def test_load_user_data_loads_account_data(self, context, test_data_dir, mock_config):
@@ -276,9 +274,7 @@ class TestUserContextLoadSave:
         # Act
         context.save_user_data(None)
         
-        # Assert
-        # Should return early without error
-        assert True, "Should return early without error"
+        assert context.user_data == {}
     
     @pytest.mark.unit
     def test_save_user_data_saves_data(self, context, test_data_dir, mock_config):

@@ -93,11 +93,9 @@ class TestCategoryManagementDialogDataLoading:
     @pytest.mark.unit
     def test_load_user_category_data_loads_categories(self, dialog, test_user):
         """Test that load_user_category_data loads user categories."""
-        # Act
         dialog.load_user_category_data()
         
-        # Assert - Should not raise exception
-        assert True, "Should load category data without error"
+        assert isinstance(dialog.category_widget.get_selected_categories(), list)
     
     @pytest.mark.ui
     @pytest.mark.unit
@@ -106,11 +104,10 @@ class TestCategoryManagementDialogDataLoading:
         # Arrange
         dialog = CategoryManagementDialog(parent=None, user_id="nonexistent_user")
         
-        # Act
         dialog.load_user_category_data()
         
-        # Assert - Should not raise exception, should set defaults
-        assert True, "Should handle missing user gracefully"
+        assert dialog.category_widget.get_selected_categories() == []
+        assert dialog.ui.groupBox_enable_automated_messages.isChecked() is False
 
 
 class TestCategoryManagementDialogToggle:
@@ -221,11 +218,9 @@ class TestCategoryManagementDialogSaving:
         dialog = CategoryManagementDialog(parent=None, user_id=None)
         dialog.ui.groupBox_enable_automated_messages.setChecked(True)
         
-        # Act
-        dialog.save_category_settings()
-        
-        # Assert - Should accept dialog without saving
-        assert True, "Should handle missing user_id gracefully"
+        with patch.object(dialog, 'accept') as mock_accept:
+            dialog.save_category_settings()
+            mock_accept.assert_called_once()
 
 
 class TestCategoryManagementDialogHelpers:
@@ -562,12 +557,7 @@ class TestCategoryManagementDialogRealBehavior:
                     # Assert - Should clear cache when messages disabled
                     # The cache clearing happens only if validation passes
                     # Verify the method was called if validation passed
-                    if mock_clear_cache.called:
-                        mock_clear_cache.assert_called_once_with(test_user)
-                    else:
-                        # If validation failed, cache clearing wouldn't happen
-                        # This is still valid behavior
-                        assert True, "Cache clearing may not happen if validation fails"
+                    mock_clear_cache.assert_called_once_with(test_user)
     
     @pytest.mark.ui
     @pytest.mark.behavior

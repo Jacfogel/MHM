@@ -425,14 +425,15 @@ class TestUserDataHandlersConvenienceFunctions:
     def test_get_user_data_with_metadata(self, test_data_dir):
         """Test get_user_data with include_metadata=True."""
         user_id = "test_metadata"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        from core import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id) or user_id
         
-        result = get_user_data(user_id, "account", include_metadata=True)
+        result = get_user_data(actual_user_id, "account", include_metadata=True)
         
         assert isinstance(result, dict), "Should return dict"
-        if result:
-            # Check if metadata is included (may be in _metadata key or as part of structure)
-            assert True, "Metadata inclusion tested"
+        assert result, "Account data should load for the created user"
+        assert "_metadata" in result or "account" in result
 
     def test_get_user_data_with_normalize_on_read(self, test_data_dir):
         """Test get_user_data with normalize_on_read=True."""

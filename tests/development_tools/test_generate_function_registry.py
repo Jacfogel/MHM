@@ -396,12 +396,9 @@ class TestContentGeneration:
                         assert func['is_test'] is True
                         assert func['func_type'] == 'test_function'
         
-        # If we found the test file, verify categorization worked
-        if found_test_file:
-            assert True  # Test passed
-        else:
-            # If test file wasn't found, that's okay - the test verifies categorization when files are found
+        if not found_test_file:
             pytest.skip("demo_tests.py not found in scan results (may be excluded)")
+        assert found_test_file
 
 
 class TestRegistryHelpers:

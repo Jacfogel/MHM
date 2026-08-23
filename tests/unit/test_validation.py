@@ -540,6 +540,9 @@ class TestUserUpdateValidation:
 
         assert is_valid is True, f"Envelope metadata should be stripped before validation: {errors}"
 
+    @pytest.mark.unit
+    @pytest.mark.user
+    @pytest.mark.regression
     def test_save_user_data_schedules_recovers_from_v2_envelope_cache(
         self, test_data_dir, mock_config
     ):

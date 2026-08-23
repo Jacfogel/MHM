@@ -21,7 +21,7 @@ Spec: [discord-checkin-flow.md](discord-checkin-flow.md)
 
 | Scenario | Status | Evidence / next action |
 |---|---|---|
-| User starts a check-in from Discord | Automated | [tests/behavior/test_discord_automation_complete.py](../tests/behavior/test_discord_automation_complete.py), [tests/behavior/test_checkin_handler_behavior.py](../tests/behavior/test_checkin_handler_behavior.py) |
+| User starts a check-in from Discord | Automated | [tests/behavior/test_checkin_handler_behavior.py](../tests/behavior/test_checkin_handler_behavior.py) |
 | User answers a check-in question | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/behavior/test_checkin_handler_behavior.py](../tests/behavior/test_checkin_handler_behavior.py) |
 | Check-in view creation | Automated | [tests/unit/test_checkin_view.py](../tests/unit/test_checkin_view.py) |
 | Cancel Check-in button | Automated | [tests/unit/test_checkin_view.py](../tests/unit/test_checkin_view.py) |

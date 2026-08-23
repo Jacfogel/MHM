@@ -74,11 +74,9 @@ class TestCommunicationManagerBehavior:
             
             # Act - start_all is sync, patch validate_communication_channels from core.config
             with patch('core.config.validate_communication_channels', return_value=['discord', 'email']):
-                comm_manager.start_all()
+                result = comm_manager.start_all()
             
-            # Assert - Verify channels were initialized
-            # The exact behavior depends on configuration, but we verify it doesn't crash
-            assert True, "Start all should complete without error"
+            assert result is True or comm_manager._running is True, "start_all should mark the manager running"
     
     @pytest.mark.behavior
     def test_stop_all_stops_channels(self, comm_manager):
@@ -94,9 +92,7 @@ class TestCommunicationManagerBehavior:
         # Act
         comm_manager.stop_all()
         
-        # Assert - Verify channels were stopped
-        # The exact behavior depends on channel implementation, but we verify it doesn't crash
-        assert True, "Stop all should complete without error"
+        assert comm_manager._running is False, "stop_all should mark the manager stopped"
     
     @pytest.mark.behavior
     def test_send_message_sync_sends_to_channel(self, comm_manager, test_data_dir):
@@ -111,13 +107,11 @@ class TestCommunicationManagerBehavior:
         comm_manager._channels_dict = {'discord': mock_channel}
         
         # Act - send_message_sync signature: (channel_name, recipient, message, **kwargs)
-        comm_manager.send_message_sync(
+        result = comm_manager.send_message_sync(
             'discord', user_id, 'test message', category='motivational'
         )
         
-        # Assert - Verify message was sent
-        # The exact behavior depends on channel implementation, but we verify it doesn't crash
-        assert True, "Send message sync should complete without error"
+        assert isinstance(result, bool), "send_message_sync should return a boolean send result"
     
     @pytest.mark.behavior
     def test_send_message_sync_handles_missing_channel(self, comm_manager, test_data_dir):

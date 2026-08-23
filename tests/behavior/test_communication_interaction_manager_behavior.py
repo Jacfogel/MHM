@@ -16,13 +16,14 @@ from communication.message_processing.command_parser import EnhancedCommandParse
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
-def _create_fast_interaction_manager(monkeypatch: pytest.MonkeyPatch | None = None):
-    """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
-    if monkeypatch is not None:
-        monkeypatch.setattr(app_config, "AI_ACTION_PLANNER_ENABLED", False)
-    else:
-        app_config.AI_ACTION_PLANNER_ENABLED = False
+@pytest.fixture(autouse=True)
+def _keep_planner_disabled_for_fast_path(monkeypatch):
+    """Disable planner routing for this module without leaking the flag to later tests."""
+    monkeypatch.setattr(app_config, "AI_ACTION_PLANNER_ENABLED", False)
 
+
+def _create_fast_interaction_manager():
+    """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
     interaction_manager = InteractionManager()
     # Use a fresh parser so singleton mutations from other tests cannot leak in.
     real_parser = EnhancedCommandParser()
@@ -734,7 +735,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-arg-parity"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager(monkeypatch)
+        interaction_manager = _create_fast_interaction_manager()
         parser = interaction_manager.command_parser
         observed_messages: list[str] = []
         _track_parser_inputs(monkeypatch, parser, observed_messages)
@@ -757,7 +758,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-discoverability"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager(monkeypatch)
+        interaction_manager = _create_fast_interaction_manager()
         parser = interaction_manager.command_parser
         observed_messages: list[str] = []
         _track_parser_inputs(monkeypatch, parser, observed_messages)
@@ -868,7 +869,7 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-unknown-prefix-parity"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager(monkeypatch)
+        interaction_manager = _create_fast_interaction_manager()
         parser = interaction_manager.command_parser
         observed_messages: list[str] = []
         _track_parser_inputs(monkeypatch, parser, observed_messages)

@@ -201,7 +201,7 @@ class TestUtilitiesDemo:
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, identifier lookup issue needs investigation"
+            pytest.fail("User created but identifier lookup returned None")
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
@@ -256,7 +256,7 @@ class TestUtilitiesDemo:
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, identifier lookup issue needs investigation"
+            pytest.fail("User created but identifier lookup returned None")
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
@@ -375,7 +375,7 @@ class TestUtilitiesDemo:
         if not user_data1:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             assert user_data1['account']['phone'] == "3062619228", "Should have phone number"
             assert user_data1['account']['email'] == "", "Should have empty email"
@@ -391,7 +391,7 @@ class TestUtilitiesDemo:
         if not user_data2:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             checkin_settings = user_data2['preferences'].get('checkin_settings', {})
             questions = checkin_settings.get('questions', {})
@@ -416,7 +416,7 @@ class TestUtilitiesDemo:
         if not user_data3:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for minimal_data_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             # Verify minimal data structure
             assert user_data3['context']['preferred_name'] == "", "Should have empty preferred name"
@@ -437,7 +437,7 @@ class TestUtilitiesDemo:
         if not user_data4:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for health_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             # Verify health-focused data
             assert "health" in user_data4['preferences']['categories'], "Should have health category"
@@ -460,7 +460,7 @@ class TestUtilitiesDemo:
         if not user_data5:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for task_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             # Verify task-focused data
             # The feature enablement is now stored in account.features.task_management
@@ -471,7 +471,7 @@ class TestUtilitiesDemo:
             if not interests:
                 logging.getLogger("mhm_tests").warning("get_user_data returned empty interests for task_focus_user. This may indicate a data loading issue.")
                 # Skip the detailed assertions for now
-                assert True, "User creation succeeded, interests loading issue needs investigation"
+                pytest.fail("User created but interests were not loaded")
             else:
                 assert "Productivity" in interests, f"Should have productivity interest (found: {interests})"
                 assert "Organization" in interests, f"Should have organization interest (found: {interests})"
@@ -512,7 +512,7 @@ class TestUtilitiesDemo:
         if not user_data3:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
-            assert True, "User creation succeeded, data loading issue needs investigation"
+            pytest.fail("User created but get_user_data returned empty data")
         else:
             features = user_data3['account']['features']
             assert features['checkins'] == "disabled", "Check-ins should be disabled"
@@ -545,7 +545,8 @@ class TestUtilitiesDemo:
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core import get_user_data
+        from core import get_user_data, get_user_id_by_identifier
+        from storage.user_data_read import clear_user_caches
 
         suffix = uuid.uuid4().hex[:8]
         test_users = [
@@ -561,20 +562,13 @@ class TestUtilitiesDemo:
                 success = factory_method(user_id, test_data_dir=test_data_dir)
                 assert success, f"{user_id} should be created successfully"
 
-                user_id_to_use = TestUserFactory.get_test_user_id_by_internal_username(
-                    user_id, test_data_dir
-                )
+                clear_user_caches()
+                user_id_to_use = get_user_id_by_identifier(user_id)
                 assert user_id_to_use is not None, f"{user_id} should resolve to UUID"
 
-                user_data = get_user_data(user_id_to_use, data_types='all', auto_create=False)
-                assert user_data is not None, f"{user_id} should have loadable data"
-                
-                # Check if user_data is empty
-                if not user_data:
-                    logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for {user_id}. This may indicate a data loader issue.")
-                    # Skip the detailed assertions for now
-                    assert True, f"{user_id} user creation succeeded, data loading issue needs investigation"
-                else:
+                user_data = get_user_data(user_id_to_use)
+                assert user_data, f"{user_id} should have loadable data"
+                if user_data:
                     # Verify consistent structure - check what we actually got
                     required_sections = ['account', 'preferences', 'context']
                     missing_sections = [s for s in required_sections if s not in user_data]
@@ -582,7 +576,7 @@ class TestUtilitiesDemo:
                         logging.getLogger("mhm_tests").warning(f"{user_id} missing sections: {missing_sections}. Available keys: {list(user_data.keys())}")
                         # For now, skip detailed assertions if account is missing
                         if 'account' not in user_data:
-                            assert True, f"{user_id} user creation succeeded, but account section not loaded (available: {list(user_data.keys())})"
+                            pytest.fail(f"{user_id} user created but account section not loaded (available: {list(user_data.keys())})")
                             continue
                     
                     # Verify consistent structure
