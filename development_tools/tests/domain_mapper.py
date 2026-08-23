@@ -26,6 +26,7 @@ Usage:
 import ast
 import re
 from pathlib import Path
+from typing import Any
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 
@@ -143,18 +144,28 @@ class DomainMapper:
     Configuration is loaded from development_tools_config.json (domain_mapper section) with built-in defaults.
     """
 
-    def __init__(self, project_root: Path):
+    def __init__(
+        self,
+        project_root: Path,
+        mapper_config: dict[str, Any] | None = None,
+    ):
         """
         Initialize domain mapper.
 
         Args:
             project_root: Root directory of the project
+            mapper_config: Optional domain-mapper dict (same shape as
+                ``domain_mapper`` in development_tools config). Tests that use a
+                scratch project root should pass ``_default_domain_mapper_config()``
+                so they do not depend on the process-global config module.
         """
         self.project_root = Path(project_root).resolve()
         self.test_root = self.project_root / "tests"
 
         # Load config (domain_mapper section) with built-in defaults
-        if get_domain_mapper_config:
+        if mapper_config is not None:
+            raw = mapper_config
+        elif get_domain_mapper_config:
             raw = get_domain_mapper_config()
         else:
             raw = _default_domain_mapper_config()

@@ -19,15 +19,41 @@ sys.path.insert(0, _proj_str)
 
 import pytest
 
-from development_tools.tests.domain_mapper import DomainMapper
+from development_tools.tests.domain_mapper import (
+    DomainMapper,
+    _default_domain_mapper_config,
+)
 from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
 import contextlib
+
+# Scratch projects have no development_tools_config.json. Use the built-in mapper
+# so these tests do not depend on the process-global config (other xdist tests
+# may load a minimal JSON into development_tools.config.config).
+_SCRATCH_MAPPER_CONFIG = _default_domain_mapper_config()
+
+
+def _scratch_mapper(project_root: Path) -> DomainMapper:
+    """DomainMapper for a temp project that must not read the live config module."""
+    return DomainMapper(project_root, mapper_config=_SCRATCH_MAPPER_CONFIG)
+
+
+def _scratch_cache(
+    project_root: Path, cache_dir: Path | None = None
+) -> TestFileCoverageCache:
+    """Coverage cache for a temp project with a stable built-in domain map."""
+    return TestFileCoverageCache(
+        project_root, cache_dir=cache_dir, mapper_config=_SCRATCH_MAPPER_CONFIG
+    )
 
 
 def _make_local_scratch_dir() -> Path:
     """Create a writable local scratch directory for cache tests under tests/data/tmp."""
     scratch_root = (
-        Path("tests") / "data" / "tmp" / "test_file_coverage_cache_scratch"
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "data"
+        / "tmp"
+        / "test_file_coverage_cache_scratch"
     )
     scratch_root.mkdir(parents=True, exist_ok=True)
     scratch_dir = scratch_root / f"cache_{uuid.uuid4().hex[:10]}"
@@ -52,11 +78,40 @@ def _cleanup_local_scratch_dir(path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_scratch_mapper_keeps_builtin_map_when_live_config_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Injected mapper config must not follow an empty process-global domain_mapper."""
+    import development_tools.tests.domain_mapper as dm
+
+    monkeypatch.setattr(
+        dm,
+        "get_domain_mapper_config",
+        lambda: {
+            "source_to_test_mapping": {},
+            "domain_dependencies": {},
+            "keyword_map": {},
+        },
+    )
+    temp_dir = _make_local_scratch_dir()
+    try:
+        mapper = _scratch_mapper(temp_dir)
+        assert mapper.domains_from_attribution_markers({"communication"}) == {
+            "communication"
+        }
+        expanded = mapper.expand_domains_with_dependencies({"core"})
+        assert "communication" in expanded
+        assert "ui" in expanded
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
 def test_domain_mapper_expands_cross_domain_dependencies() -> None:
     """Changed domains should include configured dependent domains."""
     temp_dir = _make_local_scratch_dir()
     try:
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         expanded = mapper.expand_domains_with_dependencies({"core"})
 
         assert "core" in expanded
@@ -79,7 +134,7 @@ def test_domain_mapper_storage_change_does_not_fan_out_through_core() -> None:
     """Storage is a dependency leaf: it must not invalidate core's dependents."""
     temp_dir = _make_local_scratch_dir()
     try:
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         expanded = mapper.expand_domains_with_dependencies({"storage"})
 
         assert expanded == {"storage"}
@@ -108,7 +163,7 @@ def test_domain_mapper_get_test_files_for_source_includes_domain_tests() -> None
             encoding="utf-8",
         )
 
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         test_files = mapper.get_test_files_for_source("core/service.py")
 
         assert expected_test_file in test_files
@@ -140,7 +195,7 @@ def test_domain_mapper_get_test_files_for_source_excludes_tests_data() -> None:
             encoding="utf-8",
         )
 
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         test_files = mapper.get_test_files_for_source("core/service.py")
 
         assert included_test_file in test_files
@@ -154,7 +209,7 @@ def test_domain_mapper_domains_from_attribution_markers_exact_set() -> None:
     """Markers that match domain lists map to exactly those domains."""
     temp_dir = _make_local_scratch_dir()
     try:
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         assert mapper.domains_from_attribution_markers({"communication"}) == {
             "communication"
         }
@@ -171,7 +226,7 @@ def test_domain_mapper_domains_from_attribution_markers_none_without_domain_mark
     """Non-attribution markers (or none) yield None so callers use directory/keyword fallback."""
     temp_dir = _make_local_scratch_dir()
     try:
-        mapper = DomainMapper(temp_dir)
+        mapper = _scratch_mapper(temp_dir)
         assert mapper.domains_from_attribution_markers({"slow", "behavior"}) is None
         assert mapper.domains_from_attribution_markers(set()) is None
     finally:
@@ -195,7 +250,7 @@ def test_cache_invalidates_domains_when_test_file_changes() -> None:
             encoding="utf-8",
         )
 
-        cache = TestFileCoverageCache(temp_path)
+        cache = _scratch_cache(temp_path)
 
         # Build initial mapping and a stable baseline cache snapshot.
         cache.update_test_file_mapping(test_file)
@@ -365,7 +420,7 @@ def test_is_valid_test_file_uses_shared_exclusions() -> None:
             "def test_skip():\n    assert True\n", encoding="utf-8"
         )
 
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
 
         assert cache.is_valid_test_file(valid_file)
         assert not cache.is_valid_test_file(excluded_file)
@@ -386,7 +441,7 @@ def test_get_source_file_mtimes_respects_shared_exclusions() -> None:
         keep_file.write_text("def f():\n    return 1\n", encoding="utf-8")
         skip_file.write_text("def s():\n    return 1\n", encoding="utf-8")
 
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         mtimes = cache.get_source_file_mtimes("core")
         normalized_keys = {k.replace("\\", "/") for k in mtimes}
 
@@ -411,7 +466,7 @@ def test_test_file_set_removal_selective_invalidates_subset() -> None:
         keep.write_text(content, encoding="utf-8")
         removed.write_text(content, encoding="utf-8")
 
-        cache = TestFileCoverageCache(temp_path)
+        cache = _scratch_cache(temp_path)
         cache.update_test_file_mapping(keep)
         cache.update_test_file_mapping(removed)
         for domain in cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
@@ -448,7 +503,7 @@ def test_get_test_files_domains_explicit_markers_exclude_directory_fallback() ->
             "import pytest\n\n@pytest.mark.communication\ndef test_x():\n    assert True\n",
             encoding="utf-8",
         )
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         doms = cache.get_test_files_domains(f, force_refresh=True)
         assert doms == {"communication"}
     finally:
@@ -466,7 +521,7 @@ def test_prune_removed_test_file_stops_repeat_invalidation() -> None:
         kept.write_text("def test_a():\n    assert True\n", encoding="utf-8")
         ghost = dev_tests / "test_ghost.py"
         ghost.write_text("def test_b():\n    assert True\n", encoding="utf-8")
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         cache.cache_data["test_files"] = {
             "tests/development_tools/test_kept.py": {"domains": ["development_tools"]},
             "tests/development_tools/test_ghost.py": {"domains": ["development_tools"]},
@@ -487,7 +542,7 @@ def test_prune_removed_test_file_stops_repeat_invalidation() -> None:
             }
         )
         # Prune must survive reload (suite run calls update_test_file_mapping with reload_cache).
-        reloaded = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        reloaded = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         assert "tests/development_tools/test_ghost.py" not in reloaded.cache_data["test_files"]
         assert (
             reloaded._get_current_test_files()
@@ -511,7 +566,7 @@ def test_get_test_files_to_run_selective_when_mapping_cold() -> None:
         core_tests.mkdir(parents=True)
         (dev_tests / "test_dev.py").write_text("def test_a():\n    assert True\n", encoding="utf-8")
         (core_tests / "test_core.py").write_text("def test_b():\n    assert True\n", encoding="utf-8")
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         assert cache.cache_data.get("test_files") == {}
         to_run = cache.get_test_files_to_run({"development_tools"})
         rels = {str(p.relative_to(temp_path)).replace("\\", "/") for p in to_run}
@@ -531,7 +586,7 @@ def test_get_test_files_domains_fallback_uses_directory_when_no_attribution_mark
         unit_dir.mkdir(parents=True)
         f = unit_dir / "test_no_marks.py"
         f.write_text("def test_x():\n    assert True\n", encoding="utf-8")
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         doms = cache.get_test_files_domains(f, force_refresh=True)
         assert "core" in doms
     finally:
@@ -551,7 +606,7 @@ def test_config_changed_ignores_mtime_only_rewrite() -> None:
         )
         cfg.parent.mkdir(parents=True, exist_ok=True)
         cfg.write_text('{"k": 1}\n', encoding="utf-8")
-        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
         cache._get_config_file_path = lambda: cfg
         cache._update_config_mtime()
         assert cache._config_changed() is False

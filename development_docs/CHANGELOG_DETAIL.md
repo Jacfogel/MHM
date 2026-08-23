@@ -39,6 +39,7 @@ When adding new changes, follow this format:
 - **Docs**: Manual Discord guide sections 4 and 6 are item-to-test maps. Spec matrix marks guild-join and `/start` as Automated. NOTES_PLAN 4.1 and TASKS_PLAN 1 point at pytest; live Discord is visual/tone only. Bare test filenames in the manual guides now use repo-root paths so path-drift stays clean.
 - **Types**: Pyright on `test_discord_manual_checklist.py` is clean (typed capture dict; Discord button callback ignore matches the existing task-list tests).
 - **Tests**: `pytest tests/behavior/test_discord_manual_checklist.py` (15 passed) plus related pagination and `/start` slices.
+- **Fix**: Coverage-cache tests now inject `_default_domain_mapper_config()` for scratch projects so parallel xdist workers cannot pick up an empty/minimal `domain_mapper` from other tests. Floored [`pip>=26.2`](../requirements.txt) for PYSEC-2026-3721 / CVE-2026-13346.
 - **Impact**: After Discord task/notebook/onboarding changes, run pytest instead of walking the Discord checklist.
 
 ### 2026-08-23 - Remove placeholder and always-pass tests

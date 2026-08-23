@@ -10,6 +10,7 @@ passed --cov core. See development_tools/config/config.py _get_default_audit_tie
 from __future__ import annotations
 
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,18 @@ def _clear_development_tools_modules() -> None:
     for key in list(sys.modules):
         if key == "development_tools" or key.startswith("development_tools."):
             del sys.modules[key]
+
+
+@pytest.fixture(autouse=True)
+def _restore_official_dev_tools_config() -> Iterator[None]:
+    """Reload host config after module-clearing tests so the xdist worker stays clean."""
+    yield
+    try:
+        import development_tools.config.config as cfg_mod
+
+        cfg_mod.load_external_config()
+    except Exception:
+        pass
 
 
 @pytest.mark.unit

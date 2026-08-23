@@ -114,16 +114,26 @@ class TestFileCoverageCache:
         "tests/data",  # Test data directory - contains temporary test data files
     ]
 
-    def __init__(self, project_root: Path, cache_dir: Path | None = None):
+    def __init__(
+        self,
+        project_root: Path,
+        cache_dir: Path | None = None,
+        mapper_config: dict[str, Any] | None = None,
+    ):
         """
         Initialize test-file-based coverage cache.
 
         Args:
             project_root: Root directory of the project
             cache_dir: Optional cache directory (default: development_tools/tests/jsons/)
+            mapper_config: Optional domain-mapper dict forwarded to ``DomainMapper``.
+                Scratch-project tests should pass the built-in defaults so xdist
+                workers are not affected by other tests reloading config.
         """
         self.project_root = Path(project_root).resolve()
-        self.domain_mapper = DomainMapper(self.project_root)
+        self.domain_mapper = DomainMapper(
+            self.project_root, mapper_config=mapper_config
+        )
         self.test_root = self.project_root / "tests"
 
         if cache_dir is None:

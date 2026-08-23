@@ -46,7 +46,7 @@ pylint>=2.17.0  # Optional local linting (audit uses ruff)
 pyright>=1.1.380  # For static type checking
 bandit[toml]>=1.7.0  # Security lint; TOML for [tool.bandit] in pyproject.toml (audit --full Tier 3)
 vulture>=2.11  # Dead-code scan (development_tools audit --full Tier 3 analyze_vulture)
-pip>=26.1.2  # Installer security floor for pip-audit findings on pip itself
+pip>=26.2  # Installer security floor for PYSEC-2026-3721 / CVE-2026-13346 (pip download path traversal)
 pip-audit>=2.6.0  # Dependency vulnerability scan (development_tools audit --full Tier 3)
 
 # Note: The following are part of Python's standard library and don't need to be installed:

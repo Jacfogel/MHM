@@ -35,6 +35,7 @@ Guidelines:
 - Fixed `toggle_list_item_undone` (`done=False` kwarg) and extracted `/start` DM-disabled coverage.
 - Live Discord is visual/tone only; run the mapped pytest files after Discord changes.
 - Follow-up: path-drift now uses repo-root test paths; Pyright on the new checklist file is clean.
+- Follow-up: coverage-cache scratch tests inject the built-in domain map (xdist isolation); pip floor is 26.2 for PYSEC-2026-3721.
 
 ### 2026-08-23 - Remove placeholder and always-pass tests **COMPLETED**
 - Deleted Discord/UI automation stub files and `debug_file_paths.py` (they only asserted True).
