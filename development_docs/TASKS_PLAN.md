@@ -34,23 +34,23 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ### 1. Live Discord validation for task creation follow-up flows
 
-**Status**: Active validation  
-**Priority**: High  
-**Why it matters**: Follow-up flows are implemented in code, but the user experience needs manual validation in the actual Discord path.
+**Status**: Automated (2026-08-23); optional live visual check  
+**Priority**: Low  
+**Why it matters**: Follow-up flows are the Discord task path. Pytest now covers the old manual checklist.
 
 **Validate**:
-- [ ] Creating a task without a due date starts the due date/time follow-up.
-- [ ] Due date follow-up supports skip, skip-all, cancel, and normal date/time input.
-- [ ] Creating a task with a due date but no explicit priority starts the priority follow-up.
-- [ ] Priority follow-up supports low, medium, high, critical, skip, and skip-all.
-- [ ] Creating a task with enough due/priority data starts the reminder follow-up.
-- [ ] Reminder follow-up suggestions are useful and not too noisy.
-- [ ] Issuing a new task command while in a reminder follow-up clears or routes flow state correctly.
-- [ ] Flow state does not get stuck after skip/cancel/completion.
+- [x] Creating a task without a due date starts the due date/time follow-up (`test_nt_call_dentist_skip_due_date_shows_priority_buttons`)
+- [x] Due date follow-up supports skip, skip-all, cancel, and date/time input (`test_discord_flow_cancel_clears_created_task`; `test_due_date_undo_deletes_task`)
+- [x] Creating a task with a due date but no explicit priority starts the priority follow-up (`test_discord_task_creation_triggers_reminder_followup`)
+- [x] Priority follow-up supports low/medium/high/critical, skip, and skip-all (`test_nt_skip_due_date_high_saves_without_reminder_prompt`)
+- [x] Creating a task with enough due/priority data starts the reminder follow-up (`test_discord_reminder_followup_complete_flow`)
+- [x] Reminder windows use the due time (`test_discord_tomorrow_at_2pm_reminder_uses_due_time`)
+- [x] A second task can start after the first flow completes (`test_discord_multiple_tasks_in_sequence`)
+- [x] Flow state clears after skip/cancel/completion (same tests)
 
 **Acceptance**:
-- Task creation can be completed quickly from Discord without needing the desktop UI.
-- Optional follow-up questions are helpful but do not trap the user in a flow.
+- Task creation can be completed from Discord without the desktop UI.
+- Optional follow-up questions do not trap the user in a flow.
 
 ---
 

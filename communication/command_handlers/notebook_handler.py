@@ -895,12 +895,13 @@ class NotebookHandler(InteractionHandler):
 
     @handle_errors("handling toggle list item done")
     def _handle_toggle_list_item_done(
-        self, user_id: str, entities: dict[str, Any]
+        self, user_id: str, entities: dict[str, Any], done: bool | None = None
     ) -> InteractionResponse:
         """Handle toggling list item done status."""
         entry_ref = entities.get("entry_ref")
         item_index = entities.get("item_index")
-        done = entities.get("done", True)
+        if done is None:
+            done = bool(entities.get("done", True))
 
         if not entry_ref:
             return InteractionResponse("Which list?", False)

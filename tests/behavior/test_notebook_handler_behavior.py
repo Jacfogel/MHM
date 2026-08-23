@@ -679,6 +679,7 @@ class TestNotebookHandlerBehavior:
                 {"query": "needle"},
                 {"description": "pagination needle"},
             ),
+            ("list_recent_entries", {"limit": 2}, {}, {}),
             ("list_inbox_entries", {"limit": 2}, {}, {}),
             ("list_pinned_entries", {"limit": 2}, {}, {"pinned": True}),
             (

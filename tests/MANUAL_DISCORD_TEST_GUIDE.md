@@ -5,7 +5,7 @@
 > **Purpose**: Quick reference for Discord bot manual testing  
 > **Style**: Command-focused, concise examples
 
-This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md). For scenario-by-scenario automated/manual/gap coverage, see [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md).
+Checklist behavior is automated. After Discord task, notebook, routing, or onboarding changes, run the mapped pytest files instead of walking Discord by hand. Command examples below stay as a quick reference for live smoke if you want to see phrasing. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md). For scenario-by-scenario coverage, see [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md).
 
 ---
 
@@ -331,163 +331,154 @@ find work tasks
 
 ---
 
-## 4. Quick Test Checklist
+## 4. Automated checklist map
+
+Run `pytest tests/behavior/test_discord_manual_checklist.py` plus the files named below. Live Discord is only for tone and the actual client (bot online, expired buttons).
 
 ### 4.1. Task Reminders
-- [ ] Create task with minutes/hours/days before reminders
-- [ ] Create task with no reminders
-- [ ] Task without due date (should error)
-- [ ] Flow cancellation
-- [ ] Multiple tasks in sequence
+
+| Checklist item | Automated test |
+|---|---|
+| Create task with minutes/hours/days before reminders | `test_discord_reminder_followup_complete_flow`; minutes/hours/days in `tests/behavior/test_task_reminder_followup_behavior.py` |
+| Create task with no reminders | `test_discord_reminder_followup_no_reminders` |
+| Task without due date (reminder errors) | `test_discord_task_without_due_date_reminder_errors`; `test_reminder_followup_handles_task_without_due_date` |
+| Flow cancellation | `test_discord_flow_cancel_clears_created_task`; `test_due_date_undo_deletes_task` |
+| Multiple tasks in sequence | `test_discord_multiple_tasks_in_sequence` |
 
 ### 4.2. Notebook - Notes
-- [ ] Basic note creation (bang, slash, natural language)
-- [ ] Note with title and body (colon, newline, natural language)
-- [ ] Quick notes (all aliases: qn, qnote, quickn, quicknote, q note, quick note)
-- [ ] Notes with tags (#hash and key:value)
-- [ ] View recent entries
-- [ ] Show entry by ID
-- [ ] Append to entry
-- [ ] Set entry body
-- [ ] Add/remove tags
-- [ ] Pin/unpin
-- [ ] Archive/unarchive
-- [ ] Set group
-- [ ] View by group/inbox/pinned/archived
+
+| Checklist item | Automated test |
+|---|---|
+| Basic note creation (bang, slash, natural language) | `test_note_creation_command_variations_end_to_end`; `test_command_parser_recognizes_note_commands` |
+| Note with title and body (colon, newline, natural language) | `test_create_note_with_title_and_body`; `test_extract_title_and_body_*` |
+| Quick notes (qn, qnote, quickn, quicknote, q note, quick note) | `test_quick_note_aliases_create_quick_notes_group` |
+| Notes with tags (`#hash` and `key:value`) | `test_create_note_with_tags`; `test_extract_tags_from_note_command` |
+| View recent entries | `test_list_recent_entries`; `test_recent_command_variations` |
+| Show entry by ID | `test_show_entry` |
+| Append to entry | `test_append_to_entry` |
+| Set entry body | `test_set_entry_body_replaces_text` |
+| Add/remove tags | `test_add_tags_to_entry`; `test_remove_tags_from_entry` |
+| Pin/unpin | `test_pin_entry`; `test_unpin_and_archive_unarchive` |
+| Archive/unarchive | `test_unpin_and_archive_unarchive` |
+| Set group | `test_set_group_and_list_inbox` |
+| View by group/inbox/pinned/archived | `test_paginated_notebook_views_include_pagination_action`; `test_list_pinned_entries` |
 
 ### 4.3. Notebook - Lists
-- [ ] Create list (title only)
-- [ ] Create list with items
-- [ ] Add list item
-- [ ] Toggle item done/undone
-- [ ] Remove list item
+
+| Checklist item | Automated test |
+|---|---|
+| Create list (title only) | `test_create_list_with_title_only` |
+| Create list with items | `test_create_list_with_items` |
+| Add list item | `test_add_list_item` |
+| Toggle item done/undone | `test_toggle_list_item_done`; `test_toggle_list_item_undone_and_remove_item` |
+| Remove list item | `test_toggle_list_item_undone_and_remove_item` |
 
 ### 4.4. Notebook - Journals
-- [ ] Create journal entry
+
+| Checklist item | Automated test |
+|---|---|
+| Create journal entry | `test_create_journal_with_body`; `test_journal_body_flow_skip_saves_title_only` |
 
 ### 4.5. Notebook - Search & Organization
-- [ ] Search entries
-- [ ] Group management
-- [ ] Organization views (inbox, pinned, archived, by group)
+
+| Checklist item | Automated test |
+|---|---|
+| Search entries | `test_search_entries` |
+| Group management | `test_set_group_and_list_inbox` |
+| Organization views (inbox, pinned, archived, by group) | `test_paginated_notebook_views_include_pagination_action` |
 
 ### 4.6. Notebook - Edge Cases
-- [ ] Empty commands
-- [ ] Special characters
-- [ ] Very long content
-- [ ] Invalid entry references
-- [ ] Invalid list item indices
-- [ ] Pagination buttons (Show More preserves query/filter/offset; re-run original command if button missing)
+
+| Checklist item | Automated test |
+|---|---|
+| Empty commands | `test_handle_missing_entities_gracefully`; `test_handle_empty_entities` |
+| Special characters | `test_create_entry_with_special_characters` |
+| Very long content | `test_create_entry_with_very_long_title` |
+| Invalid entry references | `test_invalid_entry_reference`; `test_show_entry_not_found` |
+| Invalid list item indices | `test_toggle_invalid_item_index` |
+| Pagination buttons preserve query/filter/offset | `test_paginated_notebook_views_include_pagination_action`; `test_recent_pagination_exhausts_without_stale_show_more` |
 
 ### 4.7. Verification
-- [ ] Verify entries.json structure and data
-- [ ] Check short IDs have no dashes
-- [ ] Verify groups are set correctly
-- [ ] Verify tags are normalized
+
+| Checklist item | Automated test |
+|---|---|
+| entries.json structure | `test_entries_json_short_ids_groups_and_normalized_tags` |
+| Short IDs have no dashes | same |
+| Groups are set correctly | same; `test_set_group_and_list_inbox` |
+| Tags are normalized | same (`#Work` / `URGENT` -> `work`, `urgent`) |
 
 ---
 
 ## 5. Known Issues
 
-- **Pagination Buttons**: Implemented via generic pagination metadata and Show More buttons. Validate live that repeated clicks preserve the original query/filter. If a button expires, re-run the original command.
+- **Expired Discord buttons**: Automated tests cover payload and paging metadata. If a live button expires, re-run the original command. That client timeout is not a pytest case.
 
 ---
 
-## 6. Live Validation Session (task flows + notebook pagination)
+## 6. Task flows and notebook pagination
 
-Use this checklist after flow-control or pagination changes. Prerequisites: headless service running (`python run_headless_service.py start`), bot online in your test server.
-
-**Tip**: Grey buttons = flow controls (Skip, Undo). Blue buttons = suggestions (priority levels, reminder options).
+Behavior is automated. Grey vs blue button **styles** are asserted in `test_discord_button_style_for_flow_suggestions` (secondary/danger vs primary). Optional live check: bot online and the real client still looks right.
 
 ### 6.1. Task creation follow-up flows
 
-**A. `nt call dentist` -> Skip due date -> priority buttons** (June 2026 regression)
+**A. `nt call dentist` -> Skip due date -> priority buttons**
 
-```
-nt call dentist
-```
-- [ ] Bot asks for due date/time
-- [ ] Grey buttons: **Skip Question**, **Skip All**, **Undo Task Creation** (not plain `[Skip]` text)
-- [ ] Tap **Skip Question**
-- [ ] Bot asks for priority
-- [ ] Blue priority buttons: **Low**, **Medium**, **High**, **Critical**
-- [ ] Grey buttons again: **Skip Question**, **Skip All**, **Undo Task Creation**
-- [ ] Tap **High** (or type `high`) -> task saved, **no** reminder prompt (no due date)
+| Check | Automated test |
+|---|---|
+| Bot asks for due date/time | `test_nt_call_dentist_skip_due_date_shows_priority_buttons` |
+| Control suggestions are Skip Question / Skip All / Undo Task Creation | same; `test_nt_skip_due_date_high_saves_without_reminder_prompt` |
+| Skip Question then priority buttons | same |
+| High / typed `high` saves with no reminder prompt | `test_nt_skip_due_date_high_saves_without_reminder_prompt`; `test_skip_due_date_then_priority_skips_reminders_without_due_date` |
 
 **B. Full flow with due date**
 
-```
-create task to buy groceries tomorrow at 2pm
-```
-- [ ] Task created as **buy groceries** (not "buy groceries at 2pm"); due shows date **and time** (e.g. `at 14:00`)
-- [ ] Priority step appears (skip or pick one)
-- [ ] Reminder step appears after priority
-- [ ] `30 minutes to an hour before` sets reminder **13:00-13:30** (not 08:00-08:30)
-- [ ] `show my tasks` lists the new task **once** (no duplicate embed + text); **Show More** when more than 10 tasks
+| Check | Automated test |
+|---|---|
+| Title is `buy groceries`; due includes `14:00` | `test_discord_tomorrow_at_2pm_reminder_uses_due_time` |
+| Priority then reminder steps | same |
+| `30 minutes to an hour before` -> 13:00-13:30 | same |
+| `show my tasks` lists once; Show More after 10 | `test_task_handler_list_tasks_pagination_and_due_time` (`type` omitted from rich_data; page 2 has no stale Show More) |
 
 **C. Flow control edge cases**
 
-```
-nt organize desk
-```
-- [ ] Due-date step -> tap **Undo Task Creation** -> task removed, flow cleared
-
-```
-nt test back flow
-```
-- [ ] Skip due date -> at priority step type `back` -> returns to due-date question
-
-```
-nt timeout test
-```
-- [ ] Start flow, wait 10+ minutes (or send unrelated message) -> flow auto-completes like Skip All
+| Check | Automated test |
+|---|---|
+| Undo Task Creation removes the task | `test_due_date_undo_deletes_task`; `test_discord_flow_cancel_clears_created_task` |
+| `back` from priority returns to due date | `test_priority_back_returns_to_due_date_flow` |
+| Timeout / unrelated message completes like Skip All | `test_priority_timeout_unrelated_skips_all_without_priority` |
 
 **D. Task list picker and detail view**
 
-Create at least two tasks first, or use existing tasks:
-
-```
-show my tasks
-```
-- [ ] Task list appears **once** (no duplicate embed + plain text)
-- [ ] Dropdown **Select a task for details...** lists tasks with title + short ID
-- [ ] **Show More** appears when more than 10 tasks; tapping it loads the next page (same dropdown pattern)
-
-Select a task from the dropdown:
-- [ ] Ephemeral detail shows title, priority, due (or "not set"), reminders, and short ID
-- [ ] **Due Date** -> starts due-date follow-up flow for that task (grey skip / red undo buttons)
-- [ ] **Priority** -> starts priority follow-up (blue priority + grey control buttons)
-- [ ] **Reminders** on a task **without** due date -> message says set due date first (no flow trap)
-- [ ] **Reminders** on a task **with** due date -> reminder follow-up starts
-- [ ] **Complete** -> task marked complete; confirmation ephemeral
-- [ ] **More** -> shows update/delete command hints with short ID
+| Check | Automated test |
+|---|---|
+| List once (no duplicate embed type) | `test_task_handler_list_tasks_pagination_and_due_time` |
+| Dropdown title + short ID | `test_task_list_select_includes_title_and_short_id` |
+| Show More after 10 tasks | `test_task_handler_list_tasks_pagination_and_due_time`; `test_get_task_list_view_adds_show_more_button` |
+| Detail shows title, priority, due, reminders, ID | `test_format_task_detail_display_includes_due_time_and_reminders` |
+| Due Date / Priority start follow-up | `test_task_flow_response_due_date_starts_flow`; `test_task_flow_response_priority_asks_reminders_when_due_set` |
+| Reminders without due date (no trap) | `test_task_flow_response_reminders_requires_due_date` |
+| Reminders with due date start follow-up | `test_task_flow_response_reminders_starts_followup` |
+| Complete confirmation | `test_detail_complete_button_runs_handler` |
+| More shows update/delete hints | `test_more_button_shows_update_and_delete_hints` |
 
 ### 6.2. Notebook Show More pagination
 
-Create enough entries first (run several `!qn pagination-test-1` through `!qn pagination-test-8` or use existing data).
-
-| Command | Check |
-|---------|-------|
-| `!recent` | [ ] Page 1 shows entries; **Show More** appears if more exist |
-| `!s pagination` | [ ] Search query preserved on page 2 |
-| `!inbox` | [ ] Inbox filter preserved |
-| `!pinned` | [ ] Pinned filter preserved |
-| `!archived` | [ ] Archived filter preserved |
-| `!t <tag>` | [ ] Tag filter preserved |
-| `!group <group>` | [ ] Group filter preserved |
-
-For each command that shows **Show More**:
-- [ ] Tap **Show More** -> page 2 shows different entries (not a repeat of page 1)
-- [ ] Tap **Show More** again until exhausted -> final page has **no** stale Show More button
-- [ ] Run a different notebook command, then return -> pagination still works
+| Command | Automated test |
+|---|---|
+| `!recent` page 1 + Show More | `test_paginated_notebook_views_include_pagination_action` (`list_recent_entries`); `test_recent_pagination_exhausts_without_stale_show_more` |
+| `!s` query preserved | same parametrize (`search_entries`) |
+| `!inbox` filter preserved | same (`list_inbox_entries`) |
+| `!pinned` filter preserved | same (`list_pinned_entries`) |
+| `!archived` filter preserved | same (`list_archived_entries`) |
+| `!t <tag>` filter preserved | same (`list_entries_by_tag`) |
+| `!group <group>` filter preserved | same (`list_entries_by_group`) |
+| Page 2 is different; last page has no Show More | `test_recent_pagination_exhausts_without_stale_show_more` |
 
 ### 6.3. Sign-off
 
-When all boxes pass, update:
-- [ ] [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) section 1 checkboxes
-- [ ] [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.1 checkboxes
-- [ ] Changelog follow-up note in [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) if this closes the June 2026 validation slice
+Behavior coverage for this guide is in pytest. [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) section 1 and [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.1 now point at those tests. Optional live Discord is visual/tone only.
 
-Record any failures with the exact message sent, what the bot replied, and whether buttons appeared.
+Record any live failures with the exact message sent, what the bot replied, and whether buttons appeared.
 
 ---
 

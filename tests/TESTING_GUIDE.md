@@ -823,20 +823,15 @@ That guide provides:
 - How to record results and file issues.
 - Triggers that indicate when manual testing is required.
 
-### 8.3. Discord-specific manual testing
+### 8.3. Discord-specific testing
 
-For Discord-specific manual flows-especially task reminder follow-up flows-use:
+Discord checklist behavior is automated. After task, notebook, routing, or onboarding changes, run:
 
-- [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md)
-  - Section 1. "Prerequisites".
-  - Section 2. "Task Reminder Follow-up Flow Testing".
-  - Section 7. "Quick Test Checklist".
+- [test_discord_manual_checklist.py](behavior/test_discord_manual_checklist.py)
+- [test_discord_task_reminder_followup.py](behavior/test_discord_task_reminder_followup.py)
+- [test_notebook_handler_behavior.py](behavior/test_notebook_handler_behavior.py)
 
-Run these tests when:
-
-- Changing Discord task parsing.
-- Modifying reminder or follow-up phrasing.
-- Adjusting how commands are interpreted in task flows.
+The command cheat sheet and item-to-test map live in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) (sections 4 and 6). Live Discord is optional for tone and the real client (bot online, expired buttons).
 
 ### 8.4. AI functionality testing
 

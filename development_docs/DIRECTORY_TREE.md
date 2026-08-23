@@ -719,6 +719,7 @@ C:.
 |   |   |   test_discord_automation_complete.py
 |   |   |   test_discord_bot_behavior.py
 |   |   |   test_discord_checkin_retry_behavior.py
+|   |   |   test_discord_manual_checklist.py
 |   |   |   test_discord_task_reminder_followup.py
 |   |   |   test_dynamic_checkin_behavior.py
 |   |   |   test_email_bot_behavior.py

@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Map behavior-spec scenarios to current automated/manual coverage and known gaps  
 > **Style**: Coverage reference for planning and review  
-> **Last Updated**: 2026-05-16
+> **Last Updated**: 2026-08-23
 
 This matrix is a lightweight test roadmap for the scenarios in the Discord behavior specs.
 
@@ -12,7 +12,7 @@ Status legend:
 
 - **Automated** - covered by an existing automated test at the scenario or close behavioral level.
 - **Partial** - lower-level behavior is tested, but at least one scenario detail still needs direct coverage.
-- **Manual** - covered by manual Discord validation only.
+- **Manual** - still needs a live Discord client check (visual/tone). Behavior for the old Discord checklist is automated.
 - **Gap** - no clear automated or manual coverage identified; add tests or checklist coverage before relying on it.
 
 ## 1. Discord Check-In Flow
@@ -56,9 +56,9 @@ Spec: [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webho
 | Unknown webhook event type | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py) |
 | Start webhook server | Automated | [tests/behavior/test_webhook_server_behavior.py](../tests/behavior/test_webhook_server_behavior.py) |
 | Stop webhook server | Automated | [tests/behavior/test_webhook_server_behavior.py](../tests/behavior/test_webhook_server_behavior.py) |
-| Bot joins a guild with suitable system channel | Manual | Covered by manual Discord validation; add automated `on_guild_join` tests for channel selection. |
-| System channel unavailable but another text channel is sendable | Gap | Add automated `on_guild_join` fallback-channel coverage. |
-| No sendable guild channel | Gap | Add automated `on_guild_join` no-channel coverage. |
+| Bot joins a guild with suitable system channel | Automated | [tests/communication/test_message_processing_scenarios.py](../tests/communication/test_message_processing_scenarios.py) `test_handle_guild_join_uses_system_channel` |
+| System channel unavailable but another text channel is sendable | Automated | `test_handle_guild_join_falls_back_to_text_channel` |
+| No sendable guild channel | Automated | `test_handle_guild_join_no_channel_logs_warning` |
 
 ## 3. Discord Message and Command Routing
 
@@ -138,9 +138,9 @@ Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 | Already welcomed on authorization | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py) |
 | Deauthorize clears welcomed flag | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py), [tests/behavior/test_welcome_manager_behavior.py](../tests/behavior/test_welcome_manager_behavior.py) |
 | Welcome scheduling failure still marks welcomed | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py), [tests/unit/test_webhook_handler_gap_coverage.py](../tests/unit/test_webhook_handler_gap_coverage.py) |
-| `/start` without linked account | Manual | Covered by manual Discord validation; add direct slash `/start` handler coverage if this path changes. |
-| DMs disabled on `/start` | Manual | Covered by manual Discord validation; add direct `discord.Forbidden` slash `/start` coverage. |
-| First slash command without account | Partial | Webhook and welcome helpers are tested; add direct generated-slash unlinked/welcome-DM coverage. |
+| `/start` without linked account | Automated | [tests/communication/test_communication_coverage_expansion.py](../tests/communication/test_communication_coverage_expansion.py) `test_application_command_start_unlinked_routes_to_start_welcome`, `test_start_command_welcome_sends_dm` |
+| DMs disabled on `/start` | Automated | `test_start_command_welcome_dms_disabled_sends_ephemeral_id` |
+| First slash command without account | Automated | `test_application_command_welcome_unlinked_user` |
 | Authorization copy | Automated | [tests/behavior/test_welcome_manager_behavior.py](../tests/behavior/test_welcome_manager_behavior.py), [tests/behavior/test_welcome_handler_behavior.py](../tests/behavior/test_welcome_handler_behavior.py) |
 | Create account button | Partial | Welcome view creation and account handler creation logic are tested; add direct button-to-flow callback coverage. |
 | Link account button | Partial | Welcome view creation and account handler link logic are tested; add direct button-to-flow callback coverage. |
@@ -156,8 +156,7 @@ Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 
 Good next tests to add:
 
-1. `on_guild_join` channel-selection branches.
-2. Suggestion-button click dispatch for structured payload, label fallback, and unresolved buttons.
-3. Task-reminder button callbacks in `communication/communication_channels/discord/ui/task_reminder_view.py`.
-4. Public Discord `send_message` timeout/not-ready behavior.
-5. Discord account-flow UI callbacks for welcome buttons, feature timeout, and confirmation-code instructions.
+1. Suggestion-button click dispatch for structured payload, label fallback, and unresolved buttons.
+2. Task-reminder button callbacks in `communication/communication_channels/discord/ui/task_reminder_view.py`.
+3. Public Discord `send_message` timeout/not-ready behavior.
+4. Discord account-flow UI callbacks for welcome buttons, feature timeout, and confirmation-code instructions.

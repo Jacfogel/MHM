@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Map Discord checklist items to real tests **COMPLETED**
+- Every MANUAL_DISCORD_TEST_GUIDE item maps to a real pytest; leftovers are in `tests/behavior/test_discord_manual_checklist.py`.
+- Fixed `toggle_list_item_undone` (`done=False` kwarg) and extracted `/start` DM-disabled coverage.
+- Live Discord is visual/tone only; run the mapped pytest files after Discord changes.
+- Follow-up: path-drift now uses repo-root test paths; Pyright on the new checklist file is clean.
+
 ### 2026-08-23 - Remove placeholder and always-pass tests **COMPLETED**
 - Deleted Discord/UI automation stub files and `debug_file_paths.py` (they only asserted True).
 - Converted remaining `assert True` tests to real checks; factory demo fallbacks now fail instead of hiding lookup bugs.
@@ -109,13 +115,6 @@ Guidelines:
 - Doc-sync freshness reads scoped `docs/jsons/scopes/<scope>/` results (the old flat `docs/jsons/` path always missed).
 - Path-drift uses the same skip as the other doc subchecks; freshness ignores changelog/generated-report mtimes so audit trim does not force a 60s rescan.
 - Legacy scan cache hits reuse stored matches without re-reading files; the INTENTIONAL LEGACY 10-line probe runs only on cache misses.
-
-### 2026-08-16 - Module refactor size metrics **COMPLETED**
-- Module-split queue now uses line count and top-level function/method count (defaults 1500 / 40).
-- Dropped AST-node-sum "complexity" from that tool; function complexity stays on `analyze_functions`.
-- Restored valid `DEPRECATION_INVENTORY.json` after a broken `removed_inventory` insert failed three inventory-load tests.
-- Split `storage/user_data_operations.py` into backup/index/summaries/user-info modules; operations.py is a thin `UserDataManager` facade. Storage tests green (manager, scenarios, create/delete, coverage patches retargeted). Follow-up: docstrings/`@handle_errors` on the three new helpers; `# not_duplicate` on facade export/backup delegates.
-- AI_PRIORITIES shows `N lines, M functions` instead of unreadable `total_function_complexity` totals.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

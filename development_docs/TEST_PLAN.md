@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-08-22  
+> **Last Updated**: 2026-08-23  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -202,6 +202,7 @@ This document is the canonical testing roadmap.
 - [ ] Avoid percentage-only tests that lock in bad design or brittle implementation details.
 - [ ] Track coverage variance only when it blocks confidence in the reports.
 - [x] Add mocked AI journeys that replace the manual safety/capability checklist (2026-08-22). Live LM Studio review remains tone-only.
+- [x] Map every MANUAL_DISCORD_TEST_GUIDE checklist item to a real pytest (2026-08-23). Leftover gaps live in `tests/behavior/test_discord_manual_checklist.py`. Live Discord is visual/tone only.
 
 **Acceptance**:
 - [ ] Coverage trend improves without new flakiness.

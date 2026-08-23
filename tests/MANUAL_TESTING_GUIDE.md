@@ -184,35 +184,32 @@ Checklist:
 
 This section is a hub for Discord manual testing. The canonical, detailed task-reminder flow lives in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md).
 
-### 6.1. When to run Discord manual tests
+### 6.1. When to run Discord tests
 
-Run Discord manual tests when you change:
-
-- Task creation and parsing, especially natural language input.
-- Reminder scheduling logic that interacts with Discord.
-- Discord command routing, permissions, or channel selection.
-- Any logic that affects how follow-up questions and confirmation messages are phrased.
+After Discord task, notebook, routing, or onboarding changes, run the mapped pytest files in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6 (start with `pytest tests/behavior/test_discord_manual_checklist.py`). Live Discord is optional for tone and the real client.
 
 ### 6.2. High-level Discord checklist
 
-High-level checks (before deep-dives):
+These are automated. Run the named tests instead of walking Discord for connection, help, and error handling:
 
-- [ ] Bot connects successfully to the correct Discord server and channels.
-- [ ] Basic commands (for example, help/status commands) respond as expected.
-- [ ] Error conditions (invalid commands, incomplete inputs) produce clear messages.
+| Check | Automated test |
+|---|---|
+| Bot connects / reports ready | `test_discord_bot_is_actually_connected_checks_real_state`; ready/connect cases in `tests/behavior/test_discord_bot_behavior.py` |
+| Help / status / basic commands | `test_general_help`; `test_commands_list`; slash/bang/natural cases in `tests/behavior/test_discord_automation_complete.py` |
+| Invalid or incomplete input | `test_handle_missing_entities_gracefully`; notebook error cases in `tests/behavior/test_notebook_handler_behavior.py`; task reminder no-due-date errors |
+
+Optional live check: the bot is actually online in your test server.
 
 ### 6.3. Detailed task-reminder flow
 
-For the full, step-by-step scenario coverage, use [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md):
+For the command cheat sheet and the automated map, use [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md):
 
-- Section 1. "Prerequisites".
-- Section 2. "Task Reminder Follow-up Flow Testing".
-- Section 3. "Verification Commands".
-- Section 4. "Success Criteria".
-- Section 5. "Known Issues to Watch For".
-- Section 7. "Quick Test Checklist".
+- Section 1. "Prerequisites" (operational: service running).
+- Section 2. "Task Reminder Testing" (example commands).
+- Section 4. "Automated checklist map".
+- Section 6. "Task flows and notebook pagination".
 
-Treat [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) as the authoritative source for detailed Discord reminder flows.
+Treat [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) as the authoritative source for Discord reminder and notebook checklist coverage.
 
 ---
 

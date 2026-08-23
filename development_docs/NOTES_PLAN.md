@@ -17,7 +17,7 @@ Notebook is intended to become a primary daily-capture tool in MHM, especially f
 
 Current priority is no longer basic implementation. The core feature exists. The current priority is making it easier and more reliable to use day-to-day:
 
-1. Validate and polish pagination / Show More behavior in live Discord.
+1. Pagination / Show More behavior is covered by pytest (`test_paginated_notebook_views_include_pagination_action`, `test_recent_pagination_exhausts_without_stale_show_more`). Optional live Discord is visual only.
 2. Polish command discovery (help text shipped 2026-06-22; `|` separators aligned 2026-07-29; live help spot-check remains).
 3. Phone-friendly `!edit` sessions shipped 2026-07-29 (replace flow + cancel/timeout).
 4. Group-command ambiguity resolved 2026-07-29 (`!setgroup` + structural-ID `!group`); journal visuals shipped 2026-06-26.
@@ -123,7 +123,7 @@ Current implementation:
 - Discord converts pagination metadata into `Show More` buttons with hidden payloads containing the original intent and next offset.
 - Discord button handling can route a pagination payload directly back to the appropriate interaction handler.
 
-The old “Show More button loses pagination state” item appears to be addressed in code. Remaining work is live Discord validation and UX polish.
+The old “Show More button loses pagination state” item is covered by pytest. Remaining work is optional live visual polish.
 
 ---
 
@@ -175,29 +175,21 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 4.1 Validate and polish live Discord pagination
 
-**Status**: Active  
-**Priority**: High
+**Status**: Automated (2026-08-23); optional live visual check  
+**Priority**: Low
 
-**Problem**: Pagination is implemented in code and covered by automated behavior/unit tests (handler `pagination_actions`, Discord action-row rendering). It still needs live Discord validation and any UX polish found during manual use. See also `tests/MANUAL_DISCORD_TEST_GUIDE.md` §6.2.
+**Problem**: Pagination metadata and Discord Show More rendering are implemented. Behavior is covered by pytest. See `tests/MANUAL_DISCORD_TEST_GUIDE.md` §6.2.
 
 **Tasks**:
 
-- [ ] Manually test `Show More` from Discord for:
-  - [ ] `!s <query>`
-  - [ ] `!recent`
-  - [ ] `!pinned`
-  - [ ] `!inbox`
-  - [ ] `!archived`
-  - [ ] `!t <tag>`
-  - [ ] `!group <group>`
-- [ ] Confirm the second page preserves the original intent, query/filter, limit, and offset.
-- [ ] Confirm repeated Show More clicks continue paging correctly.
-- [ ] Confirm button payload cache behavior does not break after multiple notebook interactions.
-- [ ] Add or update behavior tests for any bug found during live validation.
+- [x] `Show More` preserves intent/filter for `!s`, `!recent`, `!pinned`, `!inbox`, `!archived`, `!t <tag>`, `!group <group>` (`test_paginated_notebook_views_include_pagination_action`)
+- [x] Second page preserves query/filter/limit/offset (same test)
+- [x] Repeated Show More until exhausted drops the stale button (`test_recent_pagination_exhausts_without_stale_show_more`)
+- [ ] Optional: glance at the real Discord client if button styling or expired-button UX changes
 
 **Acceptance**:
 
-- Show More works from Discord without requiring the user to rerun the original command.
+- Show More works without requiring the user to rerun the original command.
 - If no more entries remain, no stale Show More button appears on the new response.
 
 ---
@@ -317,7 +309,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - bulk archive
 - bulk group assignment
 
-**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth in live Discord. Group ambiguity and edit sessions are resolved in code; live Show More validation is still the main gate.
+**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth. Group ambiguity, edit sessions, and Show More behavior are covered in code/tests; optional live Discord is visual only.
 
 ---
 

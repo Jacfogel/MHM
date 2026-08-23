@@ -406,6 +406,9 @@ class TestDiscordInteractionRouter:
             await _handle_suggestion_button(bot, interaction, "suggestion_x")
 
         assert "error occurred" in interaction.followup.send.await_args.args[0].lower()
+
+    @pytest.mark.asyncio
+    async def test_start_command_welcome_dms_disabled_sends_ephemeral_id(self):
         from communication.communication_channels.discord.events.interaction_router import (
             _handle_start_command_welcome,
         )
@@ -421,13 +424,15 @@ class TestDiscordInteractionRouter:
             return_value="Welcome!",
         ), patch(
             "communication.communication_channels.discord.onboarding.welcome_handler.mark_as_welcomed"
-        ):
+        ) as mock_mark:
             await _handle_start_command_welcome(interaction, "discord-888")
 
+        mock_mark.assert_called_once_with("discord-888")
         interaction.response.send_message.assert_awaited_once()
         send_args = interaction.response.send_message.await_args
         assert send_args is not None
         assert "Discord ID" in send_args.args[0]
+        assert "discord-888" in send_args.args[0]
 
 
 @pytest.mark.unit

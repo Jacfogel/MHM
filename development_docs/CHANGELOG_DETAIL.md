@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-23 - Map Discord checklist items to real tests
+- **Feature**: Every item in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) now maps to a real pytest. Leftover gaps (set/untag/unpin/archive/group/journal/quick-note aliases, list undo/remove, entries.json checks, Discord cancel/sequence/no-due-date, More-button hints) live in [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py).
+- **Fix**: `toggle_list_item_undone` now passes `done=False` into `_handle_toggle_list_item_done` (the handler accepts that kwarg). `/start` DM-disabled coverage is its own test. `!recent` is in the notebook pagination parametrize.
+- **Docs**: Manual Discord guide sections 4 and 6 are item-to-test maps. Spec matrix marks guild-join and `/start` as Automated. NOTES_PLAN 4.1 and TASKS_PLAN 1 point at pytest; live Discord is visual/tone only. Bare test filenames in the manual guides now use repo-root paths so path-drift stays clean.
+- **Types**: Pyright on `test_discord_manual_checklist.py` is clean (typed capture dict; Discord button callback ignore matches the existing task-list tests).
+- **Tests**: `pytest tests/behavior/test_discord_manual_checklist.py` (15 passed) plus related pagination and `/start` slices.
+- **Impact**: After Discord task/notebook/onboarding changes, run pytest instead of walking the Discord checklist.
+
 ### 2026-08-23 - Remove placeholder and always-pass tests
 - **Hygiene**: Deleted stub suites that never tested behavior: `tests/behavior/test_discord_advanced_automation.py`, `tests/behavior/test_ui_automation_complete.py`, and `tests/unit/debug_file_paths.py`. Removed placeholder flow/edge methods from `test_discord_automation_complete.py`.
 - **Fix**: Converted remaining `assert True` tests (logger, UI dialogs, comm manager, factories) into real assertions or deleted duplicate smoke cases. Failure-hiding fallbacks in `test_utilities_demo.py` now fail instead of passing.

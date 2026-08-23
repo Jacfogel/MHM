@@ -362,11 +362,9 @@ Routing:
     - Section 2. "Core Manual Flows".
     - Section 3. "UI Manual Testing".
     - Section 4. "Scheduling & Reminder Manual Tests".
-- For Discord-specific manual testing of task reminder flows:
-  - Use [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md), especially:
-    - Section 1. "Prerequisites".
-    - Section 2. "Task Reminder Follow-up Flow Testing".
-    - Section 7. "Quick Test Checklist".
+- For Discord checklist coverage (tasks, notebook, onboarding):
+  - Run [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py) plus the mapped files in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6.
+  - Live Discord is optional for tone and the real client.
 - For AI conversation and functionality testing:
   - Safety, routing, and capability limits: [test_ai_user_journeys.py](../tests/behavior/test_ai_user_journeys.py) (in `python run_tests.py`; no LM Studio).
   - Live LM Studio safety contracts (T-18.x, FAIL not PARTIAL) plus tone/phrasing review: [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](../tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
