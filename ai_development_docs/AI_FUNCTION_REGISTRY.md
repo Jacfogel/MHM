@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-22 15:17:56
+> **Last Generated**: 2026-08-25 16:26:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.2% [!] GOOD**
-- **Total Functions**: 2583
-- **Total Methods**: 1373
-- **Documented**: 3489/3956
+### **Documentation Coverage: 88.5% [!] GOOD**
+- **Total Functions**: 2571
+- **Total Methods**: 1361
+- **Documented**: 3480/3932
 - **Files Scanned**: 272
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -156,7 +156,7 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/profile_v2_schemas.py` - 24/48 functions undocumented (50% coverage)
+- `core/profile_v2_schemas.py` - 24/50 functions undocumented (52% coverage)
 - `communication/communication_channels/discord/events/connection_health.py` - 22/22 functions undocumented (0% coverage)
 - `storage/user_data_operations.py` - 22/24 functions undocumented (8% coverage)
 - `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
@@ -165,7 +165,7 @@ Core System Decision Tree:
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
-- `core/schemas.py` - 15/30 functions undocumented (50% coverage)
+- `communication/message_processing/interaction_manager.py` - 14/30 functions undocumented (53% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -194,7 +194,7 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3215
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `run_tests.py::main()` - Complexity: 2789
+3. [OK] `run_tests.py::main()` - Complexity: 2791
 4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 5. [OK] `run_tests.py::run_post_failure_reruns()` - Complexity: 942
 
@@ -209,7 +209,7 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (38 files, 404 functions)
 - `checkins/` -  (7 files, 151 functions)
 - `communication/` - Communication channels and message processing (90 files, 1191 functions)
-- `core/` - System utilities and data management (34 files, 629 functions)
+- `core/` - System utilities and data management (34 files, 605 functions)
 - `integrations/` -  (13 files, 114 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 109 functions)

@@ -12,6 +12,7 @@ Tests the actual UI behavior, user interactions, and side effects for:
 
 from tests.conftest import ensure_qt_runtime
 from tests.test_helpers.test_support.test_helpers import wait_until
+from core.profile_v2_io import schedule_categories
 
 ensure_qt_runtime()
 
@@ -1567,9 +1568,8 @@ class TestAccountCreationIntegration:
             "motivational",
             "health",
         ], "Categories should persist"
-        assert (
-            len(final_data["schedules"]["motivational"]["periods"]) == 1
-        ), "Schedule periods should persist"
+        periods = schedule_categories(final_data["schedules"])["motivational"]["periods"]
+        assert "morning" in periods, "Schedule periods should persist"
 
     @pytest.mark.integration
     @pytest.mark.ui

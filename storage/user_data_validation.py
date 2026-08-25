@@ -4,7 +4,6 @@ This module centralizes all rules for validating user account, preferences,
 context, and schedules data.
 """
 
-import importlib
 import re
 import os
 from typing import Any
@@ -361,7 +360,7 @@ def validate_user_update(
 
     # ACCOUNT ----------------------------------------------------------------
     if data_type == "account":
-        # Account validation is now handled by Pydantic models in core/schemas.py
+        # Account validation uses v2 envelope models.
         try:
             try:
                 from storage.user_data_read import get_user_data
@@ -378,10 +377,12 @@ def validate_user_update(
             if "user_id" not in merged_account:
                 merged_account["user_id"] = user_id
 
-            # Use Pydantic validation for account data
-            _, validation_errors = importlib.import_module(
-                "core.schemas"
-            ).validate_account_dict(merged_account)
+            from core.profile_v2_io import ensure_profile_envelope
+            from core.profile_v2_schemas import validate_account_v2_document
+
+            _, validation_errors = validate_account_v2_document(
+                ensure_profile_envelope("account", merged_account)
+            )
             if validation_errors:
                 errors.extend(validation_errors)
 
@@ -405,7 +406,7 @@ def validate_user_update(
 
     # PREFERENCES -------------------------------------------------------------
     elif data_type == "preferences":
-        # Preferences validation is now handled by Pydantic models in core/schemas.py
+        # Preferences validation uses v2 envelope models.
         try:
             # Retry in case of race conditions with file reads in parallel execution
             import time
@@ -434,10 +435,12 @@ def validate_user_update(
             )
             merged_preferences.update(updates)
 
-            # Use Pydantic validation for preferences data
-            _, validation_errors = importlib.import_module(
-                "core.schemas"
-            ).validate_preferences_dict(merged_preferences)
+            from core.profile_v2_io import ensure_profile_envelope
+            from core.profile_v2_schemas import validate_preferences_v2_document
+
+            _, validation_errors = validate_preferences_v2_document(
+                ensure_profile_envelope("preferences", merged_preferences)
+            )
             if validation_errors:
                 errors.extend(validation_errors)
         except Exception as e:
@@ -462,7 +465,7 @@ def validate_user_update(
 
     # SCHEDULES ---------------------------------------------------------------
     elif data_type == "schedules":
-        # Schedules validation is now handled by Pydantic models in core/schemas.py
+        # Schedules validation uses v2 envelope models.
         try:
             try:
                 from storage.user_data_read import get_user_data
@@ -471,15 +474,14 @@ def validate_user_update(
             except Exception:
                 current_raw = {}
 
-            from core.profile_v2_io import coerce_schedules_to_in_memory
+            from core.profile_v2_io import ensure_profile_envelope, schedule_categories
+            from core.profile_v2_schemas import validate_schedules_v2_document
 
-            merged_schedules = coerce_schedules_to_in_memory(current_raw)
-            merged_schedules.update(coerce_schedules_to_in_memory(updates))
-
-            # Use Pydantic validation for schedules data
-            _, validation_errors = importlib.import_module(
-                "core.schemas"
-            ).validate_schedules_dict(merged_schedules)
+            merged_cats = schedule_categories(current_raw)
+            merged_cats.update(schedule_categories(updates))
+            _, validation_errors = validate_schedules_v2_document(
+                ensure_profile_envelope("schedules", merged_cats)
+            )
             if validation_errors:
                 errors.extend(validation_errors)
         except Exception as e:

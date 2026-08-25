@@ -19,13 +19,14 @@ from core.config import ensure_user_directory, get_user_file_path
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
 from core.profile_v2_io import (
+    ensure_profile_envelope,
     prepare_profile_raw_on_load,
     wrap_profile_document_for_save,
 )
-from core.schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
+from core.profile_v2_schemas import (
+    validate_account_v2_document,
+    validate_preferences_v2_document,
+    validate_schedules_v2_document,
 )
 
 _PROFILE_DOCUMENT_TYPES = frozenset(
@@ -218,6 +219,9 @@ def _get_user_data__load_impl(
             doc_type = "context" if file_key == "context" else file_key
             disk_payload = wrap_profile_document_for_save(doc_type, data)  # type: ignore[arg-type]
             save_json_data(disk_payload, file_path)
+            prepared = prepare_profile_raw_on_load(doc_type, disk_payload)  # type: ignore[arg-type]
+            if isinstance(prepared, dict):
+                data = prepared
         else:
             save_json_data(data, file_path)
     else:
@@ -304,7 +308,7 @@ def _get_user_data__load_account(
         file_key="account",
         cache_dict=_user_account_cache,
         default_data_factory=_account_default_data,
-        validate_fn=validate_account_dict,
+        validate_fn=validate_account_v2_document,
         log_name="account",
         normalize_after_load=_account_normalize_after_load,
     )
@@ -331,12 +335,14 @@ def _save_user_data__persist_validated_profile_file(
     file_path = get_user_file_path(user_id, file_key)
     if stamp_updated_at:
         payload["updated_at"] = now_timestamp_full()
-    with contextlib.suppress(Exception):
-        payload, _errs = validate_fn(payload)
     disk_payload = wrap_profile_document_for_save(document_type, payload)  # type: ignore[arg-type]
+    with contextlib.suppress(Exception):
+        validated, _errs = validate_fn(disk_payload)
+        if isinstance(validated, dict) and validated:
+            disk_payload = validated
     save_json_data(disk_payload, file_path)
     cache_key = f"{cache_key_prefix}_{user_id}"
-    cache_dict[cache_key] = (payload, time.time())
+    cache_dict[cache_key] = (disk_payload, time.time())
     try:
         importlib.import_module("storage.user_data_operations").update_user_index(user_id)
     except Exception as e:
@@ -356,7 +362,7 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
         account_data,
         _user_account_cache,
         "account",
-        validate_account_dict,
+        validate_account_v2_document,
         "Account",
         stamp_updated_at=True,
     )
@@ -388,7 +394,7 @@ def _get_user_data__load_preferences(
         file_key="preferences",
         cache_dict=_user_preferences_cache,
         default_data_factory=_preferences_default_data,
-        validate_fn=validate_preferences_dict,
+        validate_fn=validate_preferences_v2_document,
         log_name="preferences",
     )
 
@@ -404,7 +410,7 @@ def _save_user_data__save_preferences(
         preferences_data,
         _user_preferences_cache,
         "preferences",
-        validate_preferences_dict,
+        validate_preferences_v2_document,
         "Preferences",
     )
 
@@ -496,7 +502,7 @@ def _get_user_data__load_schedules(
         file_key="schedules",
         cache_dict=_user_schedules_cache,
         default_data_factory=_schedules_default_data,
-        validate_fn=validate_schedules_dict,
+        validate_fn=validate_schedules_v2_document,
         log_name="schedules",
     )
 
@@ -510,16 +516,17 @@ def _save_user_data__save_schedules(
         return False
     ensure_user_directory(user_id)
     schedules_file = get_user_file_path(user_id, "schedules")
-    normalized, errors = validate_schedules_dict(schedules_data)
+    disk_payload = ensure_profile_envelope("schedules", schedules_data)
+    normalized, errors = validate_schedules_v2_document(disk_payload)
     if errors:
         logger.warning(
-            f"Schedules validation reported {len(errors)} issue(s); saving normalized data"
+            f"Schedules validation reported {len(errors)} issue(s); saving envelope"
         )
-    schedules_data = normalized or {}
-    disk_payload = wrap_profile_document_for_save("schedules", schedules_data)
+    if not errors and isinstance(normalized, dict) and normalized:
+        disk_payload = normalized
     save_json_data(disk_payload, schedules_file)
     cache_key = f"schedules_{user_id}"
-    _user_schedules_cache[cache_key] = (schedules_data, time.time())
+    _user_schedules_cache[cache_key] = (disk_payload, time.time())
     logger.debug(f"Schedules data saved for user {user_id}")
     return True
 

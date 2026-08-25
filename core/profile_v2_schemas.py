@@ -1,8 +1,9 @@
 """
-Strict v2 on-disk envelopes for profile, tags, and chat-interaction JSON.
+Strict v2 envelopes for profile, tags, and chat-interaction JSON.
 
-Leaf module: do not import tasks/ or notebook/. Runtime loaders unwrap to the
-legacy in-memory shapes expected by the rest of the codebase.
+Leaf module: do not import tasks/ or notebook/. Account, preferences, and
+schedules use these envelopes in memory and on disk. Context, tags, and
+chat_interactions still unwrap to inner shapes in ``core/profile_v2_io.py``.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ import importlib
 import re
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import parse_timestamp_full
@@ -94,6 +95,25 @@ class ChannelV2Model(BaseModel):
 
     type: Literal["email", "discord"]
     contact: str | None = None
+
+    @model_validator(mode="after")
+    # devtools: ignore[unused-functions]: pydantic model_validator invoked at model construction
+    def _normalize_contact(self):
+        """Strip contact and drop invalid email contacts."""
+        if self.contact is None:
+            return self
+        if isinstance(self.contact, str):
+            self.contact = self.contact.strip() or None
+        if self.type == "email" and self.contact:
+            pattern = re.compile(
+                r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            )
+            if not pattern.match(self.contact):
+                self.contact = None
+        elif self.type == "discord":
+            if not (isinstance(self.contact, str) and self.contact):
+                self.contact = None
+        return self
 
 
 class PeriodV2Model(BaseModel):
@@ -244,6 +264,7 @@ class PreferencesV2EnvelopeModel(BaseModel):
     channel: ChannelV2Model = Field(default_factory=lambda: ChannelV2Model(type="email"))
     checkin_settings: dict[str, Any] | None = None
     task_settings: dict[str, Any] | None = None
+    natural_language_defaults: dict[str, Any] | None = None
 
     @field_validator("updated_at")
     @classmethod

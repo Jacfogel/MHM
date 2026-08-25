@@ -288,9 +288,12 @@ def _format_personal_context(personal_context: dict[str, Any]) -> str:
 @handle_errors("building schedule context", default_return={})
 def _build_schedule_context(schedules: dict[str, Any]) -> dict[str, Any]:
     """Build structured schedule context and active schedule summary."""
+    from core.profile_v2_io import schedule_categories
+
+    category_map = schedule_categories(schedules)
     return {
-        "raw": schedules,
-        "active_schedules": get_active_schedules(schedules) if schedules else [],
+        "raw": category_map,
+        "active_schedules": get_active_schedules(category_map) if category_map else [],
     }
 
 

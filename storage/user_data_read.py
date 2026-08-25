@@ -13,10 +13,11 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path
 from core.file_operations import load_json_data, save_json_data, determine_file_path
-from core.schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
+from core.profile_v2_io import ensure_profile_envelope
+from core.profile_v2_schemas import (
+    validate_account_v2_document,
+    validate_preferences_v2_document,
+    validate_schedules_v2_document,
 )
 
 from storage.user_data_registry import (
@@ -77,13 +78,15 @@ def _finalize_get_user_data_payload(
         # error_handling_exclude: best-effort read-time normalization; partial failures are skipped.
         try:
             if data_type == "account":
-                normalized, _errs = validate_account_dict(data)
+                envelope = ensure_profile_envelope("account", data)
+                normalized, _errs = validate_account_v2_document(envelope)
                 if normalized:
                     if not normalized.get("timezone"):
                         normalized["timezone"] = "UTC"
                     data = normalized
             elif data_type == "preferences":
-                normalized, _errs = validate_preferences_dict(data)
+                envelope = ensure_profile_envelope("preferences", data)
+                normalized, _errs = validate_preferences_v2_document(envelope)
                 if normalized:
                     try:
                         caller_categories = (
@@ -107,10 +110,8 @@ def _finalize_get_user_data_payload(
                         pass
                     data = normalized
             elif data_type == "schedules":
-                from core.profile_v2_io import coerce_schedules_to_in_memory
-
-                data = coerce_schedules_to_in_memory(data)
-                normalized, _errs = validate_schedules_dict(data)
+                envelope = ensure_profile_envelope("schedules", data)
+                normalized, _errs = validate_schedules_v2_document(envelope)
                 if normalized and not _errs:
                     data = normalized
                     try:
@@ -127,11 +128,12 @@ def _finalize_get_user_data_payload(
                         )
                         if categories:
                             _ensure_sched(user_id, suppress_logging=True)
-                            normalized_after, errs_after = validate_schedules_dict(
-                                coerce_schedules_to_in_memory(
-                                    get_user_data(user_id, "schedules").get(
-                                        "schedules", {}
-                                    )
+                            reloaded = get_user_data(user_id, "schedules").get(
+                                "schedules", {}
+                            )
+                            normalized_after, errs_after = (
+                                validate_schedules_v2_document(
+                                    ensure_profile_envelope("schedules", reloaded)
                                 )
                             )
                             if normalized_after and not errs_after:

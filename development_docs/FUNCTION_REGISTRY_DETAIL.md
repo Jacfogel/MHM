@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-22 15:17:56
+> **Last Generated**: 2026-08-25 16:26:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.2% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 272
-- **Functions Found**: 2583
-- **Methods Found**: 1373
-- **Classes Found**: 257
-- **Total Items**: 3956
-- **Functions Documented**: 2267
-- **Methods Documented**: 1222
+- **Functions Found**: 2571
+- **Methods Found**: 1361
+- **Classes Found**: 250
+- **Total Items**: 3932
+- **Functions Documented**: 2264
+- **Methods Documented**: 1216
 - **Classes Documented**: 187
-- **Total Documented**: 3489
+- **Total Documented**: 3480
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-22
+- **Last Updated**: 2026-08-25
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (481)
+### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (667)
@@ -1464,7 +1464,7 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
 - [OK] `_handle_set_group(self, user_id, entities)` - Handle setting entry group.
 - [OK] `_handle_show_entry(self, user_id, entities)` - Handle showing an entry.
-- [OK] `_handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
+- [OK] `_handle_toggle_list_item_done(self, user_id, entities, done)` - Handle toggling list item done status.
 - [OK] `_page_request(entities)` - Build a notebook page request from command entities.
 - [OK] `_pagination_action_rich_data(action, params, page)` - Return channel-neutral metadata for rendering a next-page action.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
@@ -1500,7 +1500,7 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
   - [OK] `NotebookHandler._handle_set_group(self, user_id, entities)` - Handle setting entry group.
   - [OK] `NotebookHandler._handle_show_entry(self, user_id, entities)` - Handle showing an entry.
-  - [OK] `NotebookHandler._handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
+  - [OK] `NotebookHandler._handle_toggle_list_item_done(self, user_id, entities, done)` - Handle toggling list item done status.
   - [OK] `NotebookHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `NotebookHandler.get_examples(self)` - Get example commands for notebook.
   - [OK] `NotebookHandler.get_help(self)` - Get help text for notebook commands.
@@ -4368,23 +4368,34 @@ Args:
 - [OK] `_empty_profile_payload(document_type)` - Return the in-memory empty shape for a profile document type after a failed v2 load.
 - [OK] `_normalize_context_inner(inner)` - Normalize context fields for in-memory use and v2 envelope build.
 - [OK] `_normalize_context_timestamp(value)` - Coerce non-canonical ISO/microsecond timestamps to canonical TIMESTAMP_FULL.
-- [OK] `_normalize_in_memory_profile(document_type, inner)` - Apply tolerant in-memory validators after unwrapping a v2 on-disk envelope.
 - [OK] `_warn_non_v2_on_disk(document_type, raw)` - Log when on-disk JSON is not a v2 envelope (load path returns empty in-memory data).
-- [OK] `coerce_schedules_to_in_memory(data)` - Return flat category->periods schedules, stripping v2 envelope/cache pollution.
+- [OK] `account_extra(account, key, default)` - Return a first-class account field or a metadata extra.
 
-On-disk schedules use ``{schema_version, updated_at, categories: {...}}``.
-In-memory and save/merge paths expect ``{category: {periods: ...}}``. A poisoned
-cache may also store ``schema_version`` beside flat category keys.
+Envelope-in-memory keeps unknown account keys under ``metadata`` instead of
+flattening them onto the payload. Tests and callers that previously read
+pass-through fields such as ``enabled_features`` should use this helper.
+- [OK] `ensure_profile_envelope(document_type, payload)` - Return a validated v2 envelope, wrapping an inner payload when needed.
 - [OK] `is_profile_v2_envelope(data)` - Return True when ``data`` is a dict with ``schema_version`` equal to v2.
-- [OK] `prepare_profile_raw_on_load(document_type, raw)` - Unwrap a v2 on-disk profile document for registry loaders and tooling.
-- [OK] `unwrap_profile_document_on_load(document_type, raw)` - Unwrap a v2 on-disk envelope to in-memory application shapes.
+- [OK] `is_schedules_v2_envelope(data)` - Return True when ``data`` is a v2 schedules envelope with a categories map.
+- [OK] `prepare_profile_raw_on_load(document_type, raw)` - Prepare a v2 on-disk profile document for registry loaders and tooling.
+- [OK] `schedule_categories(data)` - Return the category->periods map from a schedules envelope or flat dict.
+
+Accepts on-disk/in-memory envelopes ``{schema_version, updated_at, categories}``
+and unwrapped category maps ``{category: {periods: ...}}``. For envelopes, returns
+the live ``categories`` map after in-place migration so nested edits persist when
+the envelope is saved. Strips reserved envelope keys from polluted caches.
+- [OK] `unwrap_profile_document_on_load(document_type, raw)` - Prepare a v2 on-disk document for in-memory use.
+
+Account, preferences, and schedules stay as validated v2 envelopes.
+Context, tags, and chat_interactions still unwrap to inner shapes.
 - [OK] `wrap_chat_interactions_for_save(interactions)` - Wrap interaction rows in a validated v2 on-disk envelope.
-- [OK] `wrap_profile_document_for_save(document_type, inner)` - Build and validate a v2 on-disk envelope from in-memory profile data.
+- [OK] `wrap_profile_document_for_save(document_type, inner)` - Build and validate a v2 envelope from inner or already-wrapped profile data.
 
 #### `core/profile_v2_schemas.py`
 **Functions:**
 - [OK] `_coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
 - [OK] `_coerce_google_health(cls, value)` - Normalize google_health to enabled, disabled, or paused.
+- [OK] `_normalize_contact(self)` - Strip contact and drop invalid email contacts.
 - [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
 - [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
 - [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
@@ -4421,6 +4432,7 @@ cache may also store ``schema_version`` beside flat category keys.
   - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
 - [MISSING] `CategoryScheduleV2Model` - No description
 - [MISSING] `ChannelV2Model` - No description
+  - [OK] `ChannelV2Model._normalize_contact(self)` - Strip contact and drop invalid email contacts.
 - [MISSING] `ChatInteractionV2Model` - No description
   - [MISSING] `ChatInteractionV2Model._validate_timestamp(cls, value)` - No description
 - [MISSING] `ChatInteractionsV2EnvelopeModel` - No description
@@ -4460,13 +4472,18 @@ cache may also store ``schema_version`` beside flat category keys.
 
 #### `core/schedule_document_defaults.py`
 **Functions:**
-- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
 - [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
 - [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
-- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
+
+#### `core/schedule_period_normalize.py`
+**Functions:**
+- [OK] `_normalize_period_fields(period_data)` - Rename start/end keys to start_time/end_time and drop extra period fields.
+- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
+- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Normalize category maps to ``{category: {periods: ...}}`` with v2 period fields.
 
 #### `core/schedule_runtime.py`
 **Functions:**
+- [OK] `_load_schedule_category_map(user_id)` - Return the category->periods map from get_user_data, envelope or flat.
 - [MISSING] `add_schedule_period(category, period_name, start_time, end_time, scheduler_manager)` - No description
 - [OK] `clear_schedule_periods_cache(user_id, category)` - Clear the schedule periods cache for a specific user/category or all.
 - [OK] `delete_schedule_period(category, period_name, scheduler_manager)` - Delete a schedule period from a category.
@@ -4571,71 +4588,6 @@ Args:
 
 Returns:
     bool: True if the schedule is active, False otherwise
-
-#### `core/schemas.py`
-**Functions:**
-- [OK] `_accept_legacy_shape(cls, data)` - Accept legacy schedule data format where periods are at top-level.
-
-This validator converts legacy schedule data (where periods are directly
-in the dict) to the new format (where periods are under a 'periods' key).
-
-Args:
-    data: Schedule data dict that may be in legacy format
-
-Returns:
-    dict: Data in the new format with 'periods' key
-- [MISSING] `_coerce_bool(cls, v)` - No description
-- [OK] `_normalize_bool_flags(cls, v)` - Coerce legacy bool/string feature flags to enabled or disabled.
-- [MISSING] `_normalize_contact(self)` - No description
-- [OK] `_normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
-- [OK] `_normalize_google_health(cls, v)` - Coerce google_health to enabled, disabled, or paused (includes paused string).
-- [MISSING] `_valid_days(cls, v)` - No description
-- [OK] `_valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
-- [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
-- [OK] `_validate_dict_model(data, model_cls)` - Validate a dict with a Pydantic model, preserving original data on failure.
-- [OK] `_validate_discord_id(cls, v)` - Validate and normalize Discord user ID.
-
-Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
-Empty strings are allowed (Discord ID is optional).
-- [MISSING] `_validate_email(cls, v)` - No description
-- [MISSING] `_validate_timezone(cls, v)` - No description
-- [MISSING] `to_dict(self)` - No description
-- [MISSING] `validate_account_dict(data)` - No description
-- [MISSING] `validate_preferences_dict(data)` - No description
-- [MISSING] `validate_schedules_dict(data)` - No description
-**Classes:**
-- [MISSING] `AccountModel` - No description
-  - [OK] `AccountModel._normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
-  - [OK] `AccountModel._validate_discord_id(cls, v)` - Validate and normalize Discord user ID.
-
-Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
-Empty strings are allowed (Discord ID is optional).
-  - [MISSING] `AccountModel._validate_email(cls, v)` - No description
-  - [MISSING] `AccountModel._validate_timezone(cls, v)` - No description
-- [MISSING] `CategoryScheduleModel` - No description
-  - [OK] `CategoryScheduleModel._accept_legacy_shape(cls, data)` - Accept legacy schedule data format where periods are at top-level.
-
-This validator converts legacy schedule data (where periods are directly
-in the dict) to the new format (where periods are under a 'periods' key).
-
-Args:
-    data: Schedule data dict that may be in legacy format
-
-Returns:
-    dict: Data in the new format with 'periods' key
-- [MISSING] `ChannelModel` - No description
-  - [MISSING] `ChannelModel._normalize_contact(self)` - No description
-- [MISSING] `FeaturesModel` - No description
-  - [MISSING] `FeaturesModel._coerce_bool(cls, v)` - No description
-  - [OK] `FeaturesModel._normalize_bool_flags(cls, v)` - Coerce legacy bool/string feature flags to enabled or disabled.
-  - [OK] `FeaturesModel._normalize_google_health(cls, v)` - Coerce google_health to enabled, disabled, or paused (includes paused string).
-- [MISSING] `PeriodModel` - No description
-  - [MISSING] `PeriodModel._valid_days(cls, v)` - No description
-  - [OK] `PeriodModel._valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
-- [MISSING] `PreferencesModel` - No description
-  - [OK] `PreferencesModel._validate_categories(cls, v)` - Validate that all categories are in the allowed list.
-- [MISSING] `SchedulesModel` - No description
-  - [MISSING] `SchedulesModel.to_dict(self)` - No description
 
 #### `core/service.py`
 **Functions:**

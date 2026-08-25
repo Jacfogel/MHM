@@ -2813,22 +2813,14 @@ class TestUserFactory:
 
     @staticmethod
     def _account_internal_username(account_payload: dict[str, Any]) -> str | None:
-        """Return internal_username from flat or v2-wrapped account JSON."""
+        """Return internal_username from a v2 account envelope or metadata extra."""
         if not isinstance(account_payload, dict) or not account_payload:
             return None
-        direct = account_payload.get("internal_username")
-        if isinstance(direct, str) and direct:
-            return direct
-        try:
-            from core.profile_v2_io import unwrap_profile_document_on_load
+        from core.profile_v2_io import account_extra
 
-            unwrapped = unwrap_profile_document_on_load("account", account_payload)
-        except Exception:
-            return None
-        if isinstance(unwrapped, dict):
-            username = unwrapped.get("internal_username")
-            if isinstance(username, str) and username:
-                return username
+        username = account_extra(account_payload, "internal_username")
+        if isinstance(username, str) and username:
+            return username
         return None
 
     @staticmethod

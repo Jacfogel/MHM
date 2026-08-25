@@ -10,7 +10,7 @@ This document defines the expected on-disk layout for per-user persisted state.
 Key implementation references:
 - `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `storage/user_data_write.py`)
 - `storage/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
-- `core/schemas.py` (tolerant account/preferences/schedules validation on the read/save path)
+- `core/profile_v2_schemas.py` / `core/profile_v2_io.py` (v2 envelopes for account/preferences/schedules in memory and on disk)
 - `storage/user_data_v2_base.py` / `storage/user_data_v2_envelopes.py` (strict v2 primitives and envelopes for versioned JSON files)
 - `core/config.py` (root path configuration: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`)
 
@@ -28,9 +28,8 @@ One line per core module (plus related packages). **Read here first** when you a
 | `storage/user_data_read.py` | `get_user_data`, cache clearing, ID helpers on the read path. |
 | `storage/user_data_write.py` | `save_user_data`, transactions, and **centralised** `update_user_*` helpers (single save pipeline). |
 | `storage/user_data_validation.py` | Primitive checks (email, phone, time formats) and rules used by handlers. |
-| `core/schemas.py` | **Tolerant** in-memory normalizer for account/preferences/schedules after v2 unwrap (coerce/normalize; `extra` may allow/ignore). |
-| `core/profile_v2_schemas.py` | **Strict** v2 envelope models for account, preferences, schedules (`categories` wrapper), context, tags, chat interactions. |
-| `core/profile_v2_io.py` | Unwrap v2 on-disk envelopes to in-memory shapes; always wrap on save. |
+| `core/profile_v2_schemas.py` | **Strict** v2 envelope models for account, preferences, schedules (`categories` wrapper), context, tags, chat interactions. Account/preferences/schedules use this shape in memory and on disk. |
+| `core/profile_v2_io.py` | Load/save bridging: account/preferences/schedules stay as envelopes; `schedule_categories()` reads the category map from either envelope or flat input; context/tags/chat still unwrap to inner shapes. |
 | `storage/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`; re-exports `generate_short_id` from `core.ids` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
 | `core/ids.py` | Shared external short-ID helpers: prefixes (`t`/`n`/`l`/`j`/`m`/`d`/`c`), generate/parse/format/display. |
 | `storage/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, messages, deliveries, and profile/tags/chat; `validate_v2_document` orchestration. |
@@ -38,7 +37,8 @@ One line per core module (plus related packages). **Read here first** when you a
 | `notebook/notebook_schemas.py`, `notebook/notebook_validation.py` | Notebook v2 disk models and `validate_notebook_v2_document`. |
 | `core/message_management.py` | User message **categories**, template files, deliveries, archive behaviour. |
 | `core/schedule_runtime.py` | **Runtime** schedule periods (active windows, caches, manipulation against live `get_user_data`). |
-| `core/schedule_document_defaults.py` | **On-disk** default period shapes and migrations for `schedules.json`. |
+| `core/schedule_period_normalize.py` | Leaf: default period shapes and wrapping unwrapped category maps (imported by envelopes without user I/O). |
+| `core/schedule_document_defaults.py` | Ensures on-disk `schedules.json` categories have default periods; re-exports the leaf helpers. |
 | `core/schedule_utilities.py` | Small shared schedule helpers (active period lists) without user I/O. |
 | `storage/user_data_operations.py` | **Ops/admin facade**: `UserDataManager` + re-exports for backup, export, index, and summaries (not the hot read/write path). |
 | `storage/user_data_user_info.py` | Shared user-info leaf: `get_user_info_for_data_manager`, message file listing, message references. |
@@ -51,15 +51,13 @@ One line per core module (plus related packages). **Read here first** when you a
 | `core/response_tracking.py` | Check-in and chat interaction persistence and queries. |
 | `core/checkin_dynamic_manager.py` | Bundled default check-in **prompt** JSON from `resources/`, not per-user `checkins.json`. |
 
-### 0.0. "Leaf" and two validation styles
+### 0.0. "Leaf" and validation styles
 
 **Leaf module** (informal graph term): a module near the bottom of the import graph that does **not** pull in heavier neighbours-so other modules can safely import it first. Example: `user_data_v2_base` must stay free of `tasks` and `notebook` imports so `notebook_schemas` and `user_data_v2_envelopes` can share `BaseItemModel` without circular imports.
 
-**Two validation layers (intentional):**
+**Profile account/preferences/schedules:** `get_user_data` / `save_user_data` use the same v2 envelope shape as on disk (`schema_version`, `updated_at`; schedules wrap periods in `categories`). Validate with `core/profile_v2_schemas.py`. Call `schedule_categories(payload)` when you need the flat category map. Call `account_extra(account, key)` for pass-through fields stored under `metadata`. Saves accept either an envelope or a flat category map (`ensure_profile_envelope` / wrap).
 
-1. **`schemas.py` (+ `storage/user_data_validation.py`)** - **tolerant / ergonomic** validation for **in-memory** profile shapes after v2 unwrap. Loaders apply these validators to unwrapped data from ``get_user_data`` / ``save_user_data``.
-
-2. **`profile_v2_schemas` + `user_data_v2_base` + `user_data_v2_envelopes` + domain validators** - **strict** validation for **versioned v2 on-disk documents**: tasks, notebook, check-ins, messages, deliveries, and profile/tags/chat files. Pydantic `extra="forbid"`, canonical timestamps; `validate_v2_document` for tooling and recovery.
+**Other versioned documents:** `profile_v2_schemas` + `user_data_v2_base` + `user_data_v2_envelopes` + domain validators remain **strict** for tasks, notebook, check-ins, messages, deliveries, and on-disk context/tags/chat files. Context/tags/chat still unwrap to inner in-memory shapes. Pydantic `extra="forbid"`, canonical timestamps; `validate_v2_document` for tooling and recovery.
 
 **Profile v2 on disk:** Runtime load expects v2 envelopes only. Saves always emit v2 via `core/profile_v2_io.py`.
 
@@ -94,16 +92,16 @@ Example (typical user directory):
 
 - `account.json`  
   User identity and feature enablement flags (for example, automated messages, check-ins, task management).  
-  Validation: tolerant `core/schemas.py` in memory; strict `core/profile_v2_schemas.py` on disk.
+  Validation: v2 envelope in memory and on disk (`core/profile_v2_schemas.py`).
 
 - `preferences.json`  
   User preferences (presentation, defaults, and other user-tunable settings).  
-  Validation: tolerant `core/schemas.py` in memory; strict v2 envelope on disk.  
+  Validation: v2 envelope in memory and on disk.  
   **Natural-language phrase defaults** (optional, under `natural_language_defaults` at the preferences root): `tonight_start_time` (default `18:00`), `after_work_school_time` (default `17:00`, used for both "after work" and "after school"), `time_of_day_defaults` (`morning`, `afternoon`, `evening`, `night`), and `weekend_this_week_means_coming_week` (boolean, default `true` for Sat/Sun "this week" parsing). Shipped defaults live in [`resources/default_natural_language_defaults.json`](../resources/default_natural_language_defaults.json); loaded by `core/natural_language_defaults.py`. Used by task due-date parsing and other phrase interpretation. View or change from Discord (`show phrase settings`, `set tonight to 8pm`) or admin **Phrase Settings** dialog.
 
 - `schedules.json`  
   Schedule periods / time windows and schedule-related persisted configuration.  
-  Validation: tolerant `core/schemas.py` + `core/schedule_document_defaults.py` in memory; v2 on-disk shape uses a `categories` map wrapper.
+  Validation: v2 envelope (`categories` map) in memory and on disk; `core/schedule_period_normalize.py` for period wrapping, `core/schedule_document_defaults.py` for inserting missing category defaults.
 
 - `tags.json`  
   User tag taxonomy (`core/tags.py`). v2 envelope on disk.
@@ -219,9 +217,9 @@ Rationale:
 
 ### 3.1. Validation and tolerance
 
-`core/schemas.py` is designed to be tolerant of existing on-disk shapes:
-- Unknown fields should generally be ignored (`extra="ignore"`) where configured.
-- Fields may be normalized (for example, booleans coerced into `"enabled"` / `"disabled"` feature flags).
+Account, preferences, and schedules use **strict v2 envelopes** in memory and on disk (`core/profile_v2_schemas.py`):
+- Unknown top-level fields are rejected (`extra="forbid"`). Account overflow keys go into `metadata` on wrap; read them with `account_extra()`.
+- Feature flags still coerce bool-like values into `"enabled"` / `"disabled"` (and `"paused"` for google_health).
 - Validation issues should be logged and recovered from where possible, rather than crashing.
 
 **Do not** "tighten" schemas in a way that breaks existing real user data unless an explicit migration plan is in place.
@@ -234,7 +232,7 @@ Default posture: **do not edit user JSON files directly**.
 
 Manual edits are allowed only when:
 - You are doing recovery work on your own local data.
-- You understand the expected shape for the file (check `core/schemas.py` and the loader code first).
+- You understand the expected shape for the file (check `core/profile_v2_schemas.py` and the loader code first).
 - You make a backup of the user directory before editing.
 
 If manual editing becomes a common need, that is a sign the UI/admin tools need additional repair/maintenance features.

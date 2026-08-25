@@ -111,7 +111,7 @@ class TestParseModuleDependencies:
         deps_file = tmp_path / "MODULE_DEPENDENCIES_DETAIL.md"
         deps_file.write_text("""
 #### `core/config.py`
-- **Dependencies**: core.logger, core.schemas
+- **Dependencies**: core.logger, core.profile_v2_schemas
 
 #### `core/service.py`
 - **Dependencies**: core.config, core.logger

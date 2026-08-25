@@ -69,7 +69,9 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     current_all = get_user_data(user_id, "all") or {}
     current_account = current_all.get("account") or {}
     current_prefs = current_all.get("preferences") or {}
-    current_schedules = current_all.get("schedules") or {}
+    from core.profile_v2_io import schedule_categories
+
+    current_schedules = schedule_categories(current_all.get("schedules") or {})
 
     # Account: preserve existing values; set sensible defaults where missing
     merged_features = dict(current_account.get("features") or {})

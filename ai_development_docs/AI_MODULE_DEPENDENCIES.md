@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-22 15:18:29
+> **Last Generated**: 2026-08-25 16:26:31
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 270
-- **Total Imports**: 2275
-- **Standard Library**: 677 (29.8%)
-- **Third-Party**: 218 (9.6%)
-- **Local Imports**: 1380 (60.7%)
+- **Total Imports**: 2277
+- **Standard Library**: 672 (29.5%)
+- **Third-Party**: 216 (9.5%)
+- **Local Imports**: 1389 (61.0%)
 
 ## Dependency Decision Trees
 
@@ -117,7 +117,7 @@ External libraries provide channel and UI support.
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
-- `ai/context/service.py` -> 15 unique local dependencies (high fan-out; review for inappropriate edges) (16 import statements; 1 duplicate)
+- `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
 - `core/service.py` -> 15 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 5 duplicate)
 
 ### Third-Party Risks
@@ -125,7 +125,7 @@ External libraries provide channel and UI support.
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (19 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
-- `checkins/checkin_schemas.py` -> pydantic (7 modules use this)
+- `checkins/checkin_schemas.py` -> pydantic (6 modules use this)
 
 
 ## Quick Reference for AI

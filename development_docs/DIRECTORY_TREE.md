@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-22 15:18:49
+> **Last Generated**: 2026-08-25 16:26:34
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000094 5EAC:07BC
+Volume serial number is 000000A8 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -33,6 +33,43 @@ C:.
 |   TODO.md
 |
 +---.agents
+|   \---skills
+|       +---source-command-ai-functionality-tests
+|       |       SKILL.md
+|       |
+|       +---source-command-audit
+|       |       SKILL.md
+|       |
+|       +---source-command-backup
+|       |       SKILL.md
+|       |
+|       +---source-command-close
+|       |       SKILL.md
+|       |
+|       +---source-command-docs
+|       |       SKILL.md
+|       |
+|       +---source-command-explore-options
+|       |       SKILL.md
+|       |
+|       +---source-command-full-audit
+|       |       SKILL.md
+|       |
+|       +---source-command-refactor
+|       |       SKILL.md
+|       |
+|       +---source-command-review
+|       |       SKILL.md
+|       |
+|       +---source-command-start
+|       |       SKILL.md
+|       |
+|       +---source-command-test
+|       |       SKILL.md
+|       |
+|       \---source-command-triage-issue
+|               SKILL.md
+|
 +---.cursor
 |   |   worktrees.json
 |   |
@@ -296,9 +333,9 @@ C:.
 |   |   profile_v2_schemas.py
 |   |   response_tracking.py
 |   |   schedule_document_defaults.py
+|   |   schedule_period_normalize.py
 |   |   schedule_runtime.py
 |   |   schedule_utilities.py
-|   |   schemas.py
 |   |   service.py
 |   |   service_requests.py
 |   |   service_utilities.py
@@ -519,7 +556,6 @@ C:.
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---tests
-|   |   |   .coverage
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
@@ -677,6 +713,7 @@ C:.
 |   |   |   test_ai_errors.py
 |   |   |   test_ai_functionality_manual.py
 |   |   |   test_ai_integration.py
+|   |   |   test_ai_live_journeys.py
 |   |   |   test_ai_performance.py
 |   |   |   test_ai_postprocess.py
 |   |   |   test_ai_quality.py
@@ -691,6 +728,7 @@ C:.
 |   |   |   test_ai_context_analytics_coverage_expansion.py
 |   |   |   test_ai_context_envelope_behavior.py
 |   |   |   test_ai_conversation_history_behavior.py
+|   |   |   test_ai_user_journeys.py
 |   |   |   test_analytics_handler_behavior.py
 |   |   |   test_auto_cleanup_behavior.py
 |   |   |   test_backup_manager_behavior.py
@@ -725,6 +763,7 @@ C:.
 |   |   |   test_email_bot_behavior.py
 |   |   |   test_enhanced_command_parser_behavior.py
 |   |   |   test_error_handling_coverage_expansion_phase3_final.py
+|   |   |   test_feature_restart_persistence.py
 |   |   |   test_headless_service_behavior.py
 |   |   |   test_health_handler_behavior.py
 |   |   |   test_interaction_handlers_behavior.py
@@ -732,6 +771,9 @@ C:.
 |   |   |   test_logger_behavior.py
 |   |   |   test_logger_coverage_expansion.py
 |   |   |   test_logger_coverage_expansion_phase3_simple.py
+|   |   |   test_manual_email_checklist.py
+|   |   |   test_manual_schedule_reminder_checklist.py
+|   |   |   test_manual_startup_shutdown.py
 |   |   |   test_message_analytics_behavior.py
 |   |   |   test_message_behavior.py
 |   |   |   test_message_route_classifier_behavior.py
@@ -998,6 +1040,7 @@ C:.
 |   |   |   test_dialogs.py
 |   |   |   test_dialog_actions.py
 |   |   |   test_dialog_behavior.py
+|   |   |   test_dialog_cancel_does_not_commit.py
 |   |   |   test_dialog_coverage_expansion.py
 |   |   |   test_message_editor_dialog.py
 |   |   |   test_process_watcher_dialog.py
@@ -1130,6 +1173,8 @@ C:.
 |   |   |   test_prompt_manager.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
+|   |   |   test_run_headless_service_launcher.py
+|   |   |   test_run_mhm_launcher.py
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
 |   |   |   test_scheduler_jobs.py

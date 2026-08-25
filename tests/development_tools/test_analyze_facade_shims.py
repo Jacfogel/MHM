@@ -151,6 +151,22 @@ def test_respects_ignore_marker(facade_module, tmp_path):
 
 
 @pytest.mark.unit
+def test_respects_ignore_marker_on_import_re_export(facade_module, tmp_path):
+    _write_inventory(tmp_path)
+    core = tmp_path / "core"
+    core.mkdir()
+    (core / "defaults.py").write_text(
+        "# devtools: ignore[facade-shims]: public re-export\n"
+        "from core.current import migrate_legacy_schedules_structure\n",
+        encoding="utf-8",
+    )
+
+    result = _analyze(facade_module, tmp_path)
+
+    assert result["summary"]["total_issues"] == 0
+
+
+@pytest.mark.unit
 def test_respects_standard_exclusions(facade_module, tmp_path, monkeypatch):
     _write_inventory(tmp_path)
     core = tmp_path / "core"

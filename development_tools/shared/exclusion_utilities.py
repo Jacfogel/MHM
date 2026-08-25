@@ -47,7 +47,13 @@ _DEFAULT_TEST_KEYWORDS = ["test_", "test"]
 
 
 MarkerAction = Literal["ignore", "intentional"]
-MarkerNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+MarkerNode = (
+    ast.FunctionDef
+    | ast.AsyncFunctionDef
+    | ast.ClassDef
+    | ast.ImportFrom
+    | ast.Assign
+)
 
 
 @dataclass(frozen=True)

@@ -11,16 +11,16 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path, get_user_data_dir
-from core.profile_v2_io import coerce_schedules_to_in_memory
+from core.profile_v2_io import ensure_profile_envelope, schedule_categories
 from storage.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
     is_valid_user_id,
 )
-from core.schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
+from core.profile_v2_schemas import (
+    validate_account_v2_document,
+    validate_preferences_v2_document,
+    validate_schedules_v2_document,
 )
 
 from storage.user_data_registry import (
@@ -172,12 +172,14 @@ def _save_user_data__normalize_data(dt: str, updated: dict[str, Any]) -> bool:
         return False
     try:
         if dt == "account":
-            normalized, errors = validate_account_dict(updated)
-            if normalized:
+            envelope = ensure_profile_envelope("account", updated)
+            normalized, errors = validate_account_v2_document(envelope)
+            if not errors and normalized:
                 updated.clear()
                 updated.update(normalized)
         elif dt == "preferences":
-            normalized, errors = validate_preferences_dict(updated)
+            envelope = ensure_profile_envelope("preferences", updated)
+            normalized, errors = validate_preferences_v2_document(envelope)
             if not errors and normalized:
                 try:
                     original_categories = set(
@@ -199,7 +201,8 @@ def _save_user_data__normalize_data(dt: str, updated: dict[str, Any]) -> bool:
                 updated.clear()
                 updated.update(normalized)
         elif dt == "schedules":
-            normalized, errors = validate_schedules_dict(updated)
+            envelope = ensure_profile_envelope("schedules", updated)
+            normalized, errors = validate_schedules_v2_document(envelope)
             if not errors and normalized:
                 updated.clear()
                 updated.update(normalized)
@@ -231,8 +234,15 @@ def _save_user_data__merge_single_type(
                 return None
         current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
         if dt == "schedules":
-            current = coerce_schedules_to_in_memory(current)
-            updates = coerce_schedules_to_in_memory(updates)
+            merged_cats = schedule_categories(current)
+            for key, value in schedule_categories(updates).items():
+                if value is None:
+                    merged_cats.pop(key, None)
+                else:
+                    merged_cats[key] = value
+            updated = ensure_profile_envelope("schedules", merged_cats)
+            _save_user_data__normalize_data(dt, updated)
+            return updated
         updated = current.copy() if isinstance(current, dict) else {}
         preserve_categories_order: list | None = None
         if (
@@ -257,8 +267,6 @@ def _save_user_data__merge_single_type(
                 updated["email"] = updates["email"]
         elif dt == "preferences":
             _save_user_data__preserve_preference_settings(updated, updates, user_id)
-        if dt == "schedules":
-            updated = coerce_schedules_to_in_memory(updated)
         _save_user_data__normalize_data(dt, updated)
         if dt == "account":
             try:
@@ -472,8 +480,8 @@ def save_user_data(
             and "preferences" in merged_data
         ):
             try:
-                normalized_prefs, pref_errors = validate_preferences_dict(
-                    merged_data["preferences"]
+                normalized_prefs, pref_errors = validate_preferences_v2_document(
+                    ensure_profile_envelope("preferences", merged_data["preferences"])
                 )
                 if not pref_errors or (
                     len(pref_errors) == 1
@@ -489,10 +497,10 @@ def save_user_data(
                 logger.debug(f"Could not normalize preferences: {e}")
         if "schedules" in invalid_types_from_validation and "schedules" in merged_data:
             try:
-                cleaned_schedules = coerce_schedules_to_in_memory(
-                    merged_data["schedules"]
+                cleaned_schedules = ensure_profile_envelope(
+                    "schedules", merged_data["schedules"]
                 )
-                normalized_schedules, schedule_errors = validate_schedules_dict(
+                normalized_schedules, schedule_errors = validate_schedules_v2_document(
                     cleaned_schedules
                 )
                 if not schedule_errors:

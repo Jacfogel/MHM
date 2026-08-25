@@ -14,6 +14,7 @@ import pytest
 
 from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
 from tests.test_helpers.test_utilities import TestUserFactory
+from core.profile_v2_io import schedule_categories
 
 TEST_LOGGER = logging.getLogger("mhm_tests")
 
@@ -204,8 +205,9 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         # Verify actual content
         assert full_data["account"]["features"]["task_management"] == "enabled", "Full user should have tasks enabled"
         assert full_data["account"]["features"]["checkins"] == "enabled", "Full user should have checkins enabled"
-        assert "motivational" in full_data["schedules"], "Full user should have motivational schedules"
-        assert "health" in full_data["schedules"], "Full user should have health schedules"
+        full_schedules = schedule_categories(full_data["schedules"])
+        assert "motivational" in full_schedules, "Full user should have motivational schedules"
+        assert "health" in full_schedules, "Full user should have health schedules"
         
         logging.getLogger("mhm_tests").debug("Full user data loading: Success")
         
@@ -438,7 +440,8 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             
             # Ensure schedules exist - create_test_user_data should have created them, but verify
-            if 'schedules' not in basic_data or 'motivational' not in basic_data.get('schedules', {}):
+            basic_schedules = schedule_categories(basic_data.get("schedules", {}))
+            if "schedules" not in basic_data or "motivational" not in basic_schedules:
                 # Schedules might not have been created yet - try to create them
                 from core import save_user_data
                 from tests.test_helpers.test_utilities import TestDataFactory
@@ -455,11 +458,12 @@ def test_schedule_period_management_real_behavior(test_data_dir):
                     import time
                     time.sleep(0.2)
                     basic_data = get_user_data(basic_user_id, "all", auto_create=True)
+                    basic_schedules = schedule_categories(basic_data.get("schedules", {}))
             
             # Verify schedules exist before accessing
             assert 'schedules' in basic_data, f"Schedules should exist in user data. Got: {list(basic_data.keys())}"
-            assert 'motivational' in basic_data.get('schedules', {}), f"Motivational schedule should exist. Got schedules: {list(basic_data.get('schedules', {}).keys())}"
-            original_periods = len(basic_data["schedules"]["motivational"]["periods"])
+            assert 'motivational' in basic_schedules, f"Motivational schedule should exist. Got schedules: {list(basic_schedules.keys())}"
+            original_periods = len(schedule_categories(basic_data["schedules"])["motivational"]["periods"])
             
             # Add evening period
             new_period = {
@@ -470,15 +474,15 @@ def test_schedule_period_management_real_behavior(test_data_dir):
                 "end_time": "21:00"
             }
             
-            basic_data["schedules"]["motivational"]["periods"]["evening"] = new_period
+            schedule_categories(basic_data["schedules"])["motivational"]["periods"]["evening"] = new_period
             save_user_data(basic_user_id, {"schedules": basic_data["schedules"]})
             
             # Verify actual file changes
             updated_data = get_user_data(basic_user_id, "all")
-            assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods + 1, "Should have one more period"
+            assert len(schedule_categories(updated_data["schedules"])["motivational"]["periods"]) == original_periods + 1, "Should have one more period"
             
             # Verify period content
-            evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
+            evening_period = schedule_categories(updated_data["schedules"])["motivational"]["periods"].get("evening")
             assert evening_period is not None, "Evening period should exist"
             assert evening_period["start_time"] == "18:00", "Evening period should have correct start time"
             
@@ -486,7 +490,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             
             # Test modifying existing period
             basic_data = get_user_data(basic_user_id, "all")
-            morning_period = basic_data["schedules"]["motivational"]["periods"].get("morning")
+            morning_period = schedule_categories(basic_data["schedules"])["motivational"]["periods"].get("morning")
             if morning_period:
                 morning_period["start_time"] = "08:00"
                 morning_period["end_time"] = "11:00"
@@ -495,7 +499,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
                 
                 # Verify actual file changes
                 updated_data = get_user_data(basic_user_id, "all")
-                updated_morning = updated_data["schedules"]["motivational"]["periods"].get("morning")
+                updated_morning = schedule_categories(updated_data["schedules"])["motivational"]["periods"].get("morning")
                 if updated_morning:
                     assert updated_morning["start_time"] == "08:00", "Morning period should have updated start time"
                     assert updated_morning["end_time"] == "11:00", "Morning period should have updated end time"
@@ -504,14 +508,14 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             
             # Test removing schedule period
             basic_data = get_user_data(basic_user_id, "all")
-            if "evening" in basic_data["schedules"]["motivational"]["periods"]:
-                del basic_data["schedules"]["motivational"]["periods"]["evening"]
+            if "evening" in schedule_categories(basic_data["schedules"])["motivational"]["periods"]:
+                del schedule_categories(basic_data["schedules"])["motivational"]["periods"]["evening"]
                 save_user_data(basic_user_id, {"schedules": basic_data["schedules"]})
                 
                 # Verify actual file changes
                 updated_data = get_user_data(basic_user_id, "all")
-                assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods, "Should be back to original count"
-                evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
+                assert len(schedule_categories(updated_data["schedules"])["motivational"]["periods"]) == original_periods, "Should be back to original count"
+                evening_period = schedule_categories(updated_data["schedules"])["motivational"]["periods"].get("evening")
                 assert evening_period is None, "Evening period should be removed"
             
             logging.getLogger("mhm_tests").debug("Remove schedule period: Success")
@@ -580,7 +584,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
                 }
             ]
             
-            basic_data["schedules"]["motivational"]["periods"]["evening"] = checkin_periods[0]
+            schedule_categories(basic_data["schedules"])["motivational"]["periods"]["evening"] = checkin_periods[0]
             
             # Save all changes
             save_result = save_user_data(basic_user_id, {
@@ -600,7 +604,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             updated_data = get_user_data(basic_user_id, "all", auto_create=True)
             assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", f"Check-ins should be enabled. Got: {updated_data.get('account', {}).get('features', {})}"
             assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
-            assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
+            assert len(schedule_categories(updated_data["schedules"])["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
             
             # Create checkins.json file since it's not automatically created when enabling check-ins
             from core.file_operations import _create_user_files__checkins_file

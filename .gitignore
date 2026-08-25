@@ -184,6 +184,7 @@ development_tools\DEV_TOOLS_STATUS.md
 .vscode/
 .idea/
 .cursor/
+.agents/
 *.swp
 *.swo
 *~

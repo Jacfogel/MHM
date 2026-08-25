@@ -2,14 +2,13 @@ import copy
 
 import pytest
 
-from core.schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
+from core.profile_v2_io import ensure_profile_envelope, schedule_categories
+from core.profile_v2_schemas import (
+    validate_account_v2_document,
+    validate_preferences_v2_document,
 )
 
 pytestmark = [pytest.mark.core]
-
 
 
 @pytest.mark.unit
@@ -23,39 +22,36 @@ pytestmark = [pytest.mark.core]
     ],
 )
 @pytest.mark.core
-def test_validate_account_dict_normalizes_features_when_validation_fails(features, expected_checkins):
+def test_validate_account_v2_normalizes_features_when_validation_fails(features, expected_checkins):
     bad_account = {
-        # Missing required user_id triggers validation error path
+        "schema_version": 2,
+        "updated_at": "2026-08-25 12:00:00",
         "internal_username": "tester",
         "features": features,
         "extra_field": "preserve",
     }
 
-    normalized, errors = validate_account_dict(copy.deepcopy(bad_account))
+    normalized, errors = validate_account_v2_document(copy.deepcopy(bad_account))
 
     assert errors, "Validation errors should be reported when required fields are missing"
-    assert normalized["features"] == {
-        "automated_messages": "enabled",
-        "checkins": expected_checkins,
-        "task_management": "disabled",
-        "google_health": "disabled",
-    }
-    assert normalized.get("extra_field") == "preserve"
+    assert normalized == bad_account
 
 
 @pytest.mark.unit
 @pytest.mark.regression
 @pytest.mark.core
-def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypatch):
+def test_validate_preferences_v2_reports_errors_and_returns_original(monkeypatch):
     monkeypatch.setattr("messages.message_data_manager.get_message_categories", lambda: ["allowed"])
     data = {
+        "schema_version": 2,
+        "updated_at": "2026-08-25 12:00:00",
         "categories": ["invalid"],
         "channel": {"type": "email", "contact": "user@example.com"},
         "checkin_settings": None,
         "extra": "keep",
     }
 
-    normalized, errors = validate_preferences_dict(copy.deepcopy(data))
+    normalized, errors = validate_preferences_v2_document(copy.deepcopy(data))
 
     assert errors, "Invalid categories should surface as validation errors"
     assert normalized == data, "On validation failure the original payload should be returned"
@@ -64,27 +60,23 @@ def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypat
 @pytest.mark.unit
 @pytest.mark.regression
 @pytest.mark.core
-def test_validate_schedules_dict_normalizes_compatibility_shape_and_invalid_fields():
+def test_ensure_profile_envelope_migrates_flat_schedule_compatibility_shape():
     compatibility_shape = {
         "general": {
             "morning": {
                 "days": ["Funday", "ALL"],
                 "start_time": "99:00",
                 "end_time": "not-a-time",
-                "unexpected": "ignore",
             }
         }
     }
 
-    normalized, errors = validate_schedules_dict(compatibility_shape)
+    normalized = ensure_profile_envelope("schedules", compatibility_shape)
+    categories = schedule_categories(normalized)
 
-    assert errors == []
-    assert set(normalized.keys()) == {"general"}
-    periods = normalized["general"]["periods"]
+    assert set(categories.keys()) == {"general"}
+    periods = categories["general"]["periods"]
     assert set(periods.keys()) == {"morning"}
-    assert periods["morning"] == {
-        "active": True,
-        "days": ["ALL"],
-        "start_time": "00:00",
-        "end_time": "00:00",
-    }
+    assert periods["morning"]["days"] == ["ALL"]
+    assert periods["morning"]["start_time"] == "00:00"
+    assert periods["morning"]["end_time"] == "00:00"

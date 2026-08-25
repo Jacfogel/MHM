@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-25 - v2 envelopes in memory for account/preferences/schedules **COMPLETED**
+- `get_user_data` account/preferences/schedules now return the same v2 envelopes as on disk; `core/schemas.py` is gone.
+- Use `schedule_categories()` for category maps and `account_extra()` for metadata extras; wrap is idempotent (no empty-`categories` wipe).
+- Phrase settings (`natural_language_defaults`) persist on the preferences envelope.
+- Period wrapping is in `schedule_period_normalize.py` (breaks the `profile_v2_io` / `schedule_document_defaults` import cycle). Lint/type cleanup + docs regen for registry/path drift.
+- Full `python run_tests.py`: 5181 passed. Headless restart succeeded. Docs/path-drift clean; ruff/pyright PASS.
+
 ### 2026-08-23 - Map project-wide manual testing checklist to real tests **COMPLETED**
 - MANUAL_TESTING_GUIDE section 10 maps startup/UI/schedule/email/health/restart items to pytest; leftovers are in `tests/behavior/test_manual_*.py`.
 - Task reminders skip a second send when `reminder_sent` is already true, and that flag now persists.
@@ -108,19 +115,6 @@ Guidelines:
 - Public `start_note_body_flow` / `start_journal_body_flow` / `start_list_items_flow` / `start_entry_edit_flow` (and `get_note_body_flow_data`) on the note-flow mixin.
 - `notebook_handler` no longer writes `conversation_manager.user_states` or calls `_save_user_states`.
 - Same coupling pattern as the Aug 11 check-in public API; user-visible notebook prompts unchanged.
-
-### 2026-08-17 - Retire unused-imports analyzer (ruff F401) **COMPLETED**
-- Removed `analyze_unused_imports` / `generate_unused_imports_report` and the unused-imports CLI/report; F401 is covered by `analyze_ruff`.
-- Dropped dedicated Unused Imports sections from status/priorities/consolidated generators.
-- Use `python -m ruff check --select F401` when you want an import-only lint pass.
-- Same-session hygiene: pip-audit floors `aiohttp>=3.14.3` and `cryptography>=50.0.0`; leftover F401 on `test_tool_wrappers_cache_helpers.py`; demoted historical changelog hrefs to retired unused-imports paths to backticks.
-- Doc-sync freshness watches both changelogs. Audit changelog trim/TODO classify now run before Tier 2 doc-sync so those edits do not leave a stale path-drift cache. Qualified changelog paths in DEVELOPMENT_TOOLS_GUIDE so path-drift no longer flags bare `AI_CHANGELOG.md` / `CHANGELOG_DETAIL.md`; converted those four paths to markdown links so unconverted-links is clean.
-
-### 2026-08-16 - Audit cache: storage leaf, scoped doc-sync, legacy I/O skip **COMPLETED**
-- `domain_dependencies.storage` is now a leaf so a storage-only edit does not walk through `core` and invalidate the whole product suite.
-- Doc-sync freshness reads scoped `docs/jsons/scopes/<scope>/` results (the old flat `docs/jsons/` path always missed).
-- Path-drift uses the same skip as the other doc subchecks; freshness ignores changelog/generated-report mtimes so audit trim does not force a 60s rescan.
-- Legacy scan cache hits reuse stored matches without re-reading files; the INTENTIONAL LEGACY 10-line probe runs only on cache misses.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

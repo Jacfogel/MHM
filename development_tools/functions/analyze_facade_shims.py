@@ -178,6 +178,8 @@ class _FacadeShimCollector(ast.NodeVisitor):
             self.findings.append(finding)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        if has_devtools_ignore_marker(self.content, "facade-shims", node):
+            return
         module = node.module or ""
         for alias in node.names:
             local = alias.asname or alias.name
@@ -205,6 +207,8 @@ class _FacadeShimCollector(ast.NodeVisitor):
 
     def visit_Assign(self, node: ast.Assign) -> None:
         if self.scope_depth > 0:
+            return
+        if has_devtools_ignore_marker(self.content, "facade-shims", node):
             return
         target_name = _expr_name(node.value)
         if not target_name:

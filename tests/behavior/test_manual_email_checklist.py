@@ -60,7 +60,10 @@ def test_task_reminder_email_smtp_payload_has_subject_and_body():
     parsed = message_from_string(payload)
     body_bytes = parsed.get_payload(decode=True)
     assert body_bytes is not None
-    text = body_bytes.decode("utf-8")
+    if isinstance(body_bytes, bytes):
+        text = body_bytes.decode("utf-8")
+    else:
+        text = str(body_bytes)
     assert "Drink water" in text
     assert "person@example.com" in payload
 

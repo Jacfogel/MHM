@@ -1,8 +1,9 @@
 """
-Load/save bridging for profile v2 envelopes vs in-memory application shapes.
+Load/save bridging for profile v2 envelopes.
 
-On-disk JSON is always schema_version 2. Unwrapped dicts/lists match existing
-application expectations (for example flat schedule categories in memory).
+Account, preferences, and schedules stay as v2 envelopes in memory (the same
+shape as on disk). Context, tags, and chat_interactions still unwrap to inner
+application shapes.
 """
 
 from __future__ import annotations
@@ -19,11 +20,7 @@ from core.profile_v2_schemas import (
     validate_schedules_v2_document,
     validate_tags_v2_document,
 )
-from core.schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
-)
+from core import schedule_period_normalize as _schedule_period_normalize
 from core.time_format_constants import TIMESTAMP_FULL
 from core.time_utilities import format_timestamp, now_timestamp_full, parse_timestamp
 from storage.user_data_v2_base import SCHEMA_VERSION
@@ -72,33 +69,45 @@ _VALIDATORS = {
 }
 
 
+# not_duplicate: v2-envelope-predicates
 @handle_errors("checking profile v2 envelope", default_return=False)
 def is_profile_v2_envelope(data: Any) -> bool:
     """Return True when ``data`` is a dict with ``schema_version`` equal to v2."""
     return isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION
 
 
-@handle_errors("coercing schedules to in-memory shape", default_return={})
-def coerce_schedules_to_in_memory(data: Any) -> dict[str, Any]:
-    """Return flat category->periods schedules, stripping v2 envelope/cache pollution.
+# not_duplicate: v2-envelope-predicates
+@handle_errors("checking schedules v2 envelope", default_return=False)
+def is_schedules_v2_envelope(data: Any) -> bool:
+    """Return True when ``data`` is a v2 schedules envelope with a categories map."""
+    return is_profile_v2_envelope(data) and isinstance(data.get("categories"), dict)
 
-    On-disk schedules use ``{schema_version, updated_at, categories: {...}}``.
-    In-memory and save/merge paths expect ``{category: {periods: ...}}``. A poisoned
-    cache may also store ``schema_version`` beside flat category keys.
+
+@handle_errors("extracting schedule category map", default_return={})
+def schedule_categories(data: Any) -> dict[str, Any]:
+    """Return the category->periods map from a schedules envelope or flat dict.
+
+    Accepts on-disk/in-memory envelopes ``{schema_version, updated_at, categories}``
+    and unwrapped category maps ``{category: {periods: ...}}``. For envelopes, returns
+    the live ``categories`` map after in-place migration so nested edits persist when
+    the envelope is saved. Strips reserved envelope keys from polluted caches.
     """
     if not isinstance(data, dict) or not data:
         return {}
 
-    if is_profile_v2_envelope(data):
+    if is_schedules_v2_envelope(data):
         categories = data.get("categories")
-        if isinstance(categories, dict):
-            unwrapped = unwrap_profile_document_on_load("schedules", data)
-            return unwrapped if isinstance(unwrapped, dict) else {}
-        return {
-            key: value
-            for key, value in data.items()
-            if key not in _SCHEDULE_V2_RESERVED_KEYS
-        }
+        if not isinstance(categories, dict):
+            return {}
+        migrated = _schedule_period_normalize.migrate_legacy_schedules_structure(
+            categories
+        )
+        if not isinstance(migrated, dict):
+            return {}
+        if migrated is not categories:
+            categories.clear()
+            categories.update(migrated)
+        return categories
 
     return {
         key: value
@@ -107,21 +116,33 @@ def coerce_schedules_to_in_memory(data: Any) -> dict[str, Any]:
     }
 
 
-@handle_errors("normalizing in-memory profile payload", default_return={})
-def _normalize_in_memory_profile(
-    document_type: ProfileDocumentType, inner: dict[str, Any]
+@handle_errors("reading account extra field", default_return=None)
+def account_extra(account: Any, key: str, default: Any = None) -> Any:
+    """Return a first-class account field or a metadata extra.
+
+    Envelope-in-memory keeps unknown account keys under ``metadata`` instead of
+    flattening them onto the payload. Tests and callers that previously read
+    pass-through fields such as ``enabled_features`` should use this helper.
+    """
+    if not isinstance(account, dict) or not key:
+        return default
+    if key in account:
+        return account[key]
+    metadata = account.get("metadata")
+    if isinstance(metadata, dict) and key in metadata:
+        return metadata[key]
+    return default
+
+
+@handle_errors("ensuring profile v2 envelope", default_return={})
+def ensure_profile_envelope(
+    document_type: ProfileDocumentType, payload: Any
 ) -> dict[str, Any]:
-    """Apply tolerant in-memory validators after unwrapping a v2 on-disk envelope."""
-    if document_type == "account":
-        normalized, _ = validate_account_dict(inner)
-        return normalized if isinstance(normalized, dict) else inner
-    if document_type == "preferences":
-        normalized, _ = validate_preferences_dict(inner)
-        return normalized if isinstance(normalized, dict) else inner
-    if document_type == "schedules":
-        normalized, _ = validate_schedules_dict(inner)
-        return normalized if isinstance(normalized, dict) else inner
-    return inner
+    """Return a validated v2 envelope, wrapping an inner payload when needed."""
+    if not isinstance(payload, dict):
+        payload = {}
+    wrapped = wrap_profile_document_for_save(document_type, payload)
+    return wrapped if isinstance(wrapped, dict) else {}
 
 
 @handle_errors("normalizing context timestamp", default_return="")
@@ -204,7 +225,11 @@ def _warn_non_v2_on_disk(document_type: ProfileDocumentType, raw: Any) -> None:
 def unwrap_profile_document_on_load(
     document_type: ProfileDocumentType, raw: Any
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Unwrap a v2 on-disk envelope to in-memory application shapes."""
+    """Prepare a v2 on-disk document for in-memory use.
+
+    Account, preferences, and schedules stay as validated v2 envelopes.
+    Context, tags, and chat_interactions still unwrap to inner shapes.
+    """
     if document_type == "chat_interactions":
         if not isinstance(raw, dict) or not is_profile_v2_envelope(raw):
             _warn_non_v2_on_disk(document_type, raw)
@@ -217,26 +242,26 @@ def unwrap_profile_document_on_load(
         return _empty_profile_payload(document_type)  # type: ignore[return-value]
 
     if document_type == "account":
-        inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
-        metadata = inner.pop("metadata", None)
-        if isinstance(metadata, dict):
-            for key, value in metadata.items():
-                if key not in inner:
-                    inner[key] = value
-        return _normalize_in_memory_profile("account", inner)
+        normalized, errors = validate_account_v2_document(raw)
+        return normalized if not errors and isinstance(normalized, dict) else raw
 
     if document_type == "preferences":
-        inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
-        return _normalize_in_memory_profile("preferences", inner)
+        normalized, errors = validate_preferences_v2_document(raw)
+        return normalized if not errors and isinstance(normalized, dict) else raw
 
     if document_type == "schedules":
-        from core.schedule_document_defaults import migrate_legacy_schedules_structure
-
         categories = raw.get("categories")
-        if isinstance(categories, dict):
-            migrated = migrate_legacy_schedules_structure(categories)
-            return _normalize_in_memory_profile("schedules", migrated)
-        return {}
+        if not isinstance(categories, dict):
+            return {}
+        envelope = {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": raw.get("updated_at") or now_timestamp_full(),
+            "categories": _schedule_period_normalize.migrate_legacy_schedules_structure(
+                categories
+            ),
+        }
+        normalized, errors = validate_schedules_v2_document(envelope)
+        return normalized if not errors and isinstance(normalized, dict) else envelope
 
     if document_type == "context":
         inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
@@ -269,6 +294,9 @@ _ACCOUNT_V2_KEYS = frozenset(
         "metadata",
     }
 )
+_FEATURE_V2_KEYS = frozenset(
+    {"automated_messages", "checkins", "task_management", "google_health"}
+)
 
 
 @handle_errors("building profile v2 envelope", default_return={})
@@ -280,7 +308,13 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
         for key, value in inner.items():
             if key in _V2_ENVELOPE_KEYS:
                 continue
-            if key in _ACCOUNT_V2_KEYS:
+            if key == "features" and isinstance(value, dict):
+                payload[key] = {
+                    flag: flag_value
+                    for flag, flag_value in value.items()
+                    if flag in _FEATURE_V2_KEYS
+                }
+            elif key in _ACCOUNT_V2_KEYS:
                 payload[key] = value
             else:
                 overflow[key] = value
@@ -294,7 +328,7 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
         return payload
 
     if document_type == "preferences":
-        return {
+        payload = {
             "schema_version": SCHEMA_VERSION,
             "updated_at": timestamp,
             "categories": inner.get("categories", []),
@@ -302,16 +336,22 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
             "checkin_settings": inner.get("checkin_settings"),
             "task_settings": inner.get("task_settings"),
         }
+        if inner.get("natural_language_defaults") is not None:
+            payload["natural_language_defaults"] = inner.get("natural_language_defaults")
+        return payload
 
     if document_type == "schedules":
-        from core.schedule_document_defaults import migrate_legacy_schedules_structure
-
-        categories_raw = {
-            key: value
-            for key, value in inner.items()
-            if key not in _SCHEDULE_V2_RESERVED_KEYS
-        }
-        categories = migrate_legacy_schedules_structure(categories_raw)
+        if is_schedules_v2_envelope(inner):
+            categories_raw = inner.get("categories") or {}
+        else:
+            categories_raw = {
+                key: value
+                for key, value in inner.items()
+                if key not in _SCHEDULE_V2_RESERVED_KEYS
+            }
+        categories = _schedule_period_normalize.migrate_legacy_schedules_structure(
+            categories_raw
+        )
         return {
             "schema_version": SCHEMA_VERSION,
             "updated_at": timestamp,
@@ -363,8 +403,8 @@ def wrap_chat_interactions_for_save(interactions: list[dict[str, Any]]) -> dict[
 def wrap_profile_document_for_save(
     document_type: ProfileDocumentType, inner: dict[str, Any]
 ) -> dict[str, Any]:
-    """Build and validate a v2 on-disk envelope from in-memory profile data."""
-    payload = _build_v2_envelope(document_type, inner)
+    """Build and validate a v2 envelope from inner or already-wrapped profile data."""
+    payload = _build_v2_envelope(document_type, inner if isinstance(inner, dict) else {})
     validator = _VALIDATORS.get(document_type)
     if validator is None:
         return payload
@@ -381,5 +421,5 @@ def wrap_profile_document_for_save(
 def prepare_profile_raw_on_load(
     document_type: ProfileDocumentType, raw: Any
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Unwrap a v2 on-disk profile document for registry loaders and tooling."""
+    """Prepare a v2 on-disk profile document for registry loaders and tooling."""
     return unwrap_profile_document_on_load(document_type, raw)

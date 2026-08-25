@@ -82,6 +82,21 @@
   ],
   "removed_inventory": [
     {
+      "id": "core_schemas_in_memory_profile_validators",
+      "removed_at": "2026-08-25",
+      "search_terms": [
+        "core/schemas.py",
+        "from core.schemas",
+        "import core.schemas",
+        "validate_account_dict",
+        "validate_preferences_dict",
+        "validate_schedules_dict",
+        "coerce_schedules_to_in_memory"
+      ],
+      "replacement": "core.profile_v2_schemas envelope validators; core.profile_v2_io.schedule_categories / ensure_profile_envelope",
+      "notes": "Deleted core/schemas.py. Account/preferences/schedules get_user_data payloads are v2 envelopes in memory. Saves still accept flat schedule maps. Context/tags/chat remain unwrapped inner shapes."
+    },
+    {
       "id": "placeholder_automation_and_debug_tests",
       "removed_at": "2026-08-23",
       "search_terms": [

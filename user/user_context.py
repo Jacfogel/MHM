@@ -205,12 +205,15 @@ class UserContext:
         context_data = context_result.get("context") or {}
 
         # Get schedules for active schedules check
+        from core.profile_v2_io import schedule_categories
+
         schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-        schedules_data = (
+        schedules_payload = (
             schedules_result.get("schedules", {})
             if isinstance(schedules_result, dict) and "schedules" in schedules_result
             else (schedules_result if isinstance(schedules_result, dict) else {})
         )
+        schedules_data = schedule_categories(schedules_payload)
 
         # Build basic context
         context = {

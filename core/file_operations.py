@@ -582,7 +582,9 @@ def _create_user_files__schedules_file(
         if not os.path.exists(schedules_file):
             schedules_data = {}
         else:
-            schedules_data = load_json_data(schedules_file) or {}
+            from core.profile_v2_io import schedule_categories
+
+            schedules_data = schedule_categories(load_json_data(schedules_file) or {})
 
         # Ensure each category has a default schedule block
         for category in categories:

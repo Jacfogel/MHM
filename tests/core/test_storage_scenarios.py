@@ -153,7 +153,9 @@ class TestUserDataWriteScenarios:
         )
         assert result.get("schedules") is True
         loaded = get_user_data(uid, "schedules", normalize_on_read=True)
-        schedules = loaded.get("schedules")
+        from core.profile_v2_io import schedule_categories
+
+        schedules = schedule_categories(loaded.get("schedules"))
         assert isinstance(schedules, dict)
         assert "motivational" in schedules
 

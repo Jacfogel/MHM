@@ -313,7 +313,7 @@ class TestUserManagementCoverageExpansion:
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data') as mock_save, \
-                 patch('storage.user_data_registry.validate_account_dict') as mock_validate:
+                 patch('storage.user_data_registry.validate_account_v2_document') as mock_validate:
                 mock_validate.return_value = (test_account, [])
                 result = _save_user_data__save_account(self.test_user_id, test_account)
         
@@ -346,8 +346,14 @@ class TestUserManagementCoverageExpansion:
             json.dump(_profile_v2_on_disk("preferences", test_preferences), f)
 
         # Act
-        clear_user_caches(self.test_user_id)
+        clear_user_caches()
         result = _get_user_data__load_preferences(self.test_user_id)
+        if (
+            isinstance(result, dict)
+            and "categories" not in result
+            and isinstance(result.get("preferences"), dict)
+        ):
+            result = result["preferences"]
 
         # Assert
         assert result is not None, "Should return preferences data"
@@ -395,7 +401,7 @@ class TestUserManagementCoverageExpansion:
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data') as mock_save, \
-                 patch('storage.user_data_registry.validate_preferences_dict') as mock_validate:
+                 patch('storage.user_data_registry.validate_preferences_v2_document') as mock_validate:
                 mock_validate.return_value = (test_preferences, [])
                 result = _save_user_data__save_preferences(self.test_user_id, test_preferences)
         
@@ -421,8 +427,14 @@ class TestUserManagementCoverageExpansion:
             json.dump(_profile_v2_on_disk("context", test_context), f)
 
         # Act
-        clear_user_caches(self.test_user_id)
+        clear_user_caches()
         result = _get_user_data__load_context(self.test_user_id)
+        if (
+            isinstance(result, dict)
+            and "preferred_name" not in result
+            and isinstance(result.get("context"), dict)
+        ):
+            result = result["context"]
         
         # Assert
         assert result is not None, "Should return context data"
@@ -521,15 +533,25 @@ class TestUserManagementCoverageExpansion:
             json.dump(_profile_v2_on_disk("schedules", test_schedules), f)
 
         # Act
-        clear_user_caches(self.test_user_id)
+        clear_user_caches()
         result = _get_user_data__load_schedules(self.test_user_id)
+        if (
+            isinstance(result, dict)
+            and "schedules" in result
+            and "categories" not in result
+            and "morning" not in result
+        ):
+            result = result["schedules"]
         
+        from core.profile_v2_io import schedule_categories
+
         # Assert
         assert result is not None, "Should return schedules data"
-        assert result["morning"]["periods"]["Default"]["start_time"] == "09:00"
-        assert result["morning"]["periods"]["Default"]["active"] is True
-        assert result["evening"]["periods"]["Default"]["start_time"] == "18:00"
-        assert result["evening"]["periods"]["Default"]["active"] is False
+        categories = schedule_categories(result)
+        assert categories["morning"]["periods"]["Default"]["start_time"] == "09:00"
+        assert categories["morning"]["periods"]["Default"]["active"] is True
+        assert categories["evening"]["periods"]["Default"]["start_time"] == "18:00"
+        assert categories["evening"]["periods"]["Default"]["active"] is False
     
     def test_load_schedules_data_auto_create_real_behavior(self):
         """Test auto-creating schedules data when file doesn't exist."""
@@ -744,7 +766,7 @@ class TestUserManagementCoverageExpansion:
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data') as mock_save, \
-                 patch('storage.user_data_registry.validate_account_dict') as mock_validate:
+                 patch('storage.user_data_registry.validate_account_v2_document') as mock_validate:
                 # Mock validation to return errors
                 mock_validate.return_value = (invalid_account, ["validation error"])
                 result = _save_user_data__save_account(self.test_user_id, invalid_account)
@@ -768,7 +790,7 @@ class TestUserManagementCoverageExpansion:
         with patch('storage.user_data_registry.get_user_file_path', return_value=account_file), \
              patch('storage.user_data_registry.ensure_user_directory'), \
              patch('storage.user_data_registry.save_json_data') as mock_save, \
-             patch('storage.user_data_registry.validate_account_dict') as mock_validate, \
+             patch('storage.user_data_registry.validate_account_v2_document') as mock_validate, \
              patch('storage.user_data_operations.update_user_index'):
             mock_validate.return_value = (test_account, [])
             result = _save_user_data__save_account(self.test_user_id, test_account)
@@ -845,8 +867,8 @@ class TestUserManagementIntegration:
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data') as mock_save, \
-                 patch('storage.user_data_registry.validate_account_dict') as mock_validate_account, \
-                 patch('storage.user_data_registry.validate_preferences_dict') as mock_validate_prefs, \
+                 patch('storage.user_data_registry.validate_account_v2_document') as mock_validate_account, \
+                 patch('storage.user_data_registry.validate_preferences_v2_document') as mock_validate_prefs, \
                  patch('storage.user_data_operations.update_user_index'):
                 mock_validate_account.return_value = (test_account, [])
                 mock_validate_prefs.return_value = (test_preferences, [])
@@ -884,7 +906,7 @@ class TestUserManagementIntegration:
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data'), \
                  patch('storage.user_data_registry.load_json_data') as mock_load, \
-                 patch('storage.user_data_registry.validate_account_dict') as mock_validate:
+                 patch('storage.user_data_registry.validate_account_v2_document') as mock_validate:
                 mock_validate.return_value = (original_account, [])
                 mock_load.return_value = original_account
 
@@ -944,7 +966,7 @@ class TestUserManagementIntegration:
             with patch('storage.user_data_registry.ensure_user_directory'), \
                  patch('storage.user_data_registry.save_json_data') as mock_save, \
                  patch('storage.user_data_registry.load_json_data', return_value=test_account), \
-                 patch('storage.user_data_registry.validate_account_dict') as mock_validate, \
+                 patch('storage.user_data_registry.validate_account_v2_document') as mock_validate, \
                  patch('storage.user_data_operations.update_user_index'):  # Mock the side effect
                 mock_validate.return_value = (test_account, [])
 
@@ -989,7 +1011,7 @@ class TestUserManagementIntegration:
                     with patch('storage.user_data_registry.ensure_user_directory'), \
                          patch('storage.user_data_registry.save_json_data'), \
                          patch('storage.user_data_registry.load_json_data', return_value=test_account), \
-                         patch('storage.user_data_registry.validate_account_dict') as mock_validate:
+                         patch('storage.user_data_registry.validate_account_v2_document') as mock_validate:
                         mock_validate.return_value = (test_account, [])
 
                         # Perform operations

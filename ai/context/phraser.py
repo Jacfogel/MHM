@@ -494,10 +494,13 @@ def _phrase_schedule_details(
     if not active_schedules or not schedules_data:
         return
 
+    from core.profile_v2_io import schedule_categories
+
+    category_map = schedule_categories(schedules_data)
     parts.append("Their active schedules:")
     for schedule_name in active_schedules[:5]:
         schedule_info = None
-        for category, category_data in schedules_data.items():
+        for category, category_data in category_map.items():
             if not isinstance(category_data, dict) or "periods" not in category_data:
                 continue
             for period_name, period_data in category_data["periods"].items():

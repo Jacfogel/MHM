@@ -12,6 +12,7 @@ import shutil
 import uuid
 
 from core.time_utilities import now_timestamp_full
+from core.profile_v2_io import account_extra, schedule_categories
 from storage.user_data_v2_base import SCHEMA_VERSION
 
 
@@ -41,7 +42,7 @@ class TestAccountLifecycle:
         current_all = get_user_data(uid, 'all') or {}
         current_account = current_all.get('account') or {}
         current_prefs = current_all.get('preferences') or {}
-        current_sched = current_all.get('schedules') or {}
+        current_sched = schedule_categories(current_all.get('schedules') or {})
 
         # Merge account features – preserve existing enabled flags
         merged_features = dict(current_account.get('features') or {})
@@ -204,7 +205,7 @@ class TestAccountLifecycle:
         # Verify schedule data structure (may vary based on centralized utilities)
         if "schedules" in loaded_data:
             # Check if schedules data exists and has the expected structure
-            schedules = loaded_data["schedules"]
+            schedules = schedule_categories(loaded_data["schedules"])
             assert "motivational" in schedules, "Motivational schedule should exist"
             # Note: create_minimal_user only creates motivational category, not health
     
@@ -299,7 +300,7 @@ class TestAccountLifecycle:
         # Verify schedule data structure (may vary based on centralized utilities)
         if "schedules" in loaded_data:
             # Check if schedules data exists and has the expected structure
-            schedules = loaded_data["schedules"]
+            schedules = schedule_categories(loaded_data["schedules"])
             assert "motivational" in schedules, "Motivational schedule should exist"
             assert "health" in schedules, "Health schedule should exist"
             assert "morning" in schedules["motivational"]["periods"], "Morning period should exist"
@@ -336,7 +337,7 @@ class TestAccountLifecycle:
             "checkin_settings": {"enabled": True, "questions": ["How are you feeling today?"]}
         })
         # Add check-in schedule period (optimization: removed redundant _materialize_and_verify)
-        current_sched = get_user_data(actual_user_id, 'schedules').get('schedules', {})
+        current_sched = schedule_categories(get_user_data(actual_user_id, 'schedules').get('schedules', {}))
         current_sched.setdefault('checkin', {}).setdefault('periods', {})['morning_checkin'] = {
             "active": True,
             "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
@@ -366,15 +367,15 @@ class TestAccountLifecycle:
         assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", \
             f"Check-ins should be enabled. Got: {updated_data.get('account', {}).get('features', {})}"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
-        assert len(updated_data["schedules"]["motivational"]["periods"]) >= 1, "Should have at least 1 motivational period"
-        assert len(updated_data["schedules"]["checkin"]["periods"]) == 1, "Should have 1 checkin period"
+        assert len(schedule_categories(updated_data["schedules"])["motivational"]["periods"]) >= 1, "Should have at least 1 motivational period"
+        assert len(schedule_categories(updated_data["schedules"])["checkin"]["periods"]) == 1, "Should have 1 checkin period"
         
         # Verify check-ins file was created
         checkins_file = os.path.join(user_dir, "checkins.json")
         assert os.path.exists(checkins_file), "Check-ins file should be created"
         
         # Verify check-in period exists
-        assert "morning_checkin" in updated_data["schedules"]["checkin"]["periods"], "Check-in period should exist"
+        assert "morning_checkin" in schedule_categories(updated_data["schedules"])["checkin"]["periods"], "Check-in period should exist"
     
     @pytest.mark.integration
     @pytest.mark.user
@@ -795,7 +796,7 @@ class TestAccountLifecycle:
         
         # Act - Add new period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        curr = get_user_data(actual_user_id, 'schedules').get('schedules', {})
+        curr = schedule_categories(get_user_data(actual_user_id, 'schedules').get('schedules', {}))
         curr.setdefault('motivational', {}).setdefault('periods', {})['evening'] = {
             "active": True,
             "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
@@ -810,7 +811,7 @@ class TestAccountLifecycle:
         # Assert - targeted schedules read + cache clear (parallel "all" loads can omit keys briefly)
         clear_user_caches(actual_user_id)
         schedules_block = get_user_data(actual_user_id, "schedules")
-        schedules = (
+        schedules = schedule_categories(
             schedules_block.get("schedules", schedules_block)
             if isinstance(schedules_block, dict)
             else {}
@@ -875,7 +876,7 @@ class TestAccountLifecycle:
         
         # Act - Modify period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
+        schedules_now = schedule_categories(get_user_data(actual_user_id, 'schedules').get('schedules', {}))
         morning_period = schedules_now.setdefault("motivational", {}).setdefault("periods", {}).setdefault("morning", {})
         morning_period.update({"start_time": "08:00", "end_time": "11:00", "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]})
         from core import update_user_schedules
@@ -883,7 +884,7 @@ class TestAccountLifecycle:
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
-        updated_morning = updated_data["schedules"]["motivational"]["periods"]["morning"]
+        updated_morning = schedule_categories(updated_data["schedules"])["motivational"]["periods"]["morning"]
         assert updated_morning["start_time"] == "08:00", "Start time should be updated"
         assert updated_morning["end_time"] == "11:00", "End time should be updated"
         # Pydantic normalizes days to ['ALL'] when all days are selected
@@ -947,7 +948,7 @@ class TestAccountLifecycle:
         
         # Act - Remove period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
-        schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
+        schedules_now = schedule_categories(get_user_data(actual_user_id, 'schedules').get('schedules', {}))
         schedules_now.setdefault("motivational", {}).setdefault("periods", {}).pop("evening", None)
         from core import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
@@ -957,7 +958,7 @@ class TestAccountLifecycle:
         # Assert - targeted schedules read + cache clear (parallel "all" loads can omit keys briefly)
         clear_user_caches(actual_user_id)
         schedules_block = get_user_data(actual_user_id, "schedules")
-        schedules = (
+        schedules = schedule_categories(
             schedules_block.get("schedules", schedules_block)
             if isinstance(schedules_block, dict)
             else {}
@@ -1047,7 +1048,8 @@ class TestAccountLifecycle:
         # Verify features enabled
         self._materialize_and_verify(actual_user_id)
         updated_data = get_user_data(actual_user_id)
-        assert len(updated_data["account"]["enabled_features"]) == 3, "Should have 3 features enabled"
+        enabled = account_extra(updated_data["account"], "enabled_features") or []
+        assert len(enabled) == 3, "Should have 3 features enabled"
         
         # 3. Disable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
@@ -1058,8 +1060,9 @@ class TestAccountLifecycle:
         
         # Verify features disabled
         updated_data = get_user_data(actual_user_id)
-        assert "tasks" not in updated_data["account"]["enabled_features"], "Tasks should be disabled"
-        assert len(updated_data["account"]["enabled_features"]) == 2, "Should have 2 features enabled"
+        enabled = account_extra(updated_data["account"], "enabled_features") or []
+        assert "tasks" not in enabled, "Tasks should be disabled"
+        assert len(enabled) == 2, "Should have 2 features enabled"
         
         # 4. Re-enable features via public APIs
         self._ensure_minimal_structure(actual_user_id)
@@ -1076,8 +1079,9 @@ class TestAccountLifecycle:
         
         # Verify features re-enabled
         updated_data = get_user_data(actual_user_id)
-        assert "tasks" in updated_data["account"]["enabled_features"], "Tasks should be re-enabled"
-        assert len(updated_data["account"]["enabled_features"]) == 3, "Should have 3 features enabled"
+        enabled = account_extra(updated_data["account"], "enabled_features") or []
+        assert "tasks" in enabled, "Tasks should be re-enabled"
+        assert len(enabled) == 3, "Should have 3 features enabled"
         
         # 5. Delete account (simulate by removing directory)
         shutil.rmtree(user_dir)

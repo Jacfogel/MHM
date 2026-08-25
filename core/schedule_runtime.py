@@ -30,6 +30,22 @@ _schedule_periods_cache = {}
 _cache_timeout = 30
 
 
+@handle_errors("loading schedule category map", default_return={})
+def _load_schedule_category_map(user_id, *, normalize_on_read: bool = True) -> dict[str, Any]:
+    """Return the category->periods map from get_user_data, envelope or flat."""
+    from core.profile_v2_io import schedule_categories
+
+    schedules_result = get_user_data(
+        user_id, "schedules", normalize_on_read=normalize_on_read
+    )
+    payload = (
+        schedules_result.get("schedules", {})
+        if isinstance(schedules_result, dict) and "schedules" in schedules_result
+        else (schedules_result if isinstance(schedules_result, dict) else {})
+    )
+    return schedule_categories(payload)
+
+
 @handle_errors("getting schedule time periods", default_return={})
 def get_schedule_time_periods(user_id, category):
     """Get schedule time periods for a specific user and category (new format)."""
@@ -46,21 +62,7 @@ def get_schedule_time_periods(user_id, category):
         if current_time - cache_time < _cache_timeout:
             return cached_data
 
-    # Get user schedules
-    schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-    # Support both shapes: either a wrapper {'schedules': {...}} or the schedules dict itself
-    schedules_data = (
-        schedules_result.get("schedules", {})
-        if isinstance(schedules_result, dict) and "schedules" in schedules_result
-        else (schedules_result if isinstance(schedules_result, dict) else {})
-    )
-    user_info = {"schedules": schedules_data}
-
-    if not user_info:
-        logger.error(f"User {user_id} not found.")
-        return {}
-
-    schedules = user_info.get("schedules", {})
+    schedules = _load_schedule_category_map(user_id)
     category_data = schedules.get(category, {})
 
     periods = (
@@ -209,17 +211,7 @@ def is_schedule_period_active(user_id, category, period_name):
     # Clear cache to ensure we read latest state
     with contextlib.suppress(Exception):
         clear_schedule_periods_cache(user_id, category)
-    # Get user schedules
-    schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-    schedules_data = (
-        schedules_result.get("schedules", {})
-        if isinstance(schedules_result, dict) and "schedules" in schedules_result
-        else (schedules_result if isinstance(schedules_result, dict) else {})
-    )
-    user_info = {"schedules": schedules_data}
-    if not user_info:
-        return False
-    schedules = user_info.get("schedules", {})
+    schedules = _load_schedule_category_map(user_id)
     category_data = schedules.get(category, {})
     periods = (
         category_data.get("periods", {}) if isinstance(category_data, dict) else {}
@@ -570,13 +562,7 @@ def get_current_day_names():
 @handle_errors("setting schedule periods", default_return=False)
 def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""
-    # Get user schedules
-    schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-    schedules_data = (
-        schedules_result.get("schedules", {})
-        if isinstance(schedules_result, dict) and "schedules" in schedules_result
-        else (schedules_result if isinstance(schedules_result, dict) else {})
-    )
+    schedules_data = _load_schedule_category_map(user_id)
 
     logger.info(
         f"set_schedule_periods: Setting periods for user {user_id}, category {category}"
@@ -645,12 +631,9 @@ def get_schedule_days(user_id, category):
     Returns:
         list: List of days for the schedule, defaults to all days of the week
     """
-    # Get user schedules
-    schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-    user_info = {"schedules": schedules_result.get("schedules", {})}
+    schedules = _load_schedule_category_map(user_id)
     return (
-        user_info.get("schedules", {})
-        .get(category, {})
+        schedules.get(category, {})
         .get(
             "days",
             [
@@ -677,27 +660,20 @@ def set_schedule_days(user_id, category, days):
         days: List of days to set for the schedule
     """
     # Get user schedules
-    schedules_result = get_user_data(user_id, "schedules", normalize_on_read=True)
-    user_info = {"schedules": schedules_result.get("schedules", {})}
-    if "schedules" not in user_info:
-        user_info["schedules"] = {}
-    if category not in user_info["schedules"]:
-        user_info["schedules"][category] = {}
-    user_info["schedules"][category]["days"] = days
-    # Update schedules using new structure
+    schedules_data = _load_schedule_category_map(user_id)
+    if category not in schedules_data:
+        schedules_data[category] = {}
+    schedules_data[category]["days"] = days
     from core import update_user_schedules
 
-    update_user_schedules(user_id, user_info.get("schedules", {}))
+    update_user_schedules(user_id, schedules_data)
 
 
 @handle_errors("getting user info for schedule management", default_return=None)
 def get_user_info_for_schedule_runtime(user_id: str) -> dict[str, Any] | None:
     """Get user info for schedule management operations."""
     try:
-        from core import get_user_data
-
-        schedules_result = get_user_data(user_id, "schedules")
-        schedules_data = schedules_result.get("schedules", {})
+        schedules_data = _load_schedule_category_map(user_id, normalize_on_read=False)
         return {"schedules": schedules_data}
     except Exception as e:
         logger.error(f"Error loading user schedules for schedule management: {e}")

@@ -79,9 +79,9 @@ in [ARCHITECTURE.md](../ARCHITECTURE.md).
 ## 2. User Data Model
 
 Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
-**Section 0** is the **user data and schedule module map** (one line per core module, tolerant vs strict validation, and what a dependency **leaf** means). This document describes only architectural relationships and AI-relevant constraints.
+**Section 0** is the **user data and schedule module map** (one line per core module, v2 envelope-in-memory for account/preferences/schedules, and what a dependency **leaf** means). This document describes only architectural relationships and AI-relevant constraints.
 
-**Stable filenames (2026-05 storage move)** - v2 envelopes and `validate_v2_document`: `storage/user_data_v2_envelopes.py`. Admin/backup/index operations: `storage/user_data_operations.py` (`UserDataManager` facade) with implementation in `storage/user_data_user_info.py`, `storage/user_data_backup.py`, `storage/user_data_index.py`, and `storage/user_data_summaries.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Default on-disk schedule period shapes: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `storage/user_data_write.py` only (there is no separate `user_data_updates` module). Old `core.user_data_*` module paths are temporary compatibility bridges only.
+**Stable filenames (2026-05 storage move)** - v2 envelopes and `validate_v2_document`: `storage/user_data_v2_envelopes.py`. Admin/backup/index operations: `storage/user_data_operations.py` (`UserDataManager` facade) with implementation in `storage/user_data_user_info.py`, `storage/user_data_backup.py`, `storage/user_data_index.py`, and `storage/user_data_summaries.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Period field wrapping (leaf, no user I/O): `core/schedule_period_normalize.py`. Default on-disk schedule insertion: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `storage/user_data_write.py` only (there is no separate `user_data_updates` module). Old `core.user_data_*` module paths are temporary compatibility bridges only.
 
 ## 3. Data Handling Patterns
 

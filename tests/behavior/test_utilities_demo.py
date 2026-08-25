@@ -267,8 +267,9 @@ class TestUtilitiesDemo:
             
             # Verify schedules data contains custom configuration
             from core import get_user_data
+            from core.profile_v2_io import schedule_categories
             schedules_result = get_user_data(actual_user_id, 'schedules')
-            schedules_data = schedules_result.get('schedules', {})
+            schedules_data = schedule_categories(schedules_result.get('schedules', {}))
             assert schedules_data is not None, "Schedules data should be loadable"
             
             # Check if the custom schedule was saved correctly
