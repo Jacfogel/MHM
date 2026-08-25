@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-08-25 (retired core/schemas.py; account/preferences/schedules are v2 envelopes in memory)
+> **Last Updated**: 2026-08-25 (retired core/schemas.py; check-in settings spinbox and question-list glitches fixed)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -77,22 +77,6 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
   - [ ] Update references to include section numbers and titles where applicable
   - [ ] Create script or tool to help identify and update references automatically (or extend development tools)
   - [ ] Update documentation standards to require section numbers in references
-
-### User Experience Improvements
-
-**Investigate Check-in Settings UI Issues**
-- *What it means*: Fix two outstanding issues in the check-in management dialog: (1) Maximum spinbox cannot be reduced below minimum value - it should dynamically adjust minimum to match when maximum is reduced, similar to how minimum adjustment works in reverse; (2) Questions section blanks out visually when adding or deleting custom questions, even though the data is preserved correctly.
-- *User priority*: Low.
-- *Why it helps*: Improves user experience by making the UI more intuitive and preventing visual glitches that can be confusing
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Investigate why maximum spinbox value cannot be reduced below minimum - current attempts to block signals and adjust constraints haven't resolved the issue
-  - [ ] Test different approaches: QSpinBox valueChanged signal handling, validation timing, constraint management
-  - [ ] Investigate why questions section blanks during add/delete operations - attempts to hide/show scroll area and container widget haven't resolved the issue
-  - [ ] Test alternative approaches: QTimer deferred updates, widget update strategies, layout management during rebuilds
-  - [ ] Review how other widgets (e.g., tag_widget, dynamic_list_container) handle similar dynamic add/delete operations without blanking
-  - [ ] Consider using QStackedWidget or other container strategies to prevent visual blanking
-  - [ ] Document findings and implement working solution
 
 ### AI & Conversation
 

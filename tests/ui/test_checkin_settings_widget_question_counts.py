@@ -132,7 +132,19 @@ class TestCheckinSettingsWidgetQuestionCounts:
 
         assert widget.min_questions_spinbox.value() == 3
         assert widget.max_questions_spinbox.value() >= widget.min_questions_spinbox.value()
-        assert widget._adjusting_from_max is False
+
+    def test_user_can_reduce_max_spinbox_below_current_min(self, widget):
+        """The Maximum spinbox must accept values below current Minimum so Minimum can follow."""
+        widget.dynamic_question_checkboxes = {}
+        widget.min_questions_spinbox.setValue(5)
+        widget.max_questions_spinbox.setValue(8)
+        widget._validate_question_counts()
+
+        widget.max_questions_spinbox.setValue(3)
+
+        assert widget.max_questions_spinbox.value() == 3
+        assert widget.min_questions_spinbox.value() == 3
+        assert widget.max_questions_spinbox.minimum() <= 3
 
     def test_on_min_changed_raises_max_when_needed(self, widget):
         widget.min_questions_spinbox.setValue(1)
@@ -200,6 +212,72 @@ class TestCheckinSettingsWidgetQuestionCounts:
         assert widget.min_questions_spinbox.value() == 2
         assert widget.max_questions_spinbox.value() == 3
         assert mock_validate.call_count >= 1
+
+    def test_rebuilding_questions_keeps_widgets_in_the_installed_layout(self, widget):
+        """Add/delete rebuilds must keep question rows in the scroll area layout.
+
+        A second layout that is never installed leaves the visible area blank while
+        checkbox state remains in memory.
+        """
+        available = {
+            "mood_rating": {
+                "enabled": True,
+                "ui_display_name": "Mood",
+                "category": "mood",
+                "type": "scale_1_5",
+            },
+            "custom_water": {
+                "enabled": True,
+                "ui_display_name": "Water",
+                "category": "health",
+                "type": "yes_no",
+            },
+        }
+        categories = {
+            "mood": {"name": "Mood", "description": ""},
+            "health": {"name": "Health", "description": ""},
+        }
+        questions = {
+            "mood_rating": {
+                "enabled": True,
+                "always_include": True,
+                "sometimes_include": False,
+            },
+            "custom_water": {
+                "enabled": True,
+                "always_include": True,
+                "sometimes_include": False,
+            },
+        }
+        manager = "checkins.checkin_dynamic_manager.dynamic_checkin_manager"
+        container = widget.ui.widget_checkin_questions_container
+
+        with (
+            patch(f"{manager}.get_enabled_questions_for_ui", return_value=available),
+            patch(f"{manager}.get_categories", return_value=categories),
+        ):
+            widget.set_question_checkboxes(questions)
+            first_layout = container.layout()
+            assert first_layout is not None
+            first_count = sum(
+                1
+                for i in range(first_layout.count())
+                if first_layout.itemAt(i) and first_layout.itemAt(i).widget()
+            )
+            assert first_count > 0
+
+            widget.set_question_checkboxes(questions)
+            second_layout = container.layout()
+            second_count = sum(
+                1
+                for i in range(second_layout.count())
+                if second_layout.itemAt(i) and second_layout.itemAt(i).widget()
+            )
+
+        assert second_layout is first_layout
+        assert second_count > 0
+        assert container.isHidden() is False
+        assert "custom_water" in widget.dynamic_question_checkboxes
 
     def test_undo_last_question_delete_shows_info_when_no_deletions(self, widget):
         widget.deleted_questions = []

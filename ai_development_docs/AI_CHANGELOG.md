@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-25 - Check-in settings min/max and question-list glitches **COMPLETED**
+- Maximum questions can be lowered below the current minimum; minimum follows (the max spinbox is no longer locked to current min).
+- Adding/deleting custom questions reuses the scroll-area layout instead of creating a second orphaned layout that left the list blank.
+- Helper/unit coverage for bounds and layout reuse; full widget tests pass with `MHM_QT_UI_FORCE=1`.
+
 ### 2026-08-25 - v2 envelopes in memory for account/preferences/schedules **COMPLETED**
 - `get_user_data` account/preferences/schedules now return the same v2 envelopes as on disk; `core/schemas.py` is gone.
 - Use `schedule_categories()` for category maps and `account_extra()` for metadata extras; wrap is idempotent (no empty-`categories` wipe).

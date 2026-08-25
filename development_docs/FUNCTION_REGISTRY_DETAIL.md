@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-25 16:26:14
+> **Last Generated**: 2026-08-25 17:50:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 272
-- **Functions Found**: 2571
+- **Functions Found**: 2574
 - **Methods Found**: 1361
 - **Classes Found**: 250
-- **Total Items**: 3932
-- **Functions Documented**: 2264
+- **Total Items**: 3935
+- **Functions Documented**: 2267
 - **Methods Documented**: 1216
 - **Classes Documented**: 187
-- **Total Documented**: 3480
+- **Total Documented**: 3483
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-25
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (667)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (523)
+### **User Interface Functions** (526)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
@@ -7242,7 +7242,7 @@ Args:
 - [OK] `_build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
 - [OK] `_build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
 - [OK] `_build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
-- [OK] `_clear_category_groups(self)` - Remove all category group boxes.
+- [OK] `_clear_category_groups(self)` - Remove all category group boxes from the existing layout.
 - [OK] `_clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
 - [OK] `_collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
 - [OK] `_delete_custom_question(self, question_key)` - Delete a custom question.
@@ -7250,8 +7250,8 @@ Args:
 - [OK] `_handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
 - [OK] `_handle_question_template_selected(self, index, template_combo, templates, dialog, question_text_edit, display_name_edit, type_combo, category_combo)` - Apply a selected template, or warn if loading it fails.
 - [OK] `_on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
-- [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
-- [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
+- [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - lower min if needed.
+- [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - raise max if needed.
 - [OK] `_on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
 - [OK] `_refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
@@ -7264,14 +7264,20 @@ Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
 - [OK] `_strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
-- [OK] `_validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
-
-Args:
-    skip_min_adjust: If True, don't adjust min value even if it's below min_required.
-                     Used when max is reduced below min to allow min to match max.
+- [OK] `_validate_question_counts(self)` - Validate min/max question counts based on enabled questions.
 - [OK] `add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
 - [OK] `add_new_question(self)` - Add a new check-in question.
+- [OK] `clear_layout_widgets(layout)` - Remove and schedule deletion of all widgets in a layout.
+- [OK] `compute_question_count_bounds(always_count, sometimes_count, total_enabled)` - Return (min_required, max_spinbox_floor, max_allowed) for question counts.
+
+max_spinbox_floor is the lowest Maximum the user may choose. It depends only
+on always/sometimes counts, not the current Minimum, so lowering Maximum can
+pull Minimum down with it.
 - [OK] `connect_question_checkboxes(self)` - Connect all question checkboxes to track changes.
+- [OK] `ensure_vbox_layout(widget, spacing, margins)` - Return widget's QVBoxLayout, creating it only when the widget has none.
+
+Qt will not replace an existing layout. Creating a second QVBoxLayout leaves
+new children on an orphaned layout and the visible widget blank.
 - [OK] `find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
 - [OK] `get_checkin_settings(self)` - Get the current check-in settings.
 - [OK] `get_default_question_state(self, question_key)` - Get default enabled state for a question.
@@ -7301,7 +7307,7 @@ Args:
   - [OK] `CheckinSettingsWidget._build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
   - [OK] `CheckinSettingsWidget._build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
   - [OK] `CheckinSettingsWidget._build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
-  - [OK] `CheckinSettingsWidget._clear_category_groups(self)` - Remove all category group boxes.
+  - [OK] `CheckinSettingsWidget._clear_category_groups(self)` - Remove all category group boxes from the existing layout.
   - [OK] `CheckinSettingsWidget._clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
   - [OK] `CheckinSettingsWidget._collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
   - [OK] `CheckinSettingsWidget._delete_custom_question(self, question_key)` - Delete a custom question.
@@ -7309,8 +7315,8 @@ Args:
   - [OK] `CheckinSettingsWidget._handle_custom_question_save_success(self, question_key, display_name, final_key, new_question_def)` - Apply UI updates and feedback after successfully saving a custom question.
   - [OK] `CheckinSettingsWidget._handle_question_template_selected(self, index, template_combo, templates, dialog, question_text_edit, display_name_edit, type_combo, category_combo)` - Apply a selected template, or warn if loading it fails.
   - [OK] `CheckinSettingsWidget._on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
-  - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
-  - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
+  - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - lower min if needed.
+  - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - raise max if needed.
   - [OK] `CheckinSettingsWidget._on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
   - [OK] `CheckinSettingsWidget._refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
@@ -7323,11 +7329,7 @@ Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
   - [OK] `CheckinSettingsWidget._strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
-  - [OK] `CheckinSettingsWidget._validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
-
-Args:
-    skip_min_adjust: If True, don't adjust min value even if it's below min_required.
-                     Used when max is reduced below min to allow min to match max.
+  - [OK] `CheckinSettingsWidget._validate_question_counts(self)` - Validate min/max question counts based on enabled questions.
   - [OK] `CheckinSettingsWidget.add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
   - [OK] `CheckinSettingsWidget.add_new_question(self)` - Add a new check-in question.
   - [OK] `CheckinSettingsWidget.connect_question_checkboxes(self)` - Connect all question checkboxes to track changes.

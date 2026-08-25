@@ -44,6 +44,62 @@ logger = get_component_logger("ui")
 widget_logger = logger
 
 
+@handle_errors("computing question count bounds", default_return=(1, 1, 50))
+def compute_question_count_bounds(
+    always_count: int, sometimes_count: int, total_enabled: int
+) -> tuple[int, int, int]:
+    """Return (min_required, max_spinbox_floor, max_allowed) for question counts.
+
+    max_spinbox_floor is the lowest Maximum the user may choose. It depends only
+    on always/sometimes counts, not the current Minimum, so lowering Maximum can
+    pull Minimum down with it.
+    """
+    min_required = max(int(always_count), 1)
+    if sometimes_count > 0 and total_enabled > 0:
+        max_allowed = total_enabled - 1
+    else:
+        max_allowed = total_enabled if total_enabled > 0 else 50
+    max_spinbox_floor = always_count + 1 if sometimes_count > 0 else always_count
+    max_spinbox_floor = max(max_spinbox_floor, min_required)
+    max_allowed = max(max_allowed, max_spinbox_floor)
+    return min_required, max_spinbox_floor, max_allowed
+
+
+@handle_errors("ensuring vertical box layout", re_raise=True)
+def ensure_vbox_layout(
+    widget: QWidget, spacing: int = 10, margins: tuple[int, int, int, int] = (4, 4, 4, 4)
+) -> QVBoxLayout:
+    """Return widget's QVBoxLayout, creating it only when the widget has none.
+
+    Qt will not replace an existing layout. Creating a second QVBoxLayout leaves
+    new children on an orphaned layout and the visible widget blank.
+    """
+    layout = widget.layout()
+    if isinstance(layout, QVBoxLayout):
+        return layout
+    if layout is not None:
+        raise TypeError(
+            f"widget already has a {type(layout).__name__}; expected QVBoxLayout"
+        )
+    layout = QVBoxLayout(widget)
+    layout.setSpacing(spacing)
+    layout.setContentsMargins(*margins)
+    return layout
+
+
+@handle_errors("clearing layout widgets")
+def clear_layout_widgets(layout) -> None:
+    """Remove and schedule deletion of all widgets in a layout."""
+    if layout is None:
+        return
+    while layout.count():
+        item = layout.takeAt(0)
+        child = item.widget() if item is not None else None
+        if child is not None:
+            child.setParent(None)
+            child.deleteLater()
+
+
 class CheckinSettingsWidget(QWidget):
     """Widget for check-in settings configuration."""
 
@@ -71,7 +127,6 @@ class CheckinSettingsWidget(QWidget):
         # Initialize min/max question count controls
         self.min_questions_spinbox = None
         self.max_questions_spinbox = None
-        self._adjusting_from_max = False  # Flag to prevent validation from interfering
         self._setup_question_count_controls()
 
         self.setup_connections()
@@ -150,7 +205,7 @@ class CheckinSettingsWidget(QWidget):
         self.max_questions_spinbox.setMaximum(50)
         self.max_questions_spinbox.setValue(8)
         self.max_questions_spinbox.setToolTip(
-            "Maximum number of questions to ask per check-in. Must be >= minimum and <= total enabled questions."
+            "Maximum number of questions to ask per check-in. Lowering this also lowers Minimum when needed. Limited by how many questions are enabled."
         )
         count_layout.addRow("Maximum Questions:", self.max_questions_spinbox)
 
@@ -163,26 +218,17 @@ class CheckinSettingsWidget(QWidget):
         questions_layout.addWidget(self.count_group)
 
     @handle_errors("validating question counts")
-    def _validate_question_counts(self, skip_min_adjust=False):
-        """Validate min/max question counts based on enabled questions.
-
-        Args:
-            skip_min_adjust: If True, don't adjust min value even if it's below min_required.
-                             Used when max is reduced below min to allow min to match max.
-        """
+    def _validate_question_counts(self):
+        """Validate min/max question counts based on enabled questions."""
         if not self.min_questions_spinbox or not self.max_questions_spinbox:
             return
 
-        # Count always and sometimes questions from current UI state
         always_count = 0
         sometimes_count = 0
         total_enabled = 0
-
-        # Check dynamic checkboxes
         for _question_key, widgets in self.dynamic_question_checkboxes.items():
             always_cb = widgets.get("always_checkbox")
             sometimes_cb = widgets.get("sometimes_checkbox")
-
             if always_cb and always_cb.isChecked():
                 always_count += 1
                 total_enabled += 1
@@ -190,121 +236,60 @@ class CheckinSettingsWidget(QWidget):
                 sometimes_count += 1
                 total_enabled += 1
 
-        # Calculate minimum required
-        # Minimum must be at least always_count (doesn't depend on sometimes questions)
-        min_required = max(always_count, 1)  # Absolute minimum is 1
+        min_required, max_floor, max_allowed = compute_question_count_bounds(
+            always_count, sometimes_count, total_enabled
+        )
 
-        # Maximum allowed: if sometimes questions > 0, max is total_enabled - 1 (leave room for variety)
-        # Otherwise, max is total_enabled
-        if sometimes_count > 0 and total_enabled > 0:
-            max_allowed = total_enabled - 1
-        else:
-            max_allowed = total_enabled if total_enabled > 0 else 50
+        min_box = self.min_questions_spinbox
+        max_box = self.max_questions_spinbox
+        min_box.blockSignals(True)
+        max_box.blockSignals(True)
+        try:
+            # Max floor is independent of current min so the user can lower Maximum
+            # and have Minimum follow.
+            min_box.setMinimum(min_required)
+            min_box.setMaximum(max_allowed)
+            max_box.setMinimum(max_floor)
+            max_box.setMaximum(max_allowed)
 
-        # Minimum maximum: if sometimes questions > 0, minimum max is always_count + 1
-        # Otherwise, minimum max is just always_count (or current min, whichever is higher)
-        min_maximum = always_count + 1 if sometimes_count > 0 else always_count
-        min_maximum = max(min_maximum, min_required)  # Must be at least min_required
-
-        # Ensure max_allowed is at least min_maximum
-        max_allowed = max(max_allowed, min_maximum)
-
-        # Store current values before updating ranges
-        current_min = self.min_questions_spinbox.value()
-        current_max = self.max_questions_spinbox.value()
-
-        # Update min spinbox range (can go from min_required up to max_allowed)
-        # But if skip_min_adjust is True, allow min to go below min_required temporarily
-        if skip_min_adjust:
-            # Allow min to go as low as 1 (absolute minimum) to match reduced max
-            self.min_questions_spinbox.setMinimum(1)
-        else:
-            self.min_questions_spinbox.setMinimum(min_required)
-        self.min_questions_spinbox.setMaximum(max_allowed)
-
-        # Adjust current min value if needed, and adjust max if min exceeds it
-        # Skip min adjustment if we're in the middle of adjusting from max change
-        if not skip_min_adjust:
-            if current_min < min_required:
-                self.min_questions_spinbox.setValue(min_required)
-                current_min = min_required
-            elif current_min > max_allowed:
-                self.min_questions_spinbox.setValue(max_allowed)
-                current_min = max_allowed
-
-        # If min was adjusted and now exceeds max, adjust max to match min
-        if current_min > current_max:
-            current_max = current_min
-
-        # Update max spinbox range
-        # Minimum max must be at least min_maximum (always_count + 1 if sometimes > 0, else always_count)
-        # But also must be >= current min
-        max_minimum = max(min_maximum, current_min)
-        self.max_questions_spinbox.setMinimum(max_minimum)
-        self.max_questions_spinbox.setMaximum(max_allowed)
-
-        # Adjust current max value if needed
-        if current_max < max_minimum:
-            self.max_questions_spinbox.setValue(max_minimum)
-        elif current_max > max_allowed:
-            self.max_questions_spinbox.setValue(max_allowed)
+            current_min = min(max(min_box.value(), min_required), max_allowed)
+            current_max = min(max(max_box.value(), max_floor), max_allowed)
+            if current_min > current_max:
+                current_max = current_min
+                if current_max > max_allowed:
+                    current_max = max_allowed
+                    current_min = current_max
+            min_box.setValue(current_min)
+            max_box.setValue(current_max)
+        finally:
+            min_box.blockSignals(False)
+            max_box.blockSignals(False)
 
     @handle_errors("handling min questions changed")
     def _on_min_changed(self, value):
-        """Handle minimum questions value change - adjust max if needed."""
+        """Handle minimum questions value change - raise max if needed."""
         if not self.max_questions_spinbox:
             return
 
-        # If min exceeds max, adjust max to match min
         if value > self.max_questions_spinbox.value():
+            self.max_questions_spinbox.blockSignals(True)
             self.max_questions_spinbox.setValue(value)
+            self.max_questions_spinbox.blockSignals(False)
 
-        # Revalidate to update ranges
         self._validate_question_counts()
 
     @handle_errors("handling max questions changed")
     def _on_max_changed(self, value):
-        """Handle maximum questions value change - adjust min if needed."""
+        """Handle maximum questions value change - lower min if needed."""
         if not self.min_questions_spinbox:
             return
 
-        current_min = self.min_questions_spinbox.value()
+        if value < self.min_questions_spinbox.value():
+            self.min_questions_spinbox.blockSignals(True)
+            self.min_questions_spinbox.setValue(value)
+            self.min_questions_spinbox.blockSignals(False)
 
-        # If max is less than min, adjust min to match max
-        if value < current_min:
-            # Set flag to prevent validation from interfering
-            self._adjusting_from_max = True
-
-            # Block signals on both spinboxes to prevent recursive validation
-            if self.min_questions_spinbox:
-                self.min_questions_spinbox.blockSignals(True)
-            if self.max_questions_spinbox:
-                self.max_questions_spinbox.blockSignals(True)
-
-            # Temporarily remove min's minimum constraint to allow it to go down
-            if self.min_questions_spinbox:
-                self.min_questions_spinbox.minimum()
-                old_min_max = self.min_questions_spinbox.maximum()
-                # Set min to allow it to go down to at least the new max value
-                self.min_questions_spinbox.setMinimum(1)  # Absolute minimum
-                self.min_questions_spinbox.setMaximum(max(value, old_min_max))
-                # Set the value - this must happen after setting minimum to 1
-                self.min_questions_spinbox.setValue(value)
-
-            # Unblock signals
-            if self.min_questions_spinbox:
-                self.min_questions_spinbox.blockSignals(False)
-            if self.max_questions_spinbox:
-                self.max_questions_spinbox.blockSignals(False)
-
-            # Revalidate, but skip min adjustment since we just set it
-            self._validate_question_counts(skip_min_adjust=True)
-
-            # Clear flag
-            self._adjusting_from_max = False
-        else:
-            # Revalidate to update ranges
-            self._validate_question_counts()
+        self._validate_question_counts()
 
     @handle_errors("handling question toggle")
     def on_question_toggled(self, checked):
@@ -413,46 +398,21 @@ class CheckinSettingsWidget(QWidget):
         )
         categories = dynamic_checkin_manager.get_categories()
 
-        # Use QTimer to defer the update slightly to prevent blanking
-
         scroll_widget = self.ui.widget_checkin_questions_container
-
-        # Store the current scroll position
         scroll_area = self.ui.scrollArea_checkin_questions
         scroll_position = scroll_area.verticalScrollBar().value()
 
-        # Hide the container widget (not the scroll area) during rebuild
-        scroll_widget.setVisible(False)
-
         try:
-            # Clear existing dynamic checkboxes and category groups
             self._clear_dynamic_question_checkboxes()
             self._clear_category_groups()
+            scroll_layout = ensure_vbox_layout(scroll_widget)
 
-            # Group questions by category
             questions_by_category = {}
             for question_key, question_info in available_questions.items():
                 category = question_info.get("category", "general")
                 if category not in questions_by_category:
                     questions_by_category[category] = []
                 questions_by_category[category].append((question_key, question_info))
-
-            # Get the scroll area widget container (already retrieved above)
-
-            # Clear existing layout if any
-            existing_layout = scroll_widget.layout()
-            if existing_layout:
-                while existing_layout.count():
-                    item = existing_layout.takeAt(0)
-                    widget = item.widget()
-                    if widget:
-                        widget.setParent(None)
-                        widget.deleteLater()
-
-            # Create new vertical layout for categories
-            scroll_layout = QVBoxLayout(scroll_widget)
-            scroll_layout.setSpacing(10)
-            scroll_layout.setContentsMargins(4, 4, 4, 4)
 
             # Create category groups - reorganized categories
             # Mood, Energy (includes sleep), Health/Medical, Activities/Habits/Growth
@@ -614,16 +574,9 @@ class CheckinSettingsWidget(QWidget):
                 scroll_layout.addWidget(group_box)
                 self.category_group_boxes[category_key] = group_box
 
-            # Add stretch at the end
             scroll_layout.addStretch()
         finally:
-            # Show the container widget again
-            scroll_widget.setVisible(True)
-            # Restore scroll position
             scroll_area.verticalScrollBar().setValue(scroll_position)
-            # Force immediate repaint
-            scroll_widget.repaint()
-            scroll_area.repaint()
 
     @handle_errors("handling always checkbox toggle")
     def _on_always_toggled(self, question_key: str, checked: bool):
@@ -641,16 +594,9 @@ class CheckinSettingsWidget(QWidget):
 
     @handle_errors("clearing category groups")
     def _clear_category_groups(self):
-        """Remove all category group boxes."""
+        """Remove all category group boxes from the existing layout."""
         scroll_widget = self.ui.widget_checkin_questions_container
-        scroll_layout = scroll_widget.layout()
-        if scroll_layout:
-            while scroll_layout.count():
-                item = scroll_layout.takeAt(0)
-                widget = item.widget()
-                if widget:
-                    widget.setParent(None)
-                    widget.deleteLater()
+        clear_layout_widgets(scroll_widget.layout())
         self.category_group_boxes.clear()
 
     @handle_errors("clearing dynamic question checkboxes")
