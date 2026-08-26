@@ -3,6 +3,8 @@
 
 """Checkin Settings Widget"""
 
+from typing import NamedTuple
+
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -105,6 +107,60 @@ def clear_layout_widgets(layout) -> None:
         if child is not None:
             child.setParent(None)
             child.deleteLater()
+
+
+QUESTION_TYPE_OPTIONS = {
+    "scale_1_5": "Scale of 1 (Low) to 5 (High)",
+    "yes_no": "Yes/No",
+    "number": "Number",
+    "optional_text": "Free Text (Optional)",
+    "time_pair": "Time Pair (HH:MM)",
+}
+DEFAULT_QUESTION_CATEGORY_KEYS = ("mood", "energy", "health", "activities")
+
+
+class QuestionDialogFields(NamedTuple):
+    """Widgets collected from the add/edit custom-question form."""
+
+    question_text_edit: QTextEdit
+    type_combo: QComboBox
+    category_combo: QComboBox
+    display_name_edit: QLineEdit
+
+
+@handle_errors("building category combo label", default_return="")
+def category_combo_label(cat_key: str, cat_info: dict | None = None) -> str:
+    """Return the category name shown in the custom-question combo."""
+    fallback = cat_key.replace("_", " ").title()
+    if not cat_info:
+        return fallback
+    cat_name = cat_info.get("name", fallback)
+    return cat_name.title() if cat_name else fallback
+
+
+@handle_errors("building custom question payload", re_raise=True)
+def build_custom_question_payload(
+    question_type: str,
+    question_text: str,
+    display_name_with_hint: str,
+    category: str,
+    validation: dict,
+    *,
+    is_new: bool,
+    existing_def: dict | None,
+) -> dict:
+    """Build the saved custom-question definition for create or edit."""
+    always_include = True if is_new else (existing_def or {}).get("always_include", False)
+    return {
+        "type": question_type,
+        "question_text": question_text,
+        "ui_display_name": display_name_with_hint,
+        "category": category,
+        "validation": validation,
+        "enabled": True,
+        "always_include": always_include,
+        "sometimes_include": False,
+    }
 
 
 class CheckinSettingsWidget(QWidget):
@@ -759,6 +815,35 @@ class CheckinSettingsWidget(QWidget):
                 combo.setCurrentIndex(i)
                 return
 
+    @staticmethod
+    @handle_errors("populating question type combo")
+    def _populate_question_type_combo(
+        combo: QComboBox, selected_type: str | None = None
+    ) -> None:
+        """Fill the question-type combo and optionally select a type key."""
+        for type_key, type_display in QUESTION_TYPE_OPTIONS.items():
+            combo.addItem(type_display, type_key)
+        if selected_type is not None:
+            CheckinSettingsWidget._set_combo_current_by_data(combo, selected_type)
+
+    @staticmethod
+    @handle_errors("populating question category combo")
+    def _populate_category_combo(
+        combo: QComboBox,
+        categories: dict | None,
+        selected_category: str | None = None,
+    ) -> None:
+        """Fill the category combo from manager data, with fallback keys."""
+        categories = categories or {}
+        category_keys = list(categories.keys() or DEFAULT_QUESTION_CATEGORY_KEYS)
+        for cat_key in category_keys:
+            combo.addItem(
+                category_combo_label(cat_key, categories.get(cat_key, {})),
+                cat_key,
+            )
+        if selected_category is not None:
+            CheckinSettingsWidget._set_combo_current_by_data(combo, selected_category)
+
     @handle_errors("applying check-in question template", re_raise=True)
     def _apply_question_template_to_form(
         self,
@@ -816,32 +901,11 @@ class CheckinSettingsWidget(QWidget):
                 ),
             )
 
-    @handle_errors("showing question dialog")
-    def _show_question_dialog(self, question_key=None, question_def=None):
-        """Show dialog for adding or editing a custom question.
-
-        Args:
-            question_key: If provided, edit existing question; otherwise create new
-            question_def: Existing question definition (for editing)
-        """
-        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle(
-            "Edit Custom Check-in Question"
-            if question_key
-            else "Add Custom Check-in Question"
-        )
-        dialog.resize(600, 500)
-
-        main_layout = QVBoxLayout(dialog)
-        main_layout.setSpacing(10)
-
-        form_group = QGroupBox("Question Details")
-        form_layout = QFormLayout(form_group)
-        form_layout.setSpacing(8)
-        form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
-
+    @handle_errors("building question details form", re_raise=True)
+    def _build_question_details_form(
+        self, form_layout: QFormLayout, question_def, categories: dict | None
+    ) -> QuestionDialogFields:
+        """Create question text, type, category, and display-name fields."""
         question_text_edit = QTextEdit()
         question_text_edit.setMaximumHeight(60)
         question_text_edit.setPlaceholderText("Enter your question...")
@@ -851,47 +915,19 @@ class CheckinSettingsWidget(QWidget):
         question_text_hint = QLabel(
             "Use 'you' to match included questions (e.g., 'How are you feeling today?')"
         )
-        question_text_hint.setStyleSheet(
-            "color: gray; font-size: 9pt; margin-top: 2px;"
-        )
+        question_text_hint.setStyleSheet("color: gray; font-size: 9pt; margin-top: 2px;")
         question_text_hint.setWordWrap(True)
         form_layout.addRow(question_text_label, question_text_edit)
         form_layout.addRow("", question_text_hint)
 
         type_combo = QComboBox()
-        type_options = {
-            "scale_1_5": "Scale of 1 (Low) to 5 (High)",
-            "yes_no": "Yes/No",
-            "number": "Number",
-            "optional_text": "Free Text (Optional)",
-            "time_pair": "Time Pair (HH:MM)",
-        }
-        for type_key, type_display in type_options.items():
-            type_combo.addItem(type_display, type_key)
-        if question_def:
-            self._set_combo_current_by_data(
-                type_combo, question_def.get("type", "yes_no")
-            )
+        selected_type = question_def.get("type", "yes_no") if question_def else None
+        self._populate_question_type_combo(type_combo, selected_type)
         form_layout.addRow("Question Type:", type_combo)
 
         category_combo = QComboBox()
-        categories = dynamic_checkin_manager.get_categories()
-        category_keys = (
-            list(categories.keys())
-            if categories
-            else ["mood", "energy", "health", "activities"]
-        )
-        for cat_key in category_keys:
-            cat_info = categories.get(cat_key, {})
-            cat_name = cat_info.get("name", cat_key.replace("_", " ").title())
-            cat_name = (
-                cat_name.title() if cat_name else cat_key.replace("_", " ").title()
-            )
-            category_combo.addItem(cat_name, cat_key)
-        if question_def:
-            self._set_combo_current_by_data(
-                category_combo, question_def.get("category", "health")
-            )
+        selected_category = question_def.get("category", "health") if question_def else None
+        self._populate_category_combo(category_combo, categories, selected_category)
         form_layout.addRow("Category:", category_combo)
 
         display_name_edit = QLineEdit()
@@ -910,32 +946,130 @@ class CheckinSettingsWidget(QWidget):
         form_layout.addRow(display_name_label, display_name_edit)
         form_layout.addRow("", display_name_hint)
 
+        return QuestionDialogFields(
+            question_text_edit=question_text_edit,
+            type_combo=type_combo,
+            category_combo=category_combo,
+            display_name_edit=display_name_edit,
+        )
+
+    @handle_errors("adding question template picker")
+    def _add_question_template_picker(
+        self,
+        main_layout: QVBoxLayout,
+        dialog: QDialog,
+        fields: QuestionDialogFields,
+        templates: dict,
+    ) -> None:
+        """Add the optional start-from-template combo used only when creating."""
+        template_group = QGroupBox("Start from Template (Optional)")
+        template_layout = QVBoxLayout(template_group)
+        template_combo = QComboBox()
+        template_combo.addItem("-- Start from scratch --", None)
+        for template_key, template_data in templates.items():
+            display_name = template_data.get("ui_display_name", template_key)
+            template_combo.addItem(display_name, template_key)
+        template_layout.addWidget(template_combo)
+        main_layout.addWidget(template_group)
+        template_combo.currentIndexChanged.connect(
+            lambda index, combo=template_combo: self._handle_question_template_selected(
+                index,
+                combo,
+                templates,
+                dialog,
+                fields.question_text_edit,
+                fields.display_name_edit,
+                fields.type_combo,
+                fields.category_combo,
+            )
+        )
+
+    @handle_errors("submitting custom question from dialog")
+    def _submit_custom_question(
+        self,
+        fields: QuestionDialogFields,
+        question_key,
+        question_def,
+        dynamic_checkin_manager,
+    ) -> None:
+        """Validate form values and save a new or edited custom question."""
+        question_text = fields.question_text_edit.toPlainText().strip()
+        if not question_text:
+            QMessageBox.warning(self, "Empty Question", "Please enter a question text.")
+            return
+
+        question_type = fields.type_combo.currentData()
+        category = fields.category_combo.currentData()
+        display_name = fields.display_name_edit.text().strip() or question_text
+
+        final_key = self._build_custom_question_key(
+            question_key, question_text, dynamic_checkin_manager
+        )
+        validation = self._build_custom_question_validation(
+            question_type, display_name
+        )
+        display_name_with_hint = self._build_display_name_with_type_hint(
+            display_name, question_type
+        )
+        new_question_def = build_custom_question_payload(
+            question_type,
+            question_text,
+            display_name_with_hint,
+            category,
+            validation,
+            is_new=question_key is None,
+            existing_def=question_def,
+        )
+
+        if dynamic_checkin_manager.save_custom_question(
+            self.user_id, final_key, new_question_def
+        ):
+            self._handle_custom_question_save_success(
+                question_key, display_name, final_key, new_question_def
+            )
+        else:
+            QMessageBox.critical(
+                self,
+                "Error",
+                "Failed to save the custom question. Please try again.",
+            )
+
+    @handle_errors("showing question dialog")
+    def _show_question_dialog(self, question_key=None, question_def=None):
+        """Show dialog for adding or editing a custom question.
+
+        Args:
+            question_key: If provided, edit existing question; otherwise create new
+            question_def: Existing question definition (for editing)
+        """
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(
+            "Edit Custom Check-in Question" if question_key else "Add Custom Check-in Question"
+        )
+        dialog.resize(600, 500)
+
+        main_layout = QVBoxLayout(dialog)
+        main_layout.setSpacing(10)
+
+        form_group = QGroupBox("Question Details")
+        form_layout = QFormLayout(form_group)
+        form_layout.setSpacing(8)
+        form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+
+        fields = self._build_question_details_form(
+            form_layout, question_def, dynamic_checkin_manager.get_categories()
+        )
         if not question_key:
-            template_group = QGroupBox("Start from Template (Optional)")
-            template_layout = QVBoxLayout(template_group)
-            template_combo = QComboBox()
-            template_combo.addItem("-- Start from scratch --", None)
-            templates = dynamic_checkin_manager.get_question_templates()
-            for template_key, template_data in templates.items():
-                display_name = template_data.get("ui_display_name", template_key)
-                template_combo.addItem(display_name, template_key)
-            template_layout.addWidget(template_combo)
-            main_layout.addWidget(template_group)
-            template_combo.currentIndexChanged.connect(
-                lambda index, combo=template_combo: self._handle_question_template_selected(
-                    index,
-                    combo,
-                    templates,
-                    dialog,
-                    question_text_edit,
-                    display_name_edit,
-                    type_combo,
-                    category_combo,
-                )
+            self._add_question_template_picker(
+                main_layout,
+                dialog,
+                fields,
+                dynamic_checkin_manager.get_question_templates(),
             )
 
         main_layout.addWidget(form_group)
-
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
@@ -944,55 +1078,9 @@ class CheckinSettingsWidget(QWidget):
         main_layout.addWidget(button_box)
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            question_text = question_text_edit.toPlainText().strip()
-            if not question_text:
-                QMessageBox.warning(
-                    self, "Empty Question", "Please enter a question text."
-                )
-                return
-
-            question_type = type_combo.currentData()
-            category = category_combo.currentData()
-            display_name = display_name_edit.text().strip() or question_text
-
-            final_key = self._build_custom_question_key(
-                question_key, question_text, dynamic_checkin_manager
+            self._submit_custom_question(
+                fields, question_key, question_def, dynamic_checkin_manager
             )
-            validation = self._build_custom_question_validation(
-                question_type, display_name
-            )
-            display_name_with_hint = self._build_display_name_with_type_hint(
-                display_name, question_type
-            )
-
-            is_new_question = question_key is None
-            new_question_def = {
-                "type": question_type,
-                "question_text": question_text,
-                "ui_display_name": display_name_with_hint,
-                "category": category,
-                "validation": validation,
-                "enabled": True,
-                "always_include": (
-                    True
-                    if is_new_question
-                    else question_def.get("always_include", False)
-                ),
-                "sometimes_include": False,
-            }
-
-            if dynamic_checkin_manager.save_custom_question(
-                self.user_id, final_key, new_question_def
-            ):
-                self._handle_custom_question_save_success(
-                    question_key, display_name, final_key, new_question_def
-                )
-            else:
-                QMessageBox.critical(
-                    self,
-                    "Error",
-                    "Failed to save the custom question. Please try again.",
-                )
 
     @handle_errors("building custom question key", default_return="")
     def _build_custom_question_key(

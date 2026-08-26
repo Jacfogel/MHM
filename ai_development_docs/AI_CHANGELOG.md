@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-25 - Split custom-question dialog into form, template, and save jobs **COMPLETED**
+- `_show_question_dialog` is now an orchestrator (821 -> 218 AST nodes); form, template picker, and save are separate helpers.
+- Combo population, category labels, and the saved payload are independently testable.
+- Add/edit custom-question behavior is unchanged.
+
 ### 2026-08-25 - Check-in settings min/max and question-list glitches **COMPLETED**
 - Maximum questions can be lowered below the current minimum; minimum follows (the max spinbox is no longer locked to current min).
 - Adding/deleting custom questions reuses the scroll-area layout instead of creating a second orphaned layout that left the list blank.
@@ -108,14 +113,6 @@ Guidelines:
 - Config caches use content hash after mtime; timestamp-only saves of `development_tools_config.json` no longer bust the test suite.
 - Shared-scan unit tests skip path exclusions so pytest temp dirs are scanned.
 - Standalone CLI for those tools still scans when no shared parse exists.
-
-### 2026-08-19 - High-complexity function helpers where splits add value **COMPLETED**
-- Notebook entity extraction, profile text, and the custom-question dialog now use named helpers for the real parsing/formatting/template jobs.
-- Left constructor-style complexity scores and other dense single-job functions alone.
-- Shared backup retention in `cleanup_old_backup_artifacts`; reminder HH:MM combo helpers; `parse()` keyword/intent lists moved to module constants.
-- Per-user scheduler jobs, AI prompt wording (tasks, schedules, features, today check-in, reminders, mood), and due-date flow dates/times now share one implementation instead of copied policy.
-- User-index lookup keys, command-response skip-line filters, and check-in "and a half" parsing each have one helper.
-- `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`. Changelog ASCII: replaced Unicode arrows with `->`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

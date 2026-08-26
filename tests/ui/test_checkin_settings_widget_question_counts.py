@@ -11,17 +11,39 @@ import pytest
 pytestmark = [pytest.mark.no_parallel, skip_qt_ui_on_windows]
 
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from PySide6.QtWidgets import QApplication, QCheckBox, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QLineEdit,
+    QTextEdit,
+    QWidget,
+)
 
-from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
+from ui.widgets.checkin_settings_widget import CheckinSettingsWidget, QuestionDialogFields
 
 
 def _checkbox(checked: bool) -> QCheckBox:
     box = QCheckBox()
     box.setChecked(checked)
     return box
+
+
+def _type_combo(selected: str = "yes_no") -> QComboBox:
+    combo = QComboBox()
+    CheckinSettingsWidget._populate_question_type_combo(combo, selected)
+    return combo
+
+
+def _category_combo(selected: str = "health") -> QComboBox:
+    combo = QComboBox()
+    CheckinSettingsWidget._populate_category_combo(
+        combo, {"health": {"name": "Health"}}, selected
+    )
+    return combo
 
 
 @pytest.fixture(scope="session")
@@ -300,5 +322,104 @@ class TestCheckinSettingsWidgetQuestionCounts:
             patch("ui.widgets.checkin_settings_widget.QMessageBox.critical") as mock_critical,
         ):
             widget.undo_last_question_delete()
+
+        mock_critical.assert_called_once()
+
+    def test_add_question_dialog_loads_templates_and_submits_on_accept(self, widget):
+        widget.user_id = "user-1"
+        manager = "checkins.checkin_dynamic_manager.dynamic_checkin_manager"
+
+        with (
+            patch(f"{manager}.get_categories", return_value={"health": {"name": "Health"}}),
+            patch(f"{manager}.get_question_templates", return_value={}) as mock_templates,
+            patch(
+                "ui.widgets.checkin_settings_widget.QDialog.exec",
+                return_value=QDialog.DialogCode.Accepted,
+            ),
+            patch.object(widget, "_submit_custom_question") as mock_submit,
+        ):
+            widget._show_question_dialog()
+
+        mock_templates.assert_called_once()
+        mock_submit.assert_called_once()
+
+    def test_edit_question_dialog_skips_templates_and_does_not_submit_on_cancel(
+        self, widget
+    ):
+        widget.user_id = "user-1"
+        manager = "checkins.checkin_dynamic_manager.dynamic_checkin_manager"
+        question_def = {
+            "question_text": "Did you take your meds?",
+            "type": "yes_no",
+            "category": "health",
+            "ui_display_name": "Meds (yes/no)",
+        }
+
+        with (
+            patch(f"{manager}.get_categories", return_value={"health": {"name": "Health"}}),
+            patch(f"{manager}.get_question_templates") as mock_templates,
+            patch(
+                "ui.widgets.checkin_settings_widget.QDialog.exec",
+                return_value=QDialog.DialogCode.Rejected,
+            ),
+            patch.object(widget, "_submit_custom_question") as mock_submit,
+        ):
+            widget._show_question_dialog("custom_meds", question_def)
+
+        mock_templates.assert_not_called()
+        mock_submit.assert_not_called()
+
+    def test_submit_custom_question_warns_when_text_is_empty(self, widget):
+        fields = QuestionDialogFields(
+            question_text_edit=QTextEdit(),
+            type_combo=_type_combo(),
+            category_combo=_category_combo(),
+            display_name_edit=QLineEdit(),
+        )
+        fields.question_text_edit.setPlainText("   ")
+
+        with patch("ui.widgets.checkin_settings_widget.QMessageBox.warning") as mock_warn:
+            widget._submit_custom_question(fields, None, None, MagicMock())
+
+        mock_warn.assert_called_once()
+
+    def test_submit_custom_question_saves_new_question(self, widget):
+        widget.user_id = "user-1"
+        fields = QuestionDialogFields(
+            question_text_edit=QTextEdit(),
+            type_combo=_type_combo("yes_no"),
+            category_combo=_category_combo("health"),
+            display_name_edit=QLineEdit("Water"),
+        )
+        fields.question_text_edit.setPlainText("Did you drink water?")
+        manager = MagicMock()
+        manager.save_custom_question.return_value = True
+        manager.get_custom_questions.return_value = {}
+
+        with patch.object(widget, "_handle_custom_question_save_success") as mock_success:
+            widget._submit_custom_question(fields, None, None, manager)
+
+        manager.save_custom_question.assert_called_once()
+        saved_key, saved_def = manager.save_custom_question.call_args.args[1:]
+        assert saved_key.startswith("custom_")
+        assert saved_def["always_include"] is True
+        assert saved_def["question_text"] == "Did you drink water?"
+        mock_success.assert_called_once()
+
+    def test_submit_custom_question_shows_error_when_save_fails(self, widget):
+        widget.user_id = "user-1"
+        fields = QuestionDialogFields(
+            question_text_edit=QTextEdit(),
+            type_combo=_type_combo("yes_no"),
+            category_combo=_category_combo("health"),
+            display_name_edit=QLineEdit(),
+        )
+        fields.question_text_edit.setPlainText("Did you drink water?")
+        manager = MagicMock()
+        manager.save_custom_question.return_value = False
+        manager.get_custom_questions.return_value = {}
+
+        with patch("ui.widgets.checkin_settings_widget.QMessageBox.critical") as mock_critical:
+            widget._submit_custom_question(fields, None, None, manager)
 
         mock_critical.assert_called_once()

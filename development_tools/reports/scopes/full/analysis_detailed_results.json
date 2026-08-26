@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-08-25 18:02:45",
+  "last_generated": "2026-08-25 23:09:45",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-08-25T18:02:45.864286",
+  "timestamp": "2026-08-25T23:09:45.218766",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-08-25T17:58:34"
+      "timestamp": "2026-08-25T23:05:09"
     },
     "analyze_config": {
       "success": true,
@@ -128,7 +128,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:34"
+      "timestamp": "2026-08-25T23:05:08"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -146,7 +146,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-25T17:58:56"
+      "timestamp": "2026-08-25T23:05:41"
     },
     "analyze_documentation": {
       "success": true,
@@ -386,7 +386,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 9918,
+              "content_length": 9204,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -395,11 +395,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-08-25 - Split custom-question dialog into form, template, and save jobs **COMPLETED**",
                 "2026-08-25 - Check-in settings min/max and question-list glitches **COMPLETED**",
                 "2026-08-25 - v2 envelopes in memory for account/preferences/schedules **COMPLETED**",
                 "2026-08-23 - Map project-wide manual testing checklist to real tests **COMPLETED**",
-                "2026-08-23 - Map Discord checklist items to real tests **COMPLETED**",
-                "2026-08-23 - Remove placeholder and always-pass tests **COMPLETED**"
+                "2026-08-23 - Map Discord checklist items to real tests **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -588,9 +588,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 838533,
+              "content_length": 839624,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 279,
+              "section_count": 280,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -598,10 +598,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-08-25 - Split custom-question dialog into form, template, and save jobs",
                 "2026-08-25 - Check-in settings min/max and question-list glitches",
                 "2026-08-25 - v2 envelopes in memory for account/preferences/schedules",
-                "2026-08-23 - Map project-wide manual testing checklist to real tests",
-                "2026-08-23 - Map Discord checklist items to real tests"
+                "2026-08-23 - Map project-wide manual testing checklist to real tests"
               ]
             },
             "development_docs/PLANS.md": {
@@ -928,7 +928,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-08-25T17:58:34"
+      "timestamp": "2026-08-25T23:05:09"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1011,7 +1011,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-08-25T17:59:02"
+      "timestamp": "2026-08-25T23:05:48"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1026,7 +1026,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-25T17:58:57"
+      "timestamp": "2026-08-25T23:05:41"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1041,7 +1041,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-25T17:59:00"
+      "timestamp": "2026-08-25T23:05:46"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1056,7 +1056,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-08-25T17:58:56"
+      "timestamp": "2026-08-25T23:05:40"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1071,7 +1071,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-08-25T17:59:02"
+      "timestamp": "2026-08-25T23:05:48"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1081,14 +1081,14 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 2372,
+          "total_functions": 2379,
           "functions_with_try_except": 564,
-          "functions_with_error_handling": 2372,
-          "functions_with_decorators": 2355,
+          "functions_with_error_handling": 2379,
+          "functions_with_decorators": 2362,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 2375,
+            "handle_errors_decorator": 2382,
             "try_except": 738,
             "ValidationError": 29,
             "handle_ai_error": 17,
@@ -1108,7 +1108,7 @@
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 2355,
+            "excellent": 2362,
             "good": 17
           },
           "recommendations": [],
@@ -1152,7 +1152,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-25T17:58:42"
+      "timestamp": "2026-08-25T23:05:24"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1162,7 +1162,7 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 2559,
+          "total_functions": 2566,
           "functions_excluded": 15,
           "records_deduplicated": 0,
           "groups_filtered_single_function": 1,
@@ -2332,7 +2332,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-08-25T17:58:51"
+      "timestamp": "2026-08-25T23:05:32"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2348,29 +2348,23 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-08-25T17:58:43"
+      "timestamp": "2026-08-25T23:05:25"
     },
     "analyze_functions": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 465,
+          "total_issues": 468,
           "files_affected": 137
         },
         "details": {
-          "total_functions": 2392,
-          "moderate_complexity": 273,
-          "high_complexity": 110,
-          "critical_complexity": 82,
+          "total_functions": 2399,
+          "moderate_complexity": 275,
+          "high_complexity": 112,
+          "critical_complexity": 81,
           "undocumented": 0,
           "undocumented_examples": [],
           "critical_complexity_examples": [
-            {
-              "name": "_show_question_dialog",
-              "function": "_show_question_dialog",
-              "file": "ui/widgets/checkin_settings_widget.py",
-              "complexity": 821
-            },
             {
               "name": "build_user_facing_signal_wellness_snippet",
               "function": "build_user_facing_signal_wellness_snippet",
@@ -2454,6 +2448,12 @@
               "function": "start",
               "file": "core/service.py",
               "complexity": 526
+            },
+            {
+              "name": "_parse_time_pair_response",
+              "function": "_parse_time_pair_response",
+              "file": "checkins/checkin_dynamic_manager.py",
+              "complexity": 519
             }
           ],
           "high_complexity_examples": [
@@ -2548,12 +2548,12 @@
               "complexity": 280
             }
           ],
-          "handlers": 1037,
+          "handlers": 1038,
           "tests": 61,
           "utilities": 0
         }
       },
-      "timestamp": "2026-08-25T17:58:40"
+      "timestamp": "2026-08-25T23:05:21"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -2662,8 +2662,14 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
+              "class": "QuestionDialogFields",
+              "methods": 0,
+              "has_doc": true
+            },
+            {
+              "file": "ui/widgets/checkin_settings_widget.py",
               "class": "CheckinSettingsWidget",
-              "methods": 37,
+              "methods": 42,
               "has_doc": true
             },
             {
@@ -5209,7 +5215,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-25T17:58:44"
+      "timestamp": "2026-08-25T23:05:25"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6186,12 +6192,6 @@
                 "file": "run_tests.py",
                 "has_docstring": true,
                 "name": "run_post_failure_reruns"
-              },
-              {
-                "complexity": 821,
-                "file": "ui/widgets/checkin_settings_widget.py",
-                "has_docstring": true,
-                "name": "_show_question_dialog"
               },
               {
                 "complexity": 820,
@@ -7356,9 +7356,15 @@
                 "file": "core/error_handling.py",
                 "has_docstring": true,
                 "name": "handle_errors"
+              },
+              {
+                "complexity": 310,
+                "file": "scheduler/manager.py",
+                "has_docstring": true,
+                "name": "schedule_checkin_at_exact_time"
               }
             ],
-            "high_complexity_total": 1630,
+            "high_complexity_total": 1637,
             "undocumented_handlers": [
               {
                 "file": "ai/context/phraser.py",
@@ -8683,10 +8689,10 @@
           },
           "registry_sections": {},
           "totals": {
-            "classes_found": 250,
+            "classes_found": 251,
             "files_scanned": 272,
-            "functions_documented": 2507,
-            "functions_found": 2574
+            "functions_documented": 2514,
+            "functions_found": 2581
           }
         },
         "summary": {
@@ -8694,7 +8700,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-08-25T17:58:49"
+      "timestamp": "2026-08-25T23:05:31"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8726,21 +8732,21 @@
               ]
             },
             {
+              "file": "ui/widgets/checkin_settings_widget.py",
+              "lines": 1497,
+              "function_count": 47,
+              "class_count": 2,
+              "reasons": [
+                "47 functions (max 40)"
+              ]
+            },
+            {
               "file": "scheduler/manager.py",
               "lines": 1439,
               "function_count": 42,
               "class_count": 1,
               "reasons": [
                 "42 functions (max 40)"
-              ]
-            },
-            {
-              "file": "ui/widgets/checkin_settings_widget.py",
-              "lines": 1409,
-              "function_count": 40,
-              "class_count": 1,
-              "reasons": [
-                "40 functions (max 40)"
               ]
             },
             {
@@ -8769,7 +8775,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:44"
+      "timestamp": "2026-08-25T23:05:25"
     },
     "analyze_package_exports": {
       "success": true,
@@ -16701,8 +16707,8 @@
                     "integrations/google_health/sync_manager.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "core",
                   "external_import_count": 7,
@@ -18927,8 +18933,8 @@
                     "integrations/google_health/sync_manager.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "core",
                   "external_import_count": 7,
@@ -22965,1361 +22971,6 @@
                 "maybe_send_reconnect_notice"
               ]
             },
-            "storage": {
-              "package": "storage",
-              "current_exports_count": 0,
-              "should_export_count": 0,
-              "already_exported": [],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "SCHEMA_VERSION": {
-                  "import_count": 16,
-                  "import_locations": [
-                    "checkins/checkin_data_manager.py",
-                    "checkins/checkin_schemas.py",
-                    "core/file_operations.py",
-                    "core/file_operations.py",
-                    "core/profile_v2_io.py",
-                    "core/profile_v2_schemas.py",
-                    "messages/message_data_manager.py",
-                    "messages/message_schemas.py",
-                    "notebook/notebook_data_handlers.py",
-                    "notebook/notebook_schemas.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py",
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_schemas.py",
-                    "integrations/google_health/schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 13,
-                  "package_import_count": 0
-                },
-                "SourceModel": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "checkins/checkin_schemas.py",
-                    "messages/message_schemas.py",
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "v2_schema_validation_error": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "checkins/checkin_schemas.py",
-                    "core/profile_v2_schemas.py",
-                    "messages/message_schemas.py",
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "update_user_index": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_write.py",
-                    "storage/user_data_write.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_operations",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "write_service_flag_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/headless_service.py",
-                    "core/service_requests.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.service_flag_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "_get_user_data__load_schedules": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/schedule_document_defaults.py",
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "get_user_data": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "core/schedule_document_defaults.py",
-                    "core/service.py",
-                    "core/user_lookup.py",
-                    "core/user_management.py",
-                    "core/__init__.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py",
-                    "storage/user_data_user_info.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_read",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "generate_short_id": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "messages/message_data_manager.py",
-                    "notebook/notebook_data_handlers.py",
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "is_valid_string_length": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "BaseItemModel": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "validate_optional_v2_timestamp": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "remove_from_index": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_info_for_data_manager": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_message_files": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_data_summary": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_user_categories": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "validate_v2_document": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_envelopes",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_available_data_types": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_read.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "clear_user_caches": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_read.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "is_valid_user_id": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "storage/user_data_write.py",
-                    "tasks/task_data_handlers.py",
-                    "communication/command_handlers/base_handler.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "UserDataManager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_write.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_operations",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "ensure_user_subdir": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_user_subdir_path": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "load_user_json_file": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "save_user_json_file": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_runtime_state_path": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "load_runtime_state_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "save_runtime_state_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "validate_schedule_periods": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py",
-                    "ui/dialogs/schedule_editor_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "is_valid_email": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "_shared__title_case": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/schedule_editor_dialog.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                }
-              },
-              "import_usage_details": {
-                "SCHEMA_VERSION": {
-                  "import_count": 16,
-                  "import_locations": [
-                    "checkins/checkin_data_manager.py",
-                    "checkins/checkin_schemas.py",
-                    "core/file_operations.py",
-                    "core/file_operations.py",
-                    "core/profile_v2_io.py",
-                    "core/profile_v2_schemas.py",
-                    "messages/message_data_manager.py",
-                    "messages/message_schemas.py",
-                    "notebook/notebook_data_handlers.py",
-                    "notebook/notebook_schemas.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py",
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_schemas.py",
-                    "integrations/google_health/schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 13,
-                  "package_import_count": 0
-                },
-                "SourceModel": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "checkins/checkin_schemas.py",
-                    "messages/message_schemas.py",
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "v2_schema_validation_error": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "checkins/checkin_schemas.py",
-                    "core/profile_v2_schemas.py",
-                    "messages/message_schemas.py",
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "update_user_index": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_write.py",
-                    "storage/user_data_write.py",
-                    "communication/command_handlers/account_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_operations",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "write_service_flag_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/headless_service.py",
-                    "core/service_requests.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.service_flag_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "update_user_preferences": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "core/natural_language_defaults.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_write",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "_get_user_data__load_schedules": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/schedule_document_defaults.py",
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "_save_user_data__save_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "core/schedule_document_defaults.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "get_user_data": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "core/schedule_document_defaults.py",
-                    "core/service.py",
-                    "core/user_lookup.py",
-                    "core/user_management.py",
-                    "core/__init__.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py",
-                    "storage/user_data_user_info.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_validation.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_read",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "read_service_flag_json": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "core/service_requests.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.service_flag_storage",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "save_user_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "core/user_management.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_write",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "generate_short_id": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "messages/message_data_manager.py",
-                    "notebook/notebook_data_handlers.py",
-                    "storage/user_data_v2_envelopes.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "is_valid_string_length": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "BaseItemModel": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "validate_optional_v2_timestamp": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_schemas.py",
-                    "tasks/task_schemas.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "is_valid_category_name": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "remove_from_index": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_info_for_data_manager": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_message_files": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "storage/user_data_backup.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_data_summary": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_user_categories": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_operations.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "validate_v2_document": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_index.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_envelopes",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "backup_user_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_backup",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "delete_user_completely": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_backup",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "export_user_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_backup",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "build_user_index": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "rebuild_full_index": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "rebuild_user_index": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "search_users": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_index",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_last_interaction": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_all_user_summaries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_analytics_summary": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_user_summary": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_summaries",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "update_message_references": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_operations.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_user_info",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "USER_DATA_LOADERS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "register_data_loader": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "register_default_loaders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "get_available_data_types": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_read.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_user_data__load_account": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_user_data__load_preferences": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "_get_user_data__load_context": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_read.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "clear_user_caches": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_read.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_registry",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "ItemKind": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_v2_base",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "validate_new_user_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "validate_user_update": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "is_valid_user_id": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "storage/user_data_write.py",
-                    "tasks/task_data_handlers.py",
-                    "communication/command_handlers/base_handler.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "UserDataManager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "storage/user_data_write.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_operations",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "ensure_user_subdir": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_user_subdir_path": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "load_user_json_file": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "save_user_json_file": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py",
-                    "integrations/google_health/data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_item_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_runtime_state_path": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "load_runtime_state_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "save_runtime_state_json": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/welcome_manager.py",
-                    "communication/message_processing/flows/flow_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.runtime_state_storage",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "TIMEZONE_OPTIONS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/onboarding/account_flow_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_presets",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "validate_schedule_periods": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py",
-                    "ui/dialogs/schedule_editor_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "is_valid_email": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "is_valid_phone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "is_valid_discord_id": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "_shared__title_case": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/schedule_editor_dialog.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "validate_personalization_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "storage.user_data_validation",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                }
-              },
-              "package_api_items": [
-                "BaseItemModel",
-                "SourceModel",
-                "UserDataManager",
-                "backup_user_data",
-                "build_user_index",
-                "clear_user_caches",
-                "delete_user_completely",
-                "ensure_unique_ids",
-                "ensure_user_subdir",
-                "export_user_data",
-                "get_all_user_summaries",
-                "get_available_data_types",
-                "get_data_type_info",
-                "get_predefined_options",
-                "get_runtime_state_path",
-                "get_timezone_options",
-                "get_user_analytics_summary",
-                "get_user_data",
-                "get_user_data_summary",
-                "get_user_data_with_metadata",
-                "get_user_info_for_data_manager",
-                "get_user_message_files",
-                "get_user_subdir_path",
-                "get_user_summary",
-                "is_valid_category_name",
-                "is_valid_discord_id",
-                "is_valid_email",
-                "is_valid_phone",
-                "is_valid_string_length",
-                "is_valid_user_id",
-                "load_and_ensure_ids",
-                "load_runtime_state_json",
-                "load_user_json_file",
-                "read_service_flag_json",
-                "rebuild_full_index",
-                "rebuild_user_index",
-                "register_data_loader",
-                "register_default_loaders",
-                "remove_from_index",
-                "save_runtime_state_json",
-                "save_user_data",
-                "save_user_data_transaction",
-                "save_user_json_file",
-                "search_users",
-                "update_channel_preferences",
-                "update_message_references",
-                "update_user_account",
-                "update_user_context",
-                "update_user_index",
-                "update_user_preferences",
-                "update_user_schedules",
-                "v2_schema_validation_error",
-                "validate_new_user_data",
-                "validate_optional_v2_timestamp",
-                "validate_personalization_data",
-                "validate_schedule_periods",
-                "validate_schedule_periods__validate_time_format",
-                "validate_user_update",
-                "validate_v2_document",
-                "write_service_flag_json"
-              ],
-              "registry_items": [
-                "__init__",
-                "_account_default_data",
-                "_account_normalize_after_load",
-                "_apply_fields_filter",
-                "_backup_dir",
-                "_empty_file_summary",
-                "_finalize_get_user_data_payload",
-                "_fresh_default",
-                "_get_last_interaction",
-                "_get_user_categories",
-                "_index_entries_for_account",
-                "_index_file_path",
-                "_load_presets_json",
-                "_save_user_data__check_cross_file_invariants",
-                "_save_user_data__create_backup",
-                "_shared__title_case",
-                "backup_user_data",
-                "ensure_user_subdir",
-                "get_predefined_options",
-                "get_runtime_state_path",
-                "get_user_info_for_data_manager",
-                "is_valid_category_name",
-                "normalize_string_list",
-                "read_service_flag_json",
-                "v2_schema_validation_error",
-                "validate_v2_document",
-                "write_service_flag_json"
-              ]
-            },
             "notebook": {
               "package": "notebook",
               "current_exports_count": 0,
@@ -25560,8 +24211,8 @@
                     "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "tasks",
                   "external_import_count": 5,
@@ -25642,8 +24293,8 @@
                     "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "tasks.task_data_handlers",
                   "external_import_count": 1,
@@ -25880,8 +24531,8 @@
                     "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "tasks",
                   "external_import_count": 5,
@@ -25986,8 +24637,8 @@
                     "ui/dialogs/task_crud_dialog.py"
                   ],
                   "import_types": [
-                    "from_import",
-                    "package_import"
+                    "package_import",
+                    "from_import"
                   ],
                   "module_path": "tasks.task_data_handlers",
                   "external_import_count": 1,
@@ -27621,6 +26272,7 @@
                 "NaturalLanguageSettingsWidget",
                 "PeriodRowWidget",
                 "ProcessWatcherDialog",
+                "QuestionDialogFields",
                 "RequestActionOutcome",
                 "ScheduleEditorDialog",
                 "ServiceManager",
@@ -27640,6 +26292,8 @@
                 "UserSelectionController",
                 "add_period_row_to_layout",
                 "add_period_widget_to_layout",
+                "build_custom_question_payload",
+                "category_combo_label",
                 "clear_layout_widgets",
                 "clear_period_widgets_from_layout",
                 "collect_period_data_from_widgets",
@@ -27694,9 +26348,9 @@
                 "__init__",
                 "__post_init__",
                 "_add_blank_row",
+                "_add_question_template_picker",
                 "_add_time_combos_to_layout",
                 "_after_add_period",
-                "_apply_question_template_to_form",
                 "_build_all_users_summary",
                 "_build_category_checkboxes",
                 "_build_system_health_report",
@@ -27737,6 +26391,1361 @@
                 "run_category_scheduler",
                 "save_settings",
                 "update_status_labels"
+              ]
+            },
+            "storage": {
+              "package": "storage",
+              "current_exports_count": 0,
+              "should_export_count": 0,
+              "already_exported": [],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "SCHEMA_VERSION": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "checkins/checkin_data_manager.py",
+                    "checkins/checkin_schemas.py",
+                    "core/file_operations.py",
+                    "core/file_operations.py",
+                    "core/profile_v2_io.py",
+                    "core/profile_v2_schemas.py",
+                    "messages/message_data_manager.py",
+                    "messages/message_schemas.py",
+                    "notebook/notebook_data_handlers.py",
+                    "notebook/notebook_schemas.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py",
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_schemas.py",
+                    "integrations/google_health/schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 13,
+                  "package_import_count": 0
+                },
+                "SourceModel": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "checkins/checkin_schemas.py",
+                    "messages/message_schemas.py",
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "v2_schema_validation_error": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "checkins/checkin_schemas.py",
+                    "core/profile_v2_schemas.py",
+                    "messages/message_schemas.py",
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "update_user_index": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "core/admin_account_provisioning.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_write.py",
+                    "storage/user_data_write.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_operations",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "write_service_flag_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/headless_service.py",
+                    "core/service_requests.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.service_flag_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "_get_user_data__load_schedules": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/schedule_document_defaults.py",
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "get_user_data": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "core/schedule_document_defaults.py",
+                    "core/service.py",
+                    "core/user_lookup.py",
+                    "core/user_management.py",
+                    "core/__init__.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py",
+                    "storage/user_data_user_info.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_read",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "generate_short_id": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "messages/message_data_manager.py",
+                    "notebook/notebook_data_handlers.py",
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "is_valid_string_length": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "BaseItemModel": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "validate_optional_v2_timestamp": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "remove_from_index": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_info_for_data_manager": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_message_files": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_data_summary": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_user_categories": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "validate_v2_document": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_envelopes",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_available_data_types": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_read.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "clear_user_caches": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_read.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "is_valid_user_id": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "storage/user_data_write.py",
+                    "tasks/task_data_handlers.py",
+                    "communication/command_handlers/base_handler.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "UserDataManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_write.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_operations",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "ensure_user_subdir": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_user_subdir_path": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "load_user_json_file": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "save_user_json_file": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_runtime_state_path": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "load_runtime_state_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "save_runtime_state_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "validate_schedule_periods": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py",
+                    "ui/dialogs/schedule_editor_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "is_valid_email": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "_shared__title_case": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/schedule_editor_dialog.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                }
+              },
+              "import_usage_details": {
+                "SCHEMA_VERSION": {
+                  "import_count": 16,
+                  "import_locations": [
+                    "checkins/checkin_data_manager.py",
+                    "checkins/checkin_schemas.py",
+                    "core/file_operations.py",
+                    "core/file_operations.py",
+                    "core/profile_v2_io.py",
+                    "core/profile_v2_schemas.py",
+                    "messages/message_data_manager.py",
+                    "messages/message_schemas.py",
+                    "notebook/notebook_data_handlers.py",
+                    "notebook/notebook_schemas.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py",
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_schemas.py",
+                    "integrations/google_health/schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 13,
+                  "package_import_count": 0
+                },
+                "SourceModel": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "checkins/checkin_schemas.py",
+                    "messages/message_schemas.py",
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "v2_schema_validation_error": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "checkins/checkin_schemas.py",
+                    "core/profile_v2_schemas.py",
+                    "messages/message_schemas.py",
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "update_user_index": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "core/admin_account_provisioning.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_write.py",
+                    "storage/user_data_write.py",
+                    "communication/command_handlers/account_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_operations",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "write_service_flag_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/headless_service.py",
+                    "core/service_requests.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.service_flag_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "update_user_preferences": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "core/natural_language_defaults.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_write",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "_get_user_data__load_schedules": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/schedule_document_defaults.py",
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "_save_user_data__save_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "core/schedule_document_defaults.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "get_user_data": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "core/schedule_document_defaults.py",
+                    "core/service.py",
+                    "core/user_lookup.py",
+                    "core/user_management.py",
+                    "core/__init__.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py",
+                    "storage/user_data_user_info.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_validation.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_read",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "read_service_flag_json": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "core/service_requests.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.service_flag_storage",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "save_user_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "core/user_management.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_write",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "generate_short_id": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "messages/message_data_manager.py",
+                    "notebook/notebook_data_handlers.py",
+                    "storage/user_data_v2_envelopes.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "is_valid_string_length": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "BaseItemModel": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "validate_optional_v2_timestamp": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_schemas.py",
+                    "tasks/task_schemas.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "is_valid_category_name": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "remove_from_index": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_info_for_data_manager": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_message_files": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "storage/user_data_backup.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_data_summary": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_user_categories": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_operations.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "validate_v2_document": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_index.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_envelopes",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "backup_user_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_backup",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "delete_user_completely": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_backup",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "export_user_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_backup",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "build_user_index": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "rebuild_full_index": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "rebuild_user_index": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "search_users": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_index",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_last_interaction": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_all_user_summaries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_analytics_summary": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_user_summary": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_summaries",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "update_message_references": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_operations.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_user_info",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "USER_DATA_LOADERS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "register_data_loader": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "register_default_loaders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "get_available_data_types": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_read.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_user_data__load_account": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_user_data__load_preferences": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "_get_user_data__load_context": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_read.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "clear_user_caches": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_read.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_registry",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "ItemKind": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_v2_base",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "validate_new_user_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "validate_user_update": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "is_valid_user_id": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "storage/user_data_write.py",
+                    "tasks/task_data_handlers.py",
+                    "communication/command_handlers/base_handler.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "UserDataManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "storage/user_data_write.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_operations",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "ensure_user_subdir": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_user_subdir_path": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "load_user_json_file": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "save_user_json_file": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py",
+                    "integrations/google_health/data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_item_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_runtime_state_path": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "load_runtime_state_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "save_runtime_state_json": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/welcome_manager.py",
+                    "communication/message_processing/flows/flow_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.runtime_state_storage",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "TIMEZONE_OPTIONS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/onboarding/account_flow_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_presets",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "validate_schedule_periods": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py",
+                    "ui/dialogs/schedule_editor_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "is_valid_email": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "is_valid_phone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "is_valid_discord_id": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "_shared__title_case": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/schedule_editor_dialog.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "validate_personalization_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "storage.user_data_validation",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                }
+              },
+              "package_api_items": [
+                "BaseItemModel",
+                "SourceModel",
+                "UserDataManager",
+                "backup_user_data",
+                "build_user_index",
+                "clear_user_caches",
+                "delete_user_completely",
+                "ensure_unique_ids",
+                "ensure_user_subdir",
+                "export_user_data",
+                "get_all_user_summaries",
+                "get_available_data_types",
+                "get_data_type_info",
+                "get_predefined_options",
+                "get_runtime_state_path",
+                "get_timezone_options",
+                "get_user_analytics_summary",
+                "get_user_data",
+                "get_user_data_summary",
+                "get_user_data_with_metadata",
+                "get_user_info_for_data_manager",
+                "get_user_message_files",
+                "get_user_subdir_path",
+                "get_user_summary",
+                "is_valid_category_name",
+                "is_valid_discord_id",
+                "is_valid_email",
+                "is_valid_phone",
+                "is_valid_string_length",
+                "is_valid_user_id",
+                "load_and_ensure_ids",
+                "load_runtime_state_json",
+                "load_user_json_file",
+                "read_service_flag_json",
+                "rebuild_full_index",
+                "rebuild_user_index",
+                "register_data_loader",
+                "register_default_loaders",
+                "remove_from_index",
+                "save_runtime_state_json",
+                "save_user_data",
+                "save_user_data_transaction",
+                "save_user_json_file",
+                "search_users",
+                "update_channel_preferences",
+                "update_message_references",
+                "update_user_account",
+                "update_user_context",
+                "update_user_index",
+                "update_user_preferences",
+                "update_user_schedules",
+                "v2_schema_validation_error",
+                "validate_new_user_data",
+                "validate_optional_v2_timestamp",
+                "validate_personalization_data",
+                "validate_schedule_periods",
+                "validate_schedule_periods__validate_time_format",
+                "validate_user_update",
+                "validate_v2_document",
+                "write_service_flag_json"
+              ],
+              "registry_items": [
+                "__init__",
+                "_account_default_data",
+                "_account_normalize_after_load",
+                "_apply_fields_filter",
+                "_backup_dir",
+                "_empty_file_summary",
+                "_finalize_get_user_data_payload",
+                "_fresh_default",
+                "_get_last_interaction",
+                "_get_user_categories",
+                "_index_entries_for_account",
+                "_index_file_path",
+                "_load_presets_json",
+                "_save_user_data__check_cross_file_invariants",
+                "_save_user_data__create_backup",
+                "_shared__title_case",
+                "backup_user_data",
+                "ensure_user_subdir",
+                "get_predefined_options",
+                "get_runtime_state_path",
+                "get_user_info_for_data_manager",
+                "is_valid_category_name",
+                "normalize_string_list",
+                "read_service_flag_json",
+                "v2_schema_validation_error",
+                "validate_v2_document",
+                "write_service_flag_json"
               ]
             },
             "user": {
@@ -27854,7 +27863,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:53"
+      "timestamp": "2026-08-25T23:05:36"
     },
     "analyze_unused_functions": {
       "success": true,
@@ -27876,7 +27885,7 @@
           "by_file": {}
         }
       },
-      "timestamp": "2026-08-25T17:58:46"
+      "timestamp": "2026-08-25T23:05:27"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -31409,7 +31418,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-25T17:58:51"
+      "timestamp": "2026-08-25T23:05:34"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -31426,7 +31435,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:35"
+      "timestamp": "2026-08-25T23:05:09"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -31437,7 +31446,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-08-25T17:58:53"
+      "timestamp": "2026-08-25T23:05:37"
     },
     "analyze_module_imports": {
       "success": true,
@@ -50165,6 +50174,13 @@
             "imports": {
               "standard_library": [
                 {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "NamedTuple"
+                  ]
+                },
+                {
                   "module": "re",
                   "as_name": null,
                   "imported_items": [
@@ -50311,7 +50327,7 @@
                 }
               ]
             },
-            "total_imports": 17
+            "total_imports": 18
           },
           "ui/widgets/dynamic_list_container.py": {
             "imports": {
@@ -51152,7 +51168,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:51"
+      "timestamp": "2026-08-25T23:05:34"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -51182,19 +51198,19 @@
           },
           "cache": {
             "cache_mode": "partial_cache",
-            "hits": 865,
-            "misses": 2,
+            "hits": 864,
+            "misses": 3,
             "total_cache_checks": 867,
-            "hit_rate": 99.8
+            "hit_rate": 99.7
           }
         }
       },
-      "timestamp": "2026-08-25T17:59:09"
+      "timestamp": "2026-08-25T23:05:56"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-08-25T18:02:45",
+        "generated_at": "2026-08-25T23:09:43",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -51239,7 +51255,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-08-11T18:02:45",
+                "recent_cutoff": "2026-08-11T23:09:43",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-08-19_01-00-07",
                 "latest_weekly_created_at": "2026-08-19 01:00:07"
               }
@@ -51250,7 +51266,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-08-19_01-00-07",
                 "latest_created_at": "2026-08-19 01:00:07",
-                "recent_cutoff": "2026-08-11T18:02:45"
+                "recent_cutoff": "2026-08-11T23:09:43"
               }
             },
             {
@@ -51305,7 +51321,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-08-11T18:02:45",
+              "recent_cutoff": "2026-08-11T23:09:43",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-08-19_01-00-07",
               "latest_weekly_created_at": "2026-08-19 01:00:07"
             }
@@ -51316,7 +51332,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-08-19_01-00-07",
               "latest_created_at": "2026-08-19 01:00:07",
-              "recent_cutoff": "2026-08-11T18:02:45"
+              "recent_cutoff": "2026-08-11T23:09:43"
             }
           },
           {
@@ -51339,7 +51355,7 @@
           }
         ]
       },
-      "timestamp": "2026-08-25T18:02:45"
+      "timestamp": "2026-08-25T23:09:43"
     },
     "analyze_system_signals": {
       "success": true,
@@ -51350,7 +51366,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-08-25T17:58:33.844572",
+          "timestamp": "2026-08-25T23:05:08.543429",
           "system_health": {
             "overall_status": "OK",
             "core_files": {
@@ -51375,11 +51391,11 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-08-25T17:55:57.657693",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-08-25T18:02:45.922781",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)"
+              "Audit data is recent (5 hours ago)"
             ],
             "recommendations": [],
             "warnings": [],
@@ -51395,9 +51411,8 @@
               "ui/widgets/checkin_settings_widget.py",
               "tests/ui/test_checkin_settings_widget_question_counts.py",
               "tests/unit/test_checkin_settings_widget_helpers.py",
-              "development_docs/CHANGELOG_DETAIL.md",
-              "TODO.md",
               "ai_development_docs/AI_CHANGELOG.md",
+              "development_docs/CHANGELOG_DETAIL.md",
               "development_tools/config/jsons/scopes/full/analyze_config_results.json",
               "development_tools/reports/scopes/full/analysis_detailed_results.json"
             ],
@@ -51426,25 +51441,25 @@
           }
         }
       },
-      "timestamp": "2026-08-25T17:58:34"
+      "timestamp": "2026-08-25T23:05:08"
     },
     "decision_support": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 221,
+          "total_issues": 222,
           "files_affected": 0
         },
         "details": {
-          "total_functions": 2392,
-          "moderate_complexity": 273,
-          "high_complexity": 110,
-          "critical_complexity": 82,
+          "total_functions": 2399,
+          "moderate_complexity": 275,
+          "high_complexity": 112,
+          "critical_complexity": 81,
           "undocumented": 29,
           "decision_support_items": 5,
           "decision_support_sample": [
-            "[COMPLEXITY] Functions needing attention: 465",
-            "[CRITICAL] Critical Complexity (>299 nodes): 82",
+            "[COMPLEXITY] Functions needing attention: 468",
+            "[CRITICAL] Critical Complexity (>299 nodes): 81",
             "[DOC] Undocumented Handlers: 29",
             "[DUPE] Duplicate Function Names: 167",
             "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -51591,7 +51606,7 @@
           ]
         }
       },
-      "timestamp": "2026-08-25T17:58:44"
+      "timestamp": "2026-08-25T23:05:25"
     },
     "run_test_suite": {
       "success": true,
@@ -51612,7 +51627,7 @@
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\parallel.xml",
               "return_code_hex": "0x0",
               "return_code": 0,
-              "passed_count": 5114,
+              "passed_count": 5118,
               "failed_count": 0,
               "error_count": 0,
               "skipped_count": 5,
@@ -51629,7 +51644,7 @@
               "passed_count": 113,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 22,
+              "skipped_count": 27,
               "failed_node_ids": []
             },
             "failed_node_ids": [],
@@ -51640,10 +51655,10 @@
               "name": "parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 131.846,
+              "duration_seconds": 139.461,
               "counts": {
-                "total": 5119,
-                "passed": 5114,
+                "total": 5123,
+                "passed": 5118,
                 "failed": 0,
                 "errors": 0,
                 "skipped": 5
@@ -51657,13 +51672,13 @@
               "name": "no_parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 37.99,
+              "duration_seconds": 38.141,
               "counts": {
-                "total": 135,
+                "total": 140,
                 "passed": 113,
                 "failed": 0,
                 "errors": 0,
-                "skipped": 22
+                "skipped": 27
               },
               "classification": "passed",
               "failed_node_ids": [],
@@ -51712,7 +51727,7 @@
           "has_full_suite_cache": true
         }
       },
-      "timestamp": "2026-08-25T18:02:44"
+      "timestamp": "2026-08-25T23:09:43"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -51728,7 +51743,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-08-25T18:02:45"
+      "timestamp": "2026-08-25T23:09:45"
     },
     "analyze_ruff": {
       "success": true,
@@ -51754,7 +51769,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T18:02:45.864286"
+      "timestamp": "2026-08-25T23:09:45.218766"
     },
     "analyze_pyright": {
       "success": true,
@@ -51785,7 +51800,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T18:02:45.864286"
+      "timestamp": "2026-08-25T23:09:45.218766"
     },
     "analyze_bandit": {
       "success": true,
@@ -51816,7 +51831,7 @@
           }
         }
       },
-      "timestamp": "2026-08-25T18:02:45.864286"
+      "timestamp": "2026-08-25T23:09:45.218766"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -51838,7 +51853,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-08-25T18:02:45.864286"
+      "timestamp": "2026-08-25T23:09:45.218766"
     },
     "analyze_vulture": {
       "success": true,
@@ -51857,7 +51872,7 @@
           "findings_sample": []
         }
       },
-      "timestamp": "2026-08-25T18:02:45.864286"
+      "timestamp": "2026-08-25T23:09:45.218766"
     }
   }
 }

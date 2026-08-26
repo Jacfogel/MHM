@@ -20,9 +20,13 @@ from PySide6.QtWidgets import (
 from core.error_handling import UserInterfaceError
 from ui.widgets.checkin_settings_widget import (
     CheckinSettingsWidget,
+    build_custom_question_payload,
+    category_combo_label,
     clear_layout_widgets,
     compute_question_count_bounds,
     ensure_vbox_layout,
+    QUESTION_TYPE_OPTIONS,
+    DEFAULT_QUESTION_CATEGORY_KEYS,
 )
 
 
@@ -109,3 +113,57 @@ class TestCheckinSettingsWidgetHelpers:
         assert container.layout() is layout1
         assert layout1.count() == 0
         assert layout2.count() == 1
+
+    def test_category_combo_label_uses_name_or_key(self):
+        assert category_combo_label("mental_health") == "Mental Health"
+        assert category_combo_label("health", {"name": "physical"}) == "Physical"
+        assert category_combo_label("health", {"name": ""}) == "Health"
+
+    def test_build_custom_question_payload_defaults_new_and_preserves_edit(self):
+        created = build_custom_question_payload(
+            "yes_no",
+            "Do you drink water?",
+            "Water (yes/no)",
+            "health",
+            {"error_message": "yes or no"},
+            is_new=True,
+            existing_def=None,
+        )
+        assert created["always_include"] is True
+        assert created["sometimes_include"] is False
+        assert created["enabled"] is True
+        assert created["type"] == "yes_no"
+
+        edited = build_custom_question_payload(
+            "number",
+            "How many glasses?",
+            "Glasses (number)",
+            "health",
+            {"min": 0, "max": 100},
+            is_new=False,
+            existing_def={"always_include": False},
+        )
+        assert edited["always_include"] is False
+        assert edited["question_text"] == "How many glasses?"
+
+    def test_populate_question_type_combo_selects_type(self, qapp):
+        combo = QComboBox()
+        CheckinSettingsWidget._populate_question_type_combo(combo, "number")
+        assert combo.count() == len(QUESTION_TYPE_OPTIONS)
+        assert combo.currentData() == "number"
+
+    def test_populate_category_combo_uses_manager_names_and_fallback_keys(self, qapp):
+        combo = QComboBox()
+        CheckinSettingsWidget._populate_category_combo(
+            combo,
+            {"health": {"name": "physical"}, "mood": {"name": "mood"}},
+            "mood",
+        )
+        assert combo.itemText(0) == "Physical"
+        assert combo.currentData() == "mood"
+
+        fallback = QComboBox()
+        CheckinSettingsWidget._populate_category_combo(fallback, {})
+        assert [fallback.itemData(i) for i in range(fallback.count())] == list(
+            DEFAULT_QUESTION_CATEGORY_KEYS
+        )

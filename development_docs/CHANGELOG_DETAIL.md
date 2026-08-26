@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-25 - Split custom-question dialog into form, template, and save jobs
+- **Refactor**: `_show_question_dialog` is now an orchestrator. Form construction lives in `_build_question_details_form`, the add-only template picker in `_add_question_template_picker`, and save/validation in `_submit_custom_question`. Combo population, category labels, and the saved payload are independently testable helpers (`_populate_question_type_combo`, `_populate_category_combo`, `category_combo_label`, `build_custom_question_payload`).
+- **Impact**: AST complexity of `_show_question_dialog` dropped from 821 to 218 nodes (critical threshold is 200). Add/edit custom-question behavior is unchanged.
+- **Tests**: Helper coverage in [`test_checkin_settings_widget_helpers.py`](../tests/unit/test_checkin_settings_widget_helpers.py). Dialog accept/cancel, empty text, save success/failure in [`test_checkin_settings_widget_question_counts.py`](../tests/ui/test_checkin_settings_widget_question_counts.py) (`MHM_QT_UI_FORCE=1`): 30 passed.
+- **Docs**: Function registry entries for the new helpers.
+
 ### 2026-08-25 - Check-in settings min/max and question-list glitches
 - **Fix**: Maximum questions can be reduced below the current Minimum; Minimum follows. Validation no longer sets the max spinbox floor to the current min value (that blocked `valueChanged` before the "pull min down" handler could run).
 - **Fix**: Adding or deleting a custom question no longer blanks the questions list. Rebuilds reuse the scroll container's existing `QVBoxLayout` via `ensure_vbox_layout()`; Qt will not install a second layout, so the old `QVBoxLayout(widget)` path left new rows on an orphaned layout while checkbox state stayed in memory.

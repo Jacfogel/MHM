@@ -7238,10 +7238,12 @@ Args:
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
+- [OK] `_add_question_template_picker(self, main_layout, dialog, fields, templates)` - Add the optional start-from-template combo used only when creating.
 - [OK] `_apply_question_template_to_form(self, template, question_text_edit, display_name_edit, type_combo, category_combo)` - Copy template fields onto the add/edit custom-question form.
 - [OK] `_build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
 - [OK] `_build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
 - [OK] `_build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
+- [OK] `_build_question_details_form(self, form_layout, question_def, categories)` - Create question text, type, category, and display-name fields.
 - [OK] `_clear_category_groups(self)` - Remove all category group boxes from the existing layout.
 - [OK] `_clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
 - [OK] `_collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
@@ -7253,6 +7255,8 @@ Args:
 - [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - lower min if needed.
 - [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - raise max if needed.
 - [OK] `_on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
+- [OK] `_populate_category_combo(combo, categories, selected_category)` - Fill the category combo from manager data, with fallback keys.
+- [OK] `_populate_question_type_combo(combo, selected_type)` - Fill the question-type combo and optionally select a type key.
 - [OK] `_refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
 Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
@@ -7264,9 +7268,12 @@ Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
 - [OK] `_strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
+- [OK] `_submit_custom_question(self, fields, question_key, question_def, dynamic_checkin_manager)` - Validate form values and save a new or edited custom question.
 - [OK] `_validate_question_counts(self)` - Validate min/max question counts based on enabled questions.
 - [OK] `add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
 - [OK] `add_new_question(self)` - Add a new check-in question.
+- [OK] `build_custom_question_payload(question_type, question_text, display_name_with_hint, category, validation)` - Build the saved custom-question definition for create or edit.
+- [OK] `category_combo_label(cat_key, cat_info)` - Return the category name shown in the custom-question combo.
 - [OK] `clear_layout_widgets(layout)` - Remove and schedule deletion of all widgets in a layout.
 - [OK] `compute_question_count_bounds(always_count, sometimes_count, total_enabled)` - Return (min_required, max_spinbox_floor, max_allowed) for question counts.
 
@@ -7303,10 +7310,12 @@ Args:
 **Classes:**
 - [OK] `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - [OK] `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
+  - [OK] `CheckinSettingsWidget._add_question_template_picker(self, main_layout, dialog, fields, templates)` - Add the optional start-from-template combo used only when creating.
   - [OK] `CheckinSettingsWidget._apply_question_template_to_form(self, template, question_text_edit, display_name_edit, type_combo, category_combo)` - Copy template fields onto the add/edit custom-question form.
   - [OK] `CheckinSettingsWidget._build_custom_question_key(self, question_key, question_text, dynamic_checkin_manager)` - Build a stable custom question key for create/edit flows.
   - [OK] `CheckinSettingsWidget._build_custom_question_validation(self, question_type, display_name)` - Build validation structure for a custom question type.
   - [OK] `CheckinSettingsWidget._build_display_name_with_type_hint(self, display_name, question_type)` - Add a type hint suffix to display names when missing.
+  - [OK] `CheckinSettingsWidget._build_question_details_form(self, form_layout, question_def, categories)` - Create question text, type, category, and display-name fields.
   - [OK] `CheckinSettingsWidget._clear_category_groups(self)` - Remove all category group boxes from the existing layout.
   - [OK] `CheckinSettingsWidget._clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
   - [OK] `CheckinSettingsWidget._collect_current_question_states(self)` - Collect include/enable state from current checkbox widgets.
@@ -7318,6 +7327,8 @@ Args:
   - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - lower min if needed.
   - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - raise max if needed.
   - [OK] `CheckinSettingsWidget._on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
+  - [OK] `CheckinSettingsWidget._populate_category_combo(combo, categories, selected_category)` - Fill the category combo from manager data, with fallback keys.
+  - [OK] `CheckinSettingsWidget._populate_question_type_combo(combo, selected_type)` - Fill the question-type combo and optionally select a type key.
   - [OK] `CheckinSettingsWidget._refresh_question_display(self)` - Refresh the question display from current in-memory state.
 
 Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
@@ -7329,6 +7340,7 @@ Args:
     question_key: If provided, edit existing question; otherwise create new
     question_def: Existing question definition (for editing)
   - [OK] `CheckinSettingsWidget._strip_type_hint_from_display_name(display_name)` - Remove a trailing ` (type hint)` suffix from UI display names.
+  - [OK] `CheckinSettingsWidget._submit_custom_question(self, fields, question_key, question_def, dynamic_checkin_manager)` - Validate form values and save a new or edited custom question.
   - [OK] `CheckinSettingsWidget._validate_question_counts(self)` - Validate min/max question counts based on enabled questions.
   - [OK] `CheckinSettingsWidget.add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
   - [OK] `CheckinSettingsWidget.add_new_question(self)` - Add a new check-in question.
@@ -7353,6 +7365,7 @@ Args:
     event: The show event object
   - [OK] `CheckinSettingsWidget.undo_last_question_delete(self)` - Undo the last question deletion.
   - [OK] `CheckinSettingsWidget.undo_last_time_period_delete(self)` - Undo the last time period deletion.
+- [OK] `QuestionDialogFields` - Widgets collected from the add/edit custom-question form.
 
 #### `ui/widgets/dynamic_list_container.py`
 **Functions:**
