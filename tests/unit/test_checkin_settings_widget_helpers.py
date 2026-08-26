@@ -7,8 +7,17 @@ pytest.importorskip(
     reason="QtWidgets unavailable due to missing GUI system libraries",
 )
 
-from PySide6.QtWidgets import QApplication, QComboBox, QLabel, QSpinBox, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
+from core.error_handling import UserInterfaceError
 from ui.widgets.checkin_settings_widget import (
     CheckinSettingsWidget,
     clear_layout_widgets,
@@ -81,6 +90,12 @@ class TestCheckinSettingsWidgetHelpers:
         child = first.itemAt(0).widget()
         assert child is not None
         assert child.text() == "second"
+
+    def test_ensure_vbox_layout_rejects_non_vbox(self, qapp):
+        container = QWidget()
+        QHBoxLayout(container)
+        with pytest.raises(UserInterfaceError):
+            ensure_vbox_layout(container)
 
     def test_orphaned_second_layout_leaves_installed_layout_empty(self, qapp):
         """Document the Qt trap the questions rebuild used to hit."""

@@ -36,7 +36,7 @@ When adding new changes, follow this format:
 ### 2026-08-25 - Check-in settings min/max and question-list glitches
 - **Fix**: Maximum questions can be reduced below the current Minimum; Minimum follows. Validation no longer sets the max spinbox floor to the current min value (that blocked `valueChanged` before the "pull min down" handler could run).
 - **Fix**: Adding or deleting a custom question no longer blanks the questions list. Rebuilds reuse the scroll container's existing `QVBoxLayout` via `ensure_vbox_layout()`; Qt will not install a second layout, so the old `QVBoxLayout(widget)` path left new rows on an orphaned layout while checkbox state stayed in memory.
-- **Hygiene**: Extracted `compute_question_count_bounds`, `ensure_vbox_layout`, and `clear_layout_widgets`. Removed the `skip_min_adjust` / `_adjusting_from_max` workaround. Stopped hiding the questions container during rebuild.
+- **Hygiene**: Extracted `compute_question_count_bounds`, `ensure_vbox_layout`, and `clear_layout_widgets`. Removed the `skip_min_adjust` / `_adjusting_from_max` workaround. Stopped hiding the questions container during rebuild. `ensure_vbox_layout` raises `UserInterfaceError` instead of `TypeError` (Phase 2 error-handling audit).
 - **Tests**: Unit coverage in [`test_checkin_settings_widget_helpers.py`](../tests/unit/test_checkin_settings_widget_helpers.py). Widget tests in [`test_checkin_settings_widget_question_counts.py`](../tests/ui/test_checkin_settings_widget_question_counts.py) (`MHM_QT_UI_FORCE=1` on Windows): 41 passed with the check-in management dialog slice.
 - **Docs**: Closed the TODO item. Function registry refresh via `docs`.
 - **Impact**: Check-in management dialog min/max and custom-question add/delete behave as expected.

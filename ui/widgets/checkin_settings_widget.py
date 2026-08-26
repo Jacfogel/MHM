@@ -36,7 +36,7 @@ from ui.period_row_management import (
     DEFAULT_PERIOD_DATA,
 )
 from core import get_user_data
-from core.error_handling import handle_errors
+from core.error_handling import UserInterfaceError, handle_errors
 from core.logger import setup_logging, get_component_logger
 
 setup_logging()
@@ -65,7 +65,9 @@ def compute_question_count_bounds(
     return min_required, max_spinbox_floor, max_allowed
 
 
-@handle_errors("ensuring vertical box layout", re_raise=True)
+@handle_errors(
+    "ensuring vertical box layout", re_raise=True, user_friendly=False
+)
 def ensure_vbox_layout(
     widget: QWidget, spacing: int = 10, margins: tuple[int, int, int, int] = (4, 4, 4, 4)
 ) -> QVBoxLayout:
@@ -78,8 +80,13 @@ def ensure_vbox_layout(
     if isinstance(layout, QVBoxLayout):
         return layout
     if layout is not None:
-        raise TypeError(
-            f"widget already has a {type(layout).__name__}; expected QVBoxLayout"
+        raise UserInterfaceError(
+            "The questions list already uses a different layout.",
+            details={
+                "found_layout": type(layout).__name__,
+                "expected_layout": "QVBoxLayout",
+            },
+            recoverable=False,
         )
     layout = QVBoxLayout(widget)
     layout.setSpacing(spacing)

@@ -34,6 +34,7 @@ Guidelines:
 - Maximum questions can be lowered below the current minimum; minimum follows (the max spinbox is no longer locked to current min).
 - Adding/deleting custom questions reuses the scroll-area layout instead of creating a second orphaned layout that left the list blank.
 - Helper/unit coverage for bounds and layout reuse; full widget tests pass with `MHM_QT_UI_FORCE=1`.
+- `ensure_vbox_layout` raises `UserInterfaceError` (not `TypeError`) when a non-vbox layout is already installed.
 
 ### 2026-08-25 - v2 envelopes in memory for account/preferences/schedules **COMPLETED**
 - `get_user_data` account/preferences/schedules now return the same v2 envelopes as on disk; `core/schemas.py` is gone.
@@ -115,11 +116,6 @@ Guidelines:
 - Per-user scheduler jobs, AI prompt wording (tasks, schedules, features, today check-in, reminders, mood), and due-date flow dates/times now share one implementation instead of copied policy.
 - User-index lookup keys, command-response skip-line filters, and check-in "and a half" parsing each have one helper.
 - `_format_profile_text` uses `@handle_errors` (Phase 1); stray decorator removed from gender formatting. Registry regenerated for the new helpers. Pyright warning on the exploding profile test stub is gone. Complexity queues skip `__init__`. Changelog ASCII: replaced Unicode arrows with `->`.
-
-### 2026-08-18 - Notebook handler uses public conversation flow APIs **COMPLETED**
-- Public `start_note_body_flow` / `start_journal_body_flow` / `start_list_items_flow` / `start_entry_edit_flow` (and `get_note_body_flow_data`) on the note-flow mixin.
-- `notebook_handler` no longer writes `conversation_manager.user_states` or calls `_save_user_states`.
-- Same coupling pattern as the Aug 11 check-in public API; user-visible notebook prompts unchanged.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
