@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from unittest.mock import patch
 
@@ -14,6 +15,23 @@ from scheduler.health_sync_schedule import get_due_sync_slot_key
 def _local_dt(tz_name: str, year: int, month: int, day: int, hour: int, minute: int):
     tz = pytz.timezone(tz_name)
     return tz.localize(datetime(year, month, day, hour, minute, 0))
+
+
+def _indexed_factory_user(username: str, test_data_dir: str) -> str:
+    from core.user_lookup import get_user_id_by_identifier
+    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
+
+    assert TestUserFactory.create_basic_user(username, test_data_dir=test_data_dir)
+    user_id = get_user_id_by_identifier(username)
+    assert user_id, f"factory did not index user {username!r}"
+    return user_id
+
+
+def _allow_live_health_sync():
+    return patch(
+        "integrations.google_health.sync_manager.is_google_health_testing_mode",
+        return_value=False,
+    )
 
 
 @pytest.mark.unit
@@ -98,10 +116,10 @@ def test_sync_users_due_for_schedule_skips_when_not_due(test_data_dir):
     from core import update_user_account
     from integrations.google_health.data_handlers import ensure_health_directory, save_auth
     from integrations.google_health.sync_manager import sync_users_due_for_schedule
-    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
-    user_id = "health-schedule-user-001"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    user_id = _indexed_factory_user(
+        f"health-schedule-user-001-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     update_user_account(
         user_id, {"features": {"google_health": "enabled"}, "timezone": "America/Regina"}
     )
@@ -118,7 +136,7 @@ def test_sync_users_due_for_schedule_skips_when_not_due(test_data_dir):
     )
 
     early = _local_dt("America/Regina", 2026, 6, 28, 5, 0)
-    with patch.dict("os.environ", {"MHM_TESTING": "0"}, clear=False), patch(
+    with _allow_live_health_sync(), patch(
         "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
     ), patch(
         "integrations.google_health.sync_manager.get_all_user_ids",
@@ -139,10 +157,10 @@ def test_sync_users_due_for_schedule_syncs_due_user(test_data_dir):
     from core import update_user_account
     from integrations.google_health.data_handlers import ensure_health_directory, save_auth
     from integrations.google_health.sync_manager import sync_users_due_for_schedule
-    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
-    user_id = "health-schedule-user-002"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    user_id = _indexed_factory_user(
+        f"health-schedule-user-002-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     update_user_account(
         user_id, {"features": {"google_health": "enabled"}, "timezone": "America/Regina"}
     )
@@ -159,7 +177,7 @@ def test_sync_users_due_for_schedule_syncs_due_user(test_data_dir):
     )
 
     due = _local_dt("America/Regina", 2026, 6, 28, 7, 0)
-    with patch.dict("os.environ", {"MHM_TESTING": "0"}, clear=False), patch(
+    with _allow_live_health_sync(), patch(
         "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
     ), patch(
         "integrations.google_health.sync_manager.get_all_user_ids",

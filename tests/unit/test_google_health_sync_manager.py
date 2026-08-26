@@ -7,6 +7,7 @@ import pytest
 
 from core import update_user_account
 from core.error_handling import CommunicationError
+from core.user_lookup import get_user_id_by_identifier
 from integrations.google_health.data_handlers import (
     delete_user_health_data,
     ensure_health_directory,
@@ -22,9 +23,24 @@ from integrations.google_health.sync_manager import (
 from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
 
+def _indexed_factory_user(username: str, test_data_dir: str) -> str:
+    """Create a factory user and return the on-disk UUID, not the username."""
+    assert TestUserFactory.create_basic_user(username, test_data_dir=test_data_dir)
+    user_id = get_user_id_by_identifier(username)
+    assert user_id, f"factory did not index user {username!r}"
+    return user_id
+
+
+def _allow_live_health_sync():
+    """Skip the MHM_TESTING guard without disabling test-only user-data healing."""
+    return patch(
+        "integrations.google_health.sync_manager.is_google_health_testing_mode",
+        return_value=False,
+    )
+
+
 def _health_user(test_data_dir: str, prefix: str = "health") -> str:
-    user_id = f"{prefix}-{uuid.uuid4().hex[:8]}"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    user_id = _indexed_factory_user(f"{prefix}-{uuid.uuid4().hex[:8]}", test_data_dir)
     update_user_account(user_id, {"features": {"google_health": "enabled"}})
     ensure_health_directory(user_id)
     save_auth(
@@ -43,8 +59,9 @@ def _health_user(test_data_dir: str, prefix: str = "health") -> str:
 @pytest.mark.unit
 @pytest.mark.user
 def test_ensure_health_directory_creates_files(test_data_dir):
-    user_id = "health-test-user-001"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    user_id = _indexed_factory_user(
+        f"health-test-user-001-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     assert ensure_health_directory(user_id) is True
     doc = load_daily_summaries(user_id)
     assert doc is not None
@@ -94,20 +111,23 @@ def test_upsert_daily_summaries_preserves_existing_fields_when_incoming_omits_th
 
 @pytest.mark.unit
 @pytest.mark.user
-def test_sync_skips_when_feature_paused(test_data_dir, monkeypatch):
-    user_id = "health-test-user-002"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+def test_sync_skips_when_feature_paused(test_data_dir):
+    user_id = _indexed_factory_user(
+        f"health-test-user-002-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     update_user_account(user_id, {"features": {"google_health": "paused"}})
-    monkeypatch.setenv("MHM_TESTING", "0")
-    with patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True):
+    with _allow_live_health_sync(), patch(
+        "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
+    ):
         assert sync_user_health_data(user_id, force=True) is False
 
 
 @pytest.mark.unit
 @pytest.mark.user
-def test_sync_completes_with_mocked_api(test_data_dir, monkeypatch):
-    user_id = "health-test-user-sync"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+def test_sync_completes_with_mocked_api(test_data_dir):
+    user_id = _indexed_factory_user(
+        f"health-test-user-sync-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     update_user_account(user_id, {"features": {"google_health": "enabled"}})
     ensure_health_directory(user_id)
     save_auth(
@@ -120,9 +140,10 @@ def test_sync_completes_with_mocked_api(test_data_dir, monkeypatch):
             "expires_at": "2099-01-01 00:00:00",
         },
     )
-    monkeypatch.setenv("MHM_TESTING", "0")
     sample = [{"date": "2026-06-27", "steps": 5000, "completeness": ["activity"]}]
-    with patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True), patch(
+    with _allow_live_health_sync(), patch(
+        "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
+    ), patch(
         "integrations.google_health.sync_manager.ensure_valid_access_token",
         return_value="token",
     ), patch(
@@ -141,8 +162,9 @@ def test_sync_completes_with_mocked_api(test_data_dir, monkeypatch):
 @pytest.mark.unit
 @pytest.mark.user
 def test_delete_user_health_data(test_data_dir):
-    user_id = "health-test-user-003"
-    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    user_id = _indexed_factory_user(
+        f"health-test-user-003-{uuid.uuid4().hex[:8]}", test_data_dir
+    )
     ensure_health_directory(user_id)
     assert delete_user_health_data(user_id) is True
     assert ensure_health_directory(user_id) is True
@@ -150,12 +172,10 @@ def test_delete_user_health_data(test_data_dir):
 
 @pytest.mark.unit
 @pytest.mark.integrations
-def test_sync_api_error_increments_failures_without_reconnect_notice(
-    test_data_dir, monkeypatch
-):
+def test_sync_api_error_increments_failures_without_reconnect_notice(test_data_dir):
     user_id = _health_user(test_data_dir, "health-api-err")
-    monkeypatch.setenv("MHM_TESTING", "0")
     with (
+        _allow_live_health_sync(),
         patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True),
         patch(
             "integrations.google_health.sync_manager.GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD",
@@ -188,10 +208,10 @@ def test_sync_api_error_increments_failures_without_reconnect_notice(
 
 @pytest.mark.unit
 @pytest.mark.integrations
-def test_sync_timeout_returns_false_without_crash(test_data_dir, monkeypatch):
+def test_sync_timeout_returns_false_without_crash(test_data_dir):
     user_id = _health_user(test_data_dir, "health-timeout")
-    monkeypatch.setenv("MHM_TESTING", "0")
     with (
+        _allow_live_health_sync(),
         patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True),
         patch(
             "integrations.google_health.sync_manager.ensure_valid_access_token",
@@ -210,9 +230,7 @@ def test_sync_timeout_returns_false_without_crash(test_data_dir, monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.integrations
-def test_sync_success_clears_reconnect_notice_and_failures(
-    test_data_dir, monkeypatch
-):
+def test_sync_success_clears_reconnect_notice_and_failures(test_data_dir):
     user_id = _health_user(test_data_dir, "health-clear")
     save_sync_state(
         user_id,
@@ -225,9 +243,9 @@ def test_sync_success_clears_reconnect_notice_and_failures(
             "last_scheduled_slot": "morning",
         },
     )
-    monkeypatch.setenv("MHM_TESTING", "0")
     sample = [{"date": "2026-06-27", "steps": 5000, "completeness": ["activity"]}]
     with (
+        _allow_live_health_sync(),
         patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True),
         patch(
             "integrations.google_health.sync_manager.ensure_valid_access_token",

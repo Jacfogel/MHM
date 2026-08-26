@@ -184,22 +184,29 @@ def test_check_dev_tools_changed_tool_reason_and_mtimes(tmp_path: Path) -> None:
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text("{}", encoding="utf-8")
 
-    source_mtimes = get_dev_tools_source_mtimes(tmp_path)
-    test_mtimes = get_dev_tools_test_mtimes(tmp_path)
-    config_mtime = cfg.stat().st_mtime
-    config_hash = hash_file_sha256(cfg)
-    cache2 = SimpleNamespace(
-        get_tool_change_reason=lambda: None,
-        get_cached_config_mtime=lambda: config_mtime,
-        get_cached_config_hash=lambda: config_hash,
-        get_last_run_ok=lambda: True,
-        get_cached_mtimes=lambda: dict(source_mtimes),
-        get_cached_test_mtimes=lambda: dict(test_mtimes),
-    )
+    # Nightly --basetemp lives under tests/data/tmp/pytest_runner/. Keep exclusion
+    # checks from treating this scratch tree as test-data so mtime scans see files.
     with patch(
+        "development_tools.tests.coverage_domain_cache.should_exclude_file",
+        return_value=False,
+    ), patch(
         "development_tools.tests.coverage_domain_cache.get_config_file_path",
         return_value=cfg,
     ):
+        source_mtimes = get_dev_tools_source_mtimes(tmp_path)
+        test_mtimes = get_dev_tools_test_mtimes(tmp_path)
+        assert source_mtimes
+        assert test_mtimes
+        config_mtime = cfg.stat().st_mtime
+        config_hash = hash_file_sha256(cfg)
+        cache2 = SimpleNamespace(
+            get_tool_change_reason=lambda: None,
+            get_cached_config_mtime=lambda: config_mtime,
+            get_cached_config_hash=lambda: config_hash,
+            get_last_run_ok=lambda: True,
+            get_cached_mtimes=lambda: dict(source_mtimes),
+            get_cached_test_mtimes=lambda: dict(test_mtimes),
+        )
         assert (
             check_dev_tools_changed(
                 use_domain_cache=True,
@@ -209,19 +216,15 @@ def test_check_dev_tools_changed_tool_reason_and_mtimes(tmp_path: Path) -> None:
             is False
         )
 
-    os.utime(cfg, None)
-    cache_touched = SimpleNamespace(
-        get_tool_change_reason=lambda: None,
-        get_cached_config_mtime=lambda: config_mtime,
-        get_cached_config_hash=lambda: config_hash,
-        get_last_run_ok=lambda: True,
-        get_cached_mtimes=lambda: dict(source_mtimes),
-        get_cached_test_mtimes=lambda: dict(test_mtimes),
-    )
-    with patch(
-        "development_tools.tests.coverage_domain_cache.get_config_file_path",
-        return_value=cfg,
-    ):
+        os.utime(cfg, None)
+        cache_touched = SimpleNamespace(
+            get_tool_change_reason=lambda: None,
+            get_cached_config_mtime=lambda: config_mtime,
+            get_cached_config_hash=lambda: config_hash,
+            get_last_run_ok=lambda: True,
+            get_cached_mtimes=lambda: dict(source_mtimes),
+            get_cached_test_mtimes=lambda: dict(test_mtimes),
+        )
         assert (
             check_dev_tools_changed(
                 use_domain_cache=True,

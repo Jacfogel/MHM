@@ -28,12 +28,15 @@ def get_dev_tools_source_mtimes(project_root: Path) -> dict[str, float]:
             continue
         try:
             rel_path = str(py_file.relative_to(root))
-            if should_exclude_file(
-                rel_path.replace("\\", "/"),
-                tool_type="analysis",
-                context="development",
-            ):
-                continue
+        except (OSError, ValueError):
+            continue
+        if should_exclude_file(
+            rel_path.replace("\\", "/"),
+            tool_type="analysis",
+            context="development",
+        ):
+            continue
+        try:
             mtimes[rel_path] = py_file.stat().st_mtime
         except OSError:
             continue
@@ -51,12 +54,15 @@ def get_dev_tools_test_mtimes(project_root: Path) -> dict[str, float]:
     for test_file in tests_dir.rglob("test_*.py"):
         try:
             rel_path = str(test_file.relative_to(root))
-            if should_exclude_file(
-                rel_path.replace("\\", "/"),
-                tool_type="analysis",
-                context="development",
-            ):
-                continue
+        except (OSError, ValueError):
+            continue
+        if should_exclude_file(
+            rel_path.replace("\\", "/"),
+            tool_type="analysis",
+            context="development",
+        ):
+            continue
+        try:
             mtimes[rel_path] = test_file.stat().st_mtime
         except OSError:
             continue
@@ -64,8 +70,13 @@ def get_dev_tools_test_mtimes(project_root: Path) -> dict[str, float]:
 
 
 def get_config_file_path(project_root: Path) -> Path | None:
-    """Resolve development_tools_config.json if it exists."""
+    """Resolve development_tools_config.json for *project_root* if it exists."""
     root = Path(project_root).resolve()
+    local_config = (
+        root / "development_tools" / "config" / "development_tools_config.json"
+    )
+    if local_config.exists():
+        return local_config
     try:
         import development_tools.config.config as config_module
 
@@ -74,15 +85,8 @@ def get_config_file_path(project_root: Path) -> Path | None:
             and config_module._config_file_path
         ):
             config_path = Path(config_module._config_file_path)
-        else:
-            config_path = (
-                root
-                / "development_tools"
-                / "config"
-                / "development_tools_config.json"
-            )
-        if config_path.exists():
-            return config_path
+            if config_path.exists():
+                return config_path
     except Exception:
         return None
     return None
@@ -143,9 +147,7 @@ def check_dev_tools_changed(
         return True
 
     current_mtimes = get_dev_tools_source_mtimes(project_root)
-    cached_mtimes = dev_tools_cache.get_cached_mtimes()
-    if not cached_mtimes:
-        return True  # No cache exists - consider it changed
+    cached_mtimes = dev_tools_cache.get_cached_mtimes() or {}
 
     for file_path, current_mtime in current_mtimes.items():
         cached_mtime = cached_mtimes.get(file_path)
@@ -157,9 +159,7 @@ def check_dev_tools_changed(
             return True
 
     current_test_mtimes = get_dev_tools_test_mtimes(project_root)
-    cached_test_mtimes = dev_tools_cache.get_cached_test_mtimes()
-    if not cached_test_mtimes:
-        return True
+    cached_test_mtimes = dev_tools_cache.get_cached_test_mtimes() or {}
     for file_path, current_mtime in current_test_mtimes.items():
         cached_mtime = cached_test_mtimes.get(file_path)
         if cached_mtime is None or current_mtime != cached_mtime:

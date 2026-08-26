@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Nightly health-sync and coverage-cache test isolation **COMPLETED**
+- Health sync/schedule tests resolve the factory UUID and patch `is_google_health_testing_mode` instead of setting `MHM_TESTING=0`.
+- Dev-tools coverage cache no longer treats empty mtime scans as changed; config path is the project under test.
+- Nightly `--basetemp` under `tests/data` no longer trips those six node IDs.
+
 ### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
 - Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, and `show overdue tasks` as real task commands.
 - Title/ID cleanup: `create a task for laundry` keeps title `laundry`; `I completed the dentist task` looks up `dentist`; `add a note to the dentist task: ...` appends a task note instead of making a notebook note.
@@ -106,12 +111,6 @@ Guidelines:
 ### 2026-08-21 - Fix hourly status zeros and cleanup log routing **COMPLETED**
 - Hourly `Service status` now counts real scheduler jobs, users, and active channels instead of missing APIs that always reported 0.
 - Data-directory/auto-cleanup logs go to `file_ops.log`; backup deletions log at INFO with a removal summary.
-
-### 2026-08-21 - Audit issue counts reach AI_PRIORITIES **COMPLETED**
-- Documentation placeholder hits are read from `analyze_documentation` `details` and become Quick Wins ([TODO.md](../TODO.md) skipped).
-- Function-registry extras (documented but not in the scan) are a Watch List item; missing rows stay Immediate Focus.
-- Package-export "missing" now means `from package import Name` without `__all__`/re-export, not every public submodule name.
-- Follow-up: bare TODO / [TODO.md](../TODO.md) mentions are not placeholders; registry extras scan `project.key_files` even when those paths are excluded. Code fences, inline backticks, and changelog files are also ignored.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
