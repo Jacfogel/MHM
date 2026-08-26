@@ -62,7 +62,8 @@ Capture notes, lists, and journal entries from Discord.
 **Capture:**
 • `!n My thought` / `note: Title | body text`
 • `jot down that I talked to the doctor` / `add a note about the meeting`
-• `remember that my favorite tea is chamomile`
+• `remember that my favorite tea is chamomile` / `keep in mind that the gate code is 1234`
+• `write this down: wifi is on the fridge`
 • `!qn` or `quick note Grocery idea` — saves to Quick Notes group
 • `!j Today I felt...` — journal entry
 • `!l Groceries` / `!l new Groceries Milk, Bread #home`
@@ -1282,6 +1283,7 @@ class NotebookHandler(InteractionHandler):
         return [
             "!n My quick thought",
             "jot down that I talked to the doctor",
+            "keep in mind that the gate code is 1234",
             "add a note about the meeting",
             "!n Meeting Notes | Discuss project X, follow up on Y",
             "!recent",

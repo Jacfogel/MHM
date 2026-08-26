@@ -59,23 +59,23 @@ Manage tasks with natural language or short commands.
 
 **Create** (talk normally — dates/priority/tags can be in the same message):
 • `i need to call the dentist this week`
-• `i should pick up groceries tonight`
-• `dont forget to email the school`
-• `add laundry to my list` / `i gotta call mom`
+• `i should pick up groceries tonight` / `i still need to pay rent`
+• `dont forget to email the school` / `don't let me forget to take meds`
+• `add laundry to my list` / `i gotta call mom` / `i'm supposed to call the school`
 • `remind me to submit forms tomorrow morning`
 • `nt buy milk tonight #groceries`
 • `new task urgent: fix login before Friday group:work`
 • `remind me to take medication every morning at 8am` (recurring)
 
 **List & stats:**
-• `show my tasks` / `list tasks` / `what is on my list` / `/tasks`
-• `show overdue tasks` / `what's due`
+• `show my tasks` / `list tasks` / `what is on my list` / `show my list` / `/tasks`
+• `show overdue tasks` / `what's due` / `what's left`
 • `show tasks in group work` / `list tasks group:medical`
 • `task stats` / `how am I doing with my tasks this week?`
 
 **Complete, delete, update:**
-• `complete task 1` / `done Call mom` / `mark dentist done`
-• `I already did the dentist` / `take dentist off my list`
+• `complete task 1` / `done Call mom` / `mark dentist done` / `cross off dentist`
+• `I already did the dentist` / `take dentist off my list` / `i'm done with laundry`
 • `delete task 2` / `delete Buy groceries`
 • `update task 1 priority high due tomorrow`
 • `update task 1 note insurance form is on the counter` (replace notes)
@@ -1052,12 +1052,14 @@ class TaskManagementHandler(InteractionHandler):
         return [
             "i need to call the dentist this week",
             "i should pick up groceries tonight",
+            "i still need to pay rent",
             "dont forget to email the school",
             "add laundry to my list",
             "remind me to submit forms tomorrow morning",
             "nt buy milk tonight #groceries",
             "create task to water plants every 2 weeks",
             "show my tasks",
+            "show my list",
             "complete task 1",
             "delete task Buy groceries",
             "update task 2 priority urgent due friday",

@@ -14,16 +14,21 @@ Reverse coupling (separate concern):
   ``communication`` modules call ``ai.chat.chatbot.get_ai_chatbot`` for generation.
   That does not import ``command_registry``.
 
-If ``RULE_BASED_INTENT_PATTERNS`` is unset (parser never constructed), injection
-is a no-op and callers should use static fallback text in ``resources/prompts/command.txt``.
+If ``RULE_BASED_INTENT_PATTERNS`` is unset, injection initializes the parser
+singleton so every run mode gets the live list. The template in
+``resources/prompts/command.txt`` stays a placeholder, not a second inventory.
 
 Imports from ``command_parser`` are lazy (inside ``get_command_intent_names``) to avoid
 a circular import when ``command_parser`` loads ``ai.chat.chatbot`` during package init.
 """
 
 import re
+from collections.abc import Iterable
 
 from core.error_handling import handle_errors
+
+
+_AVAILABLE_ACTIONS_LINE = re.compile(r"^(Available actions: ).+$", re.MULTILINE)
 
 
 @handle_errors("getting command intent names", default_return=[])
@@ -45,16 +50,33 @@ def get_initialized_command_intent_names() -> list[str]:
     if names:
         return names
 
-    from communication.message_processing.command_parser import EnhancedCommandParser
+    from communication.message_processing.command_parser import get_enhanced_command_parser
 
-    EnhancedCommandParser()
+    get_enhanced_command_parser()
     return get_command_intent_names()
+
+
+@handle_errors("canonicalizing command intent name", default_return="")
+# not_duplicate: command_registry_intent_canonicalize_bridge
+def canonicalize_intent_name(
+    raw: str, known_intents: Iterable[str] | None = None
+) -> str:
+    """Normalize spaced or hyphenated ACTION names to live parser intent names.
+
+    AI modules must call this registry helper instead of importing
+    ``communication.message_processing.intent_validation`` directly.
+    """
+    from communication.message_processing.intent_validation import (
+        canonicalize_intent_name as canonicalize_communication_intent_name,
+    )
+
+    return canonicalize_communication_intent_name(raw, known_intents)
 
 
 @handle_errors("formatting command actions for prompt", default_return="unknown")
 def format_command_actions_for_prompt() -> str:
     """Format intent names for inclusion in the command system prompt."""
-    names = get_command_intent_names()
+    names = get_initialized_command_intent_names()
     if not names:
         return "unknown"
     return ", ".join(names)
@@ -62,15 +84,16 @@ def format_command_actions_for_prompt() -> str:
 
 @handle_errors("injecting command actions into prompt", default_return="")
 def inject_command_actions_into_prompt(prompt_content: str) -> str:
-    """Replace the static 'Available actions:' list with the live registry."""
+    """Replace the 'Available actions:' line with the live registry."""
     if not prompt_content:
         return prompt_content
     actions = format_command_actions_for_prompt()
     if not actions or actions == "unknown":
         return prompt_content
-    return re.sub(
-        r"(Available actions: )[^.]+\.",
-        rf"\1{actions}.",
+    if not _AVAILABLE_ACTIONS_LINE.search(prompt_content):
+        return prompt_content
+    return _AVAILABLE_ACTIONS_LINE.sub(
+        lambda match: f"{match.group(1)}{actions}.",
         prompt_content,
         count=1,
     )

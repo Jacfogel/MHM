@@ -114,11 +114,13 @@
     - `ai.client.lm_studio_client (call_lm_studio_api)` (NEW)
     - `ai.prompts.action_catalog (AIActionCatalog, AIActionPlan, AIActionRequest, ResponseIntent, get_action_catalog)` (NEW)
     - `ai.prompts.command_interpreter (get_command_interpreter)` (NEW)
+    - `ai.prompts.command_registry (canonicalize_intent_name)` (NEW)
     - `core.config (AI_ACTION_PLAN_MIN_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT, AI_COMMAND_TEMPERATURE)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `collections.abc (Iterable)`
     - `re`
     - `typing (Any)`
 - **Used by**:

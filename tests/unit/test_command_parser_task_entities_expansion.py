@@ -236,6 +236,18 @@ class TestCommandParserCreateTaskNaturalLanguage:
                 None,
                 None,
             ),
+            (
+                "i still need to pay rent tomorrow",
+                "pay rent",
+                "tomorrow",
+                None,
+            ),
+            (
+                "don't let me forget to take meds tonight",
+                "take meds",
+                "tonight",
+                None,
+            ),
         ],
     )
     def test_rule_parse_create_task_natural_language(

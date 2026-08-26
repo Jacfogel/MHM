@@ -165,7 +165,7 @@ Do not hard-code these thresholds in new code; use the values from `core/config.
 
 The command system prompt must list the same intents as the rule-based parser. Do not maintain a second hardcoded list in `ai/chat/chatbot.py` or channel code.
 
-**Single source:** `EnhancedCommandParser.intent_patterns` in `communication/message_processing/command_parser.py`. On construction, the parser sets the module-global `RULE_BASEED_INTENT_PATTERNS`.
+**Single source:** `EnhancedCommandParser.intent_patterns` in `communication/message_processing/command_parser.py`. On construction, the parser sets the module-global `RULE_BASED_INTENT_PATTERNS`.
 
 **Bridge:** `ai/prompts/command_registry.py` exposes `get_command_intent_names()` and `inject_command_actions_into_prompt()`. The registry lazy-imports `get_rule_based_intent_names()` from the parser to avoid circular imports during package init.
 
@@ -173,13 +173,15 @@ The command system prompt must list the same intents as the rule-based parser. D
 
 **Production initialization (verified):**
 
-1. `InteractionManager.__init__` calls `get_enhanced_command_parser()`, which constructs the parser singleton and populates `RULE_BASED_INTENT_PATTERNS`.
+1. `get_prompt("command")` and the action catalog initialize the parser singleton when needed (`get_enhanced_command_parser()`). `InteractionManager.__init__` also constructs it for the live Discord/email path.
 2. Any later `get_prompt("command")` or `create_command_parsing_prompt(...)` replaces the placeholder line in `resources/prompts/command.txt` with the live comma-separated intent list.
 3. `generate_response(..., mode="command")` uses the injected prompt via the command interpreter (same path as `EnhancedCommandParser._ai_enhanced_parse`).
 
-**Template fallback:** `resources/prompts/command.txt` keeps a short placeholder (`Available actions: injected at runtime...`). If the parser was never constructed, injection is a no-op and the placeholder remains (tests should treat that as misconfiguration, not a second source of truth).
+**Template fallback:** `resources/prompts/command.txt` keeps a short placeholder (`Available actions: injected at runtime...`). Injection initializes the parser singleton when needed, then replaces that whole line with the live comma-separated intent list. A leftover placeholder after `get_prompt("command")` is a test failure, not a second source of truth.
 
-**Tests:** `tests/unit/test_command_prompt_injection_live_path.py` (parser singleton, prompt manager, command interpreter, interaction manager). Registry unit tests in `tests/unit/test_command_registry.py` cover regex replacement when patterns are loaded.
+**Name canonicalization:** `canonicalize_intent_name()` in `communication/message_processing/intent_validation.py` maps spaced/hyphenated ACTION lines (`create note`, `start check-in`) onto live parser names. The command parser uses that helper directly. AI code (action planner) must call the re-export on `ai/prompts/command_registry.py` instead of importing communication. This replaces hardcoded 3-5 item alias lists.
+
+**Tests:** `tests/unit/test_command_prompt_injection_live_path.py` (exact set equality for catalog, injected prompt, and planning summary). Registry unit tests in `tests/unit/test_command_registry.py` cover line replacement and self-init.
 
 ---
 

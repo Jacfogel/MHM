@@ -27,7 +27,10 @@ from core.config import (
 from ai.chat.chatbot import get_ai_chatbot
 from communication.command_handlers.shared_types import ParsedCommand
 from communication.command_handlers.interaction_handlers import get_all_handlers
-from communication.message_processing.intent_validation import is_valid_intent
+from communication.message_processing.intent_validation import (
+    canonicalize_intent_name,
+    is_valid_intent,
+)
 
 parser_logger = get_component_logger("ai")
 logger = parser_logger
@@ -390,14 +393,20 @@ class EnhancedCommandParser:
                 r"create\s+(?:a\s+)?task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
                 r"add\s+(?:a\s+)?task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
                 r"new\s+task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
+                r"i\s+(?:still|also|really|actually)\s+need\s+to\s+(.+)",
                 r"i\s+need\s+to\s+(.+)",
                 r"i\s+should\s+(.+)",
                 r"i\s+have\s+to\s+(.+)",
+                r"i(?:'m|\s+am)\s+supposed\s+to\s+(.+)",
+                r"i(?:'ve|ve|\s+have)\s+got(?:ta|\s+to)\s+(.+)",
                 r"(?:i\s+)?gotta\s+(.+)",
                 r"^need\s+to\s+(.+)$",
+                r"make\s+sure\s+(?:i|to)\s+(.+)",
                 r"make\s+a\s+reminder\s+to\s+(.+)",
                 r"^(?:put|add)\s+(.+?)\s+(?:on|to)\s+my\s+(?:list|to-?dos?|todo)s?$",
                 r"remind\s+me\s+to\s+(.+)",
+                r"don'?t\s+let\s+me\s+forget\s+to\s+(.+)",
+                r"do\s+not\s+let\s+me\s+forget\s+to\s+(.+)",
                 r"don'?t\s+forget\s+to\s+(.+)",
                 r"do\s+not\s+forget\s+to\s+(.+)",
                 r"remember\s+to\s+(.+)",
@@ -474,21 +483,33 @@ class EnhancedCommandParser:
                 r"^list\s+tasks?$",
                 r"^what\s+are\s+my\s+tasks?$",
                 r"^what\s+are\s+tasks?$",
-                r"^what(?:'s|\s+is)\s+on\s+my\s+(?:list|to-?dos?|todo)s?$",
-                r"^what(?:'s|\s+is)\s+on\s+(?:the\s+|my\s+)?(?:task\s+)?list$",
+                r"^what(?:'?s|\s+is)\s+on\s+my\s+(?:list|to-?dos?|todo)s?$",
+                r"^what(?:'?s|\s+is)\s+on\s+(?:the\s+|my\s+)?(?:task\s+)?list$",
+                r"^show\s+(?:my\s+|the\s+)?(?:lists?|to-?dos?|to\s+dos?)$",
+                r"^list\s+(?:my\s+)?(?:to-?dos?|to\s+dos?)$",
+                r"^my\s+(?:lists?|to-?dos?|to\s+dos?)$",
                 r"^my\s+tasks?$",
                 r"^tasks?\s+due$",
                 r"^what\s+do\s+i\s+have\s+to\s+do\s+(?:today|tomorrow)$",
+                r"^what\s+do\s+i\s+still\s+need\s+to\s+do$",
+                r"^what(?:'?s|\s+is)\s+left(?:\s+to\s+do)?$",
+                r"^what(?:'?s|\s+is)\s+on\s+my\s+plate$",
                 r"^what\s+are\s+my\s+tasks?\s+(?:for\s+today|for\s+tomorrow)$",
                 r"^show\s+me\s+my\s+tasks?$",
                 r"^show\s+overdue\s+tasks?$",
                 r"^overdue\s+tasks?$",
-                r"^what(?:'s|\s+is)\s+due$",
+                r"^what(?:'?s|\s+is)\s+due$",
+                r"^what(?:'?s|\s+is)\s+overdue$",
                 r"^what\s+do\s+i\s+have\s+due$",
             ],
             "complete_task": [
                 r"^complete\s+(.+)$",
                 r"complete\s+(?:task\s+)?(\d+|[^0-9]+)",
+                r"\bcross\s+off\s+(.+)$",
+                r"\bcheck\s+off\s+(.+)$",
+                r"\bscratch\s+(.+?)\s+off(?:\s+(?:my\s+)?(?:list|to-?dos?))?$",
+                r"^(?:please\s+)?i(?:'m|\s+am)\s+done\s+with\s+(.+)$",
+                r"^i\s+got\s+(.+?)\s+done$",
                 r"done\s+(?:task\s+)?(\d+|[^0-9]+)",
                 r"finished\s+(?:task\s+)?(\d+|[^0-9]+)",
                 r"\bmark\s+(?:the\s+)?(?:task\s+)?(.+?)\s+(?:as\s+)?(?:done|complete(?:d)?)\s*$",
@@ -778,6 +799,11 @@ class EnhancedCommandParser:
                 r"\bwrite\s+down\s+(?:that\s+)?(.+)",
                 r"\bmake\s+a\s+note\s+(?:of\s+|about\s+|that\s+)?(.+)",
                 r"\badd\s+a\s+note\s+(?:about|that)\s+(.+)",
+                r"\bkeep\s+in\s+mind\s+(?:that\s+)?(.+)",
+                r"\bwrite\s+this\s+down\s*[:\-]?\s*(.+)",
+                r"^(?:please\s+)?(?:put|save)\s+this\s+in\s+(?:my\s+)?notes?\s*[:\-]?\s*(.+)$",
+                r"don'?t\s+let\s+me\s+forget\s+that\s+(.+)",
+                r"do\s+not\s+let\s+me\s+forget\s+that\s+(.+)",
                 r"^(?:please\s+)?remember\s+that\s+(.+)$",
                 r"note\s+(.+)",
                 r"new\s+note\s+(.+)",
@@ -853,7 +879,7 @@ class EnhancedCommandParser:
                 r"^what(?:'s|\s+is)\s+in\s+my\s+notebook$",
             ],
             "show_entry": [
-                r"^show\s+(?!my\s+tasks?$|me\s+my\s+tasks?$|overdue\s+tasks?$|(?:my\s+)?notes?$)(.+)$",  # Exclude list aliases handled elsewhere
+                r"^show\s+(?!my\s+tasks?$|me\s+my\s+tasks?$|overdue\s+tasks?$|(?:my\s+)?notes?$|(?:my\s+|the\s+)?(?:lists?|to-?dos?|to\s+dos?)$)(.+)$",  # Exclude list aliases handled elsewhere
                 r"^display\s+(?!my\s+tasks?$)(.+)$",
                 r"^view\s+(?!my\s+tasks?$)(.+)$",
             ],
@@ -1319,15 +1345,7 @@ class EnhancedCommandParser:
             value = value.strip()
 
             if key == "ACTION":
-                intent = value.lower().strip()
-                # Map common variations
-                if intent == "create task":
-                    intent = "create_task"
-                elif intent == "list tasks":
-                    intent = "list_tasks"
-                elif intent == "complete task":
-                    intent = "complete_task"
-                # Add other common mappings as needed
+                intent = canonicalize_intent_name(value, self.intent_patterns)
             elif key == "TITLE":
                 entities["title"] = value
             elif key == "TASK_ID" or key == "TASKID":
@@ -1420,7 +1438,7 @@ class EnhancedCommandParser:
             if re.search(r"\boverdue\b", lowered):
                 entities["filter"] = "overdue"
             elif re.search(
-                r"(?:what(?:'s|\s+is)|what\s+do\s+i\s+have)\s+due\b", lowered
+                r"(?:what(?:'?s|\s+is)|what\s+do\s+i\s+have)\s+due\b", lowered
             ):
                 entities["filter"] = "due_soon"
             if match.groups() and match.group(1):
@@ -1770,6 +1788,11 @@ class EnhancedCommandParser:
             or re.search(r"^note\s+to\s+self\b", lowered)
             or re.search(r"^(?:please\s+)?remember\s+that\b", lowered)
             or re.search(r"\badd\s+a\s+note\s+(?:about|that)\b", lowered)
+            or re.search(r"\bkeep\s+in\s+mind\b", lowered)
+            or re.search(r"\bwrite\s+this\s+down\b", lowered)
+            or re.search(r"\b(?:put|save)\s+this\s+in\s+(?:my\s+)?notes?\b", lowered)
+            or re.search(r"don'?t\s+let\s+me\s+forget\s+that\b", lowered)
+            or re.search(r"do\s+not\s+let\s+me\s+forget\s+that\b", lowered)
         )
 
     @handle_errors("shortening captured note title", default_return="")

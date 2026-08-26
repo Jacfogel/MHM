@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from typing import Any
 
 from ai.prompts.action_catalog import (
@@ -14,6 +15,7 @@ from ai.prompts.action_catalog import (
 )
 from ai.client.lm_studio_client import call_lm_studio_api
 from ai.prompts.command_interpreter import get_command_interpreter
+from ai.prompts.command_registry import canonicalize_intent_name
 from core.config import (
     AI_ACTION_PLAN_MIN_CONFIDENCE,
     AI_COMMAND_PARSING_TIMEOUT,
@@ -71,15 +73,6 @@ _INTENT_ALIASES = {
     "command": "execute_action",
     "clarification": "clarify",
     "ask": "clarify",
-}
-
-_ACTION_NAME_ALIASES = {
-    "create task": "create_task",
-    "list tasks": "list_tasks",
-    "complete task": "complete_task",
-    "delete task": "delete_task",
-    "update task": "update_task",
-    "unknown": "unknown",
 }
 
 _ENTITY_KEY_ALIASES = {
@@ -384,7 +377,10 @@ def _build_action_request_from_fields(
     planning_method: str,
 ) -> tuple[AIActionRequest | None, AIActionPlan | None]:
     """Validate one action block and return a request or downgrade plan."""
-    action_name = _normalize_action_name(fields.get("ACTION", ""))
+    action_name = _normalize_action_name(
+        fields.get("ACTION", ""),
+        known_intents=catalog.actions,
+    )
     if not action_name or action_name == "unknown":
         return None, answer_only_plan(
             source_message, planning_method=f"{planning_method}_unknown_action"
@@ -517,13 +513,12 @@ def _normalize_intent(raw_intent: str) -> ResponseIntent | None:
 
 
 @handle_errors("normalizing planner action name", default_return="")
-def _normalize_action_name(raw_action: str) -> str:
-    """Normalize canonical action names from planner output."""
-    action = (raw_action or "").strip().lower()
-    if not action:
-        return ""
-    action = _ACTION_NAME_ALIASES.get(action, action)
-    return re.sub(r"[^a-z0-9_]+", "_", action).strip("_")
+def _normalize_action_name(
+    raw_action: str,
+    known_intents: Iterable[str] | None = None,
+) -> str:
+    """Normalize ACTION lines to live parser intent names."""
+    return canonicalize_intent_name(raw_action, known_intents)
 
 
 @handle_errors("parsing planner confidence", default_return=0.0)

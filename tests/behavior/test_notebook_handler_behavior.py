@@ -948,6 +948,26 @@ class TestNotebookCommandParsing:
         ]
         assert any("the meeting" in text for text in texts)
 
+    def test_keep_in_mind_phrase_creates_note_without_body_prompt(self, test_data_dir):
+        """'keep in mind that X' saves a note instead of asking for a body."""
+        user_id = f"test_keep_in_mind_{uuid.uuid4().hex[:8]}"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        conversation_manager.user_states.clear()
+
+        result = handle_user_message(
+            user_id, "keep in mind that the gate code is 1234", "discord"
+        )
+
+        assert result and result.completed
+        assert "note created" in result.message.lower()
+        from notebook.notebook_data_manager import list_recent
+
+        recent = list_recent(user_id, n=5)
+        texts = [
+            f"{entry.title or ''} {entry.description or ''}".lower() for entry in recent
+        ]
+        assert any("gate code is 1234" in text for text in texts)
+
     def test_command_parser_recognizes_recent_commands(self, test_data_dir):
         """Test that command parser recognizes recent entry commands."""
         parser = EnhancedCommandParser()

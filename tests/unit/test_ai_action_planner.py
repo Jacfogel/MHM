@@ -44,6 +44,36 @@ def test_parse_execute_action_plan_maps_entities():
     assert action.confidence == 0.92
 
 
+def test_parse_execute_action_plan_canonicalizes_spaced_action_names():
+    catalog = build_action_catalog()
+    output = (
+        "INTENT: execute_action\n"
+        "ACTION: create note\n"
+        "TITLE: gate code\n"
+        "CONFIDENCE: 0.9\n"
+    )
+
+    plan = parse_action_plan_from_text(
+        output,
+        source_message="create note gate code",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert plan.actions[0].action_name == "create_note"
+
+    checkin_plan = parse_action_plan_from_text(
+        "INTENT: execute_action\nACTION: start check-in\nCONFIDENCE: 0.9\n",
+        source_message="start check-in",
+        catalog=catalog,
+        planning_method="test",
+    )
+    assert checkin_plan is not None
+    assert checkin_plan.actions[0].action_name == "start_checkin"
+
+
 def test_parse_clarify_plan_returns_question():
     plan = parse_action_plan_from_text(
         "INTENT: clarify\nQUESTION: What should the task be called?",

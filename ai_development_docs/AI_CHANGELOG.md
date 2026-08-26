@@ -31,10 +31,10 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
-- Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, and `show overdue tasks` as real task commands.
+- Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, and `show overdue tasks` as real task commands.
 - Title/ID cleanup: `create a task for laundry` keeps title `laundry`; `I completed the dentist task` looks up `dentist`; `add a note to the dentist task: ...` appends a task note instead of making a notebook note.
-- Notebook capture: `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, and `add a note about...` save a note immediately instead of asking for a body. `show my notes` lists notes instead of looking up an entry named "my notes".
-- Help/examples updated. Live Discord feel-check is still remaining.
+- Notebook capture: `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, `add a note about...`, `keep in mind that...`, `write this down...`, and `don't let me forget that...` save a note immediately instead of asking for a body. `show my notes` lists notes instead of looking up an entry named "my notes".
+- Command-list parity: AI prompts/catalog/planning summaries use the live parser intent set; `ACTION: create note` and `start check-in` canonicalize through `command_registry` (the only AI module allowed to import communication). Help/examples updated. Live Discord feel-check is still remaining.
 
 ### 2026-08-25 - Split custom-question dialog into form, template, and save jobs **COMPLETED**
 - `_show_question_dialog` is now an orchestrator (821 -> 218 AST nodes); form, template picker, and save are separate helpers.

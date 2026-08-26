@@ -41,6 +41,14 @@ class TestCommandParserHelpers:
         assert intent == "complete_task", "Should map 'complete task' to 'complete_task'"
         assert entities.get("task_identifier") == "1", "Should extract task_id"
 
+        response = "ACTION: create note\nTITLE: gate code"
+        intent, entities = command_parser._parse_key_value_format(response)
+        assert intent == "create_note"
+
+        response = "ACTION: start check-in"
+        intent, entities = command_parser._parse_key_value_format(response)
+        assert intent == "start_checkin"
+
     def test_parse_key_value_format_entity_extraction(self, command_parser):
         """Test _parse_key_value_format entity extraction."""
         # Test TITLE extraction

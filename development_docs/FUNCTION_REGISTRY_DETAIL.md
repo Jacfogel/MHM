@@ -752,7 +752,8 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `format_command_actions_for_prompt()` - Format intent names for inclusion in the command system prompt.
 - [OK] `get_command_intent_names()` - Return sorted intent names from the rule-based command parser patterns.
 - [OK] `get_initialized_command_intent_names()` - Return live parser intent names, initializing the parser registry if needed.
-- [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the static 'Available actions:' list with the live registry.
+- [OK] `canonicalize_intent_name(raw, known_intents)` - Normalize spaced or hyphenated ACTION names to live parser intent names.
+- [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the 'Available actions:' line with the live registry.
 
 #### `ai/prompts/flows.py`
 **Functions:**
@@ -3232,6 +3233,7 @@ Called by task handler after creating a task with a due date.
 #### `communication/message_processing/intent_validation.py`
 **Functions:**
 - [OK] `is_valid_intent(intent, interaction_handlers)` - Return True if any handler can handle the given intent.
+- [OK] `canonicalize_intent_name(raw, known_intents)` - Normalize spaced or hyphenated ACTION names to live parser intent names.
 
 Args:
     intent: The intent string to validate.

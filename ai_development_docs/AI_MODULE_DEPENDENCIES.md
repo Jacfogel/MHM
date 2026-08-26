@@ -84,7 +84,7 @@ UI modules rely on core configuration and data access.
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
 - `ai/__init__.py` -> ai.chat.chatbot, ai.client.cache_manager, ai.prompts.action_catalog
-- `ai/chat/action_planner.py` -> ai.prompts.action_catalog, ai.client.lm_studio_client, ai.prompts.command_interpreter
+- `ai/chat/action_planner.py` -> ai.prompts.action_catalog, ai.client.lm_studio_client, ai.prompts.command_interpreter, ai.prompts.command_registry
 
 ### Third-Party Integration
 External libraries provide channel and UI support.

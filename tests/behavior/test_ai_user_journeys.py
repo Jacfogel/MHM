@@ -233,6 +233,52 @@ def test_mark_task_done_phrase_completes_task(test_data_dir):
 
 @pytest.mark.tasks
 @pytest.mark.communication
+def test_still_need_to_phrase_creates_task(test_data_dir):
+    """'i still need to...' creates a real task."""
+    user_id = _create_journey_user(test_data_dir, "journey-still-need")
+
+    result = handle_user_message(user_id, "i still need to pay rent", "discord")
+
+    assert result and result.message
+    titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
+    assert any("pay rent" in title for title in titles)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_show_my_list_phrase_lists_tasks(test_data_dir):
+    """'show my list' lists tasks instead of looking up a notebook entry."""
+    user_id = _create_journey_user(test_data_dir, "journey-show-list")
+    tasks = load_active_tasks(user_id)
+    tasks.append({"title": "laundry", "id": "tlaundry", "short_id": "t1laun"})
+    assert save_active_tasks(user_id, tasks)
+
+    result = handle_user_message(user_id, "show my list", "discord")
+
+    assert result and result.message
+    assert "laundry" in result.message.lower()
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_cross_off_phrase_completes_task(test_data_dir):
+    """'cross off X' completes the matching task."""
+    user_id = _create_journey_user(test_data_dir, "journey-cross-off")
+    tasks = load_active_tasks(user_id)
+    tasks.append({"title": "dentist", "id": "tdentist", "short_id": "t1dent"})
+    assert save_active_tasks(user_id, tasks)
+
+    result = handle_user_message(user_id, "cross off dentist", "discord")
+
+    assert result and result.message
+    assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
 def test_ambiguous_add_task_clarifies_without_creating(test_data_dir):
     """Ambiguous task requests ask for details instead of inventing a create."""
     user_id = _create_journey_user(test_data_dir, "journey-ambiguous-task")

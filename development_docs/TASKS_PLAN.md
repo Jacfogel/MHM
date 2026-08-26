@@ -69,7 +69,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent` (2026-05-22; `urgent` maps to priority `urgent`, not `high`).
 - [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
 - [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
-- [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`.
+- [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`. Follow-up: `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, `i'm done with X`.
 - [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
 
 ---

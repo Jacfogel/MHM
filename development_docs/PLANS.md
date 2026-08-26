@@ -68,7 +68,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; live Discord validation, templates, notes/links remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
-| Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
+| Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy (everyday phrasing shipped); command-list parity shipped 2026-08-26; response-time tuning; actionability sprint |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
@@ -99,13 +99,13 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Workstreams** (in recommended order):
 
-1. **Command list parity** - Runtime injection via `ai/command_registry.py` is in place; finish template cleanup and parity tests; remove stale static lists when injection is verified in all run modes.
+1. **Command list parity** - Runtime injection via `ai/command_registry.py` is in place; injection self-initializes the parser; exact set-parity tests cover catalog, command prompt, and planning summary. `ACTION: create note` / `start check-in` canonicalize to live parser names. Remaining: none required unless a new static list is added.
 2. **NLP / mode detection** - Expand `ai/command_interpreter.py` keywords and natural-language task patterns; add regression tests aligned with `command_parser` intents. Everyday create/complete/list/append phrases shipped 2026-08-26.
 3. **Response-time tuning** - Profile hot paths (`generate_quick_response`, command parsing, context assembly); tune cache TTL and timeouts where safe without stale user context.
 4. **Actionability sprint** - CRUD reliability, feature-flag-aware suggestions, and non-conflicting guidance using recent automated messages (partially present in `ai/conversational_context/`).
 
 **First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.  
-**Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`).
+**Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, then `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `show my list`, `cross off...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`, `keep in mind that...`, `write this down...`). Command-list parity: live parser intents in prompts/catalog/planning; `ACTION: create note` / `start check-in` canonicalize.
 
 ---
 
@@ -228,7 +228,7 @@ These plans should not be duplicated in detail here.
 **Current focus**:
 
 - Live Discord validation of Show More / pagination (code + automated tests exist).
-- Everyday capture phrasing shipped 2026-08-26 (`jot down`, `remember that`).
+- Everyday capture phrasing shipped 2026-08-26 (`jot down`, `remember that`, `keep in mind that`, `write this down`).
 - Help live spot-check (`|` separators, group ambiguity, and `!edit` shipped 2026-07-29).
 - AI notebook context privacy/opt-in scoping (recent entries already included).
 - Bulk organization commands only after live notebook use feels reliable.
@@ -243,7 +243,7 @@ These plans should not be duplicated in detail here.
 
 **Current focus**:
 
-- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26; live Discord remaining).
+- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`; live Discord remaining).
 - Templates and quick actions.
 - Task notes/links/attachments.
 - Live Discord validation for task creation and follow-up flows.
