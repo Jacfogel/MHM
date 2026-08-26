@@ -39,9 +39,22 @@ def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
         logger.warning(f"Invalid user_id or category: {user_id}, {category}")
         return False
     try:
-        schedules_data = schedule_categories(
-            _get_user_data__load_schedules(user_id) or {}
-        )
+        raw = _get_user_data__load_schedules(user_id)
+        if raw is None:
+            logger.warning(
+                f"Skipping default schedule for '{category}': could not load schedules for {user_id}"
+            )
+            return False
+        schedules_data = schedule_categories(raw if isinstance(raw, dict) else {})
+        nested = raw.get("categories") if isinstance(raw, dict) else None
+        # Empty ``categories: {}`` still gets defaults (new user). A non-empty
+        # nested map that did not unwrap must not be replaced (that wipes Evening).
+        if not schedules_data and isinstance(nested, dict) and nested:
+            logger.warning(
+                f"Skipping default schedule for '{category}': "
+                f"schedules document for {user_id} has a category map that could not be read"
+            )
+            return False
         logger.debug(f"Current schedules data for user {user_id}: {schedules_data}")
 
         if schedules_data and any(

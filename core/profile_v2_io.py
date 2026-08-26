@@ -88,20 +88,19 @@ def schedule_categories(data: Any) -> dict[str, Any]:
     """Return the category->periods map from a schedules envelope or flat dict.
 
     Accepts on-disk/in-memory envelopes ``{schema_version, updated_at, categories}``
-    and unwrapped category maps ``{category: {periods: ...}}``. For envelopes, returns
-    the live ``categories`` map after in-place migration so nested edits persist when
-    the envelope is saved. Strips reserved envelope keys from polluted caches.
+    (with or without extra keys) and unwrapped category maps
+    ``{category: {periods: ...}}``. For envelopes, returns the live ``categories``
+    map after in-place migration so nested edits persist when the envelope is
+    saved. Strips reserved envelope keys from polluted caches.
     """
     if not isinstance(data, dict) or not data:
         return {}
 
     categories_map = data.get("categories")
-    reserved_only = isinstance(categories_map, dict) and all(
-        key in _SCHEDULE_V2_RESERVED_KEYS for key in data
-    )
-    if is_schedules_v2_envelope(data) or reserved_only:
-        if not isinstance(categories_map, dict):
-            return {}
+    # Any dict under ``categories`` is the envelope map, even without
+    # schema_version or with extra keys such as ``_metadata``. Treating
+    # those as a flat map drops ``categories`` and looks like "no periods".
+    if isinstance(categories_map, dict):
         migrated = _schedule_period_normalize.migrate_legacy_schedules_structure(
             categories_map
         )

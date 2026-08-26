@@ -102,6 +102,63 @@ def test_ensure_category_has_default_schedule_rejects_invalid_inputs():
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_ensure_category_has_default_schedule_skips_when_load_returns_none():
+    with (
+        patch(
+            "core.schedule_document_defaults._get_user_data__load_schedules",
+            return_value=None,
+        ),
+        patch(
+            "core.schedule_document_defaults._save_user_data__save_schedules"
+        ) as save_schedules,
+    ):
+        result = ensure_category_has_default_schedule("user-1", "motivational")
+
+    assert result is False
+    save_schedules.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_ensure_category_has_default_schedule_does_not_replace_unparsed_categories():
+    envelope = {
+        "schema_version": 2,
+        "updated_at": "2026-08-26 12:00:00",
+        "categories": {
+            "motivational": {
+                "periods": {
+                    "Evening": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "18:00",
+                        "end_time": "21:00",
+                    }
+                }
+            }
+        },
+    }
+
+    with (
+        patch(
+            "core.schedule_document_defaults._get_user_data__load_schedules",
+            return_value=envelope,
+        ),
+        patch(
+            "core.schedule_document_defaults.schedule_categories",
+            return_value={},
+        ),
+        patch(
+            "core.schedule_document_defaults._save_user_data__save_schedules"
+        ) as save_schedules,
+    ):
+        result = ensure_category_has_default_schedule("user-1", "motivational")
+
+    assert result is False
+    save_schedules.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_create_default_schedule_periods_named_defaults():
     tasks = create_default_schedule_periods("tasks")
     checkin = create_default_schedule_periods("checkin")

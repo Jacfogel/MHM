@@ -13,7 +13,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path
 from core.file_operations import load_json_data, save_json_data, determine_file_path
-from core.profile_v2_io import ensure_profile_envelope, schedule_categories
+from core.profile_v2_io import ensure_profile_envelope
 from core.profile_v2_schemas import (
     validate_account_v2_document,
     validate_preferences_v2_document,
@@ -114,40 +114,6 @@ def _finalize_get_user_data_payload(
                 normalized, _errs = validate_schedules_v2_document(envelope)
                 if normalized and not _errs:
                     data = normalized
-                    try:
-                        _ensure_sched = importlib.import_module(
-                            "core.schedule_document_defaults"
-                        ).ensure_all_categories_have_schedules
-                        prefs = get_user_data(user_id, "preferences").get(
-                            "preferences", {}
-                        )
-                        categories = (
-                            prefs.get("categories", [])
-                            if isinstance(prefs, dict)
-                            else []
-                        )
-                        if categories:
-                            _ensure_sched(user_id, suppress_logging=True)
-                            # Load via the schedules loader, not get_user_data:
-                            # re-entering this finalizer can replace a valid
-                            # document with an empty envelope if the nested
-                            # call fails (RecursionError → default {}).
-                            reloaded = _get_user_data__load_schedules(
-                                user_id, auto_create=False
-                            ) or {}
-                            normalized_after, errs_after = (
-                                validate_schedules_v2_document(
-                                    ensure_profile_envelope("schedules", reloaded)
-                                )
-                            )
-                            if (
-                                normalized_after
-                                and not errs_after
-                                and schedule_categories(normalized_after)
-                            ):
-                                data = normalized_after
-                    except Exception:
-                        pass
         except Exception:
             pass
 

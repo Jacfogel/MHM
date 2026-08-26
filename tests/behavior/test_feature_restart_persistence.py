@@ -48,6 +48,10 @@ def test_schedule_survives_cache_clear_and_reload(test_data_dir):
     clear_user_caches(user_id)
     reloaded = get_schedule_time_periods(user_id, "motivational")
     assert "Evening" in reloaded, f"expected Evening in {list(reloaded)}"
+    assert "Motivational Message Default" not in reloaded, (
+        "read-time default healer overwrote custom Evening periods: "
+        f"{list(reloaded)}"
+    )
     assert reloaded["Evening"]["start_time"] == "18:00"
     assert reloaded["Evening"]["end_time"] == "21:00"
 
