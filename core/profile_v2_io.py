@@ -95,19 +95,22 @@ def schedule_categories(data: Any) -> dict[str, Any]:
     if not isinstance(data, dict) or not data:
         return {}
 
-    if is_schedules_v2_envelope(data):
-        categories = data.get("categories")
-        if not isinstance(categories, dict):
+    categories_map = data.get("categories")
+    reserved_only = isinstance(categories_map, dict) and all(
+        key in _SCHEDULE_V2_RESERVED_KEYS for key in data
+    )
+    if is_schedules_v2_envelope(data) or reserved_only:
+        if not isinstance(categories_map, dict):
             return {}
         migrated = _schedule_period_normalize.migrate_legacy_schedules_structure(
-            categories
+            categories_map
         )
         if not isinstance(migrated, dict):
             return {}
-        if migrated is not categories:
-            categories.clear()
-            categories.update(migrated)
-        return categories
+        if migrated is not categories_map:
+            categories_map.clear()
+            categories_map.update(migrated)
+        return categories_map
 
     return {
         key: value

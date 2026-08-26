@@ -33,7 +33,8 @@ Guidelines:
 ### 2026-08-26 - Nightly health-sync and coverage-cache test isolation **COMPLETED**
 - Health sync/schedule tests resolve the factory UUID and patch `is_google_health_testing_mode` instead of setting `MHM_TESTING=0`.
 - Dev-tools coverage cache no longer treats empty mtime scans as changed; config path is the project under test.
-- Nightly `--basetemp` under `tests/data` no longer trips those six node IDs.
+- Schedule reads no longer re-enter `get_user_data("schedules")` during finalize (that wiped Evening after cache clear).
+- Nightly `--basetemp` under `tests/data` no longer trips those node IDs.
 
 ### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
 - Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, and `show overdue tasks` as real task commands.

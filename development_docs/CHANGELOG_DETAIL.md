@@ -36,8 +36,9 @@ When adding new changes, follow this format:
 ### 2026-08-26 - Nightly health-sync and coverage-cache test isolation
 - **Fix**: Google Health sync/schedule tests now use the factory UUID (not the username) and patch `is_google_health_testing_mode` instead of flipping `MHM_TESTING`. Nightly Linux was returning early (`consecutive_failures` stayed 0, pause never called) because `users/<username>/` does not exist.
 - **Fix**: Dev-tools coverage cache treats empty-vs-empty mtime maps as unchanged, prefers `project_root`'s config file, and ignores `relative_to` `ValueError`. Nightly `--basetemp` under `tests/data/tmp/pytest_runner` no longer invalidates an unchanged scratch tree.
-- **Tests**: Targeted pytest for the six nightly failures, including `--basetemp` under `tests/data/tmp/pytest_runner`.
-- **Impact**: `nightly-test-suite --strict` should no longer fail these six node IDs on a clean Linux runner.
+- **Fix**: Reading schedules no longer re-enters `get_user_data("schedules")` while finalizing that document. Nested failure returned `{}` and overwrote a valid envelope, so `test_schedule_survives_cache_clear_and_reload` hit `KeyError: 'Evening'` after `clear_user_caches`. `schedule_categories` also accepts a `categories` map without `schema_version`.
+- **Tests**: Targeted pytest for the six prior nightly failures plus the schedule reload case, including `--basetemp` under `tests/data/tmp/pytest_runner`.
+- **Impact**: `nightly-test-suite --strict` should no longer fail these node IDs on a clean Linux runner.
 
 ### 2026-08-26 - Everyday task phrasing creates and completes real work
 - **Feature**: Rule-based parsing now accepts casual task phrasing that previously fell through to chat: `i should pick up groceries tonight`, `dont forget to email the school`, `mark dentist done`, `what is on my list`, `add laundry to my list`, `i gotta call mom`, `need to pick up groceries`, and `make a reminder to call the school`. Follow-up phrases: `i still need to pay rent`, `i'm supposed to call the school`, `don't let me forget to take meds`, `make sure i take meds`, `show my list` / `what's left`, `cross off dentist` / `i'm done with laundry`. `dont forget to` is also recognized by mode detection.

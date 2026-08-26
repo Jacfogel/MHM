@@ -80,3 +80,25 @@ def test_ensure_profile_envelope_migrates_flat_schedule_compatibility_shape():
     assert periods["morning"]["days"] == ["ALL"]
     assert periods["morning"]["start_time"] == "00:00"
     assert periods["morning"]["end_time"] == "00:00"
+
+
+@pytest.mark.unit
+@pytest.mark.regression
+@pytest.mark.core
+def test_schedule_categories_reads_categories_map_without_schema_version():
+    payload = {
+        "categories": {
+            "motivational": {
+                "periods": {
+                    "Evening": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "18:00",
+                        "end_time": "21:00",
+                    }
+                }
+            }
+        }
+    }
+    categories = schedule_categories(payload)
+    assert categories["motivational"]["periods"]["Evening"]["start_time"] == "18:00"

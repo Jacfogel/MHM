@@ -603,9 +603,9 @@ def set_schedule_periods(user_id, category, periods_dict):
     # Save the updated schedules
     from core import update_user_schedules
 
-    update_user_schedules(user_id, schedules_data)
+    saved = update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
-    return True
+    return bool(saved)
 
 
 @handle_errors(
