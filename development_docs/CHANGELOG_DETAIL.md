@@ -37,7 +37,8 @@ When adding new changes, follow this format:
 - **Fix**: Google Health sync/schedule tests now use the factory UUID (not the username) and patch `is_google_health_testing_mode` instead of flipping `MHM_TESTING`. Nightly Linux was returning early (`consecutive_failures` stayed 0, pause never called) because `users/<username>/` does not exist.
 - **Fix**: Dev-tools coverage cache treats empty-vs-empty mtime maps as unchanged, prefers `project_root`'s config file, and ignores `relative_to` `ValueError`. Nightly `--basetemp` under `tests/data/tmp/pytest_runner` no longer invalidates an unchanged scratch tree.
 - **Fix**: Reading schedules no longer re-enters `get_user_data("schedules")` while finalizing that document. Nested failure returned `{}` and overwrote a valid envelope, so `test_schedule_survives_cache_clear_and_reload` hit `KeyError: 'Evening'` after `clear_user_caches`. `schedule_categories` also accepts a `categories` map without `schema_version`.
-- **Tests**: Targeted pytest for the six prior nightly failures plus the schedule reload case, including `--basetemp` under `tests/data/tmp/pytest_runner`.
+- **Fix**: `safe_json_read` reads from the locked file handle instead of opening the path a second time. On Linux, a second open while `fcntl.LOCK_EX` is held can yield empty content, so nightly `test_safe_json_read_existing_file` saw `{}`.
+- **Tests**: Targeted pytest for the six prior nightly failures plus the schedule reload and file-locking cases, including `--basetemp` under `tests/data/tmp/pytest_runner`.
 - **Impact**: `nightly-test-suite --strict` should no longer fail these node IDs on a clean Linux runner.
 
 ### 2026-08-26 - Everyday task phrasing creates and completes real work

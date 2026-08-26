@@ -11,10 +11,16 @@ import json
 import time
 import sys
 import threading
+import uuid
+from io import BytesIO
 from unittest.mock import patch, mock_open, MagicMock
 
 from core.file_locking import file_lock, safe_json_read, safe_json_write
 import contextlib
+
+
+def _unique_json_path(test_data_dir: str, prefix: str) -> str:
+    return os.path.join(test_data_dir, f"{prefix}_{uuid.uuid4().hex[:10]}.json")
 
 
 pytestmark = [pytest.mark.core]
@@ -151,12 +157,14 @@ class TestSafeJsonRead:
 
     def test_safe_json_read_existing_file(self, test_data_dir):
         """Test safe_json_read reads existing JSON file."""
-        test_file = os.path.join(test_data_dir, "test_read.json")
+        test_file = _unique_json_path(test_data_dir, "test_read")
         test_data = {"key": "value", "number": 123, "nested": {"inner": "data"}}
         
         # Create test file
-        with open(test_file, 'w') as f:
+        with open(test_file, 'w', encoding="utf-8") as f:
             json.dump(test_data, f)
+            f.flush()
+            os.fsync(f.fileno())
         
         # Read file
         result = safe_json_read(test_file)
@@ -165,7 +173,7 @@ class TestSafeJsonRead:
 
     def test_safe_json_read_nonexistent_file(self, test_data_dir):
         """Test safe_json_read returns default for nonexistent file."""
-        test_file = os.path.join(test_data_dir, "nonexistent.json")
+        test_file = _unique_json_path(test_data_dir, "nonexistent")
         
         # Ensure file doesn't exist
         if os.path.exists(test_file):
@@ -179,7 +187,7 @@ class TestSafeJsonRead:
 
     def test_safe_json_read_invalid_json(self, test_data_dir):
         """Test safe_json_read handles invalid JSON gracefully."""
-        test_file = os.path.join(test_data_dir, "test_invalid.json")
+        test_file = _unique_json_path(test_data_dir, "test_invalid")
         
         # Create file with invalid JSON
         with open(test_file, 'w') as f:
@@ -193,22 +201,22 @@ class TestSafeJsonRead:
 
     def test_safe_json_read_uses_file_locking(self, test_data_dir):
         """Test that safe_json_read uses file locking."""
-        test_file = os.path.join(test_data_dir, "test_locked_read.json")
+        test_file = _unique_json_path(test_data_dir, "test_locked_read")
         test_data = {"test": "data"}
         
         # Create test file
-        with open(test_file, 'w') as f:
+        with open(test_file, "w", encoding="utf-8") as f:
             json.dump(test_data, f)
         
-        # Mock file_lock to verify it's called
-        with patch('core.file_locking.file_lock') as mock_lock:
-            mock_lock.return_value.__enter__ = MagicMock(return_value=None)
+        payload = json.dumps(test_data).encode("utf-8")
+        with patch("core.file_locking.file_lock") as mock_lock:
+            mock_lock.return_value.__enter__ = MagicMock(return_value=BytesIO(payload))
             mock_lock.return_value.__exit__ = MagicMock(return_value=None)
             
-            safe_json_read(test_file)
+            result = safe_json_read(test_file)
             
-            # Verify file_lock was called
             mock_lock.assert_called_once()
+            assert result == test_data
 
 
 @pytest.mark.unit

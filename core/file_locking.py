@@ -207,11 +207,21 @@ def safe_json_read(file_path: str, default: dict | None = None) -> dict:
         return default
 
     try:
-        with file_lock(file_path, timeout=10.0), open(
-            file_path, encoding="utf-8"
-        ) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError, TimeoutError) as e:
+        with file_lock(file_path, timeout=10.0) as fh:
+            # Read from the locked handle. Opening the path again while Linux
+            # holds fcntl.LOCK_EX can return empty content and look like a
+            # missing/invalid file (default {}).
+            if fh is None:
+                with open(file_path, encoding="utf-8") as unlocked:
+                    return json.load(unlocked)
+            fh.seek(0)
+            raw = fh.read()
+            text = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+            if not text.strip():
+                logger.warning(f"Empty JSON file {file_path}")
+                return default
+            return json.loads(text)
+    except (json.JSONDecodeError, OSError, TimeoutError, UnicodeDecodeError) as e:
         logger.warning(f"Error reading JSON file {file_path}: {e}")
         return default
 

@@ -34,6 +34,7 @@ Guidelines:
 - Health sync/schedule tests resolve the factory UUID and patch `is_google_health_testing_mode` instead of setting `MHM_TESTING=0`.
 - Dev-tools coverage cache no longer treats empty mtime scans as changed; config path is the project under test.
 - Schedule reads no longer re-enter `get_user_data("schedules")` during finalize (that wiped Evening after cache clear).
+- `safe_json_read` uses the locked handle (Linux double-open under flock returned `{}`).
 - Nightly `--basetemp` under `tests/data` no longer trips those node IDs.
 
 ### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
