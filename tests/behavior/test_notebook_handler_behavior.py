@@ -18,7 +18,10 @@ from communication.command_handlers.shared_types import (
     PaginationAction,
     ParsedCommand,
 )
-from communication.message_processing.interaction_manager import InteractionManager
+from communication.message_processing.interaction_manager import (
+    InteractionManager,
+    handle_user_message,
+)
 from communication.message_processing.command_parser import EnhancedCommandParser
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.message_processing.flows.flow_constants import (
@@ -889,6 +892,7 @@ class TestNotebookCommandParsing:
             "nn Test note",
             "newn New note",
             "createnote Create note",
+            "jot down that I talked to the doctor",
         ]
 
         for pattern in note_patterns:
@@ -904,6 +908,46 @@ class TestNotebookCommandParsing:
                 or len(result.parsed_command.entities) > 0
             ), f"Pattern '{pattern}' should extract entities"
 
+    def test_jot_down_phrase_creates_note_without_body_prompt(self, test_data_dir):
+        """Casual 'jot down' phrasing saves a note instead of asking for a body."""
+        user_id = f"test_jot_down_{uuid.uuid4().hex[:8]}"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        conversation_manager.user_states.clear()
+
+        result = handle_user_message(
+            user_id, "jot down that I talked to the doctor", "discord"
+        )
+
+        assert result and result.completed
+        assert "note created" in result.message.lower()
+        from notebook.notebook_data_manager import list_recent
+
+        recent = list_recent(user_id, n=5)
+        texts = [
+            f"{entry.title or ''} {entry.description or ''}".lower() for entry in recent
+        ]
+        assert any("talked to the doctor" in text for text in texts)
+
+    def test_add_a_note_about_phrase_creates_note_without_body_prompt(self, test_data_dir):
+        """'add a note about X' saves the note instead of asking for a body."""
+        user_id = f"test_add_note_about_{uuid.uuid4().hex[:8]}"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        conversation_manager.user_states.clear()
+
+        result = handle_user_message(
+            user_id, "add a note about the meeting", "discord"
+        )
+
+        assert result and result.completed
+        assert "note created" in result.message.lower()
+        from notebook.notebook_data_manager import list_recent
+
+        recent = list_recent(user_id, n=5)
+        texts = [
+            f"{entry.title or ''} {entry.description or ''}".lower() for entry in recent
+        ]
+        assert any("the meeting" in text for text in texts)
+
     def test_command_parser_recognizes_recent_commands(self, test_data_dir):
         """Test that command parser recognizes recent entry commands."""
         parser = EnhancedCommandParser()
@@ -913,6 +957,7 @@ class TestNotebookCommandParsing:
             ("r", ["list_recent_entries"]),
             ("recentn", ["list_recent_notes"]),
             ("rnote", ["list_recent_notes"]),
+            ("show my notes", ["list_recent_notes"]),
             ("recent 10", ["list_recent_entries"]),
         ]
 

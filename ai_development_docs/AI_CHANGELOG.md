@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
+- Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, and `show overdue tasks` as real task commands.
+- Title/ID cleanup: `create a task for laundry` keeps title `laundry`; `I completed the dentist task` looks up `dentist`; `add a note to the dentist task: ...` appends a task note instead of making a notebook note.
+- Notebook capture: `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, and `add a note about...` save a note immediately instead of asking for a body. `show my notes` lists notes instead of looking up an entry named "my notes".
+- Help/examples updated. Live Discord feel-check is still remaining.
+
 ### 2026-08-25 - Split custom-question dialog into form, template, and save jobs **COMPLETED**
 - `_show_question_dialog` is now an orchestrator (821 -> 218 AST nodes); form, template picker, and save are separate helpers.
 - Combo population, category labels, and the saved payload are independently testable.
@@ -106,13 +112,6 @@ Guidelines:
 - Function-registry extras (documented but not in the scan) are a Watch List item; missing rows stay Immediate Focus.
 - Package-export "missing" now means `from package import Name` without `__all__`/re-export, not every public submodule name.
 - Follow-up: bare TODO / [TODO.md](../TODO.md) mentions are not placeholders; registry extras scan `project.key_files` even when those paths are excluded. Code fences, inline backticks, and changelog files are also ignored.
-
-### 2026-08-21 - Shared function scan for audit pipeline **COMPLETED**
-- Audits parse the function-analysis file set once; `analyze_functions` runs first in Tier 2 and feeds patterns, decision support, duplicates, unused, facades, and refactor.
-- `analyze_function_patterns` and `decision_support` moved out of `audit --quick` (Tier 1).
-- Config caches use content hash after mtime; timestamp-only saves of `development_tools_config.json` no longer bust the test suite.
-- Shared-scan unit tests skip path exclusions so pytest temp dirs are scanned.
-- Standalone CLI for those tools still scans when no shared parse exists.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

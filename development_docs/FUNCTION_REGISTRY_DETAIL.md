@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-25 17:50:42
+> **Last Generated**: 2026-08-26 00:57:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 272
-- **Functions Found**: 2574
-- **Methods Found**: 1361
-- **Classes Found**: 250
-- **Total Items**: 3935
-- **Functions Documented**: 2267
-- **Methods Documented**: 1216
-- **Classes Documented**: 187
-- **Total Documented**: 3483
+- **Functions Found**: 2584
+- **Methods Found**: 1369
+- **Classes Found**: 251
+- **Total Items**: 3953
+- **Functions Documented**: 2277
+- **Methods Documented**: 1224
+- **Classes Documented**: 188
+- **Total Documented**: 3501
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-25
+- **Last Updated**: 2026-08-26
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,10 +42,10 @@
 ### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (667)
+### **Communication Functions** (670)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (526)
+### **User Interface Functions** (533)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
@@ -2727,6 +2727,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
+- [OK] `_clean_task_identifier(self, identifier)` - Strip filler words so 'the dentist task' looks up as 'dentist'.
 - [OK] `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
 - [OK] `_extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
 - [OK] `_extract_help_entities_rule_based(self, intent, match, message, entities)` - Extract help and examples entities.
@@ -2740,6 +2741,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
 - [OK] `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
 - [OK] `_extract_update_entities(self, update_text)` - Extract update entities from update text
+- [OK] `_is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
@@ -2758,6 +2760,7 @@ Separator priority matches notebook help / phone UX:
 - [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
 - [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
+- [OK] `_short_note_title(self, text)` - Use the full capture as title when short; otherwise keep the first words.
 - [OK] `_strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_rule_based_intent_names()` - Return sorted rule-based intent names for AI command prompts.
@@ -2784,6 +2787,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
+  - [OK] `EnhancedCommandParser._clean_task_identifier(self, identifier)` - Strip filler words so 'the dentist task' looks up as 'dentist'.
   - [OK] `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
   - [OK] `EnhancedCommandParser._extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
   - [OK] `EnhancedCommandParser._extract_help_entities_rule_based(self, intent, match, message, entities)` - Extract help and examples entities.
@@ -2797,6 +2801,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_name_from_context(self, message)` - Extract task name from natural language context
   - [OK] `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
+  - [OK] `EnhancedCommandParser._is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
   - [OK] `EnhancedCommandParser._match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
   - [OK] `EnhancedCommandParser._normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
@@ -2814,6 +2819,7 @@ Separator priority matches notebook help / phone UX:
   - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
   - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
+  - [OK] `EnhancedCommandParser._short_note_title(self, text)` - Use the full capture as title when short; otherwise keep the first words.
   - [OK] `EnhancedCommandParser._strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
   - [OK] `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
   - [OK] `EnhancedCommandParser.parse(self, message, user_id)` - Parse a user message into a structured command.

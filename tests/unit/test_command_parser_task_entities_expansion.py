@@ -156,6 +156,19 @@ class TestCommandParserTaskEntityExtraction:
         assert task_name == expected_task_name
 
     @pytest.mark.parametrize(
+        "raw, expected",
+        [
+            ("the dentist task", "dentist"),
+            ("my dentist task", "dentist"),
+            ("task 2", "2"),
+            ("2", "2"),
+            ("calling mom", "calling mom"),
+        ],
+    )
+    def test_clean_task_identifier(self, command_parser, raw, expected):
+        assert command_parser._clean_task_identifier(raw) == expected
+
+    @pytest.mark.parametrize(
         "title, expected_tags, expected_group",
         [
             ("Buy milk #groceries", ["groceries"], None),
@@ -211,6 +224,18 @@ class TestCommandParserCreateTaskNaturalLanguage:
                 "before friday",
                 "urgent",
             ),
+            (
+                "i should pick up groceries tonight",
+                "pick up groceries",
+                "tonight",
+                None,
+            ),
+            (
+                "dont forget to email the school",
+                "email the school",
+                None,
+                None,
+            ),
         ],
     )
     def test_rule_parse_create_task_natural_language(
@@ -222,7 +247,10 @@ class TestCommandParserCreateTaskNaturalLanguage:
         assert result.parsed_command.intent == "create_task"
         entities = result.parsed_command.entities
         assert entities.get("title") == expected_title
-        assert (entities.get("due_date") or "").lower() == expected_due_date.lower()
+        if expected_due_date is None:
+            assert not entities.get("due_date")
+        else:
+            assert (entities.get("due_date") or "").lower() == expected_due_date.lower()
         if expected_priority is None:
             assert "priority" not in entities
         else:
@@ -250,6 +278,8 @@ class TestCommandParserUpdateEntityExtraction:
             ("rename to \"Plan trip\"", {"title": "Plan trip"}),
             ("priority urgent title \"Build docs\" due next week", {"priority": "urgent", "title": "Build docs", "due_date": "next week"}),
             ("priority low title Cleanup", {"priority": "low", "title": "Cleanup"}),
+            ("high priority", {"priority": "high"}),
+            ("to high priority", {"priority": "high"}),
         ],
     )
     def test_extract_update_entities(self, command_parser, update_text, expected_fields):

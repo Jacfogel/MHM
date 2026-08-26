@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for the notebook feature  
 > **Style**: Actionable, checklist-focused, concise  
-> **Last Updated**: 2026-07-29  
+> **Last Updated**: 2026-08-26  
 > **Current Evidence**: Validated against live codebase 2026-07-29 (modules, handlers, AI context, tests); prior snapshot `code_snapshot_project_root_2026-05-16_17-49-25.md`  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
@@ -210,6 +210,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - [x] Mention group vs tag distinction briefly.
 - [x] Add tests for the help/discovery output.
 - [x] Align help/examples with real separators: parser accepts newline, `|`, and `:` for title/body; append strips optional leading `|` (2026-07-29).
+- [x] Everyday capture phrasing (2026-08-26): `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, `add a note about...` save the thought immediately instead of prompting for a body. `show my notes` lists notes.
 - [ ] Spot-check live Discord that `help notebook` / `examples notebook` are discoverable and accurate.
 
 **Acceptance**:

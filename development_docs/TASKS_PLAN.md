@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-27 (§3 task templates data model + commands shipped; Discord quick-add buttons deferred)  
+> **Last Updated**: 2026-08-26  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -69,6 +69,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent` (2026-05-22; `urgent` maps to priority `urgent`, not `high`).
 - [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
 - [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
+- [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`.
 - [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
 
 ---
@@ -90,7 +91,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 ---
 
 **§2 acceptance**:
-- Messages like `I need to call the dentist this week` and `remind me to submit forms tomorrow morning` create useful structured tasks without manual cleanup.
+- Messages like `I need to call the dentist this week`, `I should pick up groceries tonight`, and `dont forget to email the school` create useful structured tasks without manual cleanup.
 
 ---
 
@@ -126,6 +127,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Implement in stages**:
 - [x] Treat `description` as the first version of task notes; improve commands/help around it (2026-06-24: help text, `update task … note …`, detail display).
 - [x] Add `append note to task` / `add note to task` command support (2026-06-24).
+- [x] Accept `add a note to the <task>: <text>` so notes append to a task instead of creating a notebook note (2026-08-26).
 - [ ] Add URL/link capture as structured task metadata if `description` becomes insufficient.
 - [ ] Defer file/image attachments until storage and Discord upload handling are designed.
 

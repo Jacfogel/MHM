@@ -68,8 +68,13 @@ class TestCommandInterpreter:
     @pytest.mark.parametrize(
         "prompt,expected_mode",
         [
+            ("dont forget to call the dentist", "command_with_clarification"),
             ("don't forget to call the dentist", "command_with_clarification"),
             ("remember to buy milk", "command_with_clarification"),
+            ("jot down that I talked to the doctor", "command"),
+            ("add laundry to my list", "command"),
+            ("put laundry on my list", "command"),
+            ("make a reminder to call the school", "command"),
             ("create note about meeting", "command"),
             ("list my journal entries", "command"),
             ("start check-in", "command_with_clarification"),

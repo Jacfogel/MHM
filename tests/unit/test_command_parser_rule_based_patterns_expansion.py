@@ -48,6 +48,18 @@ class TestCommandParserTaskPatterns:
             ("new task to submit report", "submit report"),
             ("remind me to take medication every morning at 8am", "take medication"),
             ("create task to water plants every 2 weeks", "water plants"),
+            ("i should pick up groceries tonight", "pick up groceries"),
+            ("dont forget to email the school", "email the school"),
+            ("don't forget to email the school", "email the school"),
+            ("please create a task for laundry", "laundry"),
+            ("i have to pay rent", "pay rent"),
+            ("remember to submit forms", "submit forms"),
+            ("i gotta call mom", "call mom"),
+            ("gotta pick up groceries", "pick up groceries"),
+            ("need to pick up groceries", "pick up groceries"),
+            ("put laundry on my list", "laundry"),
+            ("add laundry to my list", "laundry"),
+            ("make a reminder to call the school", "call the school"),
         ],
     )
     def test_create_task_patterns(self, command_parser, message, expected_title):
@@ -116,6 +128,15 @@ class TestCommandParserTaskPatterns:
             "what do i have to do today",
             "what are my tasks for tomorrow",
             "show me my tasks",
+            "what is on my list",
+            "what's on my list",
+            "what is on my todo",
+            "what is on the task list",
+            "show overdue tasks",
+            "overdue tasks",
+            "what's due",
+            "what is due",
+            "what do i have due",
         ],
     )
     def test_list_tasks_patterns(self, command_parser, message):
@@ -140,6 +161,24 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.entities.get("group") == expected_group
 
     @pytest.mark.parametrize(
+        "message, expected_filter",
+        [
+            ("show overdue tasks", "overdue"),
+            ("overdue tasks", "overdue"),
+            ("what's due", "due_soon"),
+            ("what is due", "due_soon"),
+            ("what do i have due", "due_soon"),
+        ],
+    )
+    def test_list_tasks_due_filter_patterns(
+        self, command_parser, message, expected_filter
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "list_tasks"
+        assert result.parsed_command.entities.get("filter") == expected_filter
+
+    @pytest.mark.parametrize(
         "message, expected_identifier",
         [
             ("complete 1", "1"),
@@ -150,6 +189,12 @@ class TestCommandParserTaskPatterns:
             ("complete teeth", "teeth"),
             ("done laundry", "laundry"),
             ("finished bugfix", "bugfix"),
+            ("mark dentist done", "dentist"),
+            ("mark the dentist task done", "dentist"),
+            ("i completed the dentist task", "dentist"),
+            ("can you complete my dentist task", "dentist"),
+            ("i already did the dentist", "dentist"),
+            ("take dentist off my list", "dentist"),
         ],
     )
     def test_complete_task_patterns(self, command_parser, message, expected_identifier):
@@ -189,6 +234,7 @@ class TestCommandParserTaskPatterns:
             ("edit task 9 due friday", "9", None, None, "friday"),
             ("update task 10 priority medium", "10", "medium", None, None),
             ("update task 1 note Room 204 bring card", "1", None, None, None),
+            ("update the dentist task to high priority", "dentist", "high", None, None),
         ],
     )
     def test_update_task_patterns(
@@ -236,6 +282,16 @@ class TestCommandParserAppendNoteToTaskPatterns:
                 "append note to call dentist phone 555-1234",
                 "call dentist phone",
                 "555-1234",
+            ),
+            (
+                "add a note to the dentist task: they need X-rays",
+                "dentist",
+                "they need x-rays",
+            ),
+            (
+                "add a note to task 3: insurance form on counter",
+                "3",
+                "insurance form on counter",
             ),
         ],
     )
@@ -587,6 +643,13 @@ class TestCommandParserNotebookPatterns:
             ("create note about Things", "create_note"),
             ("new note: Quick idea", "create_note"),
             ("note: Another idea", "create_note"),
+            ("jot down that I talked to the doctor", "create_note"),
+            ("can you jot down that I talked to the doctor", "create_note"),
+            ("write down the wifi password", "create_note"),
+            ("make a note of the gate code", "create_note"),
+            ("note to self: buy oat milk", "create_note"),
+            ("remember that my favorite tea is chamomile", "create_note"),
+            ("add a note about the meeting", "create_note"),
             ("qn Quick", "create_quick_note"),
             ("qnote Fast", "create_quick_note"),
             ("quicknote Rapid", "create_quick_note"),
@@ -605,6 +668,63 @@ class TestCommandParserNotebookPatterns:
         assert result.parsed_command.intent == expected_intent
 
     @pytest.mark.parametrize(
+        "message, expected_title, expected_description",
+        [
+            (
+                "jot down that I talked to the doctor",
+                "i talked to the doctor",
+                "i talked to the doctor",
+            ),
+            (
+                "write down the wifi password",
+                "the wifi password",
+                "the wifi password",
+            ),
+            (
+                "make a note of the gate code",
+                "the gate code",
+                "the gate code",
+            ),
+            (
+                "note to self: buy oat milk",
+                "buy oat milk",
+                "buy oat milk",
+            ),
+            (
+                "remember that my favorite tea is chamomile",
+                "my favorite tea is chamomile",
+                "my favorite tea is chamomile",
+            ),
+            (
+                "jot down that I talked to the doctor about sleep and they want melatonin",
+                "i talked to the doctor about sleep and",
+                "i talked to the doctor about sleep and they want melatonin",
+            ),
+            (
+                "add a note about the meeting",
+                "the meeting",
+                "the meeting",
+            ),
+        ],
+    )
+    def test_notebook_capture_phrases_save_body(
+        self, command_parser, message, expected_title, expected_description
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "create_note"
+        entities = result.parsed_command.entities
+        assert entities.get("title") == expected_title
+        assert entities.get("description") == expected_description
+
+    def test_i_remember_that_is_not_create_note(self, command_parser):
+        result = _rule_parse(
+            command_parser, "I remember that I felt sad yesterday"
+        )
+
+        assert result.parsed_command.intent != "create_note"
+
+    @pytest.mark.parametrize(
         "message, expected_intent",
         [
             ("recent", "list_recent_entries"),
@@ -617,6 +737,10 @@ class TestCommandParserNotebookPatterns:
             ("rnotes 6", "list_recent_notes"),
             ("shown 7", "list_recent_notes"),
             ("shownotes 8", "list_recent_notes"),
+            ("show my notes", "list_recent_notes"),
+            ("show notes", "list_recent_notes"),
+            ("what's in my notebook", "list_recent_notes"),
+            ("what is in my notebook", "list_recent_notes"),
         ],
     )
     def test_recent_list_patterns(self, command_parser, message, expected_intent):

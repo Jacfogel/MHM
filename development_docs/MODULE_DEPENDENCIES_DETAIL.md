@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-25 17:50:44
+> **Last Generated**: 2026-08-26 00:57:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 270
-- **Total Imports Found**: 2277
+- **Total Imports Found**: 2278
 - **Dependencies Documented**: 270 (100% coverage)
-- **Standard Library Imports**: 672 (29.5%)
+- **Standard Library Imports**: 673 (29.5%)
 - **Third-Party Imports**: 216 (9.5%)
 - **Local Imports**: 1389 (61.0%)
-- **Last Updated**: 2026-08-25
+- **Last Updated**: 2026-08-26
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,7 +29,7 @@
 
 ## Import Statistics
 
-- **Standard Library**: 672 imports (29.5%)
+- **Standard Library**: 673 imports (29.5%)
 - **Third-Party**: 216 imports (9.5%)
 - **Local**: 1389 imports (61.0%)
 
@@ -4282,7 +4282,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: core/profile_v2_io.py, core/schedule_document_defaults.py
+- Removed: core/schedule_document_defaults.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6825,13 +6825,14 @@
   - **Local**:
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)`
     - `core (get_user_data)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
+    - `core.error_handling (UserInterfaceError, handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.ui_management (_number_after_prefix, find_lowest_available_period_number)` (NEW)
     - `ui.generated.checkin_settings_widget_pyqt (Ui_Form_checkin_settings)`
     - `ui.period_row_management (DEFAULT_PERIOD_DATA, add_period_row_to_layout, collect_period_data_from_widgets, load_period_widgets_for_category, remove_period_row_from_layout)` (NEW)
   - **Standard Library**:
     - `re`
+    - `typing (NamedTuple)`
   - **Third-party**:
     - `PySide6.QtCore (Qt)`
     - `PySide6.QtWidgets (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QTextEdit, QVBoxLayout, QWidget)`

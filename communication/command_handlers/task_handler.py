@@ -59,18 +59,23 @@ Manage tasks with natural language or short commands.
 
 **Create** (talk normally — dates/priority/tags can be in the same message):
 • `i need to call the dentist this week`
+• `i should pick up groceries tonight`
+• `dont forget to email the school`
+• `add laundry to my list` / `i gotta call mom`
 • `remind me to submit forms tomorrow morning`
 • `nt buy milk tonight #groceries`
 • `new task urgent: fix login before Friday group:work`
 • `remind me to take medication every morning at 8am` (recurring)
 
 **List & stats:**
-• `show my tasks` / `list tasks` / `/tasks`
+• `show my tasks` / `list tasks` / `what is on my list` / `/tasks`
+• `show overdue tasks` / `what's due`
 • `show tasks in group work` / `list tasks group:medical`
 • `task stats` / `how am I doing with my tasks this week?`
 
 **Complete, delete, update:**
-• `complete task 1` / `done Call mom`
+• `complete task 1` / `done Call mom` / `mark dentist done`
+• `I already did the dentist` / `take dentist off my list`
 • `delete task 2` / `delete Buy groceries`
 • `update task 1 priority high due tomorrow`
 • `update task 1 note insurance form is on the counter` (replace notes)
@@ -1046,6 +1051,9 @@ class TaskManagementHandler(InteractionHandler):
         """Get example commands for task management."""
         return [
             "i need to call the dentist this week",
+            "i should pick up groceries tonight",
+            "dont forget to email the school",
+            "add laundry to my list",
             "remind me to submit forms tomorrow morning",
             "nt buy milk tonight #groceries",
             "create task to water plants every 2 weeks",

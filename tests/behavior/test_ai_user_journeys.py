@@ -35,7 +35,7 @@ from core.time_utilities import (
     format_timestamp,
     now_datetime_full,
 )
-from tasks import load_active_tasks
+from tasks import load_active_tasks, save_active_tasks
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
@@ -185,6 +185,50 @@ def test_clear_create_task_command_persists_task(test_data_dir):
     assert "take meds" in titles
     assert find_false_crud_claims(result.message) == []
     assert "take meds" in result.message.lower()
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_everyday_create_task_phrase_persists(test_data_dir):
+    """Casual 'I should...' phrasing creates a real task instead of falling through to chat."""
+    user_id = _create_journey_user(test_data_dir, "journey-everyday-create")
+
+    result = handle_user_message(user_id, "i should pick up groceries tonight", "discord")
+
+    assert result and result.message
+    titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
+    assert any("pick up groceries" in title for title in titles)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_add_to_my_list_phrase_creates_task(test_data_dir):
+    """'add X to my list' creates a task instead of appending to a notebook entry."""
+    user_id = _create_journey_user(test_data_dir, "journey-add-to-list")
+
+    result = handle_user_message(user_id, "add laundry to my list", "discord")
+
+    assert result and result.message
+    titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
+    assert any("laundry" in title for title in titles)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_mark_task_done_phrase_completes_task(test_data_dir):
+    """'mark <name> done' completes the matching task."""
+    user_id = _create_journey_user(test_data_dir, "journey-mark-done")
+    tasks = load_active_tasks(user_id)
+    tasks.append({"title": "dentist", "id": "tdentist", "short_id": "t1dent"})
+    assert save_active_tasks(user_id, tasks)
+
+    result = handle_user_message(user_id, "mark dentist done", "discord")
+
+    assert result and result.message
+    assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
 
 
 @pytest.mark.tasks

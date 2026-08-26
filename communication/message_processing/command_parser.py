@@ -114,12 +114,14 @@ _PARSE_COMMAND_KEYWORDS: tuple[str, ...] = (
     "new",
     "add",
     "insert",
+    "jot",
     "start",
     "begin",
     "initiate",
     "remind",
     "reminder",
     "remind me",
+    "gotta",
     "call",
     "buy",
     # Viewing / listing
@@ -385,11 +387,20 @@ class EnhancedCommandParser:
                 r"^createtask\s+(.+)$",
                 r"^createt\s+(.+)$",
                 r"^task\s+(?!stats\b|statistics\b|analytics\b|analysis\b|summary\b|summaries\b|insights\b|trends\b|template\b|templates\b)(.+)$",
-                r"create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)",
-                r"add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)",
-                r"new\s+task\s+(?:to\s+)?(.+)",
+                r"create\s+(?:a\s+)?task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
+                r"add\s+(?:a\s+)?task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
+                r"new\s+task\s+(?:to\s+|for\s+(?!me\b|us\b|you\b|myself\b))?(.+)",
                 r"i\s+need\s+to\s+(.+)",
+                r"i\s+should\s+(.+)",
+                r"i\s+have\s+to\s+(.+)",
+                r"(?:i\s+)?gotta\s+(.+)",
+                r"^need\s+to\s+(.+)$",
+                r"make\s+a\s+reminder\s+to\s+(.+)",
+                r"^(?:put|add)\s+(.+?)\s+(?:on|to)\s+my\s+(?:list|to-?dos?|todo)s?$",
                 r"remind\s+me\s+to\s+(.+)",
+                r"don'?t\s+forget\s+to\s+(.+)",
+                r"do\s+not\s+forget\s+to\s+(.+)",
+                r"remember\s+to\s+(.+)",
                 r"call\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
                 r"buy\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
                 r"schedule\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
@@ -463,22 +474,29 @@ class EnhancedCommandParser:
                 r"^list\s+tasks?$",
                 r"^what\s+are\s+my\s+tasks?$",
                 r"^what\s+are\s+tasks?$",
+                r"^what(?:'s|\s+is)\s+on\s+my\s+(?:list|to-?dos?|todo)s?$",
+                r"^what(?:'s|\s+is)\s+on\s+(?:the\s+|my\s+)?(?:task\s+)?list$",
                 r"^my\s+tasks?$",
                 r"^tasks?\s+due$",
                 r"^what\s+do\s+i\s+have\s+to\s+do\s+(?:today|tomorrow)$",
                 r"^what\s+are\s+my\s+tasks?\s+(?:for\s+today|for\s+tomorrow)$",
                 r"^show\s+me\s+my\s+tasks?$",
+                r"^show\s+overdue\s+tasks?$",
+                r"^overdue\s+tasks?$",
+                r"^what(?:'s|\s+is)\s+due$",
+                r"^what\s+do\s+i\s+have\s+due$",
             ],
             "complete_task": [
                 r"^complete\s+(.+)$",
                 r"complete\s+(?:task\s+)?(\d+|[^0-9]+)",
                 r"done\s+(?:task\s+)?(\d+|[^0-9]+)",
                 r"finished\s+(?:task\s+)?(\d+|[^0-9]+)",
+                r"\bmark\s+(?:the\s+)?(?:task\s+)?(.+?)\s+(?:as\s+)?(?:done|complete(?:d)?)\s*$",
                 r"mark\s+(?:task\s+)?(\d+|[^0-9]+)\s+complete",
                 r"task\s+(\d+|[^0-9]+)\s+done",
-                # Natural language patterns for task completion
-                r"i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now)?(?:\s*,?\s*we\s+can\s+complete\s+that\s+task)?",
-                r"i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now)?(?:\s*,?\s*so\s+we\s+can\s+complete\s+that\s+task)?",
+                # Require end-of-string so `.+?` cannot collapse to one letter.
+                r"^i\s+(?:already\s+|just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+|the\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now)?(?:\s*,?\s*(?:so\s+)?we\s+can\s+complete\s+that\s+task)?$",
+                r"^take\s+(.+?)\s+off\s+(?:my\s+)?(?:list|to-?dos?)$",
                 r"(?:we\s+can\s+complete\s+that\s+task|so\s+we\s+can\s+complete\s+that\s+task)(?:\s*because\s+i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?))?",
             ],
             "delete_task": [
@@ -487,13 +505,17 @@ class EnhancedCommandParser:
                 r"cancel\s+(?:task\s+)?(\d+|[^0-9]+)",
             ],
             "update_task": [
+                r"update\s+(?:the\s+)?(.+?)\s+task\s+to\s+(.+)",
+                r"change\s+(?:the\s+)?(.+?)\s+task\s+to\s+(.+)",
                 r"update\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
                 r"change\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
                 r"edit\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
             ],
             "append_note_to_task": [
-                r"^append\s+note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
-                r"^add\s+note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
+                r"^append\s+(?:a\s+)?note\s+to\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:\s*(.+)$",
+                r"^add\s+(?:a\s+)?note\s+to\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:\s*(.+)$",
+                r"^append\s+(?:a\s+)?note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
+                r"^add\s+(?:a\s+)?note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
             ],
             "task_stats": [
                 r"task\s+stats",
@@ -750,7 +772,13 @@ class EnhancedCommandParser:
                 r"^createnote\s+(.+)$",
                 r"^createn\s+(.+)$",
                 r"^n\s+(.+)$",
+                r"^note\s+to\s+self\s*[:\-]?\s*(.+)$",
                 r"^note\s+(.+)$",
+                r"\bjot\s+down\s+(?:that\s+)?(.+)",
+                r"\bwrite\s+down\s+(?:that\s+)?(.+)",
+                r"\bmake\s+a\s+note\s+(?:of\s+|about\s+|that\s+)?(.+)",
+                r"\badd\s+a\s+note\s+(?:about|that)\s+(.+)",
+                r"^(?:please\s+)?remember\s+that\s+(.+)$",
                 r"note\s+(.+)",
                 r"new\s+note\s+(.+)",
                 r'create\s+note\s+titled\s+"([^"]+)"\s+with\s+body\s+"([^"]+)"',  # Match "create note titled "X" with body "Y"" (must come before general create note)
@@ -821,9 +849,11 @@ class EnhancedCommandParser:
                 r"^shown(?:\s+(\d+))?$",
                 r"^shownote(?:\s+(\d+))?$",
                 r"^shownotes(?:\s+(\d+))?$",
+                r"^show\s+(?:my\s+)?notes?$",
+                r"^what(?:'s|\s+is)\s+in\s+my\s+notebook$",
             ],
             "show_entry": [
-                r"^show\s+(?!my\s+tasks?$|me\s+my\s+tasks?$)(.+)$",  # Exclude "show my tasks" - handled by list_tasks
+                r"^show\s+(?!my\s+tasks?$|me\s+my\s+tasks?$|overdue\s+tasks?$|(?:my\s+)?notes?$)(.+)$",  # Exclude list aliases handled elsewhere
                 r"^display\s+(?!my\s+tasks?$)(.+)$",
                 r"^view\s+(?!my\s+tasks?$)(.+)$",
             ],
@@ -1358,9 +1388,9 @@ class EnhancedCommandParser:
                     "this task",
                 ]:
                     task_name = self._extract_task_name_from_context(message)
-                    entities["task_identifier"] = task_name or identifier
-                else:
-                    entities["task_identifier"] = identifier
+                    identifier = task_name or identifier
+
+                entities["task_identifier"] = self._clean_task_identifier(identifier)
 
                 if intent == "update_task" and len(match.groups()) > 1:
                     update_text = match.group(2).strip()
@@ -1386,11 +1416,37 @@ class EnhancedCommandParser:
             return True
 
         if intent == "list_tasks":
-            if match.groups():
+            lowered = message.lower()
+            if re.search(r"\boverdue\b", lowered):
+                entities["filter"] = "overdue"
+            elif re.search(
+                r"(?:what(?:'s|\s+is)|what\s+do\s+i\s+have)\s+due\b", lowered
+            ):
+                entities["filter"] = "due_soon"
+            if match.groups() and match.group(1):
                 entities["group"] = match.group(1).strip()
             return True
 
         return False
+
+    @handle_errors("cleaning task identifier", default_return="")
+    def _clean_task_identifier(self, identifier: str) -> str:
+        """Strip filler words so 'the dentist task' looks up as 'dentist'."""
+        original = (identifier or "").strip()
+        if not original:
+            return original
+        cleaned = original
+        if cleaned.lower().startswith("task "):
+            cleaned = cleaned[5:].strip()
+        cleaned = re.sub(
+            r"^(?:the|my|a|an|this|that)\s+",
+            "",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+        cleaned = re.sub(r"\s+tasks?$", "", cleaned, flags=re.IGNORECASE)
+        cleaned = cleaned.strip(" :-")
+        return cleaned or original
 
     # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors(
@@ -1678,7 +1734,11 @@ class EnhancedCommandParser:
 
     @handle_errors("assigning create-note title and body", default_return=None)
     def _assign_create_note_title_and_body(
-        self, match: re.Match, entities: dict[str, Any]
+        self,
+        match: re.Match,
+        entities: dict[str, Any],
+        *,
+        message: str = "",
     ) -> None:
         """Fill title/description from a create_note match (two groups or title:body text)."""
         if not match.groups():
@@ -1691,8 +1751,35 @@ class EnhancedCommandParser:
                 entities["description"] = None
             return
         title, description = self._parse_title_body_from_content(match.group(1).strip())
+        if description is None and title and self._is_inline_note_capture(message):
+            description = title
+            title = self._short_note_title(title)
         entities["title"] = title
         entities["description"] = description
+
+    @handle_errors("detecting inline note capture phrasing", default_return=False)
+    def _is_inline_note_capture(self, message: str) -> bool:
+        """True when the message is a capture phrase such as 'jot down' or 'remember that'."""
+        lowered = (message or "").lower().strip()
+        if not lowered:
+            return False
+        return bool(
+            re.search(r"\bjot\s+down\b", lowered)
+            or re.search(r"\bwrite\s+down\b", lowered)
+            or re.search(r"\bmake\s+a\s+note\b", lowered)
+            or re.search(r"^note\s+to\s+self\b", lowered)
+            or re.search(r"^(?:please\s+)?remember\s+that\b", lowered)
+            or re.search(r"\badd\s+a\s+note\s+(?:about|that)\b", lowered)
+        )
+
+    @handle_errors("shortening captured note title", default_return="")
+    def _short_note_title(self, text: str, *, max_words: int = 8) -> str:
+        """Use the full capture as title when short; otherwise keep the first words."""
+        cleaned = (text or "").strip()
+        words = cleaned.split()
+        if len(words) <= max_words:
+            return cleaned
+        return " ".join(words[:max_words])
 
     # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting help entities from rule-based patterns", default_return=False)
@@ -1731,7 +1818,9 @@ class EnhancedCommandParser:
     ) -> bool:
         """Extract notebook and list-related entities."""
         if intent == "create_note":
-            self._assign_create_note_title_and_body(match, entities)
+            self._assign_create_note_title_and_body(
+                match, entities, message=message
+            )
             return True
 
         if intent == "create_quick_note":
@@ -2123,12 +2212,24 @@ class EnhancedCommandParser:
             entities = {}
 
             # Extract priority (high, medium, low, urgent, critical)
-            # Pattern allows for "priority high", "priority to high", etc.
+            # Pattern allows for "priority high", "priority to high", "high priority".
             priority_match = re.search(
                 r"priority\s+(?:to\s+)?(high|medium|low|urgent|critical)",
                 update_text,
                 re.IGNORECASE,
             )
+            if not priority_match:
+                priority_match = re.search(
+                    r"\b(high|medium|low|urgent|critical)\s+priority\b",
+                    update_text,
+                    re.IGNORECASE,
+                )
+            if not priority_match:
+                priority_match = re.fullmatch(
+                    r"(?:to\s+)?(high|medium|low|urgent|critical)",
+                    update_text.strip(),
+                    re.IGNORECASE,
+                )
             if priority_match:
                 entities["priority"] = priority_match.group(1).lower()
 

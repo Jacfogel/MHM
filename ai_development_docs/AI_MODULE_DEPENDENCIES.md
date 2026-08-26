@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-25 17:51:03
+> **Last Generated**: 2026-08-26 00:58:04
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,8 +13,8 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 270
-- **Total Imports**: 2277
-- **Standard Library**: 672 (29.5%)
+- **Total Imports**: 2278
+- **Standard Library**: 673 (29.5%)
 - **Third-Party**: 216 (9.5%)
 - **Local Imports**: 1389 (61.0%)
 
@@ -67,7 +67,7 @@ UI Dependencies:
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, message_data_manager, logger
   - ui/widgets/channel_selection_widget.py <- third-party (PySide6.QtWidgets), channel_selection_widget_pyqt, core, logger, error_handling
-  - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, period_row_management, core, error_handling (+2 more)
+  - ui/widgets/checkin_settings_widget.py <- standard library (re, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, period_row_management, core, error_handling (+2 more)
 
 
 ## Key Dependency Patterns

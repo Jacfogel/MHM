@@ -61,12 +61,15 @@ Capture notes, lists, and journal entries from Discord.
 
 **Capture:**
 • `!n My thought` / `note: Title | body text`
+• `jot down that I talked to the doctor` / `add a note about the meeting`
+• `remember that my favorite tea is chamomile`
 • `!qn` or `quick note Grocery idea` — saves to Quick Notes group
 • `!j Today I felt...` — journal entry
 • `!l Groceries` / `!l new Groceries Milk, Bread #home`
 
 **Retrieve** (long lists show a **Show More** button):
 • `!recent` — recent entries
+• `show my notes` / `what's in my notebook`
 • `!show n123abc` — by short ID, UUID, or title
 • `!s project` — search titles, bodies, list items (archived excluded)
 • `!inbox` — active untagged entries updated in the last 30 days
@@ -1278,8 +1281,11 @@ class NotebookHandler(InteractionHandler):
         """Get example commands for notebook."""
         return [
             "!n My quick thought",
+            "jot down that I talked to the doctor",
+            "add a note about the meeting",
             "!n Meeting Notes | Discuss project X, follow up on Y",
             "!recent",
+            "show my notes",
             "!show n123abc",
             "!append My thought | More details here",
             "!edit n123abc",

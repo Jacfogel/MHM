@@ -92,6 +92,7 @@ _COMMAND_KEYWORDS = (
     "toggle",
     "replace",
     "search",
+    "jot",
 )
 
 # Multi-word hints for intents where a bare keyword would false-positive on chat (e.g. "update my feelings").
@@ -131,6 +132,14 @@ _COMMAND_PHRASE_HINTS = (
     "from template",
     "help notebook",
     "examples notebook",
+    "jot down",
+    "write down",
+    "make a note",
+    "note to self",
+    "to my list",
+    "on my list",
+    "make a reminder",
+    "show my notes",
 )
 
 _TASK_INTENT_PHRASES = (
@@ -140,6 +149,7 @@ _TASK_INTENT_PHRASES = (
     "i have to",
     "remind me to",
     "don't forget to",
+    "dont forget to",
     "do not forget to",
     "remember to",
     "i need",

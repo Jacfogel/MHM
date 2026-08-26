@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-08-22  
+> **Last Updated**: 2026-08-26  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -64,8 +64,8 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 |------|--------|----------|--------------------|---------------|
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
-| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live Discord Show More validation; help `|`, group ambiguity, and `!edit` sessions shipped; bulk later |
-| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
+| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Everyday capture phrasing shipped 2026-08-26; live Discord Show More/help spot-check; bulk later |
+| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; live Discord validation, templates, notes/links remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
@@ -100,11 +100,12 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Workstreams** (in recommended order):
 
 1. **Command list parity** - Runtime injection via `ai/command_registry.py` is in place; finish template cleanup and parity tests; remove stale static lists when injection is verified in all run modes.
-2. **NLP / mode detection** - Expand `ai/command_interpreter.py` keywords and natural-language task patterns; add regression tests aligned with `command_parser` intents.
+2. **NLP / mode detection** - Expand `ai/command_interpreter.py` keywords and natural-language task patterns; add regression tests aligned with `command_parser` intents. Everyday create/complete/list/append phrases shipped 2026-08-26.
 3. **Response-time tuning** - Profile hot paths (`generate_quick_response`, command parsing, context assembly); tune cache TTL and timeouts where safe without stale user context.
 4. **Actionability sprint** - CRUD reliability, feature-flag-aware suggestions, and non-conflicting guidance using recent automated messages (partially present in `ai/conversational_context/`).
 
-**First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.
+**First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.  
+**Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`).
 
 ---
 
@@ -227,6 +228,7 @@ These plans should not be duplicated in detail here.
 **Current focus**:
 
 - Live Discord validation of Show More / pagination (code + automated tests exist).
+- Everyday capture phrasing shipped 2026-08-26 (`jot down`, `remember that`).
 - Help live spot-check (`|` separators, group ambiguity, and `!edit` shipped 2026-07-29).
 - AI notebook context privacy/opt-in scoping (recent entries already included).
 - Bulk organization commands only after live notebook use feels reliable.
@@ -241,7 +243,7 @@ These plans should not be duplicated in detail here.
 
 **Current focus**:
 
-- Broader natural-language task creation beyond recurring-task basics.
+- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26; live Discord remaining).
 - Templates and quick actions.
 - Task notes/links/attachments.
 - Live Discord validation for task creation and follow-up flows.

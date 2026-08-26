@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-25 17:50:42
+> **Last Generated**: 2026-08-26 00:57:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.5% [!] GOOD**
-- **Total Functions**: 2574
-- **Total Methods**: 1361
-- **Documented**: 3483/3935
+### **Documentation Coverage: 88.6% [!] GOOD**
+- **Total Functions**: 2584
+- **Total Methods**: 1369
+- **Documented**: 3501/3953
 - **Files Scanned**: 272
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chat/chatbot.py` - Main AI implementation (67 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (76 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (82 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
 
@@ -76,7 +76,7 @@ Core System Decision Tree:
 - `InteractionHandler` (communication/command_handlers/base_handler.py)
 - ... and 9 more
 
-### **Widget Pattern** (8 found)
+### **Widget Pattern** (9 found)
 **Purpose**: Reusable UI components
 **Location**: `ui/widgets/checkin_settings_widget.py`, `ui/widgets/natural_language_settings_widget.py`, `ui/widgets/period_row_widget.py`
 **Pattern**: 
@@ -85,10 +85,10 @@ Core System Decision Tree:
 - Signal-based updates
 
 **Examples**:
+- `QuestionDialogFields` (ui/widgets/checkin_settings_widget.py)
 - `CheckinSettingsWidget` (ui/widgets/checkin_settings_widget.py)
 - `NaturalLanguageSettingsWidget` (ui/widgets/natural_language_settings_widget.py)
-- `PeriodRowWidget` (ui/widgets/period_row_widget.py)
-- ... and 5 more
+- ... and 6 more
 
 ### **Dialog Pattern** (19 found)
 **Purpose**: Modal user interaction windows
@@ -208,14 +208,14 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 404 functions)
 - `checkins/` -  (7 files, 151 functions)
-- `communication/` - Communication channels and message processing (90 files, 1191 functions)
+- `communication/` - Communication channels and message processing (90 files, 1197 functions)
 - `core/` - System utilities and data management (34 files, 605 functions)
 - `integrations/` -  (13 files, 114 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 109 functions)
 - `storage/` -  (16 files, 144 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
-- `ui/` - User interface components (43 files, 967 functions)
+- `ui/` - User interface components (43 files, 979 functions)
 - `user/` - User context and preferences (5 files, 56 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**
