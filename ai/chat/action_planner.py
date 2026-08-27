@@ -45,7 +45,8 @@ INTENT: clarify
 QUESTION: What should the task be called?
 
 Rules: ACTION must be unknown or one of: {actions}
-Copy field values from the user message only. Do not invent dates, locations, or titles.
+Copy field values from Current or Recent user said only. Do not invent dates, locations, or titles.
+If Current refers to that/it/this, copy TITLE from Recent user said.
 """
 
 _PLANNING_MAX_TOKENS = 60
@@ -111,27 +112,106 @@ _GROUNDED_ENTITY_KEYS = frozenset(
     }
 )
 
+_PLANNING_RECENT_TURN_LIMIT = 2
+_PLANNING_RECENT_TURN_CLIP = 120
+
+
+@handle_errors("clipping planner conversation turn", default_return="")
+def _clip_planner_turn(text: str) -> str:
+    """Return a short user-turn snippet for compact planning prompts."""
+    clipped = (text or "").strip()
+    if len(clipped) <= _PLANNING_RECENT_TURN_CLIP:
+        return clipped
+    return f"{clipped[:_PLANNING_RECENT_TURN_CLIP].rstrip()}..."
+
+
+@handle_errors("loading recent user turns for action planning", default_return=[])
+def _recent_user_turns_for_planning(
+    user_id: str | None, current_message: str
+) -> list[str]:
+    """Return the last few distinct user turns, excluding the current message."""
+    if not user_id:
+        return []
+
+    from core.response_tracking import get_recent_chat_interactions
+    from user.context_manager import user_context_manager
+
+    session_history = user_context_manager.get_session_conversation_history(user_id) or []
+    disk_recent = get_recent_chat_interactions(user_id, limit=5) or []
+    newest_first: list[dict[str, Any]] = []
+    newest_first.extend(reversed(list(session_history)))
+    newest_first.extend(disk_recent)
+
+    current_key = (current_message or "").strip().casefold()
+    seen: set[str] = set()
+    recent_newest_first: list[str] = []
+    for exchange in newest_first:
+        clipped = _clip_planner_turn(str(exchange.get("user_message") or ""))
+        key = clipped.casefold()
+        if not clipped or key == current_key or key in seen:
+            continue
+        seen.add(key)
+        recent_newest_first.append(clipped)
+        if len(recent_newest_first) >= _PLANNING_RECENT_TURN_LIMIT:
+            break
+    return list(reversed(recent_newest_first))
+
+
+@handle_errors("building planner grounding text", default_return="")
+def _planner_grounding_text(source_message: str, recent_turns: Iterable[str]) -> str:
+    """Combine the current message with recent user turns for entity grounding."""
+    parts = [turn.strip() for turn in recent_turns if turn and turn.strip()]
+    current = (source_message or "").strip()
+    if current:
+        parts.append(current)
+    return "\n".join(parts)
+
+
+@handle_errors("formatting planning user content", default_return="")
+def _format_planning_user_content(
+    user_message: str, recent_turns: Iterable[str]
+) -> str:
+    """Build the compact user-role payload for the action planner."""
+    current = (user_message or "").strip()
+    turns = [turn.strip() for turn in recent_turns if turn and turn.strip()]
+    if not turns:
+        return current
+    recent_lines = "\n".join(f"- {turn}" for turn in turns)
+    return f"Recent user said:\n{recent_lines}\n\nCurrent:\n{current}"
+
 
 class ActionPlanner:
     """Plan product-AI responses and optional app actions from user messages."""
 
     @handle_errors("building action planning prompt", default_return=[])
     def build_planning_messages(
-        self, user_id: str | None, user_message: str
+        self,
+        user_id: str | None,
+        user_message: str,
+        *,
+        recent_turns: Iterable[str] | None = None,
     ) -> list[dict[str, str]]:
         """Build compact LM Studio messages for action planning.
 
-        ``user_id`` is accepted by callers but unused today. Full context envelopes
-        are intentionally omitted so local models with ~2k context can run planning.
+        Full context envelopes are omitted so local models with ~2k context can
+        run planning. At most two recent user turns are included so follow-ups
+        like "add that as a task" can reuse a title the user already stated.
         """
-        _ = user_id
         catalog = get_action_catalog()
         system_content = _PLANNING_SYSTEM_TEMPLATE.format(
             actions=catalog.to_planning_prompt_summary()
         ).strip()
+        turns = (
+            list(recent_turns)
+            if recent_turns is not None
+            else _recent_user_turns_for_planning(user_id, user_message)
+        )
         return [
             {"role": "system", "content": system_content},
-            {"role": "user", "content": (user_message or "").strip()},
+            {
+                "role": "user",
+                "content": _format_planning_user_content(user_message, turns),
+            },
         ]
 
     @handle_errors("planning action from message", default_return=None)
@@ -155,7 +235,10 @@ class ActionPlanner:
             logger.debug("AI unavailable for action planning; defaulting to answer_only")
             return answer_only_plan(user_message, planning_method="ai_unavailable")
 
-        messages = self.build_planning_messages(user_id, user_message)
+        recent_turns = _recent_user_turns_for_planning(user_id, user_message)
+        messages = self.build_planning_messages(
+            user_id, user_message, recent_turns=recent_turns
+        )
         if not messages:
             return answer_only_plan(user_message, planning_method="prompt_build_failed")
 
@@ -179,6 +262,7 @@ class ActionPlanner:
             source_message=user_message,
             catalog=get_action_catalog(),
             planning_method="ai_planner",
+            grounding_text=_planner_grounding_text(user_message, recent_turns),
         )
 
     @handle_errors("planning action from text", default_return=None)
@@ -189,6 +273,7 @@ class ActionPlanner:
         source_message: str,
         catalog: AIActionCatalog | None = None,
         planning_method: str = "text",
+        grounding_text: str | None = None,
     ) -> AIActionPlan | None:
         """Parse planner output text into an action plan (test and replay helper)."""
         return parse_action_plan_from_text(
@@ -196,6 +281,7 @@ class ActionPlanner:
             source_message=source_message,
             catalog=catalog or get_action_catalog(),
             planning_method=planning_method,
+            grounding_text=grounding_text,
         )
 
 
@@ -234,6 +320,7 @@ def parse_action_plan_from_text(
     source_message: str,
     catalog: AIActionCatalog | None = None,
     planning_method: str = "text",
+    grounding_text: str | None = None,
 ) -> AIActionPlan | None:
     """Parse model planner output into a validated AIActionPlan."""
     catalog = catalog or get_action_catalog()
@@ -291,6 +378,7 @@ def parse_action_plan_from_text(
             source_message=source_message,
             catalog=catalog,
             planning_method=planning_method,
+            grounding_text=grounding_text,
         )
 
     return answer_only_plan(
@@ -328,6 +416,7 @@ def _build_execute_plan(
     source_message: str,
     catalog: AIActionCatalog,
     planning_method: str,
+    grounding_text: str | None = None,
 ) -> AIActionPlan | None:
     """Build an execute_action plan or downgrade to clarify/answer_only."""
     shared, action_blocks = _parse_plan_structure(planner_output)
@@ -348,6 +437,7 @@ def _build_execute_plan(
             source_message=source_message,
             catalog=catalog,
             planning_method=planning_method,
+            grounding_text=grounding_text,
         )
         if downgrade is not None:
             return downgrade
@@ -375,6 +465,7 @@ def _build_action_request_from_fields(
     source_message: str,
     catalog: AIActionCatalog,
     planning_method: str,
+    grounding_text: str | None = None,
 ) -> tuple[AIActionRequest | None, AIActionPlan | None]:
     """Validate one action block and return a request or downgrade plan."""
     action_name = _normalize_action_name(
@@ -396,7 +487,9 @@ def _build_action_request_from_fields(
 
     confidence = _parse_confidence(fields.get("CONFIDENCE"))
     entities = _extract_entities_from_fields(
-        fields, source_message=source_message
+        fields,
+        source_message=source_message,
+        grounding_text=grounding_text,
     )
     missing_required = [
         field_name
@@ -553,6 +646,7 @@ def _extract_entities_from_fields(
     fields: dict[str, str],
     *,
     source_message: str = "",
+    grounding_text: str | None = None,
 ) -> dict[str, Any]:
     """Map planner entity keys to handler entity names."""
     reserved = {
@@ -563,13 +657,14 @@ def _extract_entities_from_fields(
         "CLARIFICATION_QUESTION",
         "NOTES",
     }
+    grounding = grounding_text if grounding_text is not None else source_message
     entities: dict[str, Any] = {}
     for key, value in fields.items():
         if key in reserved or not value:
             continue
         entity_key = _ENTITY_KEY_ALIASES.get(key, key.lower())
         if entity_key in _GROUNDED_ENTITY_KEYS and not _entity_value_grounded_in_message(
-            value, source_message
+            value, grounding
         ):
             continue
         entities[entity_key] = value

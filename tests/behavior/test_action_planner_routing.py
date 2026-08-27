@@ -20,6 +20,7 @@ from communication.message_processing.command_parser import ParsingResult
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.message_processing.interaction_manager import InteractionManager
 from core import get_user_data, get_user_id_by_identifier
+from core.response_tracking import store_chat_interaction
 from tasks import (
     complete_task,
     create_task,
@@ -137,6 +138,48 @@ def test_planner_execute_action_creates_task(test_data_dir, planner_enabled):
     assert "Dentist appointment" in response.message
     titles = [task.get("title") for task in load_active_tasks(user_id)]
     assert "Dentist appointment" in titles
+
+
+@pytest.mark.tasks
+def test_planner_follow_up_creates_task_from_recent_chat(
+    test_data_dir, planner_enabled, monkeypatch
+):
+    """After chatting about a chore, 'add that as a task' creates it from recent words."""
+    user_id = "planner-routing-followup-create"
+    TestUserFactory.create_basic_user(
+        user_id,
+        enable_tasks=True,
+        test_data_dir=test_data_dir,
+    )
+    store_chat_interaction(
+        user_id,
+        "I keep forgetting to pack the hiking bag for Saturday",
+        "That sounds stressful. Want to talk it through?",
+        context_used=True,
+    )
+    message = "yeah add that as a task"
+    monkeypatch.setattr(
+        "ai.chat.action_planner.call_lm_studio_api",
+        MagicMock(
+            return_value=(
+                "ACTION: create_task\nTITLE: pack the hiking bag\nCONFIDENCE: 0.9\n"
+            )
+        ),
+    )
+
+    interaction_manager = InteractionManager()
+    interaction_manager.enable_ai_enhancement = False
+    _force_low_confidence_parse(interaction_manager)
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+    ai_chatbot.generate_response.return_value = "ok"
+    interaction_manager.ai_chatbot = ai_chatbot
+
+    response = interaction_manager.handle_message(user_id, message, "discord")
+
+    assert response is not None
+    titles = [task.get("title") for task in load_active_tasks(user_id)]
+    assert "pack the hiking bag" in titles
 
 
 def test_planner_clarify_returns_question(test_data_dir, planner_enabled):

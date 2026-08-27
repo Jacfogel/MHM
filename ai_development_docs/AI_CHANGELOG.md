@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Chat follow-ups can create the task you just described **COMPLETED**
+- Action planner includes up to two recent user turns so "yeah add that as a task" can reuse a title you already said.
+- Titles still must match those recent words (example titles like "pack hiking bag" stay blocked).
+- Compact planning prompt is unchanged besides that short recent-turn block.
+
 ### 2026-08-26 - Discord task templates open a prefilled form **COMPLETED**
 - Create-hub template buttons open a prefilled modal; submit keeps template defaults (recurrence, priority, tags).
 - `list task templates` now attaches the same Discord button row as `create`.
@@ -110,10 +115,6 @@ Guidelines:
 ### 2026-08-21 - Quiet missing personalized.json on startup **COMPLETED**
 - Service startup no longer verifies AI-generated message categories (`personalized` has no library file).
 - Rechecked v1/v2 ordering flakes: `audit --full` is green; a serial run of the listed files still fails 4 tests that pass alone.
-
-### 2026-08-21 - Google Health dead refresh token logging **COMPLETED**
-- Shared `is_google_health_testing_mode()` in `integrations/google_health/testing.py`; HTTP 400 refresh now logs reconnect-required instead of a generic status.
-- Sync auto-pause still sends one reconnect notice; `last_error` uses the dead-token message.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

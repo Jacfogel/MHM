@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-08-22
+> **Last Updated**: 2026-08-26
 
 ## 1. Overview
 
@@ -31,7 +31,7 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | Path | Role |
 |---|---|
 | `ai/chat/chatbot.py` | Main AI chatbot logic (modes, LM Studio calls, caching, fallbacks). |
-| `ai/chat/action_planner.py` | Low-confidence action planning (`AIActionPlan`: answer-only, clarify, execute-action). |
+| `ai/chat/action_planner.py` | Low-confidence action planning (`AIActionPlan`: answer-only, clarify, or execute-action). Uses up to two recent user turns so follow-ups like "add that as a task" can reuse a title the user already stated. |
 | `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts via `compose_product_prompt()`. |
 | `ai/prompts/action_catalog.py` | Metadata-only action catalog for prompts/planner (no handler imports or writes). |
 | `ai/prompts/flows.py` | Named product-AI flows and category ownership (`chat_response`, `action_interpretation`, `action_result_response`, `fallback_response`). |
@@ -68,7 +68,7 @@ At a high level:
 1. A message arrives from a channel (e.g., Discord, Email) and enters `InteractionManager.handle_message`.
 2. **Hybrid routing (rule-parser-first):**
    - High-confidence structured parse (`confidence >= min_command_confidence`, default 0.3): dispatch via `dispatch_structured_command` (planner is not invoked).
-   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` -> `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers).
+   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` -> `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers). Planning stays compact (no full context envelope) but includes up to two recent user turns so pronouns like "that" can map to a title the user already said.
    - Planner returns `None`: retry partial structured parse when usable, then contextual chat.
    - Planner disabled: low-confidence messages go straight to contextual chat.
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
@@ -217,6 +217,8 @@ Conversation history lives through:
   - Provides `get_recent_responses`, `get_recent_checkins`, and related helpers.
   - Stores user interactions in JSON files under user-specific directories.
   - Decorated with `@handle_errors` to avoid crashes when log files are missing or corrupted.
+- `ai/chat/action_planner.py`  
+  - For low-confidence follow-ups, reads up to two recent **user** turns from in-memory session history and `get_recent_chat_interactions`. It does not load the full context envelope.
 
 `analyze_checkin_entries` uses recent check-in rows to include:
 
@@ -274,7 +276,7 @@ Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`
 - Disabled features must not appear in suggestions even if stale files exist on disk (sections are gated before reading sends/schedules).
 - Task reminder context is additive when a recent `task_reminders` send exists and tasks are enabled.
 
-**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression). Shared detector: `ai/chat/action_boundaries.py`.
+**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression); `tests/unit/test_ai_action_planner.py` (recent-turn grounding for follow-up creates). Shared detector: `ai/chat/action_boundaries.py`.
 
 ---
 

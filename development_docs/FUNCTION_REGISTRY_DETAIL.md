@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 17:44:40
+> **Last Generated**: 2026-08-26 21:58:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 272
-- **Functions Found**: 2588
+- **Functions Found**: 2592
 - **Methods Found**: 1369
 - **Classes Found**: 251
-- **Total Items**: 3957
-- **Functions Documented**: 2283
+- **Total Items**: 3961
+- **Functions Documented**: 2287
 - **Methods Documented**: 1224
 - **Classes Documented**: 188
-- **Total Documented**: 3507
+- **Total Documented**: 3511
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-26
 
@@ -75,19 +75,24 @@ Test functions and testing utilities.
 **Functions:**
 - [OK] `_build_action_request_from_fields(fields)` - Validate one action block and return a request or downgrade plan.
 - [OK] `_build_execute_plan(planner_output)` - Build an execute_action plan or downgrade to clarify/answer_only.
+- [OK] `_clip_planner_turn(text)` - Return a short user-turn snippet for compact planning prompts.
 - [OK] `_entity_value_grounded_in_message(value, source_message)` - Return True when a free-text entity value is supported by the user message.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
+- [OK] `_format_planning_user_content(user_message, recent_turns)` - Build the compact user-role payload for the action planner.
 - [OK] `_normalize_action_name(raw_action, known_intents)` - Normalize ACTION lines to live parser intent names.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
 - [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
 - [OK] `_parse_plan_structure(text)` - Parse shared planner fields and ordered per-action blocks.
+- [OK] `_planner_grounding_text(source_message, recent_turns)` - Combine the current message with recent user turns for entity grounding.
+- [OK] `_recent_user_turns_for_planning(user_id, current_message)` - Return the last few distinct user turns, excluding the current message.
 - [OK] `_trim_planner_output(planner_output)` - Drop common local-model trailing junk after the first plan block.
 - [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
 - [OK] `build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
 
-``user_id`` is accepted by callers but unused today. Full context envelopes
-are intentionally omitted so local models with ~2k context can run planning.
+Full context envelopes are omitted so local models with ~2k context can
+run planning. At most two recent user turns are included so follow-ups
+like "add that as a task" can reuse a title the user already stated.
 - [OK] `clarify_plan(source_message, question)` - Return a clarification plan with one user-facing question.
 - [OK] `get_action_planner()` - Return the shared action planner.
 - [OK] `parse_action_plan_from_text(planner_output)` - Parse model planner output into a validated AIActionPlan.
@@ -97,8 +102,9 @@ are intentionally omitted so local models with ~2k context can run planning.
 - [OK] `ActionPlanner` - Plan product-AI responses and optional app actions from user messages.
   - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
 
-``user_id`` is accepted by callers but unused today. Full context envelopes
-are intentionally omitted so local models with ~2k context can run planning.
+Full context envelopes are omitted so local models with ~2k context can
+run planning. At most two recent user turns are included so follow-ups
+like "add that as a task" can reuse a title the user already stated.
   - [OK] `ActionPlanner.plan_from_message(self, user_message)` - Call the model (when available) and parse an action plan.
   - [OK] `ActionPlanner.plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
 

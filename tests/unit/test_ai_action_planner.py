@@ -10,8 +10,12 @@ from ai.chat.action_planner import (
     ActionPlanner,
     answer_only_plan,
     parse_action_plan_from_text,
+    _recent_user_turns_for_planning,
 )
 from ai.prompts.action_catalog import AIActionPlan, build_action_catalog
+from core.response_tracking import store_chat_interaction
+from tests.test_helpers.test_utilities import TestUserFactory
+from user.context_manager import user_context_manager
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
@@ -155,7 +159,7 @@ def test_parse_low_confidence_downgrades_to_clarify():
 
 def test_build_planning_messages_are_compact_and_omit_chat_categories():
     planner = ActionPlanner()
-    messages = planner.build_planning_messages("user-1", "add task laundry")
+    messages = planner.build_planning_messages(None, "add task laundry")
 
     assert len(messages) == 2
     assert messages[0]["role"] == "system"
@@ -164,11 +168,12 @@ def test_build_planning_messages_are_compact_and_omit_chat_categories():
     assert "ACTION: create_task" in system
     assert "ACTION: unknown" in system
     assert "pack hiking bag" in system
+    assert "Recent user said" in system
     assert "Product AI flow:" not in system
     assert "[data_honesty]" not in system
     assert "[action_boundaries]" not in system
     assert "You are a command parser" not in system
-    assert len(system) < 2200
+    assert len(system) < 2300
 
 
 def test_plan_from_message_uses_ai_when_available(monkeypatch):
@@ -185,7 +190,7 @@ def test_plan_from_message_uses_ai_when_available(monkeypatch):
 
     plan = planner.plan_from_message(
         "how are you?",
-        user_id="user-1",
+        user_id=None,
         ai_chatbot=ai_chatbot,
     )
 
@@ -305,6 +310,125 @@ def test_parse_rejects_ungrounded_example_title_and_clarifies():
     assert plan is not None
     assert plan.response_intent == "clarify"
     assert "title" in (plan.clarification_question or "").lower()
+
+
+def test_parse_accepts_title_grounded_in_recent_user_turn():
+    catalog = build_action_catalog()
+    plan = parse_action_plan_from_text(
+        "ACTION: create_task\nTITLE: pack the hiking bag\nCONFIDENCE: 0.9\n",
+        source_message="yeah add that as a task",
+        catalog=catalog,
+        planning_method="test",
+        grounding_text=(
+            "I keep forgetting to pack the hiking bag for Saturday\n"
+            "yeah add that as a task"
+        ),
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert plan.actions[0].action_name == "create_task"
+    assert plan.actions[0].entities["title"] == "pack the hiking bag"
+
+
+def test_parse_still_rejects_example_title_when_recent_turn_is_unrelated():
+    catalog = build_action_catalog()
+    plan = parse_action_plan_from_text(
+        "ACTION: create_task\nTITLE: pack hiking bag\nCONFIDENCE: 0.9\n",
+        source_message="yeah add that as a task",
+        catalog=catalog,
+        planning_method="test",
+        grounding_text="I'm feeling overwhelmed today\nyeah add that as a task",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "clarify"
+    assert "title" in (plan.clarification_question or "").lower()
+
+
+def test_build_planning_messages_include_recent_user_turns(monkeypatch):
+    planner = ActionPlanner()
+    monkeypatch.setattr(
+        "ai.chat.action_planner._recent_user_turns_for_planning",
+        lambda user_id, current_message: [
+            "I keep forgetting to pack the hiking bag for Saturday"
+        ],
+    )
+
+    messages = planner.build_planning_messages(
+        "user-history", "yeah add that as a task"
+    )
+
+    assert messages[1]["role"] == "user"
+    user_content = messages[1]["content"]
+    assert "Recent user said:" in user_content
+    assert "pack the hiking bag" in user_content
+    assert "Current:" in user_content
+    assert "yeah add that as a task" in user_content
+
+
+def test_plan_from_message_grounds_title_in_recent_turns(monkeypatch):
+    planner = ActionPlanner()
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+    monkeypatch.setattr(
+        "ai.chat.action_planner._recent_user_turns_for_planning",
+        lambda user_id, current_message: [
+            "I keep forgetting to pack the hiking bag for Saturday"
+        ],
+    )
+    monkeypatch.setattr(
+        "ai.chat.action_planner.call_lm_studio_api",
+        MagicMock(
+            return_value=(
+                "ACTION: create_task\nTITLE: pack the hiking bag\nCONFIDENCE: 0.9\n"
+            )
+        ),
+    )
+
+    plan = planner.plan_from_message(
+        "yeah add that as a task",
+        user_id="user-history",
+        ai_chatbot=ai_chatbot,
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert plan.actions[0].entities["title"] == "pack the hiking bag"
+
+
+def test_recent_user_turns_come_from_chat_storage(test_data_dir):
+    user_id = "planner-history-disk"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    store_chat_interaction(
+        user_id,
+        "I keep forgetting to pack the hiking bag for Saturday",
+        "That sounds stressful. Want to talk it through?",
+        context_used=True,
+    )
+
+    turns = _recent_user_turns_for_planning(user_id, "yeah add that as a task")
+
+    assert turns == ["I keep forgetting to pack the hiking bag for Saturday"]
+
+
+def test_recent_user_turns_prefer_session_and_skip_current_message():
+    user_id = "planner-history-session"
+    user_context_manager.conversation_history[user_id] = [
+        {
+            "user_message": "I keep forgetting to pack the hiking bag for Saturday",
+            "ai_response": "Want me to add that as a task?",
+        },
+        {
+            "user_message": "yeah add that as a task",
+            "ai_response": "Okay.",
+        },
+    ]
+    try:
+        turns = _recent_user_turns_for_planning(user_id, "yeah add that as a task")
+        assert turns == ["I keep forgetting to pack the hiking bag for Saturday"]
+    finally:
+        user_context_manager.conversation_history.pop(user_id, None)
 
 
 def test_parse_multi_action_missing_fields_downgrades_to_clarify():

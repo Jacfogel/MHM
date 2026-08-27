@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 17:44:47
+> **Last Generated**: 2026-08-26 21:58:16
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 270
-- **Total Imports Found**: 2284
+- **Total Imports Found**: 2286
 - **Dependencies Documented**: 270 (100% coverage)
 - **Standard Library Imports**: 676 (29.6%)
-- **Third-Party Imports**: 216 (9.5%)
-- **Local Imports**: 1392 (60.9%)
+- **Third-Party Imports**: 216 (9.4%)
+- **Local Imports**: 1394 (61.0%)
 - **Last Updated**: 2026-08-26
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 676 imports (29.6%)
-- **Third-Party**: 216 imports (9.5%)
-- **Local**: 1392 imports (60.9%)
+- **Third-Party**: 216 imports (9.4%)
+- **Local**: 1394 imports (61.0%)
 
 ## Module Dependencies by Directory
 
@@ -118,6 +118,8 @@
     - `core.config (AI_ACTION_PLAN_MIN_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT, AI_COMMAND_TEMPERATURE)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.response_tracking (get_recent_chat_interactions)` (NEW)
+    - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `collections.abc (Iterable)`
@@ -129,7 +131,7 @@
   - `communication/message_processing/action_plan_executor.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, core.config, core.error_handling, core.logger
+- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, core.config, core.error_handling, core.logger, core.response_tracking, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, collections.abc, communication/message_processing/action_plan_executor.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4242,6 +4244,7 @@
     - `__future__ (annotations)`
     - `typing (Any)`
 - **Used by**:
+  - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
   - `ai/context/service.py`
   - `ai/fallback/data_access.py`
@@ -7051,6 +7054,7 @@
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
+  - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
   - `ai/context/assembly.py`
 

@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Chat follow-ups can create the task you just described
+- **Feature**: Low-confidence action planning now includes up to two recent user turns (session history plus stored chat). Follow-ups like `yeah add that as a task` can copy a title from what you already said instead of asking again.
+- **Safety**: Free-text entities still must be grounded in the current message or those recent turns, so the planning example title (`pack hiking bag`) cannot leak into a real task.
+- **Tests**: [`test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) covers grounded titles, unrelated-history rejection, prompt inclusion, stored-chat turns, and session-turn preference. Routing coverage in [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py) creates the task after a stored chat turn.
+- **Docs**: [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) sections 2.1-2.2, [PLANS.md](PLANS.md) section 5.0.1, [TODO.md](../TODO.md) actionability note.
+
 ### 2026-08-26 - Discord task templates open a prefilled form
 - **Feature**: Create-hub template buttons (Meds, Appt, Call, Clean, Forms) now open a Discord modal prefilled from the built-in template. Submit still uses `create_task_from_template`, so medication recurrence and template priority/tags stay. `list task templates` attaches the same button row as `create` / `new` / `add`.
 - **Fix**: Template due overrides accept relative phrases (`tomorrow`, `tomorrow at 2pm`) instead of dropping anything that is not already `YYYY-MM-DD`.
