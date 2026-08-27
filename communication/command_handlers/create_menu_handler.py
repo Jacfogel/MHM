@@ -27,7 +27,7 @@ class CreateMenuHandler(InteractionHandler):
 
         message = (
             "**Create something**\n\n"
-            "On Discord, use the buttons below.\n"
+            "On Discord, tap a template button to edit the prefilled form, then submit.\n"
             "Elsewhere, use commands like `task template medication` or `quick note ...`.\n\n"
             "**Task templates:**\n"
             f"{format_templates_for_help()}\n\n"
@@ -43,7 +43,7 @@ class CreateMenuHandler(InteractionHandler):
     def get_help(self) -> str:
         return (
             "**Create menu** — `create`, `new`, or `add`\n"
-            "Opens buttons for task templates, custom task, quick note, and new note (Discord)."
+            "Opens buttons for task templates (prefilled form), custom task, quick note, and new note (Discord)."
         )
 
     @handle_errors("getting create menu examples", default_return=[])

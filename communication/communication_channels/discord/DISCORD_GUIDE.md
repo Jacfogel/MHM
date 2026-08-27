@@ -112,6 +112,10 @@ UI views are adapters between Discord's UI and the core message pipeline:
   - "Skip Question" - Routes `skip` through the interaction manager. :contentReference[oaicite:23]{index=23}  
   - "More" - Sends static help text explaining how check-ins work. :contentReference[oaicite:24]{index=24}  
 
+- `get_create_hub_view(user_id)` in `ui/create_item_ui.py` returns a `discord.ui.View` with:
+  - Template buttons (Meds, Appt, Call, Clean, Forms) - Open a prefilled task modal; submit uses `create_task_from_template`.
+  - "Custom task" / "Quick note" / "New note" - Open empty modals for those create intents.
+
 - `get_task_reminder_view(user_id, task_id, task_title)` in `ui/task_reminder_view.py` returns a `discord.ui.View` with:
   - "Complete Task" - Routes `complete task {task_id}` through the interaction manager.  
   - "Remind Me Later" - Sends an acknowledgement (future snooze behavior can be added).  

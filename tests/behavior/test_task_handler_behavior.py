@@ -1239,3 +1239,5 @@ class TestTaskHandlerBehavior:
         assert response.completed
         assert "medication" in response.message
         assert "paperwork" in response.message
+        assert response.rich_data.get("interaction_view") == "create_hub"
+        assert response.rich_data.get("user_id") == "user-templates"

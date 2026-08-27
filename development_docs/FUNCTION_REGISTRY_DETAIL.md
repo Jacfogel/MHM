@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 00:57:46
+> **Last Generated**: 2026-08-26 17:44:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 272
-- **Functions Found**: 2584
+- **Functions Found**: 2588
 - **Methods Found**: 1369
 - **Classes Found**: 251
-- **Total Items**: 3953
-- **Functions Documented**: 2277
+- **Total Items**: 3957
+- **Functions Documented**: 2283
 - **Methods Documented**: 1224
 - **Classes Documented**: 188
-- **Total Documented**: 3501
+- **Total Documented**: 3507
 - **Template-Generated**: 48
 - **Last Updated**: 2026-08-26
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (670)
+### **Communication Functions** (672)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (533)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (98)
+### **Task Management Functions** (99)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -77,7 +77,7 @@ Test functions and testing utilities.
 - [OK] `_build_execute_plan(planner_output)` - Build an execute_action plan or downgrade to clarify/answer_only.
 - [OK] `_entity_value_grounded_in_message(value, source_message)` - Return True when a free-text entity value is supported by the user message.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
-- [OK] `_normalize_action_name(raw_action)` - Normalize canonical action names from planner output.
+- [OK] `_normalize_action_name(raw_action, known_intents)` - Normalize ACTION lines to live parser intent names.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
 - [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
@@ -749,10 +749,13 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 
 #### `ai/prompts/command_registry.py`
 **Functions:**
+- [OK] `canonicalize_intent_name(raw, known_intents)` - Normalize spaced or hyphenated ACTION names to live parser intent names.
+
+AI modules must call this registry helper instead of importing
+``communication.message_processing.intent_validation`` directly.
 - [OK] `format_command_actions_for_prompt()` - Format intent names for inclusion in the command system prompt.
 - [OK] `get_command_intent_names()` - Return sorted intent names from the rule-based command parser patterns.
 - [OK] `get_initialized_command_intent_names()` - Return live parser intent names, initializing the parser registry if needed.
-- [OK] `canonicalize_intent_name(raw, known_intents)` - Normalize spaced or hyphenated ACTION names to live parser intent names.
 - [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the 'Available actions:' line with the live registry.
 
 #### `ai/prompts/flows.py`
@@ -2115,19 +2118,20 @@ Args:
 #### `communication/communication_channels/discord/ui/create_item_ui.py`
 **Functions:**
 - [MISSING] `_bind_modal_button_callback(label, discord_bot, modal_builder)` - No description
-- [MISSING] `_bind_template_button_callback(template_id, discord_bot)` - No description
-- [MISSING] `_build_custom_task_modal(user_id, discord_bot)` - No description
+- [OK] `_build_custom_task_modal(user_id, discord_bot)` - Return an empty custom-task modal.
 - [MISSING] `_build_new_note_modal(user_id, discord_bot)` - No description
 - [MISSING] `_build_quick_note_modal(user_id, discord_bot)` - No description
+- [OK] `_build_task_modal(user_id, discord_bot)` - Return a task create modal, optionally prefilled from a template.
+- [OK] `_build_template_task_modal(user_id, discord_bot, template_id)` - Return a task modal prefilled from a built-in template.
 - [MISSING] `_run_handler(user_id, intent, entities, original_message)` - No description
 - [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
 - [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
 - [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
 - [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
 **Classes:**
-- [MISSING] `CustomTaskModal` - No description
 - [MISSING] `NewNoteModal` - No description
 - [MISSING] `QuickNoteModal` - No description
+- [MISSING] `TaskFormModal` - No description
 
 #### `communication/communication_channels/discord/ui/helpers.py`
 **Functions:**
@@ -3232,8 +3236,11 @@ Called by task handler after creating a task with a due date.
 
 #### `communication/message_processing/intent_validation.py`
 **Functions:**
-- [OK] `is_valid_intent(intent, interaction_handlers)` - Return True if any handler can handle the given intent.
 - [OK] `canonicalize_intent_name(raw, known_intents)` - Normalize spaced or hyphenated ACTION names to live parser intent names.
+
+``create task`` becomes ``create_task``. ``start check-in`` becomes
+``start_checkin`` when that intent exists (hyphen compact-match).
+- [OK] `is_valid_intent(intent, interaction_handlers)` - Return True if any handler can handle the given intent.
 
 Args:
     intent: The intent string to validate.
@@ -4389,9 +4396,10 @@ pass-through fields such as ``enabled_features`` should use this helper.
 - [OK] `schedule_categories(data)` - Return the category->periods map from a schedules envelope or flat dict.
 
 Accepts on-disk/in-memory envelopes ``{schema_version, updated_at, categories}``
-and unwrapped category maps ``{category: {periods: ...}}``. For envelopes, returns
-the live ``categories`` map after in-place migration so nested edits persist when
-the envelope is saved. Strips reserved envelope keys from polluted caches.
+(with or without extra keys) and unwrapped category maps
+``{category: {periods: ...}}``. For envelopes, returns the live ``categories``
+map after in-place migration so nested edits persist when the envelope is
+saved. Strips reserved envelope keys from polluted caches.
 - [OK] `unwrap_profile_document_on_load(document_type, raw)` - Prepare a v2 on-disk document for in-memory use.
 
 Account, preferences, and schedules stay as validated v2 envelopes.
@@ -6178,6 +6186,7 @@ Returns:
 - [OK] `get_template(template_id)` - Return a built-in template by canonical id, or None.
 - [OK] `list_builtin_templates()` - Return built-in templates in stable display order.
 - [OK] `lookup_builtin_template_id(name)` - Match a user-facing template name or synonym to a canonical built-in template_id.
+- [OK] `template_form_defaults(template_id)` - Return Discord/modal field defaults for a built-in template.
 - [OK] `to_create_kwargs(self)` - Return non-empty template fields suitable for task creation.
 **Classes:**
 - [OK] `TaskTemplate` - Static defaults for a repeatable task type.

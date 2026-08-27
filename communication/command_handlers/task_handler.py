@@ -88,10 +88,9 @@ Manage tasks with natural language or short commands.
 **Due phrases:** `tomorrow`, `tonight`, `this week`, `before Friday`, `after work` / `after school` (weekend `this week` means the coming week). Customize mappings: `show phrase settings` or admin **Phrase Settings**.
 
 **Templates** (quick-add with defaults):
-• `create` / `new` / `add` — Discord button menu (templates + custom task + notes)
+• `create` / `new` / `add` / `list task templates` — Discord buttons open a prefilled form
 • `task template medication` / `task template appointment`
 • `create task from template phone_call Call dentist`
-• `list task templates` — see all built-in templates
 
 **After create:** If due/priority/reminders are missing, I may ask follow-up questions — use the buttons or reply with a date/time, priority, **Skip Question**, **Skip All**, **back**/**undo** (one step back), or **cancel**/**Undo Task Creation** (delete the new task).
 
@@ -379,13 +378,17 @@ class TaskManagementHandler(InteractionHandler):
     ) -> InteractionResponse:
         """List built-in task templates."""
         lines = [
-            "**Task templates** — use `task template <name>` or `create task from template <name>`:",
+            "**Task templates** — tap a button on Discord, or use `task template <name>`:",
             "",
             _task_service().get_task_templates_help_text(),
             "",
             "Optional title override: `task template phone_call Call dentist`",
         ]
-        return InteractionResponse("\n".join(lines), completed=True)
+        return InteractionResponse(
+            "\n".join(lines),
+            completed=True,
+            rich_data={"interaction_view": "create_hub", "user_id": user_id},
+        )
 
     @handle_errors("parsing time string", default_return=None)
     def _parse_time_string(self, time_str: str) -> str | None:

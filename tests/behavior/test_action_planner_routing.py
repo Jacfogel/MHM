@@ -1072,6 +1072,7 @@ def test_list_task_templates_parity_rule_parser_vs_planner(
             assert "medication" in lowered
             assert "paperwork" in lowered
             assert "phone_call" in lowered or "phone call" in lowered
+            assert response.rich_data.get("interaction_view") == "create_hub"
 
     _run_task_intent_parity(
         test_data_dir,

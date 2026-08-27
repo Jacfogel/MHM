@@ -148,6 +148,24 @@ def get_template(template_id: str) -> TaskTemplate | None:
     return _BUILTIN_TEMPLATES.get(resolved)
 
 
+@handle_errors("building task template form defaults", default_return=None)
+def template_form_defaults(template_id: str) -> dict[str, str] | None:
+    """Return Discord/modal field defaults for a built-in template."""
+    template = get_template(template_id)
+    if not template:
+        return None
+    modal_title = f"Create: {template.display_name}"
+    return {
+        "template_id": template.template_id,
+        "modal_title": modal_title[:45],
+        "title": template.title,
+        "description": template.description,
+        "due": template.default_due_phrase or "",
+        "group": template.group or "",
+        "tags": ", ".join(template.tags),
+    }
+
+
 @handle_errors("formatting task templates for help", default_return="")
 def format_templates_for_help() -> str:
     """Short bullet list for help text."""

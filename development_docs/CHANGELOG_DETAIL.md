@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Discord task templates open a prefilled form
+- **Feature**: Create-hub template buttons (Meds, Appt, Call, Clean, Forms) now open a Discord modal prefilled from the built-in template. Submit still uses `create_task_from_template`, so medication recurrence and template priority/tags stay. `list task templates` attaches the same button row as `create` / `new` / `add`.
+- **Fix**: Template due overrides accept relative phrases (`tomorrow`, `tomorrow at 2pm`) instead of dropping anything that is not already `YYYY-MM-DD`.
+- **Tests**: Prefill and modal coverage in [`test_task_templates.py`](../tests/unit/test_task_templates.py) and [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py); list-hub rich_data in [`test_task_handler_behavior.py`](../tests/behavior/test_task_handler_behavior.py) and planner parity.
+- **Docs**: [TASKS_PLAN.md](TASKS_PLAN.md) section 3, [PLANS.md](PLANS.md) section 6.2, [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) section 4.3, [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) section 6.3.
+- **Impact**: From Discord, tap a template, tweak the title/due if needed, and submit instead of instantly creating a generic "Phone call" task.
+
 ### 2026-08-26 - Nightly health-sync and coverage-cache test isolation
 - **Fix**: Google Health sync/schedule tests now use the factory UUID (not the username) and patch `is_google_health_testing_mode` instead of flipping `MHM_TESTING`. Nightly Linux was returning early (`consecutive_failures` stayed 0, pause never called) because `users/<username>/` does not exist.
 - **Fix**: Dev-tools coverage cache treats empty-vs-empty mtime maps as unchanged, prefers `project_root`'s config file, and ignores `relative_to` `ValueError`. Nightly `--basetemp` under `tests/data/tmp/pytest_runner` no longer invalidates an unchanged scratch tree.

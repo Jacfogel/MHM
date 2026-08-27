@@ -97,7 +97,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ### 3. Task templates and quick actions
 
-**Status**: Partial (2026-05-27) — data model, built-ins, commands, and tests shipped; Discord quick-add buttons deferred  
+**Status**: Shipped (2026-08-26) — Discord template buttons open a prefilled modal; custom user templates still optional  
 **Priority**: Medium/High  
 **Why it matters**: Templates reduce friction for repeated task types, especially health, household, appointments, and chores.
 
@@ -108,9 +108,15 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Service helpers: `build_task_data_from_template`, `create_task_from_template`, `list_task_templates`.
 - [x] Commands: `task template <name>`, `create task from template <name>`, `list task templates`; help text updated.
 - [x] Tests: `tests/unit/test_task_templates.py`, behavior tests in `test_task_handler_behavior.py`.
+- [x] Create hub buttons in `create_item_ui.py` (immediate create).
+
+**Shipped (2026-08-26)**:
+- [x] Template buttons open a prefilled Discord modal (title, details, due, group, tags). Submit uses `create_task_from_template` so recurrence/priority defaults stay.
+- [x] `list task templates` attaches the same create-hub buttons as `create` / `new` / `add`.
+- [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
 
 **Remaining**:
-- [ ] Live Discord validation of create hub buttons and modals (2026-05-27: hub shipped in `create_item_ui.py`).
+- [ ] Live Discord visual check of template modals and create hub buttons.
 - [ ] Optional: user-defined custom templates (storage + settings UX).
 
 **Acceptance**:

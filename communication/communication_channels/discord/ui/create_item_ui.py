@@ -1,7 +1,7 @@
 """
 Discord create hub: shared buttons and modals for tasks and notes.
 
-Template quick-add buttons plus modals for custom task, quick note, and new note.
+Template buttons open a prefilled task modal; custom task, quick note, and new note also use modals.
 Business logic stays in command handlers; this module is UI only.
 Also contains shared modal field parsing previously in item_form_shared.
 """
@@ -97,36 +97,27 @@ def _run_handler(
     )
 
 
-@handle_errors("running create hub template task", default_return=None)
-async def _hub_run_template_task(
-    interaction: discord.Interaction,
+@handle_errors("submitting create hub task modal", default_return=None)
+async def _submit_task_form(
+    modal_interaction: discord.Interaction,
     discord_bot: DiscordBot | None,
-    template_id: str,
+    *,
+    intent: str,
+    entities: dict[str, Any],
+    original_message: str,
 ) -> None:
-    internal_id = _internal_user_id(interaction)
+    """Defer and run a create-task intent after a modal submit."""
+    internal_id = _internal_user_id(modal_interaction)
     if not internal_id:
-        await interaction.response.send_message("Account not found.", ephemeral=True)
+        await modal_interaction.response.send_message(
+            "Account not found. Link your Discord account first.", ephemeral=True
+        )
         return
-    await interaction.response.defer()
-    entities = {"template_ref": template_id}
-    response = _run_handler(
-        internal_id,
-        "create_task_from_template",
-        entities,
-        f"task template {template_id}",
+    await modal_interaction.response.defer(ephemeral=True)
+    response = _run_handler(internal_id, intent, entities, original_message)
+    await deliver_handler_response(
+        modal_interaction, response, discord_bot, ephemeral=True
     )
-    await deliver_handler_response(interaction, response, discord_bot, ephemeral=False)
-
-
-@handle_errors("binding create hub template button callback", default_return=None)
-def _bind_template_button_callback(
-    template_id: str, discord_bot: DiscordBot | None
-):
-    @handle_errors("create hub template button", default_return=None)
-    async def callback(interaction: discord.Interaction) -> None:
-        await _hub_run_template_task(interaction, discord_bot, template_id)
-
-    return callback
 
 
 @handle_errors("binding create hub modal button callback", default_return=None)
@@ -152,14 +143,31 @@ def _bind_modal_button_callback(
     return callback
 
 
-@handle_errors("building custom task modal", default_return=None)
-def _build_custom_task_modal(
-    user_id: str, discord_bot: DiscordBot | None
+@handle_errors("building create hub task modal", default_return=None)
+def _build_task_modal(
+    user_id: str,
+    discord_bot: DiscordBot | None,
+    *,
+    modal_title: str = "Create task",
+    title_default: str = "",
+    details_default: str = "",
+    due_default: str = "",
+    group_default: str = "",
+    tags_default: str = "",
+    intent: str = "create_task",
+    original_message: str = "create task from modal",
+    extra_entities: dict[str, Any] | None = None,
 ) -> discord.ui.Modal | None:
-    class CustomTaskModal(discord.ui.Modal, title="Create task"):
+    """Return a task create modal, optionally prefilled from a template."""
+    del user_id
+    extra = dict(extra_entities or {})
+    safe_title = (modal_title or "Create task")[:45]
+
+    class TaskFormModal(discord.ui.Modal, title=safe_title):
         title_input = discord.ui.TextInput(
             label="Title",
             placeholder="What needs doing?",
+            default=title_default[:200] or None,
             max_length=200,
             required=True,
         )
@@ -167,37 +175,34 @@ def _build_custom_task_modal(
             label="Details",
             style=discord.TextStyle.paragraph,
             placeholder="Optional notes",
+            default=details_default[:1000] or None,
             max_length=1000,
             required=False,
         )
         due_input = discord.ui.TextInput(
             label="Due",
             placeholder="e.g. tomorrow, this week, Friday",
+            default=due_default[:80] or None,
             max_length=80,
             required=False,
         )
         group_input = discord.ui.TextInput(
             label="Group",
             placeholder="e.g. health, work",
+            default=group_default[:80] or None,
             max_length=80,
             required=False,
         )
         tags_input = discord.ui.TextInput(
             label="Tags",
             placeholder="Comma-separated, e.g. health, urgent",
+            default=tags_default[:120] or None,
             max_length=120,
             required=False,
         )
 
-        @handle_errors("submitting custom task modal", context={"component": "discord"})
+        @handle_errors("submitting create hub task modal", context={"component": "discord"})
         async def on_submit(self, modal_interaction: discord.Interaction) -> None:
-            internal_id = _internal_user_id(modal_interaction)
-            if not internal_id:
-                await modal_interaction.response.send_message(
-                    "Account not found. Link your Discord account first.", ephemeral=True
-                )
-                return
-            await modal_interaction.response.defer(ephemeral=True)
             entities = entities_from_shared_fields(
                 title=self.title_input.value,
                 description=self.details_input.value,
@@ -205,14 +210,51 @@ def _build_custom_task_modal(
                 tags_value=self.tags_input.value,
                 due_phrase=self.due_input.value,
             )
-            response = _run_handler(
-                internal_id, "create_task", entities, "create task from modal"
-            )
-            await deliver_handler_response(
-                modal_interaction, response, discord_bot, ephemeral=True
+            if extra:
+                entities = {**extra, **entities}
+            await _submit_task_form(
+                modal_interaction,
+                discord_bot,
+                intent=intent,
+                entities=entities,
+                original_message=original_message,
             )
 
-    return CustomTaskModal()
+    return TaskFormModal()
+
+
+@handle_errors("building custom task modal", default_return=None)
+def _build_custom_task_modal(
+    user_id: str, discord_bot: DiscordBot | None
+) -> discord.ui.Modal | None:
+    """Return an empty custom-task modal."""
+    return _build_task_modal(user_id, discord_bot)
+
+
+@handle_errors("building template task modal", default_return=None)
+def _build_template_task_modal(
+    user_id: str, discord_bot: DiscordBot | None, template_id: str
+) -> discord.ui.Modal | None:
+    """Return a task modal prefilled from a built-in template."""
+    from tasks.task_templates import template_form_defaults
+
+    defaults = template_form_defaults(template_id)
+    if not defaults:
+        return None
+    resolved_id = defaults["template_id"]
+    return _build_task_modal(
+        user_id,
+        discord_bot,
+        modal_title=defaults["modal_title"],
+        title_default=defaults["title"],
+        details_default=defaults["description"],
+        due_default=defaults["due"],
+        group_default=defaults["group"],
+        tags_default=defaults["tags"],
+        intent="create_task_from_template",
+        original_message=f"task template {resolved_id}",
+        extra_entities={"template_ref": resolved_id},
+    )
 
 
 @handle_errors("building quick note modal", default_return=None)
@@ -335,7 +377,11 @@ def get_create_hub_view(
             custom_id=f"{CREATE_HUB_PREFIX}tpl_{template_id}_{user_id}",
         )
 
-        button.callback = _bind_template_button_callback(template_id, discord_bot)
+        button.callback = _bind_modal_button_callback(
+            f"{label} template",
+            discord_bot,
+            lambda uid, bot, tid=template_id: _build_template_task_modal(uid, bot, tid),
+        )
         view.add_item(button)
 
     custom_task = discord.ui.Button(

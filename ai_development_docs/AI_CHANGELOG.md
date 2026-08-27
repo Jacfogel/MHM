@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-26 - Discord task templates open a prefilled form **COMPLETED**
+- Create-hub template buttons open a prefilled modal; submit keeps template defaults (recurrence, priority, tags).
+- `list task templates` now attaches the same Discord button row as `create`.
+- Relative due phrases from the form (`tomorrow at 2pm`) parse as overrides.
+
 ### 2026-08-26 - Nightly health-sync and coverage-cache test isolation **COMPLETED**
 - Health sync/schedule tests resolve the factory UUID and patch `is_google_health_testing_mode` instead of setting `MHM_TESTING=0`.
 - Dev-tools coverage cache no longer treats empty mtime scans as changed; config path is the project under test.
@@ -109,10 +114,6 @@ Guidelines:
 ### 2026-08-21 - Google Health dead refresh token logging **COMPLETED**
 - Shared `is_google_health_testing_mode()` in `integrations/google_health/testing.py`; HTTP 400 refresh now logs reconnect-required instead of a generic status.
 - Sync auto-pause still sends one reconnect notice; `last_error` uses the dead-token message.
-
-### 2026-08-21 - Fix hourly status zeros and cleanup log routing **COMPLETED**
-- Hourly `Service status` now counts real scheduler jobs, users, and active channels instead of missing APIs that always reported 0.
-- Data-directory/auto-cleanup logs go to `file_ops.log`; backup deletions log at INFO with a removal summary.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

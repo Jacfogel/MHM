@@ -525,9 +525,9 @@ class TestCreateItemUi:
         assert any("new_note" in cid for cid in custom_ids)
 
     @pytest.mark.asyncio
-    async def test_hub_run_template_task_no_account(self):
+    async def test_submit_task_form_no_account(self):
         from communication.communication_channels.discord.ui.create_item_ui import (
-            _hub_run_template_task,
+            _submit_task_form,
         )
 
         interaction = AsyncMock()
@@ -535,15 +535,21 @@ class TestCreateItemUi:
             "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value=None,
         ):
-            await _hub_run_template_task(interaction, None, "medication")
+            await _submit_task_form(
+                interaction,
+                None,
+                intent="create_task",
+                entities={"title": "X"},
+                original_message="create task from modal",
+            )
         interaction.response.send_message.assert_awaited_once_with(
-            "Account not found.", ephemeral=True
+            "Account not found. Link your Discord account first.", ephemeral=True
         )
 
     @pytest.mark.asyncio
-    async def test_hub_run_template_task_success(self):
+    async def test_submit_task_form_success(self):
         from communication.communication_channels.discord.ui.create_item_ui import (
-            _hub_run_template_task,
+            _submit_task_form,
         )
 
         interaction = AsyncMock()
@@ -557,9 +563,43 @@ class TestCreateItemUi:
             "communication.communication_channels.discord.ui.create_item_ui.deliver_handler_response",
             new_callable=AsyncMock,
         ) as mock_deliver:
-            await _hub_run_template_task(interaction, MagicMock(), "appointment")
-        interaction.response.defer.assert_awaited_once()
+            await _submit_task_form(
+                interaction,
+                MagicMock(),
+                intent="create_task_from_template",
+                entities={"template_ref": "appointment", "title": "Appt"},
+                original_message="task template appointment",
+            )
+        interaction.response.defer.assert_awaited_once_with(ephemeral=True)
         mock_deliver.assert_awaited_once()
+
+    def test_build_template_task_modal_unknown_returns_none(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _build_template_task_modal,
+        )
+
+        assert _build_template_task_modal("user-1", None, "not-a-template") is None
+
+    def test_build_template_task_modal_passes_prefill(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _build_template_task_modal,
+        )
+
+        sentinel = object()
+        with patch(
+            "communication.communication_channels.discord.ui.create_item_ui._build_task_modal",
+            return_value=sentinel,
+        ) as mock_build:
+            result = _build_template_task_modal("user-1", None, "medication")
+
+        assert result is sentinel
+        kwargs = mock_build.call_args.kwargs
+        assert kwargs["title_default"] == "Take medication"
+        assert kwargs["due_default"] == "today"
+        assert kwargs["intent"] == "create_task_from_template"
+        assert kwargs["extra_entities"]["template_ref"] == "medication"
+        assert "medication" in kwargs["tags_default"]
+        assert kwargs["modal_title"].startswith("Create:")
 
     @pytest.mark.asyncio
     async def test_modal_button_callback_no_account(self):

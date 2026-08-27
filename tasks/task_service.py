@@ -764,10 +764,29 @@ def build_task_data_from_template(
         task_data["tags"] = merged
 
     resolved_due_date = due_date
-    if not resolved_due_date and template.default_due_phrase:
-        resolved_due_date = parse_relative_date(template.default_due_phrase, now_dt=now_dt)
+    resolved_due_time = due_time
+    if resolved_due_date:
+        time_match = re.search(
+            r"at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
+            resolved_due_date.lower(),
+        )
+        if time_match and not resolved_due_time:
+            parsed_from_phrase = parse_time_string(time_match.group(1))
+            if parsed_from_phrase:
+                resolved_due_time = parsed_from_phrase
+            resolved_due_date = re.sub(
+                r"\s+at\s+.*", "", resolved_due_date, flags=re.IGNORECASE
+            )
+        if parse_date_only(resolved_due_date) is None:
+            resolved_due_date = parse_relative_date(
+                resolved_due_date, now_dt=now_dt, user_id=user_id
+            )
+    elif template.default_due_phrase:
+        resolved_due_date = parse_relative_date(
+            template.default_due_phrase, now_dt=now_dt, user_id=user_id
+        )
 
-    resolved_due_time = due_time or template.default_due_time
+    resolved_due_time = resolved_due_time or template.default_due_time
     if resolved_due_date:
         valid_due_date = (
             resolved_due_date if parse_date_only(resolved_due_date) is not None else None

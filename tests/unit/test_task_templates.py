@@ -28,6 +28,21 @@ def test_list_builtin_templates_returns_all_five():
 
 @pytest.mark.unit
 @pytest.mark.tasks
+def test_template_form_defaults_prefills_medication_fields():
+    from tasks.task_templates import template_form_defaults
+
+    defaults = template_form_defaults("meds")
+    assert defaults is not None
+    assert defaults["template_id"] == "medication"
+    assert defaults["title"] == "Take medication"
+    assert defaults["due"] == "today"
+    assert "medication" in defaults["tags"]
+    assert defaults["modal_title"].startswith("Create:")
+    assert template_form_defaults("unknown-thing") is None
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
 def test_build_task_data_from_template_merges_overrides():
     from tasks import task_service
 
@@ -58,6 +73,25 @@ def test_build_task_data_from_template_applies_default_due():
     assert data is not None
     assert data.get("due_date") is not None
     assert data["priority"] == "high"
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_build_task_data_from_template_parses_due_phrase_override():
+    from tasks import task_service
+
+    fixed_now = datetime(2026, 5, 27, 10, 0)
+    with patch("tasks.task_service.now_datetime_full", return_value=fixed_now):
+        data = task_service.build_task_data_from_template(
+            "user-1",
+            "phone_call",
+            title="Call dentist",
+            due_date="tomorrow at 2pm",
+        )
+
+    assert data is not None
+    assert data["due_date"] == "2026-05-28"
+    assert data["due_time"] == "14:00"
 
 
 @pytest.mark.unit

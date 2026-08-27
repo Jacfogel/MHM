@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 00:57:49
+> **Last Generated**: 2026-08-26 17:44:47
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 270
-- **Total Imports Found**: 2278
+- **Total Imports Found**: 2284
 - **Dependencies Documented**: 270 (100% coverage)
-- **Standard Library Imports**: 673 (29.5%)
+- **Standard Library Imports**: 676 (29.6%)
 - **Third-Party Imports**: 216 (9.5%)
-- **Local Imports**: 1389 (61.0%)
+- **Local Imports**: 1392 (60.9%)
 - **Last Updated**: 2026-08-26
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 673 imports (29.5%)
+- **Standard Library**: 676 imports (29.6%)
 - **Third-Party**: 216 imports (9.5%)
-- **Local**: 1389 imports (61.0%)
+- **Local**: 1392 imports (60.9%)
 
 ## Module Dependencies by Directory
 
@@ -129,8 +129,8 @@
   - `communication/message_processing/action_plan_executor.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, core.config, core.error_handling, core.logger
-- Removed: ai/__init__.py, ai/chat/__init__.py, communication/message_processing/action_plan_executor.py
+- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, core.config, core.error_handling, core.logger
+- Removed: ai/__init__.py, ai/chat/__init__.py, collections.abc, communication/message_processing/action_plan_executor.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -871,19 +871,22 @@
 - **Purpose**: Communication channel implementation for command_registry
 - **Dependencies**:
   - **Local**:
-    - `communication.message_processing.command_parser (EnhancedCommandParser, get_rule_based_intent_names)` (NEW)
+    - `communication.message_processing.command_parser (get_enhanced_command_parser, get_rule_based_intent_names)` (NEW)
+    - `communication.message_processing.intent_validation (canonicalize_intent_name)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
+    - `collections.abc (Iterable)`
     - `re`
 - **Used by**:
   - `ai/__init__.py`
+  - `ai/chat/action_planner.py`
   - `ai/prompts/__init__.py`
   - `ai/prompts/action_catalog.py`
   - `ai/prompts/manager.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.command_parser, core.error_handling
-- Removed: ai/__init__.py, ai/prompts/__init__.py, ai/prompts/action_catalog.py, ai/prompts/manager.py
+- Added: communication.message_processing.command_parser, communication.message_processing.intent_validation, core.error_handling
+- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/prompts/__init__.py, ai/prompts/action_catalog.py, ai/prompts/manager.py, collections.abc
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2092,6 +2095,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
+    - `tasks.task_templates (template_form_defaults)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `typing (Any, TYPE_CHECKING)`
@@ -2101,7 +2105,7 @@
   - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.ui.helpers, core.error_handling, core.logger, core.tags
+- Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, communication.communication_channels.discord.ui.helpers, core.error_handling, core.logger, core.tags, tasks.task_templates
 - Removed: communication/communication_channels/discord/interaction_views.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2682,7 +2686,7 @@
     - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
     - `communication.command_handlers.interaction_handlers (get_all_handlers)`
     - `communication.command_handlers.shared_types (ParsedCommand)`
-    - `communication.message_processing.intent_validation (is_valid_intent)`
+    - `communication.message_processing.intent_validation (canonicalize_intent_name, is_valid_intent)`
     - `core.config (AI_AI_ENHANCED_CONFIDENCE_THRESHOLD, AI_AI_PARSING_BASE_CONFIDENCE, AI_AI_PARSING_PARTIAL_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT, AI_RULE_BASED_FALLBACK_THRESHOLD, AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -3011,15 +3015,17 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
-    - `collections.abc (Mapping)`
+    - `collections.abc (Iterable, Mapping)`
+    - `re`
     - `typing (Any)`
 - **Used by**:
+  - `ai/prompts/command_registry.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: collections.abc, communication/message_processing/command_parser.py, communication/message_processing/interaction_manager.py
+- Removed: ai/prompts/command_registry.py, collections.abc, communication/message_processing/command_parser.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5993,11 +5999,12 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/create_menu_handler.py`
+  - `communication/communication_channels/discord/ui/create_item_ui.py`
   - `tasks/task_service.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/command_handlers/create_menu_handler.py, tasks/task_service.py
+- Removed: communication/command_handlers/create_menu_handler.py, communication/communication_channels/discord/ui/create_item_ui.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

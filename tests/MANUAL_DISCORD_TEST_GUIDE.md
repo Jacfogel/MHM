@@ -474,7 +474,19 @@ Behavior is automated. Grey vs blue button **styles** are asserted in `test_disc
 | `!group <group>` filter preserved | same (`list_entries_by_group`) |
 | Page 2 is different; last page has no Show More | `test_recent_pagination_exhausts_without_stale_show_more` |
 
-### 6.3. Sign-off
+### 6.3. Create hub and task templates
+
+Behavior is automated. Optional live check: buttons still look right in the real Discord client.
+
+| Check | Automated test |
+|---|---|
+| `create` / `new` / `add` attaches create-hub buttons | `test_show_create_hub_parity_rule_parser_vs_planner`; `test_get_create_hub_view_has_template_and_modal_buttons` |
+| `list task templates` attaches the same hub | `test_task_handler_list_templates`; `test_list_task_templates_parity_rule_parser_vs_planner` |
+| Template button opens a prefilled form | `test_build_template_task_modal_passes_prefill` |
+| Unknown template does not open a form | `test_build_template_task_modal_unknown_returns_none` |
+| Due phrase in the form parses (`tomorrow at 2pm`) | `test_build_task_data_from_template_parses_due_phrase_override` |
+
+### 6.4. Sign-off
 
 Behavior coverage for this guide is in pytest. [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) section 1 and [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.1 now point at those tests. Optional live Discord is visual/tone only.
 
