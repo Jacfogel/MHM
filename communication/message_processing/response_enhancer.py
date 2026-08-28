@@ -137,8 +137,8 @@ def enhance_response_with_ai(
         context_prompt = (
             f"{system_content}\n\n"
             f"User: {user_content}\n\n"
-            "Write one warm, concise user-visible reply that reflects the handler result. "
-            "Return ONLY the reply text."
+            "Write one calm, concise user-visible reply that reflects the handler result. "
+            "Name what changed. Do not cheerlead, do not teach command syntax, and return ONLY the reply text."
         )
 
         enhanced_text = ai_chatbot.generate_response(

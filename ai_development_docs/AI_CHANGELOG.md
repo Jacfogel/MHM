@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-28 - Chat follow-ups can update the task you just mentioned **COMPLETED**
+- `make that due tomorrow`, `that's urgent`, and `mark that done` apply to the recently mentioned or created task.
+- Ambiguous "that" asks which task; confirmations stay calm instead of teaching command syntax.
+- Live LM Studio tone review is still remaining.
+
 ### 2026-08-27 - Tasks can store web links **COMPLETED**
 - Tasks keep http(s) URLs in a `links` field, with add/remove commands and create-time URL capture.
 - Labels are optional (`add the portal link to the dentist task: https://...`).
@@ -113,10 +118,6 @@ Guidelines:
 - The envelope stores that analysis once; contextual chat builds the envelope once and reuses it.
 - Wellness no longer invents a 50 for missing sleep/habits; named scores still need 3 check-ins.
 
-### 2026-08-21 - Stop personalized message homework leaks **COMPLETED**
-- Scheduled personalized Discord messages now run personalized post-process (the live path had been cleaning them as chat).
-- Letter sign-offs, `[Your Name]`, and `Use Case` / `Scenario` writing-prompt dumps are cut before send.
-- Follow-up: `_line_is_letter_signoff()` uses `@handle_errors` and is in the function registry.
-
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
+

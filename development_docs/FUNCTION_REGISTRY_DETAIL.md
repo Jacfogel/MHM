@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-27 18:13:19
+> **Last Generated**: 2026-08-28 14:13:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 273
-- **Functions Found**: 2611
+- **Files Scanned**: 274
+- **Functions Found**: 2622
 - **Methods Found**: 1376
 - **Classes Found**: 252
-- **Total Items**: 3987
-- **Functions Documented**: 2306
+- **Total Items**: 3998
+- **Functions Documented**: 2317
 - **Methods Documented**: 1231
 - **Classes Documented**: 189
-- **Total Documented**: 3537
+- **Total Documented**: 3548
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-27
+- **Last Updated**: 2026-08-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (676)
+### **Communication Functions** (677)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (533)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (114)
+### **Task Management Functions** (123)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -79,6 +79,7 @@ Test functions and testing utilities.
 - [OK] `_entity_value_grounded_in_message(value, source_message)` - Return True when a free-text entity value is supported by the user message.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
 - [OK] `_format_planning_user_content(user_message, recent_turns)` - Build the compact user-role payload for the action planner.
+- [OK] `_missing_field_question(field_name)` - Return a calm clarification question for a missing planner field.
 - [OK] `_normalize_action_name(raw_action, known_intents)` - Normalize ACTION lines to live parser intent names.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
@@ -1661,6 +1662,7 @@ Returns:
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
+- [OK] `_resolve_pronoun_task_identifier(user_id, task_identifier)` - Replace a follow-up pronoun with a real task id, or ask which task.
 - [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
 - [OK] `_task_service()` - Return the cached ``tasks.task_service`` module (lazy import for circular-import safety).
 - [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
@@ -6140,6 +6142,21 @@ Returns:
 - [OK] `parse_link_remainder(remainder, label_hint)` - Parse optional label plus URL from add/remove-link remainder text.
 - [OK] `restore_url_case(url, original_message)` - Prefer the URL spelling from the original message when matching is case-insensitive.
 - [OK] `sanitize_task_links(raw_links)` - Normalize a links payload into unique `{url, label}` records.
+
+#### `tasks/task_reference.py`
+**Functions:**
+- [OK] `_is_recently_touched(task)` - Return True when the task was created or updated within the recency window.
+- [OK] `_recent_user_turns(user_id)` - Return recent user chat lines, oldest first.
+- [OK] `_task_recency_key(task)` - Return a sort key from updated_at, then created_at.
+- [OK] `_tasks_mentioned_in_turns(tasks, recent_turns)` - Return tasks whose titles appear in recent user turns, longest title first.
+- [OK] `action_accepts_pronoun_task(action_name)` - Return True when a planned action can fill TASK_IDENTIFIER with 'that'.
+- [OK] `is_pronoun_task_identifier(identifier)` - Return True when the identifier is a follow-up pronoun, not a real task name.
+- [OK] `message_uses_task_pronoun(text)` - Return True when the message updates/completes a previously mentioned task.
+- [OK] `resolve_lookup_identifier(user_id, identifier)` - Return a concrete task id for pronoun identifiers, or the original identifier.
+- [OK] `resolve_pronoun_task(user_id)` - Choose the task a follow-up like 'make that due tomorrow' refers to.
+
+Prefers a title mentioned in recent chat, then a uniquely recent task,
+then the only active task. Returns None when the reference is ambiguous.
 
 #### `tasks/task_schemas.py`
 **Functions:**

@@ -331,6 +331,40 @@ def test_parse_accepts_title_grounded_in_recent_user_turn():
     assert plan.actions[0].entities["title"] == "pack the hiking bag"
 
 
+def test_parse_fills_pronoun_identifier_for_update_follow_up():
+    catalog = build_action_catalog()
+    plan = parse_action_plan_from_text(
+        "ACTION: update_task\nDUE_DATE: tomorrow\nCONFIDENCE: 0.9\n",
+        source_message="make that due tomorrow",
+        catalog=catalog,
+        planning_method="test",
+        grounding_text=(
+            "I keep forgetting to pack the hiking bag for Saturday\n"
+            "make that due tomorrow"
+        ),
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert plan.actions[0].action_name == "update_task"
+    assert plan.actions[0].entities["task_identifier"] == "that"
+    assert plan.actions[0].entities["due_date"] == "tomorrow"
+
+
+def test_parse_update_without_pronoun_still_asks_which_task():
+    catalog = build_action_catalog()
+    plan = parse_action_plan_from_text(
+        "ACTION: update_task\nPRIORITY: high\nCONFIDENCE: 0.9\n",
+        source_message="update a task",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "clarify"
+    assert "which task" in (plan.clarification_question or "").lower()
+
+
 def test_parse_still_rejects_example_title_when_recent_turn_is_unrelated():
     catalog = build_action_catalog()
     plan = parse_action_plan_from_text(

@@ -182,6 +182,52 @@ def test_planner_follow_up_creates_task_from_recent_chat(
     assert "pack the hiking bag" in titles
 
 
+@pytest.mark.tasks
+def test_planner_follow_up_updates_task_from_recent_chat(
+    test_data_dir, planner_enabled, monkeypatch
+):
+    """After creating a task, 'make that due tomorrow' updates it from the pronoun."""
+    user_id = "planner-routing-followup-update"
+    TestUserFactory.create_basic_user(
+        user_id,
+        enable_tasks=True,
+        test_data_dir=test_data_dir,
+    )
+    create_task(user_id, title="pack the hiking bag")
+    store_chat_interaction(
+        user_id,
+        "I keep forgetting to pack the hiking bag for Saturday",
+        "That sounds stressful. Want to talk it through?",
+        context_used=True,
+    )
+    message = "make that due tomorrow"
+    monkeypatch.setattr(
+        "ai.chat.action_planner.call_lm_studio_api",
+        MagicMock(
+            return_value=(
+                "ACTION: update_task\nDUE_DATE: tomorrow\nCONFIDENCE: 0.9\n"
+            )
+        ),
+    )
+
+    interaction_manager = InteractionManager()
+    interaction_manager.enable_ai_enhancement = False
+    _force_low_confidence_parse(interaction_manager)
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+    ai_chatbot.generate_response.return_value = "ok"
+    interaction_manager.ai_chatbot = ai_chatbot
+
+    response = interaction_manager.handle_message(user_id, message, "discord")
+
+    assert response is not None
+    from tasks.task_data_handlers import runtime_task_due_date
+
+    tasks = load_active_tasks(user_id)
+    hiking = next(task for task in tasks if task.get("title") == "pack the hiking bag")
+    assert runtime_task_due_date(hiking) is not None
+
+
 def test_planner_clarify_returns_question(test_data_dir, planner_enabled):
     """Clarify plans return the planner question without side effects."""
     user_id = "planner-routing-clarify"

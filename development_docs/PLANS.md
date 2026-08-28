@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-08-26  
+> **Last Updated**: 2026-08-28  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -65,7 +65,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Everyday capture phrasing shipped 2026-08-26; live Discord Show More/help spot-check; bulk later |
-| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; structured task links shipped 2026-08-27; attachments remaining |
+| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; structured task links shipped 2026-08-27; pronoun follow-ups (`make that due tomorrow`) shipped 2026-08-28; attachments remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy (everyday phrasing shipped); command-list parity shipped 2026-08-26; response-time tuning; actionability sprint |
@@ -106,6 +106,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.  
 **Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, then `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `show my list`, `cross off...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`, `keep in mind that...`, `write this down...`). Command-list parity: live parser intents in prompts/catalog/planning; `ACTION: create note` / `start check-in` canonicalize. Action planner follow-ups: recent user turns ground titles for "add that as a task" without inventing example titles.
+**Follow-up (2026-08-28)**: Pronoun task follow-ups (`make that due tomorrow`, `that's urgent`, `mark that done`) update or complete the recently mentioned or created task. Result-aware and offer language stay calm instead of teaching command syntax. Live LM Studio tone review remains.
 
 ---
 
@@ -244,6 +245,7 @@ These plans should not be duplicated in detail here.
 **Current focus**:
 
 - Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`).
+- Pronoun follow-ups shipped 2026-08-28 (`make that due tomorrow`, `that's urgent`, `mark that done`).
 - Templates: Discord buttons open a prefilled modal (2026-08-26); optional custom templates later.
 - Task notes shipped; structured web links shipped 2026-08-27; file/image attachments remaining.
 

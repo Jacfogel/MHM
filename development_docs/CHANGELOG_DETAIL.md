@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-28 - Chat follow-ups can update the task you just mentioned
+- **Feature**: After you describe or create a task, follow-ups like `make that due tomorrow`, `that's urgent`, `mark that done`, and `add a note to that: ...` apply to that task. [`tasks/task_reference.py`](../tasks/task_reference.py) resolves "that" from recent chat titles or a recently touched task, and asks which task when it is unclear (so "it" does not match letters inside another title).
+- **Tone**: Action confirmations and offer language stay calm: one short sentence, no command tutorials. Planner missing-field questions ask "Which task did you mean?" instead of "task identifier".
+- **Tests**: [`test_task_reference.py`](../tests/unit/test_task_reference.py), parser coverage in [`test_command_parser_rule_based_patterns_expansion.py`](../tests/unit/test_command_parser_rule_based_patterns_expansion.py), journeys in [`test_ai_user_journeys.py`](../tests/behavior/test_ai_user_journeys.py), planner/routing in [`test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) and [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py).
+- **Docs**: [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) sections 2.1-2.2 and 4.2-4.3, [TASKS_PLAN.md](TASKS_PLAN.md) section 2, [PLANS.md](PLANS.md) sections 5.0.1 and 6.2, [TODO.md](../TODO.md) actionability note.
+- **Impact**: You can talk about a chore, save it, then say "make that due tomorrow" without naming the task again.
+
 ### 2026-08-27 - Tasks can store web links
 - **Feature**: Tasks now keep structured web links (`links` on [`TaskV2Model`](../tasks/task_schemas.py)) instead of burying URLs only in notes. Commands: `add link to task 1 https://example.com/form`, `add the portal link to the dentist task: https://...`, `remove link from task 1 https://...`. Creating a task whose text includes a URL stores that URL as a link and keeps it out of the title.
 - **Hygiene**: Lifted the nested URL-strip callback to [`_replace_url_match`](../tasks/task_link_helpers.py) so it has a docstring and `@handle_errors`. Function registry refresh via `docs`.

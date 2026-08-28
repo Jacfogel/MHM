@@ -76,6 +76,7 @@ Manage tasks with natural language or short commands.
 **Complete, delete, update:**
 • `complete task 1` / `done Call mom` / `mark dentist done` / `cross off dentist`
 • `I already did the dentist` / `take dentist off my list` / `i'm done with laundry`
+• After talking about a task: `make that due tomorrow` / `that's urgent` / `mark that done`
 • `delete task 2` / `delete Buy groceries`
 • `update task 1 priority high due tomorrow`
 • `update task 1 note insurance form is on the counter` (replace notes)
@@ -98,6 +99,27 @@ Manage tasks with natural language or short commands.
 **After create:** If due/priority/reminders are missing, I may ask follow-up questions — use the buttons or reply with a date/time, priority, **Skip Question**, **Skip All**, **back**/**undo** (one step back), or **cancel**/**Undo Task Creation** (delete the new task).
 
 **More:** `help tasks`, `examples tasks`, or `/tasks`"""
+
+
+_WHICH_TASK_PROMPT = "Which task did you mean? Name it, or say show my list."
+
+
+@handle_errors(
+    "resolving pronoun task identifier in handler",
+    default_return=(None, None),
+)
+def _resolve_pronoun_task_identifier(
+    user_id: str, task_identifier: str | None
+) -> tuple[str | None, InteractionResponse | None]:
+    """Replace a follow-up pronoun with a real task id, or ask which task."""
+    from tasks.task_reference import is_pronoun_task_identifier, resolve_lookup_identifier
+
+    if not is_pronoun_task_identifier(task_identifier):
+        return task_identifier, None
+    resolved = resolve_lookup_identifier(user_id, task_identifier)
+    if resolved:
+        return resolved, None
+    return None, InteractionResponse(_WHICH_TASK_PROMPT, completed=False)
 
 
 # not_duplicate: task_identifier_service_facade
@@ -729,6 +751,11 @@ class TaskManagementHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle task completion"""
         task_identifier = entities.get("task_identifier")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id, task_identifier
+        )
+        if pronoun_error:
+            return pronoun_error
         if not task_identifier:
             # If no specific task mentioned, suggest the most likely task
             tasks = _task_service().load_active_tasks(user_id)
@@ -903,6 +930,11 @@ class TaskManagementHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle task updates"""
         task_identifier = entities.get("task_identifier")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id, task_identifier
+        )
+        if pronoun_error:
+            return pronoun_error
         if not task_identifier:
             return InteractionResponse(
                 "Which task would you like to update? Please specify the task number or name.",
@@ -982,6 +1014,11 @@ class TaskManagementHandler(InteractionHandler):
         """Append text to a task description without replacing existing notes."""
         task_identifier = entities.get("task_identifier")
         note_text = entities.get("note_text")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id, task_identifier
+        )
+        if pronoun_error:
+            return pronoun_error
 
         if not task_identifier:
             return InteractionResponse(
@@ -1033,6 +1070,11 @@ class TaskManagementHandler(InteractionHandler):
         task_identifier = entities.get("task_identifier")
         link_url = entities.get("link_url")
         link_label = entities.get("link_label") or ""
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id, task_identifier
+        )
+        if pronoun_error:
+            return pronoun_error
 
         if not task_identifier:
             return InteractionResponse(
@@ -1191,6 +1233,9 @@ class TaskManagementHandler(InteractionHandler):
             "show my tasks",
             "show my list",
             "complete task 1",
+            "make that due tomorrow",
+            "that's urgent",
+            "mark that done",
             "delete task Buy groceries",
             "update task 2 priority urgent due friday",
             "update task 1 note insurance form is on the counter",

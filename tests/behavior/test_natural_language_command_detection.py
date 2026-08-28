@@ -85,6 +85,9 @@ class TestNaturalLanguageCommandDetection:
             "search for meeting notes": "command",
             "show inbox": "command_with_clarification",
             "show group work": "command_with_clarification",
+            "make that due tomorrow": "command",
+            "that's urgent": "command_with_clarification",
+            "mark that done": "command_with_clarification",
         }
         for prompt, expected in cases.items():
             mode = interpreter.detect_mode(prompt)
@@ -97,6 +100,8 @@ class TestNaturalLanguageCommandDetection:
         for prompt in (
             "I need to update my feelings about work",
             "can you show me some support",
+            "that's okay",
+            "that's a lot",
         ):
             assert interpreter.detect_mode(prompt) == "chat", prompt
 

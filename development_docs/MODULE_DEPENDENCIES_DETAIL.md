@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-27 18:13:28
+> **Last Generated**: 2026-08-28 14:13:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 271
-- **Total Imports Found**: 2302
-- **Dependencies Documented**: 271 (100% coverage)
-- **Standard Library Imports**: 681 (29.6%)
-- **Third-Party Imports**: 216 (9.4%)
-- **Local Imports**: 1405 (61.0%)
-- **Last Updated**: 2026-08-27
+- **Files Scanned**: 272
+- **Total Imports Found**: 2313
+- **Dependencies Documented**: 272 (100% coverage)
+- **Standard Library Imports**: 684 (29.6%)
+- **Third-Party Imports**: 216 (9.3%)
+- **Local Imports**: 1413 (61.1%)
+- **Last Updated**: 2026-08-28
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 681 imports (29.6%)
-- **Third-Party**: 216 imports (9.4%)
-- **Local**: 1405 imports (61.0%)
+- **Standard Library**: 684 imports (29.6%)
+- **Third-Party**: 216 imports (9.3%)
+- **Local**: 1413 imports (61.1%)
 
 ## Module Dependencies by Directory
 
@@ -119,6 +119,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_chat_interactions)` (NEW)
+    - `tasks.task_reference (action_accepts_pronoun_task, is_pronoun_task_identifier, message_uses_task_pronoun)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -131,7 +132,7 @@
   - `communication/message_processing/action_plan_executor.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, core.config, core.error_handling, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, core.config, core.error_handling, core.logger, core.response_tracking, tasks.task_reference, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, collections.abc, communication/message_processing/action_plan_executor.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1588,6 +1589,7 @@
     - `core.time_utilities (now_datetime_full)` (NEW)
     - `tasks (task_service)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
+    - `tasks.task_reference (is_pronoun_task_identifier, resolve_lookup_identifier)` (NEW)
   - **Standard Library**:
     - `datetime`
     - `importlib`
@@ -1601,7 +1603,7 @@
   - `communication/message_processing/parsing_shortcuts.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.message_processing.flows.flow_constants, core.error_handling, core.logger, core.pagination, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: communication.command_handlers.shared_types, communication.message_processing.flows.flow_constants, core.error_handling, core.logger, core.pagination, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_reference
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/parsing_shortcuts.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2696,6 +2698,7 @@
     - `core.tags (normalize_tags, parse_tags_from_text)` (NEW)
     - `notebook.notebook_validation (looks_like_structural_entry_ref)` (NEW)
     - `tasks.task_link_helpers (extract_urls_from_text, parse_link_remainder, restore_url_case)` (NEW)
+    - `tasks.task_reference (is_pronoun_task_identifier)` (NEW)
   - **Standard Library**:
     - `contextlib (suppress)`
     - `dataclasses (dataclass)`
@@ -2711,7 +2714,7 @@
   - `communication/message_processing/structured_command_dispatcher.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, notebook.notebook_validation, tasks.task_link_helpers
+- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, notebook.notebook_validation, tasks.task_link_helpers, tasks.task_reference
 - Removed: ai/prompts/command_registry.py, communication/message_processing/action_request_adapter.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/structured_command_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3625,6 +3628,7 @@
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_link_helpers.py`
+  - `tasks/task_reference.py`
   - `tasks/task_service.py`
   - `tasks/task_tag_helpers.py`
   - `tasks/task_templates.py`
@@ -4051,6 +4055,7 @@
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_link_helpers.py`
+  - `tasks/task_reference.py`
   - `tasks/task_schemas.py`
   - `tasks/task_tag_helpers.py`
   - `tasks/task_validation.py`
@@ -4252,6 +4257,7 @@
   - `ai/context/service.py`
   - `ai/fallback/data_access.py`
   - `storage/user_data_summaries.py`
+  - `tasks/task_reference.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
@@ -4586,6 +4592,7 @@
   - `storage/user_data_validation.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
+  - `tasks/task_reference.py`
   - `tasks/task_schemas.py`
   - `tasks/task_service.py`
   - `tasks/task_validation.py`
@@ -5869,6 +5876,7 @@
   - `communication/reminders/reminder_dispatcher.py`
   - `scheduler/task_reminders.py`
   - `tasks/task_data_manager.py`
+  - `tasks/task_reference.py`
   - `tasks/task_service.py`
   - `ui/dialogs/task_crud_dialog.py`
   - `ui/dialogs/task_edit_dialog.py`
@@ -5932,6 +5940,31 @@
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
 - Removed: communication/message_processing/command_parser.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, urllib.parse
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tasks/task_reference.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.response_tracking (get_recent_chat_interactions)` (NEW)
+    - `core.time_utilities (now_datetime_full, parse_timestamp_full, timestamp_sort_key_from_dict)` (NEW)
+    - `tasks.task_data_handlers (load_active_tasks)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/chat/action_planner.py`
+  - `communication/command_handlers/task_handler.py`
+  - `communication/message_processing/command_parser.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, core.response_tracking, core.time_utilities, tasks.task_data_handlers
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

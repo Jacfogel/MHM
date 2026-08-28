@@ -505,6 +505,7 @@ class EnhancedCommandParser:
             "complete_task": [
                 r"^complete\s+(.+)$",
                 r"complete\s+(?:task\s+)?(\d+|[^0-9]+)",
+                r"\bcross\s+(that|it|this)(?:\s+task)?\s+off$",
                 r"\bcross\s+off\s+(.+)$",
                 r"\bcheck\s+off\s+(.+)$",
                 r"\bscratch\s+(.+?)\s+off(?:\s+(?:my\s+)?(?:list|to-?dos?))?$",
@@ -526,6 +527,10 @@ class EnhancedCommandParser:
                 r"cancel\s+(?:task\s+)?(\d+|[^0-9]+)",
             ],
             "update_task": [
+                r"^(?:please\s+|can you\s+|could you\s+)?make\s+(that|it|this)(?:\s+task)?\s+(due\s+.+)$",
+                r"^(?:please\s+|can you\s+|could you\s+)?(?:set|change)\s+(that|it|this)(?:\s+task)?\s+(?:to\s+)?(due\s+.+)$",
+                r"^(?:please\s+|can you\s+|could you\s+)?(?:make|set|change)\s+(that|it|this)(?:\s+task)?\s+(?:to\s+)?((?:high|medium|low)\s+priority|urgent|critical)$",
+                r"^(that|it|this)(?:'s|\s+is)\s+((?:high|medium|low)\s+priority|urgent|critical)$",
                 r"update\s+(?:the\s+)?(.+?)\s+task\s+to\s+(.+)",
                 r"change\s+(?:the\s+)?(.+?)\s+task\s+to\s+(.+)",
                 r"update\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
@@ -1499,6 +1504,10 @@ class EnhancedCommandParser:
         original = (identifier or "").strip()
         if not original:
             return original
+        from tasks.task_reference import is_pronoun_task_identifier
+
+        if is_pronoun_task_identifier(original):
+            return original.casefold()
         cleaned = original
         if cleaned.lower().startswith("task "):
             cleaned = cleaned[5:].strip()

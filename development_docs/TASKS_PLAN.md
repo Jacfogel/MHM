@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-08-27  
+> **Last Updated**: 2026-08-28  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -70,6 +70,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
 - [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
 - [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`. Follow-up: `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, `i'm done with X`.
+- [x] Pronoun follow-ups for the task you just mentioned or created (2026-08-28): `make that due tomorrow`, `that's urgent`, `mark that done`, `add a note to that: ...`. Ambiguous "that" asks which task instead of matching stray letters in other titles.
 - [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
 
 ---

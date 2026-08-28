@@ -16,6 +16,11 @@ from ai.prompts.action_catalog import (
 from ai.client.lm_studio_client import call_lm_studio_api
 from ai.prompts.command_interpreter import get_command_interpreter
 from ai.prompts.command_registry import canonicalize_intent_name
+from tasks.task_reference import (
+    action_accepts_pronoun_task,
+    is_pronoun_task_identifier,
+    message_uses_task_pronoun,
+)
 from core.config import (
     AI_ACTION_PLAN_MIN_CONFIDENCE,
     AI_COMMAND_PARSING_TIMEOUT,
@@ -47,6 +52,7 @@ QUESTION: What should the task be called?
 Rules: ACTION must be unknown or one of: {actions}
 Copy field values from Current or Recent user said only. Do not invent dates, locations, or titles.
 If Current refers to that/it/this, copy TITLE from Recent user said.
+If Current updates/completes that/it/this, set TASK_IDENTIFIER: that.
 """
 
 _PLANNING_MAX_TOKENS = 60
@@ -386,6 +392,22 @@ def parse_action_plan_from_text(
     )
 
 
+@handle_errors("building missing-field clarification question", default_return="Could you share a bit more detail?")
+def _missing_field_question(field_name: str) -> str:
+    """Return a calm clarification question for a missing planner field."""
+    questions = {
+        "title": "What should the title be?",
+        "task_identifier": "Which task did you mean?",
+        "note_text": "What should I add to the notes?",
+        "link_url": "Which link should I save?",
+    }
+    mapped = questions.get(field_name)
+    if mapped:
+        return mapped
+    label = field_name.replace("_", " ")
+    return f"What should the {label} be?"
+
+
 @handle_errors("trimming planner model output", default_return="")
 def _trim_planner_output(planner_output: str) -> str:
     """Drop common local-model trailing junk after the first plan block."""
@@ -491,17 +513,27 @@ def _build_action_request_from_fields(
         source_message=source_message,
         grounding_text=grounding_text,
     )
+    grounding = grounding_text if grounding_text is not None else source_message
+    if (
+        action_accepts_pronoun_task(action_name)
+        and not entities.get("task_identifier")
+        and (
+            message_uses_task_pronoun(grounding)
+            or is_pronoun_task_identifier(fields.get("TASK_IDENTIFIER"))
+            or is_pronoun_task_identifier(fields.get("TASK_ID"))
+        )
+    ):
+        entities["task_identifier"] = "that"
     missing_required = [
         field_name
         for field_name in action_def.required_fields
         if not entities.get(field_name)
     ]
     if missing_required:
-        label = missing_required[0].replace("_", " ")
         return None, clarify_plan(
             source_message,
             fields.get("QUESTION")
-            or f"What should the {label} be for this {action_name.replace('_', ' ')}?",
+            or _missing_field_question(missing_required[0]),
             planning_method=f"{planning_method}_missing_fields",
         )
 

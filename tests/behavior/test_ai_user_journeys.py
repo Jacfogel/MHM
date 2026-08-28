@@ -35,7 +35,8 @@ from core.time_utilities import (
     format_timestamp,
     now_datetime_full,
 )
-from tasks import load_active_tasks, save_active_tasks
+from tasks import create_task, load_active_tasks, save_active_tasks
+from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
@@ -273,6 +274,53 @@ def test_cross_off_phrase_completes_task(test_data_dir):
     result = handle_user_message(user_id, "cross off dentist", "discord")
 
     assert result and result.message
+    assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_make_that_due_updates_recent_task(test_data_dir):
+    """After creating a task, 'make that due tomorrow' updates the same task."""
+    user_id = _create_journey_user(test_data_dir, "journey-make-that-due")
+    create_task(user_id, title="call the dentist")
+    result = handle_user_message(user_id, "make that due tomorrow", "discord")
+
+    assert result and result.completed
+    tasks = load_active_tasks(user_id)
+    dentist = next(
+        task for task in tasks if "dentist" in str(task.get("title", "")).lower()
+    )
+    assert runtime_task_due_date(dentist)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_thats_urgent_updates_recent_task_priority(test_data_dir):
+    """'that's urgent' sets priority on the recently created task."""
+    user_id = _create_journey_user(test_data_dir, "journey-thats-urgent")
+    create_task(user_id, title="call the dentist")
+    result = handle_user_message(user_id, "that's urgent", "discord")
+
+    assert result and result.completed
+    tasks = load_active_tasks(user_id)
+    dentist = next(
+        task for task in tasks if "dentist" in str(task.get("title", "")).lower()
+    )
+    assert str(dentist.get("priority", "")).lower() == "urgent"
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_mark_that_done_completes_recent_task(test_data_dir):
+    """'mark that done' completes the recently created task."""
+    user_id = _create_journey_user(test_data_dir, "journey-mark-that")
+    create_task(user_id, title="call the dentist")
+    result = handle_user_message(user_id, "mark that done", "discord")
+
+    assert result and result.completed
     assert load_active_tasks(user_id) == []
     assert find_false_crud_claims(result.message) == []
 

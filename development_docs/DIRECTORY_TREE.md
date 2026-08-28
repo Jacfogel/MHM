@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-27 18:13:56
+> **Last Generated**: 2026-08-28 14:14:25
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000041 5EAC:07BC
+Volume serial number is 000000B4 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -687,6 +687,7 @@ C:.
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
 |   |   task_link_helpers.py
+|   |   task_reference.py
 |   |   task_schemas.py
 |   |   task_service.py
 |   |   task_tag_helpers.py
@@ -1200,6 +1201,7 @@ C:.
 |   |   |   test_task_edit_dialog_time_combos.py
 |   |   |   test_task_flow_date_parsing.py
 |   |   |   test_task_links.py
+|   |   |   test_task_reference.py
 |   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
 |   |   |   test_task_tag_normalization.py

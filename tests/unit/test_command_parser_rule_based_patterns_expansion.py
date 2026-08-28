@@ -235,6 +235,9 @@ class TestCommandParserTaskPatterns:
             ("i'm done with laundry", "laundry"),
             ("i am done with the dentist", "dentist"),
             ("i got the dishes done", "dishes"),
+            ("mark that done", "that"),
+            ("cross that off", "that"),
+            ("i'm done with that", "that"),
         ],
     )
     def test_complete_task_patterns(self, command_parser, message, expected_identifier):
@@ -275,6 +278,11 @@ class TestCommandParserTaskPatterns:
             ("update task 10 priority medium", "10", "medium", None, None),
             ("update task 1 note Room 204 bring card", "1", None, None, None),
             ("update the dentist task to high priority", "dentist", "high", None, None),
+            ("make that due tomorrow", "that", None, None, "tomorrow"),
+            ("can you make that due tomorrow", "that", None, None, "tomorrow"),
+            ("that's urgent", "that", "urgent", None, None),
+            ("that's high priority", "that", "high", None, None),
+            ("make that urgent", "that", "urgent", None, None),
         ],
     )
     def test_update_task_patterns(
@@ -299,6 +307,16 @@ class TestCommandParserTaskPatterns:
             assert entities.get("due_date") == expected_due
         if "note room 204" in message.lower():
             assert entities.get("description") == "room 204 bring card"
+
+    @pytest.mark.parametrize(
+        "message",
+        ["that's okay", "that's a lot", "I can't deal with that"],
+    )
+    def test_emotional_that_is_not_update_task(self, command_parser, message):
+        result = _rule_parse(command_parser, message)
+        intent = result.parsed_command.intent
+        assert intent != "update_task"
+        assert intent != "complete_task"
 
 
 @pytest.mark.unit
@@ -332,6 +350,11 @@ class TestCommandParserAppendNoteToTaskPatterns:
                 "add a note to task 3: insurance form on counter",
                 "3",
                 "insurance form on counter",
+            ),
+            (
+                "add a note to that: bring the insurance card",
+                "that",
+                "bring the insurance card",
             ),
         ],
     )
