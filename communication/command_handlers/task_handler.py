@@ -80,6 +80,9 @@ Manage tasks with natural language or short commands.
 • `update task 1 priority high due tomorrow`
 • `update task 1 note insurance form is on the counter` (replace notes)
 • `append note to task 1 call back before 5pm` (add to notes without replacing)
+• `add link to task 1 https://example.com/form` (save a web link on the task)
+• `add the portal link to the dentist task: https://example.com/form`
+• `remove link from task 1 https://example.com/form`
 
 **Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
 
@@ -136,6 +139,8 @@ class TaskManagementHandler(InteractionHandler):
             "delete_task",
             "update_task",
             "append_note_to_task",
+            "add_link_to_task",
+            "remove_link_from_task",
             "task_stats",
         ]
 
@@ -170,6 +175,10 @@ class TaskManagementHandler(InteractionHandler):
             return self._handle_update_task(user_id, entities)
         elif intent == "append_note_to_task":
             return self._handle_append_note_to_task(user_id, entities)
+        elif intent == "add_link_to_task":
+            return self._handle_add_link_to_task(user_id, entities)
+        elif intent == "remove_link_from_task":
+            return self._handle_remove_link_from_task(user_id, entities)
         elif intent == "task_stats":
             return TASK_ANALYTICS_HANDLER.handle_task_stats(user_id, entities)
         else:
@@ -237,6 +246,10 @@ class TaskManagementHandler(InteractionHandler):
                 response += f" (priority: {priority})"
             if tags:
                 response += f" (tags: {', '.join(tags)})"
+            created_links = task_data.get("links") or []
+            if created_links:
+                link_word = "link" if len(created_links) == 1 else "links"
+                response += f" ({len(created_links)} {link_word})"
             if recurrence_pattern:
                 singular_recurrence = {
                     "daily": "day",
@@ -1012,6 +1025,120 @@ class TaskManagementHandler(InteractionHandler):
             "❌ Failed to add note. Please try again.", True
         )
 
+    @handle_errors("handling add link to task")
+    def _handle_add_link_to_task(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Save a web link on an existing task."""
+        task_identifier = entities.get("task_identifier")
+        link_url = entities.get("link_url")
+        link_label = entities.get("link_label") or ""
+
+        if not task_identifier:
+            return InteractionResponse(
+                "Which task should I add a link to? Try: add link to task 1 https://example.com",
+                completed=False,
+            )
+        if not link_url:
+            return InteractionResponse(
+                "What link should I add? Try: add link to task 1 https://example.com",
+                completed=False,
+            )
+
+        tasks = _task_service().load_active_tasks(user_id)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join(
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+            )
+            return InteractionResponse(
+                "I found multiple matching tasks:\n"
+                f"{preview}\nIf you meant one of these, reply with "
+                "'add link to task <number> https://example.com'.",
+                completed=False,
+            )
+        task = candidates[0] if candidates else None
+        if not task:
+            return InteractionResponse(
+                "❌ Task not found. Please check the task number or name.", True
+            )
+
+        result = _task_service().append_task_link(
+            user_id, _task_identifier(task), link_url, link_label
+        )
+        if result == "added":
+            label_bit = f" ({link_label})" if link_label else ""
+            return InteractionResponse(
+                f"✅ Link added to: {task['title']}{label_bit}\n{link_url}",
+                True,
+            )
+        if result == "duplicate":
+            return InteractionResponse(
+                f"That link is already on: {task['title']}", True
+            )
+        if result == "limit":
+            return InteractionResponse(
+                "This task already has 10 links. Remove one first.", True
+            )
+        if result == "invalid":
+            return InteractionResponse(
+                "That doesn't look like a web link. Use an http:// or https:// address.",
+                True,
+            )
+        return InteractionResponse("❌ Failed to add link. Please try again.", True)
+
+    @handle_errors("handling remove link from task")
+    def _handle_remove_link_from_task(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Remove a saved web link from an existing task."""
+        task_identifier = entities.get("task_identifier")
+        link_url = entities.get("link_url")
+
+        if not task_identifier:
+            return InteractionResponse(
+                "Which task should I remove a link from? Try: remove link from task 1 https://example.com",
+                completed=False,
+            )
+        if not link_url:
+            return InteractionResponse(
+                "Which link should I remove? Try: remove link from task 1 https://example.com",
+                completed=False,
+            )
+
+        tasks = _task_service().load_active_tasks(user_id)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join(
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+            )
+            return InteractionResponse(
+                "I found multiple matching tasks:\n"
+                f"{preview}\nIf you meant one of these, reply with "
+                "'remove link from task <number> https://example.com'.",
+                completed=False,
+            )
+        task = candidates[0] if candidates else None
+        if not task:
+            return InteractionResponse(
+                "❌ Task not found. Please check the task number or name.", True
+            )
+
+        result = _task_service().remove_task_link(
+            user_id, _task_identifier(task), link_url
+        )
+        if result == "removed":
+            return InteractionResponse(
+                f"✅ Link removed from: {task['title']}", True
+            )
+        if result == "not_found":
+            return InteractionResponse(
+                f"I couldn't find that link on: {task['title']}", True
+            )
+        return InteractionResponse(
+            "❌ Failed to remove link. Please try again.", True
+        )
+
 
     # not_duplicate: task_identifier_service_facade
     @handle_errors("finding task by identifier")
@@ -1068,6 +1195,8 @@ class TaskManagementHandler(InteractionHandler):
             "update task 2 priority urgent due friday",
             "update task 1 note insurance form is on the counter",
             "append note to task 1 call back before 5pm",
+            "add link to task 1 https://example.com/form",
+            "add the portal link to the dentist task: https://example.com/form",
             "task stats",
             "how am I doing with my tasks this week?",
             "task template medication",

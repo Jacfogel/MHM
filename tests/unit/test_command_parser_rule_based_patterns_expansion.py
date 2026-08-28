@@ -79,6 +79,18 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.intent == "create_task"
         assert result.parsed_command.entities.get("title") == expected_title
 
+    def test_create_task_captures_url_as_link(self, command_parser):
+        result = _rule_parse(
+            command_parser,
+            "remind me to fill out this form https://example.com/form tomorrow",
+        )
+        assert result.parsed_command.intent == "create_task"
+        assert result.parsed_command.entities.get("title") == "fill out this form"
+        assert result.parsed_command.entities.get("links") == [
+            {"url": "https://example.com/form"}
+        ]
+        assert result.parsed_command.entities.get("due_date") == "tomorrow"
+
     @pytest.mark.parametrize(
         "message, expected_title, expected_pattern, expected_interval, expected_due_time",
         [
@@ -332,6 +344,78 @@ class TestCommandParserAppendNoteToTaskPatterns:
         entities = result.parsed_command.entities
         assert entities.get("task_identifier") == expected_identifier
         assert entities.get("note_text") == expected_note
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+@pytest.mark.tasks
+class TestCommandParserTaskLinkPatterns:
+    @pytest.mark.parametrize(
+        "message, expected_identifier, expected_url, expected_label",
+        [
+            (
+                "add link to task 1 https://example.com/form",
+                "1",
+                "https://example.com/form",
+                None,
+            ),
+            (
+                "add a link to the dentist task: https://example.com/form",
+                "dentist",
+                "https://example.com/form",
+                None,
+            ),
+            (
+                "add the portal link to the dentist task: https://example.com/form",
+                "dentist",
+                "https://example.com/form",
+                "portal",
+            ),
+            (
+                "save this link on task 2 https://example.com/a",
+                "2",
+                "https://example.com/a",
+                None,
+            ),
+            (
+                "add link to task 1 https://example.com/Form",
+                "1",
+                "https://example.com/Form",
+                None,
+            ),
+        ],
+    )
+    def test_add_link_to_task_patterns(
+        self,
+        command_parser,
+        message,
+        expected_identifier,
+        expected_url,
+        expected_label,
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "add_link_to_task"
+        entities = result.parsed_command.entities
+        assert entities.get("task_identifier") == expected_identifier
+        assert entities.get("link_url") == expected_url
+        assert entities.get("link_label") == expected_label
+
+    def test_remove_link_from_task_pattern(self, command_parser):
+        result = _rule_parse(
+            command_parser, "remove link from task 1 https://example.com/form"
+        )
+        assert result.parsed_command.intent == "remove_link_from_task"
+        assert result.parsed_command.entities.get("task_identifier") == "1"
+        assert (
+            result.parsed_command.entities.get("link_url") == "https://example.com/form"
+        )
+
+    def test_add_note_still_does_not_match_add_link(self, command_parser):
+        result = _rule_parse(
+            command_parser, "add a note to the dentist task: they need X-rays"
+        )
+        assert result.parsed_command.intent == "append_note_to_task"
 
 
 @pytest.mark.unit

@@ -80,6 +80,7 @@ class TestNaturalLanguageCommandDetection:
         interpreter = get_command_interpreter()
         cases = {
             "append note to task 1 Phone number is 555-1234": "command",
+            "add link to task 1 https://example.com/form": "command",
             "show tasks in group work": "command",
             "search for meeting notes": "command",
             "show inbox": "command_with_clarification",

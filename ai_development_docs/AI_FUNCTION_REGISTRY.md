@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 21:58:05
+> **Last Generated**: 2026-08-27 18:13:19
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.6% [!] GOOD**
-- **Total Functions**: 2592
-- **Total Methods**: 1369
-- **Documented**: 3511/3961
-- **Files Scanned**: 272
+### **Documentation Coverage: 88.7% [!] GOOD**
+- **Total Functions**: 2611
+- **Total Methods**: 1376
+- **Documented**: 3537/3987
+- **Files Scanned**: 273
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chat/chatbot.py` - Main AI implementation (67 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (82 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (86 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
 
@@ -209,13 +209,13 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 409 functions)
 - `checkins/` -  (7 files, 151 functions)
-- `communication/` - Communication channels and message processing (90 files, 1199 functions)
+- `communication/` - Communication channels and message processing (90 files, 1207 functions)
 - `core/` - System utilities and data management (34 files, 605 functions)
 - `integrations/` -  (13 files, 114 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 109 functions)
 - `storage/` -  (16 files, 144 functions)
-- `tasks/` - Task management system (9 files, 106 functions)
+- `tasks/` - Task management system (10 files, 124 functions)
 - `ui/` - User interface components (43 files, 979 functions)
 - `user/` - User context and preferences (5 files, 56 functions)
 

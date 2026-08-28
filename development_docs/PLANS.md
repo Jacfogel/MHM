@@ -65,7 +65,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Everyday capture phrasing shipped 2026-08-26; live Discord Show More/help spot-check; bulk later |
-| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; live Discord validation, notes/links remaining |
+| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; structured task links shipped 2026-08-27; attachments remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy (everyday phrasing shipped); command-list parity shipped 2026-08-26; response-time tuning; actionability sprint |
@@ -243,10 +243,9 @@ These plans should not be duplicated in detail here.
 
 **Current focus**:
 
-- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`; live Discord remaining).
+- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`).
 - Templates: Discord buttons open a prefilled modal (2026-08-26); optional custom templates later.
-- Task notes/links/attachments.
-- Live Discord validation for task creation and follow-up flows.
+- Task notes shipped; structured web links shipped 2026-08-27; file/image attachments remaining.
 
 ---
 

@@ -122,6 +122,8 @@ _COMMAND_PHRASE_HINTS = (
     "search notes",
     "append note to task",
     "add note to task",
+    "add link to task",
+    "remove link from task",
     "update task",
     "update profile",
     "update schedule",
@@ -294,6 +296,7 @@ class CommandInterpreter:
             "help notebook",
             "append note to task",
             "add note to task",
+            "add link to task",
             "list inbox",
             "search for",
         }

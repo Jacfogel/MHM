@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-27 - Tasks can store web links **COMPLETED**
+- Tasks keep http(s) URLs in a `links` field, with add/remove commands and create-time URL capture.
+- Labels are optional (`add the portal link to the dentist task: https://...`).
+- Nested URL-strip callback lifted to `_replace_url_match` (docstring + error handling); function registry refreshed.
+- File/image attachments are still deferred.
+
 ### 2026-08-26 - Chat follow-ups can create the task you just described **COMPLETED**
 - Action planner includes up to two recent user turns so "yeah add that as a task" can reuse a title you already said.
 - Titles still must match those recent words (example titles like "pack hiking bag" stay blocked).
@@ -111,10 +117,6 @@ Guidelines:
 - Scheduled personalized Discord messages now run personalized post-process (the live path had been cleaning them as chat).
 - Letter sign-offs, `[Your Name]`, and `Use Case` / `Scenario` writing-prompt dumps are cut before send.
 - Follow-up: `_line_is_letter_signoff()` uses `@handle_errors` and is in the function registry.
-
-### 2026-08-21 - Quiet missing personalized.json on startup **COMPLETED**
-- Service startup no longer verifies AI-generated message categories (`personalized` has no library file).
-- Rechecked v1/v2 ordering flakes: `audit --full` is green; a serial run of the listed files still fails 4 tests that pass alone.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -51,6 +51,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "next_due_date",
     "recurrence",
     "reminder_sent",
+    "links",
 )
 
 TASKS_V2_FILENAME = "tasks.json"
@@ -95,6 +96,34 @@ class CompletionModel(BaseModel):
         return value
 
 
+class TaskLinkModel(BaseModel):
+    """A web link attached to a task (URL plus optional short label)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    url: str
+    label: str = ""
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, value: str) -> str:
+        """Require an http:// or https:// task link URL."""
+        from tasks.task_link_helpers import normalize_task_url
+
+        canonical = normalize_task_url(value)
+        if not canonical:
+            raise v2_schema_validation_error("links.url must be an http:// or https:// address")
+        return canonical
+
+    @field_validator("label")
+    @classmethod
+    def validate_label(cls, value: str) -> str:
+        """Normalize an optional short display label for a task link."""
+        from tasks.task_link_helpers import normalize_task_link_label
+
+        return normalize_task_link_label(value)
+
+
 class RecurrenceModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -120,6 +149,15 @@ class TaskV2Model(BaseItemModel):
     recurrence: RecurrenceModel = Field(default_factory=RecurrenceModel)
     completion: CompletionModel = Field(default_factory=CompletionModel)
     reminder_sent: bool = False
+    links: list[TaskLinkModel] = Field(default_factory=list)
+
+    @field_validator("links", mode="before")
+    @classmethod
+    def sanitize_links(cls, value: Any) -> list[dict[str, str]]:
+        """Normalize link payloads before model construction."""
+        from tasks.task_link_helpers import sanitize_task_links
+
+        return sanitize_task_links(value)
 
     @field_validator("tags", mode="before")
     @classmethod

@@ -116,6 +116,7 @@ def create_task(
     repeat_after_completion: bool = True,
     category: str = "",
     group: str = "",
+    links: list | None = None,
 ) -> str | None:
     """Create a new task for a user."""
     if not user_id or not isinstance(user_id, str):
@@ -148,9 +149,11 @@ def create_task(
 
     from core.tags import ensure_tags_initialized
     from tasks.task_tag_helpers import sanitize_task_tags
+    from tasks.task_link_helpers import sanitize_task_links
 
     ensure_tags_initialized(user_id)
     sanitized_tags = sanitize_task_tags(tags)
+    sanitized_links = sanitize_task_links(links)
 
     task_id = str(uuid.uuid4())
     short_id = generate_short_id(task_id, "task")
@@ -169,6 +172,7 @@ def create_task(
         "category": str(category or ""),
         "group": str(group or ""),
         "tags": sanitized_tags,
+        "links": sanitized_links,
         "status": "active",
         "due": {"date": due_date, "time": due_time},
         "created_at": now_timestamp_full(),
@@ -230,6 +234,10 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                     from tasks.task_tag_helpers import sanitize_task_tags
 
                     task[field] = sanitize_task_tags(value if isinstance(value, list) else [])
+                elif field == "links":
+                    from tasks.task_link_helpers import sanitize_task_links
+
+                    task[field] = sanitize_task_links(value)
                 elif field in {"recurrence_pattern", "recurrence_interval", "repeat_after_completion", "next_due_date"}:
                     recurrence = task.setdefault("recurrence", {})
                     key_map = {

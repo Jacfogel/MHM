@@ -42,3 +42,16 @@ def test_format_task_detail_display_includes_group():
     }
     text = task_service.format_task_detail_display(task)
     assert "**Group:** medical" in text
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_format_task_detail_display_includes_links():
+    task = {
+        "title": "File forms",
+        "short_id": "tlnk001",
+        "links": [{"url": "https://example.com/form", "label": "portal"}],
+    }
+    text = task_service.format_task_detail_display(task)
+    assert "**Links:**" in text
+    assert "portal: https://example.com/form" in text

@@ -47,6 +47,8 @@ class TestTaskHandlerBehavior:
             "delete_task",
             "update_task",
             "append_note_to_task",
+            "add_link_to_task",
+            "remove_link_from_task",
             "task_stats",
         ]
         for intent in expected_intents:
@@ -79,6 +81,7 @@ class TestTaskHandlerBehavior:
         assert "group:" in help_text
         assert "skip" in help_text.lower() and "cancel" in help_text.lower()
         assert "help tasks" in help_text
+        assert "add link to task" in help_text
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -930,6 +933,110 @@ class TestTaskHandlerBehavior:
         response = handler.handle(user_id, parsed_command)
         assert not response.completed
         assert "note" in response.message.lower()
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.task_service.append_task_link")
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_add_link_to_task_success(
+        self, mock_load_tasks, mock_append_link, test_data_dir
+    ):
+        """Test that TaskManagementHandler saves a web link on a task."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_add_link"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {"title": "Call dentist", "priority": "medium", "id": "task_1"}
+        ]
+        mock_append_link.return_value = "added"
+
+        parsed_command = ParsedCommand(
+            intent="add_link_to_task",
+            entities={
+                "task_identifier": "1",
+                "link_url": "https://example.com/form",
+                "link_label": "portal",
+            },
+            confidence=0.9,
+            original_message="add the portal link to the dentist task: https://example.com/form",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert response.completed
+        assert "link added" in response.message.lower()
+        assert "https://example.com/form" in response.message
+        mock_append_link.assert_called_once_with(
+            user_id, "task_1", "https://example.com/form", "portal"
+        )
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_add_link_to_task_missing_url(
+        self, mock_load_tasks, test_data_dir
+    ):
+        """Test add-link asks for a URL when missing."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_add_link_missing"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        parsed_command = ParsedCommand(
+            intent="add_link_to_task",
+            entities={"task_identifier": "1"},
+            confidence=0.9,
+            original_message="add link to task 1",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert not response.completed
+        assert "link" in response.message.lower()
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.task_service.remove_task_link")
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_remove_link_from_task_success(
+        self, mock_load_tasks, mock_remove_link, test_data_dir
+    ):
+        """Test that TaskManagementHandler removes a saved task link."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_remove_link"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {"title": "Call dentist", "id": "task_1"}
+        ]
+        mock_remove_link.return_value = "removed"
+
+        parsed_command = ParsedCommand(
+            intent="remove_link_from_task",
+            entities={
+                "task_identifier": "1",
+                "link_url": "https://example.com/form",
+            },
+            confidence=0.9,
+            original_message="remove link from task 1 https://example.com/form",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert response.completed
+        assert "link removed" in response.message.lower()
+        mock_remove_link.assert_called_once_with(
+            user_id, "task_1", "https://example.com/form"
+        )
 
     @pytest.mark.behavior
     @pytest.mark.communication

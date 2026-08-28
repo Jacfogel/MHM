@@ -64,6 +64,10 @@ class TestCommandParserTaskEntityExtraction:
             ("Buy milk tomorrow #groceries", "Buy milk"),
             ("Important: call mom tomorrow", "call mom"),
             ("Pay rent by Monday group:home", "Pay rent"),
+            (
+                "fill out this form https://example.com/form tomorrow",
+                "fill out this form",
+            ),
         ],
     )
     def test_extract_task_entities_strips_metadata_from_title(
@@ -72,6 +76,14 @@ class TestCommandParserTaskEntityExtraction:
         entities = command_parser._extract_task_entities(title)
 
         assert entities.get("clean_title") == expected_clean_title
+
+    def test_extract_task_entities_captures_urls_as_links(self, command_parser):
+        entities = command_parser._extract_task_entities(
+            "fill out this form https://example.com/form tomorrow"
+        )
+        assert entities.get("links") == [{"url": "https://example.com/form"}]
+        assert entities.get("due_date") == "tomorrow"
+        assert entities.get("clean_title") == "fill out this form"
 
     @pytest.mark.parametrize(
         "title, expected_due_time",

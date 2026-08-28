@@ -152,6 +152,7 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("priority", False, "low, medium, or high."),
         AIActionField("tags", False, "Optional task tags."),
         AIActionField("group", False, "Optional task group."),
+        AIActionField("links", False, "Optional web links found in the create message."),
     ],
     "create_task_from_template": [
         AIActionField("template_ref", True, "Built-in task template id or name."),
@@ -184,6 +185,15 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
     "append_note_to_task": [
         AIActionField("task_identifier", True, "Task number, id, short id, or title."),
         AIActionField("note_text", True, "Text to append to task notes."),
+    ],
+    "add_link_to_task": [
+        AIActionField("task_identifier", True, "Task number, id, short id, or title."),
+        AIActionField("link_url", True, "http(s) URL to save on the task."),
+        AIActionField("link_label", False, "Optional short label for the link."),
+    ],
+    "remove_link_from_task": [
+        AIActionField("task_identifier", True, "Task number, id, short id, or title."),
+        AIActionField("link_url", True, "URL or label of the link to remove."),
     ],
     "task_stats": [
         AIActionField("days", False, "Lookback window in days."),
@@ -498,6 +508,7 @@ _PRIORITY_PLANNING_ACTIONS = (
     "update_task",
     "delete_task",
     "append_note_to_task",
+    "add_link_to_task",
     "uncomplete_task",
     "task_stats",
     "start_checkin",

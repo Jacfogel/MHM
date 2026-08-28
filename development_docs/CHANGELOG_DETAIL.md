@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-27 - Tasks can store web links
+- **Feature**: Tasks now keep structured web links (`links` on [`TaskV2Model`](../tasks/task_schemas.py)) instead of burying URLs only in notes. Commands: `add link to task 1 https://example.com/form`, `add the portal link to the dentist task: https://...`, `remove link from task 1 https://...`. Creating a task whose text includes a URL stores that URL as a link and keeps it out of the title.
+- **Hygiene**: Lifted the nested URL-strip callback to [`_replace_url_match`](../tasks/task_link_helpers.py) so it has a docstring and `@handle_errors`. Function registry refresh via `docs`.
+- **Tests**: Helper/schema/service coverage in [`test_task_links.py`](../tests/unit/test_task_links.py); parser patterns in [`test_command_parser_rule_based_patterns_expansion.py`](../tests/unit/test_command_parser_rule_based_patterns_expansion.py); handler behavior in [`test_task_handler_behavior.py`](../tests/behavior/test_task_handler_behavior.py).
+- **Docs**: [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) section 2.5, [TASKS_PLAN.md](TASKS_PLAN.md) section 4, [PLANS.md](PLANS.md) section 6.2.
+- **Impact**: A form URL, portal, or reference page stays on the task and shows in Discord task detail. File/image attachments remain deferred.
+
 ### 2026-08-26 - Chat follow-ups can create the task you just described
 - **Feature**: Low-confidence action planning now includes up to two recent user turns (session history plus stored chat). Follow-ups like `yeah add that as a task` can copy a title from what you already said instead of asking again.
 - **Safety**: Free-text entities still must be grounded in the current message or those recent turns, so the planning example title (`pack hiking bag`) cannot leak into a real task.

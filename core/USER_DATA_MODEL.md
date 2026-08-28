@@ -177,6 +177,7 @@ For `kind: "task"` records in `tasks/tasks.json`:
 - **`category`**: broad semantic domain (examples: `health`, `home`, `family`, `personal`). Free string; avoid storing priority words here. Set `priority` explicitly on new data (older v1 upgrades once mapped priority-like `category` values into `priority` when `priority` was absent).
 - **`group`**: user-facing organizational bucket (free string).
 - **`tags`**: flexible multi-label metadata (`list[str]`).
+- **`links`**: optional web links on the task (`list` of `{url, label}`). `url` must be `http://` or `https://` (a leading `www.` is stored as `https://www....`). `label` is an optional short name. Distinct from `linked_item_ids`, which points at other MHM items. Max 10 links per task.
 - **Convention**: avoid copying the same token into `category`, `group`, and `tags` unless you mean three different roles; this is a modeling convention, not a runtime constraint.
 
 **Short IDs (no dash)**

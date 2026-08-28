@@ -23,6 +23,8 @@ def test_action_catalog_contains_handler_backed_task_actions():
         "delete_task",
         "update_task",
         "append_note_to_task",
+        "add_link_to_task",
+        "remove_link_from_task",
     ):
         action = catalog.get(action_name)
         assert action is not None
@@ -43,6 +45,10 @@ def test_action_catalog_contains_handler_backed_task_actions():
     append_note = catalog.get("append_note_to_task")
     assert append_note is not None
     assert append_note.required_fields == ["task_identifier", "note_text"]
+
+    add_link = catalog.get("add_link_to_task")
+    assert add_link is not None
+    assert add_link.required_fields == ["task_identifier", "link_url"]
 
 
 @pytest.mark.parametrize(

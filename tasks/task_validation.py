@@ -64,6 +64,16 @@ def validate_update_field(field: str, value: Any) -> tuple[bool, str | None]:
             return False, "Title cannot be None"
         if not is_valid_task_title(value):
             return False, "Title cannot be empty"
+    if field == "links":
+        from tasks.task_link_helpers import sanitize_task_links
+
+        if value is None:
+            return False, "Links cannot be None"
+        if not isinstance(value, list):
+            return False, "Links must be a list"
+        cleaned = sanitize_task_links(value)
+        if value and not cleaned:
+            return False, "Links must use http:// or https:// addresses"
     return True, None
 
 

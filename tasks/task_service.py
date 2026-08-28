@@ -18,6 +18,13 @@ from tasks.task_data_handlers import (
     runtime_task_scheduled_reminder_periods,
 )
 from tasks.task_tag_helpers import normalize_task_tag_filter, sanitize_task_tags
+from tasks.task_link_helpers import (
+    MAX_TASK_LINKS,
+    build_task_link,
+    find_task_link_index,
+    format_task_links_display,
+    sanitize_task_links,
+)
 from tasks.task_schemas import VALID_PRIORITIES
 from tasks.task_templates import (
     TaskTemplate,
@@ -100,6 +107,44 @@ def append_task_description(user_id: str, task_id: str, text: str) -> bool:
     existing = str(task.get("description") or "").strip()
     combined = f"{existing}\n\n{note}" if existing else note
     return update_task(user_id, task_id, {"description": combined})
+
+
+@handle_errors("task service: append_task_link", user_friendly=False, default_return="missing")
+def append_task_link(
+    user_id: str, task_id: str, url: str, label: str = ""
+) -> str:
+    """Append a web link to a task. Returns added, duplicate, invalid, missing, or limit."""
+    link = build_task_link(url, label)
+    if not link:
+        return "invalid"
+    task = _tasks().get_task_by_id(user_id, task_id)
+    if not task:
+        return "missing"
+    existing = sanitize_task_links(task.get("links"))
+    if find_task_link_index(existing, link["url"]) is not None:
+        return "duplicate"
+    if len(existing) >= MAX_TASK_LINKS:
+        return "limit"
+    existing.append(link)
+    if not update_task(user_id, task_id, {"links": existing}):
+        return "missing"
+    return "added"
+
+
+@handle_errors("task service: remove_task_link", user_friendly=False, default_return="missing")
+def remove_task_link(user_id: str, task_id: str, matcher: str) -> str:
+    """Remove a task link by URL or label. Returns removed, missing, or not_found."""
+    task = _tasks().get_task_by_id(user_id, task_id)
+    if not task:
+        return "missing"
+    existing = sanitize_task_links(task.get("links"))
+    index = find_task_link_index(existing, matcher)
+    if index is None:
+        return "not_found"
+    existing.pop(index)
+    if not update_task(user_id, task_id, {"links": existing}):
+        return "missing"
+    return "removed"
 
 
 # duplicate_functions_intentional: task_stats_facade
@@ -313,6 +358,7 @@ def prepare_create_task_data(
     priority = raw_priority or "medium"
     tags = sanitize_task_tags(entities.get("tags", []))
     group = entities.get("group", "")
+    links = sanitize_task_links(entities.get("links"))
     recurrence_pattern = entities.get("recurrence_pattern")
     recurrence_interval = entities.get("recurrence_interval", 1)
 
@@ -372,6 +418,8 @@ def prepare_create_task_data(
         "tags": tags,
         "group": str(group or ""),
     }
+    if links:
+        task_data["links"] = links
 
     if recurrence_pattern:
         if not recurring_settings:
@@ -644,6 +692,10 @@ def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = N
     group = str(task.get("group") or "").strip()
     if group:
         lines.append(f"**Group:** {group}")
+
+    links_block = format_task_links_display(task.get("links"))
+    if links_block:
+        lines.append(links_block)
 
     short_id = str(task.get("short_id") or task.get("id", "")[:8])
     lines.append(f"**ID:** `{short_id}`")

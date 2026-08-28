@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-26 21:58:05
+> **Last Generated**: 2026-08-27 18:13:19
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 272
-- **Functions Found**: 2592
-- **Methods Found**: 1369
-- **Classes Found**: 251
-- **Total Items**: 3961
-- **Functions Documented**: 2287
-- **Methods Documented**: 1224
-- **Classes Documented**: 188
-- **Total Documented**: 3511
+### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 273
+- **Functions Found**: 2611
+- **Methods Found**: 1376
+- **Classes Found**: 252
+- **Total Items**: 3987
+- **Functions Documented**: 2306
+- **Methods Documented**: 1231
+- **Classes Documented**: 189
+- **Total Documented**: 3537
 - **Template-Generated**: 48
-- **Last Updated**: 2026-08-26
+- **Last Updated**: 2026-08-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (672)
+### **Communication Functions** (676)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (533)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (99)
+### **Task Management Functions** (114)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1637,6 +1637,7 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+- [OK] `_handle_add_link_to_task(self, user_id, entities)` - Save a web link on an existing task.
 - [OK] `_handle_append_note_to_task(self, user_id, entities)` - Append text to a task description without replacing existing notes.
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
@@ -1656,6 +1657,7 @@ Returns:
 - [OK] `_handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
+- [OK] `_handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
@@ -1681,6 +1683,7 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+  - [OK] `TaskManagementHandler._handle_add_link_to_task(self, user_id, entities)` - Save a web link on an existing task.
   - [OK] `TaskManagementHandler._handle_append_note_to_task(self, user_id, entities)` - Append text to a task description without replacing existing notes.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
@@ -1700,6 +1703,7 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
+  - [OK] `TaskManagementHandler._handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
   - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
@@ -2736,6 +2740,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
 - [OK] `_assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
 - [OK] `_assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+- [OK] `_assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
 - [OK] `_clean_task_identifier(self, identifier)` - Strip filler words so 'the dentist task' looks up as 'dentist'.
@@ -2751,6 +2756,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
 - [OK] `_extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
 - [OK] `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
+- [OK] `_extract_task_urls(self, title)` - Strip web links from a create-task title and return them separately.
 - [OK] `_extract_update_entities(self, update_text)` - Extract update entities from update text
 - [OK] `_is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
@@ -2796,6 +2802,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
   - [OK] `EnhancedCommandParser._assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
   - [OK] `EnhancedCommandParser._assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+  - [OK] `EnhancedCommandParser._assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
   - [OK] `EnhancedCommandParser._clean_task_identifier(self, identifier)` - Strip filler words so 'the dentist task' looks up as 'dentist'.
@@ -2811,6 +2818,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
   - [OK] `EnhancedCommandParser._extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_name_from_context(self, message)` - Extract task name from natural language context
+  - [OK] `EnhancedCommandParser._extract_task_urls(self, title)` - Strip web links from a create-task title and return them separately.
   - [OK] `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
   - [OK] `EnhancedCommandParser._is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
@@ -6109,7 +6117,7 @@ Returns:
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_identifier)` - Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id).
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
-- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, group)` - Create a new task for a user.
+- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, group, links)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it).
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
@@ -6120,14 +6128,30 @@ Returns:
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
 
+#### `tasks/task_link_helpers.py`
+**Functions:**
+- [OK] `_replace_url_match(match, urls, seen)` - Record a matched URL and replace it with a space in the remaining text.
+- [OK] `build_task_link(url, label)` - Return `{url, label}` when the URL is valid.
+- [OK] `extract_urls_from_text(text)` - Return `(urls, remainder)` with web links stripped from *text*.
+- [OK] `find_task_link_index(links, matcher)` - Return the index of a link matching URL or label text.
+- [OK] `format_task_links_display(links)` - Return a user-facing links block, or empty when there are none.
+- [OK] `normalize_task_link_label(raw)` - Return a short display label, or empty when none was provided.
+- [OK] `normalize_task_url(raw)` - Return a canonical http(s) URL, or None if the value is not a web link.
+- [OK] `parse_link_remainder(remainder, label_hint)` - Parse optional label plus URL from add/remove-link remainder text.
+- [OK] `restore_url_case(url, original_message)` - Prefer the URL spelling from the original message when matching is case-insensitive.
+- [OK] `sanitize_task_links(raw_links)` - Normalize a links payload into unique `{url, label}` records.
+
 #### `tasks/task_schemas.py`
 **Functions:**
+- [OK] `sanitize_links(cls, value)` - Normalize link payloads before model construction.
 - [OK] `sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
 - [MISSING] `validate_completed_at(cls, value)` - No description
 - [MISSING] `validate_completion_status(self)` - No description
 - [MISSING] `validate_date(cls, value)` - No description
+- [OK] `validate_label(cls, value)` - Normalize an optional short display label for a task link.
 - [MISSING] `validate_next_due_date(cls, value)` - No description
 - [MISSING] `validate_time(cls, value)` - No description
+- [OK] `validate_url(cls, value)` - Require an http:// or https:// task link URL.
 **Classes:**
 - [MISSING] `CompletionModel` - No description
   - [MISSING] `CompletionModel.validate_completed_at(cls, value)` - No description
@@ -6137,8 +6161,12 @@ Returns:
 - [MISSING] `RecurrenceModel` - No description
   - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
 - [MISSING] `TaskCollectionV2Model` - No description
+- [OK] `TaskLinkModel` - A web link attached to a task (URL plus optional short label).
+  - [OK] `TaskLinkModel.validate_label(cls, value)` - Normalize an optional short display label for a task link.
+  - [OK] `TaskLinkModel.validate_url(cls, value)` - Require an http:// or https:// task link URL.
 - [OK] `TaskManagementError` - Custom exception for task management errors.
 - [MISSING] `TaskV2Model` - No description
+  - [OK] `TaskV2Model.sanitize_links(cls, value)` - Normalize link payloads before model construction.
   - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
 
@@ -6147,6 +6175,7 @@ Returns:
 - [MISSING] `_tasks()` - No description
 - [OK] `add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day if necessary.
 - [OK] `append_task_description(user_id, task_id, text)` - Append text to a task description (notes field), preserving existing content.
+- [OK] `append_task_link(user_id, task_id, url, label)` - Append a web link to a task. Returns added, duplicate, invalid, missing, or limit.
 - [OK] `build_task_data_from_template(user_id, template_id)` - Merge template defaults with optional overrides into create_task kwargs.
 - [MISSING] `complete_task(user_id, task_id)` - No description
 - [MISSING] `create_task(user_id)` - No description
@@ -6172,6 +6201,7 @@ Returns:
 - [OK] `parse_relative_date(date_str, now_dt)` - Convert relative task due-date strings to YYYY-MM-DD where possible.
 - [OK] `parse_time_string(time_str)` - Parse user-facing time text into HH:MM format.
 - [OK] `prepare_create_task_data(user_id, entities, now_dt)` - Normalize ParsedCommand entities into task creation fields.
+- [OK] `remove_task_link(user_id, task_id, matcher)` - Remove a task link by URL or label. Returns removed, missing, or not_found.
 - [MISSING] `restore_task(user_id, task_id)` - No description
 - [OK] `sort_tasks_by_priority_and_due_date(tasks)` - Sort active tasks by priority, then due date.
 - [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.

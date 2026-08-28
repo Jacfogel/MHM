@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-08-26  
+> **Last Updated**: 2026-08-27  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -134,7 +134,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Treat `description` as the first version of task notes; improve commands/help around it (2026-06-24: help text, `update task … note …`, detail display).
 - [x] Add `append note to task` / `add note to task` command support (2026-06-24).
 - [x] Accept `add a note to the <task>: <text>` so notes append to a task instead of creating a notebook note (2026-08-26).
-- [ ] Add URL/link capture as structured task metadata if `description` becomes insufficient.
+- [x] Add URL/link capture as structured task metadata (`links` on `TaskV2Model`; 2026-08-27).
 - [ ] Defer file/image attachments until storage and Discord upload handling are designed.
 
 **Acceptance**:

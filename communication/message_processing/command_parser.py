@@ -538,6 +538,25 @@ class EnhancedCommandParser:
                 r"^append\s+(?:a\s+)?note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
                 r"^add\s+(?:a\s+)?note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
             ],
+            "add_link_to_task": [
+                r"^add\s+the\s+(?!link\b)(.+?)\s+link\s+to\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^add\s+(?:a\s+|the\s+)?link\s+to\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^add\s+(?:a\s+|the\s+)?link\s+to\s+(?:task\s+)?(\d+)\s+(.+)$",
+                r"^add\s+(?:a\s+|the\s+)?link\s+to\s+(?:the\s+)?(.+?)\s+((?:https?://|www\.).+)$",
+                r"^save\s+(?:this\s+)?link\s+(?:on|to)\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^save\s+(?:this\s+)?link\s+(?:on|to)\s+(?:task\s+)?(\d+)\s+(.+)$",
+                r"^save\s+(?:this\s+)?link\s+(?:on|to)\s+(?:the\s+)?(.+?)\s+((?:https?://|www\.).+)$",
+                r"^attach\s+(?:a\s+|the\s+)?link\s+to\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^put\s+(?:this\s+)?link\s+(?:on|in)\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+            ],
+            "remove_link_from_task": [
+                r"^remove\s+(?:the\s+)?link\s+from\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^remove\s+(?:the\s+)?link\s+from\s+(?:task\s+)?(\d+)\s+(.+)$",
+                r"^remove\s+(?:the\s+)?link\s+from\s+(?:the\s+)?(.+?)\s+((?:https?://|www\.).+)$",
+                r"^delete\s+(?:the\s+)?link\s+from\s+(?:the\s+)?(?:task\s+)?(.+?)\s*:(?!//)\s*(.+)$",
+                r"^delete\s+(?:the\s+)?link\s+from\s+(?:task\s+)?(\d+)\s+(.+)$",
+                r"^delete\s+(?:the\s+)?link\s+from\s+(?:the\s+)?(.+?)\s+((?:https?://|www\.).+)$",
+            ],
             "task_stats": [
                 r"task\s+stats",
                 r"task\s+statistics",
@@ -1090,6 +1109,8 @@ class EnhancedCommandParser:
             priority_intents = [
                 ("help", True),
                 ("list_tasks", True),
+                ("add_link_to_task", True),
+                ("remove_link_from_task", True),
                 ("append_note_to_task", True),
                 ("task_stats", False),
                 ("task_analytics", False),
@@ -1177,7 +1198,7 @@ class EnhancedCommandParser:
             return None
 
         entities = self._extract_entities_rule_based(
-            intent, match, message_for_match, user_id=user_id
+            intent, match, message_for_match, user_id=user_id, original_message=original_message
         )
         if intent == "set_entry_group" and not self._accept_set_entry_group_match(
             message_for_match, entities
@@ -1210,7 +1231,11 @@ class EnhancedCommandParser:
                 if not match:
                     continue
                 entities = self._extract_entities_rule_based(
-                    intent, match, message_for_match, user_id=user_id
+                    intent,
+                    match,
+                    message_for_match,
+                    user_id=user_id,
+                    original_message=original_message,
                 )
                 confidence = self._calculate_confidence(
                     intent, match, message_for_match
@@ -1348,8 +1373,12 @@ class EnhancedCommandParser:
                 intent = canonicalize_intent_name(value, self.intent_patterns)
             elif key == "TITLE":
                 entities["title"] = value
-            elif key == "TASK_ID" or key == "TASKID":
+            elif key == "TASK_ID" or key == "TASKID" or key == "TASK_IDENTIFIER":
                 entities["task_identifier"] = value
+            elif key == "URL" or key == "LINK":
+                entities["link_url"] = value
+            elif key == "LINK_LABEL":
+                entities["link_label"] = value
             elif key == "PRIORITY":
                 entities["priority"] = value.lower()
             elif key == "DUE_DATE" or key == "DUEDATE":
@@ -1394,9 +1423,21 @@ class EnhancedCommandParser:
                     entities.update(task_entities)
             return True
 
-        if intent in ["complete_task", "delete_task", "update_task", "append_note_to_task"]:
+        if intent in [
+            "complete_task",
+            "delete_task",
+            "update_task",
+            "append_note_to_task",
+            "add_link_to_task",
+            "remove_link_from_task",
+        ]:
             if match.groups():
                 identifier = match.group(1).strip()
+                remainder_index = 2
+                if intent in ("add_link_to_task", "remove_link_from_task") and match.lastindex and match.lastindex >= 3:
+                    entities["link_label"] = match.group(1).strip()
+                    identifier = match.group(2).strip()
+                    remainder_index = 3
                 if identifier.lower().startswith("task "):
                     identifier = identifier[5:].strip()
 
@@ -1415,6 +1456,11 @@ class EnhancedCommandParser:
                     entities.update(self._extract_update_entities(update_text))
                 elif intent == "append_note_to_task" and len(match.groups()) > 1:
                     entities["note_text"] = match.group(2).strip()
+                elif intent in ("add_link_to_task", "remove_link_from_task"):
+                    remainder = ""
+                    if match.lastindex and match.lastindex >= remainder_index:
+                        remainder = (match.group(remainder_index) or "").strip()
+                    self._assign_task_link_entities(entities, remainder)
             return True
 
         if intent == "update_profile":
@@ -1466,11 +1512,27 @@ class EnhancedCommandParser:
         cleaned = cleaned.strip(" :-")
         return cleaned or original
 
-    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
-    @handle_errors(
-        "extracting phrase-settings entities from rule-based patterns",
-        default_return=False,
-    )
+    @handle_errors("assigning task link entities", default_return=None)
+    def _assign_task_link_entities(
+        self, entities: dict[str, Any], remainder: str
+    ) -> None:
+        """Parse URL and optional label from add/remove-link remainder text."""
+        from tasks.task_link_helpers import parse_link_remainder, restore_url_case
+
+        label_hint = str(entities.get("link_label") or "")
+        parsed = parse_link_remainder(remainder, label_hint)
+        original = getattr(self, "_rule_parse_original_message", "") or ""
+        if parsed:
+            entities["link_url"] = restore_url_case(parsed["url"], original) or parsed["url"]
+            if parsed["label"]:
+                entities["link_label"] = parsed["label"]
+            elif "link_label" in entities and not entities["link_label"]:
+                entities.pop("link_label", None)
+            return
+        if remainder:
+            entities["link_url"] = restore_url_case(remainder, original) or remainder
+
+    @handle_errors("extracting phrase-settings entities from rule-based patterns", default_return=False)
     def _extract_phrase_settings_entities_rule_based(
         self,
         intent: str,
@@ -1915,10 +1977,17 @@ class EnhancedCommandParser:
 
     @handle_errors("extracting entities from rule-based patterns")
     def _extract_entities_rule_based(
-        self, intent: str, match: re.Match, message: str, *, user_id: str | None = None
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        *,
+        user_id: str | None = None,
+        original_message: str | None = None,
     ) -> dict[str, Any]:
         """Extract entities using rule-based patterns"""
         entities: dict[str, Any] = {}
+        self._rule_parse_original_message = original_message or ""
 
         extractors = (
             self._extract_phrase_settings_entities_rule_based,
@@ -1985,7 +2054,9 @@ class EnhancedCommandParser:
             nl_defaults = get_natural_language_defaults(user_id)
             time_defaults = nl_defaults.time_of_day_defaults
             entities: dict[str, Any] = {}
-            clean_title = title
+            urls, clean_title = self._extract_task_urls(title)
+            if urls:
+                entities["links"] = [{"url": url} for url in urls]
 
             # Extract due date - order matters! More specific patterns first
             due_patterns = [
@@ -2132,6 +2203,17 @@ class EnhancedCommandParser:
         except Exception as e:
             logger.error(f"Error extracting task entities: {e}")
             return {}
+
+    @handle_errors("extracting URLs from task title", default_return=([], ""))
+    def _extract_task_urls(self, title: str) -> tuple[list[str], str]:
+        """Strip web links from a create-task title and return them separately."""
+        from tasks.task_link_helpers import extract_urls_from_text, restore_url_case
+
+        urls, remainder = extract_urls_from_text(title)
+        original = getattr(self, "_rule_parse_original_message", "") or ""
+        if original:
+            urls = [restore_url_case(url, original) or url for url in urls]
+        return urls, remainder
 
     @handle_errors("extracting recurrence entities", default_return={})
     def _extract_recurrence_entities(self, title: str) -> dict[str, Any]:
@@ -2313,6 +2395,9 @@ class EnhancedCommandParser:
                 "complete task": "complete_task",
                 "delete task": "delete_task",
                 "update task": "update_task",
+                "append note to task": "append_note_to_task",
+                "add link to task": "add_link_to_task",
+                "remove link from task": "remove_link_from_task",
                 "task stats": "task_stats",
                 "start checkin": "start_checkin",
                 "checkin status": "checkin_status",
