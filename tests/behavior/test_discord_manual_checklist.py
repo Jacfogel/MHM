@@ -477,3 +477,28 @@ class TestManualChecklistTaskListUi:
         options = captured["options"]
         assert options[0].label == "1. Call dentist"
         assert options[0].description == "tcall01"
+        assert captured["custom_id"].endswith("_1")
+
+    def test_task_list_select_numbers_from_page_offset(self):
+        from communication.communication_channels.discord.ui.task_list_ui import (
+            TaskListSelect,
+        )
+
+        captured: dict[str, Any] = {}
+
+        def fake_init(self, **kwargs):
+            captured.update(kwargs)
+
+        with patch(
+            "communication.communication_channels.discord.ui.task_list_ui.discord.ui.Select.__init__",
+            fake_init,
+        ):
+            TaskListSelect(
+                "user-1",
+                [{"title": "Later task", "task_id": "task-11", "short_id": "tlater1"}],
+                None,
+                list_offset=10,
+            )
+
+        assert captured["options"][0].label == "11. Later task"
+        assert captured["custom_id"].endswith("_11")

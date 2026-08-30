@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-28 14:13:47
+> **Last Generated**: 2026-08-29 13:41:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 274
-- **Functions Found**: 2622
-- **Methods Found**: 1376
+- **Functions Found**: 2635
+- **Methods Found**: 1379
 - **Classes Found**: 252
-- **Total Items**: 3998
-- **Functions Documented**: 2317
-- **Methods Documented**: 1231
+- **Total Items**: 4014
+- **Functions Documented**: 2334
+- **Methods Documented**: 1234
 - **Classes Documented**: 189
-- **Total Documented**: 3548
-- **Template-Generated**: 48
-- **Last Updated**: 2026-08-28
+- **Total Documented**: 3568
+- **Template-Generated**: 54
+- **Last Updated**: 2026-08-29
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (677)
+### **Communication Functions** (690)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (533)
@@ -1355,7 +1355,7 @@ Returns:
 - [MISSING] `get_help(self)` - No description
 - [MISSING] `handle(self, user_id, parsed_command)` - No description
 **Classes:**
-- [OK] `CreateMenuHandler` - Show the Discord create hub (templates + modals). Works on all channels as text help.
+- [OK] `CreateMenuHandler` - Show the Discord create hub (template and note buttons).
   - [MISSING] `CreateMenuHandler.can_handle(self, intent)` - No description
   - [MISSING] `CreateMenuHandler.get_examples(self)` - No description
   - [MISSING] `CreateMenuHandler.get_help(self)` - No description
@@ -1626,6 +1626,7 @@ Output examples:
 #### `communication/command_handlers/task_handler.py`
 **Functions:**
 - [OK] `_add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day to the target month's last day.
+- [OK] `_ask_which_task(user_id, intent, entities)` - Remember the pending action and ask which task it should apply to.
 - [OK] `_default_due_date_for_recurring_time(self, due_time)` - Return today for future recurring times, otherwise tomorrow.
 - [OK] `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 
@@ -1661,16 +1662,22 @@ Returns:
 - [OK] `_handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
+- [OK] `_matches_task_offer_reply(text, pattern)` - Return True when *text* matches a pending create-offer yes/no pattern.
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
 - [OK] `_resolve_pronoun_task_identifier(user_id, task_identifier)` - Replace a follow-up pronoun with a real task id, or ask which task.
+- [OK] `_sorted_active_tasks(user_id)` - Return active tasks in the same order as `show my task list`.
 - [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
 - [OK] `_task_service()` - Return the cached ``tasks.task_service`` module (lazy import for circular-import safety).
 - [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
+- [OK] `_valid_pending_task_action(user_id)` - Return a non-expired pending update/complete/note action, or None.
+- [OK] `_valid_pending_task_offer(user_id)` - Return a non-expired pending create offer, or None.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
 - [OK] `get_help(self)` - Get help text for task management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
+- [OK] `handle_pending_task_action(user_id, message)` - Apply a remembered task action when the user answers with a number or name.
+- [OK] `handle_pending_task_offer(user_id, message)` - Create or decline a pending offered task when the user answers yes/no.
 **Classes:**
 - [OK] `TaskManagementHandler` - Handler for task management interactions
   - [OK] `TaskManagementHandler._default_due_date_for_recurring_time(self, due_time)` - Return today for future recurring times, otherwise tomorrow.
@@ -2129,21 +2136,28 @@ Args:
 
 #### `communication/communication_channels/discord/ui/create_item_ui.py`
 **Functions:**
-- [MISSING] `_bind_modal_button_callback(label, discord_bot, modal_builder)` - No description
+- [OK] `__init__(self)` - Special Python method
+- [OK] `__init__(self)` - Special Python method
+- [OK] `__init__(self)` - Special Python method
+- [OK] `_bind_modal_button_callback(label, discord_bot, modal_builder)` - Return a Discord button callback that opens a create-hub modal.
 - [OK] `_build_custom_task_modal(user_id, discord_bot)` - Return an empty custom-task modal.
-- [MISSING] `_build_new_note_modal(user_id, discord_bot)` - No description
-- [MISSING] `_build_quick_note_modal(user_id, discord_bot)` - No description
+- [OK] `_build_new_note_modal(user_id, discord_bot)` - Return a Discord modal for creating a titled note.
+- [OK] `_build_quick_note_modal(user_id, discord_bot)` - Return a Discord modal for capturing a quick note.
 - [OK] `_build_task_modal(user_id, discord_bot)` - Return a task create modal, optionally prefilled from a template.
 - [OK] `_build_template_task_modal(user_id, discord_bot, template_id)` - Return a task modal prefilled from a built-in template.
-- [MISSING] `_run_handler(user_id, intent, entities, original_message)` - No description
+- [OK] `_modal_field_values(interaction)` - Read text-input values from a modal-submit interaction payload.
+- [OK] `_run_handler(user_id, intent, entities, original_message)` - Run a create-hub command handler intent and return its response.
 - [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
 - [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
 - [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
 - [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
 **Classes:**
 - [MISSING] `NewNoteModal` - No description
+  - [OK] `NewNoteModal.__init__(self)` - Special Python method
 - [MISSING] `QuickNoteModal` - No description
+  - [OK] `QuickNoteModal.__init__(self)` - Special Python method
 - [MISSING] `TaskFormModal` - No description
+  - [OK] `TaskFormModal.__init__(self)` - Special Python method
 
 #### `communication/communication_channels/discord/ui/helpers.py`
 **Functions:**
@@ -2178,17 +2192,17 @@ Args:
 #### `communication/communication_channels/discord/ui/task_list_ui.py`
 **Functions:**
 - [OK] `__init__(self, user_id, task_id, discord_bot)` - Special Python method
-- [OK] `__init__(self, user_id, task_items, discord_bot)` - Special Python method
+- [OK] `__init__(self, user_id, task_items, discord_bot, list_offset)` - Special Python method
 - [MISSING] `_bind_show_more_callback(button, payload, discord_bot)` - No description
 - [MISSING] `_format_task_detail(user_id, task_id)` - No description
 - [MISSING] `_run_handler_intent(user_id, intent, entities, original_message)` - No description
 - [OK] `_task_flow_response(user_id, task_id, flow_kind)` - Start a task follow-up flow and return the first prompt.
-- [OK] `get_task_list_view(user_id, task_items, pagination_actions, discord_bot)` - Task picker select plus optional Show More button.
+- [OK] `get_task_list_view(user_id, task_items, pagination_actions, discord_bot, list_offset)` - Task picker select plus optional Show More button.
 **Classes:**
 - [OK] `TaskDetailView` - Ephemeral actions for one task.
   - [OK] `TaskDetailView.__init__(self, user_id, task_id, discord_bot)` - Special Python method
 - [OK] `TaskListSelect` - Dropdown to pick a task from the current list page.
-  - [OK] `TaskListSelect.__init__(self, user_id, task_items, discord_bot)` - Special Python method
+  - [OK] `TaskListSelect.__init__(self, user_id, task_items, discord_bot, list_offset)` - Special Python method
 
 #### `communication/communication_channels/discord/ui/task_reminder_view.py`
 **Functions:**
@@ -2784,6 +2798,7 @@ Separator priority matches notebook help / phone UX:
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_rule_based_intent_names()` - Return sorted rule-based intent names for AI command prompts.
 - [OK] `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
+- [OK] `is_soft_create_task_message(text)` - Return True when the message is thinking out loud, not an explicit create.
 - [OK] `parse(self, message, user_id)` - Parse a user message into a structured command.
 
 Returns:
@@ -2949,6 +2964,7 @@ Returns:
 - [OK] `dispatch_flow_message(user_id, message, command_parser)` - Handle message routing when user is in an active conversation flow.
 
 Returns early response, rule_based_override for bypassed flow, or continue_parsing.
+- [OK] `reattach_active_task_flow_suggestions(user_id, response)` - Keep due-date/priority/reminder buttons when a note/link command ran in-flow.
 **Classes:**
 - [OK] `FlowDispatchResult` - Result of flow dispatch for an in-flow user.
 
@@ -6145,9 +6161,9 @@ Returns:
 
 #### `tasks/task_reference.py`
 **Functions:**
-- [OK] `_is_recently_touched(task)` - Return True when the task was created or updated within the recency window.
+- [OK] `_is_recently_touched(task)` - Return True when the task was created, updated, or completed recently.
 - [OK] `_recent_user_turns(user_id)` - Return recent user chat lines, oldest first.
-- [OK] `_task_recency_key(task)` - Return a sort key from updated_at, then created_at.
+- [OK] `_task_recency_key(task)` - Return a sort key from completion, updated_at, then created_at.
 - [OK] `_tasks_mentioned_in_turns(tasks, recent_turns)` - Return tasks whose titles appear in recent user turns, longest title first.
 - [OK] `action_accepts_pronoun_task(action_name)` - Return True when a planned action can fill TASK_IDENTIFIER with 'that'.
 - [OK] `is_pronoun_task_identifier(identifier)` - Return True when the identifier is a follow-up pronoun, not a real task name.
@@ -6155,8 +6171,9 @@ Returns:
 - [OK] `resolve_lookup_identifier(user_id, identifier)` - Return a concrete task id for pronoun identifiers, or the original identifier.
 - [OK] `resolve_pronoun_task(user_id)` - Choose the task a follow-up like 'make that due tomorrow' refers to.
 
-Prefers a title mentioned in recent chat, then a uniquely recent task,
-then the only active task. Returns None when the reference is ambiguous.
+Prefers a title mentioned in recent chat, then a uniquely recent active
+task. Does not fall back to a leftover task after a more recent
+completion. Returns None when the reference is ambiguous.
 
 #### `tasks/task_schemas.py`
 **Functions:**

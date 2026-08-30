@@ -74,7 +74,9 @@ class TestTaskHandlerBehavior:
 
         assert isinstance(help_text, str), "Should return help text as string"
         assert "**Task Management Help:**" in help_text
-        assert "i need to call the dentist this week" in help_text
+        assert "asks before saving" in help_text
+        assert "i should" in help_text
+        assert "dont forget to email the school" in help_text
         assert "remind me to" in help_text
         assert "after work" in help_text and "after school" in help_text
         assert "#groceries" in help_text or "#health" in help_text
@@ -555,6 +557,8 @@ class TestTaskHandlerBehavior:
         assert "Task 11" in page2.message
         assert "10. " not in page2.message
         assert page2.rich_data.get("interaction_view") == "task_list"
+        assert len(page2.rich_data.get("task_list_items") or []) == 1
+        assert page2.rich_data.get("task_list_offset") == 10
         assert "pagination_actions" not in (page2.rich_data or {})
 
     @pytest.mark.behavior

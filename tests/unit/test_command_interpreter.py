@@ -81,6 +81,7 @@ class TestCommandInterpreter:
             ("add laundry to my list", "command"),
             ("put laundry on my list", "command"),
             ("show my list", "command_with_clarification"),
+            ("show my task list", "command"),
             ("cross off dentist", "command_with_clarification"),
             ("make a reminder to call the school", "command"),
             ("create note about meeting", "command"),

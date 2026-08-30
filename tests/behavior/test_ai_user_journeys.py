@@ -24,6 +24,7 @@ from checkins.checkin_data_manager import store_checkin_response
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.message_processing.command_parser import ParsingResult
 from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flows.flow_constants import FLOW_TASK_DUE_DATE
 from communication.message_processing.interaction_manager import (
     InteractionManager,
     handle_user_message,
@@ -190,16 +191,24 @@ def test_clear_create_task_command_persists_task(test_data_dir):
 
 @pytest.mark.tasks
 @pytest.mark.communication
-def test_everyday_create_task_phrase_persists(test_data_dir):
-    """Casual 'I should...' phrasing creates a real task instead of falling through to chat."""
+def test_everyday_create_task_phrase_offers_before_saving(test_data_dir):
+    """Casual 'I should...' phrasing asks before creating a task."""
     user_id = _create_journey_user(test_data_dir, "journey-everyday-create")
 
     result = handle_user_message(user_id, "i should pick up groceries tonight", "discord")
 
     assert result and result.message
+    assert "want me to add" in result.message.lower()
+    assert "task list" in result.message.lower()
+    assert "pick up groceries" in result.message.lower()
+    assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
+
+    confirm = handle_user_message(user_id, "yes, add it", "discord")
+    assert confirm and confirm.message
     titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
     assert any("pick up groceries" in title for title in titles)
-    assert find_false_crud_claims(result.message) == []
+    assert find_false_crud_claims(confirm.message) == []
 
 
 @pytest.mark.tasks
@@ -234,15 +243,16 @@ def test_mark_task_done_phrase_completes_task(test_data_dir):
 
 @pytest.mark.tasks
 @pytest.mark.communication
-def test_still_need_to_phrase_creates_task(test_data_dir):
-    """'i still need to...' creates a real task."""
+def test_still_need_to_phrase_offers_before_saving(test_data_dir):
+    """'i still need to...' asks before creating a task."""
     user_id = _create_journey_user(test_data_dir, "journey-still-need")
 
     result = handle_user_message(user_id, "i still need to pay rent", "discord")
 
     assert result and result.message
-    titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
-    assert any("pay rent" in title for title in titles)
+    assert "want me to add" in result.message.lower()
+    assert "task list" in result.message.lower()
+    assert load_active_tasks(user_id) == []
     assert find_false_crud_claims(result.message) == []
 
 
@@ -256,6 +266,22 @@ def test_show_my_list_phrase_lists_tasks(test_data_dir):
     assert save_active_tasks(user_id, tasks)
 
     result = handle_user_message(user_id, "show my list", "discord")
+
+    assert result and result.message
+    assert "laundry" in result.message.lower()
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_show_my_task_list_phrase_lists_tasks(test_data_dir):
+    """'show my task list' lists tasks."""
+    user_id = _create_journey_user(test_data_dir, "journey-show-task-list")
+    tasks = load_active_tasks(user_id)
+    tasks.append({"title": "laundry", "id": "tlaundry", "short_id": "t1laun"})
+    assert save_active_tasks(user_id, tasks)
+
+    result = handle_user_message(user_id, "show my task list", "discord")
 
     assert result and result.message
     assert "laundry" in result.message.lower()
@@ -322,6 +348,147 @@ def test_mark_that_done_completes_recent_task(test_data_dir):
 
     assert result and result.completed
     assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_make_that_due_asks_after_completing_recent_task(test_data_dir):
+    """After completing the task you just talked about, 'that' does not update a leftover."""
+    user_id = _create_journey_user(test_data_dir, "journey-that-after-complete")
+    create_task(user_id, title="email the school")
+    create_task(user_id, title="water the plants")
+    done = handle_user_message(user_id, "mark water the plants done", "discord")
+    assert done and done.completed
+
+    result = handle_user_message(user_id, "make that due tomorrow", "discord")
+
+    assert result and result.message
+    assert "which task" in result.message.lower()
+    leftover = load_active_tasks(user_id)
+    assert len(leftover) == 1
+    assert "school" in str(leftover[0].get("title", "")).lower()
+    assert not runtime_task_due_date(leftover[0])
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_which_task_number_applies_pending_due_update(test_data_dir):
+    """After 'which task?', a list number applies the remembered due-date update."""
+    user_id = _create_journey_user(test_data_dir, "journey-which-number")
+    create_task(user_id, title="email the school")
+    create_task(user_id, title="call the dentist")
+    create_task(user_id, title="water the plants")
+    done = handle_user_message(user_id, "mark water the plants done", "discord")
+    assert done and done.completed
+
+    ask = handle_user_message(user_id, "make that due tomorrow", "discord")
+    assert ask and "which task" in ask.message.lower()
+    assert "task list" in ask.message.lower()
+
+    listed = handle_user_message(user_id, "show my task list", "discord")
+    assert listed and "dentist" in listed.message.lower()
+    assert "which task" not in (listed.message or "").lower()
+
+    result = handle_user_message(user_id, "1.", "discord")
+    assert result and result.message
+    assert "updated" in result.message.lower()
+    dated = [
+        task
+        for task in load_active_tasks(user_id)
+        if runtime_task_due_date(task)
+    ]
+    assert len(dated) == 1
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_which_task_name_applies_pending_due_update(test_data_dir):
+    """After 'which task?', the task name applies the remembered due-date update."""
+    user_id = _create_journey_user(test_data_dir, "journey-which-name")
+    create_task(user_id, title="email the school")
+    create_task(user_id, title="call the dentist")
+    create_task(user_id, title="water the plants")
+    done = handle_user_message(user_id, "mark water the plants done", "discord")
+    assert done and done.completed
+
+    ask = handle_user_message(user_id, "make that due tomorrow", "discord")
+    assert ask and "which task" in ask.message.lower()
+
+    result = handle_user_message(user_id, "call the dentist", "discord")
+    assert result and result.message
+    assert "updated" in result.message.lower()
+    assert "dentist" in result.message.lower()
+    dentist = next(
+        task
+        for task in load_active_tasks(user_id)
+        if "dentist" in str(task.get("title", "")).lower()
+    )
+    assert runtime_task_due_date(dentist)
+    school = next(
+        task
+        for task in load_active_tasks(user_id)
+        if "school" in str(task.get("title", "")).lower()
+    )
+    assert not runtime_task_due_date(school)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_dont_forget_phrase_still_creates_task(test_data_dir):
+    """Explicit reminder phrasing still creates a task immediately."""
+    user_id = _create_journey_user(test_data_dir, "journey-dont-forget")
+    result = handle_user_message(user_id, "dont forget to email the school", "discord")
+
+    assert result and result.message
+    titles = [str(task.get("title", "")).lower() for task in load_active_tasks(user_id)]
+    assert any("email the school" in title for title in titles)
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_soft_create_not_now_does_not_create(test_data_dir):
+    """Declining a thinking-out-loud offer leaves the list unchanged."""
+    user_id = _create_journey_user(test_data_dir, "journey-not-now")
+    offer = handle_user_message(user_id, "i gotta water the plants", "discord")
+    assert offer and "want me to add" in offer.message.lower()
+    assert load_active_tasks(user_id) == []
+
+    result = handle_user_message(user_id, "not now", "discord")
+
+    assert result and "won't add" in result.message.lower()
+    assert load_active_tasks(user_id) == []
+    assert find_false_crud_claims(result.message) == []
+
+
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_add_note_during_due_date_flow_keeps_flow(test_data_dir):
+    """Adding a note to 'that' during due-date follow-up keeps the due-date prompt."""
+    user_id = _create_journey_user(test_data_dir, "journey-note-in-flow")
+    conversation_manager.user_states.pop(user_id, None)
+    created = handle_user_message(
+        user_id, "dont forget to email the school", "discord"
+    )
+    assert created and not created.completed
+    assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_DUE_DATE
+
+    result = handle_user_message(
+        user_id,
+        "add a note to that: they need the form by Friday",
+        "discord",
+    )
+
+    assert result and result.message
+    assert "note added" in result.message.lower()
+    assert "school" in result.message.lower()
+    assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_DUE_DATE
+    assert result.suggestions
+    task = load_active_tasks(user_id)[0]
+    assert "form by friday" in str(task.get("description") or "").lower()
     assert find_false_crud_claims(result.message) == []
 
 

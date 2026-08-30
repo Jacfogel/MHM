@@ -68,7 +68,7 @@ At a high level:
 1. A message arrives from a channel (e.g., Discord, Email) and enters `InteractionManager.handle_message`.
 2. **Hybrid routing (rule-parser-first):**
    - High-confidence structured parse (`confidence >= min_command_confidence`, default 0.3): dispatch via `dispatch_structured_command` (planner is not invoked).
-   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` -> `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers). Planning stays compact (no full context envelope) but includes up to two recent user turns so pronouns like "that" can map to a title the user already said. Update/complete/note follow-ups that say "that" fill `task_identifier` with `that`; the task handler resolves it to a recent or mentioned task.
+   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` -> `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers). Planning stays compact (no full context envelope) but includes up to two recent user turns so pronouns like "that" can map to a title the user already said. Update/complete/note follow-ups that say "that" fill `task_identifier` with `that`; the task handler resolves it to a recent or mentioned task and asks when a leftover task would be a guess. After that ask, a number (`1.`) or the task name applies the remembered update. Thinking-out-loud creates (`i should...`, `i gotta...`) are high-confidence `create_task` with `confirm=true` and ask before saving (bot copy says "task list", not "list", because notebook lists are a separate note type).
    - Planner returns `None`: retry partial structured parse when usable, then contextual chat.
    - Planner disabled: low-confidence messages go straight to contextual chat.
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
@@ -218,7 +218,7 @@ Conversation history lives through:
   - Stores user interactions in JSON files under user-specific directories.
   - Decorated with `@handle_errors` to avoid crashes when log files are missing or corrupted.
 - `ai/chat/action_planner.py`  
-  - For low-confidence follow-ups, reads up to two recent **user** turns from in-memory session history and `get_recent_chat_interactions`. It does not load the full context envelope. Pronoun updates (`make that due tomorrow`) are resolved later by [`tasks/task_reference.py`](../tasks/task_reference.py) from recent chat titles or a recently touched task.
+  - For low-confidence follow-ups, reads up to two recent **user** turns from in-memory session history and `get_recent_chat_interactions`. It does not load the full context envelope. Pronoun updates (`make that due tomorrow`) are resolved later by [`tasks/task_reference.py`](../tasks/task_reference.py) from recent chat titles or a recently touched task. After a more recent completion, "that" asks which task instead of updating a leftover.
 
 `analyze_checkin_entries` uses recent check-in rows to include:
 
@@ -291,7 +291,7 @@ Canonical product-AI composition is `PromptManager.compose_product_prompt(flow_n
 | Category | File | Owns |
 |---|---|---|
 | `persona` | `persona.txt` | Personality, style, length defaults |
-| `reply_rules` | `reply_rules.txt` | Greetings, direct answers, follow-ups, stated-fact reuse |
+| `reply_rules` | `reply_rules.txt` | Greetings, direct answers, follow-ups, stated-fact reuse, task list vs notebook list wording |
 | `data_honesty` | `data_honesty.txt` | Context visibility, missing-data honesty |
 | `action_boundaries` | `action_boundaries.txt` | No false CRUD claims; safe offer language |
 | `available_actions` | (runtime) | Injected from `AIActionCatalog`, not a prompt file |

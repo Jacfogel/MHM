@@ -22,7 +22,10 @@ from communication.message_processing.command_registry import (
     command_definitions_as_dicts,
 )
 from communication.message_processing.conversation_flow_manager import conversation_manager
-from communication.message_processing.flow_message_dispatcher import dispatch_flow_message
+from communication.message_processing.flow_message_dispatcher import (
+    dispatch_flow_message,
+    reattach_active_task_flow_suggestions,
+)
 from communication.message_processing.help_responses import get_help_response
 from communication.message_processing.intent_validation import is_valid_intent
 from communication.message_processing.parsing_shortcuts import (
@@ -148,7 +151,9 @@ class InteractionManager:
                 f"{parsing_result.parsed_command.intent}"
             )
             resp = self._handle_structured_command(user_id, parsing_result, channel_type)
-            return augment_suggestions(parsing_result.parsed_command, resp)
+            resp = augment_suggestions(parsing_result.parsed_command, resp)
+            updated = reattach_active_task_flow_suggestions(user_id, resp)
+            return updated if updated is not None else resp
 
         if self.fallback_to_chat:
             logger.info(

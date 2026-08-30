@@ -25,6 +25,7 @@ def test_rich_data_payload_and_pagination_helpers():
 
     assert bot._has_display_rich_data(None) is False
     assert bot._has_display_rich_data({"suggestion_payloads": ["x"]}) is False
+    assert bot._has_display_rich_data({"task_list_offset": 10, "task_list_items": []}) is False
     assert bot._has_display_rich_data({"title": "Title"}) is True
     assert bot._get_suggestion_payloads({"suggestion_payloads": [{"intent": "next"}]}) == [
         {"intent": "next"}

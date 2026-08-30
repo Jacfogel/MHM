@@ -106,7 +106,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.  
 **Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, then `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `show my list`, `cross off...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`, `keep in mind that...`, `write this down...`). Command-list parity: live parser intents in prompts/catalog/planning; `ACTION: create note` / `start check-in` canonicalize. Action planner follow-ups: recent user turns ground titles for "add that as a task" without inventing example titles.
-**Follow-up (2026-08-28)**: Pronoun task follow-ups (`make that due tomorrow`, `that's urgent`, `mark that done`) update or complete the recently mentioned or created task. Result-aware and offer language stay calm instead of teaching command syntax. Live LM Studio tone review remains.
+**Follow-up (2026-08-28)**: Pronoun task follow-ups (`make that due tomorrow`, `that's urgent`, `mark that done`) update or complete the recently mentioned or created task. Completing a task does not make "that" jump to a leftover. Thinking-out-loud create (`i should...`, `i gotta...`) asks first. Result-aware and offer language stay calm instead of teaching command syntax. Live LM Studio tone review remains.
 
 ---
 

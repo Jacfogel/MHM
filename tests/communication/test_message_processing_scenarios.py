@@ -95,7 +95,7 @@ class TestAugmentSuggestions:
         parsed = ParsedCommand("update_task", {}, 0.9, "update task 1")
         response = InteractionResponse("Which task would you like to update?", completed=False)
         out = augment_suggestions(parsed, response)
-        assert out.suggestions == ["list tasks", "cancel"]
+        assert out.suggestions == ["show my task list", "cancel"]
 
     def test_generic_update_prompt_suggestions(self):
         parsed = ParsedCommand("update_task", {}, 0.9, "update task 1")
@@ -408,6 +408,25 @@ class TestResponseEnhancer:
             enable_ai_enhancement=True,
         )
         assert out.message == "Your tasks:"
+        mock_bot.generate_response.assert_not_called()
+
+    def test_append_note_to_task_skips_enhancement(self):
+        response = InteractionResponse("Note added to: email the school")
+        parsed = ParsedCommand(
+            "append_note_to_task",
+            {"task_identifier": "that", "note_text": "bring the form"},
+            0.9,
+            "add a note to that: bring the form",
+        )
+        mock_bot = MagicMock()
+        out = enhance_response_with_ai(
+            "user-1",
+            response,
+            parsed,
+            ai_chatbot=mock_bot,
+            enable_ai_enhancement=True,
+        )
+        assert out.message == "Note added to: email the school"
         mock_bot.generate_response.assert_not_called()
 
     def test_profile_keyword_in_intent_skips(self):
@@ -939,6 +958,7 @@ class TestDiscordResponseDelivery:
         mock_bot = MagicMock()
         mock_bot._has_display_rich_data.return_value = True
         mock_bot._create_discord_embed.return_value = MagicMock()
+        mock_bot._resolve_interaction_view_from_rich_data.return_value = None
         mock_bot._get_action_row_inputs.return_value = ([], [])
         interaction = AsyncMock()
         response = InteractionResponse(
@@ -959,6 +979,7 @@ class TestDiscordResponseDelivery:
 
         mock_bot = MagicMock()
         mock_bot._has_display_rich_data.return_value = False
+        mock_bot._resolve_interaction_view_from_rich_data.return_value = None
         mock_bot._get_action_row_inputs.return_value = (["Done"], [{"action": "ok"}])
         mock_bot._create_action_row.return_value = MagicMock()
         interaction = AsyncMock()
@@ -978,6 +999,7 @@ class TestDiscordResponseDelivery:
         mock_bot = MagicMock()
         mock_bot._has_display_rich_data.return_value = True
         mock_bot._create_discord_embed.return_value = MagicMock()
+        mock_bot._resolve_interaction_view_from_rich_data.return_value = None
         mock_bot._get_action_row_inputs.return_value = (["Done"], [{"action": "ok"}])
         mock_bot._create_action_row.return_value = MagicMock()
         interaction = AsyncMock()
@@ -991,6 +1013,26 @@ class TestDiscordResponseDelivery:
         kwargs = interaction.followup.send.await_args.kwargs
         assert kwargs["embed"] is not None
         assert kwargs["view"] is not None
+
+    @pytest.mark.asyncio
+    async def test_interaction_view_from_rich_data(self):
+        from communication.communication_channels.discord.ui.helpers import (
+            deliver_handler_response,
+        )
+
+        picker_view = MagicMock()
+        mock_bot = MagicMock()
+        mock_bot._has_display_rich_data.return_value = False
+        mock_bot._resolve_interaction_view_from_rich_data.return_value = picker_view
+        interaction = AsyncMock()
+        response = InteractionResponse(
+            "Your Active Tasks:",
+            rich_data={"interaction_view": "task_list", "user_id": "user-1"},
+        )
+        await deliver_handler_response(interaction, response, mock_bot)
+        mock_bot._get_action_row_inputs.assert_not_called()
+        kwargs = interaction.followup.send.await_args.kwargs
+        assert kwargs["view"] is picker_view
 
     @pytest.mark.asyncio
     async def test_ephemeral_flag_passed_through(self):

@@ -296,6 +296,7 @@ class DiscordRichDeliveryMixin:
             "interaction_view",
             "user_id",
             "task_list_items",
+            "task_list_offset",
         }
         return any(key not in metadata_only_keys for key in rich_data)
 
@@ -372,6 +373,7 @@ class DiscordRichDeliveryMixin:
             discord_bot=self,
             task_list_items=rich_data.get("task_list_items"),
             pagination_actions=rich_data.get("pagination_actions"),
+            task_list_offset=rich_data.get("task_list_offset") or 0,
         )
         if callable(view) and not isinstance(view, type):
             try:

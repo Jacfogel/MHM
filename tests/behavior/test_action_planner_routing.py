@@ -1188,7 +1188,8 @@ def test_show_create_hub_parity_rule_parser_vs_planner(test_data_dir, planner_en
             assert response.completed
             assert response.rich_data
             assert response.rich_data.get("interaction_view") == "create_hub"
-            assert "template" in response.message.lower()
+            assert response.message.startswith("**Create something**")
+            assert "first row" in response.message.lower()
 
     _run_task_intent_parity(
         test_data_dir,

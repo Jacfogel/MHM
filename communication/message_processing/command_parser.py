@@ -38,6 +38,29 @@ logger = parser_logger
 # Populated when EnhancedCommandParser is constructed (single source for AI command lists).
 RULE_BASED_INTENT_PATTERNS: dict[str, list] | None = None
 
+# Thinking-out-loud phrasing should offer a task, not create one immediately.
+_SOFT_CREATE_TASK_RE = re.compile(
+    r"(?i)^(?:please\s+)?"
+    r"(?:"
+    r"i\s+(?:still|also|really|actually)\s+need\s+to"
+    r"|i\s+need\s+to"
+    r"|i\s+should"
+    r"|i\s+have\s+to"
+    r"|i(?:'m|\s+am)\s+supposed\s+to"
+    r"|i(?:'ve|ve|\s+have)\s+got(?:ta|\s+to)"
+    r"|(?:i\s+)?gotta"
+    r"|need\s+to"
+    r"|make\s+sure\s+(?:i|to)"
+    r"|remember\s+to"
+    r")\b"
+)
+
+
+@handle_errors("detecting soft create-task phrasing", default_return=False)
+def is_soft_create_task_message(text: str | None) -> bool:
+    """Return True when the message is thinking out loud, not an explicit create."""
+    return bool(_SOFT_CREATE_TASK_RE.match(str(text or "").strip()))
+
 # Notebook intents whose entities are regex groups copied onto keys.
 _NOTEBOOK_GROUP_ENTITY_MAP: dict[str, tuple[tuple[str, int], ...]] = {
     "show_entry": (("entry_ref", 1),),
@@ -476,6 +499,7 @@ class EnhancedCommandParser:
             ],
             "list_tasks": [
                 r"^show\s+my\s+tasks?$",  # Match "show my tasks" first (more specific)
+                r"^show\s+(?:my\s+|the\s+)?task\s+lists?$",
                 r"^show\s+tasks?$",  # Then match "show tasks"
                 r"^(?:show|list)\s+(?:my\s+)?tasks?\s+(?:in\s+group\s+|group:)(.+)$",
                 r"^(?:my\s+)?tasks?\s+in\s+group\s+(.+)$",
@@ -1416,6 +1440,8 @@ class EnhancedCommandParser:
                 task_entities = self._extract_task_entities(title, user_id=user_id)
                 entities["title"] = task_entities.pop("clean_title", title)
                 entities.update(task_entities)
+                if is_soft_create_task_message(message):
+                    entities["confirm"] = True
             return True
 
         if intent == "create_task_from_template":

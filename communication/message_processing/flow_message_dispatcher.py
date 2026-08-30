@@ -33,6 +33,13 @@ from communication.message_processing.flows.flow_command_helpers import (
 
 logger = get_component_logger("communication_manager")
 
+_TASK_FOLLOWUP_FLOWS = frozenset(
+    {FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER}
+)
+_TASK_FLOW_SIDE_INTENTS = frozenset(
+    {"append_note_to_task", "add_link_to_task", "remove_link_from_task"}
+)
+
 COMMAND_KEYWORDS = [
     "update task",
     "complete task",
@@ -188,6 +195,26 @@ def dispatch_flow_message(
         rule_based_result is not None
         and rule_based_result.parsed_command.intent != "unknown"
     ):
+        intent = rule_based_result.parsed_command.intent
+        flow = user_state.get("flow")
+        if intent in _TASK_FLOW_SIDE_INTENTS and flow in _TASK_FOLLOWUP_FLOWS:
+            flow_task_id = str(
+                user_state.get("data", {}).get("task_identifier") or ""
+            ).strip()
+            if flow_task_id:
+                from tasks.task_reference import is_pronoun_task_identifier
+
+                entities = rule_based_result.parsed_command.entities
+                if is_pronoun_task_identifier(entities.get("task_identifier")):
+                    entities["task_identifier"] = flow_task_id
+            logger.info(
+                f"User {user_id} in flow {flow} issued side intent "
+                f"'{intent}', keeping flow"
+            )
+            return FlowDispatchResult(
+                rule_based_override=rule_based_result,
+                continue_parsing=True,
+            )
         logger.info(
             f"User {user_id} in flow {user_state['flow']} issued command intent "
             f"'{rule_based_result.parsed_command.intent}', clearing flow"
@@ -234,3 +261,24 @@ def dispatch_flow_message(
         rule_based_override=rule_based_override,
         continue_parsing=True,
     )
+
+
+@handle_errors("keeping task follow-up buttons after a side command", default_return=None)
+def reattach_active_task_flow_suggestions(
+    user_id: str,
+    response: InteractionResponse,
+) -> InteractionResponse:
+    """Keep due-date/priority/reminder buttons when a note/link command ran in-flow."""
+    user_state = conversation_manager.user_states.get(user_id) or {}
+    if user_state.get("flow") not in _TASK_FOLLOWUP_FLOWS:
+        return response
+    response.completed = False
+    existing_suggestions = response.suggestions
+    response.suggestions = None
+    updated = _attach_flow_suggestions(
+        response, user_id, response.message or "", False
+    )
+    if updated is not None and updated.suggestions:
+        return updated
+    response.suggestions = existing_suggestions
+    return response

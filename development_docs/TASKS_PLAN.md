@@ -70,7 +70,8 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
 - [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
 - [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`. Follow-up: `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, `i'm done with X`.
-- [x] Pronoun follow-ups for the task you just mentioned or created (2026-08-28): `make that due tomorrow`, `that's urgent`, `mark that done`, `add a note to that: ...`. Ambiguous "that" asks which task instead of matching stray letters in other titles.
+- [x] Pronoun follow-ups for the task you just mentioned or created (2026-08-28): `make that due tomorrow`, `that's urgent`, `mark that done`, `add a note to that: ...`. Ambiguous "that" asks which task instead of matching stray letters in other titles. Completing a task does not make "that" jump to a leftover task. After the which-task prompt, a number (`1.`) or the task name applies the remembered update.
+- [x] Thinking-out-loud create offers (2026-08-28): `i should...`, `i gotta...`, `i need to...` ask "Want me to add ... to your task list?" before saving. Explicit phrases (`dont forget to`, `add X to my list`, `remind me to`) still create immediately. Bot replies say "task list" so they are not confused with notebook lists.
 - [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
 
 ---
@@ -92,7 +93,8 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 ---
 
 **§2 acceptance**:
-- Messages like `I need to call the dentist this week`, `I should pick up groceries tonight`, and `dont forget to email the school` create useful structured tasks without manual cleanup.
+- Messages like `dont forget to email the school` and `add laundry to my list` create useful structured tasks without manual cleanup.
+- Thinking-out-loud phrases like `I should pick up groceries tonight` and `i gotta water the plants` ask before saving.
 
 ---
 
@@ -117,7 +119,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
 
 **Remaining**:
-- [ ] Live Discord visual check of template modals and create hub buttons.
+- [ ] Live Discord visual check of template modals and create hub buttons. (2026-08-29: submit after timeout/restart now handled; re-check Appt form in Discord.)
 - [ ] Optional: user-defined custom templates (storage + settings UX).
 
 **Acceptance**:

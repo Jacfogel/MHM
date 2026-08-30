@@ -8,7 +8,7 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 
 
 class CreateMenuHandler(InteractionHandler):
-    """Show the Discord create hub (templates + modals). Works on all channels as text help."""
+    """Show the Discord create hub (template and note buttons)."""
 
     @handle_errors("checking create menu intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
@@ -23,15 +23,9 @@ class CreateMenuHandler(InteractionHandler):
     def handle(
         self, user_id: str, parsed_command: ParsedCommand
     ) -> InteractionResponse:
-        from tasks.task_templates import format_templates_for_help
-
         message = (
-            "**Create something**\n\n"
-            "On Discord, tap a template button to edit the prefilled form, then submit.\n"
-            "Elsewhere, use commands like `task template medication` or `quick note ...`.\n\n"
-            "**Task templates:**\n"
-            f"{format_templates_for_help()}\n\n"
-            "**Notes:** `quick note ...` or `note Title | body`"
+            "**Create something**\n"
+            "First row starts a **task**. Green buttons start a **note**."
         )
         return InteractionResponse(
             message,

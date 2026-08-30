@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-28 14:13:47
+> **Last Generated**: 2026-08-29 13:41:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.7% [!] GOOD**
-- **Total Functions**: 2622
-- **Total Methods**: 1376
-- **Documented**: 3548/3998
+### **Documentation Coverage: 88.9% [!] GOOD**
+- **Total Functions**: 2635
+- **Total Methods**: 1379
+- **Documented**: 3568/4014
 - **Files Scanned**: 274
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chat/chatbot.py` - Main AI implementation (67 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (86 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (87 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
 
@@ -169,7 +169,6 @@ Core System Decision Tree:
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
-- `communication/communication_channels/discord/ui/create_item_ui.py` - 4/11 functions undocumented (64% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `communication/communication_channels/discord/ui/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
@@ -209,7 +208,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 410 functions)
 - `checkins/` -  (7 files, 151 functions)
-- `communication/` - Communication channels and message processing (90 files, 1208 functions)
+- `communication/` - Communication channels and message processing (90 files, 1224 functions)
 - `core/` - System utilities and data management (34 files, 605 functions)
 - `integrations/` -  (13 files, 114 functions)
 - `messages/` -  (5 files, 39 functions)

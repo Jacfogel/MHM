@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-28 14:14:15
+> **Last Generated**: 2026-08-29 13:41:53
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 272
-- **Total Imports**: 2313
-- **Standard Library**: 684 (29.6%)
+- **Total Imports**: 2317
+- **Standard Library**: 685 (29.6%)
 - **Third-Party**: 216 (9.3%)
-- **Local Imports**: 1413 (61.1%)
+- **Local Imports**: 1416 (61.1%)
 
 ## Dependency Decision Trees
 
@@ -54,7 +54,7 @@ Communication Dependencies:
   - communication/communication_channels/discord/bot.py <- standard library (__future__, asyncio, contextlib, gc), third-party (aiohttp, discord, discord.ext), base_channel, connection_health, status, rich_delivery, tunnel (+8 more)
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
-  - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager (+2 more)
+  - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager (+3 more)
 
 ### Need UI Dependencies?
 UI Dependencies:

@@ -30,10 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-29 - Discord appointment form submit no longer fails silently **COMPLETED**
+- `create` hub copy labels the first row as new-task buttons and green as notes; the template keyword list is not repeated under the buttons.
+- Task-list Show More now attaches the picker dropdown on later pages (`deliver_handler_response` resolves `interaction_view`).
+- Create-hub nested modal `__init__` methods use `@handle_errors`; function registry regenerated.
+- Create-hub task modals use a stable `create_hub_modal_task:{template}` custom id, `timeout=None`, and the Discord interaction router handles `modal_submit` even after restart or the in-memory 3-minute modal timeout.
+
 ### 2026-08-28 - Chat follow-ups can update the task you just mentioned **COMPLETED**
 - `make that due tomorrow`, `that's urgent`, and `mark that done` apply to the recently mentioned or created task.
-- Ambiguous "that" asks which task; confirmations stay calm instead of teaching command syntax.
-- Live LM Studio tone review is still remaining.
+- Ambiguous "that" asks which task; it does not jump to a leftover task after you complete a different one.
+- Thinking-out-loud (`i should...`, `i gotta...`) asks before saving; `dont forget to` still creates immediately.
+- Bot copy says "task list", not "list", so tasks stay distinct from notebook lists.
+- After a which-task prompt, a number or name applies the remembered update (`1.` no longer gets the unclear-chat reply).
+- Notes added during the due-date follow-up stay on that task and keep the due-date buttons.
+- Function registry regenerated; yes/no offer matchers folded into `_matches_task_offer_reply`.
 
 ### 2026-08-27 - Tasks can store web links **COMPLETED**
 - Tasks keep http(s) URLs in a `links` field, with add/remove commands and create-time URL capture.
@@ -112,11 +122,6 @@ Guidelines:
 - Three Discord send tests now seed `_result_queue` instead of waiting out the 10s poll.
 - `run_tests.py` no longer pauses LM Studio by default (that combo hung the full suite at 98%).
 - Autouse fixture blocks leaked LM Studio HTTP; chatbot tests mock `_call_lm_studio_api`.
-
-### 2026-08-22 - One shared check-in analysis core **COMPLETED**
-- Chat, fallback, and the analytics UI now use `checkins/analysis.py` for breakfast/mood/energy/wellness.
-- The envelope stores that analysis once; contextual chat builds the envelope once and reuses it.
-- Wellness no longer invents a 50 for missing sleep/habits; named scores still need 3 check-ins.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

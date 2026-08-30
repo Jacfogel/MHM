@@ -39,6 +39,7 @@ def create_task_list_view(user_id: str, **kwargs: Any) -> Any | None:
         kwargs.get("task_list_items"),
         kwargs.get("pagination_actions"),
         kwargs.get("discord_bot"),
+        kwargs.get("task_list_offset") or 0,
     )
 
 

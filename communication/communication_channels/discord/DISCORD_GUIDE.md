@@ -113,8 +113,11 @@ UI views are adapters between Discord's UI and the core message pipeline:
   - "More" - Sends static help text explaining how check-ins work. :contentReference[oaicite:24]{index=24}  
 
 - `get_create_hub_view(user_id)` in `ui/create_item_ui.py` returns a `discord.ui.View` with:
-  - Template buttons (Meds, Appt, Call, Clean, Forms) - Open a prefilled task modal; submit uses `create_task_from_template`.
-  - "Custom task" / "Quick note" / "New note" - Open empty modals for those create intents.
+  - The accompanying `create` / `new` / `add` message labels the first row as new-task buttons and green buttons as notes. Template names and aliases are not listed in that message (use `list task templates` for the keyword list).
+  - Template buttons (Meds, Appt, Call, Clean, Forms) on the first button row - Open a prefilled task modal; submit uses `create_task_from_template`. Modal custom IDs stay stable so submit still works after a bot restart or if the in-memory modal timed out.
+  - "Custom task" / "Quick note" / "New note" on the second button row - Open empty modals for those create intents.
+
+- `get_task_list_view(...)` in `ui/task_list_ui.py` attaches the task picker dropdown (and Show More when needed). Button follow-ups such as Show More use `deliver_handler_response`, which now resolves `interaction_view` so page 2 still has the dropdown. Dropdown numbers match the list (`11.` on page 2, not `1.`).
 
 - `get_task_reminder_view(user_id, task_id, task_title)` in `ui/task_reminder_view.py` returns a `discord.ui.View` with:
   - "Complete Task" - Routes `complete task {task_id}` through the interaction manager.  

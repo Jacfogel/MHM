@@ -79,6 +79,28 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.intent == "create_task"
         assert result.parsed_command.entities.get("title") == expected_title
 
+    @pytest.mark.parametrize(
+        "message, expect_confirm",
+        [
+            ("i should pick up groceries tonight", True),
+            ("i gotta call mom", True),
+            ("i need to stretch", True),
+            ("i still need to pay rent", True),
+            ("i'm supposed to call the school", True),
+            ("dont forget to email the school", False),
+            ("add laundry to my list", False),
+            ("remind me to drink water", False),
+            ("don't let me forget to take meds", False),
+        ],
+    )
+    def test_soft_create_task_sets_confirm(
+        self, command_parser, message, expect_confirm
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "create_task"
+        assert bool(result.parsed_command.entities.get("confirm")) is expect_confirm
+
     def test_create_task_captures_url_as_link(self, command_parser):
         result = _rule_parse(
             command_parser,
@@ -156,6 +178,7 @@ class TestCommandParserTaskPatterns:
             "what is on my todo",
             "what is on the task list",
             "show my list",
+            "show my task list",
             "show my todo",
             "show my to-do",
             "whats left",

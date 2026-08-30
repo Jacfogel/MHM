@@ -280,6 +280,12 @@ class TestCommandParserCreateTaskNaturalLanguage:
         else:
             assert entities.get("priority") == expected_priority
 
+    def test_soft_create_phrases_set_confirm_flag(self, command_parser):
+        soft = command_parser._rule_based_parse("i should pick up groceries tonight")
+        explicit = command_parser._rule_based_parse("dont forget to email the school")
+        assert soft.parsed_command.entities.get("confirm") is True
+        assert "confirm" not in explicit.parsed_command.entities
+
 
 @pytest.mark.unit
 @pytest.mark.communication

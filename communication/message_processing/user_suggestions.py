@@ -141,10 +141,17 @@ def augment_suggestions(
         else:
             suggestions = ["due date tomorrow", "priority high"]
     elif (
-        parsed_command.intent in ["update_task", "complete_task", "delete_task"]
+        parsed_command.intent
+        in [
+            "update_task",
+            "complete_task",
+            "delete_task",
+            "append_note_to_task",
+            "add_link_to_task",
+        ]
         and "which task" in msg
     ):
-        suggestions = ["list tasks", "cancel"]
+        suggestions = ["show my task list", "cancel"]
     if suggestions:
         response.suggestions = suggestions[:2]
     return response

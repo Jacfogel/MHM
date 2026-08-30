@@ -6,7 +6,7 @@ import pytest
 
 from core.response_tracking import store_chat_interaction
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
-from tasks import create_task, load_active_tasks, save_active_tasks
+from tasks import complete_task, create_task, load_active_tasks, save_active_tasks
 from tasks.task_reference import (
     is_pronoun_task_identifier,
     message_uses_task_pronoun,
@@ -111,6 +111,37 @@ def test_resolve_pronoun_task_asks_when_old_tasks_are_ambiguous(test_data_dir):
 
     assert resolve_pronoun_task(user_id) is None
     assert resolve_lookup_identifier(user_id, "that") is None
+
+
+def test_resolve_pronoun_task_does_not_use_leftover_after_complete(test_data_dir):
+    user_id = "pronoun-after-complete"
+    TestUserFactory.create_basic_user(
+        user_id, enable_tasks=True, test_data_dir=test_data_dir
+    )
+    first = create_task(user_id, title="email the school")
+    second = create_task(user_id, title="water the plants")
+    assert complete_task(user_id, second)
+
+    assert resolve_pronoun_task(user_id) is None
+    leftover = load_active_tasks(user_id)
+    assert len(leftover) == 1
+    assert leftover[0]["id"] == first
+
+
+def test_resolve_pronoun_task_ignores_single_stale_task(test_data_dir):
+    user_id = "pronoun-stale-only"
+    TestUserFactory.create_basic_user(
+        user_id, enable_tasks=True, test_data_dir=test_data_dir
+    )
+    create_task(user_id, title="email the school")
+    tasks = load_active_tasks(user_id)
+    old = _old_timestamp()
+    for task in tasks:
+        task["created_at"] = old
+        task["updated_at"] = old
+    save_active_tasks(user_id, tasks)
+
+    assert resolve_pronoun_task(user_id) is None
 
 
 def test_resolve_lookup_identifier_leaves_real_names_alone(test_data_dir):

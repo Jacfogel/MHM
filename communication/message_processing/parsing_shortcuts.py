@@ -39,6 +39,29 @@ def try_parsing_shortcuts(
         except Exception:
             pass
 
+    try:
+        from communication.command_handlers.task_handler import (
+            handle_pending_task_action,
+            handle_pending_task_offer,
+        )
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+
+        if not conversation_manager.has_active_flow(user_id):
+            offer_response = handle_pending_task_offer(user_id, message)
+            if offer_response is not None:
+                return augment_suggestions(
+                    ParsedCommand("create_task", {}, 1.0, message), offer_response
+                )
+            action_response = handle_pending_task_action(user_id, message)
+            if action_response is not None:
+                return augment_suggestions(
+                    ParsedCommand("update_task", {}, 1.0, message), action_response
+                )
+    except Exception:
+        pass
+
     if low == "complete task":
         try:
             handler = _get_task_management_handler()

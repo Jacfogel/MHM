@@ -201,9 +201,9 @@ class TestTaskListViewFactory:
                 self.children.append(item)
 
         class MockSelect:
-            def __init__(self, user_id, task_items, discord_bot=None):
+            def __init__(self, user_id, task_items, discord_bot=None, list_offset=0):
                 self.user_id = user_id
-                self.custom_id = f"{TASK_LIST_SELECT_PREFIX}{user_id}"
+                self.custom_id = f"{TASK_LIST_SELECT_PREFIX}{user_id}_{list_offset + 1}"
                 self.options = list(task_items or [])
 
         with patch(
@@ -222,7 +222,7 @@ class TestTaskListViewFactory:
         assert view is not None
         assert len(view.children) == 1
         select = view.children[0]
-        assert select.custom_id == f"{TASK_LIST_SELECT_PREFIX}user-picker"
+        assert select.custom_id == f"{TASK_LIST_SELECT_PREFIX}user-picker_1"
         assert len(select.options) == 1
 
     def test_get_task_list_view_adds_show_more_button(self):

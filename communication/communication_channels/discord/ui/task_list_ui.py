@@ -183,7 +183,7 @@ class TaskDetailView(discord.ui.View):
             f"**More options for {title}**\n\n"
             f"• `update task {short_id} title ...`\n"
             f"• `delete task {short_id}`\n"
-            f"• `show tasks` to return to the list"
+            f"• `show tasks` to return to your task list"
         )
         await interaction.response.send_message(text, ephemeral=True)
 
@@ -197,9 +197,11 @@ class TaskListSelect(discord.ui.Select):
         user_id: str,
         task_items: list[dict[str, Any]],
         discord_bot: DiscordBot | None,
+        list_offset: int = 0,
     ):
         options = []
-        for index, item in enumerate(task_items[:25], 1):
+        start_number = max(int(list_offset or 0), 0) + 1
+        for index, item in enumerate(task_items[:25], start_number):
             title = str(item.get("title") or "Untitled")
             label = f"{index}. {title}"[:100]
             task_id = str(item.get("task_id") or "")
@@ -216,7 +218,7 @@ class TaskListSelect(discord.ui.Select):
             min_values=1,
             max_values=1,
             options=options,
-            custom_id=f"{TASK_LIST_SELECT_PREFIX}{user_id}",
+            custom_id=f"{TASK_LIST_SELECT_PREFIX}{user_id}_{start_number}"[:100],
         )
         self.user_id = user_id
         self.discord_bot = discord_bot
@@ -272,6 +274,7 @@ def get_task_list_view(
     task_items: list[dict[str, Any]] | None,
     pagination_actions: list[Any] | None,
     discord_bot: DiscordBot | None = None,
+    list_offset: int = 0,
 ) -> discord.ui.View | None:
     """Task picker select plus optional Show More button."""
     items = list(task_items or [])
@@ -281,7 +284,9 @@ def get_task_list_view(
 
     view = discord.ui.View(timeout=TASK_LIST_VIEW_TIMEOUT_SECONDS)
     if items:
-        view.add_item(TaskListSelect(user_id, items, discord_bot))
+        view.add_item(
+            TaskListSelect(user_id, items, discord_bot, list_offset=list_offset)
+        )
 
     if actions and discord_bot is not None:
         button_data = discord_bot._pagination_action_button_data(actions[0])

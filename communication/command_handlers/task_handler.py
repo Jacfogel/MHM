@@ -8,13 +8,14 @@ listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
 import importlib
+import re
 from datetime import datetime
 from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.pagination import PageRequest, paginate_items
-from core.time_utilities import now_datetime_full
+from core.time_utilities import now_datetime_full, now_timestamp_full, parse_timestamp_full
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 from .task_analytics_handler import TaskAnalyticsHandler
 from communication.command_handlers.shared_types import PaginationAction
@@ -58,17 +59,15 @@ TASK_HELP_TEXT = """**Task Management Help:**
 Manage tasks with natural language or short commands.
 
 **Create** (talk normally — dates/priority/tags can be in the same message):
-• `i need to call the dentist this week`
-• `i should pick up groceries tonight` / `i still need to pay rent`
+• Thinking out loud (`i should...`, `i gotta...`, `i need to call the dentist this week`) asks before saving
 • `dont forget to email the school` / `don't let me forget to take meds`
-• `add laundry to my list` / `i gotta call mom` / `i'm supposed to call the school`
-• `remind me to submit forms tomorrow morning`
+• `add laundry to my list` / `remind me to submit forms tomorrow morning`
 • `nt buy milk tonight #groceries`
 • `new task urgent: fix login before Friday group:work`
 • `remind me to take medication every morning at 8am` (recurring)
 
 **List & stats:**
-• `show my tasks` / `list tasks` / `what is on my list` / `show my list` / `/tasks`
+• `show my tasks` / `show my task list` / `list tasks` / `what is on my list` / `show my list` / `/tasks`
 • `show overdue tasks` / `what's due` / `what's left`
 • `show tasks in group work` / `list tasks group:medical`
 • `task stats` / `how am I doing with my tasks this week?`
@@ -101,7 +100,210 @@ Manage tasks with natural language or short commands.
 **More:** `help tasks`, `examples tasks`, or `/tasks`"""
 
 
-_WHICH_TASK_PROMPT = "Which task did you mean? Name it, or say show my list."
+_WHICH_TASK_PROMPT = (
+    "Which task did you mean? Reply with the number, the name, or say show my task list."
+)
+_OFFER_CREATE_PROMPT = 'Want me to add "{title}" to your task list?'
+_OFFER_CREATE_DECLINED = "Okay, I won't add it."
+_TASK_OFFER_TTL_MINUTES = 30
+_WHICH_TASK_PREVIEW_LIMIT = 10
+
+# Pending confirmations (simple in-memory store)
+PENDING_DELETIONS: dict[str, str] = {}
+PENDING_TASK_OFFERS: dict[str, dict[str, Any]] = {}
+PENDING_TASK_ACTIONS: dict[str, dict[str, Any]] = {}
+
+_CONFIRM_TASK_OFFER_RE = re.compile(
+    r"(?i)^(yes,?\s+add it|yes please|yes|yeah|yep|sure|add it|please do)$"
+)
+_DECLINE_TASK_OFFER_RE = re.compile(
+    r"(?i)^(not now|no thanks|nope|nah|no|don't|don't add it|do not)$"
+)
+_CANCEL_PENDING_ACTION_RE = re.compile(
+    r"(?i)^(cancel|nevermind|never mind|forget it)$"
+)
+_TASK_INDEX_REPLY_RE = re.compile(
+    r"(?i)^(?:#|no\.?\s*|number\s*)?(\d+)\.?$"
+)
+_KEEP_PENDING_LIST_RE = re.compile(
+    r"(?i)^(?:"
+    r"show my (?:task )?list|show my tasks|list(?: my)? tasks|show tasks|"
+    r"what(?:'?s| is) on my (?:task )?list"
+    r")$"
+)
+
+
+@handle_errors("matching task-offer reply", default_return=False)
+def _matches_task_offer_reply(text: str | None, pattern: re.Pattern[str]) -> bool:
+    """Return True when *text* matches a pending create-offer yes/no pattern."""
+    return bool(pattern.match(str(text or "").strip()))
+
+
+@handle_errors("loading pending task-create offer", default_return=None)
+def _valid_pending_task_offer(user_id: str) -> dict[str, Any] | None:
+    """Return a non-expired pending create offer, or None."""
+    offer = PENDING_TASK_OFFERS.get(user_id)
+    if not offer:
+        return None
+    offered_at = parse_timestamp_full(str(offer.get("offered_at") or ""))
+    if offered_at is None:
+        PENDING_TASK_OFFERS.pop(user_id, None)
+        return None
+    age_seconds = (now_datetime_full() - offered_at).total_seconds()
+    if age_seconds < 0 or age_seconds > _TASK_OFFER_TTL_MINUTES * 60:
+        PENDING_TASK_OFFERS.pop(user_id, None)
+        return None
+    entities = offer.get("entities")
+    return entities if isinstance(entities, dict) else None
+
+
+@handle_errors(
+    "handling pending task-create offer",
+    default_return=None,
+)
+def handle_pending_task_offer(
+    user_id: str, message: str
+) -> InteractionResponse | None:
+    """Create or decline a pending offered task when the user answers yes/no."""
+    if not user_id or _valid_pending_task_offer(user_id) is None:
+        return None
+    if _matches_task_offer_reply(message, _CONFIRM_TASK_OFFER_RE):
+        offer = PENDING_TASK_OFFERS.pop(user_id, None) or {}
+        entities = offer.get("entities") if isinstance(offer, dict) else None
+        if not isinstance(entities, dict) or not entities.get("title"):
+            return InteractionResponse(
+                "Which task should I add? Tell me the title.",
+                completed=False,
+            )
+        return TaskManagementHandler()._handle_create_task(user_id, entities)
+    if _matches_task_offer_reply(message, _DECLINE_TASK_OFFER_RE):
+        PENDING_TASK_OFFERS.pop(user_id, None)
+        return InteractionResponse(_OFFER_CREATE_DECLINED, True)
+    return None
+
+
+@handle_errors("loading sorted active tasks for which-task replies", default_return=[])
+def _sorted_active_tasks(user_id: str) -> list[dict[str, Any]]:
+    """Return active tasks in the same order as `show my task list`."""
+    tasks = _task_service().load_active_tasks(user_id) or []
+    return _task_service().sort_tasks_by_priority_and_due_date(tasks)
+
+
+@handle_errors("loading pending which-task action", default_return=None)
+def _valid_pending_task_action(user_id: str) -> dict[str, Any] | None:
+    """Return a non-expired pending update/complete/note action, or None."""
+    pending = PENDING_TASK_ACTIONS.get(user_id)
+    if not pending:
+        return None
+    asked_at = parse_timestamp_full(str(pending.get("asked_at") or ""))
+    if asked_at is None:
+        PENDING_TASK_ACTIONS.pop(user_id, None)
+        return None
+    age_seconds = (now_datetime_full() - asked_at).total_seconds()
+    if age_seconds < 0 or age_seconds > _TASK_OFFER_TTL_MINUTES * 60:
+        PENDING_TASK_ACTIONS.pop(user_id, None)
+        return None
+    intent = pending.get("intent")
+    entities = pending.get("entities")
+    if not intent or not isinstance(entities, dict):
+        PENDING_TASK_ACTIONS.pop(user_id, None)
+        return None
+    return pending
+
+
+@handle_errors("building which-task clarification", default_return=None)
+def _ask_which_task(
+    user_id: str, intent: str, entities: dict[str, Any]
+) -> InteractionResponse:
+    """Remember the pending action and ask which task it should apply to."""
+    PENDING_TASK_ACTIONS[user_id] = {
+        "intent": intent,
+        "entities": dict(entities),
+        "asked_at": now_timestamp_full(),
+    }
+    tasks = _sorted_active_tasks(user_id)
+    if not tasks:
+        return InteractionResponse(
+            "Which task did you mean? You don't have any active tasks.",
+            completed=False,
+            suggestions=["cancel"],
+        )
+    preview_tasks = tasks[:_WHICH_TASK_PREVIEW_LIMIT]
+    lines = [
+        f"{index}. {task.get('title') or 'Untitled'}"
+        for index, task in enumerate(preview_tasks, 1)
+    ]
+    extra = "\n\n" + "\n".join(lines)
+    remaining = len(tasks) - len(preview_tasks)
+    if remaining > 0:
+        extra += f"\n... and {remaining} more. Say show my task list to see the rest."
+    extra += "\n\nReply with a number or the task name."
+    return InteractionResponse(
+        _WHICH_TASK_PROMPT + extra,
+        completed=False,
+        suggestions=["show my task list", "cancel"],
+    )
+
+
+@handle_errors(
+    "handling pending which-task reply",
+    default_return=None,
+)
+def handle_pending_task_action(
+    user_id: str, message: str
+) -> InteractionResponse | None:
+    """Apply a remembered task action when the user answers with a number or name."""
+    if not user_id:
+        return None
+    pending = _valid_pending_task_action(user_id)
+    if pending is None:
+        return None
+    stripped = str(message or "").strip()
+    if not stripped:
+        return None
+    if _KEEP_PENDING_LIST_RE.match(stripped):
+        return None
+    if _CANCEL_PENDING_ACTION_RE.match(stripped):
+        PENDING_TASK_ACTIONS.pop(user_id, None)
+        return InteractionResponse("Okay, cancelled.", True)
+
+    identifier = stripped
+    index_match = _TASK_INDEX_REPLY_RE.match(stripped)
+    if index_match:
+        identifier = index_match.group(1)
+    tasks = _sorted_active_tasks(user_id)
+    candidates = _task_service().get_task_candidates(tasks, identifier)
+    if len(candidates) > 1:
+        preview_lines = []
+        for index, task in enumerate(tasks, 1):
+            if task in candidates:
+                preview_lines.append(f"{index}. {task.get('title') or 'Untitled'}")
+            if len(preview_lines) >= 5:
+                break
+        preview = "\n".join(preview_lines)
+        return InteractionResponse(
+            f"I found more than one match:\n{preview}\n\n"
+            "Reply with the number or a more specific name.",
+            completed=False,
+            suggestions=["show my task list", "cancel"],
+        )
+    if not candidates:
+        if index_match or len(stripped.split()) <= 6:
+            return InteractionResponse(
+                "I couldn't find that task. Reply with the number or the name.",
+                completed=False,
+                suggestions=["show my task list", "cancel"],
+            )
+        return None
+
+    PENDING_TASK_ACTIONS.pop(user_id, None)
+    entities = dict(pending.get("entities") or {})
+    entities["task_identifier"] = _task_identifier(candidates[0])
+    intent = str(pending.get("intent") or "")
+    return TaskManagementHandler().handle(
+        user_id,
+        ParsedCommand(intent, entities, 1.0, message),
+    )
 
 
 @handle_errors(
@@ -109,7 +311,11 @@ _WHICH_TASK_PROMPT = "Which task did you mean? Name it, or say show my list."
     default_return=(None, None),
 )
 def _resolve_pronoun_task_identifier(
-    user_id: str, task_identifier: str | None
+    user_id: str,
+    task_identifier: str | None,
+    *,
+    intent: str,
+    entities: dict[str, Any],
 ) -> tuple[str | None, InteractionResponse | None]:
     """Replace a follow-up pronoun with a real task id, or ask which task."""
     from tasks.task_reference import is_pronoun_task_identifier, resolve_lookup_identifier
@@ -118,8 +324,9 @@ def _resolve_pronoun_task_identifier(
         return task_identifier, None
     resolved = resolve_lookup_identifier(user_id, task_identifier)
     if resolved:
+        PENDING_TASK_ACTIONS.pop(user_id, None)
         return resolved, None
-    return None, InteractionResponse(_WHICH_TASK_PROMPT, completed=False)
+    return None, _ask_which_task(user_id, intent, entities)
 
 
 # not_duplicate: task_identifier_service_facade
@@ -140,9 +347,6 @@ def _task_short_identifier(task: dict[str, Any]) -> str:
 def _add_one_calendar_month(dt: datetime) -> datetime:
     """Advance *dt* by one calendar month, clamping the day to the target month's last day."""
     return _task_service().add_one_calendar_month(dt)
-
-# Pending confirmations (simple in-memory store)
-PENDING_DELETIONS: dict[str, str] = {}
 
 
 class TaskManagementHandler(InteractionHandler):
@@ -178,6 +382,8 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
+        if intent != "list_tasks":
+            PENDING_TASK_ACTIONS.pop(user_id, None)
 
         if intent == "create_task":
             return self._handle_create_task(user_id, entities)
@@ -242,6 +448,22 @@ class TaskManagementHandler(InteractionHandler):
                     "Schedule dentist appointment",
                 ],
             )
+
+        if entities.get("confirm"):
+            stored = {
+                key: value for key, value in entities.items() if key != "confirm"
+            }
+            PENDING_TASK_OFFERS[user_id] = {
+                "entities": stored,
+                "offered_at": now_timestamp_full(),
+            }
+            return InteractionResponse(
+                _OFFER_CREATE_PROMPT.format(title=title),
+                completed=False,
+                suggestions=["yes, add it", "not now"],
+            )
+
+        PENDING_TASK_OFFERS.pop(user_id, None)
 
         prepared = _task_service().prepare_create_task_data(
             user_id, entities, now_dt=now_datetime_full()
@@ -687,6 +909,7 @@ class TaskManagementHandler(InteractionHandler):
         picker_data = {
             "interaction_view": "task_list",
             "user_id": user_id,
+            "task_list_offset": int(getattr(page, "offset", 0) or 0),
             "task_list_items": [
                 {
                     "task_id": _task_identifier(task),
@@ -752,7 +975,7 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task completion"""
         task_identifier = entities.get("task_identifier")
         task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
-            user_id, task_identifier
+            user_id, task_identifier, intent="complete_task", entities=entities
         )
         if pronoun_error:
             return pronoun_error
@@ -931,7 +1154,7 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task updates"""
         task_identifier = entities.get("task_identifier")
         task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
-            user_id, task_identifier
+            user_id, task_identifier, intent="update_task", entities=entities
         )
         if pronoun_error:
             return pronoun_error
@@ -1015,7 +1238,7 @@ class TaskManagementHandler(InteractionHandler):
         task_identifier = entities.get("task_identifier")
         note_text = entities.get("note_text")
         task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
-            user_id, task_identifier
+            user_id, task_identifier, intent="append_note_to_task", entities=entities
         )
         if pronoun_error:
             return pronoun_error
@@ -1071,7 +1294,7 @@ class TaskManagementHandler(InteractionHandler):
         link_url = entities.get("link_url")
         link_label = entities.get("link_label") or ""
         task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
-            user_id, task_identifier
+            user_id, task_identifier, intent="add_link_to_task", entities=entities
         )
         if pronoun_error:
             return pronoun_error
@@ -1222,15 +1445,16 @@ class TaskManagementHandler(InteractionHandler):
     def get_examples(self) -> list[str]:
         """Get example commands for task management."""
         return [
-            "i need to call the dentist this week",
-            "i should pick up groceries tonight",
-            "i still need to pay rent",
             "dont forget to email the school",
             "add laundry to my list",
+            "i should pick up groceries tonight",
+            "i gotta call mom",
+            "remind me to call the dentist this week",
             "remind me to submit forms tomorrow morning",
             "nt buy milk tonight #groceries",
             "create task to water plants every 2 weeks",
             "show my tasks",
+            "show my task list",
             "show my list",
             "complete task 1",
             "make that due tomorrow",

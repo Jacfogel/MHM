@@ -9,7 +9,7 @@ from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.response_tracking import get_recent_chat_interactions
 from core.time_utilities import now_datetime_full, parse_timestamp_full, timestamp_sort_key_from_dict
-from tasks.task_data_handlers import load_active_tasks
+from tasks.task_data_handlers import load_active_tasks, load_completed_tasks
 
 logger = get_component_logger("main")
 
@@ -89,7 +89,12 @@ def _recent_user_turns(user_id: str) -> list[str]:
 
 @handle_errors("scoring task recency", default_return=0.0)
 def _task_recency_key(task: dict[str, Any]) -> float:
-    """Return a sort key from updated_at, then created_at."""
+    """Return a sort key from completion, updated_at, then created_at."""
+    completion = task.get("completion")
+    if isinstance(completion, dict):
+        completed_at = parse_timestamp_full(str(completion.get("completed_at") or ""))
+        if completed_at is not None:
+            return completed_at.timestamp()
     updated = timestamp_sort_key_from_dict(task, "updated_at")
     if updated:
         return updated
@@ -98,9 +103,14 @@ def _task_recency_key(task: dict[str, Any]) -> float:
 
 @handle_errors("checking whether a task was touched recently", default_return=False)
 def _is_recently_touched(task: dict[str, Any], *, minutes: int = _RECENT_TOUCH_MINUTES) -> bool:
-    """Return True when the task was created or updated within the recency window."""
+    """Return True when the task was created, updated, or completed recently."""
     raw = str(task.get("updated_at") or task.get("created_at") or "")
     touched = parse_timestamp_full(raw)
+    completion = task.get("completion")
+    if isinstance(completion, dict):
+        completed_at = parse_timestamp_full(str(completion.get("completed_at") or ""))
+        if completed_at is not None and (touched is None or completed_at > touched):
+            touched = completed_at
     if touched is None:
         return False
     delta_seconds = (now_datetime_full() - touched).total_seconds()
@@ -134,16 +144,15 @@ def resolve_pronoun_task(
 ) -> dict[str, Any] | None:
     """Choose the task a follow-up like 'make that due tomorrow' refers to.
 
-    Prefers a title mentioned in recent chat, then a uniquely recent task,
-    then the only active task. Returns None when the reference is ambiguous.
+    Prefers a title mentioned in recent chat, then a uniquely recent active
+    task. Does not fall back to a leftover task after a more recent
+    completion. Returns None when the reference is ambiguous.
     """
     if not user_id:
         return None
     tasks = load_active_tasks(user_id) or []
     if not tasks:
         return None
-    if len(tasks) == 1:
-        return tasks[0]
 
     turns = list(recent_turns) if recent_turns is not None else _recent_user_turns(user_id)
     mentioned = _tasks_mentioned_in_turns(tasks, turns)
@@ -152,12 +161,19 @@ def resolve_pronoun_task(
     if mentioned:
         return max(mentioned, key=_task_recency_key)
 
-    recent = [task for task in tasks if _is_recently_touched(task)]
-    if len(recent) == 1:
-        return recent[0]
-    if recent:
-        return max(recent, key=_task_recency_key)
-    return None
+    recent_completed = [
+        task for task in (load_completed_tasks(user_id) or []) if _is_recently_touched(task)
+    ]
+    latest_completed = max((_task_recency_key(task) for task in recent_completed), default=0.0)
+    recent_active = [task for task in tasks if _is_recently_touched(task)]
+    if not recent_active:
+        return None
+    latest_active = max(recent_active, key=_task_recency_key)
+    if latest_completed >= _task_recency_key(latest_active):
+        return None
+    if len(recent_active) == 1:
+        return recent_active[0]
+    return latest_active
 
 
 @handle_errors("resolving lookup identifier for a task command", default_return=None)

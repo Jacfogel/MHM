@@ -27,8 +27,24 @@ async def handle_discord_interaction(
         await _handle_component_interaction(bot, interaction)
         return
 
+    if interaction.type == discord.InteractionType.modal_submit:
+        await _handle_modal_submit_interaction(bot, interaction)
+        return
+
     if interaction.type == discord.InteractionType.application_command:
         await _handle_application_command_interaction(bot, interaction)
+
+
+@handle_errors("handling Discord modal submit", default_return=None)
+async def _handle_modal_submit_interaction(
+    bot: DiscordHandlerHost, interaction: discord.Interaction
+) -> None:
+    """Route a Discord modal submit to the create-hub handler when it matches."""
+    from communication.communication_channels.discord.ui.create_item_ui import (
+        handle_create_hub_modal_submit,
+    )
+
+    await handle_create_hub_modal_submit(interaction, bot)
 
 
 @handle_errors("handling Discord component interaction", default_return=None)

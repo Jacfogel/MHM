@@ -23,7 +23,10 @@ def test_create_menu_handler_returns_hub_rich_data():
     assert response.rich_data
     assert response.rich_data.get("interaction_view") == "create_hub"
     assert response.rich_data.get("user_id") == "user-create-menu"
-    assert "template" in response.message.lower()
+    assert response.message.startswith("**Create something**")
+    assert "first row" in response.message.lower()
+    assert "task template medication" not in response.message.lower()
+    assert "also:" not in response.message.lower()
 
 
 @pytest.mark.unit

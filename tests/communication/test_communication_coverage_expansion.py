@@ -507,6 +507,7 @@ class TestCreateItemUi:
             def __init__(self, *args, **kwargs):
                 self.custom_id = kwargs.get("custom_id")
                 self.label = kwargs.get("label")
+                self.row = kwargs.get("row")
                 self.callback = None
 
         with patch(
@@ -523,6 +524,10 @@ class TestCreateItemUi:
         assert any("custom_task" in cid for cid in custom_ids)
         assert any("quick_note" in cid for cid in custom_ids)
         assert any("new_note" in cid for cid in custom_ids)
+        template_rows = {item.row for item in view.children if "tpl_" in item.custom_id}
+        other_rows = {item.row for item in view.children if "tpl_" not in item.custom_id}
+        assert template_rows == {0}
+        assert other_rows == {1}
 
     @pytest.mark.asyncio
     async def test_submit_task_form_no_account(self):
@@ -531,6 +536,7 @@ class TestCreateItemUi:
         )
 
         interaction = AsyncMock()
+        interaction.response.is_done = MagicMock(return_value=False)
         with patch(
             "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value=None,
@@ -553,6 +559,7 @@ class TestCreateItemUi:
         )
 
         interaction = AsyncMock()
+        interaction.response.is_done = MagicMock(return_value=False)
         with patch(
             "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
             return_value="user-1",
@@ -572,6 +579,92 @@ class TestCreateItemUi:
             )
         interaction.response.defer.assert_awaited_once_with(ephemeral=True)
         mock_deliver.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_submit_task_form_skips_when_already_acknowledged(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _submit_task_form,
+        )
+
+        interaction = AsyncMock()
+        interaction.response.is_done = MagicMock(return_value=True)
+        await _submit_task_form(
+            interaction,
+            None,
+            intent="create_task",
+            entities={"title": "X"},
+            original_message="create task from modal",
+        )
+        interaction.response.defer.assert_not_awaited()
+        interaction.response.send_message.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_handle_create_hub_modal_submit_appointment(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            CREATE_HUB_FIELD_DUE,
+            CREATE_HUB_FIELD_TITLE,
+            handle_create_hub_modal_submit,
+        )
+
+        interaction = AsyncMock()
+        interaction.response.is_done = MagicMock(return_value=False)
+        interaction.data = {
+            "custom_id": "create_hub_modal_task:appointment",
+            "components": [
+                {
+                    "components": [
+                        {"custom_id": CREATE_HUB_FIELD_TITLE, "value": "Doc Appointment"},
+                    ]
+                },
+                {
+                    "components": [
+                        {"custom_id": CREATE_HUB_FIELD_DUE, "value": "this week"},
+                    ]
+                },
+            ],
+        }
+        with patch(
+            "communication.communication_channels.discord.ui.create_item_ui._submit_task_form",
+            new_callable=AsyncMock,
+        ) as mock_submit:
+            handled = await handle_create_hub_modal_submit(interaction, MagicMock())
+
+        assert handled is True
+        call_args = mock_submit.await_args
+        assert call_args is not None
+        kwargs = call_args.kwargs
+        assert kwargs["intent"] == "create_task_from_template"
+        assert kwargs["entities"]["template_ref"] == "appointment"
+        assert kwargs["entities"]["title"] == "Doc Appointment"
+        assert kwargs["entities"]["due_date"] == "this week"
+
+    @pytest.mark.asyncio
+    async def test_handle_create_hub_modal_submit_ignores_other_modals(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            handle_create_hub_modal_submit,
+        )
+
+        interaction = AsyncMock()
+        interaction.data = {"custom_id": "unrelated_modal"}
+        handled = await handle_create_hub_modal_submit(interaction, None)
+        assert handled is False
+
+    @pytest.mark.asyncio
+    async def test_routes_modal_submit_interaction(self):
+        from communication.communication_channels.discord.events.interaction_router import (
+            handle_discord_interaction,
+        )
+
+        bot = MagicMock()
+        interaction = MagicMock()
+        interaction.type = discord.InteractionType.modal_submit
+
+        with patch(
+            "communication.communication_channels.discord.events.interaction_router._handle_modal_submit_interaction",
+            new_callable=AsyncMock,
+        ) as mock_modal:
+            await handle_discord_interaction(bot, interaction)
+        mock_modal.assert_awaited_once_with(bot, interaction)
 
     def test_build_template_task_modal_unknown_returns_none(self):
         from communication.communication_channels.discord.ui.create_item_ui import (

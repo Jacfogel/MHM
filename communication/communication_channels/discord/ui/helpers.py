@@ -64,11 +64,13 @@ async def deliver_handler_response(
 
     view: discord.ui.View | None = None
     if discord_bot:
-        button_labels, button_payloads = discord_bot._get_action_row_inputs(
-            response.suggestions, response.rich_data
-        )
-        if button_labels:
-            view = discord_bot._create_action_row(button_labels, button_payloads)
+        view = discord_bot._resolve_interaction_view_from_rich_data(response.rich_data)
+        if not view:
+            button_labels, button_payloads = discord_bot._get_action_row_inputs(
+                response.suggestions, response.rich_data
+            )
+            if button_labels:
+                view = discord_bot._create_action_row(button_labels, button_payloads)
 
     content: str = response.message or ""
     if embed is not None and view is not None:

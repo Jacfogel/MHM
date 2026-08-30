@@ -28,6 +28,12 @@ if TYPE_CHECKING:
 logger = get_component_logger("discord")
 
 CREATE_HUB_PREFIX = "create_hub_"
+CREATE_HUB_MODAL_TASK_PREFIX = "create_hub_modal_task:"
+CREATE_HUB_FIELD_TITLE = "create_hub_f_title"
+CREATE_HUB_FIELD_DETAILS = "create_hub_f_details"
+CREATE_HUB_FIELD_DUE = "create_hub_f_due"
+CREATE_HUB_FIELD_GROUP = "create_hub_f_group"
+CREATE_HUB_FIELD_TAGS = "create_hub_f_tags"
 CREATE_HUB_TIMEOUT_SECONDS = 600
 
 
@@ -86,6 +92,7 @@ def entities_from_shared_fields(
 def _run_handler(
     user_id: str, intent: str, entities: dict[str, Any], original_message: str
 ) -> InteractionResponse:
+    """Run a create-hub command handler intent and return its response."""
     return run_discord_handler_intent(
         user_id,
         intent,
@@ -107,6 +114,8 @@ async def _submit_task_form(
     original_message: str,
 ) -> None:
     """Defer and run a create-task intent after a modal submit."""
+    if modal_interaction.response.is_done():
+        return
     internal_id = _internal_user_id(modal_interaction)
     if not internal_id:
         await modal_interaction.response.send_message(
@@ -115,9 +124,73 @@ async def _submit_task_form(
         return
     await modal_interaction.response.defer(ephemeral=True)
     response = _run_handler(internal_id, intent, entities, original_message)
+    if response is None:
+        response = InteractionResponse(
+            "I could not create that right now. Please try typing the command instead.",
+            True,
+        )
     await deliver_handler_response(
         modal_interaction, response, discord_bot, ephemeral=True
     )
+
+
+@handle_errors("reading create hub modal field values", default_return={})
+def _modal_field_values(interaction: discord.Interaction) -> dict[str, str]:
+    """Read text-input values from a modal-submit interaction payload."""
+    values: dict[str, str] = {}
+    data = getattr(interaction, "data", None) or {}
+    for row in data.get("components", []) or []:
+        for child in row.get("components", []) or []:
+            custom_id = str(child.get("custom_id") or "")
+            if custom_id:
+                values[custom_id] = str(child.get("value") or "")
+    return values
+
+
+@handle_errors("handling create hub modal submit", default_return=None)
+async def handle_create_hub_modal_submit(
+    interaction: discord.Interaction,
+    discord_bot: Any,
+) -> bool:
+    """Handle a create-hub task modal submit, including after a bot restart.
+
+    Returns True when this interaction was a create-hub task modal.
+    """
+    data = getattr(interaction, "data", None) or {}
+    custom_id = str(data.get("custom_id") or "")
+    if not custom_id.startswith(CREATE_HUB_MODAL_TASK_PREFIX):
+        return False
+    if interaction.response.is_done():
+        return True
+
+    logger.info(f"Create hub modal submitted: {custom_id}")
+    template_key = custom_id[len(CREATE_HUB_MODAL_TASK_PREFIX) :].strip() or "custom"
+    values = _modal_field_values(interaction)
+    extra: dict[str, Any] = {}
+    if template_key != "custom":
+        extra["template_ref"] = template_key
+        intent = "create_task_from_template"
+        original_message = f"task template {template_key}"
+    else:
+        intent = "create_task"
+        original_message = "create task from modal"
+    entities = entities_from_shared_fields(
+        title=values.get(CREATE_HUB_FIELD_TITLE),
+        description=values.get(CREATE_HUB_FIELD_DETAILS),
+        group=values.get(CREATE_HUB_FIELD_GROUP),
+        tags_value=values.get(CREATE_HUB_FIELD_TAGS),
+        due_phrase=values.get(CREATE_HUB_FIELD_DUE),
+    )
+    if extra:
+        entities = {**extra, **entities}
+    await _submit_task_form(
+        interaction,
+        discord_bot,
+        intent=intent,
+        entities=entities,
+        original_message=original_message,
+    )
+    return True
 
 
 @handle_errors("binding create hub modal button callback", default_return=None)
@@ -126,6 +199,7 @@ def _bind_modal_button_callback(
     discord_bot: DiscordBot | None,
     modal_builder,
 ):
+    """Return a Discord button callback that opens a create-hub modal."""
     @handle_errors(f"create hub {label} button", default_return=None)
     async def callback(interaction: discord.Interaction) -> None:
         internal_id = _internal_user_id(interaction)
@@ -162,10 +236,13 @@ def _build_task_modal(
     del user_id
     extra = dict(extra_entities or {})
     safe_title = (modal_title or "Create task")[:45]
+    template_key = str(extra.get("template_ref") or "custom")
+    modal_custom_id = f"{CREATE_HUB_MODAL_TASK_PREFIX}{template_key}"[:100]
 
-    class TaskFormModal(discord.ui.Modal, title=safe_title):
+    class TaskFormModal(discord.ui.Modal):
         title_input = discord.ui.TextInput(
             label="Title",
+            custom_id=CREATE_HUB_FIELD_TITLE,
             placeholder="What needs doing?",
             default=title_default[:200] or None,
             max_length=200,
@@ -173,6 +250,7 @@ def _build_task_modal(
         )
         details_input = discord.ui.TextInput(
             label="Details",
+            custom_id=CREATE_HUB_FIELD_DETAILS,
             style=discord.TextStyle.paragraph,
             placeholder="Optional notes",
             default=details_default[:1000] or None,
@@ -181,6 +259,7 @@ def _build_task_modal(
         )
         due_input = discord.ui.TextInput(
             label="Due",
+            custom_id=CREATE_HUB_FIELD_DUE,
             placeholder="e.g. tomorrow, this week, Friday",
             default=due_default[:80] or None,
             max_length=80,
@@ -188,6 +267,7 @@ def _build_task_modal(
         )
         group_input = discord.ui.TextInput(
             label="Group",
+            custom_id=CREATE_HUB_FIELD_GROUP,
             placeholder="e.g. health, work",
             default=group_default[:80] or None,
             max_length=80,
@@ -195,14 +275,25 @@ def _build_task_modal(
         )
         tags_input = discord.ui.TextInput(
             label="Tags",
+            custom_id=CREATE_HUB_FIELD_TAGS,
             placeholder="Comma-separated, e.g. health, urgent",
             default=tags_default[:120] or None,
             max_length=120,
             required=False,
         )
 
+        @handle_errors("initializing create hub task modal", default_return=None)
+        def __init__(self) -> None:
+            super().__init__(
+                title=safe_title,
+                custom_id=modal_custom_id,
+                timeout=None,
+            )
+
         @handle_errors("submitting create hub task modal", context={"component": "discord"})
         async def on_submit(self, modal_interaction: discord.Interaction) -> None:
+            if modal_interaction.response.is_done():
+                return
             entities = entities_from_shared_fields(
                 title=self.title_input.value,
                 description=self.details_input.value,
@@ -261,6 +352,7 @@ def _build_template_task_modal(
 def _build_quick_note_modal(
     user_id: str, discord_bot: DiscordBot | None
 ) -> discord.ui.Modal | None:
+    """Return a Discord modal for capturing a quick note."""
     class QuickNoteModal(discord.ui.Modal, title="Quick note"):
         body_input = discord.ui.TextInput(
             label="Note",
@@ -275,6 +367,10 @@ def _build_quick_note_modal(
             max_length=120,
             required=False,
         )
+
+        @handle_errors("initializing quick note modal", default_return=None)
+        def __init__(self) -> None:
+            super().__init__(title="Quick note", timeout=None)
 
         @handle_errors("submitting quick note modal", context={"component": "discord"})
         async def on_submit(self, modal_interaction: discord.Interaction) -> None:
@@ -303,6 +399,7 @@ def _build_quick_note_modal(
 def _build_new_note_modal(
     user_id: str, discord_bot: DiscordBot | None
 ) -> discord.ui.Modal | None:
+    """Return a Discord modal for creating a titled note."""
     class NewNoteModal(discord.ui.Modal, title="New note"):
         title_input = discord.ui.TextInput(
             label="Title",
@@ -329,6 +426,10 @@ def _build_new_note_modal(
             max_length=120,
             required=False,
         )
+
+        @handle_errors("initializing new note modal", default_return=None)
+        def __init__(self) -> None:
+            super().__init__(title="New note", timeout=None)
 
         @handle_errors("submitting new note modal", context={"component": "discord"})
         async def on_submit(self, modal_interaction: discord.Interaction) -> None:
@@ -375,6 +476,7 @@ def get_create_hub_view(
             label=label,
             style=style,
             custom_id=f"{CREATE_HUB_PREFIX}tpl_{template_id}_{user_id}",
+            row=0,
         )
 
         button.callback = _bind_modal_button_callback(
@@ -388,6 +490,7 @@ def get_create_hub_view(
         label="Custom task",
         style=discord.ButtonStyle.secondary,
         custom_id=f"{CREATE_HUB_PREFIX}custom_task_{user_id}",
+        row=1,
     )
 
     custom_task.callback = _bind_modal_button_callback(
@@ -399,6 +502,7 @@ def get_create_hub_view(
         label="Quick note",
         style=discord.ButtonStyle.success,
         custom_id=f"{CREATE_HUB_PREFIX}quick_note_{user_id}",
+        row=1,
     )
 
     quick_note.callback = _bind_modal_button_callback(
@@ -410,6 +514,7 @@ def get_create_hub_view(
         label="New note",
         style=discord.ButtonStyle.success,
         custom_id=f"{CREATE_HUB_PREFIX}new_note_{user_id}",
+        row=1,
     )
 
     new_note.callback = _bind_modal_button_callback(
