@@ -2,7 +2,13 @@
 
 """Task CRUD Dialog"""
 
-from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QHeaderView
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
+    QHeaderView,
+    QMessageBox,
+    QTableWidgetItem,
+)
 from PySide6.QtCore import Qt
 from ui.generated.task_crud_dialog_pyqt import Ui_Dialog_task_crud
 
@@ -74,11 +80,13 @@ class TaskCrudDialog(QDialog):
         self.ui.tableWidget_active_tasks.setSortingEnabled(True)
         self.ui.tableWidget_completed_tasks.setSortingEnabled(True)
 
-        # Set column widths
+        # Set column widths and allow Ctrl/Shift multi-select
         for table in [
             self.ui.tableWidget_active_tasks,
             self.ui.tableWidget_completed_tasks,
         ]:
+            table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+            table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
             header = table.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # Title
             header.setSectionResizeMode(
@@ -201,6 +209,9 @@ class TaskCrudDialog(QDialog):
                 row, 4, QTableWidgetItem(task.get("priority", "medium"))
             )
             self.ui.tableWidget_active_tasks.setItem(
+                row, 5, QTableWidgetItem(task.get("category", ""))
+            )
+            self.ui.tableWidget_active_tasks.setItem(
                 row, 6, QTableWidgetItem(task.get("created_at", ""))
             )
 
@@ -256,6 +267,9 @@ class TaskCrudDialog(QDialog):
                 row, 3, QTableWidgetItem(task.get("priority", "medium"))
             )
             self.ui.tableWidget_completed_tasks.setItem(
+                row, 4, QTableWidgetItem(task.get("category", ""))
+            )
+            self.ui.tableWidget_completed_tasks.setItem(
                 row, 5, QTableWidgetItem(runtime_task_completed_at(task) or "")
             )
 
@@ -290,15 +304,54 @@ class TaskCrudDialog(QDialog):
         )
         self.ui.label_tasks_due_soon.setText(f"Due Soon (7 days): {len(due_soon)}")
 
-    @handle_errors("getting selected task ID", default_return=None)
-    def get_selected_task_id(self, table):
-        """Get the task ID of the selected row in the given table."""
-        current_row = table.currentRow()
-        if current_row >= 0:
-            item = table.item(current_row, 0)
-            if item:
-                return item.data(Qt.ItemDataRole.UserRole)
-        return None
+    @handle_errors("getting selected task pairs", default_return=[])
+    def get_selected_task_pairs(self, table):
+        """Return [(task_id, title), ...] for selected rows in the given table."""
+        pairs = []
+        seen = set()
+        selection_model = table.selectionModel()
+        if selection_model is None:
+            return []
+        for index in selection_model.selectedRows():
+            item = table.item(index.row(), 0)
+            if not item:
+                continue
+            task_id = item.data(Qt.ItemDataRole.UserRole)
+            if not task_id or task_id in seen:
+                continue
+            seen.add(task_id)
+            pairs.append((task_id, item.text() or "Untitled"))
+        return pairs
+
+    @handle_errors("getting selected task IDs", default_return=[])
+    def get_selected_task_ids(self, table):
+        """Get task IDs for all selected rows in the given table."""
+        return [task_id for task_id, _ in self.get_selected_task_pairs(table)]
+
+    @handle_errors("confirming task dialog action", default_return=False)
+    def _confirm_yes_no(self, title, message):
+        """Show a Yes/No confirmation dialog. Returns True if the user chose Yes."""
+        result = QMessageBox.question(
+            self,
+            title,
+            message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        return result == QMessageBox.StandardButton.Yes
+
+    @handle_errors("reporting task batch result", default_return=None)
+    def _report_batch_result(self, failed_titles, *, success_one, success_many, count):
+        """Show success or a list of failed titles after a batch action."""
+        if failed_titles:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to process {len(failed_titles)} task(s): {', '.join(failed_titles)}.",
+            )
+            return
+        QMessageBox.information(
+            self, "Success", success_one if count == 1 else success_many
+        )
 
     @handle_errors("adding new task", user_friendly=True, default_return=None)
     def add_new_task(self):
@@ -312,10 +365,16 @@ class TaskCrudDialog(QDialog):
     @handle_errors("editing task", user_friendly=True, default_return=None)
     def edit_selected_task(self):
         """Edit the selected task."""
-        task_id = self.get_selected_task_id(self.ui.tableWidget_active_tasks)
-        if not task_id:
+        task_ids = self.get_selected_task_ids(self.ui.tableWidget_active_tasks)
+        if not task_ids:
             QMessageBox.warning(self, "No Selection", "Please select a task to edit.")
             return
+        if len(task_ids) > 1:
+            QMessageBox.warning(
+                self, "Multiple Selection", "Please select a single task to edit."
+            )
+            return
+        task_id = task_ids[0]
 
         from tasks import get_task_by_id
 
@@ -332,130 +391,167 @@ class TaskCrudDialog(QDialog):
 
     @handle_errors("completing task", user_friendly=True, default_return=None)
     def complete_selected_task(self):
-        """Mark the selected task as completed."""
-        task_id = self.get_selected_task_id(self.ui.tableWidget_active_tasks)
-        if not task_id:
+        """Mark the selected task(s) as completed."""
+        pairs = self.get_selected_task_pairs(self.ui.tableWidget_active_tasks)
+        if not pairs:
             QMessageBox.warning(
                 self, "No Selection", "Please select a task to complete."
             )
             return
 
-        # Get task data for confirmation
-        from tasks import get_task_by_id
+        if len(pairs) == 1:
+            task_id, title = pairs[0]
+            from ui.dialogs.task_completion_dialog import TaskCompletionDialog
 
-        task_data = get_task_by_id(self.user_id, task_id)
-        if not task_data:
-            QMessageBox.critical(self, "Error", "Task not found.")
-            return
-
-        # Show completion dialog
-        from ui.dialogs.task_completion_dialog import TaskCompletionDialog
-
-        completion_dialog = TaskCompletionDialog(self, task_data.get("title", ""))
-
-        if completion_dialog.exec() == QDialog.DialogCode.Accepted:
-            # Get completion data
+            completion_dialog = TaskCompletionDialog(self, title)
+            if completion_dialog.exec() != QDialog.DialogCode.Accepted:
+                return
             completion_data = completion_dialog.get_completion_data()
-
-            # Complete the task with completion details
             if complete_task(self.user_id, task_id, completion_data):
                 QMessageBox.information(self, "Success", "Task marked as completed!")
                 self.refresh_active_tasks()
                 self.refresh_completed_tasks()
             else:
                 QMessageBox.critical(self, "Error", "Failed to complete task.")
+            return
 
-    @handle_errors("deleting task", user_friendly=True, default_return=None)
-    def delete_selected_task(self):
-        """Delete the selected task."""
-        task_id = self.get_selected_task_id(self.ui.tableWidget_active_tasks)
-        if not task_id:
+        if not self._confirm_yes_no(
+            "Complete Tasks",
+            f"Mark {len(pairs)} selected tasks as complete?",
+        ):
+            return
+        failed = []
+        for task_id, title in pairs:
+            if not complete_task(self.user_id, task_id):
+                failed.append(title)
+        self._report_batch_result(
+            failed,
+            success_one="Task marked as completed!",
+            success_many=f"Marked {len(pairs)} tasks as completed!",
+            count=len(pairs),
+        )
+        self.refresh_active_tasks()
+        self.refresh_completed_tasks()
+
+    @handle_errors(
+        "deleting selected tasks from table", user_friendly=True, default_return=None
+    )
+    def _delete_selected_from_table(self, table, *, permanent: bool):
+        """Delete all selected rows in the given table."""
+        pairs = self.get_selected_task_pairs(table)
+        if not pairs:
             QMessageBox.warning(self, "No Selection", "Please select a task to delete.")
             return
 
-        # Get task data for confirmation
-        from tasks import get_task_by_id
+        count = len(pairs)
+        if count == 1:
+            title = pairs[0][1]
+            if permanent:
+                box_title = "Delete Completed Task"
+                prompt = (
+                    f"Are you sure you want to permanently delete '{title}'?\n\n"
+                    "This action cannot be undone."
+                )
+            else:
+                box_title = "Delete Task"
+                prompt = (
+                    f"Are you sure you want to delete '{title}'?\n\n"
+                    "This action cannot be undone."
+                )
+        elif permanent:
+            box_title = "Delete Tasks"
+            prompt = (
+                f"Are you sure you want to permanently delete {count} selected tasks?\n\n"
+                "This action cannot be undone."
+            )
+        else:
+            box_title = "Delete Tasks"
+            prompt = (
+                f"Are you sure you want to delete {count} selected tasks?\n\n"
+                "This action cannot be undone."
+            )
 
-        task_data = get_task_by_id(self.user_id, task_id)
-        if not task_data:
-            QMessageBox.critical(self, "Error", "Task not found.")
+        if not self._confirm_yes_no(box_title, prompt):
             return
 
-        result = QMessageBox.question(
-            self,
-            "Delete Task",
-            f"Are you sure you want to delete '{task_data.get('title', '')}'?\n\nThis action cannot be undone.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-
-        if result == QMessageBox.StandardButton.Yes:
-            if delete_task(self.user_id, task_id):
-                QMessageBox.information(self, "Success", "Task deleted successfully!")
-                self.refresh_active_tasks()
-            else:
+        failed = []
+        for task_id, title in pairs:
+            if not delete_task(self.user_id, task_id):
+                failed.append(title)
+        if failed:
+            if count == 1:
                 QMessageBox.critical(self, "Error", "Failed to delete task.")
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to delete {len(failed)} task(s): {', '.join(failed)}.",
+                )
+        elif permanent:
+            message = (
+                "Task deleted permanently!"
+                if count == 1
+                else f"Deleted {count} tasks permanently!"
+            )
+            QMessageBox.information(self, "Success", message)
+        else:
+            message = (
+                "Task deleted successfully!"
+                if count == 1
+                else f"Deleted {count} tasks successfully!"
+            )
+            QMessageBox.information(self, "Success", message)
+
+        if table is self.ui.tableWidget_active_tasks:
+            self.refresh_active_tasks()
+        else:
+            self.refresh_completed_tasks()
+
+    @handle_errors("deleting task", user_friendly=True, default_return=None)
+    def delete_selected_task(self):
+        """Delete the selected active task(s)."""
+        self._delete_selected_from_table(
+            self.ui.tableWidget_active_tasks, permanent=False
+        )
 
     @handle_errors("restoring task", user_friendly=True, default_return=None)
     def restore_selected_task(self):
-        """Restore a completed task to active status."""
-        task_id = self.get_selected_task_id(self.ui.tableWidget_completed_tasks)
-        if not task_id:
+        """Restore selected completed task(s) to active status."""
+        pairs = self.get_selected_task_pairs(self.ui.tableWidget_completed_tasks)
+        if not pairs:
             QMessageBox.warning(
                 self, "No Selection", "Please select a task to restore."
             )
             return
 
-        # Get task data for confirmation
-        from tasks import get_task_by_id
+        from tasks import restore_task
 
-        task_data = get_task_by_id(self.user_id, task_id)
-        if not task_data:
-            QMessageBox.critical(self, "Error", "Task not found.")
+        count = len(pairs)
+        if count == 1:
+            prompt = (
+                f"Are you sure you want to restore '{pairs[0][1]}' to active status?"
+            )
+        else:
+            prompt = f"Are you sure you want to restore {count} selected tasks to active status?"
+        if not self._confirm_yes_no("Restore Task", prompt):
             return
 
-        result = QMessageBox.question(
-            self,
-            "Restore Task",
-            f"Are you sure you want to restore '{task_data.get('title', '')}' to active status?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        failed = []
+        for task_id, title in pairs:
+            if not restore_task(self.user_id, task_id):
+                failed.append(title)
+        self._report_batch_result(
+            failed,
+            success_one="Task restored successfully!",
+            success_many=f"Restored {count} tasks successfully!",
+            count=count,
         )
-
-        if result == QMessageBox.StandardButton.Yes:
-            from tasks import restore_task
-
-            if restore_task(self.user_id, task_id):
-                QMessageBox.information(self, "Success", "Task restored successfully!")
-                self.refresh_active_tasks()
-                self.refresh_completed_tasks()
-            else:
-                QMessageBox.critical(self, "Error", "Failed to restore task.")
+        self.refresh_active_tasks()
+        self.refresh_completed_tasks()
 
     @handle_errors("deleting completed task", user_friendly=True, default_return=None)
     def delete_completed_task(self):
-        """Permanently delete a completed task."""
-        task_id = self.get_selected_task_id(self.ui.tableWidget_completed_tasks)
-        if not task_id:
-            QMessageBox.warning(self, "No Selection", "Please select a task to delete.")
-            return
-
-        # Get task data for confirmation
-        from tasks import get_task_by_id
-
-        task_data = get_task_by_id(self.user_id, task_id)
-        if not task_data:
-            QMessageBox.critical(self, "Error", "Task not found.")
-            return
-
-        result = QMessageBox.question(
-            self,
-            "Delete Completed Task",
-            f"Are you sure you want to permanently delete '{task_data.get('title', '')}'?\n\nThis action cannot be undone.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        """Permanently delete selected completed task(s)."""
+        self._delete_selected_from_table(
+            self.ui.tableWidget_completed_tasks, permanent=True
         )
-
-        if result == QMessageBox.StandardButton.Yes:
-            if delete_task(self.user_id, task_id):
-                QMessageBox.information(self, "Success", "Task deleted permanently!")
-                self.refresh_completed_tasks()
-            else:
-                QMessageBox.critical(self, "Error", "Failed to delete task.")

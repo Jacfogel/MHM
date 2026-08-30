@@ -96,6 +96,9 @@
        </item>
        <item>
         <widget class="QTableWidget" name="tableWidget_active_tasks">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+         </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
          </property>
@@ -153,6 +156,9 @@
        </item>
        <item>
         <widget class="QTableWidget" name="tableWidget_completed_tasks">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+         </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
          </property>

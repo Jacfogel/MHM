@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-29 13:41:35
+> **Last Generated**: 2026-08-30 02:06:21
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 272
-- **Total Imports Found**: 2317
+- **Total Imports Found**: 2313
 - **Dependencies Documented**: 272 (100% coverage)
 - **Standard Library Imports**: 685 (29.6%)
 - **Third-Party Imports**: 216 (9.3%)
-- **Local Imports**: 1416 (61.1%)
-- **Last Updated**: 2026-08-29
+- **Local Imports**: 1412 (61.0%)
+- **Last Updated**: 2026-08-30
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 685 imports (29.6%)
 - **Third-Party**: 216 imports (9.3%)
-- **Local**: 1416 imports (61.1%)
+- **Local**: 1412 imports (61.0%)
 
 ## Module Dependencies by Directory
 
@@ -6531,7 +6531,7 @@
     - `ui.generated.task_crud_dialog_pyqt (Ui_Dialog_task_crud)`
   - **Third-party**:
     - `PySide6.QtCore (Qt)`
-    - `PySide6.QtWidgets (QDialog, QHeaderView, QMessageBox, QTableWidgetItem)`
+    - `PySide6.QtWidgets (QAbstractItemView, QDialog, QHeaderView, QMessageBox, QTableWidgetItem)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:

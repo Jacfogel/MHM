@@ -889,6 +889,18 @@ class TestTaskManagementCoverageExpansion:
         assert len(tasks) == 0
         assert all(task["id"] != task_id for task in tasks)
 
+    def test_delete_completed_task_real_behavior(self, mock_user_data_dir, user_id):
+        """Completed tasks can be permanently deleted."""
+        task_id = create_task(user_id, "Done Task")
+        assert complete_task(user_id, task_id) is True
+        assert any(task["id"] == task_id for task in load_completed_tasks(user_id))
+
+        result = delete_task(user_id, task_id)
+
+        assert result is True
+        assert all(task["id"] != task_id for task in load_completed_tasks(user_id))
+        assert all(task["id"] != task_id for task in load_active_tasks(user_id))
+
     def test_delete_task_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test deleting a non-existent task."""
         result = delete_task(user_id, "non-existent-id")

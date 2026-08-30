@@ -361,30 +361,54 @@ def restore_task(user_id: str, task_id: str) -> bool:
     return True
 
 
+@handle_errors("removing matching task from list", default_return=([], None))
+def _remove_matching_task(
+    tasks: list[dict[str, Any]], task_id: str
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """Return remaining tasks and the first matching task, if any."""
+    remaining: list[dict[str, Any]] = []
+    removed: dict[str, Any] | None = None
+    for task in tasks:
+        if removed is None and _task_matches_identifier(task, task_id):
+            removed = task
+            continue
+        remaining.append(task)
+    return remaining, removed
+
+
 @handle_errors("deleting task", default_return=False)
 def delete_task(user_id: str, task_id: str) -> bool:
-    """Delete a task (permanently remove it)."""
+    """Delete a task (permanently remove it from active or completed lists)."""
     if not user_id or not task_id:
         logger.error("User ID and task ID are required for task deletion")
         return False
-    tasks = load_active_tasks(user_id)
-    task_to_delete = None
-    for task in tasks:
-        if _task_matches_identifier(task, task_id):
-            task_to_delete = task
-            break
-    original_count = len(tasks)
-    tasks = [t for t in tasks if not _task_matches_identifier(t, task_id)]
-    if len(tasks) == original_count:
-        logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
-        return False
-    if not save_active_tasks(user_id, tasks):
-        logger.error(f"Failed to save task deletion for user {user_id}")
-        return False
-    task_title = task_to_delete.get("title", "Unknown") if task_to_delete else "Unknown"
-    logger.info(f"Deleted task '{task_title}' (ID: {task_id}) for user {user_id}")
-    cleanup_task_reminders(user_id, task_id)
-    return True
+
+    remaining_active, removed = _remove_matching_task(load_active_tasks(user_id), task_id)
+    if removed is not None:
+        if not save_active_tasks(user_id, remaining_active):
+            logger.error(f"Failed to save task deletion for user {user_id}")
+            return False
+        task_title = removed.get("title", "Unknown")
+        logger.info(f"Deleted task '{task_title}' (ID: {task_id}) for user {user_id}")
+        cleanup_task_reminders(user_id, task_id)
+        return True
+
+    remaining_completed, removed = _remove_matching_task(
+        load_completed_tasks(user_id), task_id
+    )
+    if removed is not None:
+        if not save_completed_tasks(user_id, remaining_completed):
+            logger.error(f"Failed to save completed task deletion for user {user_id}")
+            return False
+        task_title = removed.get("title", "Unknown")
+        logger.info(
+            f"Deleted completed task '{task_title}' (ID: {task_id}) for user {user_id}"
+        )
+        cleanup_task_reminders(user_id, task_id)
+        return True
+
+    logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
+    return False
 
 
 @handle_errors("getting task by ID", default_return=None)

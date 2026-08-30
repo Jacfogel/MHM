@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-30 - Task CRUD can multi-select and permanently delete completed tasks
+- **Fix**: `delete_task` only searched active tasks, so **Delete Permanently** on the Completed tab showed "Failed to delete task" after confirmation. It now removes the task from the completed list as well.
+- **UX**: Active and completed tables use extended row selection (Ctrl+click, Shift+click, Ctrl+A). Delete, restore, and complete apply to every selected row; edit still requires one row.
+- **Fix**: Category cells were never filled in either table (priority jumped to the last column).
+- **Tests**: Completed-task deletion in [`test_task_behavior.py`](../tests/behavior/test_task_behavior.py) and [`test_task_management_coverage_expansion.py`](../tests/behavior/test_task_management_coverage_expansion.py); multi-select and Delete Permanently in [`test_task_crud_dialog.py`](../tests/ui/test_task_crud_dialog.py).
+- **Impact**: You can select several completed tasks and delete them, and a single completed-task delete no longer fails.
+
 ### 2026-08-29 - Discord appointment form submit no longer fails silently
 - **UX**: The `create` hub message no longer repeats the template catalog. Copy is now "Create something" plus "First row starts a task. Green buttons start a note." Keyword list stays on `list task templates`. Template buttons stay on row 1; Custom task / notes on row 2.
 - **Fix**: Submitting a create-hub template form (`Appt`, `Meds`, etc.) could show Discord's "Something went wrong. Try again." because the in-memory modal expired (default 3 minutes) or the bot restarted while the form was open. Task modals now keep a stable custom id, do not time out, and [`interaction_router.py`](../communication/communication_channels/discord/events/interaction_router.py) handles the submit even when the original modal object is gone.

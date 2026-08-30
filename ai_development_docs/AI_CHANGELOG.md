@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-30 - Task CRUD multi-select and completed-task delete **COMPLETED**
+- Completed-tab **Delete Permanently** failed because `delete_task` only searched active tasks.
+- Task tables now allow Ctrl/Shift multi-select; delete, restore, and complete apply to all selected rows.
+- Category column is filled in both tables.
+
 ### 2026-08-29 - Discord appointment form submit no longer fails silently **COMPLETED**
 - `create` hub copy labels the first row as new-task buttons and green as notes; the template keyword list is not repeated under the buttons.
 - Task-list Show More now attaches the picker dropdown on later pages (`deliver_handler_response` resolves `interaction_view`).
@@ -117,11 +122,6 @@ Guidelines:
 - Live suite category 18 (`tests/ai/test_ai_live_journeys.py`) runs the same contracts against LM Studio and FAILs automatically instead of PARTIAL.
 - Path-drift fix: `TESTING_GUIDE.md` links that file as `ai/test_ai_live_journeys.py` so doc-sync can resolve it.
 - Manual AI review is tone/phrasing only. Live suite stays out of `run_tests.py`.
-
-### 2026-08-22 - Stop Discord send tests waiting 10s on an empty queue **COMPLETED**
-- Three Discord send tests now seed `_result_queue` instead of waiting out the 10s poll.
-- `run_tests.py` no longer pauses LM Studio by default (that combo hung the full suite at 98%).
-- Autouse fixture blocks leaked LM Studio HTTP; chatbot tests mock `_call_lm_studio_api`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

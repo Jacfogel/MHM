@@ -249,6 +249,25 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
+    def test_delete_completed_task(self, temp_dir):
+        """Completed tasks can be permanently deleted."""
+        user_id = "test-user-delete-completed-task"
+        task_id = create_task(user_id, "Completed Task")
+        assert complete_task(user_id, task_id) is True
+        assert any(t["id"] == task_id for t in load_completed_tasks(user_id))
+
+        result = delete_task(user_id, task_id)
+        assert result is True
+        assert all(t["id"] != task_id for t in load_completed_tasks(user_id))
+        assert all(t["id"] != task_id for t in load_active_tasks(user_id))
+        task_dir = os.path.join(temp_dir, "tasks")
+        task_file = os.path.join(task_dir, "tasks.json")
+        with open(task_file) as f:
+            data = json.load(f)
+        assert all(t["id"] != task_id for t in data["tasks"])
+
+    @pytest.mark.tasks
+    @pytest.mark.regression
     def test_get_task_by_id(self, temp_dir):
         """Test getting a task by ID with file verification."""
         user_id = "test-user-get-task"

@@ -11,12 +11,24 @@ ensure_qt_runtime()
 
 import pytest
 from unittest.mock import patch
-from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QMessageBox
+from PySide6.QtCore import QItemSelectionModel, Qt
 
 # Set headless mode for Qt - use monkeypatch in tests instead of direct assignment
 
 from ui.dialogs.task_crud_dialog import TaskCrudDialog
+
+
+def _select_table_rows(table, *rows):
+    """Select the given row indexes without clearing later rows."""
+    table.clearSelection()
+    selection_model = table.selectionModel()
+    flags = (
+        QItemSelectionModel.SelectionFlag.Select
+        | QItemSelectionModel.SelectionFlag.Rows
+    )
+    for row in rows:
+        selection_model.select(table.model().index(row, 0), flags)
 
 
 def _v2_runtime_task(
@@ -645,3 +657,114 @@ class TestTaskCrudDialog:
                     
                     # Verify dialog was marked for deletion
                     # Note: This is a basic test - actual cleanup verification would be more complex
+
+    @pytest.mark.ui
+    def test_tables_use_extended_row_selection(self, qt_app, test_data_dir):
+        """Ctrl/Shift click can select more than one task row."""
+        with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
+            with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
+                with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
+                    mock_load_active.return_value = []
+                    mock_load_completed.return_value = []
+                    mock_stats.return_value = {'total': 0, 'completed': 0, 'pending': 0}
+
+                    dialog = TaskCrudDialog(user_id='test_user')
+                    try:
+                        active = dialog.ui.tableWidget_active_tasks
+                        completed = dialog.ui.tableWidget_completed_tasks
+                        assert active.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
+                        assert completed.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
+                        assert active.selectionBehavior() == QAbstractItemView.SelectionBehavior.SelectRows
+                        assert completed.selectionBehavior() == QAbstractItemView.SelectionBehavior.SelectRows
+                    finally:
+                        dialog.deleteLater()
+
+    @pytest.mark.ui
+    def test_completed_task_category_column_populated(self, qt_app, test_data_dir, mock_task_data):
+        """Completed-task table fills Category, not only Completed timestamp."""
+        with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
+            with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
+                with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
+                    mock_load_active.return_value = []
+                    mock_load_completed.return_value = mock_task_data["done_list"]
+                    mock_stats.return_value = {'total': 1, 'completed': 1, 'pending': 0}
+
+                    dialog = TaskCrudDialog(user_id='test_user')
+                    try:
+                        category_item = dialog.ui.tableWidget_completed_tasks.item(0, 4)
+                        completed_item = dialog.ui.tableWidget_completed_tasks.item(0, 5)
+                        assert category_item is not None and category_item.text() == "Work"
+                        assert completed_item is not None
+                        assert "2025-10-01" in completed_item.text()
+                    finally:
+                        dialog.deleteLater()
+
+    @pytest.mark.ui
+    def test_get_selected_task_ids_multiple_rows(self, qt_app, test_data_dir, mock_task_data):
+        """Selected rows all contribute task IDs."""
+        with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
+            with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
+                with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
+                    mock_load_active.return_value = mock_task_data["active_list"]
+                    mock_load_completed.return_value = []
+                    mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
+
+                    dialog = TaskCrudDialog(user_id='test_user')
+                    try:
+                        table = dialog.ui.tableWidget_active_tasks
+                        _select_table_rows(table, 0, 1)
+                        ids = dialog.get_selected_task_ids(table)
+                        assert len(ids) == 2
+                        assert mock_task_data["active_list"][0]["id"] in ids
+                        assert mock_task_data["active_list"][1]["id"] in ids
+                    finally:
+                        dialog.deleteLater()
+
+    @pytest.mark.ui
+    def test_delete_completed_task_with_row_selected(self, qt_app, test_data_dir, mock_task_data):
+        """Delete Permanently calls delete_task for the selected completed row."""
+        with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
+            with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
+                with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
+                    mock_load_active.return_value = []
+                    mock_load_completed.return_value = mock_task_data["done_list"]
+                    mock_stats.return_value = {'total': 1, 'completed': 1, 'pending': 0}
+
+                    dialog = TaskCrudDialog(user_id='test_user')
+                    try:
+                        dialog.ui.tableWidget_completed_tasks.selectRow(0)
+                        with patch('ui.dialogs.task_crud_dialog.delete_task', return_value=True) as mock_delete:
+                            with patch('PySide6.QtWidgets.QMessageBox.question', return_value=QMessageBox.StandardButton.Yes):
+                                with patch('PySide6.QtWidgets.QMessageBox.information'):
+                                    dialog.delete_completed_task()
+                        mock_delete.assert_called_once_with(
+                            'test_user', mock_task_data["done_list"][0]["id"]
+                        )
+                    finally:
+                        dialog.deleteLater()
+
+    @pytest.mark.ui
+    def test_delete_multiple_active_tasks(self, qt_app, test_data_dir, mock_task_data):
+        """Delete Selected removes every selected active task."""
+        with patch('ui.dialogs.task_crud_dialog.load_active_tasks') as mock_load_active:
+            with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
+                with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
+                    mock_load_active.return_value = mock_task_data["active_list"]
+                    mock_load_completed.return_value = []
+                    mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
+
+                    dialog = TaskCrudDialog(user_id='test_user')
+                    try:
+                        _select_table_rows(dialog.ui.tableWidget_active_tasks, 0, 1)
+                        with patch('ui.dialogs.task_crud_dialog.delete_task', return_value=True) as mock_delete:
+                            with patch('PySide6.QtWidgets.QMessageBox.question', return_value=QMessageBox.StandardButton.Yes):
+                                with patch('PySide6.QtWidgets.QMessageBox.information'):
+                                    dialog.delete_selected_task()
+                        assert mock_delete.call_count == 2
+                        deleted_ids = {call.args[1] for call in mock_delete.call_args_list}
+                        assert deleted_ids == {
+                            mock_task_data["active_list"][0]["id"],
+                            mock_task_data["active_list"][1]["id"],
+                        }
+                    finally:
+                        dialog.deleteLater()

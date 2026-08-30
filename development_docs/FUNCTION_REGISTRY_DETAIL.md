@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-29 13:41:25
+> **Last Generated**: 2026-08-30 02:06:09
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 274
-- **Functions Found**: 2635
-- **Methods Found**: 1379
+- **Functions Found**: 2640
+- **Methods Found**: 1383
 - **Classes Found**: 252
-- **Total Items**: 4014
-- **Functions Documented**: 2334
-- **Methods Documented**: 1234
+- **Total Items**: 4023
+- **Functions Documented**: 2339
+- **Methods Documented**: 1238
 - **Classes Documented**: 189
-- **Total Documented**: 3568
+- **Total Documented**: 3577
 - **Template-Generated**: 54
-- **Last Updated**: 2026-08-29
+- **Last Updated**: 2026-08-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -45,13 +45,13 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (690)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (533)
+### **User Interface Functions** (537)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (123)
+### **Task Management Functions** (124)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -6124,6 +6124,7 @@ Returns:
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
+- [OK] `_remove_matching_task(tasks, task_id)` - Return remaining tasks and the first matching task, if any.
 - [OK] `_task_due_date(task)` - Return canonical due date.
 - [OK] `_task_due_time(task)` - Return canonical due time.
 - [OK] `_task_id(task)` - Return canonical task ID.
@@ -6136,7 +6137,7 @@ Returns:
 - [OK] `cleanup_task_reminders(user_id, task_identifier)` - Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id).
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
 - [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, group, links)` - Create a new task for a user.
-- [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it).
+- [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it from active or completed lists).
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
 - [OK] `get_user_task_stats(user_id)` - Get task statistics for a user.
@@ -6755,32 +6756,40 @@ Returns:
 #### `ui/dialogs/task_crud_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the task CRUD dialog.
+- [OK] `_confirm_yes_no(self, title, message)` - Show a Yes/No confirmation dialog. Returns True if the user chose Yes.
+- [OK] `_delete_selected_from_table(self, table)` - Delete all selected rows in the given table.
+- [OK] `_report_batch_result(self, failed_titles)` - Show success or a list of failed titles after a batch action.
 - [OK] `add_new_task(self)` - Open dialog to add a new task.
-- [OK] `complete_selected_task(self)` - Mark the selected task as completed.
-- [OK] `delete_completed_task(self)` - Permanently delete a completed task.
-- [OK] `delete_selected_task(self)` - Delete the selected task.
+- [OK] `complete_selected_task(self)` - Mark the selected task(s) as completed.
+- [OK] `delete_completed_task(self)` - Permanently delete selected completed task(s).
+- [OK] `delete_selected_task(self)` - Delete the selected active task(s).
 - [OK] `edit_selected_task(self)` - Edit the selected task.
-- [OK] `get_selected_task_id(self, table)` - Get the task ID of the selected row in the given table.
+- [OK] `get_selected_task_ids(self, table)` - Get task IDs for all selected rows in the given table.
+- [OK] `get_selected_task_pairs(self, table)` - Return [(task_id, title), ...] for selected rows in the given table.
 - [OK] `load_data(self)` - Load all task data and update displays.
 - [OK] `refresh_active_tasks(self)` - Refresh the active tasks table.
 - [OK] `refresh_completed_tasks(self)` - Refresh the completed tasks table.
-- [OK] `restore_selected_task(self)` - Restore a completed task to active status.
+- [OK] `restore_selected_task(self)` - Restore selected completed task(s) to active status.
 - [OK] `setup_connections(self)` - Setup signal connections.
 - [OK] `setup_ui(self)` - Setup the UI components.
 - [OK] `update_statistics(self)` - Update the statistics display.
 **Classes:**
 - [OK] `TaskCrudDialog` - Dialog for full CRUD operations on tasks.
   - [OK] `TaskCrudDialog.__init__(self, parent, user_id)` - Initialize the task CRUD dialog.
+  - [OK] `TaskCrudDialog._confirm_yes_no(self, title, message)` - Show a Yes/No confirmation dialog. Returns True if the user chose Yes.
+  - [OK] `TaskCrudDialog._delete_selected_from_table(self, table)` - Delete all selected rows in the given table.
+  - [OK] `TaskCrudDialog._report_batch_result(self, failed_titles)` - Show success or a list of failed titles after a batch action.
   - [OK] `TaskCrudDialog.add_new_task(self)` - Open dialog to add a new task.
-  - [OK] `TaskCrudDialog.complete_selected_task(self)` - Mark the selected task as completed.
-  - [OK] `TaskCrudDialog.delete_completed_task(self)` - Permanently delete a completed task.
-  - [OK] `TaskCrudDialog.delete_selected_task(self)` - Delete the selected task.
+  - [OK] `TaskCrudDialog.complete_selected_task(self)` - Mark the selected task(s) as completed.
+  - [OK] `TaskCrudDialog.delete_completed_task(self)` - Permanently delete selected completed task(s).
+  - [OK] `TaskCrudDialog.delete_selected_task(self)` - Delete the selected active task(s).
   - [OK] `TaskCrudDialog.edit_selected_task(self)` - Edit the selected task.
-  - [OK] `TaskCrudDialog.get_selected_task_id(self, table)` - Get the task ID of the selected row in the given table.
+  - [OK] `TaskCrudDialog.get_selected_task_ids(self, table)` - Get task IDs for all selected rows in the given table.
+  - [OK] `TaskCrudDialog.get_selected_task_pairs(self, table)` - Return [(task_id, title), ...] for selected rows in the given table.
   - [OK] `TaskCrudDialog.load_data(self)` - Load all task data and update displays.
   - [OK] `TaskCrudDialog.refresh_active_tasks(self)` - Refresh the active tasks table.
   - [OK] `TaskCrudDialog.refresh_completed_tasks(self)` - Refresh the completed tasks table.
-  - [OK] `TaskCrudDialog.restore_selected_task(self)` - Restore a completed task to active status.
+  - [OK] `TaskCrudDialog.restore_selected_task(self)` - Restore selected completed task(s) to active status.
   - [OK] `TaskCrudDialog.setup_connections(self)` - Setup signal connections.
   - [OK] `TaskCrudDialog.setup_ui(self)` - Setup the UI components.
   - [OK] `TaskCrudDialog.update_statistics(self)` - Update the statistics display.
