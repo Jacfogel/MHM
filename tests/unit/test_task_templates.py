@@ -43,6 +43,28 @@ def test_template_form_defaults_prefills_medication_fields():
 
 @pytest.mark.unit
 @pytest.mark.tasks
+def test_template_form_defaults_prefills_call_and_clean_fields():
+    from tasks.task_templates import template_form_defaults
+
+    call_defaults = template_form_defaults("call")
+    assert call_defaults is not None
+    assert call_defaults["template_id"] == "phone_call"
+    assert call_defaults["title"] == "Call"
+    assert call_defaults["due"] == "this week"
+    assert call_defaults["group"] == "calls"
+    assert "phone" in call_defaults["tags"]
+
+    clean_defaults = template_form_defaults("clean")
+    assert clean_defaults is not None
+    assert clean_defaults["template_id"] == "cleaning"
+    assert clean_defaults["title"] == "Clean"
+    assert clean_defaults["due"] == "this week"
+    assert clean_defaults["group"] == "chores"
+    assert "chores" in clean_defaults["tags"]
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
 def test_build_task_data_from_template_merges_overrides():
     from tasks import task_service
 

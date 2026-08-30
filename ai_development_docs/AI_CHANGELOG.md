@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-08-30 - Create hub splits tasks from notes **COMPLETED**
+- Discord `create` hub first row is Call, Clean, Forms, Custom task; second row is green notes. Meds/Appt stay on `list task templates`.
+- Call and Clean forms prefill title `Call` / `Clean` with due `this week`.
+- Copy is "First row starts a task." (green note buttons are unlabeled).
+
 ### 2026-08-30 - Task CRUD multi-select and completed-task delete **COMPLETED**
 - Completed-tab **Delete Permanently** failed because `delete_task` only searched active tasks.
 - Task tables now allow Ctrl/Shift multi-select; delete, restore, and complete apply to all selected rows.
@@ -116,12 +121,6 @@ Guidelines:
 - Typed the helper as `ast.Module` so the audit Pyright warning is gone.
 - Fast interaction-manager helper no longer leaks `AI_ACTION_PLANNER_ENABLED=False`; ambiguous-task journey enables the planner via monkeypatch.
 - Added the missing `unit` marker on the v2 envelope schedule-cache validation test.
-
-### 2026-08-22 - Automated AI user journeys replace safety manual checks **COMPLETED**
-- Mocked pytest journeys in `tests/behavior/test_ai_user_journeys.py` cover false-CRUD sanitization, create-task persistence, ambiguous-task clarification, check-in honesty, disabled-task limits, and numeric-only input.
-- Live suite category 18 (`tests/ai/test_ai_live_journeys.py`) runs the same contracts against LM Studio and FAILs automatically instead of PARTIAL.
-- Path-drift fix: `TESTING_GUIDE.md` links that file as `ai/test_ai_live_journeys.py` so doc-sync can resolve it.
-- Manual AI review is tone/phrasing only. Live suite stays out of `run_tests.py`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

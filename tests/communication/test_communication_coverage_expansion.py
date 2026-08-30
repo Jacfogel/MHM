@@ -520,14 +520,28 @@ class TestCreateItemUi:
             view = get_create_hub_view("user-hub", discord_bot=None)
 
         custom_ids = [item.custom_id for item in view.children]
-        assert any(cid.startswith(f"{CREATE_HUB_PREFIX}tpl_medication") for cid in custom_ids)
+        labels = [item.label for item in view.children]
+        assert labels == [
+            "Call",
+            "Clean",
+            "Forms",
+            "Custom task",
+            "Quick note",
+            "New note",
+        ]
+        assert any(cid.startswith(f"{CREATE_HUB_PREFIX}tpl_phone_call") for cid in custom_ids)
         assert any("custom_task" in cid for cid in custom_ids)
         assert any("quick_note" in cid for cid in custom_ids)
         assert any("new_note" in cid for cid in custom_ids)
-        template_rows = {item.row for item in view.children if "tpl_" in item.custom_id}
-        other_rows = {item.row for item in view.children if "tpl_" not in item.custom_id}
-        assert template_rows == {0}
-        assert other_rows == {1}
+        assert not any("tpl_medication" in cid for cid in custom_ids)
+        assert not any("tpl_appointment" in cid for cid in custom_ids)
+        rows_by_label = {item.label: item.row for item in view.children}
+        assert rows_by_label["Call"] == 0
+        assert rows_by_label["Clean"] == 0
+        assert rows_by_label["Forms"] == 0
+        assert rows_by_label["Custom task"] == 0
+        assert rows_by_label["Quick note"] == 1
+        assert rows_by_label["New note"] == 1
 
     @pytest.mark.asyncio
     async def test_submit_task_form_no_account(self):

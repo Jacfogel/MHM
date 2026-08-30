@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-08-30 - Create hub splits tasks from notes without crowding templates
+- **UX**: Discord `create` hub first row is Call, Clean, Forms, Custom task. Second row is Quick note and New note (green). Meds and Appt stay available via `list task templates` / `task template meds`.
+- **UX**: Call and Clean forms prefill title `Call` / `Clean` with due `this week`, matching the live forms.
+- **Copy**: Hub text is "First row starts a task." The green note buttons are unlabeled in the message.
+- **Tests**: Button row layout in [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py); hub copy in [`test_create_menu_handler.py`](../tests/behavior/test_create_menu_handler.py) and create-hub planner parity; Call/Clean prefills in [`test_task_templates.py`](../tests/unit/test_task_templates.py).
+- **Impact**: Typing `create` shows everyday task shortcuts on one row and notes in green, without a mixed second row.
+
 ### 2026-08-30 - Task CRUD can multi-select and permanently delete completed tasks
 - **Fix**: `delete_task` only searched active tasks, so **Delete Permanently** on the Completed tab showed "Failed to delete task" after confirmation. It now removes the task from the completed list as well.
 - **UX**: Active and completed tables use extended row selection (Ctrl+click, Shift+click, Ctrl+A). Delete, restore, and complete apply to every selected row; edit still requires one row.

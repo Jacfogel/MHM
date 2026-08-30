@@ -481,6 +481,7 @@ Behavior is automated. Optional live check: buttons still look right in the real
 | Check | Automated test |
 |---|---|
 | `create` / `new` / `add` attaches create-hub buttons | `test_show_create_hub_parity_rule_parser_vs_planner`; `test_get_create_hub_view_has_template_and_modal_buttons` |
+| First row Call/Clean/Forms/Custom task; second row notes | `test_get_create_hub_view_has_template_and_modal_buttons` |
 | `list task templates` attaches the same hub | `test_task_handler_list_templates`; `test_list_task_templates_parity_rule_parser_vs_planner` |
 | Template button opens a prefilled form | `test_build_template_task_modal_passes_prefill` |
 | Unknown template does not open a form | `test_build_template_task_modal_unknown_returns_none` |

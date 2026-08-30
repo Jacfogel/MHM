@@ -25,6 +25,7 @@ def test_create_menu_handler_returns_hub_rich_data():
     assert response.rich_data.get("user_id") == "user-create-menu"
     assert response.message.startswith("**Create something**")
     assert "first row" in response.message.lower()
+    assert "green" not in response.message.lower()
     assert "task template medication" not in response.message.lower()
     assert "also:" not in response.message.lower()
 

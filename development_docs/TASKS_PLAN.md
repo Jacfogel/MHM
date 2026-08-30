@@ -119,7 +119,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
 
 **Remaining**:
-- [ ] Live Discord visual check of template modals and create hub buttons. (2026-08-29: submit after timeout/restart now handled; re-check Appt form in Discord.)
+- [ ] Live Discord visual check of template modals and create hub buttons. (2026-08-30: hub is Call/Clean/Forms/Custom task then notes; Call/Clean prefills match live forms.)
 - [ ] Optional: user-defined custom templates (storage + settings UX).
 
 **Acceptance**:

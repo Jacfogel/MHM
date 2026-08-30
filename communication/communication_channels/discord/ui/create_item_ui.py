@@ -465,8 +465,6 @@ def get_create_hub_view(
     view = discord.ui.View(timeout=CREATE_HUB_TIMEOUT_SECONDS)
 
     template_buttons = [
-        ("Meds", "medication", discord.ButtonStyle.primary),
-        ("Appt", "appointment", discord.ButtonStyle.primary),
         ("Call", "phone_call", discord.ButtonStyle.primary),
         ("Clean", "cleaning", discord.ButtonStyle.primary),
         ("Forms", "paperwork", discord.ButtonStyle.primary),
@@ -490,7 +488,7 @@ def get_create_hub_view(
         label="Custom task",
         style=discord.ButtonStyle.secondary,
         custom_id=f"{CREATE_HUB_PREFIX}custom_task_{user_id}",
-        row=1,
+        row=0,
     )
 
     custom_task.callback = _bind_modal_button_callback(

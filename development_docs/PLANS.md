@@ -246,7 +246,7 @@ These plans should not be duplicated in detail here.
 
 - Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`).
 - Pronoun follow-ups shipped 2026-08-28 (`make that due tomorrow`, `that's urgent`, `mark that done`).
-- Templates: Discord buttons open a prefilled modal (2026-08-26); optional custom templates later.
+- Templates: Discord buttons open a prefilled modal (2026-08-26); create hub shows Call, Clean, Forms, Custom task, then green notes (2026-08-30); Meds/Appt remain as `task template` commands; optional custom templates later.
 - Task notes shipped; structured web links shipped 2026-08-27; file/image attachments remaining.
 
 ---

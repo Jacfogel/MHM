@@ -25,7 +25,7 @@ class CreateMenuHandler(InteractionHandler):
     ) -> InteractionResponse:
         message = (
             "**Create something**\n"
-            "First row starts a **task**. Green buttons start a **note**."
+            "First row starts a **task**."
         )
         return InteractionResponse(
             message,
