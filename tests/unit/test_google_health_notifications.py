@@ -13,6 +13,8 @@ from integrations.google_health.notifications import (
     send_reconnect_notice,
 )
 
+pytestmark = [pytest.mark.integrations]
+
 
 @pytest.mark.unit
 @pytest.mark.core
@@ -233,3 +235,85 @@ def test_sync_pauses_once_on_refresh_http_400(test_data_dir):
 
     account = get_user_data(user_id, "account").get("account", {})
     assert account.get("features", {}).get("google_health") == "paused"
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_skips_in_testing_mode(monkeypatch):
+    monkeypatch.setenv("MHM_TESTING", "1")
+    assert send_reconnect_notice("user-1") is False
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_requires_preferences(monkeypatch):
+    monkeypatch.setenv("MHM_TESTING", "0")
+    with patch(
+        "integrations.google_health.notifications.get_user_data",
+        return_value={"preferences": None},
+    ):
+        assert send_reconnect_notice("user-1") is False
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_requires_channel(monkeypatch):
+    monkeypatch.setenv("MHM_TESTING", "0")
+    with patch(
+        "integrations.google_health.notifications.get_user_data",
+        return_value={"preferences": {"channel": {}}},
+    ):
+        assert send_reconnect_notice("user-1") is False
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_requires_recipient(monkeypatch):
+    monkeypatch.setenv("MHM_TESTING", "0")
+    mock_resolver = MagicMock()
+    mock_resolver.get_recipient_for_service.return_value = None
+    with patch(
+        "integrations.google_health.notifications.get_user_data",
+        return_value={"preferences": {"channel": {"type": "discord"}}},
+    ), patch(
+        "communication.delivery.recipient_resolver.RecipientResolver",
+        return_value=mock_resolver,
+    ), patch(
+        "communication.core.channel_orchestrator.CommunicationManager",
+    ):
+        assert send_reconnect_notice("user-1") is False
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_returns_false_when_send_fails(monkeypatch):
+    monkeypatch.setenv("MHM_TESTING", "0")
+    mock_cm = MagicMock()
+    mock_cm.send_message_sync.return_value = False
+    mock_resolver = MagicMock()
+    mock_resolver.get_recipient_for_service.return_value = "channel-1"
+    with patch(
+        "integrations.google_health.notifications.get_user_data",
+        return_value={"preferences": {"channel": {"type": "discord"}}},
+    ), patch(
+        "communication.delivery.recipient_resolver.RecipientResolver",
+        return_value=mock_resolver,
+    ), patch(
+        "communication.core.channel_orchestrator.CommunicationManager",
+        return_value=mock_cm,
+    ):
+        assert send_reconnect_notice("user-1") is False
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_maybe_send_reconnect_notice_leaves_flag_unset_when_send_fails():
+    state = {"reconnect_notice_sent": False}
+    with patch(
+        "integrations.google_health.notifications.send_reconnect_notice",
+        return_value=False,
+    ):
+        result = maybe_send_reconnect_notice(
+            "user-1", state, "Unable to obtain valid access token"
+        )
+    assert result.get("reconnect_notice_sent") is False

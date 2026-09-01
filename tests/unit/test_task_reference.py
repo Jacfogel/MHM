@@ -1,5 +1,6 @@
 """Unit tests for pronoun task references such as 'that'."""
 
+import uuid
 from datetime import timedelta
 
 import pytest
@@ -114,7 +115,7 @@ def test_resolve_pronoun_task_asks_when_old_tasks_are_ambiguous(test_data_dir):
 
 
 def test_resolve_pronoun_task_does_not_use_leftover_after_complete(test_data_dir):
-    user_id = "pronoun-after-complete"
+    user_id = f"pronoun-after-complete-{uuid.uuid4()}"
     TestUserFactory.create_basic_user(
         user_id, enable_tasks=True, test_data_dir=test_data_dir
     )
@@ -124,8 +125,7 @@ def test_resolve_pronoun_task_does_not_use_leftover_after_complete(test_data_dir
 
     assert resolve_pronoun_task(user_id) is None
     leftover = load_active_tasks(user_id)
-    assert len(leftover) == 1
-    assert leftover[0]["id"] == first
+    assert [task["id"] for task in leftover] == [first]
 
 
 def test_resolve_pronoun_task_ignores_single_stale_task(test_data_dir):

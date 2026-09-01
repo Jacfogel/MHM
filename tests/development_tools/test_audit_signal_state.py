@@ -1,5 +1,8 @@
 """Unit tests for development_tools.shared.audit_signal_state (SIGINT multi-tap)."""
 
+import signal
+from collections.abc import Callable
+from typing import Any, cast
 from unittest.mock import patch
 
 import pytest
@@ -90,3 +93,31 @@ def test_record_audit_keyboard_interrupt_clears_handler_flag_first():
     assert sig.audit_sigint_requested()
     assert sig.record_audit_keyboard_interrupt() is False
     assert sig.record_audit_keyboard_interrupt() is True
+
+
+@pytest.mark.unit
+def test_ignore_spurious_sigint_handler_swallows_until_tap_threshold(capsys):
+    """Coverage/audit shield ignores SIGINT until the multi-tap stop threshold."""
+    t = {"v": 0.0}
+
+    def fake_time() -> float:
+        t["v"] += 0.05
+        return t["v"]
+
+    with patch("development_tools.shared.audit_signal_state.time") as m_time:
+        m_time.time = fake_time
+        with sig.ignore_spurious_sigint(action_name="coverage"):
+            handler = cast(
+                Callable[[int, object | None], Any],
+                signal.getsignal(signal.SIGINT),
+            )
+            for _ in range(sig.AUDIT_SIGINT_TAPS_TO_STOP - 1):
+                handler(2, None)
+            assert not sig.audit_sigint_requested()
+            with pytest.raises(KeyboardInterrupt):
+                handler(2, None)
+            assert sig.audit_sigint_requested()
+
+    out = capsys.readouterr().out
+    assert "stopping coverage" in out
+    assert "[SIGINT]" in out

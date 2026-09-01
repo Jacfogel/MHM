@@ -157,3 +157,52 @@ def test_prepare_auth_for_storage_without_key_keeps_plaintext():
         result = prepare_auth_for_storage(data)
     assert result["tokens_encrypted"] is False
     assert result["access_token"] == "plain"
+
+
+@pytest.mark.unit
+@pytest.mark.core
+@pytest.mark.integrations
+def test_fernet_helpers_handle_missing_and_invalid_values():
+    assert is_valid_fernet_key("") is False
+    assert is_valid_fernet_key(None) is False
+    assert encrypt_token_value("") == ""
+    assert decrypt_token_value("") == ""
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": ""}):
+        assert encrypt_token_value("plain") == "plain"
+        assert decrypt_token_value("cipher") is None
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
+        assert decrypt_token_value("not-a-fernet-token") is None
+
+
+@pytest.mark.unit
+@pytest.mark.core
+@pytest.mark.integrations
+def test_prepare_auth_rejects_non_dict_and_failed_decrypt():
+    assert prepare_auth_for_storage("not-a-dict") is None
+    assert prepare_auth_for_use("not-a-dict") is None
+    stored = {
+        "access_token": "garbage",
+        "refresh_token": "garbage",
+        "tokens_encrypted": True,
+    }
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
+        result = prepare_auth_for_use(stored)
+    assert result["access_token"] == ""
+    assert result["refresh_token"] == ""
+
+
+@pytest.mark.unit
+@pytest.mark.core
+@pytest.mark.integrations
+def test_prepare_auth_for_use_skips_empty_encrypted_fields():
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
+        encrypted_refresh = encrypt_token_value("keep-refresh")
+        result = prepare_auth_for_use(
+            {
+                "access_token": "",
+                "refresh_token": encrypted_refresh,
+                "tokens_encrypted": True,
+            }
+        )
+    assert result["access_token"] == ""
+    assert result["refresh_token"] == "keep-refresh"

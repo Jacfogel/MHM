@@ -533,3 +533,36 @@ def test_run_dev_tools_only_delegates_to_run_dev_tools_coverage(tmp_path: Path):
                 out = regenerator.run(dev_tools_only=True)
     assert out is payload
     fallback.assert_called_once()
+
+
+@pytest.mark.unit
+def test_run_pytest_wait_retries_after_spurious_keyboardinterrupt(tmp_path: Path) -> None:
+    """A single KeyboardInterrupt must not abort coverage pytest while it is still running."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+
+    class _FakeProc:
+        def __init__(self) -> None:
+            self.returncode = 0
+            self.calls = 0
+
+        def communicate(self, timeout: float | None = None) -> tuple[str, str]:
+            self.calls += 1
+            if self.calls == 1:
+                raise KeyboardInterrupt
+            return ("passed", "")
+
+        def kill(self) -> None:
+            return None
+
+    fake = _FakeProc()
+    with patch.object(coverage_module.subprocess, "Popen", return_value=fake):
+        result = regenerator._run_pytest_wait(
+            ["pytest"],
+            timeout=5,
+            stdout=coverage_module.subprocess.PIPE,
+            stderr=coverage_module.subprocess.STDOUT,
+            text=True,
+        )
+    assert fake.calls == 2
+    assert result.returncode == 0
+    assert result.stdout == "passed"

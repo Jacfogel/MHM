@@ -330,6 +330,30 @@ def test_tool_hash_mismatch_invalidates_all_domains() -> None:
 
 
 @pytest.mark.unit
+def test_tool_hash_mismatch_keeps_full_coverage_cache_for_merge() -> None:
+    """Tool invalidation must not drop the merge base used for unchanged domains."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        project_root = Path.cwd().resolve()
+        cache = TestFileCoverageCache(project_root, cache_dir=temp_path)
+        snapshot = {
+            "files": {
+                "development_tools/cmd.py": {
+                    "summary": {"num_statements": 4, "covered_lines": 3}
+                }
+            },
+            "totals": {"num_statements": 4, "covered_lines": 3, "percent_covered": 75.0},
+        }
+        cache.cache_full_coverage(snapshot)
+        cache.cache_data["tool_hash"] = "stale_hash_value"
+        cache._cached_changed_domains = None
+        cache.get_changed_domains()
+        assert cache.get_full_coverage_cache() == snapshot
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
 def test_cache_backfills_missing_tool_hash_on_load() -> None:
     """Legacy cache payloads missing tool hash should be backfilled on load."""
     temp_path = _make_local_scratch_dir()

@@ -5,6 +5,7 @@ Extracted from ``run_test_coverage.CoverageMetricsRegenerator``.
 
 from __future__ import annotations
 
+import json
 import re
 import time
 from collections.abc import Callable
@@ -137,6 +138,98 @@ def wait_for_parallel_coverage_artifacts(
         "parallel_shards": discovered["parallel_shards"],
         "project_root_shards": discovered["project_root_shards"],
     }
+
+
+def load_coverage_json_dict(path: Path) -> dict[str, Any] | None:
+    """Load coverage.json when it has a dict ``files`` mapping; otherwise None."""
+    try:
+        if not path.is_file():
+            return None
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    files = payload.get("files")
+    if not isinstance(files, dict) or not files:
+        return None
+    return payload
+
+
+def is_full_coverage_run(
+    *,
+    test_files_to_run: list[Any] | tuple[Any, ...] | set[Any],
+    total_test_files: int,
+    changed_domains: set[str] | None = None,
+    all_domains: set[str] | None = None,
+    ran_entire_test_tree: bool = False,
+) -> bool:
+    """True when pytest measured the whole suite, not a domain subset.
+
+    Missing cache is *not* treated as a full run. A selective file list with an
+    empty cache still omits unchanged domains (they show up at 0% because
+    coverage.ini lists them as source).
+    """
+    if ran_entire_test_tree:
+        return True
+    if total_test_files > 0 and len(test_files_to_run) >= total_test_files:
+        return True
+    return bool(all_domains and changed_domains == all_domains)
+
+
+def domains_with_collapsed_coverage(
+    fresh: dict[str, Any],
+    previous: dict[str, Any],
+    *,
+    domain_mapper: Any | None,
+    drop_floor: float = 15.0,
+) -> list[str]:
+    """Domains whose covered-line % fell from >= ``drop_floor`` to below it.
+
+    Used to detect a selective or incomplete measurement that listed unrun
+    packages at 0% while an earlier snapshot still had real coverage.
+    """
+    if domain_mapper is None or not isinstance(fresh, dict) or not isinstance(
+        previous, dict
+    ):
+        return []
+
+    def _pct_by_domain(payload: dict[str, Any]) -> dict[str, tuple[int, int]]:
+        counts: dict[str, list[int]] = {}
+        files = payload.get("files")
+        if not isinstance(files, dict):
+            return {}
+        for file_path, file_data in files.items():
+            if not isinstance(file_data, dict):
+                continue
+            normalized = str(file_path).replace("\\", "/")
+            domain = domain_mapper.get_source_domain(normalized)
+            if not domain:
+                continue
+            raw_summary = file_data.get("summary")
+            summary = raw_summary if isinstance(raw_summary, dict) else {}
+            bucket = counts.setdefault(domain, [0, 0])
+            bucket[0] += int(summary.get("covered_lines", 0) or 0)
+            bucket[1] += int(summary.get("num_statements", 0) or 0)
+        return {d: (vals[0], vals[1]) for d, vals in counts.items()}
+
+    fresh_counts = _pct_by_domain(fresh)
+    previous_counts = _pct_by_domain(previous)
+    collapsed: list[str] = []
+    for domain, (prev_covered, prev_statements) in previous_counts.items():
+        if prev_statements <= 0:
+            continue
+        prev_pct = (prev_covered / prev_statements) * 100
+        if prev_pct < drop_floor:
+            continue
+        fresh_covered, fresh_statements = fresh_counts.get(domain, (0, 0))
+        if fresh_statements <= 0:
+            collapsed.append(domain)
+            continue
+        fresh_pct = (fresh_covered / fresh_statements) * 100
+        if fresh_pct < drop_floor:
+            collapsed.append(domain)
+    return sorted(collapsed)
 
 
 def merge_coverage_json(

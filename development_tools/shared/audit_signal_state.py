@@ -1,11 +1,15 @@
 """
-Shared state and handler for audit SIGINT (multi-tap to stop).
+Shared state and handler for audit/coverage SIGINT (multi-tap to stop).
 
-Requires multiple SIGINTs within the time window to stop the audit. This reduces
-false stops from spurious control events on Windows (e.g. from pytest/coverage
-subprocesses during Tier 3) when the user has not pressed Ctrl+C.
+Requires multiple SIGINTs within the time window to stop. This reduces false
+stops from spurious control events on Windows (e.g. from pytest/coverage
+subprocesses) when the user has not pressed Ctrl+C.
 """
 
+from __future__ import annotations
+
+from collections.abc import Iterator
+from contextlib import contextmanager
 import signal
 import time
 
@@ -20,6 +24,7 @@ _sigint_count_in_window: int = 0
 _interrupt_requested: bool = False
 # True when the signal handler just ran; clear when record_audit_keyboard_interrupt sees it
 _first_sigint_handled_by_handler: bool = False
+_action_name: str = "audit"
 
 
 def reset_audit_sigint_state() -> None:
@@ -53,7 +58,8 @@ def handle_audit_sigint(signum: int, frame: object | None) -> None:
         _sigint_count_in_window = 0
         _last_sigint_time = None
         print(
-            f"\n[INTERRUPT] {AUDIT_SIGINT_TAPS_TO_STOP} Ctrl+C within {int(AUDIT_SIGINT_DOUBLE_TAP_SECONDS)}s - stopping audit."
+            f"\n[INTERRUPT] {AUDIT_SIGINT_TAPS_TO_STOP} Ctrl+C within "
+            f"{int(AUDIT_SIGINT_DOUBLE_TAP_SECONDS)}s - stopping {_action_name}."
         )
         return
     try:
@@ -77,3 +83,41 @@ def record_audit_keyboard_interrupt() -> bool:
         _first_sigint_handled_by_handler = False
         return False
     return _interrupt_requested
+
+
+@contextmanager
+def ignore_spurious_sigint(*, action_name: str = "run") -> Iterator[None]:
+    """Ignore Windows console SIGINT/SIGBREAK until the multi-tap stop threshold.
+
+    Coverage and pytest-xdist can broadcast a control event to the whole console
+    group. The default Python handler turns that into KeyboardInterrupt and
+    aborts ``subprocess.run`` even when the user did not press Ctrl+C.
+    """
+    if not hasattr(signal, "SIGINT"):
+        yield
+        return
+
+    global _action_name
+    previous_name = _action_name
+    _action_name = action_name
+    reset_audit_sigint_state()
+    previous_sigint = signal.getsignal(signal.SIGINT)
+    previous_break = (
+        signal.getsignal(signal.SIGBREAK) if hasattr(signal, "SIGBREAK") else None
+    )
+
+    def _handler(signum: int, frame: object | None) -> None:
+        handle_audit_sigint(signum, frame)
+        if audit_sigint_requested():
+            raise KeyboardInterrupt
+
+    signal.signal(signal.SIGINT, _handler)
+    if hasattr(signal, "SIGBREAK"):
+        signal.signal(signal.SIGBREAK, _handler)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGINT, previous_sigint)
+        if previous_break is not None and hasattr(signal, "SIGBREAK"):
+            signal.signal(signal.SIGBREAK, previous_break)
+        _action_name = previous_name

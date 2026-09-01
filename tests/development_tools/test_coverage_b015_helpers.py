@@ -21,7 +21,12 @@ from development_tools.tests.coverage_pytest_argv import (
     build_no_parallel_coverage_pytest_cmd,
     build_no_parallel_test_args,
 )
-from development_tools.tests.coverage_shard_merge import merge_coverage_json
+from development_tools.tests.coverage_shard_merge import (
+    domains_with_collapsed_coverage,
+    is_full_coverage_run,
+    load_coverage_json_dict,
+    merge_coverage_json,
+)
 from development_tools.shared.service.report_generation_scope_helpers import (
     count_duplicate_affected_files,
     path_is_under_development_tools_dir,
@@ -136,6 +141,139 @@ def test_merge_coverage_json_unions_executed_lines() -> None:
     assert merged["files"]["mod.py"]["executed_lines"] == [1, 2, 3]
     assert merged["files"]["mod.py"]["missing_lines"] == [4]
     assert merged["totals"]["covered_lines"] == 3
+
+
+@pytest.mark.unit
+@pytest.mark.development_tools
+def test_is_full_coverage_run_rejects_missing_cache_plus_subset() -> None:
+    """A selective file list with no cache is not a full suite measurement."""
+    assert (
+        is_full_coverage_run(
+            test_files_to_run=["tests/unit/test_a.py"],
+            total_test_files=100,
+            changed_domains={"integrations"},
+            all_domains={"integrations", "development_tools"},
+            ran_entire_test_tree=False,
+        )
+        is False
+    )
+    assert (
+        is_full_coverage_run(
+            test_files_to_run=[],
+            total_test_files=100,
+            ran_entire_test_tree=True,
+        )
+        is True
+    )
+    assert (
+        is_full_coverage_run(
+            test_files_to_run=["a.py", "b.py"],
+            total_test_files=2,
+            changed_domains={"integrations", "development_tools"},
+            all_domains={"integrations", "development_tools"},
+        )
+        is True
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.development_tools
+def test_merge_keeps_unchanged_domain_when_fresh_is_zero() -> None:
+    """Selective product-domain runs must not publish 0% for skipped domains."""
+    mapper = SimpleNamespace(
+        get_source_domain=lambda path: (
+            "development_tools"
+            if path.replace("\\", "/").startswith("development_tools/")
+            else "integrations"
+        )
+    )
+    cached = {
+        "files": {
+            "development_tools/cmd.py": {
+                "executed_lines": [1, 2, 3],
+                "missing_lines": [4],
+                "excluded_lines": [],
+                "summary": {
+                    "num_statements": 4,
+                    "covered_lines": 3,
+                    "missing_lines": 1,
+                },
+            }
+        }
+    }
+    fresh = {
+        "files": {
+            "development_tools/cmd.py": {
+                "executed_lines": [],
+                "missing_lines": [1, 2, 3, 4],
+                "excluded_lines": [],
+                "summary": {
+                    "num_statements": 4,
+                    "covered_lines": 0,
+                    "missing_lines": 4,
+                },
+            },
+            "integrations/client.py": {
+                "executed_lines": [1, 2],
+                "missing_lines": [],
+                "excluded_lines": [],
+                "summary": {
+                    "num_statements": 2,
+                    "covered_lines": 2,
+                    "missing_lines": 0,
+                },
+            },
+        }
+    }
+    merged = merge_coverage_json(
+        cached,
+        fresh,
+        domain_mapper=mapper,
+        changed_domains={"integrations"},
+    )
+    dt = merged["files"]["development_tools/cmd.py"]
+    assert dt["executed_lines"] == [1, 2, 3]
+    assert dt["summary"]["covered_lines"] == 3
+    assert merged["files"]["integrations/client.py"]["summary"]["covered_lines"] == 2
+
+
+@pytest.mark.unit
+@pytest.mark.development_tools
+def test_domains_with_collapsed_coverage_detects_drop(tmp_path: Path) -> None:
+    mapper = SimpleNamespace(
+        get_source_domain=lambda path: (
+            "development_tools"
+            if "development_tools" in path.replace("\\", "/")
+            else "integrations"
+        )
+    )
+    previous = {
+        "files": {
+            "development_tools/a.py": {
+                "summary": {"num_statements": 100, "covered_lines": 70}
+            }
+        }
+    }
+    fresh = {
+        "files": {
+            "development_tools/a.py": {
+                "summary": {"num_statements": 100, "covered_lines": 3}
+            }
+        }
+    }
+    assert domains_with_collapsed_coverage(
+        fresh, previous, domain_mapper=mapper
+    ) == ["development_tools"]
+
+    json_path = tmp_path / "coverage.json"
+    json_path.write_text(
+        '{"files": {"core/mod.py": {"summary": {"num_statements": 1}}}}',
+        encoding="utf-8",
+    )
+    loaded = load_coverage_json_dict(json_path)
+    assert loaded is not None
+    assert "core/mod.py" in loaded["files"]
+    assert load_coverage_json_dict(tmp_path / "missing.json") is None
 
 
 @pytest.mark.unit

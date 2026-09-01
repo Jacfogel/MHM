@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-30 02:06:09
+> **Last Generated**: 2026-09-01 01:27:16
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 274
-- **Functions Found**: 2640
+- **Functions Found**: 2641
 - **Methods Found**: 1383
 - **Classes Found**: 252
-- **Total Items**: 4023
-- **Functions Documented**: 2339
+- **Total Items**: 4024
+- **Functions Documented**: 2340
 - **Methods Documented**: 1238
 - **Classes Documented**: 189
-- **Total Documented**: 3577
+- **Total Documented**: 3578
 - **Template-Generated**: 54
-- **Last Updated**: 2026-08-30
+- **Last Updated**: 2026-09-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (124)
+### **Task Management Functions** (125)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -6119,6 +6119,7 @@ Returns:
 - [OK] `runtime_task_scheduled_reminder_periods(task)` - Scheduled reminder period dicts from canonical reminders list.
 - [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user. Returns True on success.
 - [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user. Returns True on success.
+- [OK] `save_task_lists(user_id, active_tasks, completed_tasks)` - Replace active and completed tasks in one write. Returns True on success.
 
 #### `tasks/task_data_manager.py`
 **Functions:**

@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-01 - Completing a task no longer leaves a duplicate active copy **COMPLETED**
+- `complete_task` and `restore_task` now write active and completed lists in one save, so a leftover task cannot reappear as still active after a successful complete.
+- "That" after completing a different recent task still resolves to no task, instead of the leftover.
+
+### 2026-08-31 - Google Health coverage for connect, auth, and notices **COMPLETED**
+- Unit tests now cover OAuth connect/refresh, user settings, health JSON recovery, reconnect notices, and the Google Health HTTP client (pagination, rollup fallback, parsers, sleep/steps/active-minute merges).
+- Google Health tests: 156 passed; `integrations` measured at 95% on that set. `client.py` is 99%; remaining gap is mostly `signal_builder.py` / `sync_manager.py` edge cases.
+- Coverage cache no longer treats a selective product-domain run as a full snapshot: missing cache does not imply a full run, tool/config invalidation keeps the merge base, and 0% `development_tools` from unrun tests is merged back from the prior JSON.
+- Coverage pytest waits ignore spurious Windows SIGINT/control events (same multi-tap stop as audit: 5 Ctrl+C within 2s). A stray console event no longer aborts `--dev-tools-only` at 0%. Dev-tools coverage tests now stub `_run_pytest_wait`; changelog ASCII quotes restored.
+
 ### 2026-08-30 - Create hub splits tasks from notes **COMPLETED**
 - Discord `create` hub first row is Call, Clean, Forms, Custom task; second row is green notes. Meds/Appt stay on `list task templates`.
 - Call and Clean forms prefill title `Call` / `Clean` with due `this week`.
@@ -106,21 +116,6 @@ Guidelines:
 - MANUAL_TESTING_GUIDE section 10 maps startup/UI/schedule/email/health/restart items to pytest; leftovers are in `tests/behavior/test_manual_*.py`.
 - Task reminders skip a second send when `reminder_sent` is already true, and that flag now persists.
 - Live leftovers: inbox, OAuth, visual layout, AI tone. Tray and snooze are N/A.
-
-### 2026-08-23 - Map Discord checklist items to real tests **COMPLETED**
-- Every MANUAL_DISCORD_TEST_GUIDE item maps to a real pytest; leftovers are in `tests/behavior/test_discord_manual_checklist.py`.
-- Fixed `toggle_list_item_undone` (`done=False` kwarg) and extracted `/start` DM-disabled coverage.
-- Live Discord is visual/tone only; run the mapped pytest files after Discord changes.
-- Follow-up: path-drift now uses repo-root test paths; Pyright on the new checklist file is clean.
-- Follow-up: coverage-cache scratch tests inject the built-in domain map (xdist isolation); pip floor is 26.2 for PYSEC-2026-3721.
-
-### 2026-08-23 - Remove placeholder and always-pass tests **COMPLETED**
-- Deleted Discord/UI automation stub files and `debug_file_paths.py` (they only asserted True).
-- Converted remaining `assert True` tests to real checks; factory demo fallbacks now fail instead of hiding lookup bugs.
-- Policy guard `test_no_assert_true_placeholders` keeps new placeholders out.
-- Typed the helper as `ast.Module` so the audit Pyright warning is gone.
-- Fast interaction-manager helper no longer leaks `AI_ACTION_PLANNER_ENABLED=False`; ambiguous-task journey enables the planner via monkeypatch.
-- Added the missing `unit` marker on the v2 envelope schedule-cache validation test.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

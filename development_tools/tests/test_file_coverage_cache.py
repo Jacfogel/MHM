@@ -801,7 +801,8 @@ class TestFileCoverageCache:
         self.invalidation_counters = {}
         tool_change_reason = self._get_tool_change_reason()
         if tool_change_reason:
-            self.cache_data.pop(self.full_coverage_cache_key, None)
+            # Keep `_full_coverage_json` so a later incomplete selective run can
+            # still merge unchanged-domain coverage instead of publishing 0%.
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = f"tool_change: {tool_change_reason}"
             self.last_invalidation_detail = {
@@ -901,7 +902,7 @@ class TestFileCoverageCache:
             return set(all_domains)
 
         if self._config_changed():
-            self.cache_data.pop(self.full_coverage_cache_key, None)
+            # Keep `_full_coverage_json` for merge; invalidation still reruns tests.
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = "config_changed"
             self.last_invalidation_detail = {

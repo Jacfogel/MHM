@@ -107,6 +107,22 @@ def save_completed_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
     return _save_v2_tasks(user_id, active_tasks + completed_v2)
 
 
+@handle_errors("saving active and completed task lists", default_return=False)
+def save_task_lists(
+    user_id: str,
+    active_tasks: list[dict[str, Any]],
+    completed_tasks: list[dict[str, Any]],
+) -> bool:
+    """Replace active and completed tasks in one write. Returns True on success."""
+    if not is_valid_user_id(user_id):
+        logger.error(f"Invalid user_id for save_task_lists: {user_id}")
+        return False
+    ensure_task_directory(user_id)
+    active_v2 = _runtime_tasks_to_v2(active_tasks, status="active")
+    completed_v2 = _runtime_tasks_to_v2(completed_tasks, status="completed")
+    return _save_v2_tasks(user_id, active_v2 + completed_v2)
+
+
 @handle_errors("loading v2 task file", default_return=[])
 def _load_v2_tasks(user_id: str) -> list[dict[str, Any]]:
     tasks_dir = get_user_subdir_path(user_id, TASKS_SUBDIR)

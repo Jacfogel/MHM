@@ -25,6 +25,7 @@ from tasks.task_data_handlers import (
     save_active_tasks,
     load_completed_tasks,
     save_completed_tasks,
+    save_task_lists,
 )
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
 from storage.user_data_v2_base import generate_short_id
@@ -316,7 +317,7 @@ def complete_task(
 
     completed_tasks = load_completed_tasks(user_id)
     completed_tasks.append(task_to_complete)
-    if not (save_active_tasks(user_id, updated_active_tasks) and save_completed_tasks(user_id, completed_tasks)):
+    if not save_task_lists(user_id, updated_active_tasks, completed_tasks):
         logger.error(f"Failed to save task completion for user {user_id}")
         return False
 
@@ -351,7 +352,7 @@ def restore_task(user_id: str, task_id: str) -> bool:
         return False
     active_tasks = load_active_tasks(user_id)
     active_tasks.append(task_to_restore)
-    if not (save_completed_tasks(user_id, updated_completed_tasks) and save_active_tasks(user_id, active_tasks)):
+    if not save_task_lists(user_id, active_tasks, updated_completed_tasks):
         logger.error(f"Failed to save task restoration for user {user_id}")
         return False
     logger.info(f"Restored task {task_id} for user {user_id}")

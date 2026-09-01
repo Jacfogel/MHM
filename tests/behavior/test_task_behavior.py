@@ -229,6 +229,24 @@ class TestTaskManagement:
 
     @pytest.mark.tasks
     @pytest.mark.regression
+    def test_complete_one_of_two_tasks_leaves_the_other_active(self, temp_dir):
+        """Completing one task must not rewrite the leftover as a second active copy."""
+        user_id = "test-user-complete-one-of-two"
+        first = create_task(user_id, "Keep me")
+        second = create_task(user_id, "Finish me")
+
+        assert complete_task(user_id, second) is True
+
+        assert [task["id"] for task in load_active_tasks(user_id)] == [first]
+        assert [task["id"] for task in load_completed_tasks(user_id)] == [second]
+        task_file = os.path.join(temp_dir, "tasks", "tasks.json")
+        with open(task_file) as f:
+            data = json.load(f)
+        by_id = {task["id"]: task["status"] for task in data["tasks"]}
+        assert by_id == {first: "active", second: "completed"}
+
+    @pytest.mark.tasks
+    @pytest.mark.regression
     def test_delete_task(self, temp_dir):
         """Test task deletion with file verification."""
         user_id = "test-user-delete-task"

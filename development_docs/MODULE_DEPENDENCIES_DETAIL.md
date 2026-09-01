@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-08-30 02:06:21
+> **Last Generated**: 2026-09-01 01:27:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 685 (29.6%)
 - **Third-Party Imports**: 216 (9.3%)
 - **Local Imports**: 1412 (61.0%)
-- **Last Updated**: 2026-08-30
+- **Last Updated**: 2026-09-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -5906,7 +5906,7 @@
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `scheduler.user_timezone (user_local_now_naive)` (NEW)
     - `storage.user_data_v2_base (generate_short_id)`
-    - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks)`
+    - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks, save_task_lists)`
     - `tasks.task_link_helpers (sanitize_task_links)` (NEW)
     - `tasks.task_tag_helpers (sanitize_task_tags)` (NEW)
     - `tasks.task_validation (is_valid_priority, is_valid_task_title, validate_update_field)`

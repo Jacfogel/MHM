@@ -721,7 +721,7 @@ class TestTaskManagementCoverageExpansion:
 
         # Mock save operations to fail
         with (
-            patch("tasks.task_data_manager.save_active_tasks", return_value=False),
+            patch("tasks.task_data_manager.save_task_lists", return_value=False),
             patch("tasks.task_data_manager.cleanup_task_reminders"),
         ):
             result = complete_task(user_id, task_id)
@@ -737,37 +737,24 @@ class TestTaskManagementCoverageExpansion:
     def test_complete_task_save_completed_failure_real_behavior(
         self, mock_user_data_dir, user_id
     ):
-        """Test that failure to save completed tasks returns False."""
+        """Test that failure to persist both lists returns False."""
         # Create a task
         task_id = create_task(user_id, "Test Task")
 
-        # Track the original active tasks count
-        original_active = load_active_tasks(user_id)
-        assert len(original_active) == 1
-
-        # Mock save_active_tasks to succeed but save_completed_tasks to fail
         with (
             patch(
-                "tasks.task_data_manager.save_active_tasks", return_value=True
-            ) as mock_save_active,
-            patch(
-                "tasks.task_data_manager.save_completed_tasks", return_value=False
-            ) as mock_save_completed,
+                "tasks.task_data_manager.save_task_lists", return_value=False
+            ) as mock_save_lists,
             patch("tasks.task_data_manager.cleanup_task_reminders"),
         ):
             result = complete_task(user_id, task_id)
 
-            assert (
-                result is False
-            )  # Should return False when save_completed_tasks fails
-            # Verify save_active_tasks was called with updated list (without completed task)
-            mock_save_active.assert_called_once()
-            # Verify save_completed_tasks was called but failed
-            mock_save_completed.assert_called_once()
-
-        # Note: Since we're mocking save operations, the actual file state won't change
-        # But we can verify the save operations were called with correct data
-        # The key is that the function returns False when save_completed_tasks fails
+            assert result is False
+            mock_save_lists.assert_called_once()
+            saved_user_id, saved_active, saved_completed = mock_save_lists.call_args.args
+            assert saved_user_id == user_id
+            assert saved_active == []
+            assert [task["id"] for task in saved_completed] == [task_id]
 
     def test_complete_task_cleanup_failure_real_behavior(
         self, mock_user_data_dir, user_id

@@ -27,6 +27,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -79,6 +80,9 @@ from development_tools.tests.coverage_pytest_argv import (
 from development_tools.tests.coverage_shard_merge import (
     detect_expected_parallel_workers as _detect_expected_parallel_workers_fn,
     discover_parallel_coverage_artifacts as _discover_parallel_coverage_artifacts_fn,
+    domains_with_collapsed_coverage as _domains_with_collapsed_coverage_fn,
+    is_full_coverage_run as _is_full_coverage_run_fn,
+    load_coverage_json_dict as _load_coverage_json_dict_fn,
     merge_coverage_json as _merge_coverage_json_fn,
     wait_for_parallel_coverage_artifacts as _wait_for_parallel_coverage_artifacts_fn,
 )
@@ -502,6 +506,69 @@ class CoverageMetricsRegenerator:
             raise last_error
         raise RuntimeError("Unable to create pytest temporary directories")
 
+    def _run_pytest_wait(
+        self,
+        cmd: list[str],
+        *,
+        timeout: int,
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess:
+        """Wait for a coverage pytest process, ignoring spurious Windows SIGINT.
+
+        A single console control event (often from xdist workers, not Ctrl+C)
+        used to abort ``subprocess.run`` with KeyboardInterrupt. Keep waiting
+        unless the shared multi-tap stop threshold is reached.
+        """
+        from development_tools.shared.audit_signal_state import (
+            audit_sigint_requested,
+            ignore_spurious_sigint,
+        )
+
+        if os.name == "nt":
+            flags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            if flags:
+                kwargs.setdefault("creationflags", flags)
+
+        kwargs.pop("timeout", None)
+        with ignore_spurious_sigint(action_name="coverage"):
+            process = subprocess.Popen(cmd, **kwargs)
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    process.kill()
+                    with contextlib.suppress(Exception):
+                        process.communicate(timeout=10)
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(timeout=max(0.1, remaining))
+                    return subprocess.CompletedProcess(
+                        cmd,
+                        process.returncode if process.returncode is not None else 1,
+                        stdout or "",
+                        stderr or "",
+                    )
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    with contextlib.suppress(Exception):
+                        process.communicate(timeout=10)
+                    raise
+                except KeyboardInterrupt:
+                    if audit_sigint_requested():
+                        process.kill()
+                        with contextlib.suppress(Exception):
+                            process.communicate(timeout=10)
+                        return subprocess.CompletedProcess(
+                            cmd,
+                            130,
+                            "",
+                            "KeyboardInterrupt (coverage stop requested).",
+                        )
+                    if logger:
+                        logger.info(
+                            "Ignored spurious SIGINT/control event; coverage pytest still running"
+                        )
+
     @staticmethod
     def _strip_xdist_args(cmd: list[str]) -> list[str]:
         """Return command list without xdist-specific arguments."""
@@ -846,6 +913,19 @@ class CoverageMetricsRegenerator:
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
         jsons_dir.mkdir(parents=True, exist_ok=True)
         coverage_output = jsons_dir / "coverage.json"
+        if (
+            self.use_domain_cache
+            and not cached_coverage_json
+            and coverage_output.exists()
+        ):
+            prior_coverage_json = _load_coverage_json_dict_fn(coverage_output)
+            if prior_coverage_json:
+                cached_coverage_json = prior_coverage_json
+                if logger:
+                    logger.info(
+                        "No in-memory coverage cache; using existing coverage.json "
+                        "as merge base"
+                    )
 
         try:
             self.archived_directories.clear()
@@ -1067,14 +1147,14 @@ class CoverageMetricsRegenerator:
                 with open(
                     stdout_log_path, "w", encoding="utf-8", buffering=1
                 ) as stdout_file:
-                    result = subprocess.run(
+                    result = self._run_pytest_wait(
                         cmd,
+                        timeout=pytest_timeout,
                         stdout=stdout_file,
                         stderr=subprocess.STDOUT,  # Merge stderr into stdout
                         text=True,
                         cwd=self.project_root,
                         env=env,
-                        timeout=pytest_timeout,
                     )
                 # Read the captured output for processing
                 result.stdout = stdout_log_path.read_text(
@@ -1191,14 +1271,14 @@ class CoverageMetricsRegenerator:
                             "\n[RETRY] Re-running without xdist due to cleanup permission error\n"
                         )
                         try:
-                            retry_result = subprocess.run(
+                            retry_result = self._run_pytest_wait(
                                 fallback_cmd,
+                                timeout=pytest_timeout,
                                 stdout=stdout_file,
                                 stderr=subprocess.STDOUT,
                                 text=True,
                                 cwd=self.project_root,
                                 env=env,
-                                timeout=pytest_timeout,
                             )
                         except KeyboardInterrupt:
                             if logger:
@@ -1556,12 +1636,37 @@ class CoverageMetricsRegenerator:
                     and (not self.parallel)
                     and cache_write_allowed_pre_no_parallel
                 ):
-                    if not test_files_to_run:
-                        # This was a full run (no domains changed or first run)
-                        # Cache the full coverage JSON once (not per test file)
+                    cache_stats = self.test_file_cache.get_cache_stats()
+                    total_test_files = cache_stats["total_test_files"]
+                    all_mapped_domains = set(
+                        self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
+                    )
+                    is_full_run = _is_full_coverage_run_fn(
+                        test_files_to_run=test_files_to_run,
+                        total_test_files=total_test_files,
+                        changed_domains=(
+                            set(changed_domains)
+                            if isinstance(changed_domains, set)
+                            else None
+                        ),
+                        all_domains=all_mapped_domains,
+                        ran_entire_test_tree=not test_filter_args,
+                    )
+                    did_merge = bool(
+                        cached_coverage_json
+                        and fresh_coverage_json
+                        and merged_coverage_saved
+                    )
+                    persist_full_cache = is_full_run or did_merge
+                    if persist_full_cache:
                         self.test_file_cache.cache_full_coverage(coverage_to_cache)
-
-                        # Also update domain mappings for all test files
+                    elif logger:
+                        logger.warning(
+                            "Skipping full coverage cache write: "
+                            "selective run did not merge unchanged-domain coverage"
+                        )
+                    if is_full_run:
+                        # Full run - update domain mappings for all test files
                         test_root = self.project_root / "tests"
                         all_test_files = [
                             tf
@@ -1591,11 +1696,7 @@ class CoverageMetricsRegenerator:
                                 f"Cached full coverage JSON and updated domain mappings for {len(all_test_files)} test files"
                             )
                     elif test_files_to_run:
-                        # Selective run - cache the merged coverage as the new full coverage cache
-                        # (since merged coverage now represents the complete picture)
-                        self.test_file_cache.cache_full_coverage(coverage_to_cache)
-
-                        # Update test file mappings (without coverage_data) for test files that ran
+                        # Selective run - mappings for files that ran
                         for test_file in test_files_to_run:
                             self.test_file_cache.update_test_file_mapping(
                                 test_file, reload_cache=False, save_cache=False
@@ -1617,7 +1718,7 @@ class CoverageMetricsRegenerator:
                         self.test_file_cache._save_cache()
                         if logger:
                             logger.info(
-                                f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files"
+                                f"Updated mappings for {len(test_files_to_run)} test files (serial mode)"
                             )
                 elif (
                     self.use_domain_cache
@@ -1836,14 +1937,14 @@ class CoverageMetricsRegenerator:
                     with open(
                         no_parallel_stdout_log, "w", encoding="utf-8", buffering=1
                     ) as stdout_file:
-                        no_parallel_result = subprocess.run(
+                        no_parallel_result = self._run_pytest_wait(
                             no_parallel_cmd,
+                            timeout=pytest_timeout,
                             stdout=stdout_file,
                             stderr=subprocess.STDOUT,  # Merge stderr into stdout
                             text=True,
                             cwd=self.project_root,
                             env=no_parallel_env,
-                            timeout=pytest_timeout,
                         )
                     # Read the captured output for processing
                     no_parallel_result.stdout = no_parallel_stdout_log.read_text(
@@ -2675,6 +2776,21 @@ class CoverageMetricsRegenerator:
                         # Archive old coverage.json BEFORE regenerating (to keep current file in main directory)
                         archive_dir = coverage_output.parent / "archive"
                         archive_dir.mkdir(parents=True, exist_ok=True)
+                        if (
+                            self.use_domain_cache
+                            and not cached_coverage_json
+                            and coverage_output.exists()
+                        ):
+                            prior_coverage_json = _load_coverage_json_dict_fn(
+                                coverage_output
+                            )
+                            if prior_coverage_json:
+                                cached_coverage_json = prior_coverage_json
+                                if logger:
+                                    logger.info(
+                                        "No in-memory coverage cache; using existing "
+                                        "coverage.json as merge base before regenerate"
+                                    )
                         if coverage_output.exists():
                             timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
                             archive_name = f"coverage_{timestamp}.json"
@@ -2801,6 +2917,23 @@ class CoverageMetricsRegenerator:
                                     # Cached coverage is from test files that didn't need to run
                                     # On selective runs, we MUST merge to get complete coverage
                                     # On full runs, fresh coverage is already complete, but merging is still safe
+                                    if (
+                                        cached_coverage_json
+                                        and fresh_coverage_json_parallel
+                                        and logger
+                                    ):
+                                        collapsed_domains = (
+                                            _domains_with_collapsed_coverage_fn(
+                                                fresh_coverage_json_parallel,
+                                                cached_coverage_json,
+                                                domain_mapper=self.domain_mapper,
+                                            )
+                                        )
+                                        if collapsed_domains:
+                                            logger.warning(
+                                                "Fresh coverage collapsed vs merge base for "
+                                                f"domains {collapsed_domains}; merging to keep prior coverage"
+                                            )
                                     if (
                                         self.use_domain_cache
                                         and self.test_file_cache
@@ -3060,32 +3193,45 @@ class CoverageMetricsRegenerator:
                                             and fresh_coverage_json_parallel
                                             and final_cache_write_allowed
                                         ):
-                                            # Determine if this is a full run:
-                                            # - No cached coverage (cache cleared or first run) = full run
-                                            # - All test files need to run = full run
-                                            # - Otherwise, it's a selective run
+                                            # Full run: entire test tree, all test files, or every domain.
+                                            # Missing cache alone is NOT a full run (selective 0% poison).
                                             cache_stats = (
                                                 self.test_file_cache.get_cache_stats()
                                             )
                                             total_test_files = cache_stats[
                                                 "total_test_files"
                                             ]
-                                            is_full_run = (
-                                                (not cached_coverage_json)
-                                                or (not test_files_to_run)
-                                                or (
-                                                    len(test_files_to_run)
-                                                    >= total_test_files
-                                                )
+                                            all_mapped_domains = set(
+                                                self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
                                             )
+                                            is_full_run = _is_full_coverage_run_fn(
+                                                test_files_to_run=test_files_to_run,
+                                                total_test_files=total_test_files,
+                                                changed_domains=(
+                                                    set(changed_domains)
+                                                    if isinstance(
+                                                        changed_domains, set
+                                                    )
+                                                    else None
+                                                ),
+                                                all_domains=all_mapped_domains,
+                                                ran_entire_test_tree=not test_filter_args,
+                                            )
+                                            did_merge = bool(merged_coverage_saved)
+                                            persist_full_cache = is_full_run or did_merge
 
-                                            if is_full_run:
-                                                # Full run - cache the full coverage JSON once (not per test file)
+                                            if persist_full_cache:
                                                 self.test_file_cache.cache_full_coverage(
                                                     fresh_coverage_json_parallel
                                                 )
+                                            elif logger:
+                                                logger.warning(
+                                                    "Skipping full coverage cache write: "
+                                                    "selective run did not merge unchanged-domain coverage"
+                                                )
 
-                                                # Also update domain mappings for all test files
+                                            if is_full_run:
+                                                # Full run - update domain mappings for all test files
                                                 test_root = self.project_root / "tests"
                                                 all_test_files = [
                                                     tf
@@ -3128,13 +3274,8 @@ class CoverageMetricsRegenerator:
                                                         f"Cached full coverage JSON and updated domain mappings for {len(all_test_files)} test files (parallel mode)"
                                                     )
                                             else:
-                                                # Selective run - cache the merged coverage (fresh_coverage_json_parallel should already be merged if merge occurred)
-                                                # This represents the complete picture: fresh coverage from re-run tests + cached coverage from unchanged tests
-                                                self.test_file_cache.cache_full_coverage(
-                                                    fresh_coverage_json_parallel
-                                                )
-
-                                                # Update test file mappings (without coverage_data) for test files that ran
+                                                # Selective run: mappings for files that ran; full JSON
+                                                # already persisted above when merge succeeded.
                                                 for test_file in test_files_to_run:
                                                     self.test_file_cache.update_test_file_mapping(
                                                         test_file,
@@ -3164,9 +3305,14 @@ class CoverageMetricsRegenerator:
                                                 # Save cache once (much more efficient than saving per test file)
                                                 self.test_file_cache._save_cache()
                                                 if logger:
-                                                    logger.info(
-                                                        f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files (parallel mode)"
-                                                    )
+                                                    if persist_full_cache:
+                                                        logger.info(
+                                                            f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files (parallel mode)"
+                                                        )
+                                                    else:
+                                                        logger.info(
+                                                            f"Updated mappings for {len(test_files_to_run)} test files without replacing full coverage cache (parallel mode)"
+                                                        )
                                         elif (
                                             self.use_domain_cache
                                             and self.test_file_cache
@@ -3569,14 +3715,14 @@ class CoverageMetricsRegenerator:
 
             # Run pytest and capture output to both stdout and log file
             try:
-                result = subprocess.run(
+                result = self._run_pytest_wait(
                     cmd,
+                    timeout=900,  # 15 minutes timeout
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,  # Merge stderr into stdout
                     text=True,
                     cwd=self.project_root,
                     env=env,
-                    timeout=900,  # 15 minutes timeout
                 )
                 # Ensure stdout is not None
                 if result.stdout is None:

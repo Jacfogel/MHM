@@ -515,7 +515,7 @@ directory = development_tools/tests/coverage_html
 
         captured: dict[str, list[str] | None] = {"cmd": None}
 
-        def _fake_run(cmd: object, **kwargs: object) -> object:
+        def _fake_wait(cmd: object, **kwargs: object) -> object:
             captured["cmd"] = list(cmd) if isinstance(cmd, (list, tuple)) else list(str(cmd))
             mock = Mock()
             mock.returncode = 0
@@ -523,7 +523,7 @@ directory = development_tools/tests/coverage_html
             mock.stderr = ""
             return mock
 
-        monkeypatch.setattr(coverage_module.subprocess, "run", _fake_run)
+        monkeypatch.setattr(regenerator, "_run_pytest_wait", _fake_wait)
         monkeypatch.setattr(
             regenerator, "_cleanup_coverage_data_files", lambda *args, **kwargs: None
         )
