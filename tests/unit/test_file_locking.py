@@ -155,9 +155,9 @@ class TestFileLocking:
 class TestSafeJsonRead:
     """Test safe JSON read functionality."""
 
-    def test_safe_json_read_existing_file(self, test_data_dir):
+    def test_safe_json_read_existing_file(self, tmp_path):
         """Test safe_json_read reads existing JSON file."""
-        test_file = _unique_json_path(test_data_dir, "test_read")
+        test_file = str(tmp_path / "test_read.json")
         test_data = {"key": "value", "number": 123, "nested": {"inner": "data"}}
         
         # Create test file
@@ -170,6 +170,22 @@ class TestSafeJsonRead:
         result = safe_json_read(test_file)
         
         assert result == test_data, "Should read JSON data correctly"
+
+    def test_safe_json_read_falls_back_when_lock_handle_empty(self, tmp_path):
+        """Test safe_json_read uses the path when the locked fd has no bytes."""
+        test_file = str(tmp_path / "test_stale_handle.json")
+        test_data = {"key": "value", "number": 123, "nested": {"inner": "data"}}
+        with open(test_file, "w", encoding="utf-8") as f:
+            json.dump(test_data, f)
+            f.flush()
+            os.fsync(f.fileno())
+
+        with patch("core.file_locking.file_lock") as mock_lock:
+            mock_lock.return_value.__enter__ = MagicMock(return_value=BytesIO(b""))
+            mock_lock.return_value.__exit__ = MagicMock(return_value=None)
+            result = safe_json_read(test_file)
+
+        assert result == test_data, "Should read JSON from the path when the lock handle is empty"
 
     def test_safe_json_read_nonexistent_file(self, test_data_dir):
         """Test safe_json_read returns default for nonexistent file."""

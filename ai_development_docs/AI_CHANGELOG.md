@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-01 - Nightly safe JSON read no longer returns an empty object **COMPLETED**
+- Linux `file_lock` now flocks a sidecar `.lock` file and opens the JSON after that, so a locked data fd cannot look empty.
+- `safe_json_read` rereads the path when the locked handle is empty but the file still has bytes.
+- Existing-file read tests use pytest `tmp_path`; added a stale-handle fallback case.
+
 ### 2026-09-01 - Completing a task no longer leaves a duplicate active copy **COMPLETED**
 - `complete_task` and `restore_task` now write active and completed lists in one save, so a leftover task cannot reappear as still active after a successful complete.
 - "That" after completing a different recent task still resolves to no task, instead of the leftover.
@@ -111,11 +116,6 @@ Guidelines:
 - Phrase settings (`natural_language_defaults`) persist on the preferences envelope.
 - Period wrapping is in `schedule_period_normalize.py` (breaks the `profile_v2_io` / `schedule_document_defaults` import cycle). Lint/type cleanup + docs regen for registry/path drift.
 - Full `python run_tests.py`: 5181 passed. Headless restart succeeded. Docs/path-drift clean; ruff/pyright PASS.
-
-### 2026-08-23 - Map project-wide manual testing checklist to real tests **COMPLETED**
-- MANUAL_TESTING_GUIDE section 10 maps startup/UI/schedule/email/health/restart items to pytest; leftovers are in `tests/behavior/test_manual_*.py`.
-- Task reminders skip a second send when `reminder_sent` is already true, and that flag now persists.
-- Live leftovers: inbox, OAuth, visual layout, AI tone. Tray and snooze are N/A.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

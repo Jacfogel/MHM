@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-09-01 - Nightly safe JSON read no longer returns an empty object
+- **Fix**: Nightly Linux `test_safe_json_read_existing_file` still saw `{}` after reading from the locked data handle. `fcntl.LOCK_EX` on the JSON inode can make that fd (and a second open) look empty, and `safe_json_write`'s `shutil.move` replaces the locked inode. Linux `file_lock` now exclusive-locks a sidecar `.lock` file and opens the data file after the lock is held ([`file_locking.py`](../core/file_locking.py)).
+- **Fix**: `safe_json_read` rereads the path when the locked handle is empty but `getsize` is greater than 0. Existing files are no longer `Path.touch()`'d before `r+b` open (a failed utime could recreate an empty inode).
+- **Tests**: [`test_file_locking.py`](../tests/unit/test_file_locking.py) existing-file read uses `tmp_path`; added `test_safe_json_read_falls_back_when_lock_handle_empty`.
+- **Impact**: Locked JSON reads return the file contents instead of the empty default `{}`.
+
 ### 2026-09-01 - Completing a task no longer leaves a duplicate active copy
 - **Fix**: Completing one of two recent tasks used two read-modify-write saves (`save_active_tasks` then `save_completed_tasks`). Under parallel test load the second save could reload the pre-complete file and write the completed task back as still active. JUnit: `test_resolve_pronoun_task_does_not_use_leftover_after_complete` failed with leftover count 2 after `complete_task` returned True. `complete_task` and `restore_task` now persist both lists with `save_task_lists` in one write ([`task_data_handlers.py`](../tasks/task_data_handlers.py), [`task_data_manager.py`](../tasks/task_data_manager.py)).
 - **Tests**: Pronoun leftover test uses a unique user id. Added `test_complete_one_of_two_tasks_leaves_the_other_active`. Completion save-failure tests patch `save_task_lists`.

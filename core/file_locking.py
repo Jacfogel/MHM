@@ -103,7 +103,10 @@ if sys.platform == "win32":
                     continue
 
             lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-            lock_file_path.touch(exist_ok=True)
+            # Do not Path.touch() an existing data file: that can recreate an
+            # empty inode if utime fails, so a later r+b read returns {}.
+            if not lock_file_path.exists():
+                lock_file_path.touch()
             with open(lock_file_path, "r+b") as file_handle:
                 yield file_handle
 
@@ -122,8 +125,8 @@ else:
         """
         Context manager for file locking on Unix/Linux.
 
-        Uses fcntl.flock() to acquire an exclusive lock on a file.
-        Retries if the file is locked by another process.
+        Uses fcntl.flock() on a sidecar `{file_path}.lock` so the data inode
+        is not exclusive-locked (a locked data fd can read as empty).
 
         Args:
             file_path: Path to the file to lock
@@ -131,18 +134,22 @@ else:
             retry_interval: Time between lock attempts (seconds)
 
         Yields:
-            File handle (opened in 'r+b' mode for locking)
+            File handle for the data path (opened in 'r+b' mode)
 
         Raises:
             TimeoutError: If lock cannot be acquired within timeout
             OSError: If file operations fail
         """
-        # Ensure directory exists
-        lock_file_path = Path(file_path)
-        lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-        lock_file_path.touch(exist_ok=True)
+        # Lock a sidecar so fcntl.LOCK_EX is not held on the data inode.
+        # Locking the data file made a second open (and some r+b reads) look
+        # empty, and shutil.move in safe_json_write replaced the locked inode.
+        data_path = Path(file_path)
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_sidecar = Path(str(file_path) + ".lock")
+        lock_sidecar.parent.mkdir(parents=True, exist_ok=True)
+        lock_sidecar.touch(exist_ok=True)
 
-        thread_lock = _thread_lock_for(str(lock_file_path))
+        thread_lock = _thread_lock_for(str(data_path.resolve()))
         if not thread_lock.acquire(timeout=timeout):
             raise TimeoutError(
                 f"Could not acquire in-process lock on {file_path} within {timeout} seconds"
@@ -153,11 +160,11 @@ else:
         try:
             while True:
                 try:
-                    with open(lock_file_path, "r+b") as file_handle:
+                    with open(lock_sidecar, "r+b") as lock_fd:
                         while True:
                             try:
                                 fcntl.flock(
-                                    file_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
+                                    lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
                                 )
                                 break
                             except OSError as e:
@@ -170,10 +177,13 @@ else:
                                 continue
 
                         try:
-                            yield file_handle
+                            if not data_path.exists():
+                                data_path.touch()
+                            with open(data_path, "r+b") as file_handle:
+                                yield file_handle
                         finally:
                             with suppress(OSError):
-                                fcntl.flock(file_handle.fileno(), fcntl.LOCK_UN)
+                                fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
                     return
                 except OSError as e:
                     elapsed = time.time() - start_time
@@ -208,15 +218,23 @@ def safe_json_read(file_path: str, default: dict | None = None) -> dict:
 
     try:
         with file_lock(file_path, timeout=10.0) as fh:
-            # Read from the locked handle. Opening the path again while Linux
-            # holds fcntl.LOCK_EX can return empty content and look like a
-            # missing/invalid file (default {}).
+            # Prefer the locked handle. If that fd is a stale/empty inode
+            # (atomic replace, or LOCK_EX on the data file), read the path
+            # when the directory entry still has bytes.
             if fh is None:
                 with open(file_path, encoding="utf-8") as unlocked:
                     return json.load(unlocked)
             fh.seek(0)
             raw = fh.read()
             text = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+            if not text.strip():
+                try:
+                    path_size = os.path.getsize(file_path)
+                except OSError:
+                    path_size = 0
+                if path_size > 0:
+                    with open(file_path, encoding="utf-8") as current:
+                        text = current.read()
             if not text.strip():
                 logger.warning(f"Empty JSON file {file_path}")
                 return default
