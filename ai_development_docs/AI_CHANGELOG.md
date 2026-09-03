@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-03 - Clear Pyright warnings on profile-settings tests **COMPLETED**
+- The three remaining Pyright warnings were `reportAttributeAccessIssue` on `lineEdit_preferred_name` in `tests/ui/test_user_profile_settings_widget.py`.
+- That field is created at runtime in `UserProfileSettingsWidget.__init__`, not in the generated UI class; the test file now uses the same Pyright suppression as the widget.
+- `python -m pyright tests/ui/test_user_profile_settings_widget.py` should report 0 errors / 0 warnings after this.
+
+### 2026-09-02 - UI coverage for Health, phrase settings, and admin actions **COMPLETED**
+- Added behavior tests for the previously uncovered Google Health settings dialog, phrase-settings widget/dialog, and remaining admin-action helpers (log file, cache cleanup, config report, health check).
+- Expanded coverage for dialog openers, channel-status log paths, request-file actions, channel-selection widget, and service force-stop.
+- Added profile-settings load/save, task-completion AM/PM conversion, and dynamic-list field row helpers.
+- Targeted UI tests passed (44, then 80, then 17 on the latest slice). Domain `ui` still needs a coverage refresh to update the 72.4% report figure.
+
 ### 2026-09-01 - Nightly safe JSON read no longer returns an empty object **COMPLETED**
 - Linux `file_lock` now flocks a sidecar `.lock` file and opens the JSON after that, so a locked data fd cannot look empty.
 - `safe_json_read` rereads the path when the locked handle is empty but the file still has bytes.
@@ -103,19 +114,6 @@ Guidelines:
 - `_show_question_dialog` is now an orchestrator (821 -> 218 AST nodes); form, template picker, and save are separate helpers.
 - Combo population, category labels, and the saved payload are independently testable.
 - Add/edit custom-question behavior is unchanged.
-
-### 2026-08-25 - Check-in settings min/max and question-list glitches **COMPLETED**
-- Maximum questions can be lowered below the current minimum; minimum follows (the max spinbox is no longer locked to current min).
-- Adding/deleting custom questions reuses the scroll-area layout instead of creating a second orphaned layout that left the list blank.
-- Helper/unit coverage for bounds and layout reuse; full widget tests pass with `MHM_QT_UI_FORCE=1`.
-- `ensure_vbox_layout` raises `UserInterfaceError` (not `TypeError`) when a non-vbox layout is already installed.
-
-### 2026-08-25 - v2 envelopes in memory for account/preferences/schedules **COMPLETED**
-- `get_user_data` account/preferences/schedules now return the same v2 envelopes as on disk; `core/schemas.py` is gone.
-- Use `schedule_categories()` for category maps and `account_extra()` for metadata extras; wrap is idempotent (no empty-`categories` wipe).
-- Phrase settings (`natural_language_defaults`) persist on the preferences envelope.
-- Period wrapping is in `schedule_period_normalize.py` (breaks the `profile_v2_io` / `schedule_document_defaults` import cycle). Lint/type cleanup + docs regen for registry/path drift.
-- Full `python run_tests.py`: 5181 passed. Headless restart succeeded. Docs/path-drift clean; ruff/pyright PASS.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -33,6 +33,19 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-09-03 - Clear Pyright warnings on profile-settings tests
+- **Fix**: The audit Pyright item (0 errors, 3 warnings) was all `reportAttributeAccessIssue` on `widget.ui.lineEdit_preferred_name` in [`tests/ui/test_user_profile_settings_widget.py`](../tests/ui/test_user_profile_settings_widget.py). The generated `Ui_Form_user_profile_settings` class does not declare that field; [`user_profile_settings_widget.py`](../ui/widgets/user_profile_settings_widget.py) creates it in `__init__` and already disables that check.
+- **Change**: Added the same `# pyright: reportAttributeAccessIssue=false` directive to the test file so the runtime-created field can be used without a false warning.
+- **Impact**: Static analysis should return to 0 Pyright warnings. `AI_PRIORITIES.md` will refresh on the next audit.
+
+### 2026-09-02 - UI coverage for Health, phrase settings, and admin actions
+- **Tests**: Added behavior coverage for the three `ui/` modules that were at 0% and for uncovered `AdminActions` helpers. Files: [`test_google_health_settings_dialog.py`](../tests/ui/test_google_health_settings_dialog.py), [`test_natural_language_settings.py`](../tests/ui/test_natural_language_settings.py), [`test_admin_actions.py`](../tests/ui/test_admin_actions.py).
+- **Tests**: Expanded [`test_dialog_actions.py`](../tests/ui/test_dialog_actions.py), [`test_status_provider.py`](../tests/ui/test_status_provider.py), [`test_request_actions.py`](../tests/ui/test_request_actions.py); added [`test_channel_selection_widget.py`](../tests/ui/test_channel_selection_widget.py) and [`test_service_manager.py`](../tests/ui/test_service_manager.py).
+- **Tests**: Added [`test_task_completion_dialog.py`](../tests/ui/test_task_completion_dialog.py), [`test_user_profile_settings_widget.py`](../tests/ui/test_user_profile_settings_widget.py), and [`test_dynamic_list_field.py`](../tests/ui/test_dynamic_list_field.py).
+- **Behavior covered**: Google Health connect panel refresh/enable/pause/sync/delete and mocked OAuth start; phrase-settings load/validate/save; admin log open, cache cleanup confirm/cancel, config validation windows, and Discord health-report lines. Follow-up: dialog open/error paths, Discord/email status log branches, request-file validation/warnings, channel get/set, service start-failure and force-stop, profile load/save, completion AM/PM conversion, dynamic-list row helpers.
+- **Evidence**: First slice 44 passed. Second slice 80 passed. Third slice: `python -m pytest tests/ui/test_task_completion_dialog.py tests/ui/test_user_profile_settings_widget.py tests/ui/test_dynamic_list_field.py` - 17 passed.
+- **Impact**: Admin UI paths that were untested now have scenario coverage without opening a real browser or running OAuth. Domain `ui` coverage still needs a `coverage` refresh to update the 72.4% report figure.
+
 ### 2026-09-01 - Nightly safe JSON read no longer returns an empty object
 - **Fix**: Nightly Linux `test_safe_json_read_existing_file` still saw `{}` after reading from the locked data handle. `fcntl.LOCK_EX` on the JSON inode can make that fd (and a second open) look empty, and `safe_json_write`'s `shutil.move` replaces the locked inode. Linux `file_lock` now exclusive-locks a sidecar `.lock` file and opens the data file after the lock is held ([`file_locking.py`](../core/file_locking.py)).
 - **Fix**: `safe_json_read` rereads the path when the locked handle is empty but `getsize` is greater than 0. Existing files are no longer `Path.touch()`'d before `r+b` open (a failed utime could recreate an empty inode).
