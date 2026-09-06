@@ -234,7 +234,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
     - `domain_dependencies.storage` is a leaf so storage-only edits do not fan out through `core`.
     - Stores run status and failed domains for failure-aware invalidation.
     - Stores tool hash/tool mtimes and config mtime plus content hash for global invalidation when cache logic or config *content* changes (mtime-only rewrites do not bust).
-    - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
+    - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`). Incomplete `--no-domain-cache` runs still merge with the last good `coverage.json` when overall coverage collapses.
   - **Dev tools coverage cache (`tests/dev_tools_coverage_cache.py`)**:
     - Caches `development_tools` coverage JSON keyed by dev-tools source/test mtimes and config content hash.
     - Stores tool hash/tool mtimes for invalidation when coverage tooling code changes.

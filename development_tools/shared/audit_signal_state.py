@@ -85,6 +85,9 @@ def record_audit_keyboard_interrupt() -> bool:
     return _interrupt_requested
 
 
+_ignore_spurious_sigint_depth = 0
+
+
 @contextmanager
 def ignore_spurious_sigint(*, action_name: str = "run") -> Iterator[None]:
     """Ignore Windows console SIGINT/SIGBREAK until the multi-tap stop threshold.
@@ -92,32 +95,43 @@ def ignore_spurious_sigint(*, action_name: str = "run") -> Iterator[None]:
     Coverage and pytest-xdist can broadcast a control event to the whole console
     group. The default Python handler turns that into KeyboardInterrupt and
     aborts ``subprocess.run`` even when the user did not press Ctrl+C.
+
+    Nested uses (CLI ``main()`` plus pytest wait) share one handler and do not
+    reset the tap counter.
     """
     if not hasattr(signal, "SIGINT"):
         yield
         return
 
-    global _action_name
+    global _action_name, _ignore_spurious_sigint_depth
     previous_name = _action_name
     _action_name = action_name
-    reset_audit_sigint_state()
-    previous_sigint = signal.getsignal(signal.SIGINT)
-    previous_break = (
-        signal.getsignal(signal.SIGBREAK) if hasattr(signal, "SIGBREAK") else None
-    )
+    _ignore_spurious_sigint_depth += 1
+    install = _ignore_spurious_sigint_depth == 1
+    previous_sigint = None
+    previous_break = None
+    if install:
+        reset_audit_sigint_state()
+        previous_sigint = signal.getsignal(signal.SIGINT)
+        previous_break = (
+            signal.getsignal(signal.SIGBREAK) if hasattr(signal, "SIGBREAK") else None
+        )
 
-    def _handler(signum: int, frame: object | None) -> None:
-        handle_audit_sigint(signum, frame)
-        if audit_sigint_requested():
-            raise KeyboardInterrupt
+        def _handler(signum: int, frame: object | None) -> None:
+            handle_audit_sigint(signum, frame)
+            if audit_sigint_requested():
+                raise KeyboardInterrupt
 
-    signal.signal(signal.SIGINT, _handler)
-    if hasattr(signal, "SIGBREAK"):
-        signal.signal(signal.SIGBREAK, _handler)
+        signal.signal(signal.SIGINT, _handler)
+        if hasattr(signal, "SIGBREAK"):
+            signal.signal(signal.SIGBREAK, _handler)
     try:
         yield
     finally:
-        signal.signal(signal.SIGINT, previous_sigint)
-        if previous_break is not None and hasattr(signal, "SIGBREAK"):
-            signal.signal(signal.SIGBREAK, previous_break)
+        _ignore_spurious_sigint_depth -= 1
         _action_name = previous_name
+        if install:
+            if previous_sigint is not None:
+                signal.signal(signal.SIGINT, previous_sigint)
+            if previous_break is not None and hasattr(signal, "SIGBREAK"):
+                signal.signal(signal.SIGBREAK, previous_break)

@@ -52,6 +52,7 @@ The development tools test suite is organized into focused, maintainable modules
 - **`tests/development_tools/test_regenerate_coverage_metrics.py`**: Coverage regeneration tests
 - **`tests/development_tools/test_legacy_reference_cleanup.py`**: Legacy reference cleanup tests
 - **`tests/development_tools/test_audit_status_updates.py`**: Lightweight audit status output tests (single batch of `create_output_file` calls for AI_STATUS / AI_PRIORITIES / CONSOLIDATED). The legacy suite in `tests/development_tools/test_audit_tier_comprehensive.py` remains retired (commented)-use this file plus `tests/development_tools/test_status_file_timing.py` for overlapping intent.
+- **`tests/development_tools/test_report_generation_problem_payload.py`**: Full-issue payload rendering for AI_STATUS, AI_PRIORITIES, and CONSOLIDATED reports (low coverage, complexity, doc drift, coupling, backup, validation).
 - **`tests/development_tools/test_status_file_timing.py`**: Status file write timing verification
 - **`tests/development_tools/test_output_storage_archiving.py`**: Output storage and archiving tests
 - **`tests/development_tools/test_run_development_tools.py`**: CLI runner smoke tests

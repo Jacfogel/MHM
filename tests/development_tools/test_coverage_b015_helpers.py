@@ -277,6 +277,81 @@ def test_domains_with_collapsed_coverage_detects_drop(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.development_tools
+def test_overall_coverage_collapsed_and_merge_gate() -> None:
+    from development_tools.tests.coverage_shard_merge import (
+        overall_coverage_collapsed,
+        should_merge_coverage_snapshots,
+    )
+
+    healthy = {"totals": {"percent_covered": 82.3}}
+    collapsed = {"totals": {"percent_covered": 27.2}}
+    mild_drop = {"totals": {"percent_covered": 72.8}}
+    assert overall_coverage_collapsed(collapsed, healthy) is True
+    assert overall_coverage_collapsed(mild_drop, healthy) is False
+    assert (
+        overall_coverage_collapsed(collapsed, {"totals": {"percent_covered": 40}})
+        is False
+    )
+    assert overall_coverage_collapsed({"totals": {}}, healthy) is False
+    assert overall_coverage_collapsed(collapsed, {"totals": {}}) is False
+
+    assert (
+        should_merge_coverage_snapshots(
+            use_domain_cache=False,
+            has_test_file_cache=False,
+            cached_coverage_json=healthy,
+            fresh_coverage_json=collapsed,
+            overall_collapsed=True,
+        )
+        is True
+    )
+    assert (
+        should_merge_coverage_snapshots(
+            use_domain_cache=False,
+            has_test_file_cache=False,
+            cached_coverage_json=healthy,
+            fresh_coverage_json=mild_drop,
+            overall_collapsed=False,
+        )
+        is False
+    )
+    assert (
+        should_merge_coverage_snapshots(
+            use_domain_cache=True,
+            has_test_file_cache=True,
+            cached_coverage_json=healthy,
+            fresh_coverage_json=mild_drop,
+        )
+        is True
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.development_tools
+def test_select_coverage_snapshot_keeps_last_good_when_fresh_collapses() -> None:
+    from development_tools.tests.coverage_shard_merge import (
+        select_coverage_snapshot_to_publish,
+    )
+
+    last_good = {"totals": {"percent_covered": 82.3}, "files": {"a.py": {}}}
+    poisoned_previous = {"totals": {"percent_covered": 35.6}, "files": {"a.py": {}}}
+    fresh = {"totals": {"percent_covered": 15.3}, "files": {"a.py": {}}}
+    chosen, reason = select_coverage_snapshot_to_publish(
+        fresh, previous=poisoned_previous, last_good=last_good
+    )
+    assert reason == "last_good"
+    assert chosen is last_good
+    chosen_ok, reason_ok = select_coverage_snapshot_to_publish(
+        {"totals": {"percent_covered": 83.0}},
+        previous=last_good,
+        last_good=last_good,
+    )
+    assert reason_ok == "fresh"
+    assert chosen_ok["totals"]["percent_covered"] == 83.0
+
+
+@pytest.mark.unit
 def test_check_dev_tools_changed_disabled_or_missing_cache(tmp_path: Path) -> None:
     assert (
         check_dev_tools_changed(

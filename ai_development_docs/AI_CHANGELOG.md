@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-05 - Dev-tools report tests and trustworthy coverage refresh **COMPLETED**
+- Added issue-payload tests for AI_STATUS / AI_PRIORITIES / CONSOLIDATED and remaining error-handling analyzer helpers (consolidated 31%->73%, status 42%->66%, priorities 54%->75%, error handling 54%->81%).
+- Incomplete coverage runs no longer replace the published snapshot: keep `coverage_last_good.json` at 60%+, ignore stray Ctrl+C until 5 taps in 2s, and start Windows pytest with `CREATE_NO_WINDOW` so xdist workers are not killed.
+- Refresh with `python development_tools/tests/run_test_coverage.py` (not `--no-domain-cache`, not the skipping `coverage` wrapper). Successful pass: overall 80.2%, `development_tools` 72.9%; then `audit`. Added the missing H2 `Recent Changes (Most Recent First)` to CHANGELOG_DETAIL so the pair matches.
+- Cleared the 2 remaining Pyright warnings: `_percent_covered_from_totals` returns early when `percent_covered` is missing instead of passing `None` to `float()`.
+
 ### 2026-09-03 - Clear Pyright warnings on profile-settings tests **COMPLETED**
 - The three remaining Pyright warnings were `reportAttributeAccessIssue` on `lineEdit_preferred_name` in `tests/ui/test_user_profile_settings_widget.py`.
 - That field is created at runtime in `UserProfileSettingsWidget.__init__`, not in the generated UI class; the test file now uses the same Pyright suppression as the widget.
@@ -96,24 +102,6 @@ Guidelines:
 - Create-hub template buttons open a prefilled modal; submit keeps template defaults (recurrence, priority, tags).
 - `list task templates` now attaches the same Discord button row as `create`.
 - Relative due phrases from the form (`tomorrow at 2pm`) parse as overrides.
-
-### 2026-08-26 - Nightly health-sync and coverage-cache test isolation **COMPLETED**
-- Health sync/schedule tests resolve the factory UUID and patch `is_google_health_testing_mode` instead of setting `MHM_TESTING=0`.
-- Dev-tools coverage cache no longer treats empty mtime scans as changed; config path is the project under test.
-- Schedule reads no longer re-enter `get_user_data("schedules")` during finalize, and no longer call `ensure_all_categories_have_schedules` on read (that wrote `Motivational Message Default` over Evening after cache clear). `schedule_categories` keeps a `categories` map even with extra envelope keys.
-- `safe_json_read` uses the locked handle (Linux double-open under flock returned `{}`).
-- Nightly `--basetemp` under `tests/data` no longer trips those node IDs.
-
-### 2026-08-26 - Everyday task phrasing creates and completes real work **COMPLETED**
-- Parser now treats `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, and `show overdue tasks` as real task commands.
-- Title/ID cleanup: `create a task for laundry` keeps title `laundry`; `I completed the dentist task` looks up `dentist`; `add a note to the dentist task: ...` appends a task note instead of making a notebook note.
-- Notebook capture: `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, `add a note about...`, `keep in mind that...`, `write this down...`, and `don't let me forget that...` save a note immediately instead of asking for a body. `show my notes` lists notes instead of looking up an entry named "my notes".
-- Command-list parity: AI prompts/catalog/planning summaries use the live parser intent set; `ACTION: create note` and `start check-in` canonicalize through `command_registry` (the only AI module allowed to import communication). Help/examples updated. Live Discord feel-check is still remaining.
-
-### 2026-08-25 - Split custom-question dialog into form, template, and save jobs **COMPLETED**
-- `_show_question_dialog` is now an orchestrator (821 -> 218 AST nodes); form, template picker, and save are separate helpers.
-- Combo population, category labels, and the saved payload are independently testable.
-- Add/edit custom-question behavior is unchanged.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

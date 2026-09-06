@@ -121,3 +121,35 @@ def test_ignore_spurious_sigint_handler_swallows_until_tap_threshold(capsys):
     out = capsys.readouterr().out
     assert "stopping coverage" in out
     assert "[SIGINT]" in out
+
+
+@pytest.mark.unit
+def test_ignore_spurious_sigint_nested_does_not_reset_tap_count(capsys):
+    """CLI main() plus pytest wait share one handler; inner enter must not reset taps."""
+    t = {"v": 0.0}
+
+    def fake_time() -> float:
+        t["v"] += 0.05
+        return t["v"]
+
+    with patch("development_tools.shared.audit_signal_state.time") as m_time:
+        m_time.time = fake_time
+        with sig.ignore_spurious_sigint(action_name="coverage"):
+            handler = cast(
+                Callable[[int, object | None], Any],
+                signal.getsignal(signal.SIGINT),
+            )
+            handler(2, None)
+            with sig.ignore_spurious_sigint(action_name="coverage"):
+                nested = cast(
+                    Callable[[int, object | None], Any],
+                    signal.getsignal(signal.SIGINT),
+                )
+                assert nested is handler
+                for _ in range(sig.AUDIT_SIGINT_TAPS_TO_STOP - 2):
+                    nested(2, None)
+            with pytest.raises(KeyboardInterrupt):
+                handler(2, None)
+
+    assert sig.audit_sigint_requested()
+    assert "[INTERRUPT]" in capsys.readouterr().out

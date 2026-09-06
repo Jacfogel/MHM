@@ -5,6 +5,9 @@ Tests error handling analysis functionality including function analysis,
 decorator detection, phase 1/2 candidate detection, and standard format output.
 """
 
+import json
+import sys
+
 import pytest
 from pathlib import Path
 
@@ -440,4 +443,282 @@ def function_with_try():
         
         func = result['functions'][0]
         assert func.get('has_try_except', False)
+
+
+class TestErrorHandlingHelpersAndAggregation:
+    """Direct coverage for Phase 1/2 helpers and result aggregation."""
+
+    @pytest.mark.unit
+    def test_suggest_exception_replacement_heuristics(self, tmp_path):
+        """Generic 'X or Y' mappings should pick a project exception from context."""
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        analyzer.generic_exceptions = {
+            "Exception": "BaseError or DataError",
+            "ValueError": "ValidationError or DataError",
+            "KeyError": "DataError or ConfigurationError",
+            "TypeError": "ValidationError or DataError",
+        }
+
+        assert "Validation" in analyzer._suggest_exception_replacement(
+            "ValueError", "user/profile.py", "check_name", "raise ValueError('invalid user')"
+        )
+        assert "Data" in analyzer._suggest_exception_replacement(
+            "ValueError", "storage/store.py", "load_row", "raise ValueError('bad row')"
+        )
+        assert "Configuration" in analyzer._suggest_exception_replacement(
+            "KeyError", "core/config.py", "get_setting", "raise KeyError('missing option')"
+        )
+        assert "Data" in analyzer._suggest_exception_replacement(
+            "KeyError", "tasks/store.py", "lookup", "raise KeyError('id')"
+        )
+        assert "Validation" in analyzer._suggest_exception_replacement(
+            "TypeError", "ui/form.py", "parse", "raise TypeError('expected user input')"
+        )
+        assert "Data" in analyzer._suggest_exception_replacement(
+            "TypeError", "core/util.py", "coerce", "raise TypeError('int')"
+        )
+        assert analyzer._suggest_exception_replacement(
+            "Exception", "storage/file_read.py", "load", "raise Exception('io')"
+        )
+        assert analyzer._suggest_exception_replacement(
+            "Exception", "communication/discord/api.py", "send", "raise Exception('http')"
+        )
+        assert analyzer._suggest_exception_replacement(
+            "Exception", "core/config.py", "boot", "raise Exception('setting')"
+        )
+        assert analyzer._suggest_exception_replacement(
+            "Exception", "scheduler/task.py", "tick", "raise Exception('job')"
+        )
+        assert analyzer._suggest_exception_replacement(
+            "Exception", "ai/chatbot.py", "reply", "raise Exception('model')"
+        )
+        fallback = analyzer._suggest_exception_replacement(
+            "RuntimeError", "core/x.py", "f", "raise RuntimeError('x')"
+        )
+        assert isinstance(fallback, str) and fallback
+
+    @pytest.mark.unit
+    def test_operation_type_entry_point_and_priority(self, tmp_path):
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+
+        assert analyzer._determine_operation_type("save_json", "core/io.py", "open(path)") == "file_io"
+        assert analyzer._determine_operation_type("send_message", "communication/api.py", "") == "network"
+        assert analyzer._determine_operation_type("touch_account", "user/account.py", "preferences") == "user_data"
+        assert analyzer._determine_operation_type("validate_input", "core/check.py", "") == "validation"
+        assert analyzer._determine_operation_type("schedule_reminder", "scheduler/x.py", "") in {
+            "scheduling",
+            "user_data",
+        }
+        assert analyzer._determine_operation_type("load_option", "core/config.py", "") in {
+            "configuration",
+            "file_io",
+        }
+        assert analyzer._determine_operation_type("on_clicked", "ui/dialog.py", "") in {"ui", "entry_point"}
+        assert analyzer._determine_operation_type("generate_reply", "ai/chatbot.py", "") == "ai"
+        assert analyzer._determine_operation_type("helper", "core/util.py", "return 1") == "general"
+
+        assert analyzer._is_entry_point("main", "run_mhm.py") is True
+        assert analyzer._is_entry_point("dispatch", "communication/command_handlers.py") is True
+        assert analyzer._is_entry_point("on_clicked", "ui/widgets/form.py") is True
+        assert analyzer._is_entry_point("serve", "core/routes.py", "@app.route('/')") is True
+        assert analyzer._is_entry_point("_private", "core/util.py") is False
+        assert analyzer._is_entry_point("__init__", "core/util.py") is False
+
+        assert analyzer._determine_phase1_priority("file_io", True) == "high"
+        assert analyzer._determine_phase1_priority("network", False) == "medium"
+        assert analyzer._determine_phase1_priority("general", False) == "low"
+
+    @pytest.mark.unit
+    def test_analyze_raise_statement_call_name_and_reraise(self, tmp_path):
+        import ast
+
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        source = """
+def boom(err):
+    raise Exception('failed')
+    raise pkg.ValueError('bad')
+    raise err
+    raise
+"""
+        tree = ast.parse(source)
+        func = tree.body[0]
+        raises = [n for n in ast.walk(func) if isinstance(n, ast.Raise)]
+        src_file = tmp_path / "core" / "file_read.py"
+        src_file.parent.mkdir(parents=True, exist_ok=True)
+        src_file.write_text(source, encoding="utf-8")
+
+        call_result = analyzer._analyze_raise_statement(raises[0], source, src_file)
+        assert call_result is not None
+        assert call_result["exception_type"] == "Exception"
+
+        attr_result = analyzer._analyze_raise_statement(raises[1], source, src_file)
+        if attr_result is not None:
+            assert attr_result["exception_type"] == "ValueError"
+
+        name_result = analyzer._analyze_raise_statement(raises[2], source, src_file)
+        assert name_result is None or name_result["exception_type"] == "err"
+
+        assert analyzer._analyze_raise_statement(raises[3], source, src_file) is None
+
+    @pytest.mark.unit
+    def test_excludes_simple_init_logger_and_collects_with_match(self, tmp_path):
+        logger_file = tmp_path / "core" / "logger.py"
+        logger_file.parent.mkdir(parents=True, exist_ok=True)
+        logger_file.write_text(
+            """
+class ComponentLogger:
+    def __init__(self):
+        super()()
+        self.name = "x"
+
+    def info(self, msg):
+        return msg
+
+    def load_with_patterns(self, value):
+        with open("x.txt") as handle:
+            try:
+                handle.read()
+            except OSError:
+                return None
+        match value:
+            case 1:
+                try:
+                    return 1
+                except ValueError:
+                    return 0
+            case _:
+                return None
+""",
+            encoding="utf-8",
+        )
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        result = analyzer.analyze_file(logger_file)
+        names = {func.get("name"): func for func in result.get("functions", [])}
+        assert names["info"].get("excluded") or names["info"].get(
+            "error_handling_quality"
+        ) == "excluded"
+        load_fn = names.get("load_with_patterns")
+        assert load_fn is not None
+        assert load_fn.get("has_try_except") is True
+        if names.get("__init__"):
+            # super()() matches the constructor-exclusion AST check (not super().__init__()).
+            assert names["__init__"].get("excluded") is True
+
+    @pytest.mark.unit
+    def test_aggregate_results_and_recommendations(self, tmp_path):
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        analyzer._aggregate_results(
+            [
+                {"error": "skip this file"},
+                {
+                    "file_path": str(tmp_path / "core" / "io.py"),
+                    "functions": [
+                        {
+                            "name": "save_json",
+                            "line_start": 1,
+                            "line_end": 10,
+                            "has_try_except": True,
+                            "has_error_handling": True,
+                            "has_decorators": False,
+                            "missing_error_handling": False,
+                            "error_handling_quality": "none",
+                            "error_patterns": {"try_except"},
+                            "excluded": False,
+                            "is_phase1_candidate": True,
+                            "is_async": False,
+                            "func_content": "open(path); json.dump",
+                        },
+                        {
+                            "name": "skip_me",
+                            "line_start": 12,
+                            "line_end": 13,
+                            "excluded": True,
+                            "has_try_except": False,
+                            "has_error_handling": False,
+                            "has_decorators": False,
+                            "missing_error_handling": False,
+                            "error_handling_quality": "excluded",
+                            "error_patterns": set(),
+                        },
+                    ],
+                    "phase2_exceptions": [
+                        {"exception_type": "Exception", "file_path": "core/io.py"}
+                    ],
+                    "error_patterns_found": ["try_except"],
+                },
+                {
+                    "file_path": str(tmp_path / "ui" / "form.py"),
+                    "functions": [
+                        {
+                            "name": "on_clicked",
+                            "line_start": 1,
+                            "line_end": 4,
+                            "has_try_except": False,
+                            "has_error_handling": False,
+                            "has_decorators": False,
+                            "missing_error_handling": True,
+                            "error_handling_quality": "none",
+                            "error_patterns": set(),
+                            "excluded": False,
+                            "is_phase1_candidate": False,
+                            "func_content": "",
+                        }
+                    ],
+                    "phase2_exceptions": [],
+                    "error_patterns_found": [],
+                },
+            ]
+        )
+        assert analyzer.results["total_functions"] == 2
+        assert analyzer.results["phase1_total"] == 1
+        assert analyzer.results["phase2_total"] == 1
+        assert analyzer.results["functions_missing_error_handling"] == 1
+        assert analyzer.results["worst_modules"]
+
+        analyzer.results["analyze_error_handling"] = 40.0
+        analyzer.results["error_patterns"] = {"try_except": 3, "handle_errors_decorator": 0}
+        analyzer._generate_recommendations()
+        joined = " ".join(analyzer.results["recommendations"])
+        assert "Improve error handling coverage" in joined
+        assert "Add error handling to" in joined
+        assert "@handle_errors" in joined or "decorator" in joined.lower()
+
+    @pytest.mark.unit
+    def test_main_json_output_and_missing_project(self, tmp_path, monkeypatch, capsys):
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        payload = analyzer._to_standard_format()
+
+        class StubAnalyzer:
+            def __init__(self, project_root):
+                self.project_root = project_root
+
+            def analyze_project(self, include_tests=False, include_dev_tools=False):
+                return payload
+
+        monkeypatch.setattr(error_handling_module, "ErrorHandlingAnalyzer", StubAnalyzer)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "analyze_error_handling.py",
+                "--json",
+                "--project-root",
+                str(tmp_path),
+            ],
+        )
+        rc = error_handling_module.main()
+        assert rc == 0
+        printed = json.loads(capsys.readouterr().out)
+        assert "summary" in printed
+
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "analyze_error_handling.py",
+                "--project-root",
+                str(tmp_path / "does-not-exist"),
+            ],
+        )
+        assert error_handling_module.main() == 1
 

@@ -177,6 +177,116 @@ def is_full_coverage_run(
     return bool(all_domains and changed_domains == all_domains)
 
 
+def _percent_covered_from_totals(payload: dict[str, Any] | None) -> float | None:
+    """Return ``totals.percent_covered`` when it is a usable number."""
+    if not isinstance(payload, dict):
+        return None
+    totals = payload.get("totals")
+    if not isinstance(totals, dict):
+        return None
+    raw = totals.get("percent_covered")
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if value < 0:
+        return None
+    return value
+
+
+def overall_coverage_collapsed(
+    fresh: dict[str, Any],
+    previous: dict[str, Any],
+    *,
+    min_previous_percent: float = 60.0,
+    max_drop_points: float = 20.0,
+) -> bool:
+    """True when overall coverage fell far below a previously healthy snapshot.
+
+    Incomplete pytest/xdist runs can measure a slice of the suite and still write
+    a full ``files`` map at ~0% for unrun modules. That is a collection failure,
+    not a real coverage drop.
+    """
+    previous_pct = _percent_covered_from_totals(previous)
+    fresh_pct = _percent_covered_from_totals(fresh)
+    if previous_pct is None or fresh_pct is None:
+        return False
+    if previous_pct < min_previous_percent:
+        return False
+    return (previous_pct - fresh_pct) >= max_drop_points
+
+
+HEALTHY_COVERAGE_FLOOR = 60.0
+LAST_GOOD_COVERAGE_JSON_NAME = "coverage_last_good.json"
+
+
+def coverage_json_is_healthy(
+    payload: dict[str, Any] | None,
+    *,
+    floor: float = HEALTHY_COVERAGE_FLOOR,
+) -> bool:
+    """True when overall coverage is a complete-looking snapshot."""
+    percent = _percent_covered_from_totals(payload)
+    return percent is not None and percent >= floor
+
+
+def last_good_coverage_json_path(jsons_dir: Path) -> Path:
+    """Path for the durable last-healthy coverage.json copy."""
+    return jsons_dir / LAST_GOOD_COVERAGE_JSON_NAME
+
+
+def select_coverage_snapshot_to_publish(
+    fresh: dict[str, Any],
+    previous: dict[str, Any] | None = None,
+    last_good: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], str]:
+    """Pick fresh coverage or a healthy baseline when the new snapshot collapsed.
+
+    Prefer ``last_good`` over ``previous`` when both are healthy so a poisoned
+    current ``coverage.json`` cannot become the merge base.
+    """
+    baselines: list[tuple[str, dict[str, Any]]] = []
+    if coverage_json_is_healthy(last_good):
+        baselines.append(("last_good", last_good or {}))
+    if coverage_json_is_healthy(previous):
+        baselines.append(("previous", previous or {}))
+    if not baselines:
+        return fresh, "fresh"
+
+    def _pct(item: tuple[str, dict[str, Any]]) -> float:
+        return _percent_covered_from_totals(item[1]) or 0.0
+
+    baseline_name, baseline = max(baselines, key=_pct)
+    if overall_coverage_collapsed(fresh, baseline):
+        return baseline, baseline_name
+    return fresh, "fresh"
+
+
+def should_merge_coverage_snapshots(
+    *,
+    use_domain_cache: bool,
+    has_test_file_cache: bool,
+    cached_coverage_json: dict[str, Any] | None,
+    fresh_coverage_json: dict[str, Any] | None,
+    collapsed_domains: list[str] | tuple[str, ...] | None = None,
+    overall_collapsed: bool = False,
+) -> bool:
+    """Whether to union prior coverage JSON with a fresh measurement.
+
+    ``--no-domain-cache`` still merges when the fresh snapshot collapsed, so an
+    interrupted or partial run cannot publish a fake 10-30% report.
+    """
+    if not isinstance(cached_coverage_json, dict) or not isinstance(
+        fresh_coverage_json, dict
+    ):
+        return False
+    if overall_collapsed or collapsed_domains:
+        return True
+    return bool(use_domain_cache and has_test_file_cache)
+
+
 def domains_with_collapsed_coverage(
     fresh: dict[str, Any],
     previous: dict[str, Any],

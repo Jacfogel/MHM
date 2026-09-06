@@ -30,8 +30,16 @@ When adding new changes, follow this format:
 - Keep entries **concise** and **action-oriented**
 - Maintain **chronological order** (most recent first)
 
-------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
+
+### 2026-09-05 - Dev-tools report tests and trustworthy coverage refresh
+- **Tests**: Added [`test_report_generation_problem_payload.py`](../tests/development_tools/test_report_generation_problem_payload.py) so AI_STATUS, AI_PRIORITIES, and CONSOLIDATED reports render a full "issues found" audit snapshot. Extended [`test_analyze_error_handling.py`](../tests/development_tools/test_analyze_error_handling.py) for Phase 1/2 helpers, raise analysis, aggregation, recommendations, and `main()`. Evidence: 34 passed on those files; `test_no_print_calls_in_tests` passed after removing a `print(` from a sample snippet.
+- **Targeted coverage**: On those modules plus existing report tests: `report_generation_consolidated.py` 31% -> 73%, `report_generation_ai_status.py` 42% -> 66%, `report_generation_ai_priorities.py` 54% -> 75%, `analyze_error_handling.py` 54% -> 81%.
+- **Fix**: Partial/SIGINT coverage runs were publishing 10-30% overall (`development_tools` as low as 11.5%) and audit copied that into [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md). [`coverage_shard_merge.py`](../development_tools/tests/coverage_shard_merge.py) keeps [`coverage_last_good.json`](../development_tools/tests/jsons/coverage_last_good.json) for snapshots at or above 60% and restores it when a fresh run collapses. [`run_test_coverage.py`](../development_tools/tests/run_test_coverage.py) ignores stray Ctrl+C until 5 taps within 2s (nested wait/combine share one tap counter) and starts Windows pytest with `CREATE_NO_WINDOW` so xdist workers are not attached to this console.
+- **Refresh**: Use `python development_tools/tests/run_test_coverage.py` (cache on; do not use `--no-domain-cache` or the skipping `coverage` wrapper), then `audit`. Successful pass 2026-09-05: overall 80.2%, `development_tools` 72.9%.
+- **Docs**: [HOW_TO_RUN.md](../HOW_TO_RUN.md) and the paired development-tools guides no longer call `--no-domain-cache` an authoritative pass. Added the missing H2 `Recent Changes (Most Recent First)` so this file matches [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md).
+- **Fix**: `_percent_covered_from_totals` in [`coverage_shard_merge.py`](../development_tools/tests/coverage_shard_merge.py) returns `None` when `percent_covered` is missing, so Pyright no longer reports `float(None)` (`reportArgumentType`, 2 warnings on one line). [`test_coverage_b015_helpers.py`](../tests/development_tools/test_coverage_b015_helpers.py) covers a snapshot with empty `totals`.
+- **Impact**: Report/error-handling gaps have scenario tests, and a complete coverage refresh can finish without a stray Ctrl+C replacing the published numbers.
 
 ### 2026-09-03 - Clear Pyright warnings on profile-settings tests
 - **Fix**: The audit Pyright item (0 errors, 3 warnings) was all `reportAttributeAccessIssue` on `widget.ui.lineEdit_preferred_name` in [`tests/ui/test_user_profile_settings_widget.py`](../tests/ui/test_user_profile_settings_widget.py). The generated `Ui_Form_user_profile_settings` class does not declare that field; [`user_profile_settings_widget.py`](../ui/widgets/user_profile_settings_widget.py) creates it in `__init__` and already disables that check.

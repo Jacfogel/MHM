@@ -566,3 +566,35 @@ def test_run_pytest_wait_retries_after_spurious_keyboardinterrupt(tmp_path: Path
     assert fake.calls == 2
     assert result.returncode == 0
     assert result.stdout == "passed"
+
+
+@pytest.mark.unit
+def test_run_pytest_wait_detaches_windows_console(tmp_path: Path) -> None:
+    """Pytest workers must not share this console, or one Ctrl+C aborts coverage."""
+    if coverage_module.os.name != "nt":
+        pytest.skip("Windows console isolation")
+    captured: dict = {}
+
+    class _FakeProc:
+        returncode = 0
+
+        def communicate(self, timeout: float | None = None) -> tuple[str, str]:
+            return ("ok", "")
+
+        def kill(self) -> None:
+            return None
+
+    def _fake_popen(cmd: list[str], **kwargs: object) -> _FakeProc:
+        captured.update(kwargs)
+        return _FakeProc()
+
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    with patch.object(coverage_module.subprocess, "Popen", side_effect=_fake_popen):
+        result = regenerator._run_pytest_wait(["pytest"], timeout=5)
+    assert result.returncode == 0
+    flags = int(captured.get("creationflags") or 0)
+    no_window = int(getattr(coverage_module.subprocess, "CREATE_NO_WINDOW", 0x08000000))
+    new_group = int(getattr(coverage_module.subprocess, "CREATE_NEW_PROCESS_GROUP", 0) or 0)
+    assert flags & no_window
+    if new_group:
+        assert flags & new_group

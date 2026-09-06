@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-09-02  
+> **Last Updated**: 2026-09-03  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -200,6 +200,7 @@ This document is the canonical testing roadmap.
 **Work**:
 - [ ] Pick small, behavior-relevant coverage slices from live coverage reports.
 - [x] Cover previously 0% Google Health / phrase-settings UI plus `admin_actions` helpers (2026-09-02). Follow-up same day: dialog openers, status-provider log branches, request-file actions, channel-selection widget, service force-stop, profile-settings load/save, task-completion AM/PM, dynamic-list field helpers. Remaining UI gap is still large (check-in settings, schedule editor, other dialogs).
+- [x] Add issue-payload tests for AI_STATUS / AI_PRIORITIES / CONSOLIDATED builders and remaining error-handling analyzer helpers (2026-09-03). Files: [`test_report_generation_problem_payload.py`](../tests/development_tools/test_report_generation_problem_payload.py), [`test_analyze_error_handling.py`](../tests/development_tools/test_analyze_error_handling.py). Targeted measurement: consolidated 31%->73%, AI_STATUS 42%->66%, AI_PRIORITIES 54%->75%, analyze_error_handling 54%->81%. A full xdist `coverage` refresh still under-counts the `development_tools` domain (statement count drops); keep the Sep 2 report snapshot until an accumulated/serial refresh.
 - [ ] Avoid percentage-only tests that lock in bad design or brittle implementation details.
 - [ ] Track coverage variance only when it blocks confidence in the reports.
 - [x] Add mocked AI journeys that replace the manual safety/capability checklist (2026-08-22). Live LM Studio review remains tone-only.

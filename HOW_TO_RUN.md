@@ -155,7 +155,7 @@ Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tool
 Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel }
 ```
 
-The first command is a **cold** run (no domain/test-file cache). The second omits `--no-domain-cache` so it can reuse caches from the first run on an **unchanged** tree; it should be faster when caches hit. Use `--no-domain-cache` or `audit` / `audit --full` with `--clear-cache` when you need a cold, authoritative pass.
+The first command is a **cold** run (no domain/test-file cache). The second omits `--no-domain-cache` so it can reuse caches from the first run on an **unchanged** tree; it should be faster when caches hit. `--no-domain-cache` forces tests to rerun; it is **not** more accurate. An interrupted or partial run can still look like 10-30% coverage. Use `python development_tools/tests/run_test_coverage.py` (not the `coverage` wrapper) for a real refresh; stray Ctrl+C is ignored until **5 taps within 2 seconds**. Do not audit immediately after a collapsed coverage printout.
 
 #### 5.1.4. Pytest parallel workers
 
