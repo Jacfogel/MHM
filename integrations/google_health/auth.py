@@ -10,7 +10,7 @@ import json
 import threading
 import urllib.parse
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
@@ -26,7 +26,13 @@ from core.config import (
 )
 from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import now_datetime_full, now_timestamp_full, parse_timestamp_full
+from core.time_format_constants import TIMESTAMP_FULL
+from core.time_utilities import (
+    format_timestamp,
+    now_datetime_full,
+    now_timestamp_full,
+    parse_timestamp_full,
+)
 from integrations.google_health.data_handlers import load_auth, save_auth
 from integrations.google_health.testing import is_google_health_testing_mode
 
@@ -157,8 +163,8 @@ def _expires_at_from_token_response(token_data: dict[str, Any]) -> str:
     """Convert OAuth expires_in seconds to a local expiry timestamp string."""
     expires_in = token_data.get("expires_in")
     if isinstance(expires_in, (int, float)):
-        when = datetime.now(timezone.utc) + timedelta(seconds=int(expires_in))
-        return when.strftime("%Y-%m-%d %H:%M:%S")
+        when = now_datetime_full() + timedelta(seconds=int(expires_in))
+        return format_timestamp(when, TIMESTAMP_FULL)
     return ""
 
 
@@ -174,11 +180,14 @@ def _token_needs_refresh(auth: dict[str, Any]) -> bool:
 
 
 @handle_errors("ensuring valid access token for user", default_return=None)
-def ensure_valid_access_token(user_id: str) -> str | None:
+def ensure_valid_access_token(
+    user_id: str, *, force_refresh: bool = False
+) -> str | None:
     """
     Return a valid access token, refreshing automatically when needed.
 
-    Updates google_health_auth.json on refresh.
+    Updates google_health_auth.json on refresh. When ``force_refresh`` is True,
+    always refresh even if stored ``expires_at`` still looks valid (API 401).
     """
     auth = load_auth(user_id)
     if not auth:
@@ -187,7 +196,7 @@ def ensure_valid_access_token(user_id: str) -> str | None:
     access = auth.get("access_token") or ""
     refresh = auth.get("refresh_token") or ""
 
-    if access and not _token_needs_refresh(auth):
+    if access and not force_refresh and not _token_needs_refresh(auth):
         return access
 
     if not refresh:

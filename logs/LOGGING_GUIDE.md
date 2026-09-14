@@ -68,6 +68,7 @@ The actual mapping is defined in `core/logger.py` and may be overridden via envi
 
 - Every `get_component_logger(...)` dual-writes ERROR/CRITICAL to `errors.log` (in addition to the component file).
 - Selected third-party loggers (`asyncio`, `discord*`, `aiohttp*`) route ERROR/CRITICAL to `errors.log`.
+- Transient discord.py reconnect/DNS failures (`Attempting a reconnect`, `getaddrinfo failed`, Discord gateway connect errors) are dropped from `errors.log` by `DiscordReconnectNoiseFilter` in `core/logger.py`. MHM still logs disconnect/reconnect in `discord.log`. Failed message sends from `communication_manager` / `mhm.discord` still ERROR to `errors.log`.
 - Bootstrap / safe loggers wired by `setup_error_handler_logging()`:
   - `mhm.error_handler` (`@handle_errors`): ERROR/CRITICAL to `errors.log` + stderr; does **not** propagate into `app.log`
   - `mhm.network_probe`, `mhm.time_utilities`, `mhm.config`: ERROR/CRITICAL also go to `errors.log`; non-ERROR traffic still propagates to `app.log`

@@ -47,6 +47,42 @@ DATA_TYPE_SPECS: dict[str, tuple[str, FilterMode]] = {
 DATA_TYPES = tuple(DATA_TYPE_SPECS.keys())
 
 
+@handle_errors("building Google Health API error", re_raise=True)
+def _health_api_error(
+    endpoint: str, status_code: int, *, kind: str = "list"
+) -> CommunicationError:
+    """Build a CommunicationError for a non-200 Google Health HTTP response."""
+    unauthenticated = int(status_code) == 401
+    if unauthenticated:
+        message = f"Google Health API authentication failed for {endpoint}"
+    elif kind == "rollup":
+        message = f"Google Health dailyRollUp error for {endpoint}"
+    else:
+        message = f"Google Health API error for {endpoint}"
+    return CommunicationError(
+        message,
+        details={
+            "status_code": int(status_code),
+            "unauthenticated": unauthenticated,
+            "endpoint": endpoint,
+        },
+    )
+
+
+@handle_errors("classifying Google Health unauthenticated error", default_return=False)
+def is_unauthenticated_health_error(error: BaseException) -> bool:
+    """Return True when a Google Health API call failed with HTTP 401."""
+    if not isinstance(error, CommunicationError):
+        return False
+    details = error.details or {}
+    if details.get("unauthenticated") is True:
+        return True
+    if details.get("status_code") == 401:
+        return True
+    lowered = (error.message or str(error)).lower()
+    return "authentication failed" in lowered or "unauthenticated" in lowered
+
+
 @dataclass(frozen=True)
 class _Fetcher:
     endpoint: str
@@ -140,7 +176,7 @@ def list_data_points(
                 f"Google Health list failed for {endpoint} status={response.status_code} "
                 f"filter={params.get('filter', '')!r} body={body_preview!r}"
             )
-            raise CommunicationError(f"Google Health API error for {endpoint}")
+            raise _health_api_error(endpoint, response.status_code, kind="list")
 
         payload = response.json()
         batch = payload.get("dataPoints") or payload.get("data points") or []
@@ -227,7 +263,7 @@ def _list_daily_rollups_single(
                 f"Google Health dailyRollUp failed for {endpoint} status={response.status_code} "
                 f"range={start_date.isoformat()}..{end_date.isoformat()} body={body_preview!r}"
             )
-            raise CommunicationError(f"Google Health dailyRollUp error for {endpoint}")
+            raise _health_api_error(endpoint, response.status_code, kind="rollup")
 
         payload = response.json()
         batch = payload.get("rollupDataPoints") or []
@@ -280,7 +316,7 @@ def list_daily_rollups(
     return collected
 
 
-@handle_errors("listing Google Health data points in chunks", default_return=[])
+@handle_errors("listing Google Health data points in chunks", default_return=[], re_raise=True)
 def _list_data_points_chunked(
     access_token: str,
     data_type: str,
@@ -303,7 +339,14 @@ def _list_data_points_chunked(
                     end_time=chunk_end,
                 )
             )
-        except CommunicationError:
+        except CommunicationError as exc:
+            if is_unauthenticated_health_error(exc):
+                raise
+            logger.warning(
+                f"Chunked list failed for {data_type} "
+                f"{chunk_start.isoformat()}..{chunk_end.isoformat()}"
+            )
+        except (requests.RequestException, TimeoutError, OSError):
             logger.warning(
                 f"Chunked list failed for {data_type} "
                 f"{chunk_start.isoformat()}..{chunk_end.isoformat()}"
@@ -312,7 +355,7 @@ def _list_data_points_chunked(
     return collected
 
 
-@handle_errors("fetching Google Health points for data type", default_return=[])
+@handle_errors("fetching Google Health points for data type", default_return=[], re_raise=True)
 def _fetch_points_for_type(
     access_token: str,
     fetcher: _Fetcher,
@@ -328,16 +371,20 @@ def _fetch_points_for_type(
                 start_time=start_time,
                 end_time=end_time,
             )
-        except CommunicationError:
-            logger.warning(
-                f"dailyRollUp failed for {fetcher.endpoint}; falling back to chunked list"
-            )
-            return _list_data_points_chunked(
-                access_token,
-                fetcher.endpoint,
-                start_time=start_time,
-                end_time=end_time,
-            )
+        except CommunicationError as exc:
+            if is_unauthenticated_health_error(exc):
+                raise
+        except (requests.RequestException, TimeoutError, OSError):
+            pass
+        logger.warning(
+            f"dailyRollUp failed for {fetcher.endpoint}; falling back to chunked list"
+        )
+        return _list_data_points_chunked(
+            access_token,
+            fetcher.endpoint,
+            start_time=start_time,
+            end_time=end_time,
+        )
     if fetcher.filter_mode == "interval_start":
         return _list_data_points_chunked(
             access_token,
@@ -688,7 +735,7 @@ _FETCHERS: tuple[_Fetcher, ...] = (
 )
 
 
-@handle_errors("fetching daily summaries from Google Health", default_return=[])
+@handle_errors("fetching daily summaries from Google Health", default_return=[], re_raise=True)
 def fetch_daily_summaries(
     access_token: str,
     *,
@@ -710,7 +757,12 @@ def fetch_daily_summaries(
                 start_time=start,
                 end_time=end,
             )
-        except CommunicationError:
+        except CommunicationError as exc:
+            if is_unauthenticated_health_error(exc):
+                raise
+            logger.warning(f"Skipping data type {fetcher.endpoint} due to API error")
+            continue
+        except (requests.RequestException, TimeoutError, OSError):
             logger.warning(f"Skipping data type {fetcher.endpoint} due to API error")
             continue
 

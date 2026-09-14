@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-12 - Google Health token expiry uses local time and 401 retries **COMPLETED**
+- Access-token `expires_at` is stored from the local clock, matching the refresh check (UTC storage made a 1-hour token look valid for extra hours in Regina).
+- HTTP 401 on health reads now force-refreshes once and retries instead of recording an empty successful sync.
+- Targeted tests: 97 passed (`test_google_health_auth.py`, `client.py`, `sync_manager.py`, `notifications.py`).
+- `DiscordReconnectNoiseFilter` drops discord.py reconnect/DNS ERROR spam from `errors.log`; MHM disconnect lines stay in `discord.log`.
+
 ### 2026-09-05 - Dev-tools report tests and trustworthy coverage refresh **COMPLETED**
 - Added issue-payload tests for AI_STATUS / AI_PRIORITIES / CONSOLIDATED and remaining error-handling analyzer helpers (consolidated 31%->73%, status 42%->66%, priorities 54%->75%, error handling 54%->81%).
 - Incomplete coverage runs no longer replace the published snapshot: keep `coverage_last_good.json` at 60%+, ignore stray Ctrl+C until 5 taps in 2s, and start Windows pytest with `CREATE_NO_WINDOW` so xdist workers are not killed.

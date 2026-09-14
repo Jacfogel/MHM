@@ -22,7 +22,10 @@ from integrations.google_health.auth import (
     DEAD_REFRESH_TOKEN_ERROR,
     ensure_valid_access_token,
 )
-from integrations.google_health.client import fetch_daily_summaries
+from integrations.google_health.client import (
+    fetch_daily_summaries,
+    is_unauthenticated_health_error,
+)
 from integrations.google_health.data_handlers import (
     has_valid_auth,
     load_daily_summaries,
@@ -152,13 +155,27 @@ def sync_user_health_data(
     now = now_timestamp_full()
 
     try:
-        token = ensure_valid_access_token(user_id)
-        if not token:
+        incoming: list[dict[str, Any]] | None = None
+        for force_refresh in (False, True):
+            token = ensure_valid_access_token(
+                user_id, force_refresh=force_refresh
+            )
+            if not token:
+                raise CommunicationError(DEAD_REFRESH_TOKEN_ERROR)
+            try:
+                incoming = fetch_daily_summaries(
+                    token, lookback_days=GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS
+                )
+                break
+            except CommunicationError as exc:
+                if force_refresh or not is_unauthenticated_health_error(exc):
+                    raise
+                logger.warning(
+                    f"Google Health API returned 401 for user {user_id}; "
+                    "refreshing access token and retrying once"
+                )
+        if incoming is None:
             raise CommunicationError(DEAD_REFRESH_TOKEN_ERROR)
-
-        incoming = fetch_daily_summaries(
-            token, lookback_days=GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS
-        )
         doc = load_daily_summaries(user_id) or {"summaries": []}
         merged = upsert_daily_summaries(doc.get("summaries") or [], incoming)
         doc["summaries"] = merged

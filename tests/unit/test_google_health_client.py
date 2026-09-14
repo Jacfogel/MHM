@@ -21,6 +21,7 @@ from integrations.google_health.client import (
     _date_from_data_point,
     _date_from_interval,
     _fetch_points_for_type,
+    _health_api_error,
     _interval_duration_minutes,
     _list_data_points_chunked,
     _merge_active_minutes,
@@ -31,6 +32,7 @@ from integrations.google_health.client import (
     _parse_iso_datetime,
     _resolve_data_type_spec,
     fetch_daily_summaries,
+    is_unauthenticated_health_error,
     list_daily_rollups,
     list_data_points,
 )
@@ -126,6 +128,33 @@ def test_fetch_points_falls_back_to_list_when_rollup_fails(monkeypatch):
 
     assert list_calls == ["steps"]
     assert points[0]["steps"]["count"] == "1200"
+
+
+@pytest.mark.unit
+def test_fetch_points_does_not_fallback_on_unauthenticated(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    start = datetime(2026, 8, 1, tzinfo=timezone.utc)
+    end = datetime(2026, 8, 3, tzinfo=timezone.utc)
+    auth_error = _health_api_error("steps", 401, kind="rollup")
+    fetcher = _Fetcher(
+        "steps",
+        "steps",
+        "interval_start",
+        _merge_steps_into_summary,
+        source="daily_rollup",
+    )
+    with (
+        patch(
+            "integrations.google_health.client.list_daily_rollups",
+            side_effect=auth_error,
+        ),
+        patch(
+            "integrations.google_health.client._list_data_points_chunked"
+        ) as chunked,
+    ):
+        with pytest.raises(CommunicationError, match="authentication failed"):
+            _fetch_points_for_type("token", fetcher, start_time=start, end_time=end)
+    chunked.assert_not_called()
 
 
 @pytest.mark.unit
@@ -342,6 +371,27 @@ def test_list_data_points_http_error_raises(monkeypatch):
 
 
 @pytest.mark.unit
+def test_list_data_points_401_raises_authentication_error(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    with patch(
+        "integrations.google_health.client.requests.get",
+        return_value=_json_response(401, text="UNAUTHENTICATED"),
+    ):
+        with pytest.raises(CommunicationError, match="authentication failed") as caught:
+            list_data_points("token", "sleep")
+    assert is_unauthenticated_health_error(caught.value) is True
+
+
+@pytest.mark.unit
+def test_is_unauthenticated_health_error_uses_details_and_message():
+    auth_error = _health_api_error("sleep", 401, kind="list")
+    other = CommunicationError("Google Health API error for sleep")
+    assert is_unauthenticated_health_error(auth_error) is True
+    assert is_unauthenticated_health_error(other) is False
+    assert is_unauthenticated_health_error(ValueError("nope")) is False
+
+
+@pytest.mark.unit
 def test_list_daily_rollups_skips_in_testing_mode(monkeypatch):
     monkeypatch.setenv("MHM_TESTING", "1")
     start = datetime(2026, 8, 1, tzinfo=timezone.utc)
@@ -405,6 +455,24 @@ def test_list_data_points_chunked_skips_failed_windows(monkeypatch):
         )
     assert len(calls) == 3
     assert [point["name"] for point in points] == ["chunk-1", "chunk-3"]
+
+
+@pytest.mark.unit
+def test_list_data_points_chunked_aborts_on_unauthenticated(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    start = datetime(2026, 8, 1, tzinfo=timezone.utc)
+    end = datetime(2026, 8, 12, tzinfo=timezone.utc)
+
+    def _fake_list(token, data_type, *, start_time, end_time, **_kwargs):
+        raise _health_api_error("steps", 401, kind="list")
+
+    with patch(
+        "integrations.google_health.client.list_data_points", side_effect=_fake_list
+    ):
+        with pytest.raises(CommunicationError, match="authentication failed"):
+            _list_data_points_chunked(
+                "token", "steps", start_time=start, end_time=end, chunk_days=5
+            )
 
 
 @pytest.mark.unit
@@ -593,6 +661,24 @@ def test_fetch_daily_summaries_skips_api_errors_and_undated_points(monkeypatch):
     assert calls["n"] == 5
     by_date = {item["date"]: item for item in summaries}
     assert by_date["2026-06-27"]["resting_hr_bpm"] == 62.0
+
+
+@pytest.mark.unit
+def test_fetch_daily_summaries_aborts_on_unauthenticated(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    calls = {"n": 0}
+
+    def _fake_fetch(_token, fetcher, **_kwargs):
+        calls["n"] += 1
+        raise _health_api_error(fetcher.endpoint, 401, kind="list")
+
+    with patch(
+        "integrations.google_health.client._fetch_points_for_type",
+        side_effect=_fake_fetch,
+    ):
+        with pytest.raises(CommunicationError, match="authentication failed"):
+            fetch_daily_summaries("token", lookback_days=2)
+    assert calls["n"] == 1
 
 
 @pytest.mark.unit

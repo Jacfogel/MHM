@@ -7,6 +7,7 @@ Focuses on functions not covered by behavior tests.
 
 import pytest
 import os
+import sys
 import logging
 import time
 import uuid
@@ -22,6 +23,7 @@ from core.logger import (
     ComponentLogger,
     BackupDirectoryRotatingFileHandler,
     HeartbeatWarningFilter,
+    DiscordReconnectNoiseFilter,
     ExcludeLoggerNamesFilter,
     ensure_logs_directory,
     get_component_logger,
@@ -497,6 +499,84 @@ class TestHeartbeatWarningFilter:
         assert result, "Should allow non-heartbeat messages"
 
 
+def _make_log_record(name, level, msg, exc_info=None):
+    """Build a LogRecord for filter tests."""
+    return logging.LogRecord(
+        name=name,
+        level=level,
+        pathname="test.py",
+        lineno=1,
+        msg=msg,
+        args=(),
+        exc_info=exc_info,
+    )
+
+
+@pytest.mark.core
+class TestDiscordReconnectNoiseFilter:
+    """Test DiscordReconnectNoiseFilter class."""
+
+    @pytest.mark.unit
+    def test_drops_discord_client_reconnect_error(self):
+        """discord.py 'Attempting a reconnect' ERROR does not pass."""
+        filter_obj = DiscordReconnectNoiseFilter()
+        record = _make_log_record(
+            "discord.client",
+            logging.ERROR,
+            "Attempting a reconnect in 0.78s",
+        )
+        assert not filter_obj.filter(record), "Should drop reconnect ERROR"
+
+    @pytest.mark.unit
+    def test_drops_getaddrinfo_exception_on_aiohttp(self):
+        """DNS failures attached as exc_info are treated as reconnect noise."""
+        filter_obj = DiscordReconnectNoiseFilter()
+        try:
+            raise OSError("[Errno 11004] getaddrinfo failed")
+        except OSError:
+            exc_info = sys.exc_info()
+        record = _make_log_record(
+            "aiohttp.client",
+            logging.ERROR,
+            "Cannot connect to host gateway-us-east1-b.discord.gg:443 ssl:default [getaddrinfo failed]",
+            exc_info=exc_info,
+        )
+        assert not filter_obj.filter(record), "Should drop gateway DNS ERROR"
+
+    @pytest.mark.unit
+    def test_allows_mhm_discord_send_failure(self):
+        """MHM send failures still reach errors.log."""
+        filter_obj = DiscordReconnectNoiseFilter()
+        record = _make_log_record(
+            "mhm.discord",
+            logging.ERROR,
+            "Discord bot not ready to send messages",
+        )
+        assert filter_obj.filter(record), "Should allow MHM Discord errors"
+
+    @pytest.mark.unit
+    def test_allows_unrelated_discord_error(self):
+        """Unexpected discord.py errors are not suppressed."""
+        filter_obj = DiscordReconnectNoiseFilter()
+        record = _make_log_record(
+            "discord.client",
+            logging.ERROR,
+            "Unexpected error during command processing",
+        )
+        assert filter_obj.filter(record), "Should allow unrelated Discord errors"
+
+    @pytest.mark.unit
+    def test_allows_reconnect_below_error(self):
+        """WARNING reconnect lines are not filtered (errors.log is ERROR+)."""
+        filter_obj = DiscordReconnectNoiseFilter()
+        record = _make_log_record(
+            "discord.client",
+            logging.WARNING,
+            "Attempting a reconnect in 0.78s",
+        )
+        assert filter_obj.filter(record), "Should allow non-ERROR reconnect lines"
+
+
 @pytest.mark.core
 class TestExcludeLoggerNamesFilter:
     """Test ExcludeLoggerNamesFilter class."""
@@ -640,6 +720,12 @@ class TestSetupThirdPartyErrorLogging:
                 # Verify error handlers were added
                 discord_logger = logging.getLogger("discord")
                 assert len(discord_logger.handlers) > 0, "Should add error handler to discord logger"
+                has_reconnect_filter = any(
+                    isinstance(handler_filter, DiscordReconnectNoiseFilter)
+                    for handler in discord_logger.handlers
+                    for handler_filter in getattr(handler, "filters", [])
+                )
+                assert has_reconnect_filter, "errors.log handler should filter Discord reconnect noise"
 
 
 @pytest.mark.core

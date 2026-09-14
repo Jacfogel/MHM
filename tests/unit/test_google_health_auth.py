@@ -192,6 +192,14 @@ def test_expires_at_from_token_response():
 
 
 @pytest.mark.unit
+def test_expires_at_from_token_response_uses_local_clock_not_utc():
+    fixed_now = datetime(2026, 9, 11, 16, 9, 36)
+    with patch.object(auth, "now_datetime_full", return_value=fixed_now):
+        stamp = auth._expires_at_from_token_response({"expires_in": 3600})
+    assert stamp == "2026-09-11 17:09:36"
+
+
+@pytest.mark.unit
 def test_token_needs_refresh_missing_near_and_valid_expiry():
     assert auth._token_needs_refresh({}) is True
     assert auth._token_needs_refresh({"expires_at": "not-a-timestamp"}) is True
@@ -223,6 +231,32 @@ def test_ensure_valid_access_token_returns_current_when_unexpired():
     ) as refresh_mock:
         assert auth.ensure_valid_access_token("user-1") == "still-good"
     refresh_mock.assert_not_called()
+
+
+@pytest.mark.unit
+def test_ensure_valid_access_token_force_refresh_ignores_future_expiry(monkeypatch):
+    monkeypatch.delenv("MHM_TESTING", raising=False)
+    auth_doc = {
+        "access_token": "stale-access",
+        "refresh_token": "refresh",
+        "expires_at": "2099-12-31 23:59:59",
+    }
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "access_token": "fresh-access",
+        "expires_in": 3600,
+    }
+    with patch(
+        "integrations.google_health.auth.load_auth", return_value=auth_doc
+    ), patch(
+        "integrations.google_health.auth.save_auth", return_value=True
+    ), patch(
+        "integrations.google_health.auth.requests.post", return_value=mock_resp
+    ) as post_mock:
+        token = auth.ensure_valid_access_token("user-1", force_refresh=True)
+    assert token == "fresh-access"
+    post_mock.assert_called_once()
 
 
 @pytest.mark.unit

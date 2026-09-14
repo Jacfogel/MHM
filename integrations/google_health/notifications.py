@@ -25,6 +25,8 @@ _AUTH_FAILURE_MARKERS = (
     "reconnect required",
     "unable to obtain valid access token",
     "invalid or revoked",
+    "authentication failed",
+    "unauthenticated",
 )
 
 

@@ -267,6 +267,70 @@ def test_sync_success_clears_reconnect_notice_and_failures(test_data_dir):
 
 @pytest.mark.unit
 @pytest.mark.integrations
+def test_sync_retries_once_after_unauthenticated_then_succeeds(test_data_dir):
+    user_id = _health_user(test_data_dir, "health-401-retry")
+    sample = [{"date": "2026-06-27", "steps": 5000, "completeness": ["activity"]}]
+    auth_error = CommunicationError(
+        "Google Health API authentication failed for sleep",
+        details={"status_code": 401, "unauthenticated": True, "endpoint": "sleep"},
+    )
+    refresh_flags: list[bool] = []
+
+    def _ensure(_user_id, *, force_refresh=False):
+        refresh_flags.append(force_refresh)
+        return "fresh-token" if force_refresh else "stale-token"
+
+    with (
+        _allow_live_health_sync(),
+        patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True),
+        patch(
+            "integrations.google_health.sync_manager.ensure_valid_access_token",
+            side_effect=_ensure,
+        ),
+        patch(
+            "integrations.google_health.sync_manager.fetch_daily_summaries",
+            side_effect=[auth_error, sample],
+        ),
+    ):
+        assert sync_user_health_data(user_id, force=True, scheduled_slot_key="evening") is True
+
+    assert refresh_flags == [False, True]
+    state = load_sync_state(user_id) or {}
+    assert state.get("consecutive_failures") == 0
+    assert state.get("last_scheduled_slot") == "evening"
+    assert not state.get("last_error")
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_sync_unauthenticated_after_refresh_counts_as_failure(test_data_dir):
+    user_id = _health_user(test_data_dir, "health-401-fail")
+    auth_error = CommunicationError(
+        "Google Health API authentication failed for sleep",
+        details={"status_code": 401, "unauthenticated": True, "endpoint": "sleep"},
+    )
+    with (
+        _allow_live_health_sync(),
+        patch("integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True),
+        patch(
+            "integrations.google_health.sync_manager.ensure_valid_access_token",
+            return_value="token",
+        ),
+        patch(
+            "integrations.google_health.sync_manager.fetch_daily_summaries",
+            side_effect=auth_error,
+        ),
+    ):
+        assert sync_user_health_data(user_id, force=True, scheduled_slot_key="evening") is False
+
+    state = load_sync_state(user_id) or {}
+    assert int(state.get("consecutive_failures") or 0) >= 1
+    assert "authentication failed" in str(state.get("last_error") or "")
+    assert state.get("last_scheduled_slot") != "evening"
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
 @pytest.mark.file_io
 def test_google_health_sync_state_survives_reload(test_data_dir):
     user_id = _health_user(test_data_dir, "health-reload")

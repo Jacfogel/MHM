@@ -37,6 +37,8 @@ Common component names (mapped in `core/logger.py`):
 
 `errors.log` is a dual-write ERROR/CRITICAL sink (component loggers, third-party routers, and bootstrap loggers via `setup_error_handler_logging()`), not a primary app component name. Prefer canonical names; see `CANONICAL_COMPONENT_NAMES` / `COMPONENT_NAME_ALIASES` in `core/logger.py`. Static check: `development_tools/static_checks/check_channel_loggers.py` rejects unknown `get_component_logger("...")` strings.
 
+`DiscordReconnectNoiseFilter` drops discord.py reconnect/DNS ERROR spam from `errors.log` (Wi-Fi blips). MHM disconnect/reconnect lines stay in `discord.log`; failed message sends stay ERROR.
+
 When in doubt, check the current `log_file_map` in `core/logger.py` rather than inventing new names.
 
 ---

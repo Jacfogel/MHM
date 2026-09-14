@@ -23,6 +23,7 @@ def test_is_auth_sync_failure_detects_token_errors():
     assert is_auth_sync_failure("No refresh token for user — reconnect required")
     assert is_auth_sync_failure(DEAD_REFRESH_TOKEN_ERROR)
     assert not is_auth_sync_failure("Google Health API error for sleep")
+    assert is_auth_sync_failure("Google Health API authentication failed for sleep")
     assert not is_auth_sync_failure("")
 
 

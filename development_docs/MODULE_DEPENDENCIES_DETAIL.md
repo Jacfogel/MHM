@@ -4725,13 +4725,14 @@
     - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS, GOOGLE_HEALTH_REDIRECT_URI, GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES, get_google_health_oauth_scopes)` (NEW)
     - `core.error_handling (CommunicationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
+    - `core.time_format_constants (TIMESTAMP_FULL)` (NEW)
+    - `core.time_utilities (format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `integrations.google_health.data_handlers (load_auth, save_auth)` (NEW)
     - `integrations.google_health.testing (is_google_health_testing_mode)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `collections.abc (Callable)`
-    - `datetime (datetime, timedelta, timezone)`
+    - `datetime (timedelta)`
     - `http.server (BaseHTTPRequestHandler, HTTPServer)`
     - `json`
     - `threading`
@@ -4914,7 +4915,7 @@
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `core.user_management (get_all_user_ids)` (NEW)
     - `integrations.google_health.auth (DEAD_REFRESH_TOKEN_ERROR, ensure_valid_access_token)` (NEW)
-    - `integrations.google_health.client (fetch_daily_summaries)` (NEW)
+    - `integrations.google_health.client (fetch_daily_summaries, is_unauthenticated_health_error)` (NEW)
     - `integrations.google_health.data_handlers (has_valid_auth, load_daily_summaries, load_health_signals, load_sync_state, save_daily_summaries, save_health_signals, save_sync_state)` (NEW)
     - `integrations.google_health.notifications (maybe_send_reconnect_notice)` (NEW)
     - `integrations.google_health.signal_builder (rebuild_signals_for_summaries)` (NEW)

@@ -812,6 +812,53 @@ class HeartbeatWarningFilter(logging.Filter):
         return True
 
 
+class DiscordReconnectNoiseFilter(logging.Filter):
+    """Keep transient discord.py reconnect/DNS failures out of errors.log.
+
+    discord.py logs ``Attempting a reconnect`` at ERROR with a full aiohttp
+    traceback for brief Wi-Fi/DNS blips. MHM already records disconnect and
+    reconnect in ``discord.log``; failed message sends still ERROR via the
+    communication manager.
+    """
+
+    _LOGGER_PREFIXES = ("discord", "aiohttp")
+    _MESSAGE_MARKERS = (
+        "attempting a reconnect",
+        "getaddrinfo failed",
+        "cannot connect to host gateway",
+        "clientconnectordnserror",
+    )
+
+    @handle_errors("initializing discord reconnect noise filter")
+    def __init__(self):
+        """Initialize the Discord reconnect/DNS noise filter."""
+        super().__init__()
+
+    # ERROR_HANDLING_EXCLUDE: Logger filter helper (infrastructure)
+    def _combined_message(self, record: logging.LogRecord) -> str:
+        """Return logger message plus exception text for noise matching."""
+        try:
+            message = record.getMessage()
+        except Exception:
+            message = str(record.msg or "")
+        if record.exc_info and record.exc_info[1] is not None:
+            message = f"{message} {record.exc_info[1]}"
+        return message.lower()
+
+    # ERROR_HANDLING_EXCLUDE: Logger filter method (infrastructure)
+    def filter(self, record):
+        """Return False for discord.py reconnect/DNS ERROR spam."""
+        name = record.name or ""
+        if not name.startswith(self._LOGGER_PREFIXES):
+            return True
+        if record.levelno < logging.ERROR:
+            return True
+        combined = self._combined_message(record)
+        if any(marker in combined for marker in self._MESSAGE_MARKERS):
+            return False
+        return True
+
+
 class ExcludeLoggerNamesFilter(logging.Filter):
     """
     Filter to exclude records for specific logger name prefixes.
@@ -1200,6 +1247,7 @@ def setup_third_party_error_logging():
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
         error_handler = _create_errors_file_handler(log_paths)
+        error_handler.addFilter(DiscordReconnectNoiseFilter())
 
         # Set up error logging for third-party libraries
         third_party_loggers = [
@@ -1311,6 +1359,19 @@ def suppress_noisy_logging():
         discord_gateway_logger = logging.getLogger("discord.gateway")
         heartbeat_filter = HeartbeatWarningFilter()
         discord_gateway_logger.addFilter(heartbeat_filter)
+    except Exception:
+        pass
+
+    try:
+        reconnect_filter = DiscordReconnectNoiseFilter()
+        for logger_name in (
+            "discord",
+            "discord.client",
+            "aiohttp",
+            "aiohttp.client",
+            "aiohttp.connector",
+        ):
+            logging.getLogger(logger_name).addFilter(reconnect_filter)
     except Exception:
         pass
 
