@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mhm-site",
+  "name": "mhm",
   "main": "worker.mjs",
   "compatibility_date": "2026-09-13",
   "compatibility_flags": ["global_fetch_strictly_public"],
