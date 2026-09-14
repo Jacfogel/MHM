@@ -68,10 +68,20 @@ To enable live accounts:
    tunnel. Keep the gateway on loopback when the proxy runs on the same machine.
 2. Set `WEB_PUBLIC_ORIGIN` in MHM's `.env` to the website's exact HTTPS origin
    (no path). Set `WEB_PROXY_SECRET` to at least 32 random characters.
-3. Set the Worker's `MHM_API_ORIGIN` variable to the gateway's HTTPS origin.
+3. Set the Worker's `MHM_API_ORIGIN` variable to the gateway's HTTPS origin in
+   `wrangler.jsonc` (currently `https://mhm-gateway.jacfogel.com`). `keep_vars=true`
+   also preserves additional dashboard text variables when deploying. These are
+   runtime settings under **Settings > Variables and Secrets**, not Build variables.
    Set its `MHM_API_SECRET` secret to match `WEB_PROXY_SECRET` using
    `npx wrangler secret put MHM_API_SECRET`. Never put it in client JavaScript.
 4. Deploy the Worker, then test creation and login with a controlled email.
+
+Keep `global_fetch_strictly_public` enabled in `wrangler.jsonc`. The website and
+gateway share the `jacfogel.com` zone; this flag makes gateway requests use the
+public Cloudflare path, matching requests that successfully reach the tunnel
+from a browser. See [Cloudflare's fetch routing documentation](https://developers.cloudflare.com/workers/configuration/compatibility-flags/#global-fetch-strictly-public).
+After changing Wrangler configuration, commit and push to trigger the connected
+Cloudflare build, or deploy from `website/` with an authenticated Wrangler CLI.
 
 For Discord connection, create an OAuth2 redirect in the Discord Developer Portal that exactly
 matches `DISCORD_OAUTH_REDIRECT_URI` (or `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when

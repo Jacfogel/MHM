@@ -3,6 +3,11 @@
   "name": "mhm-site",
   "main": "worker.mjs",
   "compatibility_date": "2026-09-13",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "keep_vars": true,
+  "vars": {
+    "MHM_API_ORIGIN": "https://mhm-gateway.jacfogel.com"
+  },
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
