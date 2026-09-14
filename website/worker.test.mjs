@@ -28,7 +28,7 @@ test('proxy forwards authenticated address, body, cookies and response cookie', 
     assert.equal(options.headers.get('X-MHM-Client-IP'), '192.0.2.1');
     assert.equal(options.headers.get('Origin'), url);
     assert.equal(new TextDecoder().decode(options.body), '{}');
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     return Response.json({ ok: true }, { headers: { 'Set-Cookie': 'mhm_session=test; HttpOnly; Secure' } });
   };
   try {
@@ -52,6 +52,22 @@ test('oversized bodies are rejected before proxying', async () => {
     method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: 'x'.repeat(4097),
   });
   assert.equal((await worker.fetch(request, env)).status, 413);
+});
+
+test('unexpected gateway redirects are blocked without following or exposing their destination', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async (_target, options) => {
+    calls++;
+    assert.equal(options.redirect, 'manual');
+    return new Response('redirect body', { status: 302, headers: { Location: 'https://other.example/private' } });
+  };
+  try {
+    const response = await worker.fetch(post(), env);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get('Location'), null);
+    assert.equal(calls, 1);
+  } finally { globalThis.fetch = originalFetch; }
 });
 
 test('settings allow authenticated reads and bounded saves through the proxy', async () => {

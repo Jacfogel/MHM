@@ -69,9 +69,15 @@ export default {
       }
       const response = await fetch(new URL(url.pathname + url.search, origin), {
         method, headers, body,
-        redirect: url.pathname === '/api/auth/discord/callback' ? 'manual' : 'error',
+        // Workers supports only follow/manual. Never follow a gateway redirect:
+        // it could forward the proxy secret and session cookie to another host.
+        redirect: 'manual',
         signal: AbortSignal.timeout(15000),
       });
+      if (response.status >= 300 && response.status < 400 && url.pathname !== '/api/auth/discord/callback') {
+        if (response.body) await response.body.cancel();
+        return error('MHM could not connect. Please try again shortly.', 503);
+      }
       return secured(response, true);
     } catch {
       return error('MHM could not connect. Please try again shortly.', 503);

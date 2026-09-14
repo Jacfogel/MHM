@@ -60,6 +60,9 @@ Deploy command: `npx wrangler deploy`
 
 Run the deploy command from `website/`. The Worker serves static assets and proxies
 only supported `/api/` routes. The static site alone cannot access local Python data.
+Gateway fetches use `redirect: 'manual'`, since the Workers runtime rejects
+`redirect: 'error'`. Unexpected API redirects are rejected without following them;
+the Discord callback's redirect is returned to the browser.
 
 To enable live accounts:
 
