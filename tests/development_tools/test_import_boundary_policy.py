@@ -8,10 +8,10 @@ from tests.development_tools.conftest import load_development_tools_module
 @pytest.mark.unit
 def test_development_tools_has_no_import_boundary_violations():
     """
-    Policy: development_tools/** must not import any core.* modules.
+    Policy: development_tools/** must not import host product packages.
 
     Run: python development_tools/imports/analyze_dev_tools_import_boundaries.py
-    See: development_tools/DEVELOPMENT_TOOLS_GUIDE.md §8.5
+    See: development_tools/DEVELOPMENT_TOOLS_GUIDE.md §8.6
     """
     boundary_module = load_development_tools_module(
         "imports.analyze_dev_tools_import_boundaries"
@@ -29,8 +29,8 @@ def test_development_tools_has_no_import_boundary_violations():
         lines = [f"  - {v.get('file')}: {v.get('module')}" for v in details[:10]]
         msg = (
             f"Import boundary policy violated: {violations} violation(s). "
-            f"Remove all core.* imports from development_tools; use development_tools.shared.logging. "
-            f"See DEVELOPMENT_TOOLS_GUIDE.md §8.5.\n"
+            f"Remove host-package imports from development_tools; use development_tools.shared.logging. "
+            f"See DEVELOPMENT_TOOLS_GUIDE.md §8.6.\n"
             + "\n".join(lines)
         )
         pytest.fail(msg)

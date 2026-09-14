@@ -2,16 +2,15 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-01 01:28:07
+> **Last Generated**: 2026-09-13 23:10:32
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000DF 5EAC:07BC
+Volume serial number is 00000023 5EAC:07BC
 C:.
-|   .coverage
 |   .cursorignore
 |   .env
 |   .env.example
@@ -512,6 +511,7 @@ C:.
 |   |   |   export_docs_snapshot.py
 |   |   |   file_rotation.py
 |   |   |   fix_project_cleanup.py
+|   |   |   host_hooks.py
 |   |   |   lock_state.py
 |   |   |   logging.py
 |   |   |   measure_tool_timings.py
@@ -931,6 +931,7 @@ C:.
 |   |   |   test_generate_error_handling_report.py
 |   |   |   test_generate_function_registry.py
 |   |   |   test_generate_module_dependencies.py
+|   |   |   test_host_hooks.py
 |   |   |   test_import_boundary_policy.py
 |   |   |   test_integration_workflows.py
 |   |   |   test_legacy_reference_cleanup.py
@@ -945,6 +946,7 @@ C:.
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_dev_tools_scope.py
 |   |   |   test_report_generation_helpers_pure.py
+|   |   |   test_report_generation_problem_payload.py
 |   |   |   test_report_generation_quick_wins.py
 |   |   |   test_report_generation_static_analysis.py
 |   |   |   test_result_format.py
@@ -1039,6 +1041,7 @@ C:.
 |   |   |   test_admin_actions.py
 |   |   |   test_category_management_dialog.py
 |   |   |   test_channel_management_dialog_coverage_expansion.py
+|   |   |   test_channel_selection_widget.py
 |   |   |   test_channel_status_log_merge.py
 |   |   |   test_checkin_settings_widget_question_counts.py
 |   |   |   test_dialogs.py
@@ -1046,12 +1049,17 @@ C:.
 |   |   |   test_dialog_behavior.py
 |   |   |   test_dialog_cancel_does_not_commit.py
 |   |   |   test_dialog_coverage_expansion.py
+|   |   |   test_dynamic_list_field.py
+|   |   |   test_google_health_settings_dialog.py
 |   |   |   test_message_editor_dialog.py
+|   |   |   test_natural_language_settings.py
 |   |   |   test_process_watcher_dialog.py
 |   |   |   test_request_actions.py
 |   |   |   test_scheduler_actions.py
+|   |   |   test_service_manager.py
 |   |   |   test_signal_handler_integration.py
 |   |   |   test_status_provider.py
+|   |   |   test_task_completion_dialog.py
 |   |   |   test_task_crud_dialog.py
 |   |   |   test_task_management_dialog.py
 |   |   |   test_task_settings_widget.py
@@ -1065,6 +1073,7 @@ C:.
 |   |   |   test_user_analytics_dialog.py
 |   |   |   test_user_list_provider.py
 |   |   |   test_user_profile_dialog_coverage_expansion.py
+|   |   |   test_user_profile_settings_widget.py
 |   |   |   test_widget_behavior.py
 |   |   |   test_widget_behavior_simple.py
 |   |   |
@@ -1295,6 +1304,13 @@ C:.
 |   |   user_preferences.py
 |   |   __init__.py
 |   |
++---website
+|       index.html
+|       README.md
+|       script.js
+|       styles.css
+|       wrangler.jsonc
+|
 
 ---
 

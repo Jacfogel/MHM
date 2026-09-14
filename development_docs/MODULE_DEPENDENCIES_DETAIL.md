@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-01 01:27:30
+> **Last Generated**: 2026-09-13 23:09:52
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 272
-- **Total Imports Found**: 2313
+- **Total Imports Found**: 2314
 - **Dependencies Documented**: 272 (100% coverage)
 - **Standard Library Imports**: 685 (29.6%)
 - **Third-Party Imports**: 216 (9.3%)
-- **Local Imports**: 1412 (61.0%)
-- **Last Updated**: 2026-09-01
+- **Local Imports**: 1413 (61.1%)
+- **Last Updated**: 2026-09-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 685 imports (29.6%)
 - **Third-Party**: 216 imports (9.3%)
-- **Local**: 1412 imports (61.0%)
+- **Local**: 1413 imports (61.1%)
 
 ## Module Dependencies by Directory
 
@@ -4518,6 +4518,7 @@
   - `core/profile_v2_io.py`
   - `core/schedule_utilities.py`
   - `core/time_utilities.py`
+  - `integrations/google_health/auth.py`
 
 **Dependency Changes**:
 - Removed: ai/context/service.py, communication/command_handlers/notebook_handler.py, communication/message_processing/user_suggestions.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py
@@ -4719,7 +4720,7 @@
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `integrations/google_health/auth.py`
-- **Purpose**: Test-related module
+- **Purpose**: Core system module with heavy core dependencies
 - **Dependencies**:
   - **Local**:
     - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS, GOOGLE_HEALTH_REDIRECT_URI, GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES, get_google_health_oauth_scopes)` (NEW)
@@ -4745,7 +4746,7 @@
   - `integrations/google_health/user_settings.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.time_utilities, integrations.google_health.data_handlers, integrations.google_health.testing
+- Added: core.config, core.error_handling, core.logger, core.time_format_constants, core.time_utilities, integrations.google_health.data_handlers, integrations.google_health.testing
 - Removed: collections.abc, http.server, integrations/google_health/sync_manager.py, integrations/google_health/user_settings.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->

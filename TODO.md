@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-08-28 (task offers, pronoun leftover fix, in-flow notes, task-list wording, which-task numbers)
+> **Last Updated**: 2026-09-13 (task offers, pronoun leftover fix, in-flow notes, task-list wording, which-task numbers, dev-tools extraction)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -33,16 +33,16 @@ When adding new tasks, follow this format:
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md).
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
-**Note**: Development tools V6 plan is **archived**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md). V4/V5 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md). Live triage: [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md).
+**Note**: Development tools V6 plan is **archived**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md). Extraction (logical split, later sibling repo): [PLANS.md](development_docs/PLANS.md) Section 6.4. Live triage: [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md).
 **Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here. Coverage-growth follow-ups from this session are tracked in TEST_PLAN Phase 5.7.
 **Legacy/Deprecation Source of Truth**: Align legacy cleanup with `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). Historical notes: archived V6 section 5.6.
 
 **Parallel product work (from audits)**: After `audit --full` (and `coverage` when metrics need refresh), use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity.
 
-**Development tools (reviewed 2026-07-28 - V6 archived)**
+**Development tools (reviewed 2026-09-13 - extraction active)**
 - **Live triage**: generated [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) + `python development_tools/run_development_tools.py coverage` when metrics need refresh.
-- **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP). Detail in [PLANS.md](development_docs/PLANS.md) Section 6.4 and archived [V6 Section 3.6](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
-- **Maintenance only**: reopen B-001/B-003-B-008 style work only on regression/noise; see archived V6 backlog register.
+- **Extraction**: logical split in this repo first, sibling repo later. Detail in [PLANS.md](development_docs/PLANS.md) Section 6.4.
+- **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP).
 - **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 **Use / fit** (2026-05-21 status): System AI overhaul is complete; post-overhaul AI quality work is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.

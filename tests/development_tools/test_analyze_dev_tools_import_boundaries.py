@@ -66,6 +66,63 @@ def test_extract_import_modules_handles_syntax_error(tmp_path):
 
 
 @pytest.mark.unit
+def test_checker_detects_host_package_import(tmp_path, monkeypatch):
+    """Checker flags host prefixes other than core (for example communication)."""
+    monkeypatch.setattr(
+        boundary_module,
+        "get_forbidden_host_import_prefixes",
+        lambda: ("core", "communication", "tests"),
+    )
+    checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))
+    dev_tools = tmp_path / "development_tools"
+    dev_tools.mkdir()
+    bad_file = dev_tools / "bad_import.py"
+    bad_file.write_text(
+        "from communication.communication_manager import CommunicationManager\n",
+        encoding="utf-8",
+    )
+
+    result = checker.analyze()
+
+    assert result["summary"]["total_issues"] >= 1
+    violations = result["details"]["violations"]
+    assert any(v["module"] == "communication.communication_manager" for v in violations)
+
+
+@pytest.mark.unit
+def test_checker_does_not_flag_dataclasses_as_data_prefix(tmp_path, monkeypatch):
+    """'data' host prefix must not match the stdlib dataclasses module."""
+    monkeypatch.setattr(
+        boundary_module,
+        "get_forbidden_host_import_prefixes",
+        lambda: ("core", "data", "tests"),
+    )
+    checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))
+    dev_tools = tmp_path / "development_tools"
+    dev_tools.mkdir()
+    clean_file = dev_tools / "clean_import.py"
+    clean_file.write_text("from dataclasses import dataclass\n", encoding="utf-8")
+
+    result = checker.analyze()
+
+    assert result["summary"]["total_issues"] == 0
+
+
+@pytest.mark.unit
+def test_checker_ignores_relative_core_import(tmp_path):
+    """from .core import ... is in-package, not a host core import."""
+    checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))
+    dev_tools = tmp_path / "development_tools"
+    (dev_tools / "shared" / "service").mkdir(parents=True)
+    init_file = dev_tools / "shared" / "service" / "__init__.py"
+    init_file.write_text("from .core import AIToolsService\n", encoding="utf-8")
+
+    result = checker.analyze()
+
+    assert result["summary"]["total_issues"] == 0
+
+
+@pytest.mark.unit
 def test_analyze_returns_standard_format(tmp_path):
     """analyze() returns standard summary/details structure."""
     checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))

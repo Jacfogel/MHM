@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-08-28  
+> **Last Updated**: 2026-09-13  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -33,7 +33,7 @@ Do **not** use this file as a dumping ground for long implementation checklists.
 | Testing roadmap | [TEST_PLAN.md](TEST_PLAN.md) |
 | Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
 | Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
-| AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
+| AI/dev-tools roadmap | Extraction [Section 6.4](#64-ai-development-tools); archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
 | Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
@@ -67,7 +67,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Everyday capture phrasing shipped 2026-08-26; live Discord Show More/help spot-check; bulk later |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; structured task links shipped 2026-08-27; pronoun follow-ups (`make that due tomorrow`) shipped 2026-08-28; attachments remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
-| AI development tools | **ARCHIVED / MAINTENANCE** | Medium | [V6 archive](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | V6 archived 2026-07-28; residual B-016 full `--audit-scope`; product work via AI_PRIORITIES |
+| AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
 | Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy (everyday phrasing shipped); command-list parity shipped 2026-08-26; response-time tuning; actionability sprint |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
@@ -270,15 +270,26 @@ These plans should not be duplicated in detail here.
 
 ### 6.4 AI development tools
 
-**Status**: **ARCHIVED / MAINTENANCE**  
+**Status**: **ACTIVE**  
 **Priority**: Medium  
-**Detailed plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived 2026-07-28)
+**Started**: 2026-09-13  
+**Destination**: separate git repo after the in-repo guest package is honest.
 
-**Current focus**:
+**Current increment (logical split)**:
 
-- Prefer generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10.1 for triage.
-- **Residual from V6 (B-016)**: `--audit-scope` MVP is Tier-2/scan-dir only; Tier 3/static/pytest/coverage and per-scope `AI_*` filenames remain unsupported until explicitly resumed.
-- No active V6 execution backlog; do not reopen Radon/pydeps/pre-commit/gap-tool work without a new plan.
+- Host backup drill/health uses `host.backup_manager_module` via [`host_hooks.py`](../development_tools/shared/host_hooks.py); portable default skips.
+- Import boundary forbids all host prefixes from `local_module_prefixes` except `development_tools`.
+- Remaining V6 item **B-016** (`--audit-scope` beyond Tier 2) stays parked; do not reopen Radon/pydeps/pre-commit without a new plan.
+
+**Still in this repo before a sibling-repo cut**:
+
+- Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
+- Give the tools suite its own pytest config/fixtures (`tests/development_tools/` is the largest remaining knot).
+- Keep generated-report paths config-driven (`development_docs/` / `ai_development_docs/` must not be hardcoded).
+- Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
+- Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.
+
+**Triage**: generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6. V6 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 ---
 

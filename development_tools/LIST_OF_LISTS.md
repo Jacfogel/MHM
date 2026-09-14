@@ -5,7 +5,7 @@
 **Purpose**: Current ownership map for list-like data (arrays, mappings, enumerated sets) in **development tools** code and config. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](../development_docs/PRODUCT_LIST_OF_LISTS.md). Planning ownership: [PLANS.md](../development_docs/PLANS.md) Section 2.
 
 **Audience**: Maintainers, AI collaborators.
-**Last updated**: 2026-08-10 (SSOT cleanup: omit default-copy JSON; retire `audit_scripts`; STORAGE_SCOPE re-export)
+**Last updated**: 2026-09-13 (host adapters + forbidden-import derivation)
 
 **Config shorthand**: `development_tools_config.json` means `development_tools/config/development_tools_config.json` (loaded by `development_tools/config/config.py`). Template: `development_tools/config/development_tools_config.json.example`.
 
@@ -97,6 +97,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 
 | What | Canonical source | Notes |
 |------|------------------|-------|
+| **Host adapters** | config `host.backup_manager_module` / `backup_manager_attr` | Portable code default is empty (skip). MHM live/example JSON sets `core.backup_manager`. Loader: `development_tools/shared/host_hooks.py`. Forbidden import prefixes are derived from `local_module_prefixes` minus `development_tools` |
 | **local_module_prefixes** | config `constants.local_module_prefixes` | Drives derived `scan_directories` / `core_modules` / `project_directories` via `derived_prefix_excludes`. MHM `core` excludes omit `development_tools` so `CORE_MODULES` includes it (documented in live/example `_comment`); portable default excludes `development_tools` from core |
 | **Common names / third-party / code patterns** | config `constants.common_*`, `third_party_libraries` | Loaded by `development_tools/shared/constants.py` with portable fallbacks |
 | **Test markers** | config top-level `test_markers` | `directory_to_marker` derived from `categories` when absent; `development_tools/shared/constants.py` re-exports |

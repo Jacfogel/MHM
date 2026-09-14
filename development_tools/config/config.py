@@ -1575,6 +1575,29 @@ def get_system_signals_config():
     return SYSTEM_SIGNALS
 
 
+# Optional host-project adapters. Empty module means skip product backup commands.
+# MHM sets host.backup_manager_module in development_tools_config.json.
+HOST_DEFAULTS = {
+    "backup_manager_module": "",
+    "backup_manager_attr": "backup_manager",
+}
+
+
+def get_host_config() -> dict[str, str]:
+    """Get optional host adapters (backup manager module/attr). Portable default is skip."""
+    result = HOST_DEFAULTS.copy()
+    external_config = _get_external_value("host", None)
+    if not isinstance(external_config, dict):
+        return result
+    module = external_config.get("backup_manager_module")
+    if isinstance(module, str):
+        result["backup_manager_module"] = module.strip()
+    attr = external_config.get("backup_manager_attr")
+    if isinstance(attr, str) and attr.strip():
+        result["backup_manager_attr"] = attr.strip()
+    return result
+
+
 # Backup policy configuration
 BACKUP_POLICY = {
     "categories": {

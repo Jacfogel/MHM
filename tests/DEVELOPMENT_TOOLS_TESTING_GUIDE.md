@@ -38,6 +38,7 @@ Note:
 The development tools test suite is organized into focused, maintainable modules:
 
 - **`tests/development_tools/conftest.py`**: Shared fixtures (demo project, temp copies, config paths, module loading)
+- **`tests/development_tools/test_host_hooks.py`**: Host backup adapter loading and forbidden import-prefix derivation
 - **`tests/development_tools/test_config.py`**: Configuration validation and structure tests
 - **`tests/development_tools/test_constants.py`**: Constants and exclusion pattern tests
 - **`tests/development_tools/test_standard_exclusions.py`**: File exclusion logic tests

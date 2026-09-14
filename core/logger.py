@@ -854,9 +854,7 @@ class DiscordReconnectNoiseFilter(logging.Filter):
         if record.levelno < logging.ERROR:
             return True
         combined = self._combined_message(record)
-        if any(marker in combined for marker in self._MESSAGE_MARKERS):
-            return False
-        return True
+        return not any(marker in combined for marker in self._MESSAGE_MARKERS)
 
 
 class ExcludeLoggerNamesFilter(logging.Filter):

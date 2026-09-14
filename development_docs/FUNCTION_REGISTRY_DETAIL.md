@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-01 01:27:16
+> **Last Generated**: 2026-09-13 23:09:30
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 274
-- **Functions Found**: 2641
-- **Methods Found**: 1383
-- **Classes Found**: 252
-- **Total Items**: 4024
-- **Functions Documented**: 2340
-- **Methods Documented**: 1238
-- **Classes Documented**: 189
-- **Total Documented**: 3578
+- **Functions Found**: 2646
+- **Methods Found**: 1386
+- **Classes Found**: 253
+- **Total Items**: 4032
+- **Functions Documented**: 2345
+- **Methods Documented**: 1241
+- **Classes Documented**: 190
+- **Total Documented**: 3586
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-01
+- **Last Updated**: 2026-09-13
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (469)
+### **Core System Functions** (472)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (690)
@@ -3866,8 +3866,8 @@ Raises:
     OSError: If file operations fail
 - [OK] `file_lock(file_path, timeout, retry_interval)` - Context manager for file locking on Unix/Linux.
 
-Uses fcntl.flock() to acquire an exclusive lock on a file.
-Retries if the file is locked by another process.
+Uses fcntl.flock() on a sidecar `{file_path}.lock` so the data inode
+is not exclusive-locked (a locked data fd can read as empty).
 
 Args:
     file_path: Path to the file to lock
@@ -3875,7 +3875,7 @@ Args:
     retry_interval: Time between lock attempts (seconds)
 
 Yields:
-    File handle (opened in 'r+b' mode for locking)
+    File handle for the data path (opened in 'r+b' mode)
 
 Raises:
     TimeoutError: If lock cannot be acquired within timeout
@@ -4097,6 +4097,7 @@ Args:
 
 Sets up counters and timers for tracking Discord heartbeat warnings
 to prevent log spam while maintaining visibility of the issue.
+- [OK] `__init__(self)` - Initialize the Discord reconnect/DNS noise filter.
 - [OK] `__init__(self, excluded_prefixes)` - Initialize filter with list of logger name prefixes to exclude.
 
 Args:
@@ -4113,6 +4114,7 @@ to keep test output clean when verbose logging is disabled.
 
 Args:
     name: Component name (e.g., 'discord', 'ai')
+- [OK] `_combined_message(self, record)` - Return logger message plus exception text for noise matching.
 - [OK] `_copy_locked_log_to_backup(self, backup_path, min_file_size)` - Fallback path for locked files: copy to backup and truncate original if safe.
 - [OK] `_create_errors_file_handler(log_paths)` - Build a rotating ERROR-level handler targeting errors.log.
 - [OK] `_finalize_rollover_stream(self, current_time, backup_path, dfn)` - Reopen the active stream and restore files when post-rotation verification fails.
@@ -4171,6 +4173,7 @@ Args:
 
 Returns:
     bool: True if record should be logged, False to suppress
+- [OK] `filter(self, record)` - Return False for discord.py reconnect/DNS ERROR spam.
 - [OK] `filter(self, record)` - Filter log records based on excluded prefixes.
 
 Args:
@@ -4302,6 +4305,15 @@ Args:
   - [OK] `ComponentLogger.error(self, message)` - Log error message with optional structured data.
   - [OK] `ComponentLogger.info(self, message)` - Log info message with optional structured data.
   - [OK] `ComponentLogger.warning(self, message)` - Log warning message with optional structured data.
+- [OK] `DiscordReconnectNoiseFilter` - Keep transient discord.py reconnect/DNS failures out of errors.log.
+
+discord.py logs ``Attempting a reconnect`` at ERROR with a full aiohttp
+traceback for brief Wi-Fi/DNS blips. MHM already records disconnect and
+reconnect in ``discord.log``; failed message sends still ERROR via the
+communication manager.
+  - [OK] `DiscordReconnectNoiseFilter.__init__(self)` - Initialize the Discord reconnect/DNS noise filter.
+  - [OK] `DiscordReconnectNoiseFilter._combined_message(self, record)` - Return logger message plus exception text for noise matching.
+  - [OK] `DiscordReconnectNoiseFilter.filter(self, record)` - Return False for discord.py reconnect/DNS ERROR spam.
 - [MISSING] `DummyComponentLogger` - No description
   - [OK] `DummyComponentLogger.__init__(self, name)` - Initialize a dummy component logger for test mode.
 
@@ -4345,15 +4357,6 @@ Args:
 
 Returns:
     bool: True if record should be logged, False to suppress
-- [OK] `DiscordReconnectNoiseFilter` - Keep transient discord.py reconnect/DNS failures out of errors.log.
-
-discord.py logs ``Attempting a reconnect`` at ERROR with a full aiohttp
-traceback for brief Wi-Fi/DNS blips. MHM already records disconnect and
-reconnect in ``discord.log``; failed message sends still ERROR via the
-communication manager.
-  - [OK] `DiscordReconnectNoiseFilter.__init__(self)` - Initialize the Discord reconnect/DNS noise filter.
-  - [OK] `DiscordReconnectNoiseFilter._combined_message(self, record)` - Return logger message plus exception text for noise matching.
-  - [OK] `DiscordReconnectNoiseFilter.filter(self, record)` - Return False for discord.py reconnect/DNS ERROR spam.
 - [OK] `PytestContextLogFormatter` - Custom formatter that automatically prepends test names to log messages.
   - [OK] `PytestContextLogFormatter.format(self, record)` - Format log record with test context prepended when in test mode.
 
@@ -5023,16 +5026,17 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `integrations/google_health/auth.py`
 **Functions:**
-- [OK] `_expires_at_from_token_response(token_data)` - Convert OAuth expires_in seconds to a local expiry timestamp string (local clock, not UTC).
+- [OK] `_expires_at_from_token_response(token_data)` - Convert OAuth expires_in seconds to a local expiry timestamp string.
 - [OK] `_is_dead_refresh_token_failure(status_code, oauth_error)` - Return True when Google rejected the refresh token (reconnect, not retry).
 - [OK] `_oauth_error_fields(response)` - Return OAuth error and error_description from a token response (never tokens).
 - [OK] `_respond(self, status, message)` - Send a minimal HTML response to the browser after OAuth redirect.
 - [OK] `_token_needs_refresh(auth)` - Return True when the access token is missing, unparseable, or near expiry.
 - [OK] `build_authorization_url(state)` - Build OAuth authorization URL (never include include_granted_scopes).
 - [OK] `do_GET(self)` - Parse authorization code or error from the OAuth redirect query string.
-- [OK] `ensure_valid_access_token(user_id, force_refresh)` - Return a valid access token, refreshing automatically when needed or when force_refresh is True.
+- [OK] `ensure_valid_access_token(user_id)` - Return a valid access token, refreshing automatically when needed.
 
-Updates google_health_auth.json on refresh.
+Updates google_health_auth.json on refresh. When ``force_refresh`` is True,
+always refresh even if stored ``expires_at`` still looks valid (API 401).
 - [OK] `exchange_code_for_tokens(code)` - Exchange OAuth authorization code for access + refresh tokens.
 - [OK] `log_message(self, format)` - Route HTTP server log lines to the google_health component logger.
 - [OK] `refresh_access_token(refresh_token)` - Refresh an access token using a stored refresh token.
@@ -5060,7 +5064,7 @@ Blocks until callback or timeout. Intended for one-time connect.
 - [OK] `_date_from_civil_datetime(civil)` - Extract YYYY-MM-DD from a Google Health civil datetime object.
 - [OK] `_date_from_data_point(point)` - Extract calendar date from any supported Google Health data point shape.
 - [OK] `_date_from_interval(interval)` - Extract calendar date from a Google Health interval payload.
-- [OK] `_fetch_points_for_type(access_token, fetcher)` - Fetch points for one data type; 401 aborts instead of falling back.
+- [MISSING] `_fetch_points_for_type(access_token, fetcher)` - No description
 - [OK] `_health_api_error(endpoint, status_code)` - Build a CommunicationError for a non-200 Google Health HTTP response.
 - [OK] `_interval_duration_minutes(interval)` - Compute minutes between interval start and end timestamps.
 - [OK] `_list_daily_rollups_single(access_token, endpoint)` - Single dailyRollUp request for an inclusive civil date range (max ~14 days).
@@ -5075,7 +5079,7 @@ Blocks until callback or timeout. Intended for one-time connect.
 - [OK] `_parse_iso_datetime(raw)` - Parse ISO-8601 timestamps from Google Health API responses.
 - [OK] `_resolve_data_type_spec(data_type)` - Resolve endpoint slug and filter prefix for a data type key.
 - [OK] `_sleep_payload(point)` - Return nested sleep object or the point itself when sleep is top-level.
-- [OK] `fetch_daily_summaries(access_token)` - Fetch and normalize daily summaries for the lookback window. HTTP 401 aborts so sync can refresh and retry.
+- [OK] `fetch_daily_summaries(access_token)` - Fetch and normalize daily summaries for the lookback window.
 - [OK] `is_unauthenticated_health_error(error)` - Return True when a Google Health API call failed with HTTP 401.
 - [OK] `list_daily_rollups(access_token, data_type)` - Fetch daily rollup totals in <=14-day civil chunks (Google API limit).
 - [OK] `list_data_points(access_token, data_type)` - List data points for a data type (users/me).
@@ -5158,7 +5162,7 @@ Returns empty list when confidence is low or data insufficient.
 - [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
 - [MISSING] `pause_google_health_feature(user_id)` - No description
 - [OK] `sync_all_enabled_users()` - Run sync for every user with google_health enabled (ignores schedule slots).
-- [OK] `sync_user_health_data(user_id)` - Sync Google Health data for one user. On HTTP 401, force-refresh the access token and retry once.
+- [OK] `sync_user_health_data(user_id)` - Sync Google Health data for one user.
 
 Skips when globally disabled, testing mode, feature not enabled, or no auth.
 - [OK] `sync_users_due_for_schedule()` - Sync enabled users whose local wall-clock schedule slot is due.

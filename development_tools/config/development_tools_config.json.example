@@ -8,6 +8,10 @@
       "core/config.py"
     ]
   },
+  "host": {
+    "_comment": "Optional host adapters. Omit or leave backup_manager_module empty to skip product backup drill/health. MHM uses core.backup_manager.",
+    "backup_manager_module": "core.backup_manager"
+  },
   "paths": {
     "project_root": ".",
     "docs_dir": "development_docs",

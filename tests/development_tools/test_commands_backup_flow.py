@@ -119,3 +119,49 @@ def test_run_backup_retention_apply_executes_when_not_dry_run(
 
     assert result["success"] is True
     assert captured.get("dry_run") is False
+
+
+@pytest.mark.unit
+def test_run_backup_drill_skips_when_host_backup_unconfigured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(commands_module, "load_host_backup_manager", lambda *_a, **_k: None)
+    service = AIToolsService(project_root=str(tmp_path))
+    result = service.run_backup_drill()
+    assert result["success"] is True
+    assert result.get("skipped") is True
+    data = result.get("data")
+    assert isinstance(data, dict)
+    summary = data.get("summary")
+    assert isinstance(summary, dict)
+    assert summary.get("status") == "SKIP"
+
+
+@pytest.mark.unit
+def test_run_backup_health_skips_when_host_backup_unconfigured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(commands_module, "load_host_backup_manager", lambda *_a, **_k: None)
+    service = AIToolsService(project_root=str(tmp_path))
+    result = service.run_backup_health_check(run_drill=False)
+    assert result["success"] is True
+    assert result.get("skipped") is True
+    data = result.get("data")
+    assert isinstance(data, dict)
+    summary = data.get("summary")
+    assert isinstance(summary, dict)
+    assert summary.get("status") == "SKIP"
+
+
+@pytest.mark.unit
+def test_run_backup_health_errors_when_host_backup_misconfigured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    def _boom(*_a, **_k):
+        raise commands_module.HostBackupLoadError("host backup missing")
+
+    monkeypatch.setattr(commands_module, "load_host_backup_manager", _boom)
+    service = AIToolsService(project_root=str(tmp_path))
+    result = service.run_backup_health_check(run_drill=False)
+    assert result["success"] is False
+    assert "host backup missing" in str(result.get("error", ""))

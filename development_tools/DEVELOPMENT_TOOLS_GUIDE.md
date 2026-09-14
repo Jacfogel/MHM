@@ -584,19 +584,19 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Purpose**: Keep `development_tools/` portable and isolated from MHM business logic so the tool suite can run in external repositories without depending on project-specific modules.
 
-**`core.*` imports**: None. All imports from `core.*` inside `development_tools/**` are rejected by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
+**Host-package imports**: None. `development_tools/**` must not import host product packages. The import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`, Tier 1) forbids prefixes from `constants.local_module_prefixes` except `development_tools` itself. Matching is exact-or-subpackage (`core` and `core.logger` are forbidden; `dataclasses` is not `data`).
 
 **Rationale**:
-- Any `core` import couples the tool suite to MHM runtime modules (including transitive imports such as `core.config` inside `core.logger`).
+- Any host import couples the tool suite to the current project (including transitive imports such as `core.config` inside `core.logger`).
 - Use dev-tools-local helpers instead:
   - **Logging**: `development_tools.shared.logging` (`get_dev_tools_logger`). The default file is `development_tools/reports/logs/ai_dev_tools.log` for all dev-tools entry points (handler level **INFO** by default; use `DEV_TOOLS_LOG_LEVEL=DEBUG` for full detail). The log rotates at 1 MB by default, with rotated copies kept under `development_tools/reports/logs/backups/`. Override with `LOG_AI_DEV_TOOLS_FILE`, `DEV_TOOLS_LOGS_DIR`, or `DEV_TOOLS_LOG_MAX_BYTES` only for isolated runs.
   - **Timestamps**: `development_tools.shared.time_helpers` (`now_timestamp_full`, `now_timestamp_filename`)
   - **Error handling**: `development_tools.shared.error_helpers` (`handle_errors` decorator)
-  - **Backup manager**: Use `importlib.import_module("core.backup_manager")` inside the function that needs it, then access `mod.backup_manager`; treat failures as "backup not available" for host repos without that module.
+  - **Backup manager**: Optional host adapter via `host.backup_manager_module` in `development_tools_config.json`. Loaded by `development_tools.shared.host_hooks.load_host_backup_manager`. Empty module (the portable default) skips backup drill/health. The imported module file must live under `--project-root`. MHM sets `core.backup_manager`.
 
-**Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or load it via dynamic import with a documented fallback; do not add `core.*` static imports under `development_tools/**`.
+**Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or add a documented `host.*` adapter; do not add host-package static imports under `development_tools/**`.
 
-**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `pytest tests/development_tools/test_import_boundary_policy.py`.
+**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `pytest tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md) Section 6.4 for the extraction roadmap.
 
 ---
 

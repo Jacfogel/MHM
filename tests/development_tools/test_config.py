@@ -241,6 +241,15 @@ class TestConfigHelperFunctions:
         assert isinstance(result, dict)
 
     @pytest.mark.unit
+    def test_get_host_config_has_backup_adapter_keys(self):
+        """Host adapter config always includes backup module/attr keys."""
+        result = config.get_host_config()
+        assert isinstance(result, dict)
+        assert "backup_manager_module" in result
+        assert "backup_manager_attr" in result
+        assert result["backup_manager_attr"] == "backup_manager"
+
+    @pytest.mark.unit
     def test_get_static_analysis_config_includes_owned_config_paths(self):
         """Static analysis config should include explicit owned config paths."""
         result = config.get_static_analysis_config()

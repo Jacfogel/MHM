@@ -13,6 +13,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
 
+from development_tools.shared.host_hooks import (
+    HostBackupLoadError,
+    load_host_backup_manager,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_filename
 
@@ -1701,27 +1705,24 @@ class CommandsMixin:
         """Run isolated restore drill for latest core user backup."""
         restore_destination: Path | None = None
         try:
-            import importlib
-
-            if not (self.project_root / "core" / "backup_manager.py").exists():
-                return {
-                    "success": True,
-                    "skipped": True,
-                    "data": {
-                        "summary": {
-                            "success": True,
-                            "status": "SKIP",
-                            "message": "Backup drill skipped: no project backup manager is configured.",
-                        },
-                        "verification": {},
-                    },
-                }
-            mod = importlib.import_module("core.backup_manager")
-            backup_manager = mod.backup_manager
-        except Exception as e:
+            backup_manager = load_host_backup_manager(project_root=self.project_root)
+        except HostBackupLoadError as e:
             return {
                 "success": False,
-                "error": f"Core backup manager unavailable: {e}",
+                "error": str(e),
+            }
+        if backup_manager is None:
+            return {
+                "success": True,
+                "skipped": True,
+                "data": {
+                    "summary": {
+                        "success": True,
+                        "status": "SKIP",
+                        "message": "Backup drill skipped: no host backup manager is configured.",
+                    },
+                    "verification": {},
+                },
             }
 
         try:
@@ -1817,34 +1818,31 @@ class CommandsMixin:
         checks: list[dict[str, object]] = []
         report_paths: dict[str, str] = {}
         try:
-            import importlib
-
-            if not (self.project_root / "core" / "backup_manager.py").exists():
-                payload = {
-                    "generated_at": datetime.now().isoformat(timespec="seconds"),
-                    "project_root": str(self.project_root),
-                    "summary": {
-                        "status": "SKIP",
-                        "total_issues": 0,
-                        "files_affected": 0,
-                        "success": True,
-                        "total_checks": 0,
-                        "passed_checks": 0,
-                        "latest_backup_path": None,
-                        "latest_backup_created_at": None,
-                        "drill_executed": False,
-                        "message": "Backup health skipped: no project backup manager is configured.",
-                    },
-                    "details": {"checks": [], "failed_checks": []},
-                }
-                return {"success": True, "skipped": True, "data": payload}
-            mod = importlib.import_module("core.backup_manager")
-            backup_manager = mod.backup_manager
-        except Exception as e:
+            backup_manager = load_host_backup_manager(project_root=self.project_root)
+        except HostBackupLoadError as e:
             return {
                 "success": False,
-                "error": f"Core backup manager unavailable: {e}",
+                "error": str(e),
             }
+        if backup_manager is None:
+            payload = {
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+                "project_root": str(self.project_root),
+                "summary": {
+                    "status": "SKIP",
+                    "total_issues": 0,
+                    "files_affected": 0,
+                    "success": True,
+                    "total_checks": 0,
+                    "passed_checks": 0,
+                    "latest_backup_path": None,
+                    "latest_backup_created_at": None,
+                    "drill_executed": False,
+                    "message": "Backup health skipped: no host backup manager is configured.",
+                },
+                "details": {"checks": [], "failed_checks": []},
+            }
+            return {"success": True, "skipped": True, "data": payload}
 
         try:
             inventory_result = self.run_backup_inventory()

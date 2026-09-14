@@ -5,7 +5,8 @@
 """
 Development-tools import boundary checker.
 
-Ensures modules under development_tools/** do not import core.* (or other business packages).
+Ensures modules under development_tools/** do not import host product packages
+(derived from constants.local_module_prefixes, minus development_tools).
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import ast
 from pathlib import Path
 from typing import Any
 
+from development_tools.shared.host_hooks import get_forbidden_host_import_prefixes
 from development_tools.shared.logging import get_dev_tools_logger
 
 try:
@@ -70,12 +72,20 @@ class DevToolsImportBoundaryChecker:
                     if alias.name:
                         modules.append(alias.name)
             elif isinstance(node, ast.ImportFrom):
-                if node.module:
+                # Relative imports (from .core import X) are in-package, not host packages.
+                if node.level == 0 and node.module:
                     modules.append(node.module)
         return modules
 
     def _is_dev_tools_file(self, rel_path: str) -> bool:
         return rel_path.startswith("development_tools/")
+
+    def _is_forbidden_host_import(self, module_name: str) -> bool:
+        """True when module_name is a host package (exact match or subpackage)."""
+        for prefix in get_forbidden_host_import_prefixes():
+            if module_name == prefix or module_name.startswith(prefix + "."):
+                return True
+        return False
 
     def analyze(self) -> dict[str, Any]:
         """Return standard-format result with import-boundary violations."""
@@ -88,12 +98,12 @@ class DevToolsImportBoundaryChecker:
 
             imported_modules = self._extract_import_modules(file_path)
             for module_name in imported_modules:
-                if module_name.startswith("core."):
+                if self._is_forbidden_host_import(module_name):
                     violations.append(
                         {
                             "file": rel_str,
                             "module": module_name,
-                            "reason": "core package import inside development_tools",
+                            "reason": "host package import inside development_tools",
                         }
                     )
 

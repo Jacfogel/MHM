@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-13 - Dev-tools logical split: host backup adapter and host import boundary **COMPLETED**
+- Backup drill/health load `host.backup_manager_module` via `shared/host_hooks.py`; empty module skips. MHM config still points at `core.backup_manager`.
+- Import boundary now forbids all host prefixes from `local_module_prefixes` except `development_tools`.
+- Extraction remaining work (tests, report paths, later sibling repo) is in PLANS.md Section 6.4.
+- Hygiene: Ruff SIM103/B009, ASCII Section replacements, regenerated function registry for `_combined_message`. Host-hook test asserts `list_backups()` so Pyright does not warn on a dummy `marker` attribute.
+
 ### 2026-09-12 - Google Health token expiry uses local time and 401 retries **COMPLETED**
 - Access-token `expires_at` is stored from the local clock, matching the refresh check (UTC storage made a 1-hour token look valid for extra hours in Regina).
 - HTTP 401 on health reads now force-refreshes once and retries instead of recording an empty successful sync.
