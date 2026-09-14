@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-14 - Website accounts, user settings, and integrated gateway **COMPLETED**
+- Email-code login and verified account creation use the existing MHM user store and SMTP delivery; one account per email, expiring codes, HttpOnly sessions, and request protections.
+- Signed-in users can save Profile, Delivery, Messages, Tasks, and Check-ins settings with field validation, preserved unrelated data, stale-section detection, and mobile forms.
+- `python run_headless_service.py start` now starts the gateway with the background service; admin Start/Stop/Restart share that lifecycle. Cloudflare proxy and deployment setup are documented; production deployment was not performed.
+- Logout checks drafts before revocation, releases navigation guards on logout/session expiry, and restores the button after failures. Targeted Python tests, all 10 Node tests, and browser settings/logout checks passed.
+
 ### 2026-09-13 - Dev-tools logical split: host backup adapter and host import boundary **COMPLETED**
 - Backup drill/health load `host.backup_manager_module` via `shared/host_hooks.py`; empty module skips. MHM config still points at `core.backup_manager`.
 - Import boundary now forbids all host prefixes from `local_module_prefixes` except `development_tools`.
@@ -109,11 +115,6 @@ Guidelines:
 - Action planner includes up to two recent user turns so "yeah add that as a task" can reuse a title you already said.
 - Titles still must match those recent words (example titles like "pack hiking bag" stay blocked).
 - Compact planning prompt is unchanged besides that short recent-turn block.
-
-### 2026-08-26 - Discord task templates open a prefilled form **COMPLETED**
-- Create-hub template buttons open a prefilled modal; submit keeps template defaults (recurrence, priority, tags).
-- `list task templates` now attaches the same Discord button row as `create`.
-- Relative due phrases from the form (`tomorrow at 2pm`) parse as overrides.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

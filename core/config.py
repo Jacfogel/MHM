@@ -36,6 +36,13 @@ with contextlib.suppress(Exception):
     # do not raise on parsing issues; warnings are logged by python-dotenv itself
     load_dotenv(override=False, verbose=False)
 
+# Browser account gateway. Production requests arrive through the website Worker.
+WEB_PUBLIC_ORIGIN = os.getenv("WEB_PUBLIC_ORIGIN", "http://localhost:8080").rstrip("/")
+WEB_PROXY_SECRET = os.getenv("WEB_PROXY_SECRET", "")
+WEB_GATEWAY_ENABLED = os.getenv("WEB_GATEWAY_ENABLED", "true").lower() in {"1", "true", "yes"}
+WEB_GATEWAY_HOST = os.getenv("WEB_GATEWAY_HOST", "127.0.0.1")
+WEB_GATEWAY_PORT = int(os.getenv("WEB_GATEWAY_PORT", "8080"))
+
 
 @handle_errors("normalizing path", default_return=None)
 def _normalize_path(value: str) -> str:

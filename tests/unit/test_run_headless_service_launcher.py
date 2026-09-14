@@ -18,6 +18,27 @@ def _manager(**methods: object) -> MagicMock:
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_web_gateway_runs_without_starting_scheduler():
+    app = object()
+    with (
+        patch.object(run_headless_service, "setup_logging"),
+        patch.object(
+            run_headless_service, "get_component_logger", return_value=MagicMock()
+        ),
+        patch.object(run_headless_service, "HeadlessServiceManager") as manager,
+        patch("core.web_account_service.create_web_app", return_value=app),
+        patch("aiohttp.web.run_app") as serve,
+    ):
+        assert (
+            run_headless_service.main(["web", "--host", "127.0.0.1", "--port", "8766"])
+            == 0
+        )
+        serve.assert_called_once_with(app, host="127.0.0.1", port=8766, access_log=None)
+        manager.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_main_start_delegates_and_returns_0():
     manager = _manager(start_headless_service=MagicMock(return_value=True))
     with (

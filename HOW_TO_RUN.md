@@ -61,11 +61,14 @@ Copy-Item .env.example .env
 # For human users (UI interface)
 python run_mhm.py
 
-# For AI collaborators (headless service)
+# Start bots, scheduler, and website together in the background (no UI)
 python run_headless_service.py start
 ```
 - `run_mhm.py` opens the admin panel so you can manage users and start the background service
-- `run_headless_service.py` launches the service directly for AI collaborators
+- `run_headless_service.py start` launches the bots, scheduler,
+  and website gateway together as a background process. The terminal can close
+  after startup. Open `http://localhost:8080`; use `python run_headless_service.py
+  stop` to stop everything, or `status` to check the service.
 
 ### 1.6. Launcher logging vs terminal output (policy)
 
@@ -110,6 +113,23 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 ## 4. Alternative Launch Methods
 
 You can also run individual components directly if needed:
+
+Run `python run_headless_service.py start` to start MHM's bots, scheduler, and website
+gateway together in the background. The gateway
+belongs to the service and also starts when using the admin panel's Start Service
+action. Closing the admin window does not stop the headless gateway. Stop any old
+standalone gateway first to free port 8080. Open `http://localhost:8080` after
+startup; restarting the service requires signing in again but preserves settings.
+
+For only the website without bots or scheduler, use `python run_headless_service.py
+web`. Keep that process running, and set `WEB_GATEWAY_ENABLED=false` if you also
+start the MHM service. `WEB_GATEWAY_HOST` and `WEB_GATEWAY_PORT` configure the listener;
+`--host` and `--port` override them for the headless command. Match
+`WEB_PUBLIC_ORIGIN` to the browser origin if you change its port.
+The gateway uses MHM's account data. Email login requires SMTP credentials;
+the standard headless startup includes scheduled deliveries.
+See [website/README.md](website/README.md) for the production Cloudflare connection,
+gateway configuration, and account creation behavior.
 
 ## 5. Important Notes
 

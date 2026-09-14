@@ -104,6 +104,7 @@ class MHMService:
 
         self.communication_manager = None
         self.scheduler_manager = None
+        self.web_gateway = None
         self.running = False
         self.startup_time = None  # Track when service started
         _atexit_bound_service = self
@@ -473,6 +474,9 @@ class MHMService:
 
             set_scheduler_manager(self.scheduler_manager)
 
+            # The service owns the website in both headless and UI-managed runs.
+            self.start_web_gateway()
+
             # Step 4: Start bots and scheduler
             self.communication_manager.set_scheduler_manager(self.scheduler_manager)
             self.communication_manager.start_all()
@@ -507,6 +511,22 @@ class MHMService:
             self.running = False
         finally:
             self.shutdown()
+
+    @handle_errors("starting service website gateway", default_return=None)
+    def start_web_gateway(self):
+        """Start the account website alongside the existing background service."""
+        if not core.config.WEB_GATEWAY_ENABLED or self.web_gateway is not None:
+            return
+        from core.web_gateway_runtime import WebGatewayRuntime
+
+        gateway = WebGatewayRuntime()
+        if gateway.start():
+            self.web_gateway = gateway
+        else:
+            logger.error(
+                "Website gateway is unavailable; the other MHM services will continue. "
+                "Check the gateway configuration and stop any standalone gateway before restarting MHM."
+            )
 
     @handle_errors("running service loop")
     def run_service_loop(self):
@@ -742,6 +762,15 @@ class MHMService:
         """Gracefully shutdown the service"""
         logger.info("Shutting down MHM Backend Service...")
         self.running = False
+
+        gateway = getattr(self, "web_gateway", None)
+        if gateway is not None:
+            self.web_gateway = None
+            try:
+                gateway.stop()
+                logger.info("Website gateway stopped")
+            except Exception as e:
+                logger.error(f"Error stopping website gateway: {type(e).__name__}")
 
         try:
             if self.communication_manager:

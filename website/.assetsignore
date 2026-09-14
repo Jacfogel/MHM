@@ -1,0 +1,8 @@
+README.md
+wrangler.jsonc
+worker*.mjs
+*.test.mjs
+.dev.vars*
+.env*
+node_modules/
+.wrangler/

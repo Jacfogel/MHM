@@ -157,3 +157,107 @@ blockquote { margin: 16px auto 0; font-family: 'Nunito'; font-size: clamp(1.9rem
   .feature-item { grid-template-columns: 1fr; }
   .cta-card { padding: 32px 24px; }
 }
+
+[hidden] { display: none !important; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .65; }
+.button { border: 0; }
+:focus-visible { outline: 3px solid var(--purple); outline-offset: 4px; }
+.nav-actions { display: flex; gap: 20px; align-items: center; white-space: nowrap; }
+.account-body { min-height: 100vh; background: radial-gradient(ellipse at 10% 35%, #eeeafe, transparent 48%), #f9f8fd; }
+.account-layout { display: grid; grid-template-columns: 1fr 440px; gap: 90px; align-items: center; padding-top: 72px; padding-bottom: 60px; min-height: calc(100vh - 155px); }
+.account-intro h1 { font-size: clamp(2.8rem, 4.5vw, 4.4rem); letter-spacing: -.045em; }
+.account-intro h1 span { color: var(--purple-dark); }
+.account-intro > p { color: var(--muted); max-width: 440px; font-size: 1.1rem; }
+.intro-message { max-width: 440px; border-left: 3px solid var(--purple); padding: 14px 22px; margin: 32px 0; background: rgba(255,255,255,.6); border-radius: 0 16px 16px 0; }
+.intro-message p { margin: 0; }
+.account-benefits { list-style: none; padding: 0; margin: 0; color: var(--muted); font-size: .94rem; }
+.account-benefits li { display: flex; gap: 12px; margin: 14px 0; }
+.account-benefits span { color: var(--purple); font-weight: 700; }
+.account-panel { padding: 34px; border-radius: 26px; border: 1px solid var(--border); background: white; box-shadow: var(--shadow); }
+.account-tabs { display: flex; padding: 5px; border-radius: 12px; background: var(--soft); margin-bottom: 30px; }
+.account-tabs a { flex: 1; text-align: center; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: 700; font-size: .9rem; color: var(--muted); }
+.account-tabs [aria-current="page"] { background: white; color: var(--purple-dark); box-shadow: 0 2px 6px rgba(23,21,43,.08); }
+.account-panel h2, .app-cards h2 { font-size: 1.85rem; letter-spacing: -.035em; margin-bottom: 12px; }
+.panel-description { color: var(--muted); font-size: .95rem; margin: 0 0 26px; }
+.account-panel label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 8px; }
+.account-panel input { width: 100%; border: 1px solid #d8d3e7; border-radius: 11px; padding: 13px 14px; color: var(--ink); background: #fdfcfe; }
+.account-panel input:focus { border-color: var(--purple); }
+.account-panel input::placeholder { color: #898399; }
+.field-hint { color: var(--muted); font-size: .77rem; margin: 7px 0 20px; }
+.account-submit { width: 100%; background: var(--purple-dark); margin-top: 4px; }
+.account-footnote { font-size: .8rem; text-align: center; color: var(--muted); margin: 20px 0 0; }
+.form-status { color: var(--purple-dark); font-size: .9rem; overflow-wrap: anywhere; }
+.form-status:empty { margin: 0; }
+.form-status.is-error { color: #a02c44; }
+.plain-button { border: 0; background: transparent; color: var(--purple-dark); font-weight: 600; padding: 8px 0; }
+.account-panel .plain-button { font-size: .8rem; margin-top: 16px; text-align: left; }
+.verification-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; color: var(--purple-dark); background: var(--lavender); font-size: 1.6rem; margin-bottom: 22px; }
+#code { letter-spacing: .4em; text-align: center; font-size: 1.5rem; }
+.account-footer { text-align: center; color: var(--muted); padding: 18px 20px 26px; font-size: .8rem; }
+.account-footer span { padding-left: 14px; }
+.app-layout { padding-top: 70px; padding-bottom: 70px; }
+.app-layout h1 { font-size: clamp(2.3rem, 5vw, 4rem); overflow-wrap: anywhere; }
+.app-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.app-cards .button { margin-top: 22px; }
+.account-details { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
+.account-details dt { color: var(--muted); }
+.account-details dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 1000px) {
+  .account-layout { grid-template-columns: 1fr 400px; gap: 40px; }
+}
+@media (max-width: 760px) {
+  .account-layout { grid-template-columns: 1fr; gap: 30px; padding-top: 40px; }
+  .account-intro { text-align: center; }
+  .account-intro > p { margin-left: auto; margin-right: auto; }
+  .intro-message, .account-benefits { display: none; }
+  .account-panel { width: min(100%, 440px); margin: auto; }
+  .app-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .nav-actions { gap: 12px; font-size: .85rem; }
+  .nav-actions .button-small { display: inline-flex; font-size: .8rem; }
+  .account-panel { padding: 26px 22px; }
+  .account-footer span { display: block; padding: 5px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .button { transition: none; }
+  .button:hover { transform: none; }
+}
+.settings-area { margin-top: 54px; }
+.settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.settings-heading h2 { font-size: 2.2rem; }
+.settings-heading > p { color: var(--muted); }
+.settings-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: start; }
+.settings-nav { display: grid; gap: 6px; position: sticky; top: 100px; }
+.settings-nav button { border: 0; text-align: left; padding: 13px 18px; border-radius: 12px; background: transparent; color: var(--muted); font-weight: 600; }
+.settings-nav [aria-current] { background: var(--lavender); color: var(--purple-dark); }
+.settings-panel { background: white; padding: 32px; border: 1px solid var(--border); border-radius: 22px; min-width: 0; }
+#settings-panels { min-width: 0; }
+.settings-field { margin-bottom: 20px; min-width: 0; }
+.settings-field > label { display: block; margin-bottom: 7px; font-size: .9rem; font-weight: 600; }
+.settings-field input:not([type="checkbox"]), .settings-field select, .settings-field textarea { width: 100%; min-width: 0; padding: 11px 13px; border: 1px solid #d8d3e7; border-radius: 10px; color: var(--ink); background: #fdfcfe; font: inherit; }
+.settings-field textarea { resize: vertical; }
+.settings-toggle { display: flex; align-items: center; gap: 10px; }
+.settings-toggle > label { margin: 0; }
+.settings-toggle input { width: 18px; height: 18px; accent-color: var(--purple); flex-shrink: 0; }
+.settings-two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.period-editor, .category-picker { border: 1px solid var(--border); padding: 20px; border-radius: 14px; margin: 28px 0; min-width: 0; }
+.period-editor > legend, .category-picker > legend { font-weight: 700; text-transform: capitalize; }
+.period-row { background: var(--soft); padding: 20px; border-radius: 12px; margin-bottom: 18px; }
+.day-picker { display: flex; flex-wrap: wrap; gap: 12px; padding: 0; border: 0; }
+.day-picker legend { font-size: .85rem; margin-bottom: 9px; }
+.day-picker .settings-field { margin: 0 0 12px; }
+.settings-actions { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 28px; }
+@media (max-width: 760px) {
+  .settings-heading { display: block; }
+  .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .settings-nav { display: flex; overflow-x: auto; position: static; }
+  .settings-nav button { flex-shrink: 0; }
+  .settings-panel { padding: 22px; }
+  .period-editor { padding: 14px; }
+  .period-row { padding: 14px; }
+  .settings-two-col { gap: 10px; }
+}

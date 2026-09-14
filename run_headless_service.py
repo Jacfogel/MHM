@@ -29,6 +29,13 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("stop", help="Stop the headless service")
     subparsers.add_parser("status", help="Check if headless service is running")
     subparsers.add_parser("info", help="Show detailed service information")
+    web_parser = subparsers.add_parser("web", help="Serve the website and MHM account API")
+    web_parser.add_argument(
+        "--host", default=None, help="Listen address (default: WEB_GATEWAY_HOST)"
+    )
+    web_parser.add_argument(
+        "--port", type=int, default=None, help="Listen port (default: WEB_GATEWAY_PORT)"
+    )
 
     test_parser = subparsers.add_parser(
         "test",
@@ -71,6 +78,19 @@ def main(argv: list[str] | None = None) -> int:
         print("[ERROR] Failed to build command parser")
         return 1
     args = parser.parse_args(argv)
+
+    if args.action == "web":
+        from aiohttp import web
+        from core import config
+        from core.web_account_service import create_web_app
+
+        web.run_app(
+            create_web_app(),
+            host=args.host or config.WEB_GATEWAY_HOST,
+            port=config.WEB_GATEWAY_PORT if args.port is None else args.port,
+            access_log=None,
+        )
+        return 0
 
     manager = HeadlessServiceManager()
 

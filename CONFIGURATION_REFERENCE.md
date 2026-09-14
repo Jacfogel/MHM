@@ -101,6 +101,25 @@ Email is supported primarily for outbound automated messages.
 
 **Breaks if wrong:** outbound email fails; errors should appear in the configured log files.
 
+The browser account gateway also uses these SMTP credentials for verification
+codes, with SMTP over TLS on port 465, matching the current email adapter.
+`WEB_PUBLIC_ORIGIN` defaults to `http://localhost:8080`; set it to the exact
+website HTTPS origin in production. `WEB_PROXY_SECRET` must contain at least 32
+random characters in production and match the Cloudflare Worker's
+`MHM_API_SECRET` secret. The Worker's `MHM_API_ORIGIN` variable points to the
+gateway's HTTPS origin. Misconfiguration prevents browser login; it does not
+change existing app accounts. See [website/README.md](website/README.md).
+
+`WEB_GATEWAY_ENABLED` defaults to `true`: the background service starts its website
+gateway and stops it on shutdown. `python run_headless_service.py start` starts bots,
+scheduler, and gateway together without a UI or persistent terminal. Set this to
+`false` only when running a separate standalone gateway. `WEB_GATEWAY_HOST` defaults to `127.0.0.1` and
+`WEB_GATEWAY_PORT` to `8080`; match `WEB_PUBLIC_ORIGIN` to the browser origin when
+changing the port. An occupied port is logged and leaves the bots and scheduler
+running; stop the other gateway and restart the MHM service. The alternative
+`web` command runs only the gateway in the foreground. Use one gateway process
+for browser sessions.
+
 ---
 
 ## 5. Channel credentials

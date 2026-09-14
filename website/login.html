@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Log in or create your MHM account. A little support, at your own pace." />
+  <title>Welcome to MHM — Log in or create account</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="auth.js" defer></script>
+</head>
+<body class="account-body">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html" aria-label="MHM home"><span class="brand-mark">M</span><span class="brand-name">MHM</span></a>
+      <a class="text-link" href="index.html">← Back to home</a>
+    </div>
+  </header>
+  <main class="container account-layout">
+    <section class="account-intro">
+      <span class="eyebrow">Your space to keep going</span>
+      <h1>A little support.<br /><span>At your own pace.</span></h1>
+      <p>Some days need a plan. Others need a gentler start. MHM is here for both.</p>
+      <div class="intro-message"><span class="message-label">A small reminder</span><p>You don't have to do everything today. Just start where you are.</p></div>
+      <ul class="account-benefits">
+        <li><span>✓</span> One account for your MHM support system</li>
+        <li><span>✓</span> Reminders that fit your real life</li>
+        <li><span>✓</span> Room to pause, adapt, and begin again</li>
+      </ul>
+    </section>
+    <section class="account-panel" aria-labelledby="form-title">
+      <div class="account-tabs" aria-label="Account options">
+        <a id="login-tab" href="login.html" aria-current="page">Log in</a>
+        <a id="create-tab" href="login.html?mode=create">Create account</a>
+      </div>
+      <div id="entry-step">
+        <h2 id="form-title">Welcome back.</h2>
+        <p id="form-description" class="panel-description">Pick up where you left off. We'll email you a code to sign in.</p>
+        <form id="account-form">
+          <div id="create-fields" hidden>
+            <label for="username">MHM username</label>
+            <input id="username" name="username" autocomplete="nickname" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" placeholder="How should we know you?" />
+            <p class="field-hint">3–32 letters, numbers, underscores, or hyphens.</p>
+          </div>
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" />
+          <p class="field-hint" id="email-hint">Use the email connected to your MHM account.</p>
+          <button class="button account-submit" id="send-code" type="submit">Send sign-in code →</button>
+        </form>
+        <p class="account-footnote">No password to remember. Just a code, sent to your inbox.</p>
+      </div>
+      <div id="verify-step" hidden>
+        <span class="verification-icon" aria-hidden="true">✉</span>
+        <h2>Check your inbox.</h2>
+        <p class="panel-description" id="code-description"></p>
+        <form id="verify-form">
+          <label for="code">Your 6-digit code</label>
+          <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required placeholder="000000" aria-describedby="code-hint" />
+          <p class="field-hint" id="code-hint">Your code expires in 10 minutes. Check your spam folder too.</p>
+          <button class="button account-submit" id="verify-code" type="submit">Continue to MHM →</button>
+        </form>
+        <button class="plain-button" id="start-over" type="button">Use another email or request a new code</button>
+      </div>
+      <p id="auth-status" class="form-status" role="status" aria-live="polite"></p>
+      <noscript><p>Enable JavaScript to sign in or create your account.</p></noscript>
+    </section>
+  </main>
+  <footer class="account-footer">Motivation. Health. Momentum. <span>A little help to keep going.</span></footer>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Your account — MHM</title>
+  <link rel="stylesheet" href="styles.css?v=user-settings-1" />
+  <script src="app.js?v=logout-2" defer></script>
+  <script src="settings.js?v=logout-2" defer></script>
+</head>
+<body class="account-body">
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">MHM</span></a>
+    <button class="plain-button" id="logout" type="button">Log out</button>
+  </div></header>
+  <main class="container app-layout">
+    <p id="app-status" class="form-status" role="status">Connecting to your account…</p>
+    <section id="account-content" hidden>
+      <span class="eyebrow">Your MHM account</span>
+      <h1>Welcome, <span id="account-name"></span>.</h1>
+      <p class="hero-lead">A little more support starts here.</p>
+      <div class="app-cards">
+        <article class="card"><div class="status-row"><span class="status-dot"></span>Connected to MHM</div><h2>Your account</h2>
+          <dl class="account-details"><dt>Email</dt><dd id="account-email"></dd><dt>Time zone</dt><dd id="account-timezone"></dd><dt>Discord</dt><dd id="account-discord"></dd></dl>
+        </article>
+        <article class="card"><span class="eyebrow">Your next step</span><h2>Make it yours.</h2>
+          <p>This is the same account MHM uses for your reminders and support. Make it yours with the settings below.</p>
+          <p id="discord-guidance">To use tasks and check-ins in Discord, ask your MHM administrator to help connect your account.</p>
+          <a id="open-discord" class="button" hidden>Open MHM in Discord →</a>
+        </article>
+      </div>
+      <section class="settings-area" aria-labelledby="settings-heading">
+        <div class="settings-heading"><div><span class="eyebrow">At your own pace</span><h2 id="settings-heading">Your settings</h2></div><p>Small changes. A better fit for your day.</p></div>
+        <p id="settings-status" class="form-status" role="status" aria-live="polite">Loading your settings…</p>
+        <div class="settings-layout" id="settings-layout" hidden>
+          <nav id="settings-nav" class="settings-nav" aria-label="Settings sections"></nav>
+          <div id="settings-panels"></div>
+        </div>
+        <button id="settings-retry" class="plain-button" type="button" hidden>Reload settings</button>
+      </section>
+    </section>
+    <noscript><p>Enable JavaScript to load your account.</p></noscript>
+  </main>
+</body>
+</html>
