@@ -2,6 +2,7 @@
 
 import pytest
 import pytest_asyncio
+from urllib.parse import parse_qs, urlsplit
 from aiohttp.test_utils import TestClient, TestServer
 from aiohttp import CookieJar
 
@@ -54,6 +55,14 @@ class Accounts:
         }
         return uid
 
+    def link_discord(self, uid, discord_user_id, discord_username):
+        for other_uid, user in self.users.items():
+            if other_uid != uid and user.get("discord_user_id") == discord_user_id:
+                return "already_linked"
+        self.users[uid]["discord_user_id"] = discord_user_id
+        self.users[uid]["discord_username"] = discord_username
+        return "linked"
+
 
 @pytest_asyncio.fixture
 async def gateway():
@@ -103,7 +112,7 @@ async def test_existing_login_session_logout_and_replay(gateway):
     result = await verify(client, token, sent[-1][1])
     assert result.status == 200
     assert "HttpOnly" in result.headers["Set-Cookie"]
-    assert "SameSite=Strict" in result.headers["Set-Cookie"]
+    assert "SameSite=Lax" in result.headers["Set-Cookie"]
     assert result.headers["Cache-Control"] == "no-store"
     profile = await (await client.get("/api/account")).json()
     assert profile["username"] == "river"
@@ -299,3 +308,144 @@ async def test_smtp_failure_reports_delivery_problem_without_leaking_details():
         message = (await response.json())["error"]
         assert "couldn't send your code" in message
         assert "private diagnostic details" not in message
+
+
+async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatch):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "DISCORD_APPLICATION_ID", 123456789)
+    monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
+    identity_calls = []
+
+    async def discord_identity(code, **kwargs):
+        identity_calls.append((code, kwargs))
+        return "987654321", "River#1234"
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        discord_identity=discord_identity,
+    )
+    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
+    await client.start_server()
+    try:
+        token = (await (await request_code(client)).json())["challenge"]
+        assert (await verify(client, token, sent[-1][1])).status == 200
+        start = await client.get("/api/auth/discord/start")
+        assert start.status == 200
+        authorize_url = (await start.json())["url"]
+        assert "scope=identify" in authorize_url
+        assert (
+            "redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fauth%2Fdiscord%2Fcallback"
+            in authorize_url
+        )
+        callback = await client.get(
+            "/api/auth/discord/callback?code=oauth-code&state="
+            + authorize_url.split("state=", 1)[1].split("&", 1)[0],
+            allow_redirects=False,
+        )
+        assert callback.status == 302
+        assert callback.headers["Location"].endswith("/app.html?discord=connected")
+        assert accounts.users["existing"]["discord_user_id"] == "987654321"
+        assert identity_calls[0][0] == "oauth-code"
+        replay = await client.get(
+            "/api/auth/discord/callback?code=oauth-code&state="
+            + authorize_url.split("state=", 1)[1].split("&", 1)[0],
+            allow_redirects=False,
+        )
+        assert replay.headers["Location"].endswith("/app.html?discord=cancelled")
+        assert len(identity_calls) == 1
+    finally:
+        await client.close()
+
+
+@pytest.mark.parametrize("case", ["no_cookie", "new_session", "logout", "expired"])
+async def test_discord_callback_requires_the_original_live_session(monkeypatch, case):
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "DISCORD_APPLICATION_ID", 123456789)
+    monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
+    accounts, sent, now, calls = Accounts(), [], [100.0], []
+
+    async def identity(code, **kwargs):
+        calls.append(code)
+        return "987654321", "River"
+
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append(code),
+        origin=ORIGIN,
+        proxy_secret="",
+        clock=lambda: now[0],
+        discord_identity=identity,
+    )
+    async with TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True)) as client:
+        token = (await (await request_code(client)).json())["challenge"]
+        login = await verify(client, token, sent[-1])
+        assert "SameSite=Lax" in login.headers["Set-Cookie"]
+        url = (await (await client.get("/api/auth/discord/start")).json())["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        if case == "no_cookie":
+            client.session.cookie_jar.clear()
+        elif case == "new_session":
+            token = (await (await request_code(client)).json())["challenge"]
+            assert (await verify(client, token, sent[-1])).status == 200
+        elif case == "logout":
+            await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})
+        else:
+            now[0] += 601
+        response = await client.get(
+            f"/api/auth/discord/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert response.status == 302
+        assert not response.headers["Location"].endswith("discord=connected")
+        assert not calls
+        assert not accounts.users["existing"].get("discord_user_id")
+
+
+async def test_discord_oauth_rejects_an_identity_linked_to_another_account(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "DISCORD_APPLICATION_ID", 123456789)
+    monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
+    accounts.users["other"] = {
+        "email": "other@example.com",
+        "internal_username": "other",
+        "account_status": "active",
+        "discord_user_id": "987654321",
+    }
+
+    async def discord_identity(code, **kwargs):
+        return "987654321", "Other"
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        discord_identity=discord_identity,
+    )
+    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
+    await client.start_server()
+    try:
+        token = (await (await request_code(client)).json())["challenge"]
+        assert (await verify(client, token, sent[-1][1])).status == 200
+        start = await client.get("/api/auth/discord/start")
+        state = (await start.json())["url"].split("state=", 1)[1].split("&", 1)[0]
+        callback = await client.get(
+            f"/api/auth/discord/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.headers["Location"].endswith("/app.html?discord=in-use")
+        assert "discord_user_id" not in accounts.users["existing"]
+    finally:
+        await client.close()

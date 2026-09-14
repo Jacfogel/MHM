@@ -31,10 +31,10 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-09-14 - Website accounts, user settings, and integrated gateway **COMPLETED**
-- Email-code login and verified account creation use the existing MHM user store and SMTP delivery; one account per email, expiring codes, HttpOnly sessions, and request protections.
+- Email-code login and account creation use the existing MHM user store; one account per email and expiring HttpOnly sessions. Discord OAuth2 links verified identities through server-side code exchange, one-time state bound to the original session, and duplicate-link rejection; SameSite=Lax permits the Discord return redirect while POST Origin checks remain enforced.
 - Signed-in users can save Profile, Delivery, Messages, Tasks, and Check-ins settings with field validation, preserved unrelated data, stale-section detection, and mobile forms.
 - `python run_headless_service.py start` now starts the gateway with the background service; admin Start/Stop/Restart share that lifecycle. Cloudflare proxy and deployment setup are documented; production deployment was not performed.
-- Logout checks drafts before revocation, releases navigation guards on logout/session expiry, and restores the button after failures. Targeted Python tests, all 10 Node tests, and browser settings/logout checks passed.
+- Logout checks drafts before revocation, releases navigation guards on logout/session expiry, and restores the button after failures. Targeted Python tests, all 11 Node tests, and browser settings/logout checks passed.
 
 ### 2026-09-13 - Dev-tools logical split: host backup adapter and host import boundary **COMPLETED**
 - Backup drill/health load `host.backup_manager_module` via `shared/host_hooks.py`; empty module skips. MHM config still points at `core.backup_manager`.

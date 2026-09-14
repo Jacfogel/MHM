@@ -19,8 +19,9 @@ if (creating) {
 
 async function api(path, data) {
   const response = await fetch(path, {
-    method: 'POST', credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+    method: data === undefined ? 'GET' : 'POST', credentials: 'same-origin',
+    headers: data === undefined ? {} : { 'Content-Type': 'application/json' },
+    body: data === undefined ? undefined : JSON.stringify(data),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || 'MHM could not connect. Please try again shortly.');
@@ -63,6 +64,14 @@ document.getElementById('verify-form').addEventListener('submit', (event) => {
   event.preventDefault();
   submit(document.getElementById('verify-code'), async () => {
     await api('/api/auth/verify', { challenge, code: document.getElementById('code').value.trim() });
+    if (creating) {
+      try {
+        const connection = await api('/api/auth/discord/start');
+        if (connection.url) { location.assign(connection.url); return; }
+      } catch (_) {
+        // Account creation still succeeds when Discord OAuth is not configured.
+      }
+    }
     location.assign('app.html');
   });
 });

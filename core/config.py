@@ -314,6 +314,9 @@ _app_id_env = os.getenv("DISCORD_APPLICATION_ID")
 DISCORD_APPLICATION_ID = (
     int(_app_id_env) if _app_id_env and _app_id_env.isdigit() else None
 )
+# Optional Discord OAuth2 credentials used by the website account connector.
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "")
+DISCORD_OAUTH_REDIRECT_URI = os.getenv("DISCORD_OAUTH_REDIRECT_URI", "")
 # Discord webhook configuration for installation events
 DISCORD_PUBLIC_KEY = os.getenv(
     "DISCORD_PUBLIC_KEY", ""

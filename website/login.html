@@ -6,7 +6,7 @@
   <meta name="description" content="Log in or create your MHM account. A little support, at your own pace." />
   <title>Welcome to MHM — Log in or create account</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="auth.js" defer></script>
+  <script src="auth.js?v=discord-1" defer></script>
 </head>
 <body class="account-body">
   <header class="site-header">
@@ -43,10 +43,10 @@
           </div>
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" />
-          <p class="field-hint" id="email-hint">Use the email connected to your MHM account.</p>
+        <p class="field-hint" id="email-hint">Use the email connected to your MHM account.</p>
           <button class="button account-submit" id="send-code" type="submit">Send sign-in code →</button>
         </form>
-        <p class="account-footnote">No password to remember. Just a code, sent to your inbox.</p>
+      <p class="account-footnote">No password to remember. Just a code, sent to your inbox. New accounts can connect Discord after verification.</p>
       </div>
       <div id="verify-step" hidden>
         <span class="verification-icon" aria-hidden="true">✉</span>

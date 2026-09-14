@@ -18,7 +18,7 @@ async function page(logoutFetch = async () => Response.json({ ok: true })) {
   const window = new EventTarget();
   const requests = [];
   const navigation = [];
-  const context = vm.createContext({ document, window, Event, AbortSignal, location: { replace(url) { navigation.push(url); } }, fetch: async (url, options) => {
+  const context = vm.createContext({ document, window, Event, AbortSignal, URLSearchParams, location: { search: '', replace(url) { navigation.push(url); } }, fetch: async (url, options) => {
     requests.push(url);
     return url === '/api/account' ? Response.json(profile) : logoutFetch(url, options);
   } });

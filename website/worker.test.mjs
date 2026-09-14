@@ -71,3 +71,18 @@ test('settings allow authenticated reads and bounded saves through the proxy', a
     assert.equal((await worker.fetch(new Request(url + '/api/settings', { method: 'DELETE' }), env)).status, 405);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test('Discord callback keeps its query and returns the gateway redirect', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (target, options) => {
+    assert.equal(target.href, 'https://gateway.example/api/auth/discord/callback?code=abc&state=xyz');
+    assert.equal(options.redirect, 'manual');
+    assert.equal(options.headers.get('Cookie'), 'mhm_session=owned');
+    return new Response(null, { status: 302, headers: { Location: url + '/app.html?discord=connected' } });
+  };
+  try {
+    const response = await worker.fetch(new Request(url + '/api/auth/discord/callback?code=abc&state=xyz', { headers: { Cookie: 'mhm_session=owned' } }), env);
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get('Location'), url + '/app.html?discord=connected');
+  } finally { globalThis.fetch = originalFetch; }
+});

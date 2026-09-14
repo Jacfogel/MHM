@@ -14,9 +14,10 @@ import time
 from dataclasses import dataclass
 from email.message import EmailMessage
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlencode, urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+import aiohttp
 from aiohttp import web
 
 from core import config
@@ -26,6 +27,10 @@ logger = get_component_logger("main")
 COOKIE = "mhm_session"
 CODE_TTL = 600
 SESSION_TTL = 12 * 60 * 60
+DISCORD_STATE_TTL = 600
+DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
+DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
+DISCORD_USER_URL = "https://discord.com/api/users/@me"
 
 
 class MHMAccounts:
@@ -80,6 +85,32 @@ class MHMAccounts:
 
         return save_settings(uid, updates)
 
+    def link_discord(self, uid, discord_user_id, discord_username):
+        from core import get_all_user_ids, get_user_data, update_user_account
+
+        current = get_user_data(uid, "account").get("account") or {}
+        current_discord_id = str(current.get("discord_user_id", ""))
+        if current_discord_id and current_discord_id != discord_user_id:
+            return "different_linked"
+        for other_uid in get_all_user_ids():
+            if other_uid == uid:
+                continue
+            other = get_user_data(other_uid, "account").get("account") or {}
+            if str(other.get("discord_user_id", "")) == discord_user_id:
+                return "already_linked"
+        return (
+            "linked"
+            if update_user_account(
+                uid,
+                {
+                    "discord_user_id": discord_user_id,
+                    "discord_username": discord_username,
+                },
+                auto_create=False,
+            )
+            else "failed"
+        )
+
     def create(self, email, username, timezone):
         from core import create_new_user
 
@@ -127,8 +158,52 @@ class Challenge:
     attempts: int = 0
 
 
+async def _fetch_discord_identity(code, *, client_id, client_secret, redirect_uri):
+    """Exchange a Discord OAuth code and return the verified user identity."""
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with session.post(
+            DISCORD_TOKEN_URL,
+            data={
+                "client_id": str(client_id),
+                "client_secret": client_secret,
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": redirect_uri,
+            },
+        ) as response:
+            if response.status != 200:
+                raise ValueError("Discord authorization could not be completed")
+            token = await response.json()
+        access_token = token.get("access_token") if isinstance(token, dict) else None
+        if not isinstance(access_token, str) or not access_token:
+            raise ValueError("Discord authorization did not return an access token")
+        async with session.get(
+            DISCORD_USER_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+        ) as response:
+            if response.status != 200:
+                raise ValueError("Discord identity could not be read")
+            identity = await response.json()
+    if not isinstance(identity, dict):
+        raise ValueError("Discord identity was invalid")
+    discord_user_id = str(identity.get("id", ""))
+    if not re.fullmatch(r"\d{1,30}", discord_user_id):
+        raise ValueError("Discord identity was invalid")
+    username = identity.get("global_name") or identity.get("username") or ""
+    if not isinstance(username, str):
+        username = ""
+    return discord_user_id, username[:100]
+
+
 def create_web_app(
-    *, accounts=None, mailer=None, origin=None, proxy_secret=None, clock=time.monotonic
+    *,
+    accounts=None,
+    mailer=None,
+    origin=None,
+    proxy_secret=None,
+    clock=time.monotonic,
+    discord_identity=None,
 ):
     """Construct an injectable gateway; tests use isolated account and email adapters."""
     accounts = accounts or MHMAccounts()
@@ -156,6 +231,22 @@ def create_web_app(
     limits = {}
     verification_lock = asyncio.Lock()
     settings_lock = asyncio.Lock()
+    discord_link_lock = asyncio.Lock()
+    discord_states = {}
+    discord_identity = discord_identity or _fetch_discord_identity
+
+    def discord_redirect_uri():
+        configured = str(
+            getattr(config, "DISCORD_OAUTH_REDIRECT_URI", "") or ""
+        ).strip()
+        return configured or f"{origin}/api/auth/discord/callback"
+
+    def discord_available():
+        return bool(config.DISCORD_APPLICATION_ID and config.DISCORD_CLIENT_SECRET)
+
+    def website_redirect(path, **params):
+        query = urlencode(params)
+        return f"{origin}{path}{('?' + query) if query else ''}"
 
     def prune():
         now = clock()
@@ -165,6 +256,8 @@ def create_web_app(
             del sessions[key]
         for key in [key for key, value in limits.items() if value[1] <= now]:
             del limits[key]
+        for key in [key for key, value in discord_states.items() if value[1] <= now]:
+            del discord_states[key]
 
     def throttle(key, maximum, window):
         count, expires = limits.get(key, (0, clock() + window))
@@ -381,7 +474,9 @@ def create_web_app(
             session,
             httponly=True,
             secure=not local,
-            samesite="Strict",
+            # Discord returns through a top-level cross-site GET. POST requests
+            # remain protected by exact Origin and JSON checks in guard().
+            samesite="Lax",
             max_age=SESSION_TTL,
             path="/api/",
         )
@@ -410,11 +505,84 @@ def create_web_app(
                 "email": current.get("email", ""),
                 "timezone": current.get("timezone", ""),
                 "discord_linked": bool(current.get("discord_user_id")),
+                "discord_available": discord_available(),
                 "discord_url": (
                     f"https://discord.com/users/{app_id}" if app_id.isdigit() else None
                 ),
             }
         )
+
+    async def discord_start(request):
+        await authenticated_account(request)
+        if not discord_available():
+            raise web.HTTPServiceUnavailable(
+                text="Discord connection is not configured yet. Please ask your MHM administrator."
+            )
+        if len(discord_states) >= 10000:
+            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+        state = secrets.token_urlsafe(32)
+        discord_states[hashlib.sha256(state.encode()).hexdigest()] = (
+            hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest(),
+            clock() + DISCORD_STATE_TTL,
+        )
+        query = urlencode(
+            {
+                "client_id": str(config.DISCORD_APPLICATION_ID),
+                "response_type": "code",
+                "redirect_uri": discord_redirect_uri(),
+                "scope": "identify",
+                "state": state,
+                "prompt": "consent",
+            }
+        )
+        return web.json_response({"url": f"{DISCORD_AUTHORIZE_URL}?{query}"})
+
+    async def discord_callback(request):
+        error = request.query.get("error")
+        state = request.query.get("state", "")
+        state_key = hashlib.sha256(state.encode()).hexdigest()
+        pending = discord_states.pop(state_key, None)
+        if error or not pending or pending[1] <= clock():
+            return web.HTTPFound(website_redirect("/app.html", discord="cancelled"))
+        if not discord_available():
+            return web.HTTPFound(website_redirect("/app.html", discord="unavailable"))
+        code = request.query.get("code", "")
+        if not code or len(code) > 2048:
+            return web.HTTPFound(website_redirect("/app.html", discord="error"))
+        try:
+            uid, _ = await authenticated_account(request)
+            session_key = hashlib.sha256(
+                request.cookies.get(COOKIE, "").encode()
+            ).hexdigest()
+            if not secrets.compare_digest(session_key, pending[0]):
+                raise web.HTTPUnauthorized(text="Please log in to continue.")
+            discord_user_id, discord_username = await discord_identity(
+                code,
+                client_id=config.DISCORD_APPLICATION_ID,
+                client_secret=config.DISCORD_CLIENT_SECRET,
+                redirect_uri=discord_redirect_uri(),
+            )
+            async with discord_link_lock:
+                # Logout, expiry, or suspension during Discord's network request
+                # must prevent the subsequent account write.
+                await authenticated_account(request)
+                result = await asyncio.to_thread(
+                    accounts.link_discord, uid, discord_user_id, discord_username
+                )
+            if result == "already_linked":
+                return web.HTTPFound(website_redirect("/app.html", discord="in-use"))
+            if result == "different_linked":
+                return web.HTTPFound(
+                    website_redirect("/app.html", discord="account-linked")
+                )
+            if result != "linked":
+                raise ValueError("Discord account could not be linked")
+        except web.HTTPUnauthorized:
+            return web.HTTPFound(website_redirect("/login.html", discord="expired"))
+        except Exception:
+            logger.error("Website Discord connection failed")
+            return web.HTTPFound(website_redirect("/app.html", discord="error"))
+        return web.HTTPFound(website_redirect("/app.html", discord="connected"))
 
     async def settings(request):
         from core.web_user_settings import settings_snapshot, build_settings_updates
@@ -463,6 +631,8 @@ def create_web_app(
     app.router.add_post("/api/auth/request-code", request_code)
     app.router.add_post("/api/auth/verify", verify)
     app.router.add_post("/api/auth/logout", logout)
+    app.router.add_get("/api/auth/discord/start", discord_start)
+    app.router.add_get("/api/auth/discord/callback", discord_callback)
     app.router.add_get("/api/account", account)
     app.router.add_get("/api/settings", settings)
     app.router.add_post("/api/settings", settings)

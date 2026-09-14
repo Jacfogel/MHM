@@ -39,9 +39,12 @@ ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
-Users can configure these on their signed-in settings page. Users can link Discord through the bot's
-existing “Link account” flow, using their MHM username and emailed confirmation.
-If `DISCORD_APPLICATION_ID` is configured, the account page links to the bot.
+Users can configure these on their signed-in settings page. When Discord OAuth is configured,
+new accounts are sent through Discord immediately after email verification; the account page
+also has a Connect Discord button for existing accounts. The gateway exchanges the one-time
+authorization code server-side, verifies the Discord identity, and stores only the Discord ID
+and username in the existing MHM account. A Discord account already linked to another MHM
+account is rejected. The bot's existing “Link account” flow remains available as a fallback.
 Settings cover preferred name and profile lists, time zone and linked delivery
 channel, message categories and reminder windows, task recurrence defaults, and
 check-in windows, question selection, and counts. Each section saves to the same
@@ -70,8 +73,15 @@ To enable live accounts:
    `npx wrangler secret put MHM_API_SECRET`. Never put it in client JavaScript.
 4. Deploy the Worker, then test creation and login with a controlled email.
 
+For Discord connection, create an OAuth2 redirect in the Discord Developer Portal that exactly
+matches `DISCORD_OAUTH_REDIRECT_URI` (or `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when
+the setting is blank), set `DISCORD_APPLICATION_ID` and `DISCORD_CLIENT_SECRET` on the gateway,
+and keep the OAuth scope at `identify`. The Discord application and bot must be the same
+application used by `DISCORD_BOT_TOKEN`.
+
 Until configured, forms show an explicit unavailable message. Sessions use
-HttpOnly, SameSite cookies, Secure over production HTTPS. Codes expire after 10
+HttpOnly, SameSite=Lax cookies, Secure over production HTTPS. Lax allows the top-level
+Discord callback; exact Origin and JSON checks protect POST requests. Codes expire after 10
 minutes, allow five attempts, and are single-use. Sessions expire after 12 hours;
 logout revokes them. Both are held in memory; a restart signs users out. Run one
 gateway process; scaling requires shared session storage and coordinated account

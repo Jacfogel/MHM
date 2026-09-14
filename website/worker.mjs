@@ -1,6 +1,7 @@
 const routes = new Map([
   ['/api/auth/request-code', 'POST'], ['/api/auth/verify', 'POST'],
   ['/api/auth/logout', 'POST'], ['/api/account', 'GET'],
+  ['/api/auth/discord/start', 'GET'], ['/api/auth/discord/callback', 'GET'],
   ['/api/settings', ['GET', 'POST']],
 ]);
 const assets = new Set(['/', '/index.html', '/login', '/login.html', '/app', '/app.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/settings.js']);
@@ -66,8 +67,10 @@ export default {
         let offset = 0;
         for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
       }
-      const response = await fetch(new URL(url.pathname, origin), {
-        method, headers, body, redirect: 'error', signal: AbortSignal.timeout(15000),
+      const response = await fetch(new URL(url.pathname + url.search, origin), {
+        method, headers, body,
+        redirect: url.pathname === '/api/auth/discord/callback' ? 'manual' : 'error',
+        signal: AbortSignal.timeout(15000),
       });
       return secured(response, true);
     } catch {

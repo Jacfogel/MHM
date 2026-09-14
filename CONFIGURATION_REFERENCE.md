@@ -134,6 +134,8 @@ If Telegram is being removed, these should remain unused/ignored in code.
 ### 5.2. Discord (primary channel)
 
 - `DISCORD_BOT_TOKEN`
+- `DISCORD_CLIENT_SECRET` - Discord application's OAuth2 client secret; keep this on the gateway host and never expose it to browser code.
+- `DISCORD_OAUTH_REDIRECT_URI` - exact Discord OAuth2 callback URL. Defaults to `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when blank.
 - `DISCORD_PUBLIC_KEY`
 - `DISCORD_AUTO_NGROK` - default in code is `false`; when `true`, the bot spawns ngrok for the webhook port (requires ngrok v3+ authtoken on the machine or the child exits immediately).
 - `DISCORD_WEBHOOK_PORT`
