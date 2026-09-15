@@ -5,7 +5,9 @@ ephemeral: restarting the gateway signs browsers out, without changing accounts.
 """
 
 import asyncio
+import base64
 import hashlib
+import json
 import re
 import secrets
 import smtplib
@@ -36,8 +38,77 @@ CODE_TTL = 600
 SESSION_TTL = 12 * 60 * 60
 DISCORD_STATE_TTL = 600
 DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
-DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
+DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"  # nosec B105
 DISCORD_USER_URL = "https://discord.com/api/users/@me"
+PASSWORD_MIN_LENGTH = 12
+PASSWORD_MAX_LENGTH = 128
+SCRYPT_N = 2**14
+SCRYPT_R = 8
+SCRYPT_P = 1
+OAUTH_STATE_TTL = 600
+OAUTH_PROVIDERS = ("google", "facebook", "apple")
+OAUTH_AUTHORIZE_URLS = {
+    "google": "https://accounts.google.com/o/oauth2/v2/auth",
+    "facebook": "https://www.facebook.com/dialog/oauth",
+    "apple": "https://appleid.apple.com/auth/authorize",
+}
+OAUTH_TOKEN_URLS = {
+    "google": "https://oauth2.googleapis.com/token",
+    "facebook": "https://graph.facebook.com/oauth/access_token",
+    "apple": "https://appleid.apple.com/auth/token",
+}
+
+
+# ERROR_HANDLING_EXCLUDE: Pure bounded crypto helper; callers own user-facing errors.
+def _password_hash(password: str, *, salt: bytes | None = None) -> str:
+    """Hash a password with scrypt and a per-password random salt."""
+    salt = salt or secrets.token_bytes(16)
+    digest = hashlib.scrypt(
+        password.encode("utf-8"),
+        salt=salt,
+        n=SCRYPT_N,
+        r=SCRYPT_R,
+        p=SCRYPT_P,
+        dklen=32,
+    )
+    encoded_salt = base64.urlsafe_b64encode(salt).decode().rstrip("=")
+    encoded_digest = base64.urlsafe_b64encode(digest).decode().rstrip("=")
+    return (
+        f"$mhm$scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}"
+        f"${encoded_salt}${encoded_digest}"
+    )
+
+
+def _password_matches(password: str, encoded: str) -> bool:
+    """Verify an MHM scrypt hash without exposing parsing failures."""
+    try:
+        marker, product, algorithm, n, r, p, salt, expected = encoded.split("$")
+        if marker or product != "mhm" or algorithm != "scrypt":
+            return False
+        parameters = (int(n), int(r), int(p))
+        if parameters != (SCRYPT_N, SCRYPT_R, SCRYPT_P):
+            return False
+        salt_bytes = base64.urlsafe_b64decode(salt + "=" * (-len(salt) % 4))
+        expected_bytes = base64.urlsafe_b64decode(
+            expected + "=" * (-len(expected) % 4)
+        )
+        actual = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=salt_bytes,
+            n=parameters[0],
+            r=parameters[1],
+            p=parameters[2],
+            dklen=len(expected_bytes),
+        )
+        return len(expected_bytes) == 32 and secrets.compare_digest(
+            actual, expected_bytes
+        )
+    except (ValueError, TypeError, UnicodeError):
+        return False
+
+
+# Unknown accounts take the same expensive password path as known accounts.
+_DUMMY_PASSWORD_HASH = _password_hash("MHM dummy password used only for timing")
 
 
 class MHMAccounts:
@@ -86,6 +157,49 @@ class MHMAccounts:
         from core import get_user_data
 
         return get_user_data(uid, "account").get("account") or {}
+
+    @handle_errors("finding website OAuth account", user_friendly=False)
+    def by_oauth(self, provider, subject):
+        """Return the unique account linked to one provider subject."""
+        matches = [
+            (uid, account)
+            for uid, account in self.all()
+            if (account.get("oauth_identities") or {}).get(provider) == subject
+        ]
+        return matches[0] if len(matches) == 1 else None
+
+    @handle_errors("saving website password", user_friendly=False, default_return=False)
+    def set_password(self, uid, password_hash):
+        """Store a password hash in the canonical account document."""
+        from core import update_user_account
+
+        return update_user_account(
+            uid, {"password_hash": password_hash}, auto_create=False
+        )
+
+    @handle_errors("linking website OAuth account", user_friendly=False, default_return="failed")
+    def link_oauth(self, uid, provider, subject):
+        """Link a provider subject once, without storing provider tokens."""
+        from core import update_user_account
+
+        current = self.get(uid)
+        identities = dict(current.get("oauth_identities") or {})
+        current_subject = identities.get(provider)
+        if current_subject and current_subject != subject:
+            return "different_linked"
+        for other_uid, other in self.all():
+            if other_uid != uid and (other.get("oauth_identities") or {}).get(
+                provider
+            ) == subject:
+                return "already_linked"
+        identities[provider] = subject
+        return (
+            "linked"
+            if update_user_account(
+                uid, {"oauth_identities": identities}, auto_create=False
+            )
+            else "failed"
+        )
 
     @handle_errors("loading website account documents", user_friendly=False, re_raise=True)
     def documents(self, uid):
@@ -137,7 +251,7 @@ class MHMAccounts:
         )
 
     @handle_errors("creating website account", user_friendly=False)
-    def create(self, email, username, timezone):
+    def create(self, email, username, timezone, password_hash):
         """Create an MHM account after website email verification succeeds."""
         from core import create_new_user
 
@@ -147,6 +261,7 @@ class MHMAccounts:
                 "email": email,
                 "chat_id": email,
                 "timezone": timezone,
+                "password_hash": password_hash,
                 "channel": {"type": "email"},
                 "categories": [],
                 "messages_enabled": False,
@@ -198,6 +313,179 @@ class Challenge:
     user_id: str | None
     eligible: bool
     attempts: int = 0
+
+
+@dataclass(frozen=True)
+class OAuthIdentity:
+    """Minimal verified identity returned by an external sign-in provider."""
+
+    subject: str
+    email: str
+    email_verified: bool
+    display_name: str = ""
+
+
+# ERROR_HANDLING_EXCLUDE: JWT parser intentionally raises into the OAuth boundary.
+def _jwt_part(value: str) -> dict:
+    """Decode one base64url JSON JWT part after its signature is verified."""
+    decoded = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+    payload = json.loads(decoded)
+    if not isinstance(payload, dict):
+        raise ValidationError("OAuth identity token was invalid")
+    return payload
+
+
+async def _apple_identity_from_token(token, *, client_id, nonce, session):
+    """Verify Apple's signed identity token and return its stable identity."""
+    try:
+        header_part, payload_part, signature_part = token.split(".")
+        header = _jwt_part(header_part)
+        claims = _jwt_part(payload_part)
+        if header.get("alg") != "RS256" or not isinstance(header.get("kid"), str):
+            raise ValidationError("Apple identity token was invalid")
+        async with session.get("https://appleid.apple.com/auth/keys") as response:
+            if response.status != 200:
+                raise CommunicationError("Apple identity keys could not be read")
+            key_set = await response.json(content_type=None)
+        keys = key_set.get("keys", []) if isinstance(key_set, dict) else []
+        key = next(
+            (
+                item
+                for item in keys
+                if isinstance(item, dict)
+                and item.get("kid") == header["kid"]
+                and item.get("kty") == "RSA"
+            ),
+            None,
+        )
+        if not key:
+            raise ValidationError("Apple identity token key was invalid")
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
+        modulus = int.from_bytes(
+            base64.urlsafe_b64decode(key["n"] + "=" * (-len(key["n"]) % 4)),
+            "big",
+        )
+        exponent = int.from_bytes(
+            base64.urlsafe_b64decode(key["e"] + "=" * (-len(key["e"]) % 4)),
+            "big",
+        )
+        public_key = rsa.RSAPublicNumbers(exponent, modulus).public_key()
+        signature = base64.urlsafe_b64decode(
+            signature_part + "=" * (-len(signature_part) % 4)
+        )
+        public_key.verify(
+            signature,
+            f"{header_part}.{payload_part}".encode(),
+            padding.PKCS1v15(),
+            hashes.SHA256(),
+        )
+        audience = claims.get("aud")
+        audience_ok = audience == client_id or (
+            isinstance(audience, list) and client_id in audience
+        )
+        if (
+            claims.get("iss") != "https://appleid.apple.com"
+            or not audience_ok
+            or not isinstance(claims.get("exp"), (int, float))
+            or claims["exp"] <= time.time()
+            or claims.get("nonce") != nonce
+        ):
+            raise ValidationError("Apple identity token claims were invalid")
+        subject = claims.get("sub")
+        email = claims.get("email", "")
+        verified = claims.get("email_verified") in {True, "true"}
+        if not isinstance(subject, str) or not 1 <= len(subject) <= 255:
+            raise ValidationError("Apple identity was invalid")
+        return OAuthIdentity(
+            subject,
+            email.casefold() if isinstance(email, str) else "",
+            verified,
+        )
+    except (CommunicationError, ValidationError):
+        raise
+    except Exception as exc:
+        raise ValidationError("Apple identity token was invalid") from exc
+
+
+async def _fetch_oauth_identity(
+    provider,
+    code,
+    *,
+    client_id,
+    client_secret,
+    redirect_uri,
+    nonce,
+):
+    """Exchange an authorization code and read a verified provider identity."""
+    try:
+        timeout = aiohttp.ClientTimeout(total=12)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(
+                OAUTH_TOKEN_URLS[provider],
+                data={
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                },
+            ) as response:
+                if response.status != 200:
+                    raise CommunicationError(
+                        f"{provider.title()} authorization could not be completed"
+                    )
+                token = await response.json(content_type=None)
+            if not isinstance(token, dict):
+                raise DataError("OAuth token response was invalid")
+            if provider == "apple":
+                id_token = token.get("id_token")
+                if not isinstance(id_token, str) or not id_token:
+                    raise DataError("Apple authorization returned no identity token")
+                return await _apple_identity_from_token(
+                    id_token, client_id=client_id, nonce=nonce, session=session
+                )
+            access_token = token.get("access_token")
+            if not isinstance(access_token, str) or not access_token:
+                raise DataError("OAuth authorization returned no access token")
+            identity_url = (
+                "https://openidconnect.googleapis.com/v1/userinfo"
+                if provider == "google"
+                else "https://graph.facebook.com/me?fields=id,name,email"
+            )
+            async with session.get(
+                identity_url,
+                headers={"Authorization": f"Bearer {access_token}"},
+            ) as response:
+                if response.status != 200:
+                    raise CommunicationError(
+                        f"{provider.title()} identity could not be read"
+                    )
+                identity = await response.json(content_type=None)
+    except (CommunicationError, DataError, ValidationError):
+        raise
+    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, KeyError) as exc:
+        raise CommunicationError("OAuth identity request failed") from exc
+    if not isinstance(identity, dict):
+        raise ValidationError("OAuth identity was invalid")
+    subject = identity.get("sub") if provider == "google" else identity.get("id")
+    email = identity.get("email", "")
+    if not isinstance(subject, str) or not 1 <= len(subject) <= 255:
+        raise ValidationError("OAuth identity was invalid")
+    if not isinstance(email, str):
+        email = ""
+    # Google exposes an explicit email_verified claim. Facebook's email field
+    # has no equivalent guarantee here, so first-time Facebook use must be
+    # linked from an already authenticated MHM session.
+    verified = identity.get("email_verified") is True if provider == "google" else False
+    display_name = identity.get("name", "")
+    return OAuthIdentity(
+        subject,
+        email.casefold(),
+        verified,
+        display_name if isinstance(display_name, str) else "",
+    )
 
 
 async def _fetch_discord_identity(code, *, client_id, client_secret, redirect_uri):
@@ -257,6 +545,7 @@ def create_web_app(
     proxy_secret=None,
     clock=time.monotonic,
     discord_identity=None,
+    oauth_identity=None,
 ):
     """Construct an injectable gateway; tests use isolated account and email adapters."""
     accounts = accounts or MHMAccounts()
@@ -290,8 +579,11 @@ def create_web_app(
     verification_lock = asyncio.Lock()
     settings_lock = asyncio.Lock()
     discord_link_lock = asyncio.Lock()
+    oauth_link_lock = asyncio.Lock()
     discord_states = {}
+    oauth_states = {}
     discord_identity = discord_identity or _fetch_discord_identity
+    oauth_identity = oauth_identity or _fetch_oauth_identity
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def discord_redirect_uri():
@@ -305,6 +597,27 @@ def create_web_app(
     def discord_available():
         """Return whether the Discord OAuth credentials are configured."""
         return bool(config.DISCORD_APPLICATION_ID and config.DISCORD_CLIENT_SECRET)
+
+    # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
+    def oauth_provider_config(provider):
+        """Return provider credentials and callback settings from configuration."""
+        if provider not in OAUTH_PROVIDERS:
+            return None
+        prefix = provider.upper()
+        client_id = str(getattr(config, f"{prefix}_OAUTH_CLIENT_ID", "") or "").strip()
+        client_secret = str(
+            getattr(config, f"{prefix}_OAUTH_CLIENT_SECRET", "") or ""
+        ).strip()
+        redirect_uri = str(
+            getattr(config, f"{prefix}_OAUTH_REDIRECT_URI", "") or ""
+        ).strip() or f"{origin}/api/auth/oauth/{provider}/callback"
+        if not client_id or not client_secret:
+            return None
+        return {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+        }
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def website_redirect(path, **params):
@@ -324,6 +637,8 @@ def create_web_app(
             del limits[key]
         for key in [key for key, value in discord_states.items() if value[1] <= now]:
             del discord_states[key]
+        for key in [key for key, value in oauth_states.items() if value["expires"] <= now]:
+            del oauth_states[key]
 
     # ERROR_HANDLING_EXCLUDE: Validation helper raises HTTP errors for the middleware.
     def throttle(key, maximum, window):
@@ -348,7 +663,11 @@ def create_web_app(
                     request.headers.get("X-MHM-Proxy-Secret", ""), proxy_secret
                 ):
                     raise web.HTTPForbidden(text="This request cannot be accepted.")
-                if request.method != "GET":
+                apple_callback = (
+                    request.method == "POST"
+                    and request.path == "/api/auth/oauth/apple/callback"
+                )
+                if request.method != "GET" and not apple_callback:
                     if request.headers.get("Origin") != origin:
                         raise web.HTTPForbidden(
                             text="Please sign in through the MHM website."
@@ -357,6 +676,10 @@ def create_web_app(
                         raise web.HTTPUnsupportedMediaType(
                             text="A JSON request is required."
                         )
+                if apple_callback and request.content_type != "application/x-www-form-urlencoded":
+                    raise web.HTTPUnsupportedMediaType(
+                        text="Apple returned an unsupported response."
+                    )
                 # Trust the client address only after authenticating the Worker.
                 client = (
                     request.headers.get("X-MHM-Client-IP", "unknown")
@@ -394,6 +717,120 @@ def create_web_app(
         if not isinstance(data, dict):
             raise web.HTTPBadRequest(text="Please check the form and try again.")
         return data
+
+    # ERROR_HANDLING_EXCLUDE: Pure validation helper used inside guarded routes.
+    def valid_password(value):
+        """Accept long passphrases without brittle composition requirements."""
+        return (
+            isinstance(value, str)
+            and PASSWORD_MIN_LENGTH <= len(value) <= PASSWORD_MAX_LENGTH
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Session creation runs inside guarded routes.
+    def start_session(uid, email, response, *, auth_method):
+        """Attach a new opaque browser session to a response."""
+        if len(sessions) >= 10000:
+            raise web.HTTPServiceUnavailable(
+                text="MHM is busy. Please try again later."
+            )
+        session = secrets.token_urlsafe(32)
+        sessions[hashlib.sha256(session.encode()).hexdigest()] = (
+            uid,
+            clock() + SESSION_TTL,
+            email.casefold(),
+            auth_method,
+        )
+        response.set_cookie(
+            COOKIE,
+            session,
+            httponly=True,
+            secure=not local,
+            samesite="Lax",
+            max_age=SESSION_TTL,
+            path="/api/",
+        )
+        return response
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def password_login(request):
+        """Authenticate an active account with its saved password."""
+        data = await body(request)
+        email, password = data.get("email"), data.get("password")
+        if (
+            not isinstance(email, str)
+            or len(email) > 254
+            or not isinstance(password, str)
+            or not valid_password(password)
+        ):
+            raise web.HTTPBadRequest(
+                text=f"Enter your email and a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
+            )
+        email = email.strip().casefold()
+        throttle(("password", email), 8, 600)
+        existing = await asyncio.to_thread(accounts.by_email, email)
+        saved_hash = (
+            existing[1].get("password_hash", "")
+            if existing and existing[1].get("account_status") == "active"
+            else ""
+        )
+        matches = await asyncio.to_thread(
+            _password_matches, password, saved_hash or _DUMMY_PASSWORD_HASH
+        )
+        if not existing or not saved_hash or not matches:
+            raise web.HTTPUnauthorized(
+                text="That email or password did not work. You can use an emailed code instead."
+            )
+        response = web.json_response({"ok": True})
+        return start_session(existing[0], email, response, auth_method="password")
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def password_setup(request):
+        """Set or replace the password for the signed-in account."""
+        uid, current = await authenticated_account(request)
+        data = await body(request)
+        password = data.get("password")
+        if not isinstance(password, str) or not valid_password(password):
+            raise web.HTTPBadRequest(
+                text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
+            )
+        saved_hash = current.get("password_hash", "")
+        current_key = hashlib.sha256(
+            request.cookies.get(COOKIE, "").encode()
+        ).hexdigest()
+        current_session = sessions.get(current_key)
+        code_reauthenticated = bool(
+            current_session
+            and len(current_session) > 3
+            and current_session[3] == "email_code"
+        )
+        if saved_hash and not code_reauthenticated:
+            current_password = data.get("current_password")
+            throttle(("password-change", current.get("email", "").casefold()), 8, 600)
+            if not isinstance(current_password, str) or not await asyncio.to_thread(
+                _password_matches, current_password, saved_hash
+            ):
+                raise web.HTTPUnauthorized(text="Your current password did not work.")
+        encoded = await asyncio.to_thread(_password_hash, password)
+        if not await asyncio.to_thread(accounts.set_password, uid, encoded):
+            raise web.HTTPServiceUnavailable(
+                text="Your password could not be saved. Please try again."
+            )
+        for key in [
+            key
+            for key, session in sessions.items()
+            if session[0] == uid and key != current_key
+        ]:
+            sessions.pop(key, None)
+        if current_session:
+            sessions[current_key] = (
+                current_session[0],
+                current_session[1],
+                current_session[2],
+                "password",
+            )
+        return web.json_response(
+            {"ok": True, "email": current.get("email", "")}
+        )
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def request_code(request):
@@ -502,6 +939,11 @@ def create_web_app(
                 )
             uid = challenge.user_id
             if challenge.mode == "create":
+                password = data.get("password")
+                if not isinstance(password, str) or not valid_password(password):
+                    raise web.HTTPBadRequest(
+                        text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
+                    )
                 if await asyncio.to_thread(accounts.email_exists, challenge.email):
                     del challenges[token]
                     raise web.HTTPConflict(
@@ -514,11 +956,13 @@ def create_web_app(
                     raise web.HTTPConflict(
                         text="That username is taken. Please choose another username."
                     )
+                encoded = await asyncio.to_thread(_password_hash, password)
                 uid = await asyncio.to_thread(
                     accounts.create,
                     challenge.email,
                     challenge.username,
                     challenge.timezone,
+                    encoded,
                 )
                 if not uid:
                     raise web.HTTPServiceUnavailable(
@@ -534,29 +978,8 @@ def create_web_app(
                     text="This account cannot sign in. Please contact your MHM administrator."
                 )
             del challenges[token]
-            session = secrets.token_urlsafe(32)
-            if len(sessions) >= 10000:
-                raise web.HTTPServiceUnavailable(
-                    text="MHM is busy. Please try again later."
-                )
-            sessions[hashlib.sha256(session.encode()).hexdigest()] = (
-                uid,
-                clock() + SESSION_TTL,
-                challenge.email,
-            )
         response = web.json_response({"ok": True})
-        response.set_cookie(
-            COOKIE,
-            session,
-            httponly=True,
-            secure=not local,
-            # Discord returns through a top-level cross-site GET. POST requests
-            # remain protected by exact Origin and JSON checks in guard().
-            samesite="Lax",
-            max_age=SESSION_TTL,
-            path="/api/",
-        )
-        return response
+        return start_session(uid, challenge.email, response, auth_method="email_code")
 
     # ERROR_HANDLING_EXCLUDE: Authentication failures are HTTP responses by design.
     async def authenticated_account(request):
@@ -578,6 +1001,15 @@ def create_web_app(
     async def account(request):
         """Return the signed-in account summary used by website pages."""
         _, current = await authenticated_account(request)
+        session_key = hashlib.sha256(
+            request.cookies.get(COOKIE, "").encode()
+        ).hexdigest()
+        current_session = sessions.get(session_key)
+        code_reauthenticated = bool(
+            current_session
+            and len(current_session) > 3
+            and current_session[3] == "email_code"
+        )
         app_id = str(config.DISCORD_APPLICATION_ID or "")
         return web.json_response(
             {
@@ -586,11 +1018,181 @@ def create_web_app(
                 "timezone": current.get("timezone", ""),
                 "discord_linked": bool(current.get("discord_user_id")),
                 "discord_available": discord_available(),
+                "password_set": bool(current.get("password_hash")),
+                "password_change_requires_current": bool(current.get("password_hash"))
+                and not code_reauthenticated,
+                "oauth": {
+                    provider: {
+                        "available": oauth_provider_config(provider) is not None,
+                        "linked": bool(
+                            (current.get("oauth_identities") or {}).get(provider)
+                        ),
+                    }
+                    for provider in OAUTH_PROVIDERS
+                },
                 "discord_url": (
                     f"https://discord.com/users/{app_id}" if app_id.isdigit() else None
                 ),
             }
         )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def oauth_providers(request):
+        """Report which optional social sign-in providers are configured."""
+        return web.json_response(
+            {
+                "providers": {
+                    provider: oauth_provider_config(provider) is not None
+                    for provider in OAUTH_PROVIDERS
+                }
+            }
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def oauth_start(request):
+        """Create one-time state and return a provider authorization URL."""
+        provider = request.match_info["provider"]
+        provider_config = oauth_provider_config(provider)
+        if not provider_config:
+            raise web.HTTPServiceUnavailable(
+                text=f"{provider.title()} sign-in is not configured yet."
+            )
+        if len(oauth_states) >= 10000:
+            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+        session_key = hashlib.sha256(
+            request.cookies.get(COOKIE, "").encode()
+        ).hexdigest()
+        active_session = sessions.get(session_key)
+        linked_uid = active_session[0] if active_session and active_session[1] > clock() else None
+        state = secrets.token_urlsafe(32)
+        nonce = secrets.token_urlsafe(32)
+        oauth_states[hashlib.sha256(state.encode()).hexdigest()] = {
+            "provider": provider,
+            "expires": clock() + OAUTH_STATE_TTL,
+            "nonce": nonce,
+            "session_key": session_key if linked_uid else "",
+            "linked_uid": linked_uid,
+        }
+        query = {
+            "client_id": provider_config["client_id"],
+            "redirect_uri": provider_config["redirect_uri"],
+            "response_type": "code",
+            "state": state,
+        }
+        if provider == "google":
+            query.update({"scope": "openid email profile", "prompt": "select_account"})
+        elif provider == "facebook":
+            query.update({"scope": "email"})
+        else:
+            query.update(
+                {
+                    "scope": "name email",
+                    "response_type": "code id_token",
+                    "response_mode": "form_post",
+                    "nonce": nonce,
+                }
+            )
+        return web.json_response(
+            {"url": f"{OAUTH_AUTHORIZE_URLS[provider]}?{urlencode(query)}"}
+        )
+
+    # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
+    async def oauth_callback(request):
+        """Validate a social callback, link its identity, and start a session."""
+        provider = request.match_info["provider"]
+        values = await request.post() if request.method == "POST" else request.query
+        state = values.get("state", "")
+        state_key = hashlib.sha256(str(state).encode()).hexdigest()
+        pending = oauth_states.pop(state_key, None)
+        return_path = "/app.html" if pending and pending.get("linked_uid") else "/login.html"
+        if (
+            provider not in OAUTH_PROVIDERS
+            or values.get("error")
+            or not pending
+            or pending["provider"] != provider
+            or pending["expires"] <= clock()
+        ):
+            return web.HTTPFound(website_redirect(return_path, social="cancelled"))
+        provider_config = oauth_provider_config(provider)
+        code = values.get("code", "")
+        if not provider_config or not isinstance(code, str) or not 1 <= len(code) <= 2048:
+            return web.HTTPFound(website_redirect(return_path, social="unavailable"))
+        try:
+            identity = await oauth_identity(
+                provider,
+                code,
+                client_id=provider_config["client_id"],
+                client_secret=provider_config["client_secret"],
+                redirect_uri=provider_config["redirect_uri"],
+                nonce=pending["nonce"],
+            )
+            if not isinstance(identity, OAuthIdentity):
+                raise ValidationError("OAuth identity was invalid")
+            linked_match = await asyncio.to_thread(
+                accounts.by_oauth, provider, identity.subject
+            )
+            target = None
+            if pending.get("linked_uid"):
+                saved_session = sessions.get(pending["session_key"])
+                if (
+                    not saved_session
+                    or saved_session[1] <= clock()
+                    or saved_session[0] != pending["linked_uid"]
+                ):
+                    return web.HTTPFound(
+                        website_redirect("/login.html", social="expired")
+                    )
+                current = await asyncio.to_thread(accounts.get, saved_session[0])
+                if (
+                    current.get("account_status") != "active"
+                    or current.get("email", "").casefold() != saved_session[2]
+                ):
+                    return web.HTTPFound(
+                        website_redirect("/login.html", social="expired")
+                    )
+                target = (saved_session[0], current)
+                if linked_match and linked_match[0] != target[0]:
+                    return web.HTTPFound(
+                        website_redirect("/app.html", social="in-use")
+                    )
+            elif linked_match:
+                target = linked_match
+            elif identity.email and identity.email_verified:
+                target = await asyncio.to_thread(accounts.by_email, identity.email)
+            if not target or target[1].get("account_status") != "active":
+                return web.HTTPFound(
+                    website_redirect("/login.html", social="not-linked")
+                )
+            if not linked_match:
+                async with oauth_link_lock:
+                    # Recheck uniqueness after provider I/O and before the write.
+                    linked_match = await asyncio.to_thread(
+                        accounts.by_oauth, provider, identity.subject
+                    )
+                    if linked_match and linked_match[0] != target[0]:
+                        return web.HTTPFound(
+                            website_redirect(return_path, social="in-use")
+                        )
+                    result = await asyncio.to_thread(
+                        accounts.link_oauth,
+                        target[0],
+                        provider,
+                        identity.subject,
+                    )
+                    if result not in {"linked", "already_linked"}:
+                        raise DataError("OAuth account could not be linked")
+            response = web.HTTPFound(
+                website_redirect("/app.html", social=f"{provider}-connected")
+            )
+            return start_session(
+                target[0],
+                target[1].get("email", ""),
+                response,
+                auth_method="oauth",
+            )
+        except Exception:
+            logger.error(f"Website {provider} sign-in failed")
+            return web.HTTPFound(website_redirect(return_path, social="error"))
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def discord_start(request):
@@ -1095,9 +1697,15 @@ def create_web_app(
         return response
 
     app = web.Application(middlewares=[guard], client_max_size=32768)
+    app.router.add_post("/api/auth/password", password_login)
+    app.router.add_post("/api/auth/password/setup", password_setup)
     app.router.add_post("/api/auth/request-code", request_code)
     app.router.add_post("/api/auth/verify", verify)
     app.router.add_post("/api/auth/logout", logout)
+    app.router.add_get("/api/auth/oauth/providers", oauth_providers)
+    app.router.add_get("/api/auth/oauth/{provider}/start", oauth_start)
+    app.router.add_get("/api/auth/oauth/{provider}/callback", oauth_callback)
+    app.router.add_post("/api/auth/oauth/{provider}/callback", oauth_callback)
     app.router.add_get("/api/auth/discord/start", discord_start)
     app.router.add_get("/api/auth/discord/callback", discord_callback)
     app.router.add_get("/api/account", account)

@@ -95,6 +95,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         "phone": user_data.get("phone", ""),
         "email": user_data.get("email", ""),
         "discord_user_id": user_data.get("discord_user_id", ""),
+        "password_hash": user_data.get("password_hash", ""),
+        "oauth_identities": user_data.get("oauth_identities", {}),
         "created_at": created_ts,
         "updated_at": created_ts,
         "features": {

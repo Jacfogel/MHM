@@ -178,3 +178,34 @@ test('Discord callback keeps its query and returns the gateway redirect', async 
     assert.equal(response.headers.get('Location'), url + '/app.html?discord=connected');
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test('password and social auth routes proxy while Apple form callbacks keep state', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push({ href: target.href, method: options.method, type: options.headers.get('Content-Type'), body: options.body ? new TextDecoder().decode(options.body) : '' });
+    if (target.pathname.endsWith('/callback')) {
+      return new Response(null, { status: 302, headers: { Location: url + '/app.html?social=apple-connected' } });
+    }
+    return Response.json({ ok: true, url: 'https://provider.example/authorize' });
+  };
+  try {
+    assert.equal((await worker.fetch(post('/api/auth/password'), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/auth/oauth/google/start'), env)).status, 200);
+    const apple = new Request(url + '/api/auth/oauth/apple/callback', {
+      method: 'POST',
+      headers: { Origin: 'https://appleid.apple.com', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'code=abc&state=xyz',
+    });
+    const callback = await worker.fetch(apple, env);
+    assert.equal(callback.status, 302);
+    assert.equal(callback.headers.get('Location'), url + '/app.html?social=apple-connected');
+    assert.deepEqual(calls.map(call => [call.href, call.method]), [
+      ['https://gateway.example/api/auth/password', 'POST'],
+      ['https://gateway.example/api/auth/oauth/google/start', 'GET'],
+      ['https://gateway.example/api/auth/oauth/apple/callback', 'POST'],
+    ]);
+    assert.equal(calls[2].type, 'application/x-www-form-urlencoded');
+    assert.equal(calls[2].body, 'code=abc&state=xyz');
+  } finally { globalThis.fetch = originalFetch; }
+});

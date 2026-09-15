@@ -7,7 +7,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from aiohttp import CookieJar
 
 from core.error_handling import ConfigurationError
-from core.web_account_service import create_web_app, MHMAccounts
+from core.web_account_service import OAuthIdentity, create_web_app, MHMAccounts
 
 pytestmark = [pytest.mark.unit, pytest.mark.user, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
@@ -15,7 +15,7 @@ ORIGIN = "http://localhost:8080"
 
 class Accounts:
     def __init__(self):
-        self.users = {
+        self.users: dict[str, dict] = {
             "existing": {
                 "internal_username": "river",
                 "email": "river@example.com",
@@ -46,15 +46,39 @@ class Accounts:
     def get(self, uid):
         return self.users.get(uid, {})
 
-    def create(self, email, username, timezone):
+    def create(self, email, username, timezone, password_hash):
         uid = f"new-{len(self.users)}"
         self.users[uid] = {
             "email": email,
             "internal_username": username,
             "timezone": timezone,
             "account_status": "active",
+            "password_hash": password_hash,
         }
         return uid
+
+    def set_password(self, uid, password_hash):
+        self.users[uid]["password_hash"] = password_hash
+        return True
+
+    def by_oauth(self, provider, subject):
+        matches = [
+            (uid, user)
+            for uid, user in self.users.items()
+            if user.get("oauth_identities", {}).get(provider) == subject
+        ]
+        return matches[0] if len(matches) == 1 else None
+
+    def link_oauth(self, uid, provider, subject):
+        for other_uid, user in self.users.items():
+            if other_uid != uid and user.get("oauth_identities", {}).get(provider) == subject:
+                return "already_linked"
+        identities = dict(self.users[uid].get("oauth_identities", {}))
+        if identities.get(provider) not in {None, subject}:
+            return "different_linked"
+        identities[provider] = subject
+        self.users[uid]["oauth_identities"] = identities
+        return "linked"
 
     def link_discord(self, uid, discord_user_id, discord_username):
         for other_uid, user in self.users.items():
@@ -98,10 +122,13 @@ async def request_code(client, email="river@example.com", mode="login", username
     )
 
 
-async def verify(client, token, code):
+async def verify(client, token, code, password=None):
+    payload = {"challenge": token, "code": code}
+    if password is not None:
+        payload["password"] = password
     return await client.post(
         "/api/auth/verify",
-        json={"challenge": token, "code": code},
+        json=payload,
         headers={"Origin": ORIGIN},
     )
 
@@ -131,9 +158,89 @@ async def test_creation_waits_for_verified_email(gateway):
         "challenge"
     ]
     assert not accounts.email_exists("brook@example.com")
-    assert (await verify(client, token, sent[-1][1])).status == 200
+    assert (await verify(client, token, sent[-1][1], "a secure password phrase")).status == 200
     assert accounts.email_exists("brook@example.com")
+    assert accounts.users["new-1"]["password_hash"].startswith("$mhm$scrypt$")
+    assert "a secure password phrase" not in accounts.users["new-1"]["password_hash"]
     assert (await (await client.get("/api/account")).json())["username"] == "brook"
+
+
+async def test_password_login_and_authenticated_password_setup(gateway):
+    client, accounts, sent, _ = gateway
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    account = await (await client.get("/api/account")).json()
+    assert account["password_set"] is False
+    assert account["password_change_requires_current"] is False
+
+    phrase = "a memorable password phrase"
+    setup = await client.post(
+        "/api/auth/password/setup",
+        json={"password": phrase},
+        headers={"Origin": ORIGIN},
+    )
+    assert setup.status == 200
+    assert accounts.users["existing"]["password_hash"].startswith("$mhm$scrypt$")
+    await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})
+
+    bad = await client.post(
+        "/api/auth/password",
+        json={"email": "river@example.com", "password": "the wrong password"},
+        headers={"Origin": ORIGIN},
+    )
+    assert bad.status == 401
+    login = await client.post(
+        "/api/auth/password",
+        json={"email": "RIVER@example.com", "password": phrase},
+        headers={"Origin": ORIGIN},
+    )
+    assert login.status == 200
+    assert "HttpOnly" in login.headers["Set-Cookie"]
+    account = await (await client.get("/api/account")).json()
+    assert account["password_change_requires_current"] is True
+
+    replacement = "a newer memorable password phrase"
+    missing_current = await client.post(
+        "/api/auth/password/setup",
+        json={"password": replacement},
+        headers={"Origin": ORIGIN},
+    )
+    assert missing_current.status == 401
+    changed = await client.post(
+        "/api/auth/password/setup",
+        json={"current_password": phrase, "password": replacement},
+        headers={"Origin": ORIGIN},
+    )
+    assert changed.status == 200
+
+    await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    account = await (await client.get("/api/account")).json()
+    assert account["password_change_requires_current"] is False
+    reset = await client.post(
+        "/api/auth/password/setup",
+        json={"password": "reset after verified email code"},
+        headers={"Origin": ORIGIN},
+    )
+    assert reset.status == 200
+
+
+async def test_password_validation_and_unknown_account_are_safe(gateway):
+    client, _, _, _ = gateway
+    short = await client.post(
+        "/api/auth/password",
+        json={"email": "river@example.com", "password": "too-short"},
+        headers={"Origin": ORIGIN},
+    )
+    assert short.status == 400
+    unknown = await client.post(
+        "/api/auth/password",
+        json={"email": "missing@example.com", "password": "a valid length password"},
+        headers={"Origin": ORIGIN},
+    )
+    assert unknown.status == 401
+    assert "email or password" in (await unknown.json())["error"]
 
 
 async def test_creation_rechecks_duplicates_after_verification(gateway):
@@ -146,7 +253,7 @@ async def test_creation_rechecks_duplicates_after_verification(gateway):
         "email": "other@example.com",
         "account_status": "active",
     }
-    assert (await verify(client, token, sent[-1][1])).status == 409
+    assert (await verify(client, token, sent[-1][1], "a secure password phrase")).status == 409
     assert not accounts.email_exists("brook@example.com")
 
 
@@ -258,7 +365,12 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
         core, "create_new_user", lambda data: captured.append(data) or "new-id"
     )
     adapter = MHMAccounts()
-    assert adapter.create("new@example.com", "new-user", "America/Regina") == "new-id"
+    assert adapter.create(
+        "new@example.com",
+        "new-user",
+        "America/Regina",
+        "$mhm$scrypt$16384$8$1$salt$digest",
+    ) == "new-id"
     assert captured[0]["channel"] == {"type": "email"}
     assert not captured[0]["messages_enabled"]
     monkeypatch.setattr(
@@ -320,6 +432,101 @@ async def test_smtp_failure_reports_delivery_problem_without_leaking_details():
         message = (await response.json())["error"]
         assert "couldn't send your code" in message
         assert "private diagnostic details" not in message
+
+
+@pytest.mark.parametrize("provider", ["google", "facebook", "apple"])
+async def test_configured_social_provider_links_by_verified_email_and_logs_in(
+    gateway, monkeypatch, provider
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    prefix = provider.upper()
+    monkeypatch.setattr(service.config, f"{prefix}_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, f"{prefix}_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, f"{prefix}_OAUTH_REDIRECT_URI", "")
+    calls = []
+
+    async def identity(selected_provider, code, **kwargs):
+        calls.append((selected_provider, code, kwargs))
+        return OAuthIdentity(f"{provider}-subject", "river@example.com", True, "River")
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
+    await client.start_server()
+    try:
+        providers = await (await client.get("/api/auth/oauth/providers")).json()
+        assert providers["providers"][provider] is True
+        start = await client.get(f"/api/auth/oauth/{provider}/start")
+        assert start.status == 200
+        authorize_url = (await start.json())["url"]
+        state = parse_qs(urlsplit(authorize_url).query)["state"][0]
+        if provider == "apple":
+            callback = await client.post(
+                f"/api/auth/oauth/{provider}/callback",
+                data={"code": "oauth-code", "state": state},
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                allow_redirects=False,
+            )
+            assert "response_mode=form_post" in authorize_url
+        else:
+            callback = await client.get(
+                f"/api/auth/oauth/{provider}/callback?code=oauth-code&state={state}",
+                allow_redirects=False,
+            )
+        assert callback.status == 302
+        assert callback.headers["Location"].endswith(
+            f"/app.html?social={provider}-connected"
+        )
+        assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
+        assert calls[0][0:2] == (provider, "oauth-code")
+        assert (await client.get("/api/account")).status == 200
+    finally:
+        await client.close()
+
+
+async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+
+    async def identity(provider, code, **kwargs):
+        return OAuthIdentity("unlinked-subject", "river@example.com", False)
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
+    await client.start_server()
+    try:
+        url = (await (await client.get("/api/auth/oauth/google/start")).json())["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        callback = await client.get(
+            f"/api/auth/oauth/google/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.headers["Location"].endswith("/login.html?social=not-linked")
+        assert "oauth_identities" not in accounts.users["existing"]
+        assert (await client.get("/api/account")).status == 401
+    finally:
+        await client.close()
 
 
 async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatch):

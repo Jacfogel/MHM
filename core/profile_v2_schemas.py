@@ -196,6 +196,8 @@ class AccountV2EnvelopeModel(BaseModel):
     email: str = ""
     discord_user_id: str = ""
     discord_username: str = ""
+    password_hash: str = ""
+    oauth_identities: dict[str, str] = Field(default_factory=dict)
     timezone: str = ""
     created_at: str = ""
     features: FeaturesV2Model = Field(default_factory=FeaturesV2Model)
@@ -253,6 +255,30 @@ class AccountV2EnvelopeModel(BaseModel):
             return ""
         normalized = value.strip()
         return normalized[:100] if len(normalized) > 100 else normalized
+
+    @field_validator("password_hash")
+    @classmethod
+    def _normalize_password_hash(cls, value: str) -> str:
+        """Keep only bounded MHM password-hash strings; plaintext is never valid."""
+        if not value:
+            return ""
+        normalized = value.strip()
+        return normalized if normalized.startswith("$mhm$scrypt$") and len(normalized) <= 512 else ""
+
+    @field_validator("oauth_identities")
+    @classmethod
+    def _normalize_oauth_identities(cls, value: dict[str, str]) -> dict[str, str]:
+        """Persist only supported provider subjects, never OAuth access tokens."""
+        if not isinstance(value, dict):
+            return {}
+        allowed = {"google", "facebook", "apple"}
+        return {
+            provider: subject.strip()
+            for provider, subject in value.items()
+            if provider in allowed
+            and isinstance(subject, str)
+            and 1 <= len(subject.strip()) <= 255
+        }
 
 
 class PreferencesV2EnvelopeModel(BaseModel):

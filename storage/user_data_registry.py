@@ -269,6 +269,8 @@ def _account_default_data(user_id: str) -> dict[str, Any] | None:
         "email": "",
         "discord_user_id": "",
         "discord_username": "",
+        "password_hash": "",
+        "oauth_identities": {},
         "created_at": current_time_str,
         "updated_at": current_time_str,
         "features": {

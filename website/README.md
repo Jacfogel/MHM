@@ -2,9 +2,10 @@
 
 
 > **File**: `website/README.md`
-Marketing site, email-code login/create-account page, signed-in account settings, task workspace, and notebook.
+Marketing site, password and social login/create-account page, signed-in account settings, task workspace, and notebook.
 The Python gateway uses the **same account store as MHM**. It never stores browser
-passwords or creates a separate website database.
+passwords in plaintext or creates a separate website database. Passwords are
+stored as salted scrypt hashes in the canonical account document.
 
 ## Local preview
 
@@ -32,14 +33,17 @@ when starting the MHM service alongside a standalone gateway.
 `127.0.0.1` and `8080`; headless `--host` and `--port` override these. If the browser
 origin changes, update `WEB_PUBLIC_ORIGIN` to match.
 
-Existing users sign in with their account email. Each email must belong to only
+Existing users can continue signing in with an emailed code, then set a password
+from the account page. Replacing a saved password requires either the current
+password or a fresh emailed-code sign-in and revokes the account's other in-memory
+browser sessions. Each email must belong to only
 one account. Duplicate emails prevent browser sign-in until an administrator
 corrects the user data. Accounts without an email require an administrator to
 add one before browser sign-in.
 Suspended and inactive accounts cannot sign in. Delivery failures and skipped
 ambiguous logins are recorded in the main log without codes or email addresses.
 
-New accounts are created **after email verification**, through `create_new_user`.
+New accounts choose a password and are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
 Users can configure these on their signed-in settings page. When Discord OAuth is configured,
 new accounts are sent through Discord immediately after email verification; the account page
@@ -65,7 +69,7 @@ Run the deploy command from `website/`. The Worker serves static assets and prox
 only supported `/api/` routes. The static site alone cannot access local Python data.
 Gateway fetches use `redirect: 'manual'`, since the Workers runtime rejects
 `redirect: 'error'`. Unexpected API redirects are rejected without following them;
-the Discord callback's redirect is returned to the browser.
+Discord and social callback redirects are returned to the browser.
 
 To enable live accounts:
 
@@ -89,19 +93,38 @@ from a browser. See [Cloudflare's fetch routing documentation](https://developer
 After changing Wrangler configuration, commit and push to trigger the connected
 Cloudflare build, or deploy from `website/` with an authenticated Wrangler CLI.
 
+For social sign-in, configure any of the following credential groups on the gateway.
+Buttons remain disabled until both the client ID and secret are present. A verified
+provider email is linked only when it uniquely matches an active MHM account; after
+that, the stable provider subject is used and OAuth access/refresh tokens are not stored.
+
+- Google: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and optionally
+  `GOOGLE_OAUTH_REDIRECT_URI`.
+- Facebook: `FACEBOOK_OAUTH_CLIENT_ID`, `FACEBOOK_OAUTH_CLIENT_SECRET`, and optionally
+  `FACEBOOK_OAUTH_REDIRECT_URI`. Connect Facebook once from the signed-in account
+  page before using it from the login page; the Graph email field is not treated
+  as an independently verified email claim.
+- Apple: `APPLE_OAUTH_CLIENT_ID` (Services ID), `APPLE_OAUTH_CLIENT_SECRET` (the signed
+  client-secret JWT), and `APPLE_OAUTH_REDIRECT_URI`. Apple requires a registered HTTPS
+  domain callback and posts its authorization response to the callback.
+
+When a redirect setting is blank it defaults to
+`${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`. Register the exact callback
+with the provider. Apple's signed client-secret JWT expires and must be rotated.
+
 For Discord connection, create an OAuth2 redirect in the Discord Developer Portal that exactly
 matches `DISCORD_OAUTH_REDIRECT_URI` (or `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when
 the setting is blank), set `DISCORD_APPLICATION_ID` and `DISCORD_CLIENT_SECRET` on the gateway,
 and keep the OAuth scope at `identify`. The Discord application and bot must be the same
 application used by `DISCORD_BOT_TOKEN`.
 
-Until configured, forms show an explicit unavailable message. Sessions use
+Until configured, social buttons stay disabled and forms show an explicit unavailable message. Sessions use
 HttpOnly, SameSite=Lax cookies, Secure over production HTTPS. Lax allows the top-level
 Discord callback; exact Origin and JSON checks protect POST requests. Codes expire after 10
 minutes, allow five attempts, and are single-use. Sessions expire after 12 hours;
 logout revokes them. Both are held in memory; a restart signs users out. Run one
 gateway process; scaling requires shared session storage and coordinated account
-creation. Request and email limits reduce repeated sends.
+creation. Password attempts, code requests, and email delivery are rate-limited.
 
 Logout asks before discarding unsaved settings, then ends the session and returns
 to login. Canceling leaves the session and drafts intact. Expired sessions also
@@ -113,8 +136,8 @@ return to login; request failures allow retrying logout.
 - `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
 - `script.js` — small client-side enhancements
 - `wrangler.jsonc` — Cloudflare Workers configuration
-- `login.html`, `auth.js` — login and verified account creation
-- `app.html`, `app.js` — connected account details and logout
+- `login.html`, `auth.js` — password, email-code, and social login plus verified account creation
+- `app.html`, `app.js` — connected account details, password/provider setup, and logout
 - `tasks.html`, `tasks.js` — signed-in task workspace and CRUD interactions
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
 - `settings.js` — signed-in user settings forms

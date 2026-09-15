@@ -103,6 +103,8 @@ Email is supported primarily for outbound automated messages.
 
 The browser account gateway also uses these SMTP credentials for verification
 codes, with SMTP over TLS on port 465, matching the current email adapter.
+Password login uses salted scrypt hashes in each canonical account document;
+emailed codes remain available for initial verification and fallback access.
 `WEB_PUBLIC_ORIGIN` defaults to `http://localhost:8080`; set it to the exact
 website HTTPS origin in production. `WEB_PROXY_SECRET` must contain at least 32
 random characters in production and match the Cloudflare Worker's
@@ -119,6 +121,12 @@ changing the port. An occupied port is logged and leaves the bots and scheduler
 running; stop the other gateway and restart the MHM service. The alternative
 `web` command runs only the gateway in the foreground. Use one gateway process
 for browser sessions.
+
+Optional social login credentials are `GOOGLE_OAUTH_CLIENT_ID`,
+`GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, and the corresponding
+`FACEBOOK_OAUTH_*` and `APPLE_OAUTH_*` values. Blank redirect URIs default to
+`${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`. Apple uses a Services ID
+and a signed, expiring client-secret JWT, and requires a registered HTTPS callback.
 
 ---
 

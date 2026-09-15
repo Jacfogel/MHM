@@ -45,6 +45,27 @@ def test_validate_account_v2_coerces_features_and_normalizes_email(base_account_
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_validate_account_v2_keeps_bounded_auth_fields(base_account_envelope):
+    account = copy.deepcopy(base_account_envelope)
+    account["password_hash"] = "$mhm$scrypt$16384$8$1$salt$digest"
+    account["oauth_identities"] = {
+        "google": " google-subject ",
+        "facebook": "facebook-subject",
+        "unsupported": "must-not-persist",
+    }
+
+    normalized, errors = validate_account_v2_document(account)
+
+    assert errors == []
+    assert normalized["password_hash"] == account["password_hash"]
+    assert normalized["oauth_identities"] == {
+        "google": "google-subject",
+        "facebook": "facebook-subject",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_validate_account_v2_reports_errors_when_required_fields_missing(base_account_envelope):
     incomplete = copy.deepcopy(base_account_envelope)
     incomplete.pop("user_id")

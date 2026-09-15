@@ -67,6 +67,27 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
     assert notebook.controls["note-group"]["maxlength"] == "50"
 
 
+def test_login_and_account_pages_expose_password_and_provider_controls():
+    login = parse_page("login.html")
+    account = parse_page("app.html")
+
+    assert {
+        "password",
+        "confirm-password",
+        "send-code",
+        "primary-action",
+    } <= login.ids
+    assert login.controls["password"]["minlength"] == "12"
+    assert login.controls["password"]["maxlength"] == "128"
+    assert {
+        "password-form",
+        "current-password",
+        "new-password",
+        "new-password-confirm",
+        "social-connections",
+    } <= account.ids
+
+
 @pytest.mark.parametrize("page_name", ["index.html", "login.html", "app.html", "tasks.html", "notes.html"])
 def test_page_local_scripts_and_assets_exist(page_name):
     page = parse_page(page_name)

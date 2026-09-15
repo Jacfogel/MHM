@@ -1,6 +1,8 @@
 const routes = new Map([
   ['/api/auth/request-code', 'POST'], ['/api/auth/verify', 'POST'],
+  ['/api/auth/password', 'POST'], ['/api/auth/password/setup', 'POST'],
   ['/api/auth/logout', 'POST'], ['/api/account', 'GET'],
+  ['/api/auth/oauth/providers', 'GET'],
   ['/api/auth/discord/start', 'GET'], ['/api/auth/discord/callback', 'GET'],
   ['/api/settings', ['GET', 'POST']],
   ['/api/tasks', ['GET', 'POST']],
@@ -30,8 +32,14 @@ export default {
     }
     const taskAction = url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore))?$/);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
-    const routePath = taskAction || noteAction ? (taskAction ? '/api/tasks/:task_id' : '/api/notes/:note_id') : url.pathname;
-    const methods = taskAction
+    const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/start$/);
+    const oauthCallback = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/callback$/);
+    const routePath = taskAction || noteAction || oauthStart || oauthCallback
+      ? taskAction ? '/api/tasks/:task_id' : noteAction ? '/api/notes/:note_id' : oauthStart ? '/api/auth/oauth/:provider/start' : '/api/auth/oauth/:provider/callback'
+      : url.pathname;
+    const methods = oauthStart ? ['GET']
+      : oauthCallback ? (url.pathname.includes('/apple/') ? ['GET', 'POST'] : ['GET'])
+      : taskAction
       ? (url.pathname.endsWith('/complete') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH', 'DELETE'])
       : noteAction
         ? (url.pathname.endsWith('/archive') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH'])
@@ -39,7 +47,8 @@ export default {
     if (!methods) return error('Page not found.', 404);
     const method = request.method;
     if (!(Array.isArray(methods) ? methods : [methods]).includes(method)) return error('This method is not supported.', 405);
-    if (method !== 'GET' && request.headers.get('Origin') !== url.origin) {
+    const appleCallback = url.pathname === '/api/auth/oauth/apple/callback' && method === 'POST';
+    if (method !== 'GET' && !appleCallback && request.headers.get('Origin') !== url.origin) {
       return error('Please sign in through the MHM website.', 403);
     }
     if (!env.MHM_API_ORIGIN || !env.MHM_API_SECRET || env.MHM_API_SECRET.length < 32) {
@@ -84,7 +93,7 @@ export default {
         redirect: 'manual',
         signal: AbortSignal.timeout(15000),
       });
-      if (response.status >= 300 && response.status < 400 && url.pathname !== '/api/auth/discord/callback') {
+      if (response.status >= 300 && response.status < 400 && url.pathname !== '/api/auth/discord/callback' && !oauthCallback) {
         if (response.body) await response.body.cancel();
         return error('MHM could not connect. Please try again shortly.', 503);
       }

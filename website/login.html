@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <script src="auth.js?v=discord-1" defer></script>
+  <script src="auth.js?v=password-social-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -40,7 +40,14 @@
       </div>
       <div id="entry-step">
         <h2 id="form-title">Welcome back.</h2>
-        <p id="form-description" class="panel-description">Pick up where you left off. We'll email you a code to sign in.</p>
+        <p id="form-description" class="panel-description">Pick up where you left off with your email and password.</p>
+        <div class="social-login" aria-label="Social sign-in options">
+          <button class="social-button" type="button" data-provider="google" disabled>Continue with Google</button>
+          <button class="social-button" type="button" data-provider="facebook" disabled>Continue with Facebook</button>
+          <button class="social-button" type="button" data-provider="apple" disabled>Continue with Apple</button>
+        </div>
+        <p class="field-hint social-hint" id="social-hint">Social sign-in options appear when configured.</p>
+        <div class="account-divider"><span>or use email</span></div>
         <form id="account-form">
           <div id="create-fields" hidden>
             <label for="username">MHM username</label>
@@ -49,10 +56,19 @@
           </div>
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" />
-        <p class="field-hint" id="email-hint">Use the email connected to your MHM account.</p>
-          <button class="button account-submit" id="send-code" type="submit">Send sign-in code →</button>
+          <p class="field-hint" id="email-hint">Use the email connected to your MHM account.</p>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="Your password" />
+          <p class="field-hint" id="password-hint">Use at least 12 characters.</p>
+          <div id="confirm-password-field" hidden>
+            <label for="confirm-password">Confirm password</label>
+            <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Type it again" />
+            <p class="field-hint">This password will be saved after your email is verified.</p>
+          </div>
+          <button class="button account-submit" id="primary-action" type="submit">Log in →</button>
+          <button class="plain-button email-code-action" id="send-code" type="button">Email me a sign-in code instead</button>
         </form>
-      <p class="account-footnote">No password to remember. Just a code, sent to your inbox. New accounts can connect Discord after verification.</p>
+        <p class="account-footnote">Email codes remain available as a secure fallback. New accounts verify their email once before the password is saved.</p>
       </div>
       <div id="verify-step" hidden>
         <span class="verification-icon" aria-hidden="true">✉</span>

@@ -48,6 +48,8 @@ _CONTEXT_ACCOUNT_LEAK_KEYS = frozenset(
         "email",
         "discord_user_id",
         "discord_username",
+        "password_hash",
+        "oauth_identities",
         "timezone",
         "features",
     }
@@ -290,6 +292,8 @@ _ACCOUNT_V2_KEYS = frozenset(
         "email",
         "discord_user_id",
         "discord_username",
+        "password_hash",
+        "oauth_identities",
         "timezone",
         "created_at",
         "features",

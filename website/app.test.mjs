@@ -11,7 +11,7 @@ async function page(logoutFetch = async () => Response.json({ ok: true })) {
   const nodes = new Map();
   const document = {
     getElementById(id) {
-      if (!nodes.has(id)) nodes.set(id, { hidden: true, disabled: false, textContent: '', classList: { add() {}, remove() {} }, addEventListener(type, listener) { if (id === 'logout' && type === 'click') click = listener; } });
+      if (!nodes.has(id)) nodes.set(id, { hidden: true, disabled: false, textContent: '', classList: { add() {}, remove() {} }, replaceChildren() {}, addEventListener(type, listener) { if (id === 'logout' && type === 'click') click = listener; } });
       return nodes.get(id);
     },
   };

@@ -227,6 +227,14 @@ button:disabled { cursor: wait; opacity: .65; }
 .account-panel input::placeholder { color: #898399; }
 .field-hint { color: var(--muted); font-size: .875rem; margin: 7px 0 20px; }
 .account-submit { width: 100%; background: var(--purple-dark); margin-top: 4px; }
+.email-code-action { width: 100%; text-align: center !important; }
+.social-login { display: grid; gap: 9px; }
+.social-button { width: 100%; border: 1px solid #d8d3e7; border-radius: 11px; padding: 12px 14px; background: #fff; color: var(--ink); font-weight: 650; }
+.social-button:not(:disabled):hover { border-color: var(--purple); background: #faf8ff; }
+.social-button:disabled { color: #8e8998; background: #f7f5f9; cursor: not-allowed; }
+.social-hint { margin-bottom: 14px; }
+.account-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .78rem; margin: 16px 0; text-transform: uppercase; letter-spacing: .06em; }
+.account-divider::before, .account-divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
 .account-footnote { font-size: .875rem; text-align: center; color: var(--muted); margin: 20px 0 0; }
 .form-status { color: var(--purple-dark); font-size: .9rem; overflow-wrap: anywhere; }
 .form-status:empty { margin: 0; }
@@ -244,6 +252,14 @@ button:disabled { cursor: wait; opacity: .65; }
 .account-details { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
 .account-details dt { color: var(--muted); }
 .account-details dd { margin: 0; overflow-wrap: anywhere; }
+.account-security-card form { display: grid; gap: 8px; }
+.account-security-card label { font-size: .84rem; font-weight: 650; }
+.account-security-card input { width: 100%; border: 1px solid #d8d3e7; border-radius: 10px; padding: 11px 12px; }
+.account-security-card .button { margin-top: 5px; }
+.connected-signins { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 16px; }
+.connected-signins h3 { font-size: .95rem; margin: 0 0 10px; }
+.social-connection { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.social-connection .plain-button { padding: 4px 0; }
 @media (max-width: 1000px) {
   .account-layout { grid-template-columns: 1fr 400px; gap: 40px; }
 }

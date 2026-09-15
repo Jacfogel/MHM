@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-15 - Password and social website sign-in **COMPLETED**
+- New accounts choose a 12–128 character password after one-time email verification; existing accounts can set or change one after signing in by code. Salted scrypt hashes are stored in the canonical account document, with rate-limited password login and code fallback.
+- Added configurable Google, Facebook, and Apple sign-in/linking with one-time state, provider subject uniqueness, verified-email matching, no provider token storage, and Apple form-post/JWT verification support through the Worker.
+- Updated the account UI, configuration examples, gateway/Worker routes, account schema, and focused Python/Node coverage.
+
 ### 2026-09-15 - Task reminder skip and simplify **COMPLETED**
 - Discord reminder **Skip** and **Simplify** are live, separate from snooze.
 - Skip rolls a repeating task to the next occurrence without marking it done; one-off tasks stay due and wait until tomorrow morning.
