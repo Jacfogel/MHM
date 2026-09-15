@@ -113,3 +113,63 @@ class TestInteractionViewFactories:
             result()
 
         assert captured["task_title"] == "Untitled Task"
+
+    def test_create_task_snooze_view_passes_task_metadata(self, monkeypatch):
+        captured = {}
+
+        def fake_get_task_snooze_choice_view(user_id, task_identifier, task_title):
+            captured.update(
+                {
+                    "user_id": user_id,
+                    "task_identifier": task_identifier,
+                    "task_title": task_title,
+                }
+            )
+            return "snooze-view"
+
+        monkeypatch.setattr(
+            "communication.communication_channels.discord.ui.task_reminder_view.get_task_snooze_choice_view",
+            fake_get_task_snooze_choice_view,
+        )
+
+        result = views.create_task_snooze_view(
+            "user-1", task_identifier="task-9", task_title="Take meds"
+        )
+        view = result() if callable(result) else result
+
+        assert view == "snooze-view"
+        assert captured == {
+            "user_id": "user-1",
+            "task_identifier": "task-9",
+            "task_title": "Take meds",
+        }
+
+    def test_create_task_simplify_view_passes_task_metadata(self, monkeypatch):
+        captured = {}
+
+        def fake_get_task_simplify_view(user_id, task_identifier, task_title):
+            captured.update(
+                {
+                    "user_id": user_id,
+                    "task_identifier": task_identifier,
+                    "task_title": task_title,
+                }
+            )
+            return "simplify-view"
+
+        monkeypatch.setattr(
+            "communication.communication_channels.discord.ui.task_reminder_view.get_task_simplify_view",
+            fake_get_task_simplify_view,
+        )
+
+        result = views.create_task_simplify_view(
+            "user-1", task_identifier="task-9", task_title="Take meds"
+        )
+        view = result() if callable(result) else result
+
+        assert view == "simplify-view"
+        assert captured == {
+            "user_id": "user-1",
+            "task_identifier": "task-9",
+            "task_title": "Take meds",
+        }

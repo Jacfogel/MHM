@@ -76,7 +76,7 @@ class TestInteractionHandlersBehavior:
         """Test that TaskManagementHandler can handle all expected intents."""
         handler = TaskManagementHandler()
         
-        expected_intents = ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
+        expected_intents = ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'snooze_task_reminder', 'skip_task_occurrence', 'simplify_task', 'task_stats']
         for intent in expected_intents:
             assert handler.can_handle(intent), f"TaskManagementHandler should handle {intent}"
         

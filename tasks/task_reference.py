@@ -27,7 +27,7 @@ PRONOUN_TASK_IDENTIFIERS = frozenset(
 
 _PRONOUN_FOLLOW_UP_RE = re.compile(
     r"(?i)(?:"
-    r"\b(?:make|set|change|update|mark|cross|check)\s+(?:that|it|this)\b"
+    r"\b(?:make|set|change|update|mark|cross|check|skip|snooze|simplify)\s+(?:that|it|this)\b"
     r"|(?:that|it|this)(?:'s|\s+is)\s+(?:due|urgent|critical|high|medium|low)"
     r"|\b(?:done|complete(?:d)?)\s+with\s+(?:that|it|this)\b"
     r"|\bnote\s+to\s+(?:that|it|this)\b"

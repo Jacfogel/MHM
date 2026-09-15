@@ -374,6 +374,8 @@ class DiscordRichDeliveryMixin:
             task_list_items=rich_data.get("task_list_items"),
             pagination_actions=rich_data.get("pagination_actions"),
             task_list_offset=rich_data.get("task_list_offset") or 0,
+            task_identifier=rich_data.get("task_identifier"),
+            task_title=rich_data.get("task_title"),
         )
         if callable(view) and not isinstance(view, type):
             try:

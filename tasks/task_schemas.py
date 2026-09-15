@@ -51,6 +51,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "next_due_date",
     "recurrence",
     "reminder_sent",
+    "reminder_snooze_until",
     "links",
 )
 
@@ -149,7 +150,17 @@ class TaskV2Model(BaseItemModel):
     recurrence: RecurrenceModel = Field(default_factory=RecurrenceModel)
     completion: CompletionModel = Field(default_factory=CompletionModel)
     reminder_sent: bool = False
+    reminder_snooze_until: str | None = None
     links: list[TaskLinkModel] = Field(default_factory=list)
+
+    @field_validator("reminder_snooze_until")
+    @classmethod
+    def validate_reminder_snooze_until(cls, value: str | None) -> str | None:
+        """Require a canonical timestamp when a reminder snooze is stored."""
+        if value == "":
+            return None
+        validate_optional_v2_timestamp(value, "reminder_snooze_until")
+        return value
 
     @field_validator("links", mode="before")
     @classmethod

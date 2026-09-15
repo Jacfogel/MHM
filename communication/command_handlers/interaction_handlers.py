@@ -161,9 +161,9 @@ class HelpHandler(InteractionHandler):
         # Task commands
         response += "📋 **Task Management:**\n"
         response += (
-            '• Natural: "create a task to...", "remind me to take medication every morning at 8am", "show my tasks", "complete [task]"\n'
+            '• Natural: "create a task to...", "remind me to take medication every morning at 8am", "show my tasks", "complete [task]", "remind me later", "skip that", "simplify that to ..."\n'
         )
-        response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, append_note_to_task, add_link_to_task, remove_link_from_task, task_stats\n"
+        response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, append_note_to_task, add_link_to_task, remove_link_from_task, snooze_task_reminder, skip_task_occurrence, simplify_task, task_stats\n"
         response += "• Slash: /tasks (also !tasks)\n\n"
 
         # Check-in commands

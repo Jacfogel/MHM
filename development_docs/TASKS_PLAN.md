@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-08-28  
+> **Last Updated**: 2026-09-15  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -142,6 +142,26 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 **Acceptance**:
 - A task can hold enough context that the user does not need to search chat history to remember what it means.
+
+---
+
+### 4.1 Reminder snooze, skip, and simplify
+
+**Status**: Shipped (2026-09-15)  
+**Priority**: High  
+**Why it matters**: "Not now" should delay the ping, not pretend the work is due later.
+
+**Shipped**:
+- [x] Discord **Remind Me Later** asks when: 1 hour, tonight (or tomorrow morning if it is already evening/night), next week, or a custom time.
+- [x] Channel-agnostic `snooze_task_reminder` stores `reminder_snooze_until` and reschedules the reminder without changing `due`.
+- [x] Typed commands such as `snooze that for 1 hour` and `snooze dentist until Friday 3pm`.
+- [x] **Skip** this occurrence (2026-09-15): repeating tasks roll to the next due date without a completed copy; one-off tasks stay due and wait until tomorrow morning.
+- [x] **Simplify** (2026-09-15): rewrite the title to a smaller next step; previous title is kept in notes; due date unchanged.
+
+**Acceptance**:
+- Snooze changes when MHM pings, not when the task is due.
+- Skip does not pretend the work was done.
+- Simplify makes the next step smaller without moving the due date.
 
 ---
 

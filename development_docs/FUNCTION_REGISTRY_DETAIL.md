@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-14 19:53:11
+> **Last Generated**: 2026-09-15 01:01:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 277
-- **Functions Found**: 2681
-- **Methods Found**: 1401
-- **Classes Found**: 256
-- **Total Items**: 4082
-- **Functions Documented**: 2380
-- **Methods Documented**: 1256
-- **Classes Documented**: 192
-- **Total Documented**: 3636
+### **Function Documentation Coverage: 89.2% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 280
+- **Functions Found**: 2726
+- **Methods Found**: 1413
+- **Classes Found**: 263
+- **Total Items**: 4139
+- **Functions Documented**: 2423
+- **Methods Documented**: 1268
+- **Classes Documented**: 197
+- **Total Documented**: 3691
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-14
+- **Last Updated**: 2026-09-15
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (507)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (690)
+### **Communication Functions** (707)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (537)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (125)
+### **Task Management Functions** (152)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1660,15 +1660,22 @@ Returns:
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
+- [OK] `_handle_simplify_task(self, user_id, entities)` - Shrink a task to a smaller next step without changing the due date.
+- [OK] `_handle_skip_task_occurrence(self, user_id, entities)` - Skip this occurrence without marking the work done.
+- [OK] `_handle_snooze_task_reminder(self, user_id, entities)` - Snooze a task reminder without changing the due date.
+- [OK] `_handle_snooze_task_reminder__ask_when(self, user_id, task, tonight_label)` - Ask when to ping again and attach Discord snooze choices.
+- [OK] `_handle_snooze_task_reminder__resolve_task(self, user_id, task_identifier)` - Find the task to snooze, or return a follow-up question.
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_matches_task_offer_reply(text, pattern)` - Return True when *text* matches a pending create-offer yes/no pattern.
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
+- [OK] `_resolve_active_task_for_command(self, user_id, task_identifier)` - Find the active task for snooze, skip, or simplify, or ask a follow-up.
 - [OK] `_resolve_pronoun_task_identifier(user_id, task_identifier)` - Replace a follow-up pronoun with a real task id, or ask which task.
 - [OK] `_sorted_active_tasks(user_id)` - Return active tasks in the same order as `show my task list`.
 - [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
 - [OK] `_task_service()` - Return the cached ``tasks.task_service`` module (lazy import for circular-import safety).
 - [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
+- [OK] `_valid_pending_simplify(user_id)` - Return a non-expired pending simplify prompt, or None.
 - [OK] `_valid_pending_task_action(user_id)` - Return a non-expired pending update/complete/note action, or None.
 - [OK] `_valid_pending_task_offer(user_id)` - Return a non-expired pending create offer, or None.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
@@ -1676,6 +1683,7 @@ Returns:
 - [OK] `get_help(self)` - Get help text for task management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
+- [OK] `handle_pending_simplify(user_id, message)` - Use the next free-text reply as the smaller task title.
 - [OK] `handle_pending_task_action(user_id, message)` - Apply a remembered task action when the user answers with a number or name.
 - [OK] `handle_pending_task_offer(user_id, message)` - Create or decline a pending offered task when the user answers yes/no.
 **Classes:**
@@ -1713,9 +1721,15 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
+  - [OK] `TaskManagementHandler._handle_simplify_task(self, user_id, entities)` - Shrink a task to a smaller next step without changing the due date.
+  - [OK] `TaskManagementHandler._handle_skip_task_occurrence(self, user_id, entities)` - Skip this occurrence without marking the work done.
+  - [OK] `TaskManagementHandler._handle_snooze_task_reminder(self, user_id, entities)` - Snooze a task reminder without changing the due date.
+  - [OK] `TaskManagementHandler._handle_snooze_task_reminder__ask_when(self, user_id, task, tonight_label)` - Ask when to ping again and attach Discord snooze choices.
+  - [OK] `TaskManagementHandler._handle_snooze_task_reminder__resolve_task(self, user_id, task_identifier)` - Find the task to snooze, or return a follow-up question.
   - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
+  - [OK] `TaskManagementHandler._resolve_active_task_for_command(self, user_id, task_identifier)` - Find the active task for snooze, skip, or simplify, or ask a follow-up.
   - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
   - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
@@ -1963,6 +1977,8 @@ Returns:
 - [MISSING] `create_create_hub_view(user_id)` - No description
 - [MISSING] `create_task_list_view(user_id)` - No description
 - [MISSING] `create_task_reminder_view(user_id)` - No description
+- [MISSING] `create_task_simplify_view(user_id)` - No description
+- [MISSING] `create_task_snooze_view(user_id)` - No description
 - [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
 
 #### `communication/communication_channels/discord/onboarding/__init__.py`
@@ -2206,12 +2222,16 @@ Args:
 
 #### `communication/communication_channels/discord/ui/task_reminder_view.py`
 **Functions:**
+- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task this custom snooze applies to.
+- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task this simplify applies to.
 - [OK] `__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
 Args:
     user_id: The user's internal user ID
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
+- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
+- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to simplify.
 - [OK] `get_task_reminder_view(user_id, task_id, task_title)` - Create a Discord View with buttons for task reminder actions.
 
 Args:
@@ -2221,6 +2241,8 @@ Args:
 
 Returns:
     discord.ui.View with buttons for task reminder actions
+- [OK] `get_task_simplify_view(user_id, task_id, task_title)` - Create a button that opens the simplify modal after a typed simplify command.
+- [OK] `get_task_snooze_choice_view(user_id, task_id, task_title)` - Create buttons for 1 hour, tonight/tomorrow morning, next week, and custom snooze.
 **Classes:**
 - [MISSING] `TaskReminderView` - No description
   - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
@@ -2229,6 +2251,14 @@ Args:
     user_id: The user's internal user ID
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
+- [MISSING] `TaskSimplifyView` - No description
+  - [OK] `TaskSimplifyView.__init__(self, user_id, task_id, task_title)` - Store the task to simplify.
+- [MISSING] `TaskSnoozeChoiceView` - No description
+  - [OK] `TaskSnoozeChoiceView.__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
+- [OK] `_TaskSimplifyModal` - Collect a smaller next-step title without changing the due date.
+  - [OK] `_TaskSimplifyModal.__init__(self, user_id, task_id, task_title)` - Store the task this simplify applies to.
+- [OK] `_TaskSnoozeCustomModal` - Collect a custom snooze time without changing the task due date.
+  - [OK] `_TaskSnoozeCustomModal.__init__(self, user_id, task_id, task_title)` - Store the task this custom snooze applies to.
 
 #### `communication/communication_channels/discord/webhooks/__init__.py`
 
@@ -2756,6 +2786,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
 - [OK] `_assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
 - [OK] `_assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
 - [OK] `_assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+- [OK] `_assign_snooze_option_entities(self, entities, message, match)` - Fill snooze_option / snooze_when from a snooze command match.
 - [OK] `_assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
@@ -2819,6 +2850,7 @@ Bare `group Quick Notes` must list the multi-word group, not set group
   - [OK] `EnhancedCommandParser._assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
   - [OK] `EnhancedCommandParser._assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
   - [OK] `EnhancedCommandParser._assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+  - [OK] `EnhancedCommandParser._assign_snooze_option_entities(self, entities, message, match)` - Fill snooze_option / snooze_when from a snooze command match.
   - [OK] `EnhancedCommandParser._assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
@@ -5854,6 +5886,7 @@ Args:
 ``task_identifier`` is the task record's canonical ``id`` or another value
 accepted by ``tasks.get_task_by_id``.
 - [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
+- [OK] `reschedule_snoozed_task_reminders(scheduler_manager, user_id)` - Re-schedule persisted reminder snoozes after a service restart.
 - [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
 
 For each active period, one incomplete task is selected with weighted
@@ -6240,6 +6273,17 @@ Returns:
 - [OK] `restore_url_case(url, original_message)` - Prefer the URL spelling from the original message when matching is case-insensitive.
 - [OK] `sanitize_task_links(raw_links)` - Normalize a links payload into unique `{url, label}` records.
 
+#### `tasks/task_occurrence_skip.py`
+**Functions:**
+- [OK] `_due_datetime(day, due_time, user_id)` - Return *day* at the task due time, or the user's morning default.
+- [OK] `_skip_one_off_occurrence(user_id, task_id, task, now_dt)` - Leave a one-off task on the list and stop pinging until tomorrow morning.
+- [OK] `_skip_recurrence_base(task, now_dt)` - Use today's or a still-future due date as the skipped occurrence.
+- [OK] `_skip_recurring_occurrence(user_id, task_id, task, now_dt)` - Advance the due date to the next occurrence and wait to ping until then.
+- [OK] `_with_skip_note(task, skipped_on, next_due)` - Keep existing notes and record that this occurrence was skipped.
+- [OK] `skip_task_occurrence(user_id, task_id)` - Skip this occurrence. Recurring tasks roll forward; one-off tasks stay due.
+**Classes:**
+- [OK] `TaskOccurrenceSkipResult` - Outcome of skipping one task occurrence.
+
 #### `tasks/task_reference.py`
 **Functions:**
 - [OK] `_is_recently_touched(task)` - Return True when the task was created, updated, or completed recently.
@@ -6256,6 +6300,29 @@ Prefers a title mentioned in recent chat, then a uniquely recent active
 task. Does not fall back to a leftover task after a more recent
 completion. Returns None when the reference is ambiguous.
 
+#### `tasks/task_reminder_snooze.py`
+**Functions:**
+- [OK] `_at_clock_time(day, hhmm)` - Return *day* with hour and minute from an HH:MM string.
+- [OK] `_morning_clock(defaults)` - Return the user's morning default as HH:MM.
+- [OK] `_resolve_in_amount(phrase, now_dt)` - Parse phrases like 'in 20 minutes' or 'in 2 hours'.
+- [OK] `_resolve_next_week(now_dt, defaults)` - Snooze until the same weekday next week at morning.
+- [OK] `_resolve_one_hour(now_dt)` - Return one hour from *now_dt*.
+- [OK] `_resolve_tonight_or_morning(now_dt, defaults)` - Snooze until tonight, or tomorrow morning when evening/night has started.
+- [OK] `_schedule_snooze_fire(user_id, task_id, until)` - Schedule a one-time reminder job at *until*.
+- [OK] `_strip_time_words(phrase)` - Remove clock and time-of-day words so a date phrase remains.
+- [OK] `_time_of_day_from_phrase(phrase, defaults)` - Return HH:MM when the phrase names morning/afternoon/evening/night.
+- [OK] `_tomorrow_morning(now_dt, defaults)` - Return tomorrow at the user's morning default.
+- [OK] `is_evening_or_night(now_dt, defaults)` - True when now is at or after the user's evening or night start.
+- [OK] `normalize_snooze_option(text)` - Map user text to a snooze option key, or None if it is a custom when-phrase.
+- [OK] `parse_custom_snooze_when(phrase)` - Parse a free-form when-phrase into a future local datetime.
+- [OK] `parse_task_snooze_until(task)` - Parse ``reminder_snooze_until`` from a runtime or v2 task dict.
+- [OK] `resolve_snooze_until(option)` - Return the datetime a snoozed reminder should fire.
+- [OK] `snooze_task_reminder(user_id, task_id, option)` - Snooze one task's reminder. Does not change the task due date.
+- [OK] `task_reminder_is_snoozed(task, now_dt)` - True when a stored snooze timestamp is still in the future.
+- [OK] `tonight_snooze_label(user_id, now_dt)` - Return Tonight, or Tomorrow morning when it is already evening/night.
+**Classes:**
+- [OK] `TaskReminderSnoozeResult` - Outcome of a reminder snooze request.
+
 #### `tasks/task_schemas.py`
 **Functions:**
 - [OK] `sanitize_links(cls, value)` - Normalize link payloads before model construction.
@@ -6265,6 +6332,7 @@ completion. Returns None when the reference is ambiguous.
 - [MISSING] `validate_date(cls, value)` - No description
 - [OK] `validate_label(cls, value)` - Normalize an optional short display label for a task link.
 - [MISSING] `validate_next_due_date(cls, value)` - No description
+- [OK] `validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 - [MISSING] `validate_time(cls, value)` - No description
 - [OK] `validate_url(cls, value)` - Require an http:// or https:// task link URL.
 **Classes:**
@@ -6284,6 +6352,7 @@ completion. Returns None when the reference is ambiguous.
   - [OK] `TaskV2Model.sanitize_links(cls, value)` - Normalize link payloads before model construction.
   - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
+  - [OK] `TaskV2Model.validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 
 #### `tasks/task_service.py`
 **Functions:**
@@ -6324,6 +6393,13 @@ completion. Returns None when the reference is ambiguous.
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
 **Classes:**
 - [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.
+
+#### `tasks/task_simplify.py`
+**Functions:**
+- [OK] `_description_with_previous_title(task, previous_title)` - Remember the larger title in notes when the visible title shrinks.
+- [OK] `simplify_task(user_id, task_id, new_title)` - Replace the task title with a smaller version. Due date stays the same.
+**Classes:**
+- [OK] `TaskSimplifyResult` - Outcome of shrinking a task title.
 
 #### `tasks/task_tag_helpers.py`
 **Functions:**

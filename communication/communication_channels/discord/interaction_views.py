@@ -56,6 +56,32 @@ def create_task_reminder_view(user_id: str, **kwargs: Any) -> Any | None:
     )
 
 
+@handle_errors("creating Discord task snooze view", default_return=None)
+def create_task_snooze_view(user_id: str, **kwargs: Any) -> Any | None:
+    from communication.communication_channels.discord.ui.task_reminder_view import (
+        get_task_snooze_choice_view,
+    )
+
+    task_identifier = kwargs.get("task_identifier")
+    task_title = kwargs.get("task_title", "Untitled Task")
+    return _defer_if_no_running_loop(
+        get_task_snooze_choice_view, user_id, task_identifier, task_title
+    )
+
+
+@handle_errors("creating Discord task simplify view", default_return=None)
+def create_task_simplify_view(user_id: str, **kwargs: Any) -> Any | None:
+    from communication.communication_channels.discord.ui.task_reminder_view import (
+        get_task_simplify_view,
+    )
+
+    task_identifier = kwargs.get("task_identifier")
+    task_title = kwargs.get("task_title", "Untitled Task")
+    return _defer_if_no_running_loop(
+        get_task_simplify_view, user_id, task_identifier, task_title
+    )
+
+
 def _defer_if_no_running_loop(factory, *args: Any) -> Any:
     """Return a view immediately when in an event loop, otherwise defer creation."""
     import asyncio

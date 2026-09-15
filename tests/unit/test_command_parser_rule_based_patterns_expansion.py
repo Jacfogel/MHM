@@ -270,6 +270,70 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.entities.get("task_identifier") == expected_identifier
 
     @pytest.mark.parametrize(
+        "message, expected_identifier, expected_option, expected_when",
+        [
+            ("remind me later", None, None, None),
+            ("remind me later about dentist", "dentist", None, None),
+            ("snooze task 1 for 1 hour", "1", "1_hour", None),
+            ("snooze that for an hour", "that", "1_hour", None),
+            ("snooze dentist until tonight", "dentist", "tonight", None),
+            ("snooze dentist until tomorrow morning", "dentist", "custom", "tomorrow morning"),
+            ("snooze dentist until next week", "dentist", "next_week", None),
+            ("snooze dentist until Friday 3pm", "dentist", "custom", "friday 3pm"),
+            ("remind me in an hour", None, "1_hour", None),
+            ("remind me tonight", None, "tonight", None),
+        ],
+    )
+    def test_snooze_task_reminder_patterns(
+        self, command_parser, message, expected_identifier, expected_option, expected_when
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "snooze_task_reminder"
+        assert result.parsed_command.entities.get("task_identifier") == expected_identifier
+        assert result.parsed_command.entities.get("snooze_option") == expected_option
+        assert result.parsed_command.entities.get("snooze_when") == expected_when
+
+    @pytest.mark.parametrize(
+        "message, expected_identifier",
+        [
+            ("skip that", "that"),
+            ("skip this occurrence", None),
+            ("skip task 1", "1"),
+            ("skip dentist", "dentist"),
+        ],
+    )
+    def test_skip_task_occurrence_patterns(
+        self, command_parser, message, expected_identifier
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "skip_task_occurrence"
+        assert result.parsed_command.entities.get("task_identifier") == expected_identifier
+
+    @pytest.mark.parametrize(
+        "message, expected_identifier, expected_title",
+        [
+            ("simplify that", "that", None),
+            ("simplify task 1 to wipe the kitchen", "1", "wipe the kitchen"),
+            ("make that simpler", "that", None),
+            ("simplify dentist to call the office", "dentist", "call the office"),
+        ],
+    )
+    def test_simplify_task_patterns(
+        self, command_parser, message, expected_identifier, expected_title
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "simplify_task"
+        assert result.parsed_command.entities.get("task_identifier") == expected_identifier
+        assert result.parsed_command.entities.get("simplified_title") == expected_title
+
+    def test_skip_question_is_not_a_task_skip(self, command_parser):
+        result = _rule_parse(command_parser, "skip question")
+        assert result.parsed_command.intent != "skip_task_occurrence"
+
+    @pytest.mark.parametrize(
         "message, expected_identifier",
         [
             ("delete task 1", "1"),

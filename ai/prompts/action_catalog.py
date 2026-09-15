@@ -195,6 +195,18 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("task_identifier", True, "Task number, id, short id, or title."),
         AIActionField("link_url", True, "URL or label of the link to remove."),
     ],
+    "snooze_task_reminder": [
+        AIActionField("task_identifier", False, "Task number, id, short id, or title."),
+        AIActionField("snooze_option", False, "1_hour, tonight, next_week, or custom."),
+        AIActionField("snooze_when", False, "Custom when-phrase such as Friday 3pm."),
+    ],
+    "skip_task_occurrence": [
+        AIActionField("task_identifier", False, "Task number, id, short id, or title."),
+    ],
+    "simplify_task": [
+        AIActionField("task_identifier", False, "Task number, id, short id, or title."),
+        AIActionField("simplified_title", False, "Smaller next-step title."),
+    ],
     "task_stats": [
         AIActionField("days", False, "Lookback window in days."),
         AIActionField("period_name", False, "Named period such as this week."),
@@ -507,6 +519,8 @@ _PRIORITY_PLANNING_ACTIONS = (
     "complete_task",
     "update_task",
     "delete_task",
+    "skip_task_occurrence",
+    "simplify_task",
     "append_note_to_task",
     "add_link_to_task",
     "uncomplete_task",

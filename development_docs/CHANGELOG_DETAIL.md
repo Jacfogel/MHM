@@ -32,6 +32,15 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-15 - Task reminder skip and simplify
+- **Feature**: Discord task reminders now include **Skip** and **Simplify**, alongside Complete, Remind Me Later, and More. Skip (`tasks/task_occurrence_skip.py`) does not treat the work as done: repeating tasks stay active and the due date moves to the next occurrence; one-off tasks stay due and MHM waits until tomorrow morning to ping. Simplify (`tasks/task_simplify.py`) replaces the title with a smaller next step, stores the old title in notes, and leaves the due date alone. Typed commands: `skip that`, `skip task 1`, `simplify that to wipe the kitchen counter`. Discord Simplify uses a short modal. Notebook capture of skip reasons stays out of scope.
+- **Hygiene**: Added `@handle_errors` on Discord `_run_snooze_command`; replaced a non-ASCII section mark in [discord-task-reminder-flow.md](../specs/discord-task-reminder-flow.md); regenerated the function registry and related docs.
+- **Impact**: A hard day can continue forward without a fake completion or a moved due date.
+
+### 2026-09-14 - Task reminder snooze without changing due date
+- **Feature**: Discord **Remind Me Later** now snoozes the reminder only. Choices are 1 hour, tonight (or tomorrow morning when it is already evening/night), next week, and a custom when-phrase. The task due date stays put. Typed commands such as `snooze that for 1 hour` and `snooze dentist until Friday 3pm` use the same channel-agnostic path (`tasks/task_reminder_snooze.py`, task handler, command parser). Skip and Simplify stay later as separate actions.
+- **Impact**: "Not now" delays the ping instead of pretending the work moved.
+
 ### 2026-09-14 - Website accounts, user settings, and integrated gateway
 - **Production verification**: Inspected the authenticated Cloudflare dashboard and confirmed the latest proxy fix is active on Worker `mhm`, with the expected runtime origin, encrypted secret binding, and public-fetch routing flag. Published `/api/account` now returns the gateway's 401 response; a login-code POST with an empty email returns the gateway's 400 validation response without sending email or creating an account. Aligned Wrangler's Worker name with the actual `mhm` deployment; successful email delivery and authenticated login still require a user test.
 - **Workers runtime fix**: An isolated Miniflare/workerd check reproduced the immediate gateway failure: the runtime rejects `redirect: 'error'` even though Node accepts it. Changed gateway fetches to `manual`, explicitly reject unexpected non-Discord redirects, and preserve the Discord callback redirect. All 12 Node tests passed. The locally installed runtime (supporting dates through 2026-05-03) verified upstream 401 forwarding, unexpected redirect rejection, and Discord redirect preservation against a mock gateway with no production credentials or live account writes. Live verification requires deployment.

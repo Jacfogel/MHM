@@ -84,6 +84,17 @@ Manage tasks with natural language or short commands.
 • `add the portal link to the dentist task: https://example.com/form`
 • `remove link from task 1 https://example.com/form`
 
+**Snooze a reminder** (due date stays the same):
+• Discord **Remind Me Later**: 1 hour, tonight (or tomorrow morning if it is already evening), next week, or a custom time
+• `snooze task 1 for 1 hour` / `snooze that until tonight` / `snooze dentist until next week`
+• `snooze dentist until Friday 3pm` / `remind me later`
+
+**Skip this time / Simplify** (not the same as snooze):
+• Discord **Skip**: repeating tasks move to the next occurrence; one-off tasks stay due and wait until tomorrow morning
+• Discord **Simplify**: shrink the task to a smaller next step
+• `skip that` / `skip task 1` / `skip this occurrence`
+• `simplify that to wipe the kitchen counter` / `make that simpler`
+
 **Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
 
 **Tags & groups:** `#health` in the message; `group:medical` or `in group:medical`
@@ -112,6 +123,7 @@ _WHICH_TASK_PREVIEW_LIMIT = 10
 PENDING_DELETIONS: dict[str, str] = {}
 PENDING_TASK_OFFERS: dict[str, dict[str, Any]] = {}
 PENDING_TASK_ACTIONS: dict[str, dict[str, Any]] = {}
+PENDING_SIMPLIFY: dict[str, dict[str, Any]] = {}
 
 _CONFIRM_TASK_OFFER_RE = re.compile(
     r"(?i)^(yes,?\s+add it|yes please|yes|yeah|yep|sure|add it|please do)$"
@@ -130,6 +142,10 @@ _KEEP_PENDING_LIST_RE = re.compile(
     r"show my (?:task )?list|show my tasks|list(?: my)? tasks|show tasks|"
     r"what(?:'?s| is) on my (?:task )?list"
     r")$"
+)
+_COMMANDISH_SIMPLIFY_REPLY_RE = re.compile(
+    r"(?i)^(show|list|complete|delete|snooze|skip|simplify|update|help|cancel|"
+    r"remind|mark|done|create|add|nt\b|ntask\b)\b"
 )
 
 
@@ -180,6 +196,54 @@ def handle_pending_task_offer(
         PENDING_TASK_OFFERS.pop(user_id, None)
         return InteractionResponse(_OFFER_CREATE_DECLINED, True)
     return None
+
+
+@handle_errors("loading pending task simplify", default_return=None)
+def _valid_pending_simplify(user_id: str) -> dict[str, Any] | None:
+    """Return a non-expired pending simplify prompt, or None."""
+    pending = PENDING_SIMPLIFY.get(user_id)
+    if not pending:
+        return None
+    asked_at = parse_timestamp_full(str(pending.get("asked_at") or ""))
+    if asked_at is None:
+        PENDING_SIMPLIFY.pop(user_id, None)
+        return None
+    age_seconds = (now_datetime_full() - asked_at).total_seconds()
+    if age_seconds < 0 or age_seconds > _TASK_OFFER_TTL_MINUTES * 60:
+        PENDING_SIMPLIFY.pop(user_id, None)
+        return None
+    if not pending.get("task_id"):
+        PENDING_SIMPLIFY.pop(user_id, None)
+        return None
+    return pending
+
+
+@handle_errors("handling pending task simplify title", default_return=None)
+def handle_pending_simplify(
+    user_id: str, message: str
+) -> InteractionResponse | None:
+    """Use the next free-text reply as the smaller task title."""
+    pending = _valid_pending_simplify(user_id)
+    if not pending:
+        return None
+    stripped = str(message or "").strip()
+    if not stripped:
+        return None
+    if _CANCEL_PENDING_ACTION_RE.match(stripped):
+        PENDING_SIMPLIFY.pop(user_id, None)
+        return InteractionResponse("Okay, I left the task as it is.", True)
+    if _KEEP_PENDING_LIST_RE.match(stripped) or _COMMANDISH_SIMPLIFY_REPLY_RE.match(
+        stripped
+    ):
+        return None
+    PENDING_SIMPLIFY.pop(user_id, None)
+    return TaskManagementHandler()._handle_simplify_task(
+        user_id,
+        {
+            "task_identifier": pending.get("task_id"),
+            "simplified_title": stripped,
+        },
+    )
 
 
 @handle_errors("loading sorted active tasks for which-task replies", default_return=[])
@@ -367,6 +431,9 @@ class TaskManagementHandler(InteractionHandler):
             "append_note_to_task",
             "add_link_to_task",
             "remove_link_from_task",
+            "snooze_task_reminder",
+            "skip_task_occurrence",
+            "simplify_task",
             "task_stats",
         ]
 
@@ -384,6 +451,8 @@ class TaskManagementHandler(InteractionHandler):
         entities = parsed_command.entities
         if intent != "list_tasks":
             PENDING_TASK_ACTIONS.pop(user_id, None)
+            if intent != "simplify_task":
+                PENDING_SIMPLIFY.pop(user_id, None)
 
         if intent == "create_task":
             return self._handle_create_task(user_id, entities)
@@ -407,6 +476,12 @@ class TaskManagementHandler(InteractionHandler):
             return self._handle_add_link_to_task(user_id, entities)
         elif intent == "remove_link_from_task":
             return self._handle_remove_link_from_task(user_id, entities)
+        elif intent == "snooze_task_reminder":
+            return self._handle_snooze_task_reminder(user_id, entities)
+        elif intent == "skip_task_occurrence":
+            return self._handle_skip_task_occurrence(user_id, entities)
+        elif intent == "simplify_task":
+            return self._handle_simplify_task(user_id, entities)
         elif intent == "task_stats":
             return TASK_ANALYTICS_HANDLER.handle_task_stats(user_id, entities)
         else:
@@ -968,6 +1043,249 @@ class TaskManagementHandler(InteractionHandler):
         return []
 
     # not_duplicate: task_mutation_handlers
+    @handle_errors("handling task reminder snooze")
+    def _handle_snooze_task_reminder(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Snooze a task reminder without changing the due date."""
+        from tasks.task_reminder_snooze import (
+            normalize_snooze_option,
+            snooze_task_reminder,
+            tonight_snooze_label,
+        )
+
+        task_identifier = entities.get("task_identifier")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id,
+            task_identifier,
+            intent="snooze_task_reminder",
+            entities=entities,
+        )
+        if pronoun_error:
+            return pronoun_error
+
+        task = self._resolve_active_task_for_command(
+            user_id,
+            task_identifier,
+            empty_list_message="You do not have any active tasks to remind you about later.",
+            which_message=(
+                "Which task should I remind you about later? Reply with the number or name, "
+                "or say show my task list."
+            ),
+            multi_suffix=(
+                "Reply with `snooze task <number> for 1 hour` (or tonight / next week)."
+            ),
+            not_found_message="I could not find that task, so I did not change the reminder.",
+        )
+        if isinstance(task, InteractionResponse):
+            return task
+
+        option = normalize_snooze_option(entities.get("snooze_option"))
+        custom_when = str(entities.get("snooze_when") or "").strip()
+        if not option and custom_when:
+            option = normalize_snooze_option(custom_when)
+            if option in {None, "custom"}:
+                option = "custom"
+            else:
+                custom_when = ""
+        if not option and not custom_when:
+            return self._handle_snooze_task_reminder__ask_when(
+                user_id, task, tonight_snooze_label(user_id)
+            )
+
+        result = snooze_task_reminder(
+            user_id,
+            _task_identifier(task),
+            option,
+            custom_when=custom_when or None,
+        )
+        return InteractionResponse(result.message, result.success)
+
+    @handle_errors(
+        "resolving an active task for a reminder command",
+        default_return=InteractionResponse(
+            "I could not find that task right now. Please try again.", True
+        ),
+    )
+    def _resolve_active_task_for_command(
+        self,
+        user_id: str,
+        task_identifier: str | None,
+        *,
+        empty_list_message: str,
+        which_message: str,
+        multi_suffix: str,
+        not_found_message: str,
+    ) -> dict[str, Any] | InteractionResponse:
+        """Find the active task for snooze, skip, or simplify, or ask a follow-up."""
+        tasks = _task_service().load_active_tasks(user_id)
+        if not tasks:
+            return InteractionResponse(empty_list_message, True)
+        if not task_identifier:
+            if len(tasks) == 1:
+                return tasks[0]
+            return InteractionResponse(
+                which_message,
+                False,
+                suggestions=["show my tasks", "cancel"],
+            )
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join(
+                [f"{i + 1}. {item['title']}" for i, item in enumerate(candidates[:5])]
+            )
+            return InteractionResponse(
+                f"I found multiple matching tasks:\n{preview}\n{multi_suffix}",
+                False,
+            )
+        if not candidates:
+            return InteractionResponse(not_found_message, True)
+        return candidates[0]
+
+    @handle_errors(
+        "resolving task for reminder snooze",
+        default_return=InteractionResponse(
+            "I could not snooze that reminder right now. Please try again.", True
+        ),
+    )
+    def _handle_snooze_task_reminder__resolve_task(
+        self, user_id: str, task_identifier: str | None
+    ) -> dict[str, Any] | InteractionResponse:
+        """Find the task to snooze, or return a follow-up question."""
+        return self._resolve_active_task_for_command(
+            user_id,
+            task_identifier,
+            empty_list_message="You do not have any active tasks to remind you about later.",
+            which_message=(
+                "Which task should I remind you about later? Reply with the number or name, "
+                "or say show my task list."
+            ),
+            multi_suffix=(
+                "Reply with `snooze task <number> for 1 hour` (or tonight / next week)."
+            ),
+            not_found_message="I could not find that task, so I did not change the reminder.",
+        )
+
+    @handle_errors("asking when to snooze a task reminder")
+    def _handle_snooze_task_reminder__ask_when(
+        self, user_id: str, task: dict[str, Any], tonight_label: str
+    ) -> InteractionResponse:
+        """Ask when to ping again and attach Discord snooze choices."""
+        title = str(task.get("title") or "this task")
+        short_id = _task_short_identifier(task) or _task_identifier(task)
+        tonight_command = (
+            "until tomorrow morning"
+            if tonight_label.lower().startswith("tomorrow")
+            else "until tonight"
+        )
+        return InteractionResponse(
+            f"When should I remind you about **{title}**?\n"
+            "The due date stays the same.\n"
+            f"Choose 1 hour, {tonight_label.lower()}, next week, or a custom time "
+            f"like `snooze task {short_id} until Friday 3pm`.",
+            False,
+            suggestions=[
+                f"snooze task {short_id} for 1 hour",
+                f"snooze task {short_id} {tonight_command}",
+                f"snooze task {short_id} until next week",
+            ],
+            rich_data={
+                "interaction_view": "task_snooze",
+                "user_id": user_id,
+                "task_identifier": _task_identifier(task),
+                "task_title": title,
+            },
+        )
+
+    @handle_errors("handling skip task occurrence")
+    def _handle_skip_task_occurrence(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Skip this occurrence without marking the work done."""
+        from tasks.task_occurrence_skip import skip_task_occurrence
+
+        task_identifier = entities.get("task_identifier")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id,
+            task_identifier,
+            intent="skip_task_occurrence",
+            entities=entities,
+        )
+        if pronoun_error:
+            return pronoun_error
+        task = self._resolve_active_task_for_command(
+            user_id,
+            task_identifier,
+            empty_list_message="You do not have any active tasks to skip.",
+            which_message=(
+                "Which task should I skip this time? Reply with the number or name, "
+                "or say show my task list."
+            ),
+            multi_suffix="Reply with `skip task <number>`.",
+            not_found_message="I could not find that task, so I did not skip it.",
+        )
+        if isinstance(task, InteractionResponse):
+            return task
+        result = skip_task_occurrence(user_id, _task_identifier(task))
+        return InteractionResponse(result.message, result.success)
+
+    @handle_errors("handling simplify task")
+    def _handle_simplify_task(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Shrink a task to a smaller next step without changing the due date."""
+        from tasks.task_simplify import simplify_task
+
+        task_identifier = entities.get("task_identifier")
+        task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
+            user_id,
+            task_identifier,
+            intent="simplify_task",
+            entities=entities,
+        )
+        if pronoun_error:
+            return pronoun_error
+        task = self._resolve_active_task_for_command(
+            user_id,
+            task_identifier,
+            empty_list_message="You do not have any active tasks to simplify.",
+            which_message=(
+                "Which task should I simplify? Reply with the number or name, "
+                "or say show my task list."
+            ),
+            multi_suffix="Reply with `simplify task <number> to <smaller version>`.",
+            not_found_message="I could not find that task, so I did not change it.",
+        )
+        if isinstance(task, InteractionResponse):
+            return task
+        result = simplify_task(
+            user_id,
+            _task_identifier(task),
+            entities.get("simplified_title"),
+        )
+        if result.needs_title:
+            PENDING_SIMPLIFY[user_id] = {
+                "task_id": _task_identifier(task),
+                "asked_at": now_timestamp_full(),
+            }
+            short_id = _task_short_identifier(task) or _task_identifier(task)
+            return InteractionResponse(
+                result.message,
+                False,
+                suggestions=[
+                    f"simplify task {short_id} to a 5-minute version",
+                    "cancel",
+                ],
+                rich_data={
+                    "interaction_view": "task_simplify",
+                    "user_id": user_id,
+                    "task_identifier": _task_identifier(task),
+                    "task_title": str(task.get("title") or "this task"),
+                },
+            )
+        PENDING_SIMPLIFY.pop(user_id, None)
+        return InteractionResponse(result.message, result.success)
+
     @handle_errors("handling task completion")
     def _handle_complete_task(
         self, user_id: str, entities: dict[str, Any]
@@ -1466,6 +1784,10 @@ class TaskManagementHandler(InteractionHandler):
             "append note to task 1 call back before 5pm",
             "add link to task 1 https://example.com/form",
             "add the portal link to the dentist task: https://example.com/form",
+            "snooze that for 1 hour",
+            "remind me later",
+            "skip that",
+            "simplify that to wipe the kitchen counter",
             "task stats",
             "how am I doing with my tasks this week?",
             "task template medication",

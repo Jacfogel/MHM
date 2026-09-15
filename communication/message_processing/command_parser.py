@@ -147,6 +147,7 @@ _PARSE_COMMAND_KEYWORDS: tuple[str, ...] = (
     "remind",
     "reminder",
     "remind me",
+    "snooze",
     "gotta",
     "call",
     "buy",
@@ -403,6 +404,29 @@ class EnhancedCommandParser:
 
         # Rule-based patterns for common intents
         self.intent_patterns = {
+            "snooze_task_reminder": [
+                r"^remind\s+me\s+later(?:\s+about\s+(.+))?$",
+                r"^remind\s+me\s+in\s+an\s+hour(?:\s+about\s+(.+))?$",
+                r"^remind\s+me\s+tonight(?:\s+about\s+(.+))?$",
+                r"^remind\s+me\s+next\s+week(?:\s+about\s+(.+))?$",
+                r"^snooze\s+(?:task\s+)?(.+?)\s+for\s+(an\s+hour|1\s+hour|one\s+hour)$",
+                r"^snooze\s+(?:task\s+)?(.+?)\s+until\s+(tonight|tomorrow morning|next week)$",
+                r"^snooze\s+(?:task\s+)?(.+?)\s+until\s+(.+)$",
+                r"^snooze\s+(that|it|this)(?:\s+task)?$",
+                r"^snooze\s+(?:task\s+)?(.+)$",
+            ],
+            "skip_task_occurrence": [
+                r"^skip\s+(?:this\s+)?(?:occurrence|reminder)(?:\s+(?:of|for|on)\s+(.+))?$",
+                r"^skip\s+task\s+(.+)$",
+                r"^skip\s+(that|it|this)(?:\s+(?:task|reminder|occurrence))?$",
+                r"^skip\s+(?!question\b|all\b)(.+)$",
+            ],
+            "simplify_task": [
+                r"^simplify\s+(?:task\s+)?(.+?)\s+to\s+(.+)$",
+                r"^make\s+(?:task\s+)?(.+?)\s+simpler(?:\s+to\s+(.+))?$",
+                r"^simplify\s+(that|it|this)(?:\s+task)?$",
+                r"^simplify\s+(?:task\s+)?(.+)$",
+            ],
             "create_task": [
                 r"^nt\s+(.+)$",
                 r"^ntask\s+(.+)$",
@@ -1454,6 +1478,42 @@ class EnhancedCommandParser:
                     entities.update(task_entities)
             return True
 
+        if intent == "snooze_task_reminder":
+            identifier = ""
+            if match.groups():
+                identifier = (match.group(1) or "").strip()
+            if identifier.lower().startswith("task "):
+                identifier = identifier[5:].strip()
+            if identifier:
+                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            self._assign_snooze_option_entities(entities, message, match)
+            return True
+
+        if intent == "skip_task_occurrence":
+            identifier = ""
+            if match.groups():
+                identifier = (match.group(1) or "").strip()
+            if identifier.lower().startswith("task "):
+                identifier = identifier[5:].strip()
+            if identifier:
+                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            return True
+
+        if intent == "simplify_task":
+            identifier = ""
+            new_title = ""
+            if match.lastindex and match.lastindex >= 1:
+                identifier = (match.group(1) or "").strip()
+            if match.lastindex and match.lastindex >= 2:
+                new_title = (match.group(2) or "").strip()
+            if identifier.lower().startswith("task "):
+                identifier = identifier[5:].strip()
+            if identifier:
+                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            if new_title:
+                entities["simplified_title"] = new_title
+            return True
+
         if intent in [
             "complete_task",
             "delete_task",
@@ -1523,6 +1583,34 @@ class EnhancedCommandParser:
             return True
 
         return False
+
+    @handle_errors("assigning snooze option entities", default_return=None)
+    def _assign_snooze_option_entities(
+        self, entities: dict[str, Any], message: str, match: re.Match
+    ) -> None:
+        """Fill snooze_option / snooze_when from a snooze command match."""
+        from tasks.task_reminder_snooze import normalize_snooze_option
+
+        lowered = message.lower().strip()
+        remainder = ""
+        if match.lastindex and match.lastindex >= 2:
+            remainder = (match.group(2) or "").strip()
+        option = normalize_snooze_option(remainder)
+        if option:
+            entities["snooze_option"] = option
+            return
+        if re.search(r"\bin\s+an\s+hour\b|\bfor\s+(?:an|1|one)\s+hour\b", lowered):
+            entities["snooze_option"] = "1_hour"
+            return
+        if re.search(r"\btonight\b", lowered):
+            entities["snooze_option"] = "tonight"
+            return
+        if re.search(r"\bnext week\b", lowered):
+            entities["snooze_option"] = "next_week"
+            return
+        if remainder:
+            entities["snooze_option"] = "custom"
+            entities["snooze_when"] = remainder
 
     @handle_errors("cleaning task identifier", default_return="")
     def _clean_task_identifier(self, identifier: str) -> str:
@@ -2428,6 +2516,11 @@ class EnhancedCommandParser:
                 "sync health": "sync_google_health",
                 "list tasks": "list_tasks",
                 "complete task": "complete_task",
+                "snooze task": "snooze_task_reminder",
+                "remind me later": "snooze_task_reminder",
+                "skip task": "skip_task_occurrence",
+                "skip that": "skip_task_occurrence",
+                "simplify task": "simplify_task",
                 "delete task": "delete_task",
                 "update task": "update_task",
                 "append note to task": "append_note_to_task",

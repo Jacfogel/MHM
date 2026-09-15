@@ -300,6 +300,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "deleted_at": task.get("deleted_at"),
         "metadata": metadata,
         "reminder_sent": bool(task.get("reminder_sent")),
+        "reminder_snooze_until": task.get("reminder_snooze_until") or None,
         "links": task.get("links") or [],
     }
     return TaskV2Model.model_validate(v2_task).model_dump(mode="json")
@@ -334,6 +335,7 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "deleted_at": task.get("deleted_at"),
         "metadata": task.get("metadata", {}),
         "reminder_sent": bool(task.get("reminder_sent")),
+        "reminder_snooze_until": task.get("reminder_snooze_until") or None,
         "links": task.get("links") or [],
     }
     return runtime

@@ -13,7 +13,9 @@ import pytz
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import (
+    DATE_ONLY,
     TIME_ONLY_MINUTE,
+    TIMESTAMP_FULL,
     format_timestamp,
     load_and_localize_datetime,
     now_datetime_full,
@@ -61,14 +63,30 @@ def handle_task_reminder(
                 )
                 return
 
-            if task.get("reminder_sent"):
+            from tasks.task_reminder_snooze import (
+                parse_task_snooze_until,
+                task_reminder_is_snoozed,
+            )
+
+            if task_reminder_is_snoozed(task):
+                logger.info(
+                    f"Task {task_identifier} reminder is snoozed, skipping until snooze expires"
+                )
+                return
+
+            snooze_until = parse_task_snooze_until(task)
+            if task.get("reminder_sent") and snooze_until is None:
                 logger.info(
                     f"Task {task_identifier} reminder already sent, skipping duplicate"
                 )
                 return
 
             delivery.handle_task_reminder(user_id, task_identifier)
-            update_task(user_id, task_identifier, {"reminder_sent": True})
+            update_task(
+                user_id,
+                task_identifier,
+                {"reminder_sent": True, "reminder_snooze_until": None},
+            )
 
             logger.info(
                 f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
@@ -86,6 +104,45 @@ def handle_task_reminder(
             time.sleep(retry_delay)
 
 
+@handle_errors("rescheduling snoozed task reminders")
+def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> None:
+    """Re-schedule persisted reminder snoozes after a service restart."""
+    from tasks import load_active_tasks, update_task
+    from tasks.task_reminder_snooze import parse_task_snooze_until
+
+    now = now_datetime_full()
+    scheduled = 0
+    for task in load_active_tasks(user_id):
+        if runtime_task_is_completed(task):
+            continue
+        until = parse_task_snooze_until(task)
+        if until is None:
+            continue
+        task_id = str(task.get("id") or "").strip()
+        if not task_id:
+            continue
+        if until <= now:
+            until = now + timedelta(minutes=1)
+            update_task(
+                user_id,
+                task_id,
+                {
+                    "reminder_sent": True,
+                    "reminder_snooze_until": format_timestamp(until, TIMESTAMP_FULL),
+                },
+            )
+        date_str = format_timestamp(until, DATE_ONLY)
+        time_str = format_timestamp(until, TIME_ONLY_MINUTE)
+        if scheduler_manager.schedule_task_reminder_at_datetime(
+            user_id, task_id, date_str, time_str
+        ):
+            scheduled += 1
+    if scheduled:
+        logger.info(
+            f"Rescheduled {scheduled} snoozed task reminder(s) for user {user_id}"
+        )
+
+
 @handle_errors("scheduling all task reminders")
 def schedule_all_task_reminders(scheduler_manager: Any, user_id: str) -> None:
     """
@@ -101,6 +158,8 @@ def schedule_all_task_reminders(scheduler_manager: Any, user_id: str) -> None:
         if not are_tasks_enabled(user_id):
             logger.debug(f"Tasks not enabled for user {user_id}")
             return
+
+        reschedule_snoozed_task_reminders(scheduler_manager, user_id)
 
         task_periods = get_schedule_time_periods(user_id, "tasks")
         if not task_periods:

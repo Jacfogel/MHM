@@ -41,6 +41,7 @@ def try_parsing_shortcuts(
 
     try:
         from communication.command_handlers.task_handler import (
+            handle_pending_simplify,
             handle_pending_task_action,
             handle_pending_task_offer,
         )
@@ -53,6 +54,11 @@ def try_parsing_shortcuts(
             if offer_response is not None:
                 return augment_suggestions(
                     ParsedCommand("create_task", {}, 1.0, message), offer_response
+                )
+            simplify_response = handle_pending_simplify(user_id, message)
+            if simplify_response is not None:
+                return augment_suggestions(
+                    ParsedCommand("simplify_task", {}, 1.0, message), simplify_response
                 )
             action_response = handle_pending_task_action(user_id, message)
             if action_response is not None:

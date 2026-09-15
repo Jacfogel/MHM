@@ -84,6 +84,7 @@ _COMMAND_KEYWORDS = (
     "help",
     "commands",
     "examples",
+    "snooze",
     "inbox",
     "group",
     "template",
@@ -124,6 +125,15 @@ _COMMAND_PHRASE_HINTS = (
     "add note to task",
     "add link to task",
     "remove link from task",
+    "remind me later",
+    "snooze that",
+    "snooze task",
+    "skip that",
+    "skip this occurrence",
+    "skip task",
+    "simplify that",
+    "simplify task",
+    "make that simpler",
     "update task",
     "update profile",
     "update schedule",
@@ -332,6 +342,21 @@ class CommandInterpreter:
             " before ",
             " after ",
         ]
+
+        known_complete_commands = {
+            "remind me later",
+            "snooze that",
+            "snooze it",
+            "snooze this",
+            "skip that",
+            "skip it",
+            "skip this",
+            "simplify that",
+            "simplify it",
+            "simplify this",
+        }
+        if stripped_prompt in known_complete_commands:
+            return False
 
         if (
             len(words) <= 3

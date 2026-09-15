@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Map behavior-spec scenarios to current automated/manual coverage and known gaps  
 > **Style**: Coverage reference for planning and review  
-> **Last Updated**: 2026-08-23
+> **Last Updated**: 2026-09-15 
 
 This matrix is a lightweight test roadmap for the scenarios in the Discord behavior specs.
 
@@ -122,8 +122,16 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | Task reminder view creation | Partial | Custom view attachment is tested; add direct `communication/communication_channels/discord/ui/task_reminder_view.py` button-shape coverage. |
 | Complete Task button | Partial | Completion by Discord reminder and task command behavior are tested; add direct button callback coverage. |
 | Complete Task button from unlinked user | Gap | Add direct button callback coverage for unmapped Discord user. |
-| Remind Me Later button | Gap | Add direct button callback coverage for acknowledgement-only behavior. |
-| More button | Gap | Add direct button callback coverage for help text. |
+| Remind Me Later button | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
+| Snooze 1 hour | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py) |
+| Snooze tonight or tomorrow morning | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
+| Snooze next week | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
+| Custom snooze time | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
+| Remind Me Later from unlinked user | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
+| More button | Partial | Help text includes skip/simplify examples; add a dedicated More-button callback test if that text becomes high-risk. |
+| Skip this occurrence (recurring) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py), [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
+| Skip this occurrence (one-off) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py) |
+| Simplify the task | Automated | [tests/unit/test_task_simplify.py](../tests/unit/test_task_simplify.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py) |
 | Complete by task ID from reminder | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
 | Complete by typed title after reminder | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Recurring task is completed from Discord reminder | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |

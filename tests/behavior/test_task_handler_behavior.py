@@ -49,6 +49,9 @@ class TestTaskHandlerBehavior:
             "append_note_to_task",
             "add_link_to_task",
             "remove_link_from_task",
+            "snooze_task_reminder",
+            "skip_task_occurrence",
+            "simplify_task",
             "task_stats",
         ]
         for intent in expected_intents:
@@ -84,6 +87,8 @@ class TestTaskHandlerBehavior:
         assert "skip" in help_text.lower() and "cancel" in help_text.lower()
         assert "help tasks" in help_text
         assert "add link to task" in help_text
+        assert "Remind Me Later" in help_text
+        assert "due date stays the same" in help_text.lower()
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -99,8 +104,122 @@ class TestTaskHandlerBehavior:
             isinstance(ex, str) for ex in examples
         ), "All examples should be strings"
         assert any("remind me" in ex for ex in examples)
+        assert any("snooze" in ex for ex in examples)
+        assert any("skip that" in ex for ex in examples)
+        assert any("simplify" in ex for ex in examples)
         assert any("this week" in ex for ex in examples)
         assert any("show my tasks" in ex for ex in examples)
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_snooze_reminder_keeps_due_date(self, test_data_dir):
+        """Snooze asks when, then 1 hour keeps the due date."""
+        from unittest.mock import MagicMock, patch
+        from tasks import create_task, get_task_by_id
+        from tasks.task_data_handlers import runtime_task_due_date
+
+        user_id = "handler_snooze_due"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        task_id = create_task(
+            user_id, title="Call dentist", due_date="2026-09-20", due_time="14:00"
+        )
+        handler = TaskManagementHandler()
+        ask = handler.handle(
+            user_id,
+            ParsedCommand("snooze_task_reminder", {"task_identifier": task_id}, 1.0, "snooze task"),
+        )
+        assert ask.completed is False
+        assert ask.rich_data["interaction_view"] == "task_snooze"
+        scheduler = MagicMock()
+        scheduler.schedule_task_reminder_at_datetime.return_value = True
+        with patch(
+            "scheduler.runtime_access.get_scheduler_manager", return_value=scheduler
+        ):
+            response = handler.handle(
+                user_id,
+                ParsedCommand(
+                    "snooze_task_reminder",
+                    {"task_identifier": task_id, "snooze_option": "1_hour"},
+                    1.0,
+                    "snooze for 1 hour",
+                ),
+            )
+        assert response.completed is True
+        assert "I'll remind you" in response.message
+        task = get_task_by_id(user_id, task_id)
+        assert runtime_task_due_date(task) == "2026-09-20"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_skip_recurring_occurrence_keeps_task_active(self, test_data_dir):
+        """Skip moves a repeating task forward instead of completing it."""
+        from unittest.mock import MagicMock, patch
+        from tasks import create_task, get_task_by_id, load_completed_tasks
+        from tasks.task_data_handlers import runtime_task_due_date
+
+        user_id = "handler_skip_recurring"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        task_id = create_task(
+            user_id,
+            title="Take meds",
+            due_date="2026-09-15",
+            recurrence_pattern="daily",
+        )
+        handler = TaskManagementHandler()
+        scheduler = MagicMock()
+        scheduler.schedule_task_reminder_at_datetime.return_value = True
+        with patch(
+            "scheduler.runtime_access.get_scheduler_manager", return_value=scheduler
+        ):
+            response = handler.handle(
+                user_id,
+                ParsedCommand(
+                    "skip_task_occurrence",
+                    {"task_identifier": task_id},
+                    1.0,
+                    "skip task",
+                ),
+            )
+        assert response.completed is True
+        task = get_task_by_id(user_id, task_id)
+        assert runtime_task_due_date(task) != "2026-09-15"
+        assert not any(item.get("id") == task_id for item in load_completed_tasks(user_id))
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_simplify_task_rewrites_title(self, test_data_dir):
+        """Simplify shrinks the title and keeps the due date."""
+        from tasks import create_task, get_task_by_id
+        from tasks.task_data_handlers import runtime_task_due_date
+
+        user_id = "handler_simplify"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        task_id = create_task(
+            user_id, title="Clean the whole house", due_date="2026-09-20"
+        )
+        handler = TaskManagementHandler()
+        ask = handler.handle(
+            user_id,
+            ParsedCommand("simplify_task", {"task_identifier": task_id}, 1.0, "simplify"),
+        )
+        assert ask.completed is False
+        assert ask.rich_data["interaction_view"] == "task_simplify"
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                "simplify_task",
+                {"task_identifier": task_id, "simplified_title": "Wipe the kitchen"},
+                1.0,
+                "simplify to wipe",
+            ),
+        )
+        assert response.completed is True
+        task = get_task_by_id(user_id, task_id)
+        assert task.get("title") == "Wipe the kitchen"
+        assert runtime_task_due_date(task) == "2026-09-20"
 
     @pytest.mark.behavior
     @pytest.mark.communication

@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-15 - Task reminder skip and simplify **COMPLETED**
+- Discord reminder **Skip** and **Simplify** are live, separate from snooze.
+- Skip rolls a repeating task to the next occurrence without marking it done; one-off tasks stay due and wait until tomorrow morning.
+- Simplify rewrites the title to a smaller next step and keeps the due date.
+- Hygiene: snooze helper now uses `@handle_errors`; spec ASCII; function registry regenerated.
+
+### 2026-09-14 - Task reminder snooze **COMPLETED**
+- Discord **Remind Me Later** snoozes the ping (1 hour / tonight or tomorrow morning / next week / custom) without changing the due date.
+- Same path from typed `snooze` / `remind me later` commands. Skip and Simplify remain later, separate actions.
+
 ### 2026-09-14 - Website accounts, user settings, and integrated gateway **COMPLETED**
 - Email-code accounts and Discord OAuth use the existing MHM user store with expiring HttpOnly sessions, origin checks, one-time state, and duplicate-link protection; signed-in users can safely edit Profile, Delivery, Messages, Tasks, and Check-ins settings.
 - Added separate website workspaces for task CRUD and for notes, journal entries, and lists, including tags and scheduled task-reminder windows. The supplied bot icon now anchors the MHM / Motivational Health Messages branding and the site explains its randomized-message-window approach.
@@ -104,17 +114,6 @@ Guidelines:
 - After a which-task prompt, a number or name applies the remembered update (`1.` no longer gets the unclear-chat reply).
 - Notes added during the due-date follow-up stay on that task and keep the due-date buttons.
 - Function registry regenerated; yes/no offer matchers folded into `_matches_task_offer_reply`.
-
-### 2026-08-27 - Tasks can store web links **COMPLETED**
-- Tasks keep http(s) URLs in a `links` field, with add/remove commands and create-time URL capture.
-- Labels are optional (`add the portal link to the dentist task: https://...`).
-- Nested URL-strip callback lifted to `_replace_url_match` (docstring + error handling); function registry refreshed.
-- File/image attachments are still deferred.
-
-### 2026-08-26 - Chat follow-ups can create the task you just described **COMPLETED**
-- Action planner includes up to two recent user turns so "yeah add that as a task" can reuse a title you already said.
-- Titles still must match those recent words (example titles like "pack hiking bag" stay blocked).
-- Compact planning prompt is unchanged besides that short recent-turn block.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

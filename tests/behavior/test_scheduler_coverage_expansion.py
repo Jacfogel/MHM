@@ -811,7 +811,9 @@ class TestMessageHandling:
                     user_id, task_id
                 )
                 mock_update_task.assert_called_once_with(
-                    user_id, task_id, {"reminder_sent": True}
+                    user_id,
+                    task_id,
+                    {"reminder_sent": True, "reminder_snooze_until": None},
                 )
 
     @pytest.mark.behavior

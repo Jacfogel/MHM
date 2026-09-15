@@ -145,7 +145,9 @@ Checklist:
 
 - [ ] Edit an existing reminder (change text, schedule periods, or metadata).
 - [ ] Confirm the updated reminder behaves correctly on the next send time.
-- [ ] Snooze / "Remind Me Later" reschedule is **N/A** until that feature exists (the Discord button currently only acknowledges).
+- [ ] Snooze / "Remind Me Later" reschedules the reminder only (1 hour, tonight or tomorrow morning, next week, or a custom time) without changing the task due date.
+- [ ] Skip this occurrence on a repeating task keeps it active and moves the due date forward; on a one-off task the due date stays and pings wait until tomorrow morning.
+- [ ] Simplify shrinks the task title to a smaller next step without changing the due date.
 - [ ] Cancel/remove a reminder:
   - [ ] Confirm it no longer sends.
   - [ ] Confirm dependent UI and internal state are updated.
@@ -357,7 +359,9 @@ Leftover gap tests live in:
 | Edit reminder text used on next send | `test_task_reminder_update_text_used_on_next_send` |
 | Duplicate prevention | `test_task_reminder_already_sent_is_not_delivered_again`; `test_task_reminder_sent_flag_persists_and_blocks_duplicate` |
 | Cancel / complete / delete cleanup | `tests/integration/test_orphaned_reminder_cleanup.py`; `test_task_completion_cleans_up_reminders` |
-| Snooze / Remind Me Later reschedule | **N/A** until implemented |
+| Snooze / Remind Me Later reschedule | `test_snooze_does_not_change_due_date`; `test_remind_later_asks_when_and_attaches_choices`; `test_snooze_reminder_keeps_due_date` |
+| Skip this occurrence | `test_recurring_skip_advances_due_and_stays_active`; `test_one_off_skip_keeps_due_until_tomorrow_morning`; `test_skip_recurring_occurrence_keeps_task_active`; `test_skip_button_routes_skip_command` |
+| Simplify task | `test_simplify_rewrites_title_and_keeps_due_date`; `test_simplify_task_rewrites_title`; `test_simplify_button_opens_modal` |
 
 ### 10.4. Email
 

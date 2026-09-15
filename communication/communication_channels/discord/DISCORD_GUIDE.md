@@ -121,8 +121,10 @@ UI views are adapters between Discord's UI and the core message pipeline:
 
 - `get_task_reminder_view(user_id, task_id, task_title)` in `ui/task_reminder_view.py` returns a `discord.ui.View` with:
   - "Complete Task" - Routes `complete task {task_id}` through the interaction manager.  
-  - "Remind Me Later" - Sends an acknowledgement (future snooze behavior can be added).  
-  - "More" - Sends a brief help message including a short task ID and example commands.
+  - "Remind Me Later" - Routes `snooze task {task_id}` through the interaction manager, then shows 1 hour, tonight or tomorrow morning, next week, and custom.  
+  - "More" - Sends a brief help message including a short task ID, completion examples, snooze, skip, and simplify commands.  
+  - "Skip" - Routes `skip task {task_id}` through the interaction manager. Repeating tasks roll to the next occurrence; one-off tasks stay due and wait until tomorrow morning.  
+  - "Simplify" - Opens a modal, then routes `simplify task {task_id} to {smaller version}` so the title shrinks and the due date stays.
 
 Each button callback:
 

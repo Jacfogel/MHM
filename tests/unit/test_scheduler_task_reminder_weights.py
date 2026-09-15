@@ -165,4 +165,40 @@ class TestHandleTaskReminderModule:
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", {"reminder_sent": True})
+        update_task.assert_called_once_with(
+            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
+        )
+
+    def test_snoozed_task_is_not_delivered(self):
+        manager = MagicMock()
+        task = {
+            "id": "t1",
+            "status": "active",
+            "reminder_sent": True,
+            "reminder_snooze_until": "2099-01-01 12:00:00",
+        }
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
+        manager.delivery.handle_task_reminder.assert_not_called()
+
+    def test_expired_snooze_is_delivered_even_if_already_sent(self):
+        manager = MagicMock()
+        task = {
+            "id": "t1",
+            "status": "active",
+            "reminder_sent": True,
+            "reminder_snooze_until": "2020-01-01 12:00:00",
+        }
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
+        manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
+        update_task.assert_called_once_with(
+            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
+        )

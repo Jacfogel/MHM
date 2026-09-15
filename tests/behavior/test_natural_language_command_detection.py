@@ -88,6 +88,10 @@ class TestNaturalLanguageCommandDetection:
             "make that due tomorrow": "command",
             "that's urgent": "command_with_clarification",
             "mark that done": "command_with_clarification",
+            "remind me later": "command",
+            "snooze that for 1 hour": "command",
+            "skip that": "command",
+            "simplify that to wipe the kitchen counter": "command",
         }
         for prompt, expected in cases.items():
             mode = interpreter.detect_mode(prompt)
