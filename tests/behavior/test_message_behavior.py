@@ -710,6 +710,7 @@ class TestIntegration:
     
     @pytest.mark.messages
     @pytest.mark.file_io
+    @pytest.mark.slow
     @pytest.mark.no_parallel
     def test_full_message_lifecycle(self, test_data_dir):
         """Test complete message lifecycle (add, edit, delete)."""

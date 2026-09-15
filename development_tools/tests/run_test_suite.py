@@ -29,7 +29,8 @@ DEFAULT_TEST_RUN = {
     "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
-    "timeout_seconds": 1200,
+    # Keep the standalone runner aligned with the configured audit timeout.
+    "timeout_seconds": 3600,
     "exclude_markers": ["e2e", "slow"],
     "default_profile": "quick",
     "suite_profile": "quick",
@@ -446,7 +447,7 @@ def _run_phase(
     try:
         _ACTIVE_PROCESS = subprocess.Popen(command, **popen_kwargs)
         try:
-            output, _ = _ACTIVE_PROCESS.communicate(timeout=int(cfg.get("timeout_seconds") or 1200))
+            output, _ = _ACTIVE_PROCESS.communicate(timeout=int(cfg.get("timeout_seconds") or 3600))
         except subprocess.TimeoutExpired:
             interrupted = True
             _terminate_process_tree(_ACTIVE_PROCESS)

@@ -327,6 +327,7 @@ class TestProvisionAdminAccountBehavior:
             assert "afternoon" in saved_checkin_settings["time_periods"]
         assert isinstance(saved_checkin_settings, dict)
 
+    @pytest.mark.slow
     @pytest.mark.no_parallel  # shared user index JSON + test_data_dir under xdist
     def test_provision_admin_account_updates_user_index(self, test_data_dir):
         from core import clear_user_caches

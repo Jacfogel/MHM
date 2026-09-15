@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-13 23:09:52
+> **Last Generated**: 2026-09-14 19:53:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 272
-- **Total Imports Found**: 2314
-- **Dependencies Documented**: 272 (100% coverage)
-- **Standard Library Imports**: 685 (29.6%)
-- **Third-Party Imports**: 216 (9.3%)
-- **Local Imports**: 1413 (61.1%)
-- **Last Updated**: 2026-09-13
+- **Files Scanned**: 275
+- **Total Imports Found**: 2377
+- **Dependencies Documented**: 275 (100% coverage)
+- **Standard Library Imports**: 705 (29.7%)
+- **Third-Party Imports**: 221 (9.3%)
+- **Local Imports**: 1451 (61.0%)
+- **Last Updated**: 2026-09-14
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 685 imports (29.6%)
-- **Third-Party**: 216 imports (9.3%)
-- **Local**: 1413 imports (61.1%)
+- **Standard Library**: 705 imports (29.7%)
+- **Third-Party**: 221 imports (9.3%)
+- **Local**: 1451 imports (61.0%)
 
 ## Module Dependencies by Directory
 
@@ -1075,6 +1075,7 @@
 - **Used by**:
   - `checkins/checkin_analytics.py`
   - `communication/message_processing/flows/checkin_flow.py`
+  - `core/web_user_settings.py`
   - `ui/widgets/checkin_settings_widget.py`
 
 **Dependency Changes**:
@@ -3593,6 +3594,9 @@
   - `core/ui_management.py`
   - `core/user_lookup.py`
   - `core/user_management.py`
+  - `core/web_account_service.py`
+  - `core/web_gateway_runtime.py`
+  - `core/web_user_settings.py`
   - `integrations/google_health/auth.py`
   - `integrations/google_health/client.py`
   - `integrations/google_health/data_handlers.py`
@@ -4026,6 +4030,8 @@
   - `core/tags.py`
   - `core/user_lookup.py`
   - `core/user_management.py`
+  - `core/web_account_service.py`
+  - `core/web_gateway_runtime.py`
   - `integrations/google_health/auth.py`
   - `integrations/google_health/client.py`
   - `integrations/google_health/data_handlers.py`
@@ -4196,6 +4202,7 @@
   - `core/schedule_document_defaults.py`
   - `core/schedule_runtime.py`
   - `core/tags.py`
+  - `core/web_user_settings.py`
   - `storage/user_data_read.py`
   - `storage/user_data_registry.py`
   - `storage/user_data_validation.py`
@@ -4304,6 +4311,7 @@
     - `typing (Any)`
 - **Used by**:
   - `core/schedule_document_defaults.py`
+  - `core/web_user_settings.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
@@ -4335,6 +4343,7 @@
   - `communication/command_handlers/schedule_handler.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/message_dispatcher.py`
+  - `core/web_user_settings.py`
   - `messages/message_service.py`
   - `scheduler/manager.py`
   - `scheduler/task_reminders.py`
@@ -4391,6 +4400,7 @@
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, parse_timestamp_full)` (NEW)
     - `core.user_management (get_all_user_ids)` (NEW)
+    - `core.web_gateway_runtime (WebGatewayRuntime)` (NEW)
     - `messages.message_data_manager (is_ai_generated_message_category)` (NEW)
     - `scheduler.manager (SchedulerManager, set_scheduler_delivery_factory)`
     - `scheduler.runtime_access (clear_scheduler_manager, get_scheduler_manager, set_scheduler_manager)` (NEW)
@@ -4409,7 +4419,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management, messages.message_data_manager, scheduler.runtime_access
+- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management, core.web_gateway_runtime, messages.message_data_manager, scheduler.runtime_access
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
@@ -4496,6 +4506,7 @@
   - `communication/communication_channels/discord/ui/create_item_ui.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/flows/note_flow.py`
+  - `core/web_account_service.py`
   - `storage/user_data_registry.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_tag_helpers.py`
@@ -4521,7 +4532,7 @@
   - `integrations/google_health/auth.py`
 
 **Dependency Changes**:
-- Removed: ai/context/service.py, communication/command_handlers/notebook_handler.py, communication/message_processing/user_suggestions.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py
+- Removed: ai/context/service.py, communication/command_handlers/notebook_handler.py, communication/message_processing/user_suggestions.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py, integrations/google_health/auth.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4578,6 +4589,8 @@
   - `core/service_requests.py`
   - `core/tags.py`
   - `core/user_management.py`
+  - `core/web_account_service.py`
+  - `core/web_user_settings.py`
   - `integrations/google_health/auth.py`
   - `integrations/google_health/client.py`
   - `integrations/google_health/data_handlers.py`
@@ -4689,6 +4702,103 @@
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.schedule_document_defaults, core.time_utilities
 - Removed: core/service.py, core/user_lookup.py, integrations/google_health/sync_manager.py, storage/user_data_index.py, storage/user_data_summaries.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/web_account_service.py`
+- **Purpose**: Main service orchestration and management
+- **Dependencies**:
+  - **Local**:
+    - `core (config, create_new_user, get_all_user_ids, get_user_data, update_user_account)` (NEW)
+    - `core.error_handling (CommunicationError, ConfigurationError, DataError, ValidationError, handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.tags (normalize_tags)` (NEW)
+    - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
+    - `core.web_user_settings (build_settings_updates, save_settings, settings_options, settings_snapshot)` (NEW)
+    - `notebook (notebook_data_manager)` (NEW)
+    - `tasks.task_data_manager (get_task_by_id)` (NEW)
+    - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
+    - `tasks.task_service (complete_task, create_task, delete_task, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
+    - `tasks.task_tag_helpers (sanitize_task_tags)` (NEW)
+  - **Standard Library**:
+    - `asyncio`
+    - `dataclasses (dataclass)`
+    - `email.message (EmailMessage)`
+    - `hashlib`
+    - `pathlib (Path)`
+    - `re`
+    - `secrets`
+    - `smtplib`
+    - `ssl`
+    - `time`
+    - `urllib.parse (urlencode, urlsplit)`
+    - `zoneinfo (ZoneInfo, ZoneInfoNotFoundError)`
+  - **Third-party**:
+    - `aiohttp (aiohttp, web)`
+- **Used by**:
+  - `core/web_gateway_runtime.py`
+  - `run_headless_service.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, core.web_user_settings, notebook, tasks.task_data_manager, tasks.task_schemas, tasks.task_service, tasks.task_tag_helpers
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/web_gateway_runtime.py`
+- **Purpose**: Core system module for web_gateway_runtime
+- **Dependencies**:
+  - **Local**:
+    - `core (config)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.web_account_service (create_web_app)` (NEW)
+  - **Standard Library**:
+    - `asyncio`
+    - `concurrent.futures (Future)`
+    - `contextlib (suppress)`
+    - `threading (Thread)`
+  - **Third-party**:
+    - `aiohttp (web)`
+- **Used by**:
+  - `core/service.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.web_account_service
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/web_user_settings.py`
+- **Purpose**: Core system module for web_user_settings
+- **Dependencies**:
+  - **Local**:
+    - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
+    - `core (save_user_data_transaction)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `core.profile_v2_io (schedule_categories)` (NEW)
+    - `core.schedule_period_normalize (create_default_schedule_periods)` (NEW)
+    - `core.schedule_runtime (clear_schedule_periods_cache)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `messages.message_data_manager (ensure_user_message_files, get_message_categories)` (NEW)
+    - `storage.user_data_validation (validate_schedule_periods)` (NEW)
+    - `tasks (setup_default_task_tags)` (NEW)
+  - **Standard Library**:
+    - `copy`
+    - `hashlib`
+    - `json`
+    - `re`
+  - **Third-party**:
+    - `pytz`
+- **Used by**:
+  - `core/web_account_service.py`
+
+**Dependency Changes**:
+- Added: checkins.checkin_dynamic_manager, core, core.error_handling, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5075,6 +5185,7 @@
   - `core/auto_cleanup.py`
   - `core/response_tracking.py`
   - `core/service.py`
+  - `core/web_user_settings.py`
   - `messages/message_analytics.py`
   - `messages/message_service.py`
   - `storage/user_data_summaries.py`
@@ -5141,17 +5252,21 @@
 - **Purpose**: Main entry point for the application
 - **Dependencies**:
   - **Local**:
+    - `core (config)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.headless_service (HeadlessServiceManager)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
+    - `core.web_account_service (create_web_app)` (NEW)
   - **Standard Library**:
     - `argparse`
     - `sys`
     - `typing (Any)`
+  - **Third-party**:
+    - `aiohttp (web)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.headless_service, core.logger
+- Added: core, core.error_handling, core.headless_service, core.logger, core.web_account_service
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5772,6 +5887,7 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/base_handler.py`
+  - `core/web_user_settings.py`
   - `integrations/google_health/data_handlers.py`
   - `storage/user_data_write.py`
   - `tasks/task_data_handlers.py`
@@ -5916,7 +6032,8 @@
     - `datetime (datetime, timedelta)`
     - `typing (Any)`
     - `uuid`
-- **Used by**: None (not imported by other modules)
+- **Used by**:
+  - `core/web_account_service.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone, tasks.task_link_helpers, tasks.task_tag_helpers
@@ -5996,6 +6113,7 @@
 - **Used by**:
   - `communication/message_processing/flows/task_flow.py`
   - `core/file_operations.py`
+  - `core/web_account_service.py`
   - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_service.py`
@@ -6034,6 +6152,7 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/message_processing/flows/task_flow.py`
+  - `core/web_account_service.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.ids, core.natural_language_defaults, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_link_helpers, tasks.task_schemas, tasks.task_tag_helpers, tasks.task_templates, tasks.task_time_parsing
@@ -6054,6 +6173,7 @@
     - `__future__ (annotations)`
     - `re`
 - **Used by**:
+  - `core/web_account_service.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
   - `tasks/task_service.py`

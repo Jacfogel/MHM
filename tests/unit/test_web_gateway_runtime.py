@@ -9,7 +9,7 @@ import pytest
 
 from core.web_gateway_runtime import WebGatewayRuntime
 
-pytestmark = [pytest.mark.unit]
+pytestmark = [pytest.mark.unit, pytest.mark.core]
 
 
 def app_factory():
@@ -31,6 +31,7 @@ def test_owned_gateway_lifecycle_and_port_release():
             assert response.read() == b"owned gateway"
     finally:
         runtime.stop()
+    assert runtime._thread is not None
     assert not runtime._thread.is_alive()
     runtime.stop()
     with socket.socket() as released:
@@ -46,6 +47,7 @@ def test_port_collision_does_not_interrupt_existing_server():
         )
         assert not runtime.start()
         assert runtime.error == "OSError"
+        assert runtime._thread is not None
         assert not runtime._thread.is_alive()
         assert existing.fileno() != -1
 

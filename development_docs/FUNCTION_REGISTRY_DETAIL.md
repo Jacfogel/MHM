@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-13 23:09:30
+> **Last Generated**: 2026-09-14 19:53:11
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 274
-- **Functions Found**: 2646
-- **Methods Found**: 1386
-- **Classes Found**: 253
-- **Total Items**: 4032
-- **Functions Documented**: 2345
-- **Methods Documented**: 1241
-- **Classes Documented**: 190
-- **Total Documented**: 3586
+### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 277
+- **Functions Found**: 2681
+- **Methods Found**: 1401
+- **Classes Found**: 256
+- **Total Items**: 4082
+- **Functions Documented**: 2380
+- **Methods Documented**: 1256
+- **Classes Documented**: 192
+- **Total Documented**: 3636
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-13
+- **Last Updated**: 2026-09-14
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (472)
+### **Core System Functions** (507)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (690)
@@ -4711,6 +4711,7 @@ Args:
 
 Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
+- [OK] `start_web_gateway(self)` - Start the account website alongside the existing background service.
 - [OK] `to_service_request_context(self)` - Build the request-file context used by service request helpers.
 - [OK] `validate_configuration(self)` - Validate all configuration settings before starting the service.
 **Classes:**
@@ -4763,6 +4764,7 @@ Args:
 
 Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
+  - [OK] `MHMService.start_web_gateway(self)` - Start the account website alongside the existing background service.
   - [OK] `MHMService.to_service_request_context(self)` - Build the request-file context used by service request helpers.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
 
@@ -5017,6 +5019,68 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
+
+#### `core/web_account_service.py`
+**Functions:**
+- [OK] `all(self)` - Return account documents paired with their canonical user IDs.
+- [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
+- [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
+- [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
+- [OK] `create(self, email, username, timezone)` - Create an MHM account after website email verification succeeds.
+- [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
+- [OK] `discord_available()` - Return whether the Discord OAuth credentials are configured.
+- [OK] `discord_redirect_uri()` - Return the configured Discord callback URI or the website default.
+- [OK] `documents(self, uid)` - Load the account documents exposed through self-service settings.
+- [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
+- [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
+- [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
+- [OK] `get(self, uid)` - Load one account document by canonical user ID.
+- [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
+- [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
+- [OK] `prune()` - Remove expired challenges, sessions, rate limits, and OAuth states.
+- [OK] `save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
+- [OK] `send_code(email, code)` - Use MHM's configured SMTP account, with TLS and no code logging.
+- [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
+- [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
+- [OK] `throttle(key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
+- [OK] `username_exists(self, username)` - Return whether any account already uses an internal username.
+- [OK] `website_redirect(path)` - Build a same-origin website redirect with encoded query parameters.
+**Classes:**
+- [MISSING] `Challenge` - No description
+- [OK] `MHMAccounts` - Use product persistence; never maintain a separate website account database.
+  - [OK] `MHMAccounts.all(self)` - Return account documents paired with their canonical user IDs.
+  - [OK] `MHMAccounts.by_email(self, email)` - Return the unique account matching an email address, if one exists.
+  - [OK] `MHMAccounts.create(self, email, username, timezone)` - Create an MHM account after website email verification succeeds.
+  - [OK] `MHMAccounts.documents(self, uid)` - Load the account documents exposed through self-service settings.
+  - [OK] `MHMAccounts.email_exists(self, email)` - Return whether any account already uses an email address.
+  - [OK] `MHMAccounts.get(self, uid)` - Load one account document by canonical user ID.
+  - [OK] `MHMAccounts.link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
+  - [OK] `MHMAccounts.save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
+  - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
+  - [OK] `MHMAccounts.username_exists(self, username)` - Return whether any account already uses an internal username.
+
+#### `core/web_gateway_runtime.py`
+**Functions:**
+- [OK] `__init__(self)` - Configure a gateway runtime without starting its background thread.
+- [OK] `_run(self)` - Run the async gateway and report startup failures to ``start``.
+- [OK] `start(self)` - Report bind failures without disrupting other MHM services or servers.
+- [OK] `stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
+**Classes:**
+- [OK] `WebGatewayRuntime` - Own the local web gateway loop and its background thread lifecycle.
+  - [OK] `WebGatewayRuntime.__init__(self)` - Configure a gateway runtime without starting its background thread.
+  - [OK] `WebGatewayRuntime._run(self)` - Run the async gateway and report startup failures to ``start``.
+  - [OK] `WebGatewayRuntime.start(self)` - Report bind failures without disrupting other MHM services or servers.
+  - [OK] `WebGatewayRuntime.stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
+
+#### `core/web_user_settings.py`
+**Functions:**
+- [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
+- [OK] `flag(key)` - Apply a validated website feature flag to the account document.
+- [OK] `periods(category)` - Return editable named periods for one schedule category.
+- [OK] `save_periods(category, periods)` - Validate and stage named reminder windows for one category.
+- [OK] `save_settings(user_id, updates)` - Persist validated settings and refresh dependent caches and defaults.
+- [OK] `settings_options(user_id)` - Return the time zones, message categories, and check-in choices for a user.
+- [OK] `settings_snapshot(documents, options)` - Build browser-safe settings sections and optimistic-lock revisions.
 
 ### `integrations/` - Unknown Directory
 

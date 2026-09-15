@@ -24,6 +24,7 @@ from notebook.notebook_validation import (
     is_valid_entry_reference,
     is_valid_entry_group,
     is_valid_entry_kind,
+    is_valid_entry_title,
     normalize_list_item_index,
     validate_entry_content,
     MAX_BODY_LENGTH,
@@ -369,6 +370,21 @@ def set_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
     return _save_updated_entry(user_id, entry, entries)
 
 
+@handle_errors("setting entry title")
+def set_entry_title(user_id: str, ref: str, title: str) -> Entry | None:
+    """Replace an entry title while preserving its identity and other fields."""
+    if not user_id or not isinstance(title, str) or not title.strip() or not is_valid_entry_title(title):
+        logger.error("A valid entry title is required.")
+        return None
+    entries = load_entries(user_id)
+    entry = _find_entry_by_ref(entries, ref)
+    if not entry:
+        logger.error(f"Entry not found for ref '{ref}'")
+        return None
+    entry.title = title.strip()
+    return _save_updated_entry(user_id, entry, entries)
+
+
 @handle_errors("adding tags to entry")
 def add_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
     """Adds tags to an entry."""
@@ -603,6 +619,36 @@ def remove_list_item(user_id: str, ref: str, item_index: int) -> Entry | None:
         item.order = i
         item.updated_at = now_ts
 
+    return _save_updated_entry(user_id, entry, entries)
+
+
+@handle_errors("replacing list items")
+def set_list_items(user_id: str, ref: str, items: list[dict[str, Any]]) -> Entry | None:
+    """Replace a list's editable item text and completion states in one save."""
+    if not user_id or not isinstance(items, list) or not 1 <= len(items) <= 50:
+        logger.error("Lists require between 1 and 50 items.")
+        return None
+    entries = load_entries(user_id)
+    entry = _find_entry_by_ref(entries, ref)
+    if not entry or entry.kind != "list":
+        logger.error(f"Entry '{ref}' is not a list entry.")
+        return None
+    updated_items: list[ListItem] = []
+    now_ts = now_timestamp_full()
+    for index, value in enumerate(items):
+        if not isinstance(value, dict) or not isinstance(value.get("text"), str) or not value["text"].strip() or type(value.get("done", False)) is not bool:
+            logger.error("Each list item needs text and a valid completion state.")
+            return None
+        if entry.items and index < len(entry.items):
+            item = entry.items[index]
+            item.text = value["text"].strip()
+            item.done = value.get("done", False)
+            item.order = index
+            item.updated_at = now_ts
+        else:
+            item = ListItem(text=value["text"], done=value.get("done", False), order=index)
+        updated_items.append(item)
+    entry.items = updated_items
     return _save_updated_entry(user_id, entry, entries)
 
 

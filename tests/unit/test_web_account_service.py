@@ -6,9 +6,10 @@ from urllib.parse import parse_qs, urlsplit
 from aiohttp.test_utils import TestClient, TestServer
 from aiohttp import CookieJar
 
+from core.error_handling import ConfigurationError
 from core.web_account_service import create_web_app, MHMAccounts
 
-pytestmark = [pytest.mark.unit, pytest.mark.user_management, pytest.mark.asyncio]
+pytestmark = [pytest.mark.unit, pytest.mark.user, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
 
 
@@ -209,6 +210,15 @@ async def test_csrf_validation_rate_limits_and_static_allowlist(gateway):
     assert (await request_code(client)).status == 200
     assert len(sent) == 4
     assert (await client.get("/login.html")).status == 200
+    assert (await client.get("/tasks.js")).status == 200
+    assert (await client.get("/tasks.html")).status == 200
+    assert (await client.get("/notes.html")).status == 200
+    assert (await client.get("/notes.js")).status == 200
+    logo = await client.get("/mhm-logo.png")
+    assert logo.status == 200
+    assert logo.content_type == "image/png"
+    assert (await logo.read()).startswith(b"\x89PNG\r\n\x1a\n")
+    assert (await client.get("/other-image.png")).status == 404
     assert (await client.get("/wrangler.jsonc")).status == 404
     assert (await client.get("/worker.mjs")).status == 404
 
@@ -236,7 +246,7 @@ async def test_production_requires_authenticated_proxy_and_secure_cookie():
         )
         assert response.status == 200
         assert "Secure" in response.headers["Set-Cookie"]
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigurationError):
         create_web_app(origin=origin, proxy_secret="")
 
 
@@ -256,7 +266,9 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
         "all",
         lambda: [("one", {"email": "River@Example.com", "internal_username": "River"})],
     )
-    assert adapter.by_email("river@example.com")[0] == "one"
+    match = adapter.by_email("river@example.com")
+    assert match is not None
+    assert match[0] == "one"
     assert adapter.username_exists("RIVER")
     monkeypatch.setattr(
         adapter,

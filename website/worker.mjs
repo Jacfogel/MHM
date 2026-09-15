@@ -3,8 +3,10 @@ const routes = new Map([
   ['/api/auth/logout', 'POST'], ['/api/account', 'GET'],
   ['/api/auth/discord/start', 'GET'], ['/api/auth/discord/callback', 'GET'],
   ['/api/settings', ['GET', 'POST']],
+  ['/api/tasks', ['GET', 'POST']],
+  ['/api/notes', ['GET', 'POST']],
 ]);
-const assets = new Set(['/', '/index.html', '/login', '/login.html', '/app', '/app.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/settings.js']);
+const assets = new Set(['/', '/index.html', '/login', '/login.html', '/app', '/app.html', '/tasks', '/tasks.html', '/notes', '/notes.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/settings.js', '/tasks.js', '/notes.js', '/mhm-logo.png']);
 const csp = "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 function secured(response, api = false) {
@@ -26,11 +28,18 @@ export default {
       if (!assets.has(url.pathname)) return secured(new Response('Page not found.', { status: 404 }));
       return secured(await env.ASSETS.fetch(request));
     }
-    const methods = routes.get(url.pathname);
+    const taskAction = url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore))?$/);
+    const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
+    const routePath = taskAction || noteAction ? (taskAction ? '/api/tasks/:task_id' : '/api/notes/:note_id') : url.pathname;
+    const methods = taskAction
+      ? (url.pathname.endsWith('/complete') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH', 'DELETE'])
+      : noteAction
+        ? (url.pathname.endsWith('/archive') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH'])
+      : routes.get(routePath);
     if (!methods) return error('Page not found.', 404);
     const method = request.method;
     if (!(Array.isArray(methods) ? methods : [methods]).includes(method)) return error('This method is not supported.', 405);
-    if (method === 'POST' && request.headers.get('Origin') !== url.origin) {
+    if (method !== 'GET' && request.headers.get('Origin') !== url.origin) {
       return error('Please sign in through the MHM website.', 403);
     }
     if (!env.MHM_API_ORIGIN || !env.MHM_API_SECRET || env.MHM_API_SECRET.length < 32) {
@@ -49,7 +58,7 @@ export default {
       headers.set('X-MHM-Proxy-Secret', env.MHM_API_SECRET);
       headers.set('X-MHM-Client-IP', request.headers.get('CF-Connecting-IP') || 'unknown');
       let body;
-      if (method === 'POST' && request.body) {
+      if (method !== 'GET' && request.body) {
         const reader = request.body.getReader();
         const chunks = [];
         let size = 0;
@@ -57,7 +66,8 @@ export default {
           const { done, value } = await reader.read();
           if (done) break;
           size += value.byteLength;
-          if (size > (url.pathname === '/api/settings' ? 32768 : 4096)) {
+          const maxBody = url.pathname === '/api/settings' ? 32768 : url.pathname.startsWith('/api/tasks') ? 8192 : url.pathname.startsWith('/api/notes') ? 65536 : 4096;
+          if (size > maxBody) {
             await reader.cancel();
             return error('This request is too large.', 413);
           }

@@ -1,6 +1,8 @@
 # MHM Website
 
-Marketing site, email-code login/create-account page, and signed-in user settings.
+
+> **File**: `website/README.md`
+Marketing site, email-code login/create-account page, signed-in account settings, task workspace, and notebook.
 The Python gateway uses the **same account store as MHM**. It never stores browser
 passwords or creates a separate website database.
 
@@ -51,7 +53,8 @@ check-in windows, question selection, and counts. Each section saves to the same
 profile documents used by the admin console, preserving other fields. Invalid
 input is rejected, and edits to a section made elsewhere require reloading it.
 Email, account identifiers, and administrator controls cannot be changed here.
-Creating tasks and completing check-ins still use the existing app interfaces.
+Tasks can be created, edited, completed, restored, and deleted from the signed-in website;
+completing check-ins still uses the existing app interface.
 
 ## Cloudflare Workers deployment
 
@@ -107,10 +110,13 @@ return to login; request failures allow retrying logout.
 ## Files
 - `index.html` — page content
 - `styles.css` — layout and visual design
+- `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
 - `script.js` — small client-side enhancements
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — login and verified account creation
 - `app.html`, `app.js` — connected account details and logout
+- `tasks.html`, `tasks.js` — signed-in task workspace and CRUD interactions
+- `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
 - `settings.js` — signed-in user settings forms
 - `worker.mjs` — same-origin API proxy
 - `../core/web_account_service.py` — account API and email verification
@@ -120,7 +126,7 @@ return to login; request failures allow retrying logout.
 ## Verification
 
 ```powershell
-python -m pytest tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_gateway_runtime.py -q
+python -m pytest tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_gateway_runtime.py -q
 node --test website/worker.test.mjs website/app.test.mjs
 ```
 

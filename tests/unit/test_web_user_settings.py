@@ -7,11 +7,12 @@ import pytest_asyncio
 from aiohttp import CookieJar
 from aiohttp.test_utils import TestClient, TestServer
 
+from core.error_handling import ValidationError
 from core.web_account_service import create_web_app, MHMAccounts
 from core.web_user_settings import build_settings_updates, settings_snapshot
 from tests.unit.test_web_account_service import Accounts, ORIGIN, request_code, verify
 
-pytestmark = [pytest.mark.unit, pytest.mark.user_management]
+pytestmark = [pytest.mark.unit, pytest.mark.user]
 
 OPTIONS = {
     "timezones": ["America/Regina", "Europe/London"],
@@ -115,7 +116,7 @@ def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
 def test_invalid_types_and_categories_are_rejected(documents, section, field, bad):
     draft = values(documents, section)
     draft[field] = bad
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, section, draft)
 
 
@@ -132,7 +133,7 @@ def test_invalid_types_and_categories_are_rejected(documents, section, field, ba
 def test_inactive_windows_are_still_validated(documents, bad):
     draft = values(documents, "tasks")
     draft["periods"] = {"Draft": {**WINDOW, "active": False, **bad}}
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, "tasks", draft)
 
 
@@ -141,10 +142,10 @@ def test_feature_requires_active_window_and_discord_requires_link(documents):
     draft["periods"] = {}
     build_settings_updates(documents, OPTIONS, "tasks", draft)
     draft["enabled"] = True
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, "tasks", draft)
     delivery = {"channel": "discord", "timezone": "Europe/London"}
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, "delivery", delivery)
     documents["account"]["discord_user_id"] = "123456"
     assert (
@@ -170,7 +171,7 @@ def test_checkin_rules_and_custom_metadata_are_preserved(documents):
     assert checkin["questions"]["energy"]["sometimes_include"] is True
     assert "archived" in checkin["questions"]
     draft["max_questions"] = 3
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, "checkins", draft)
 
 
@@ -270,6 +271,7 @@ async def test_api_session_ownership_csrf_conflicts_and_injected_fields(
 
 
 @pytest.mark.file_io
+@pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
 def test_saved_settings_use_existing_v2_profile_and_schedule_storage(test_data_dir):
     from core.profile_v2_io import schedule_categories
     from tests.test_helpers.test_utilities import TestUserFactory
@@ -279,7 +281,9 @@ def test_saved_settings_use_existing_v2_profile_and_schedule_storage(test_data_d
         uid, enable_checkins=False, test_data_dir=test_data_dir
     )
     adapter = MHMAccounts()
-    uid = adapter.by_email(f"{uid}@example.com")[0]
+    match = adapter.by_email(f"{uid}@example.com")
+    assert match is not None
+    uid = match[0]
     docs = adapter.documents(uid)
     profile = values(docs, "profile")
     profile["preferred_name"] = "Web profile"

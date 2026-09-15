@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-13 23:10:32
+> **Last Generated**: 2026-09-14 19:54:20
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000023 5EAC:07BC
+Volume serial number is 00000097 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -112,6 +112,10 @@ C:.
 |   \---workflows
 |           logging-enforcement.yml
 |           nightly-tests.yml
+|
++---.wrangler
+|   \---cache
+|           cf.json
 |
 +---ai
 |   |   SYSTEM_AI_GUIDE.md
@@ -346,6 +350,9 @@ C:.
 |   |   USER_DATA_MODEL.md
 |   |   user_lookup.py
 |   |   user_management.py
+|   |   web_account_service.py
+|   |   web_gateway_runtime.py
+|   |   web_user_settings.py
 |   |   __init__.py
 |   |
 +---data
@@ -1238,6 +1245,12 @@ C:.
 |   |   |   test_user_preferences.py
 |   |   |   test_validation.py
 |   |   |   test_webhook_handler_gap_coverage.py
+|   |   |   test_website_pages.py
+|   |   |   test_web_account_service.py
+|   |   |   test_web_gateway_runtime.py
+|   |   |   test_web_notes.py
+|   |   |   test_web_tasks.py
+|   |   |   test_web_user_settings.py
 |   |   |   test_wellness_status.py
 |   |   |
 +---ui
@@ -1305,10 +1318,24 @@ C:.
 |   |   __init__.py
 |   |
 +---website
+|       .assetsignore
+|       app.html
+|       app.js
+|       app.test.mjs
+|       auth.js
 |       index.html
+|       login.html
+|       mhm-logo.png
+|       notes.html
+|       notes.js
 |       README.md
 |       script.js
+|       settings.js
 |       styles.css
+|       tasks.html
+|       tasks.js
+|       worker.mjs
+|       worker.test.mjs
 |       wrangler.jsonc
 |
 

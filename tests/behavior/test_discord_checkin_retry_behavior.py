@@ -395,6 +395,7 @@ class TestDiscordCheckinRetryBehavior:
             send_call_count[0] > 0 or initial_queue_size > 0
         ), "Retry mechanism should attempt to resend queued messages"
 
+    @pytest.mark.slow
     def test_multiple_checkin_attempts_only_log_once(
         self, comm_manager, user_id, test_data_dir
     ):

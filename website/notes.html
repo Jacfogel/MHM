@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Your notebook — MHM</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js?v=discord-1" defer></script>
+  <script src="notes.js?v=notes-4" defer></script>
+</head>
+<body class="account-body">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="index.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <div class="nav-actions"><a class="plain-button" href="app.html">Account &amp; settings</a><a class="plain-button" href="tasks.html">Tasks</a><button class="plain-button" id="logout" type="button">Log out</button></div>
+  </div></header>
+  <main id="main" class="container app-layout">
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section class="notes-area" aria-labelledby="notes-heading">
+      <div class="tasks-heading"><div><span class="eyebrow">Keep the useful bits</span><h1 id="notes-heading">Your notebook</h1><p class="hero-lead">Notes, journal entries, and lists in one quiet place.</p></div><div class="page-status-stack"><p id="notes-account" class="tasks-count"></p><p id="notes-count" class="tasks-count"></p><button id="notes-refresh" class="plain-button" type="button">Refresh notebook</button></div></div>
+      <p id="notes-status" class="form-status" role="status" aria-live="polite">Loading your notes…</p>
+      <div id="notes-workspace" hidden>
+        <form id="note-create-form" class="note-create-form">
+          <div class="task-create-copy"><strong id="entry-create-heading">Capture something useful</strong><span id="entry-create-help">Write it down now. You can shape it later.</span></div>
+          <div class="note-form-fields">
+            <div class="task-form-row notebook-kind-row">
+              <div class="settings-field"><label for="entry-kind">Entry type</label><select id="entry-kind" name="kind"><option value="note">Note</option><option value="journal_entry">Journal</option><option value="list">List</option></select></div>
+              <div class="settings-field"><label for="note-title">Title</label><input id="note-title" name="title" required maxlength="200" placeholder="e.g. Questions for my next appointment" /></div>
+            </div>
+            <div id="entry-description-field" class="settings-field"><label id="entry-description-label" for="note-description">Note</label><textarea id="note-description" name="description" rows="5" maxlength="10000" placeholder="Start wherever you are…"></textarea></div>
+            <fieldset id="entry-list-field" class="notebook-item-editor" hidden><legend>List items</legend><div id="entry-create-items" class="notebook-item-edit-list"></div><button id="entry-add-item" class="plain-button notebook-add-item" type="button">+ Add item</button></fieldset>
+            <div class="task-form-row">
+              <div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional, comma separated</span></label><input id="note-tags" name="tags" maxlength="1000" placeholder="health, ideas, home" /></div>
+              <div class="settings-field"><label for="note-group">Group <span class="optional-label">Optional</span></label><input id="note-group" name="group" maxlength="50" placeholder="Personal" /></div>
+            </div>
+          </div>
+          <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label></div>
+        <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong><span>Capture a note, journal entry, or list you want MHM to remember.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

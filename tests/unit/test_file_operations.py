@@ -587,6 +587,7 @@ class TestFileOperationsEdgeCases:
     @pytest.mark.integration
     @pytest.mark.file_io
     @pytest.mark.critical
+    @pytest.mark.slow
     # no_parallel: shared test_data_dir and file I/O lifecycle; avoid parallel fs races
     @pytest.mark.no_parallel
     def test_file_operations_lifecycle(self, test_data_dir, mock_config):

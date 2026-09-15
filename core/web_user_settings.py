@@ -7,6 +7,7 @@ import re
 
 import pytz
 
+from core.error_handling import ValidationError, handle_errors
 from core.profile_v2_io import schedule_categories
 from core.schedule_period_normalize import create_default_schedule_periods
 from core.time_utilities import now_timestamp_full
@@ -21,7 +22,9 @@ PROFILE_LISTS = (
 )
 
 
+@handle_errors("loading website settings options", user_friendly=False, re_raise=True)
 def settings_options(user_id):
+    """Return the time zones, message categories, and check-in choices for a user."""
     from messages.message_data_manager import get_message_categories
     from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
@@ -39,7 +42,9 @@ def settings_options(user_id):
     }
 
 
+@handle_errors("building website settings snapshot", user_friendly=False, re_raise=True)
 def settings_snapshot(documents, options):
+    """Build browser-safe settings sections and optimistic-lock revisions."""
     account = documents.get("account") or {}
     prefs = documents.get("preferences") or {}
     context = documents.get("context") or {}
@@ -48,7 +53,9 @@ def settings_snapshot(documents, options):
     task = prefs.get("task_settings") or {}
     checkin = prefs.get("checkin_settings") or {}
 
+    # ERROR_HANDLING_EXCLUDE: Pure helper protected by settings_snapshot's boundary.
     def periods(category):
+        """Return editable named periods for one schedule category."""
         current = schedules.get(category, {}).get("periods")
         return {
             name: value
@@ -141,6 +148,7 @@ def settings_snapshot(documents, options):
     }
 
 
+@handle_errors("validating website settings updates", user_friendly=False, re_raise=True)
 def build_settings_updates(documents, options, section, values):
     """Validate all input before producing updates; preserve unrelated saved fields."""
     current = settings_snapshot(documents, options)["sections"]
@@ -150,22 +158,26 @@ def build_settings_updates(documents, options, section, values):
         or not isinstance(values, dict)
         or set(values) != set(current[section])
     ):
-        raise ValueError("Please submit only the fields in this settings section.")
+        raise ValidationError("Please submit only the fields in this settings section.")
     account = copy.deepcopy(documents.get("account") or {})
     prefs = copy.deepcopy(documents.get("preferences") or {})
     context = copy.deepcopy(documents.get("context") or {})
     schedules = schedule_categories(copy.deepcopy(documents.get("schedules") or {}))
 
+    # ERROR_HANDLING_EXCLUDE: Validation helper protected by the decorated caller.
     def flag(key):
+        """Apply a validated website feature flag to the account document."""
         if type(values["enabled"]) is not bool:
-            raise ValueError("Choose whether this feature is enabled.")
+            raise ValidationError("Choose whether this feature is enabled.")
         account.setdefault("features", {})[key] = (
             "enabled" if values["enabled"] else "disabled"
         )
 
+    # ERROR_HANDLING_EXCLUDE: Validation helper protected by the decorated caller.
     def save_periods(category, periods):
+        """Validate and stage named reminder windows for one category."""
         if not isinstance(periods, dict) or len(periods) > 20:
-            raise ValueError("Use at most 20 reminder windows per category.")
+            raise ValidationError("Use at most 20 reminder windows per category.")
         for name, period in periods.items():
             if (
                 not isinstance(name, str)
@@ -173,7 +185,7 @@ def build_settings_updates(documents, options, section, values):
                 or len(name) > 80
                 or name.upper() == "ALL"
             ):
-                raise ValueError(
+                raise ValidationError(
                     "Give each reminder window a unique name other than ALL."
                 )
             if not isinstance(period, dict) or set(period) != {
@@ -182,13 +194,13 @@ def build_settings_updates(documents, options, section, values):
                 "start_time",
                 "end_time",
             }:
-                raise ValueError(
+                raise ValidationError(
                     "Each reminder window needs a start time, end time, days, and enabled state."
                 )
             if type(period["active"]) is not bool or not isinstance(
                 period["days"], list
             ):
-                raise ValueError(
+                raise ValidationError(
                     "Check the days and enabled state for each reminder window."
                 )
             if any(
@@ -196,11 +208,11 @@ def build_settings_updates(documents, options, section, values):
                 or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", period[key])
                 for key in ("start_time", "end_time")
             ):
-                raise ValueError(
+                raise ValidationError(
                     "Use valid start and end times for each reminder window."
                 )
             if period["start_time"] >= period["end_time"]:
-                raise ValueError("Each reminder window must start before it ends.")
+                raise ValidationError("Each reminder window must start before it ends.")
             days = period["days"]
             if (
                 any(
@@ -222,7 +234,7 @@ def build_settings_updates(documents, options, section, values):
                 or ("ALL" in days and len(days) != 1)
                 or (period["active"] and not days)
             ):
-                raise ValueError("Choose valid days for each enabled reminder window.")
+                raise ValidationError("Choose valid days for each enabled reminder window.")
         if periods:
             valid, errors = validate_schedule_periods(periods, category)
             # The admin console permits all windows to be disabled when a feature is off.
@@ -231,9 +243,9 @@ def build_settings_updates(documents, options, section, values):
                 or errors
                 != [f"At least one time period must be enabled for {category}."]
             ):
-                raise ValueError(errors[0])
+                raise ValidationError(errors[0])
         elif values["enabled"]:
-            raise ValueError(
+            raise ValidationError(
                 "Add at least one enabled reminder window before enabling this feature."
             )
         old_all = schedules.get(category, {}).get("periods", {}).get("ALL")
@@ -248,7 +260,7 @@ def build_settings_updates(documents, options, section, values):
     if section == "profile":
         name = values["preferred_name"]
         if not isinstance(name, str) or len(name) > 100:
-            raise ValueError("Use a preferred name of at most 100 characters.")
+            raise ValidationError("Use a preferred name of at most 100 characters.")
         for key in PROFILE_LISTS:
             items = values[key]
             limit = 1000 if key == "notes_for_ai" else 200
@@ -257,7 +269,7 @@ def build_settings_updates(documents, options, section, values):
                 or len(items) > 30
                 or any(not isinstance(item, str) or len(item) > limit for item in items)
             ):
-                raise ValueError(
+                raise ValidationError(
                     "Use at most 30 entries in each profile list and keep entries brief."
                 )
         context.update(values)
@@ -269,14 +281,14 @@ def build_settings_updates(documents, options, section, values):
             not isinstance(values["timezone"], str)
             or values["timezone"] not in options["timezones"]
         ):
-            raise ValueError("Choose a valid time zone.")
+            raise ValidationError("Choose a valid time zone.")
         channel = values["channel"]
         if (
             not isinstance(channel, str)
             or channel not in {"email", "discord"}
             or (channel == "discord" and not account.get("discord_user_id"))
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Link your Discord account before selecting Discord delivery."
             )
         account["timezone"] = values["timezone"]
@@ -297,15 +309,15 @@ def build_settings_updates(documents, options, section, values):
             )
             or len(set(categories)) != len(categories)
         ):
-            raise ValueError("Choose from the available message categories.")
+            raise ValidationError("Choose from the available message categories.")
         if values["enabled"] and not categories:
-            raise ValueError(
+            raise ValidationError(
                 "Choose at least one message category before enabling messages."
             )
         if not isinstance(values["periods"], dict) or set(values["periods"]) != set(
             categories
         ):
-            raise ValueError("Provide reminder windows for each selected category.")
+            raise ValidationError("Provide reminder windows for each selected category.")
         flag("automated_messages")
         for category in categories:
             save_periods(category, values["periods"][category])
@@ -315,7 +327,7 @@ def build_settings_updates(documents, options, section, values):
         if not isinstance(recurring, dict) or set(recurring) != set(
             current["tasks"]["recurring"]
         ):
-            raise ValueError("Check your recurring task defaults.")
+            raise ValidationError("Check your recurring task defaults.")
         if (
             recurring["default_recurrence_pattern"]
             not in (None, "daily", "weekly", "monthly", "yearly")
@@ -323,7 +335,7 @@ def build_settings_updates(documents, options, section, values):
             or not 1 <= recurring["default_recurrence_interval"] <= 365
             or type(recurring["default_repeat_after_completion"]) is not bool
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Choose a recurrence pattern and an interval between 1 and 365."
             )
         flag("task_management")
@@ -345,7 +357,7 @@ def build_settings_updates(documents, options, section, values):
                 for state in states.values()
             )
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Choose how often to include each available check-in question."
             )
         minimum, maximum = values["min_questions"], values["max_questions"]
@@ -354,7 +366,7 @@ def build_settings_updates(documents, options, section, values):
             or type(maximum) is not int
             or not 1 <= minimum <= maximum <= 100
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Question counts must be between 1 and 100, with minimum no greater than maximum."
             )
         always = list(states.values()).count("always")
@@ -364,7 +376,7 @@ def build_settings_updates(documents, options, section, values):
             or maximum < max(always + bool(sometimes), 1)
             or maximum > always + sometimes - bool(sometimes)
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Question counts must include all Always questions and leave room to vary Sometimes questions."
             )
         flag("checkins")
@@ -386,7 +398,9 @@ def build_settings_updates(documents, options, section, values):
     return {"account": account, "preferences": prefs, "schedules": schedules}
 
 
+@handle_errors("saving website settings", user_friendly=False, default_return=False)
 def save_settings(user_id, updates):
+    """Persist validated settings and refresh dependent caches and defaults."""
     from core import save_user_data_transaction
     from core.schedule_runtime import clear_schedule_periods_cache
     from messages.message_data_manager import ensure_user_message_files

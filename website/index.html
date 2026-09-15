@@ -3,19 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MHM is a personal support system for motivational messages, health reminders, check-ins, tasks, and notes — built to help you keep going without adding pressure." />
-  <title>MHM — Support that meets you where you are</title>
+  <meta name="description" content="Motivational Health Messages (MHM): varied messages at slightly randomized times within windows you choose, helping encouragement and health reminders stay fresh." />
+  <title>MHM — Motivational Health Messages</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <a class="skip-link" href="#top">Skip to content</a>
   <header class="site-header">
     <div class="container nav-wrap">
       <a class="brand" href="#top" aria-label="MHM home">
-        <span class="brand-mark">M</span>
-        <span class="brand-name">MHM</span>
+        <img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" />
+        <span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span>
       </a>
       <nav class="nav" aria-label="Primary navigation">
         <a href="#how-it-helps">How it helps</a>
@@ -33,26 +35,34 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">Motivation • Health • Momentum</div>
-          <h1>Support that works with your life — not against it.</h1>
+          <div class="eyebrow hero-eyebrow">Support that stays fresh</div>
+          <h1>A little support.<br /><span>A little more momentum.</span></h1>
           <p class="hero-lead">
-            MHM is a personal support system for reminders, check-ins, tasks, notes,
-            and encouragement that adapts to what you actually have capacity for.
+            Meet MHM — Motivational Health Messages. A little variety in the
+            messages, a little randomness in the timing — all within time windows
+            you choose. Encouragement and health reminders that stay fresh,
+            rather than fading into the background.
           </p>
           <div class="hero-actions">
-            <a class="button" href="login.html?mode=create">Find your momentum →</a>
+            <a class="button" href="login.html?mode=create">Create your account <span aria-hidden="true">→</span></a>
             <a class="text-link" href="#how-it-helps">See how MHM works</a>
           </div>
-          <div class="hero-note">Less guilt. Less friction. More help at the moment you need it.</div>
+          <div class="hero-note">Support through Discord. Room for real life.</div>
         </div>
 
-        <div class="hero-card" aria-label="Example MHM messages">
-          <div class="status-row">
-            <span class="status-dot"></span>
-            <span>MHM is here</span>
+        <div class="hero-showcase" aria-label="Illustrative MHM messages">
+          <div class="bot-introduction">
+            <img class="hero-logo" src="mhm-logo.png" alt="MHM's smiling robot logo" width="168" height="168" />
+            <div><span class="showcase-kicker">Your everyday companion</span><p>A friendly nudge.<br />A fresh start.</p></div>
+          </div>
+          <div class="hero-card">
+          <div class="conversation-header">
+            <img src="mhm-logo.png" alt="" width="40" height="40" />
+            <div><strong>MHM</strong><span>Motivational Health Messages</span></div>
+            <span class="example-label">Example</span>
           </div>
           <div class="message message-primary">
-            <span class="message-label">Morning</span>
+            <span class="message-label">Morning · within your chosen window</span>
             <p>You don’t need to fix the whole day. What’s one thing that would make the next hour easier?</p>
           </div>
           <div class="message">
@@ -64,15 +74,17 @@
           </div>
           <div class="message compact">
             <span class="message-icon">✓</span>
-            <span>Reminder moved to tomorrow. No penalty.</span>
+            <span>One small step is still a step.</span>
           </div>
+          </div>
+          <p class="showcase-note">For the good days. And the harder ones.</p>
         </div>
       </div>
     </section>
 
     <section class="trust-strip">
       <div class="container trust-grid">
-        <div><strong>Built for real capacity</strong><span>Plans can change when your day changes.</span></div>
+        <div><strong>Your window. A little variety.</strong><span>Slightly randomized timing helps messages stay fresh.</span></div>
         <div><strong>Personal, not pushy</strong><span>Helpful nudges without the guilt trip.</span></div>
         <div><strong>One place for your brain</strong><span>Reminders, notes, tasks, check-ins, and context.</span></div>
       </div>
@@ -82,8 +94,8 @@
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">How it helps</span>
-          <h2>Your support system should understand that some days are different.</h2>
-          <p>MHM is designed around the gap between knowing what you want to do and having the energy, attention, or momentum to do it.</p>
+          <h2>Support that fits your day and stays fresh.</h2>
+          <p>A reminder at exactly the same time every day can become easy to tune out. MHM adds a little variation within your chosen windows, while keeping reminders, tasks, and check-ins together.</p>
         </div>
 
         <div class="cards three-col">
@@ -94,8 +106,8 @@
           </article>
           <article class="card featured-card">
             <div class="card-number">02</div>
-            <h3>Meet me where I am</h3>
-            <p>Check-ins create context. MHM can respond differently when you’re doing well, overwhelmed, tired, or simply not up for much.</p>
+            <h3>Keep it fresh</h3>
+            <p>Choose a window, like 9–11 a.m. MHM varies the messages and sends them at slightly randomized times within it. Enough variety to help them stay noticeable, with timing that still fits your life.</p>
           </article>
           <article class="card">
             <div class="card-number">03</div>
@@ -117,7 +129,7 @@
         <div class="feature-list">
           <article class="feature-item">
             <div class="feature-icon">✦</div>
-            <div><h3>Motivational messages</h3><p>Encouragement that can be scheduled, varied, and adapted instead of repeating the same generic quote every morning.</p></div>
+            <div><h3>Motivational messages</h3><p>Varied encouragement delivered at slightly randomized times within your chosen windows. A fresh nudge, without needing to be available at one exact time every day.</p></div>
           </article>
           <article class="feature-item">
             <div class="feature-icon">♡</div>
@@ -175,8 +187,8 @@
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div class="brand footer-brand"><span class="brand-mark">M</span><span class="brand-name">MHM</span></div>
-      <p>Motivation. Health. Momentum.</p>
+      <a class="brand footer-brand" href="#top" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+      <p>A little help to keep going.</p>
       <p class="copyright">© <span id="year"></span> MHM. All rights reserved.</p>
     </div>
   </footer>

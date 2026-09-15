@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-13 23:09:30
+> **Last Generated**: 2026-09-14 19:53:11
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.9% [!] GOOD**
-- **Total Functions**: 2646
-- **Total Methods**: 1386
-- **Documented**: 3586/4032
-- **Files Scanned**: 274
+### **Documentation Coverage: 89.1% [!] GOOD**
+- **Total Functions**: 2681
+- **Total Methods**: 1401
+- **Documented**: 3636/4082
+- **Files Scanned**: 277
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -56,7 +56,7 @@ UI Operations Decision Tree:
 ### **[CORE] Need Core System Operations?**
 ```
 Core System Decision Tree:
-+-- `core/service.py` - Main service (73 functions)
++-- `core/service.py` - Main service (75 functions)
 +-- `core/config.py` - Configuration (23 functions)
 `-- `scheduler/manager.py` - Scheduling (75/76 functions)```
 
@@ -192,11 +192,11 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `run_tests.py::run_command()` - Complexity: 3215
-2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `run_tests.py::main()` - Complexity: 2791
-4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
-5. [OK] `run_tests.py::run_post_failure_reruns()` - Complexity: 942
+1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 6891
+2. [OK] `run_tests.py::run_command()` - Complexity: 3215
+3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
+4. [OK] `run_tests.py::main()` - Complexity: 2791
+5. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 
 
 ### **Pattern Recognition**
@@ -209,7 +209,7 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (38 files, 410 functions)
 - `checkins/` -  (7 files, 151 functions)
 - `communication/` - Communication channels and message processing (90 files, 1224 functions)
-- `core/` - System utilities and data management (34 files, 611 functions)
+- `core/` - System utilities and data management (37 files, 661 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 109 functions)

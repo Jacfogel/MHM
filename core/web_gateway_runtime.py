@@ -8,13 +8,20 @@ from threading import Thread
 from aiohttp import web
 
 from core import config
+from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
 logger = get_component_logger("main")
 
 
 class WebGatewayRuntime:
+    """Own the local web gateway loop and its background thread lifecycle."""
+
+    @handle_errors(
+        "initializing website gateway runtime", user_friendly=False, re_raise=True
+    )
     def __init__(self, *, host=None, port=None, app_factory=None):
+        """Configure a gateway runtime without starting its background thread."""
         self.host = config.WEB_GATEWAY_HOST if host is None else host
         self.port = config.WEB_GATEWAY_PORT if port is None else port
         self.app_factory = app_factory
@@ -25,6 +32,7 @@ class WebGatewayRuntime:
         self.error = None
         self.bound_port = None
 
+    @handle_errors("starting website gateway", user_friendly=False, default_return=False)
     def start(self):
         """Report bind failures without disrupting other MHM services or servers."""
         if self._thread is not None:
@@ -42,7 +50,9 @@ class WebGatewayRuntime:
             self.stop()
             return False
 
+    @handle_errors("running website gateway loop", user_friendly=False, re_raise=True)
     def _run(self):
+        """Run the async gateway and report startup failures to ``start``."""
         try:
             asyncio.run(self._serve())
         except Exception as exc:
@@ -50,7 +60,9 @@ class WebGatewayRuntime:
             if not self._ready.done():
                 self._ready.set_exception(exc)
 
+    @handle_errors("serving website gateway", user_friendly=False, re_raise=True)
     async def _serve(self):
+        """Bind aiohttp, signal readiness, and serve until shutdown is requested."""
         from core.web_account_service import create_web_app
 
         self._loop = asyncio.get_running_loop()
@@ -69,6 +81,7 @@ class WebGatewayRuntime:
         finally:
             await runner.cleanup()
 
+    @handle_errors("stopping website gateway", user_friendly=False, default_return=None)
     def stop(self):
         """Stop only the gateway this runtime owns and let aiohttp drain requests."""
         if self._loop and not self._loop.is_closed() and self._stop_event:

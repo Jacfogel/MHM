@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Your tasks — MHM</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js?v=discord-1" defer></script>
+  <script src="tasks.js?v=tasks-2" defer></script>
+</head>
+<body class="account-body">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="index.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <div class="nav-actions"><a class="plain-button" href="app.html">Account &amp; settings</a><a class="button button-small" href="notes.html">Notebook</a><button class="plain-button" id="logout" type="button">Log out</button></div>
+  </div></header>
+  <main id="main" class="container app-layout">
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section id="tasks" class="tasks-area tasks-page" aria-labelledby="tasks-heading">
+      <div class="tasks-heading">
+        <div><span class="eyebrow">Keep moving, gently</span><h1 id="tasks-heading">Your tasks</h1><p class="hero-lead">A flexible place for the next small step.</p></div>
+        <p id="tasks-count" class="tasks-count"></p>
+      </div>
+      <p id="tasks-status" class="form-status" role="status" aria-live="polite">Loading your tasks…</p>
+      <div id="tasks-workspace" hidden>
+        <form id="task-create-form" class="task-create-form">
+          <div class="task-create-copy"><strong>What needs doing?</strong><span>Add one thing at a time. You can change the plan later.</span></div>
+          <div class="task-form-fields">
+            <div class="settings-field task-title-field"><label for="task-title">Task title</label><input id="task-title" name="title" required maxlength="500" placeholder="e.g. Pack tomorrow’s lunch" /></div>
+            <div class="settings-field"><label for="task-description">Details <span class="optional-label">Optional</span></label><textarea id="task-description" name="description" rows="2" maxlength="10000" placeholder="Anything that will make this easier to start"></textarea></div>
+            <div class="task-form-row">
+              <div class="settings-field"><label for="task-due-date">Due date <span class="optional-label">Optional</span></label><input id="task-due-date" name="due_date" type="date" /></div>
+              <div class="settings-field"><label for="task-due-time">Time <span class="optional-label">Optional</span></label><input id="task-due-time" name="due_time" type="time" /></div>
+              <div class="settings-field"><label for="task-priority">Priority</label><select id="task-priority" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select></div>
+              <div class="settings-field"><label for="task-recurrence">Repeat</label><select id="task-recurrence" name="recurrence_pattern"><option value="">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
+            </div>
+            <div class="settings-field"><label for="task-tags">Tags <span class="optional-label">Optional, comma separated</span></label><input id="task-tags" name="tags" maxlength="1000" placeholder="health, errands, home" /></div>
+            <fieldset class="task-reminders"><legend>Scheduled reminders <span class="optional-label">Optional</span></legend><div id="task-reminder-list" class="task-reminder-list"></div><button id="task-add-reminder" class="plain-button" type="button">+ Add a reminder</button><p class="field-help">Choose a date and a time window. MHM will send the task reminder within that window.</p></fieldset>
+          </div>
+          <button class="button" type="submit">Add task <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="task-list-header"><div class="task-tabs" role="tablist" aria-label="Task views"><button type="button" role="tab" aria-selected="true" data-task-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-task-view="completed">Completed</button></div><span id="task-list-summary" class="task-list-summary"></span></div>
+        <div id="task-list" class="task-list"></div>
+        <div id="task-empty" class="task-empty" hidden><strong>No tasks here yet.</strong><span>Add something small, or give yourself a clear next step.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

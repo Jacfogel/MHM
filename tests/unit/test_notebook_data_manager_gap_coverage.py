@@ -241,6 +241,42 @@ class TestNotebookDataManagerGapCoverage:
         assert updated is not None
         assert updated.description == "new"
 
+    def test_set_title_and_replace_list_items(self, monkeypatch):
+        note = _note("68686868-6868-6868-6868-686868686868", "Old title")
+        list_entry = _list(
+            "69696969-6969-6969-6969-696969696969", "Old list", ["First", "Second"]
+        )
+        assert list_entry.items is not None
+        original_first_id = list_entry.items[0].id
+
+        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
+        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [note, list_entry])
+
+        titled = ndm.set_entry_title("user-1", str(note.id), "  New title  ")
+        assert titled is not None
+        assert titled.title == "New title"
+
+        updated = ndm.set_list_items(
+            "user-1",
+            str(list_entry.id),
+            [
+                {"text": "First updated", "done": True},
+                {"text": "Third", "done": False},
+                {"text": "Added", "done": False},
+            ],
+        )
+        assert updated is not None
+        assert updated.items[0].id == original_first_id
+        assert [(item.text, item.done, item.order) for item in updated.items] == [
+            ("First updated", True, 0),
+            ("Third", False, 1),
+            ("Added", False, 2),
+        ]
+
+        assert ndm.set_entry_title("", str(note.id), "Title") is None
+        assert ndm.set_list_items("user-1", str(note.id), [{"text": "x", "done": False}]) is None
+        assert ndm.set_list_items("user-1", str(list_entry.id), []) is None
+
     def test_search_entries_validation_and_sort_fallback(self, monkeypatch):
         assert ndm.search_entries("", "query") == []
         assert ndm.search_entries("user-1", "   ") == []

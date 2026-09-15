@@ -31,6 +31,9 @@ def test_start_logs_startup_sequence_without_errors():
         patch("core.service.verify_file_access"),
         patch("core.service.CommunicationManager", return_value=mock_cm),
         patch("core.service.SchedulerManager", return_value=mock_sm),
+        # Keep this startup logging check independent of a locally running
+        # website gateway that may already occupy the configured port.
+        patch.object(service, "start_web_gateway"),
         patch("core.service.set_scheduler_delivery_factory"),
         patch("scheduler.runtime_access.set_scheduler_manager"),
         patch.object(service, "run_service_loop"),

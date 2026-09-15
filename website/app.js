@@ -1,16 +1,18 @@
 const status = document.getElementById('app-status');
+const accountContent = document.getElementById('account-content');
 let accountSessionEnded = false;
 const discordResult = new URLSearchParams(location.search).get('discord');
 window.addEventListener('mhm:signed-out', () => {
   accountSessionEnded = true;
-  document.getElementById('account-content').hidden = true;
+  if (accountContent) accountContent.hidden = true;
 });
 function returnToLogin() {
   window.dispatchEvent(new Event('mhm:signed-out'));
-  document.getElementById('account-content').hidden = true;
+  if (accountContent) accountContent.hidden = true;
   location.replace('login.html');
 }
 async function loadAccount() {
+  if (!accountContent) return;
   try {
     const response = await fetch('/api/account', { credentials: 'same-origin', cache: 'no-store' });
     if (response.status === 401) { returnToLogin(); return; }
@@ -24,11 +26,11 @@ async function loadAccount() {
     const connect = document.getElementById('connect-discord');
     connect.hidden = account.discord_linked || !account.discord_available;
     document.getElementById('discord-guidance').textContent = account.discord_linked
-      ? 'Your Discord identity is connected. Open MHM in Discord for tasks, check-ins, and support.'
+      ? 'Your Discord identity is connected. Manage tasks here, or open MHM in Discord for tasks, check-ins, and support.'
       : account.discord_available
-        ? 'Connect Discord once to use MHM tasks, check-ins, and support there.'
+        ? 'Manage tasks here, or connect Discord to bring MHM tasks, check-ins, and support there.'
         : 'Discord connection is not configured yet. Ask your MHM administrator for help.';
-    document.getElementById('account-content').hidden = false;
+    accountContent.hidden = false;
     status.textContent = discordResult === 'connected' ? 'Discord is connected to your MHM account.'
       : discordResult === 'cancelled' ? 'Discord connection was canceled. You can try again whenever you are ready.'
       : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
@@ -36,7 +38,8 @@ async function loadAccount() {
           : discordResult === 'error' ? 'Discord could not be connected. Please try again.' : '';
   } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
 }
-document.getElementById('connect-discord').addEventListener('click', async (event) => {
+const connectDiscord = document.getElementById('connect-discord');
+if (connectDiscord) connectDiscord.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   if (button.disabled) return;
   button.disabled = true;
@@ -53,7 +56,8 @@ document.getElementById('connect-discord').addEventListener('click', async (even
     button.disabled = false;
   }
 });
-document.getElementById('logout').addEventListener('click', async (event) => {
+const logout = document.getElementById('logout');
+if (logout) logout.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   if (button.disabled || !window.dispatchEvent(new Event('mhm:before-logout', { cancelable: true }))) return;
   button.disabled = true;
@@ -64,4 +68,4 @@ document.getElementById('logout').addEventListener('click', async (event) => {
     returnToLogin();
   } catch (error) { status.textContent = 'Could not log out. Please try again.'; status.classList.add('is-error'); button.disabled = false; }
 });
-loadAccount();
+if (accountContent) loadAccount();

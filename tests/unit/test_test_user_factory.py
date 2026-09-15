@@ -59,6 +59,7 @@ def test_get_test_user_id_resolves_v2_account_and_metadata_username(
 @pytest.mark.unit
 @pytest.mark.user
 @pytest.mark.file_io
+@pytest.mark.slow
 @pytest.mark.no_parallel  # in-process thread pool + user_index locking; isolate from xdist workers
 def test_user_index_updates_preserve_concurrent_entries(test_path_factory):
     """Parallel test-user creation should not drop user_index entries."""

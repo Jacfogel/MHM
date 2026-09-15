@@ -50,6 +50,7 @@ class TestScheduleManagement:
 
     @pytest.mark.unit
     @pytest.mark.scheduler
+    @pytest.mark.slow
     @pytest.mark.no_parallel  # shared session tests/data dir and schedule cache races under xdist
     def test_schedule_period_lifecycle(self, test_data_dir, mock_config):
         """Add, edit, deactivate, and delete a schedule period."""

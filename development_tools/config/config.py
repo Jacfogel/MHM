@@ -710,7 +710,10 @@ TEST_RUN_DEFAULTS: dict[str, Any] = {
     "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
-    "timeout_seconds": 1200,
+    # The quick suite now includes several thousand integration and website
+    # tests.  Allow enough time for the parallel phase to finish on Windows
+    # before classifying a healthy run as a subprocess timeout.
+    "timeout_seconds": 3600,
     "exclude_markers": ["e2e", "slow"],
     "default_profile": "quick",
     "profiles": copy.deepcopy(SUITE_PROFILES),
