@@ -35,6 +35,14 @@ class TestFileSuiteCache:
     """Domain-scoped cache for pytest suite outcomes (no coverage data)."""
 
     FULL_SUITE_KEY = "_full_suite_snapshot"
+    # Runner/cache helpers: editing these must not force every product domain to rerun.
+    RUNNER_HELPER_NAMES = frozenset(
+        {
+            "run_test_suite.py",
+            "test_file_suite_cache.py",
+            "pytest_isolation.py",
+        }
+    )
 
     def __init__(self, project_root: Path, cache_dir: Path | None = None) -> None:
         self.project_root = Path(project_root).resolve()
@@ -51,6 +59,7 @@ class TestFileSuiteCache:
         scripts = (
             tests_dir / "run_test_suite.py",
             tests_dir / "test_file_suite_cache.py",
+            tests_dir / "pytest_isolation.py",
             tests_dir / "domain_mapper.py",
         )
         combined = (
@@ -65,6 +74,8 @@ class TestFileSuiteCache:
             "cache_version": "1.0",
             "test_files": {},
             "tool_hash": None,
+            "runner_helper_hash": None,
+            "structural_tool_hash": None,
             "tool_mtimes": {},
             "last_run_ok": None,
             "last_parallel_ok": None,
@@ -103,12 +114,12 @@ class TestFileSuiteCache:
             if logger:
                 logger.warning(f"Failed to save test suite cache: {exc}")
 
-    def _compute_tool_hash(self) -> str | None:
-        if not self.tool_paths:
+    def _hash_paths(self, paths: tuple[Path, ...] | list[Path]) -> str | None:
+        if not paths:
             return None
         hasher = hashlib.sha256()
         has_data = False
-        for path in self.tool_paths:
+        for path in paths:
             try:
                 if not path.exists() or not path.is_file():
                     continue
@@ -118,14 +129,88 @@ class TestFileSuiteCache:
                 return None
         return hasher.hexdigest() if has_data else None
 
-    def _suite_tool_changed(self) -> bool:
-        current = self._compute_tool_hash()
-        cached = self.cache_data.get("tool_hash")
+    def _compute_tool_hash(self) -> str | None:
+        return self._hash_paths(self.tool_paths)
+
+    def _partition_tool_paths(self) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+        helpers: list[Path] = []
+        structural: list[Path] = []
+        for path in self.tool_paths:
+            if path.name in self.RUNNER_HELPER_NAMES:
+                helpers.append(path)
+            else:
+                structural.append(path)
+        return tuple(helpers), tuple(structural)
+
+    def _store_tool_hashes(self) -> None:
+        helpers, structural = self._partition_tool_paths()
+        helper_hash = self._hash_paths(helpers)
+        structural_hash = self._hash_paths(structural)
+        combined = self._compute_tool_hash()
+        if helper_hash:
+            self.cache_data["runner_helper_hash"] = helper_hash
+        if structural_hash:
+            self.cache_data["structural_tool_hash"] = structural_hash
+        if combined:
+            self.cache_data["tool_hash"] = combined
+
+    @staticmethod
+    def _hash_changed(current: str | None, cached: str | None) -> bool:
         if current and cached and current != cached:
             return True
         if current and not cached:
             return True
         return bool(cached and not current)
+
+    def _tool_change_kind(self) -> str | None:
+        """Classify suite tool drift: None, ``runner_helper``, or ``structural``."""
+        helpers, structural = self._partition_tool_paths()
+        helper_hash = self._hash_paths(helpers)
+        structural_hash = self._hash_paths(structural)
+        combined = self._compute_tool_hash()
+        cached_helper = self.cache_data.get("runner_helper_hash")
+        cached_structural = self.cache_data.get("structural_tool_hash")
+        cached_combined = self.cache_data.get("tool_hash")
+
+        # Migrate older caches that only stored the combined tool_hash.
+        if cached_helper is None and cached_structural is None:
+            if combined and cached_combined == combined:
+                self._store_tool_hashes()
+                return None
+            if self._hash_changed(combined, cached_combined):
+                # Prefer soft invalidation: runner/helper edits are the common case.
+                return "runner_helper"
+            return None
+
+        if self._hash_changed(structural_hash, cached_structural):
+            return "structural"
+        if self._hash_changed(helper_hash, cached_helper):
+            return "runner_helper"
+        return None
+
+    def _suite_tool_changed(self) -> bool:
+        return self._tool_change_kind() is not None
+
+    def _drop_full_suite_snapshot(self) -> None:
+        """Drop aggregate snapshot without saving (caller persists hashes/snapshot)."""
+        if self.FULL_SUITE_KEY in self.cache_data:
+            self.cache_data.pop(self.FULL_SUITE_KEY, None)
+
+    def _domains_for_runner_helper_change(self) -> set[str]:
+        """Re-run tools tests plus any domains the coverage cache already flagged."""
+        domains = set(self.coverage_cache.get_changed_domains())
+        if "development_tools" in self._all_domains():
+            domains.add("development_tools")
+        self.last_invalidation_reason = getattr(
+            self.coverage_cache, "last_invalidation_reason", None
+        )
+        if self.last_invalidation_reason:
+            self.last_invalidation_reason = (
+                f"suite_runner_helper_change+{self.last_invalidation_reason}"
+            )
+        else:
+            self.last_invalidation_reason = "suite_runner_helper_change"
+        return domains
 
     def _all_domains(self) -> set[str]:
         return set(self.coverage_cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
@@ -138,12 +223,18 @@ class TestFileSuiteCache:
                 f"suite_profile_change:{cached_profile}->{suite_profile}"
             )
             return self._all_domains()
-        if self._suite_tool_changed():
+        change_kind = self._tool_change_kind()
+        if change_kind == "structural":
             self.last_invalidation_reason = "suite_tool_change"
-            current_hash = self._compute_tool_hash()
-            if current_hash:
-                self.cache_data["tool_hash"] = current_hash
+            self._drop_full_suite_snapshot()
+            self._store_tool_hashes()
+            self._save_cache()
             return self._all_domains()
+        if change_kind == "runner_helper":
+            self._drop_full_suite_snapshot()
+            self._store_tool_hashes()
+            self._save_cache()
+            return self._domains_for_runner_helper_change()
         if (
             self.cache_data.get("last_run_ok") is False
             or self.cache_data.get("last_parallel_ok") is False
@@ -273,9 +364,7 @@ class TestFileSuiteCache:
                 and (no_parallel_ok is None or no_parallel_ok is True)
             )
             self.cache_data["last_run_at"] = datetime.now().isoformat()
-        current_hash = self._compute_tool_hash()
-        if current_hash:
-            self.cache_data["tool_hash"] = current_hash
+        self._store_tool_hashes()
         self._save_cache()
         self.coverage_cache.update_run_status(
             parallel_ok=parallel_ok,

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 01:01:47
+> **Last Generated**: 2026-09-15 22:36:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2726
-- **Methods Found**: 1413
-- **Classes Found**: 263
-- **Total Items**: 4139
-- **Functions Documented**: 2423
-- **Methods Documented**: 1268
-- **Classes Documented**: 197
-- **Total Documented**: 3691
+- **Functions Found**: 2738
+- **Methods Found**: 1418
+- **Classes Found**: 264
+- **Total Items**: 4156
+- **Functions Documented**: 2435
+- **Methods Documented**: 1273
+- **Classes Documented**: 198
+- **Total Documented**: 3708
 - **Template-Generated**: 54
 - **Last Updated**: 2026-09-15
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (507)
+### **Core System Functions** (518)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (707)
@@ -4491,6 +4491,8 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
 - [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
 - [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
+- [OK] `_normalize_oauth_identities(cls, value)` - Persist only supported provider subjects, never OAuth access tokens.
+- [OK] `_normalize_password_hash(cls, value)` - Keep only bounded MHM password-hash strings; plaintext is never valid.
 - [OK] `_normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
 - [MISSING] `_require_updated_at(cls, value)` - No description
 - [MISSING] `_require_updated_at(cls, value)` - No description
@@ -4519,6 +4521,8 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
   - [OK] `AccountV2EnvelopeModel._normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
   - [OK] `AccountV2EnvelopeModel._normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
   - [OK] `AccountV2EnvelopeModel._normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
+  - [OK] `AccountV2EnvelopeModel._normalize_oauth_identities(cls, value)` - Persist only supported provider subjects, never OAuth access tokens.
+  - [OK] `AccountV2EnvelopeModel._normalize_password_hash(cls, value)` - Keep only bounded MHM password-hash strings; plaintext is never valid.
   - [OK] `AccountV2EnvelopeModel._normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
   - [MISSING] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - No description
   - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
@@ -5054,11 +5058,15 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_account_service.py`
 **Functions:**
+- [OK] `_jwt_part(value)` - Decode one base64url JSON JWT part after its signature is verified.
+- [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
+- [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
+- [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
-- [OK] `create(self, email, username, timezone)` - Create an MHM account after website email verification succeeds.
+- [OK] `create(self, email, username, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
 - [OK] `discord_available()` - Return whether the Discord OAuth credentials are configured.
 - [OK] `discord_redirect_uri()` - Return the configured Discord callback URI or the website default.
@@ -5068,28 +5076,37 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
+- [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
 - [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
+- [OK] `oauth_provider_config(provider)` - Return provider credentials and callback settings from configuration.
 - [OK] `prune()` - Remove expired challenges, sessions, rate limits, and OAuth states.
 - [OK] `save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
 - [OK] `send_code(email, code)` - Use MHM's configured SMTP account, with TLS and no code logging.
+- [OK] `set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
 - [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
+- [OK] `start_session(uid, email, response)` - Attach a new opaque browser session to a response.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
 - [OK] `throttle(key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
 - [OK] `username_exists(self, username)` - Return whether any account already uses an internal username.
+- [OK] `valid_password(value)` - Accept long passphrases without brittle composition requirements.
 - [OK] `website_redirect(path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description
 - [OK] `MHMAccounts` - Use product persistence; never maintain a separate website account database.
   - [OK] `MHMAccounts.all(self)` - Return account documents paired with their canonical user IDs.
   - [OK] `MHMAccounts.by_email(self, email)` - Return the unique account matching an email address, if one exists.
-  - [OK] `MHMAccounts.create(self, email, username, timezone)` - Create an MHM account after website email verification succeeds.
+  - [OK] `MHMAccounts.by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
+  - [OK] `MHMAccounts.create(self, email, username, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
   - [OK] `MHMAccounts.documents(self, uid)` - Load the account documents exposed through self-service settings.
   - [OK] `MHMAccounts.email_exists(self, email)` - Return whether any account already uses an email address.
   - [OK] `MHMAccounts.get(self, uid)` - Load one account document by canonical user ID.
   - [OK] `MHMAccounts.link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
+  - [OK] `MHMAccounts.link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
   - [OK] `MHMAccounts.save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
+  - [OK] `MHMAccounts.set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
   - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
   - [OK] `MHMAccounts.username_exists(self, username)` - Return whether any account already uses an internal username.
+- [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
 
 #### `core/web_gateway_runtime.py`
 **Functions:**
@@ -5546,6 +5563,7 @@ Returns:
 - [OK] `_merge_run_results(agg, run_result)` - Merge a single run_command result into an aggregated results dict (in place).
 - [OK] `_persist_captured_output()` - Persist captured pytest output with ANSI stripping to latest and timestamped logs.
 - [OK] `_rotate_console_output_files(backups_dir, archive_dir)` - Keep only recent timestamped console outputs in backups and archive older ones.
+- [OK] `_with_tools_pytest_isolation(cmd)` - Insert tools pytest.ini / confcutdir flags after ``python -m pytest``.
 - [OK] `add_nodeid(candidate)` - Append a deduplicated, canonicalized nodeid to the result list.
 - [OK] `apply_artifact_retention(source_dir, backups_dir, archive_dir, pattern, keep_current, keep_backups, keep_archive, archive_retention_days)` - Apply current/7/archive(7,30d) retention for files and directories.
 - [OK] `build_failure_rerun_base_cmd(base_cmd, run_id, phase)` - Build minimal pytest command for failed-node reruns only.

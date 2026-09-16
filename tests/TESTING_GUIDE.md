@@ -284,6 +284,7 @@ Common commands:
 
   ```bash
   python run_tests.py --mode development_tools
+  python -m pytest -c development_tools/pytest.ini tests/development_tools/
   ```
 
 - Run only unit tests:
@@ -471,7 +472,7 @@ Guidelines:
 
 Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` with the same parallel/serial split. Differences from `run_tests.py`:
 
-- **Scope**: Tier 3 runs the full `tests/` tree (including `tests/development_tools/`) but uses the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
+- **Scope**: Tier 3 runs the host `tests/` tree and `tests/development_tools/` as **two pytest invocations** (tools tests use `development_tools/pytest.ini` so they do not load host `tests/conftest.py`), using the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). GitHub Actions runs this daily via `.github/workflows/nightly-tests.yml`.
 - **Contention**: During `audit --full`, pytest runs concurrently with ruff, pyright, bandit, pip-audit, and legacy analysis. The Tier 3 runner caps workers at 4 to leave CPU headroom.
 - **Coverage**: Tier 3 test-suite execution does **not** collect coverage. The separate `coverage` command runs pytest again with `--cov`; budget extra time if you run both in one session.
@@ -724,13 +725,13 @@ End-to-end tests marked with `@pytest.mark.e2e` run real audits with actual tool
 
 ```bash
 # Run all E2E tests
-pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py
+python -m pytest -c development_tools/pytest.ini -m e2e tests/development_tools/test_audit_tier_e2e_verification.py
 
 # Run specific E2E test
-pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
+python -m pytest -c development_tools/pytest.ini -m e2e tests/development_tools/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
 
 # Run all tests including E2E (override default exclusion)
-pytest -m "" tests/development_tools/
+python -m pytest -c development_tools/pytest.ini -m "" tests/development_tools/
 ```
 
 **When to use E2E tests**:

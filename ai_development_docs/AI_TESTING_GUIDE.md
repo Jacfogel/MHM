@@ -42,7 +42,7 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/communication/` - communication subsystem tests.
 - `tests/notebook/` - notebook subsystem tests.
 - `tests/ai/` - AI-focused pytest tests and the dedicated AI functionality suite.
-- `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
+- `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools). Run with `-c development_tools/pytest.ini` (host `pytest.ini` ignores this directory).
 - `tests/test_helpers/` - test utilities and support (not test categories). Contains `test_utilities/` (factories: TestUserFactory, TestDataFactory, env helpers) and `test_support/` (conftest plugins, standalone helpers like wait_until). Import from `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support` (or `tests.test_helpers` for convenience).
 - `tests/conftest.py` - fixtures, hooks, and global configuration (root). Plugin modules live under `tests/test_helpers/test_support/` (conftest_env, conftest_mocks, conftest_cleanup, conftest_logging, conftest_user_data, conftest_hooks) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_helpers/test_support/conftest_logging_impl.py`; cleanup in `tests/test_helpers/test_support/conftest_cleanup_impl.py`.
 

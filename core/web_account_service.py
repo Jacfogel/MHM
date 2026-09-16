@@ -337,6 +337,7 @@ def _jwt_part(value: str) -> dict:
 
 async def _apple_identity_from_token(token, *, client_id, nonce, session):
     """Verify Apple's signed identity token and return its stable identity."""
+    # ERROR_HANDLING_EXCLUDE: OAuth boundary normalizes crypto/JWT failures below.
     try:
         header_part, payload_part, signature_part = token.split(".")
         header = _jwt_part(header_part)

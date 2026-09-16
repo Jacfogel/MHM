@@ -224,10 +224,11 @@ class TestErrorHandlingReportGenerator:
         mock_rotator_class.assert_called()
     
     @pytest.mark.unit
+    @patch('development_tools.shared.file_rotation.FileRotator')
     @patch('builtins.open', new_callable=mock_open)
     @patch('sys.argv', ['generate_error_handling_report.py', '--input', 'input.json', '--format', 'json'])
     @patch('pathlib.Path.exists', return_value=True)
-    def test_main_json_format(self, mock_exists, mock_file):
+    def test_main_json_format(self, mock_exists, mock_file, mock_rotator):
         """Test main function with JSON format."""
         analysis_results = {'total_functions': 100}
         mock_file.return_value.read.return_value = json.dumps(analysis_results)
@@ -256,10 +257,11 @@ class TestErrorHandlingReportGenerator:
         assert result == 0
     
     @pytest.mark.unit
+    @patch('development_tools.shared.file_rotation.FileRotator')
     @patch('sys.argv', ['generate_error_handling_report.py', '--input', 'input.json', '--format', 'both'])
     @patch('pathlib.Path.exists', return_value=True)
     @patch('builtins.open', new_callable=mock_open)
-    def test_main_both_formats(self, mock_file, mock_exists, tmp_path):
+    def test_main_both_formats(self, mock_file, mock_exists, mock_rotator, tmp_path):
         """Test main function with both formats."""
         analysis_results = {'total_functions': 100, 'analyze_error_handling': 95.0,
                            'functions_with_error_handling': 95, 'functions_with_decorators': 80,

@@ -30,8 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-15 - Dev-tools pytest isolation from host conftest **COMPLETED**
+- Tools tests run with `development_tools/pytest.ini` (`confcutdir` stops `tests/conftest.py`). Host pytest ignores `tests/development_tools/`.
+- Tier 3, coverage, and `run_tests.py --mode development_tools` pass the isolation flags. Host+tools pytest share one timeout budget so a slow host run cannot chain a second hour.
+- Suite cache: runner/cache helper edits soft-invalidate (clear full snapshot + re-run `development_tools`); `domain_mapper`/config edits still bust all domains.
+- Hour-long tools pytest root cause fixed: report tests mocked every `Path.exists()` call as true, trapping file rotation in an infinite collision loop that Windows' thread timeout could not terminate. Timeout diagnostics now survive cache merging, interrupted phases stop immediately, and quick audits have a 15-minute phase cap. The full tools phase now passes, and a clean full audit completes in about 7 minutes.
+- Remaining extraction: report paths, optional install extra, then sibling repo.
+
 ### 2026-09-15 - Password and social website sign-in **COMPLETED**
-- New accounts choose a 12–128 character password after one-time email verification; existing accounts can set or change one after signing in by code. Salted scrypt hashes are stored in the canonical account document, with rate-limited password login and code fallback.
+- New accounts choose a 12-128 character password after one-time email verification; existing accounts can set or change one after signing in by code. Salted scrypt hashes are stored in the canonical account document, with rate-limited password login and code fallback.
 - Added configurable Google, Facebook, and Apple sign-in/linking with one-time state, provider subject uniqueness, verified-email matching, no provider token storage, and Apple form-post/JWT verification support through the Worker.
 - Updated the account UI, configuration examples, gateway/Worker routes, account schema, and focused Python/Node coverage.
 
@@ -104,21 +111,6 @@ Guidelines:
 - Completed-tab **Delete Permanently** failed because `delete_task` only searched active tasks.
 - Task tables now allow Ctrl/Shift multi-select; delete, restore, and complete apply to all selected rows.
 - Category column is filled in both tables.
-
-### 2026-08-29 - Discord appointment form submit no longer fails silently **COMPLETED**
-- `create` hub copy labels the first row as new-task buttons and green as notes; the template keyword list is not repeated under the buttons.
-- Task-list Show More now attaches the picker dropdown on later pages (`deliver_handler_response` resolves `interaction_view`).
-- Create-hub nested modal `__init__` methods use `@handle_errors`; function registry regenerated.
-- Create-hub task modals use a stable `create_hub_modal_task:{template}` custom id, `timeout=None`, and the Discord interaction router handles `modal_submit` even after restart or the in-memory 3-minute modal timeout.
-
-### 2026-08-28 - Chat follow-ups can update the task you just mentioned **COMPLETED**
-- `make that due tomorrow`, `that's urgent`, and `mark that done` apply to the recently mentioned or created task.
-- Ambiguous "that" asks which task; it does not jump to a leftover task after you complete a different one.
-- Thinking-out-loud (`i should...`, `i gotta...`) asks before saving; `dont forget to` still creates immediately.
-- Bot copy says "task list", not "list", so tasks stay distinct from notebook lists.
-- After a which-task prompt, a number or name applies the remembered update (`1.` no longer gets the unclear-chat reply).
-- Notes added during the due-date follow-up stay on that task and keep the due-date buttons.
-- Function registry regenerated; yes/no offer matchers folded into `_matches_task_offer_reply`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

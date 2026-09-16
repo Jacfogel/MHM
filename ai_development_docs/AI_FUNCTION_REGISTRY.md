@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 01:01:47
+> **Last Generated**: 2026-09-15 22:36:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.2% [!] GOOD**
-- **Total Functions**: 2726
-- **Total Methods**: 1413
-- **Documented**: 3691/4139
+- **Total Functions**: 2738
+- **Total Methods**: 1418
+- **Documented**: 3708/4156
 - **Files Scanned**: 280
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -156,7 +156,7 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/profile_v2_schemas.py` - 24/50 functions undocumented (52% coverage)
+- `core/profile_v2_schemas.py` - 24/54 functions undocumented (56% coverage)
 - `communication/communication_channels/discord/events/connection_health.py` - 22/22 functions undocumented (0% coverage)
 - `storage/user_data_operations.py` - 22/24 functions undocumented (8% coverage)
 - `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
@@ -192,10 +192,10 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 6891
+1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 8952
 2. [OK] `run_tests.py::run_command()` - Complexity: 3215
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-4. [OK] `run_tests.py::main()` - Complexity: 2791
+4. [OK] `run_tests.py::main()` - Complexity: 2820
 5. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 
 
@@ -209,7 +209,7 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (38 files, 410 functions)
 - `checkins/` -  (7 files, 151 functions)
 - `communication/` - Communication channels and message processing (90 files, 1252 functions)
-- `core/` - System utilities and data management (37 files, 661 functions)
+- `core/` - System utilities and data management (37 files, 677 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (9 files, 110 functions)

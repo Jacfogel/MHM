@@ -105,6 +105,9 @@ def test_build_no_parallel_and_dev_tools_pytest_cmds(tmp_path: Path) -> None:
     assert "-n" in dev
     assert "2" in dev
     assert "tests/development_tools/" in dev
+    assert "-c" in dev
+    assert "development_tools/pytest.ini" in dev
+    assert "--confcutdir=tests/development_tools" in dev
 
 
 @pytest.mark.unit

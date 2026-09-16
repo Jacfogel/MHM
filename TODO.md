@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-09-13 (task offers, pronoun leftover fix, in-flow notes, task-list wording, which-task numbers, dev-tools extraction)
+> **Last Updated**: 2026-09-15 (task offers, pronoun leftover fix, in-flow notes, task-list wording, which-task numbers, dev-tools extraction)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -41,7 +41,7 @@ When adding new tasks, follow this format:
 
 **Development tools (reviewed 2026-09-13 - extraction active)**
 - **Live triage**: generated [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) + `python development_tools/run_development_tools.py coverage` when metrics need refresh.
-- **Extraction**: logical split in this repo first, sibling repo later. Detail in [PLANS.md](development_docs/PLANS.md) Section 6.4.
+- **Extraction**: logical split in this repo first, sibling repo later. Detail in [PLANS.md](development_docs/PLANS.md) Section 6.4. Pytest config is isolated (`development_tools/pytest.ini`); test files still live under `tests/development_tools/`.
 - **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP).
 - **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 

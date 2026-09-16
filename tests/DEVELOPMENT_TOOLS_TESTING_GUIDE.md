@@ -17,8 +17,10 @@ Use it when you change development tools behavior (analysis, reporting, CLI rout
 **Run Development Tools Tests**:
 ```powershell
 & c:/Users/Julie/projects/MHM/MHM/.venv/Scripts/Activate.ps1
-pytest tests/development_tools/
+python -m pytest -c development_tools/pytest.ini tests/development_tools/
 ```
+
+Do **not** use bare `pytest tests/development_tools/` with the host `pytest.ini`. That config ignores the tools tests so they do not load MHM's `tests/conftest.py`. If you forget `-c`, pytest exits with a usage error that repeats the command above.
 
 **Run via project test runner (full tree)**:
 ```powershell

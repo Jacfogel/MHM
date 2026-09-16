@@ -702,7 +702,7 @@ def get_coverage_tool_config() -> dict[str, Any]:
 
 SUITE_PROFILES: dict[str, dict[str, Any]] = {
     "quick": {"exclude_markers": ["e2e", "slow"]},
-    "full": {"exclude_markers": ["e2e"]},
+    "full": {"exclude_markers": ["e2e"], "timeout_seconds": 3600},
 }
 
 TEST_RUN_DEFAULTS: dict[str, Any] = {
@@ -710,10 +710,9 @@ TEST_RUN_DEFAULTS: dict[str, Any] = {
     "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
-    # The quick suite now includes several thousand integration and website
-    # tests.  Allow enough time for the parallel phase to finish on Windows
-    # before classifying a healthy run as a subprocess timeout.
-    "timeout_seconds": 3600,
+    # Interactive Tier 3 audits must remain bounded when pytest or a worker
+    # hangs. The nightly/full profile overrides this with a larger budget.
+    "timeout_seconds": 900,
     "exclude_markers": ["e2e", "slow"],
     "default_profile": "quick",
     "profiles": copy.deepcopy(SUITE_PROFILES),
@@ -722,6 +721,10 @@ TEST_RUN_DEFAULTS: dict[str, Any] = {
     "sigint_window_seconds": 2.0,
     "sigint_debounce_seconds": 0.35,
     "junit_dir": "development_tools/tests/jsons/test_suite_junit",
+    # Empty list disables the isolated tools pytest invocation.
+    "devtools_test_paths": None,
+    "devtools_pytest_config": "development_tools/pytest.ini",
+    "devtools_confcutdir": None,
 }
 
 
@@ -731,10 +734,15 @@ def get_test_run_config(profile: str | None = None) -> dict[str, Any]:
     result = copy.deepcopy(TEST_RUN_DEFAULTS)
     if isinstance(external, dict):
         result.update(external)
+    paths = get_paths_config()
+    tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
     if not result.get("test_paths"):
-        paths = get_paths_config()
-        tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
         result["test_paths"] = [tests_dir]
+    tools_rel = f"{tests_dir}/development_tools"
+    if result.get("devtools_test_paths") is None:
+        result["devtools_test_paths"] = [tools_rel]
+    if not result.get("devtools_confcutdir"):
+        result["devtools_confcutdir"] = tools_rel
     profile_name = str(profile or result.get("default_profile") or "quick").strip().lower()
     profiles = result.get("profiles")
     if not isinstance(profiles, dict):
@@ -742,6 +750,8 @@ def get_test_run_config(profile: str | None = None) -> dict[str, Any]:
     profile_cfg = profiles.get(profile_name)
     if isinstance(profile_cfg, dict) and profile_cfg.get("exclude_markers"):
         result["exclude_markers"] = [str(marker) for marker in profile_cfg["exclude_markers"]]
+    if isinstance(profile_cfg, dict) and profile_cfg.get("timeout_seconds"):
+        result["timeout_seconds"] = int(profile_cfg["timeout_seconds"])
     result["suite_profile"] = profile_name
     return result
 

@@ -25,6 +25,22 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
+
+def _with_tools_pytest_isolation(cmd: list[str]) -> list[str]:
+    """Insert tools pytest.ini / confcutdir flags after ``python -m pytest``."""
+    out = list(cmd)
+    try:
+        from development_tools.tests.pytest_isolation import tools_suite_pytest_args
+    except ImportError:
+        return out
+    args = tools_suite_pytest_args()
+    try:
+        idx = out.index("pytest")
+        out[idx + 1 : idx + 1] = args
+    except ValueError:
+        out.extend(args)
+    return out
+
 # Try to import psutil for resource monitoring (optional dependency)
 try:
     import psutil
@@ -3396,6 +3412,7 @@ def main():
     elif args.mode == "development_tools":
         # Development tools infrastructure tests only
         selected_test_paths = ["tests/development_tools/"]
+        cmd = _with_tools_pytest_isolation(cmd)
         cmd.extend(selected_test_paths)
         description = "Development Tools Tests"
 
@@ -3571,7 +3588,10 @@ def main():
                 "warnings": "",
             }
             for phase_name, paths in full_phase_paths:
-                phase_cmd = base_cmd + paths
+                phase_cmd = list(base_cmd)
+                if phase_name == "Development Tools":
+                    phase_cmd = _with_tools_pytest_isolation(phase_cmd)
+                phase_cmd.extend(paths)
                 print(
                     f"\n{'-'*80}\nRunning: Parallel Tests ({phase_name})...\n{'-'*80}"
                 )

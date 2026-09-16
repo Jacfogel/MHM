@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 01:02:57
+> **Last Generated**: 2026-09-15 22:38:08
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000EA 5EAC:07BC
+Volume serial number is 0000004A 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -388,6 +388,7 @@ C:.
 |   |   DEV_TOOLS_PRIORITIES.md
 |   |   DEV_TOOLS_STATUS.md
 |   |   LIST_OF_LISTS.md
+|   |   pytest.ini
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
 |   |   __init__.py
@@ -579,6 +580,7 @@ C:.
 |   |   |   fix_test_markers.py
 |   |   |   flaky_detector.py
 |   |   |   generate_test_coverage_report.py
+|   |   |   pytest_isolation.py
 |   |   |   run_test_coverage.py
 |   |   |   run_test_suite.py
 |   |   |   test_file_coverage_cache.py
@@ -953,6 +955,7 @@ C:.
 |   |   |   test_path_drift_integration.py
 |   |   |   test_path_drift_verification_comprehensive.py
 |   |   |   test_pyright_config_paths.py
+|   |   |   test_pytest_isolation.py
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_dev_tools_scope.py
 |   |   |   test_report_generation_helpers_pure.py

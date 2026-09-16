@@ -228,6 +228,8 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
   - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
   - **Domain test suite cache (`tests/test_file_suite_cache.py`)**:
     - Per-test-file pytest outcomes for `run_test_suite`; reuses domain invalidation from `tests/test_file_coverage_cache.py`.
+    - Runner/cache helpers (`development_tools/tests/run_test_suite.py`, `development_tools/tests/test_file_suite_cache.py`, `development_tools/tests/pytest_isolation.py`) soft-invalidate: clear the full-suite snapshot and re-run `development_tools` (plus any coverage-changed domains). Structural tools (`development_tools/tests/domain_mapper.py`, coverage/static-check configs) still bust all domains.
+    - Windows suite pytest uses `CREATE_NO_WINDOW` (like coverage), preserves timeout diagnostics through cache merging, and does not run retries or the no-parallel phase after interruption. Quick audits cap each phase at 900 seconds; nightly/full-profile runs retain 3,600 seconds. Selective tools file lists collapse to the tools root.
     - Cache file: `development_tools/tests/jsons/test_file_suite_cache.json` (enabled by default; disable with `--no-domain-cache` on `run_test_suite`).
   - **Domain test coverage cache (`tests/test_file_coverage_cache.py`)**:
     - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
@@ -295,6 +297,8 @@ File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file(
 **Code-level markers**: Prefer canonical suppressions from `shared/exclusion_utilities.py`: `# devtools: ignore[duplicate-functions]: <reason>`, `# devtools: ignore[unused-functions]: <reason>`, `# devtools: ignore[facade-shims]: <reason>`, `# devtools: ignore[legacy-references]: <reason>`, and `# devtools: intentional[duplicate-functions]: <group_id>`. Existing duplicate-function aliases are still accepted but should not be added in new code.
 
 **Import boundary (Section 8.6 in paired guide)**: No host-package imports inside `development_tools/**` (`constants.local_module_prefixes` except `development_tools`). Use `shared/logging` (`get_dev_tools_logger`), `shared/time_helpers`, `shared/error_helpers`, and `shared/host_hooks.load_host_backup_manager` (config `host.backup_manager_module`; skip when empty). Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `tests/development_tools/test_import_boundary_policy.py`.
+
+**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` (`confcutdir=tests/development_tools`). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini tests/development_tools/`.
 
 See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for full rules, function-level exclusions, and import-boundary detail.
 

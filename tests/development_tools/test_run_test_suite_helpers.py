@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, cast
@@ -381,3 +382,154 @@ def test_load_config_full_profile_excludes_slow_only(monkeypatch):
 
     assert quick["exclude_markers"] == ["e2e", "slow"]
     assert full["exclude_markers"] == ["e2e"]
+
+
+@pytest.mark.unit
+def test_should_not_retry_parallel_after_timeout_interrupt(tmp_path: Path):
+    """Timeout kills leave xdist 'node down' text; do not burn another full budget."""
+    phase = runner.PhaseResult(
+        name="parallel",
+        command=[],
+        return_code=1,
+        duration_seconds=3600.0,
+        counts={"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="[gw3] node down: Not properly terminated\n",
+        junit_xml=str(tmp_path / "parallel.xml"),
+        interrupted=True,
+    )
+    assert runner._should_retry_parallel_serially(phase) is False
+
+
+@pytest.mark.unit
+def test_cache_merge_preserves_timeout_diagnostics(tmp_path: Path, monkeypatch):
+    phase = runner.PhaseResult(
+        name="parallel",
+        command=["pytest", "-n", "4"],
+        return_code=1,
+        duration_seconds=900.0,
+        counts={"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="pytest timed out",
+        junit_xml=str(tmp_path / "missing.xml"),
+        interrupted=True,
+    )
+    monkeypatch.setattr(runner, "_parse_junit_by_test_file", lambda path: {})
+
+    merged = runner._merge_phase_with_cache(
+        phase,
+        {
+            "tests/development_tools/test_cached.py": {
+                "parallel": {
+                    "counts": {
+                        "total": 1,
+                        "passed": 1,
+                        "failed": 0,
+                        "errors": 0,
+                        "skipped": 0,
+                    },
+                    "failed_node_ids": [],
+                }
+            }
+        },
+        "parallel",
+    )
+
+    assert merged.counts["passed"] == 1
+    assert merged.command == phase.command
+    assert merged.return_code == 1
+    assert merged.output_tail == "pytest timed out"
+    assert merged.interrupted is True
+    assert merged.classification == "crashed"
+
+
+@pytest.mark.unit
+def test_run_suite_skips_no_parallel_after_interrupted_parallel(monkeypatch, tmp_path):
+    monkeypatch.setattr(runner, "_has_xdist", lambda: True)
+    cast(Any, runner)._STOP_REQUESTED = False
+    calls: list[str] = []
+
+    def fake_run_phase(name, cfg, junit_dir, *, force_serial=False, test_paths=None):
+        calls.append(name)
+        return runner.PhaseResult(
+            name=name,
+            command=["pytest"],
+            return_code=1,
+            duration_seconds=900.0,
+            counts={"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+            failed_node_ids=[],
+            output_tail="pytest timed out",
+            junit_xml=str(junit_dir / f"{name}.xml"),
+            interrupted=True,
+        )
+
+    monkeypatch.setattr(runner, "_run_phase", fake_run_phase)
+
+    result = runner.run_suite(
+        _cfg(junit_dir=str(tmp_path), timeout_seconds=900),
+        use_domain_cache=False,
+    )
+
+    assert calls == ["parallel"]
+    assert result["details"]["tier3_test_outcome"]["state"] == "crashed"
+
+
+@pytest.mark.unit
+def test_should_retry_parallel_on_xdist_crash_without_interrupt(tmp_path: Path):
+    phase = runner.PhaseResult(
+        name="parallel",
+        command=[],
+        return_code=1,
+        duration_seconds=12.0,
+        counts={"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="[gw1] node down: Not properly terminated\n",
+        junit_xml=str(tmp_path / "parallel.xml"),
+        interrupted=False,
+    )
+    assert runner._should_retry_parallel_serially(phase) is True
+
+
+@pytest.mark.unit
+def test_collapse_tools_paths_prefers_roots():
+    files = [
+        "tests/development_tools/test_a.py",
+        "tests/development_tools/test_b.py",
+    ]
+    assert runner._collapse_tools_paths(files, ["tests/development_tools"]) == [
+        "tests/development_tools"
+    ]
+
+
+@pytest.mark.unit
+def test_invoke_pytest_sets_create_no_window_on_windows(monkeypatch, tmp_path):
+    if os.name != "nt":
+        pytest.skip("Windows-only creationflags")
+    captured: dict[str, Any] = {}
+
+    class FakeProc:
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            return ("ok\n", None)
+
+    def fake_popen(cmd, **kwargs):
+        captured.update(kwargs)
+        return FakeProc()
+
+    monkeypatch.setattr(runner.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(runner, "_parse_junit", lambda path: ({"total": 0}, []))
+    monkeypatch.setattr(runner, "_terminate_process_tree", lambda proc: None)
+
+    runner._invoke_pytest(
+        "parallel",
+        _cfg(timeout_seconds=5),
+        tmp_path,
+        test_paths=["tests/development_tools"],
+        timeout_seconds=5,
+    )
+
+    flags = int(captured.get("creationflags") or 0)
+    no_window = int(getattr(runner.subprocess, "CREATE_NO_WINDOW", 0x08000000))
+    assert flags & no_window
+    assert flags & int(getattr(runner.subprocess, "CREATE_NEW_PROCESS_GROUP", 0))

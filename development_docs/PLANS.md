@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-09-13  
+> **Last Updated**: 2026-09-15
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -280,12 +280,13 @@ These plans should not be duplicated in detail here.
 
 - Host backup drill/health uses `host.backup_manager_module` via [`host_hooks.py`](../development_tools/shared/host_hooks.py); portable default skips.
 - Import boundary forbids all host prefixes from `local_module_prefixes` except `development_tools`.
+- Tools tests use [`development_tools/pytest.ini`](../development_tools/pytest.ini) (`confcutdir` stops host `tests/conftest.py`). Host `pytest.ini` ignores `tests/development_tools/`.
 - Remaining V6 item **B-016** (`--audit-scope` beyond Tier 2) stays parked; do not reopen Radon/pydeps/pre-commit without a new plan.
 
 **Still in this repo before a sibling-repo cut**:
 
 - Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
-- Give the tools suite its own pytest config/fixtures (`tests/development_tools/` is the largest remaining knot).
+- Move `tests/development_tools/` with the package (files still live under MHM `tests/` today; pytest config is already separate).
 - Keep generated-report paths config-driven (`development_docs/` / `ai_development_docs/` must not be hardcoded).
 - Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
 - Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.

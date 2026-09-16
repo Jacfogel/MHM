@@ -5,7 +5,7 @@
 **Purpose**: Current ownership map for list-like data (arrays, mappings, enumerated sets) in **development tools** code and config. Product/runtime lists: [PRODUCT_LIST_OF_LISTS.md](../development_docs/PRODUCT_LIST_OF_LISTS.md). Planning ownership: [PLANS.md](../development_docs/PLANS.md) Section 2.
 
 **Audience**: Maintainers, AI collaborators.
-**Last updated**: 2026-09-13 (host adapters + forbidden-import derivation)
+**Last updated**: 2026-09-15 (tools pytest isolation)
 
 **Config shorthand**: `development_tools_config.json` means `development_tools/config/development_tools_config.json` (loaded by `development_tools/config/config.py`). Template: `development_tools/config/development_tools_config.json.example`.
 
@@ -85,7 +85,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 | **Dev-tools base/context/generated exclusions** | config `exclusions.*` merged via `get_exclusions()`; portable defaults in `development_tools/shared/standard_exclusions.py` | Live/example omit full `base_exclusions`; use `base_exclusions_additions` / `base_exclusions_removals` for project deltas |
 | **Ruff exclude** | Generated from standard_exclusions + config via `development_tools/config/sync_ruff_toml.py` | Do not hand-edit `.ruff.toml` or `development_tools/config/ruff.toml` |
 | **Pyright exclude** | Root `pyproject.toml` `[tool.pyright]` only | |
-| **Pytest collection ignores** | `tests/conftest.py` `collect_ignore*` | `pytest.ini` owns CLI `--ignore` / markers / addopts |
+| **Pytest collection ignores** | Host: `pytest.ini` `--ignore=tests/development_tools` plus `tests/conftest.py` `collect_ignore`. Tools: `development_tools/pytest.ini` via `development_tools/tests/pytest_isolation.py` | Do not collect tools tests under the host conftest |
 | **Coverage omit** | `development_tools/tests/coverage.ini`, `development_tools/tests/coverage_dev_tools.ini` | Per coverage run |
 | **.gitignore / .cursorignore** | Those files | Different tools; no single "ignore" SSOT |
 
@@ -117,7 +117,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 | What | Canonical source | Notes |
 |------|------------------|-------|
 | **Static-check / coverage / pip-audit cache paths** | `development_tools/shared/cache_dependency_paths.py` | Add a path when config changes must bust caches |
-| **Suite profiles** | `development_tools/config/config.py` - `SUITE_PROFILES`, `TEST_RUN_DEFAULTS` | Optional thin JSON `test_run` override |
+| **Suite profiles** | `development_tools/config/config.py` - `SUITE_PROFILES`, `TEST_RUN_DEFAULTS` | Optional thin JSON `test_run` override. Tools isolation paths: `devtools_test_paths`, `devtools_pytest_config`, `devtools_confcutdir` |
 | **Ruff / Pyright path shards** | Project JSON `static_analysis.*_path_shards` | Portable code default is empty |
 | **Audit tool matrix** | Built by `development_tools/shared/audit_tool_matrix.py` from tiers + `_TOOLS` | Artifact JSON is generated - do not hand-edit as SSOT |
 | **Tool cache inventory** | `development_tools/config/tool_cache_inventory.json` | Descriptive; runtime invalidation uses `CACHE_AWARE_TOOLS` |

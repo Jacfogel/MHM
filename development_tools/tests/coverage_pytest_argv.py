@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from development_tools.tests.pytest_isolation import tools_suite_pytest_args
+
 
 _DEFAULT_IGNORE_ARGS = (
     "--ignore=tests/data/pytest-tmp-*",
@@ -137,6 +139,7 @@ def build_dev_tools_coverage_pytest_cmd(
         executable,
         "-m",
         "pytest",
+        *tools_suite_pytest_args(),
         "-p",
         "no:cacheprovider",
         "-m",

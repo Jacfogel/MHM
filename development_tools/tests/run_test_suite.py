@@ -51,12 +51,26 @@ _CURRENT_SUITE_RUN_ID: str | None = None
 
 try:
     from development_tools.shared.logging import get_dev_tools_logger
+    from development_tools.tests.pytest_isolation import (
+        existing_tools_roots,
+        host_ignore_args,
+        is_tools_test_path,
+        normalize_rel,
+        partition_test_paths,
+        tools_suite_pytest_args,
+    )
     from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
 
     _suite_logger = get_dev_tools_logger("development_tools")
 except ImportError:
     _suite_logger = None
     TestFileCoverageCache = None  # type: ignore[misc, assignment]
+    existing_tools_roots = None  # type: ignore[misc, assignment]
+    host_ignore_args = None  # type: ignore[misc, assignment]
+    is_tools_test_path = None  # type: ignore[misc, assignment]
+    normalize_rel = None  # type: ignore[misc, assignment]
+    partition_test_paths = None  # type: ignore[misc, assignment]
+    tools_suite_pytest_args = None  # type: ignore[misc, assignment]
 
 
 @dataclass
@@ -194,14 +208,19 @@ def build_phase_command(
     junit_xml: Path,
     force_serial: bool = False,
     test_paths: list[str] | None = None,
+    extra_args: list[str] | None = None,
+    marker_phase: str | None = None,
 ) -> list[str]:
     command = _pytest_command(cfg)
+    if extra_args:
+        command.extend(str(part) for part in extra_args)
     command.extend(str(part) for part in (cfg.get("pytest_base_args") or []))
     command.extend(["--junitxml", str(junit_xml)])
-    include_no_parallel = phase == "no_parallel"
+    track = marker_phase or phase
+    include_no_parallel = track == "no_parallel"
     command.extend(["-m", _marker_expression(include_no_parallel=include_no_parallel, cfg=cfg)])
     worker_count: int | None = None
-    if phase == "parallel" and not force_serial and _has_xdist():
+    if track == "parallel" and not force_serial and _has_xdist():
         worker_count = _resolved_worker_count(str(cfg.get("workers") or "auto"))
     _append_pytest_runtime_options(
         command,
@@ -392,7 +411,13 @@ def _is_xdist_worker_crash_output(output: str) -> bool:
 
 
 def _should_retry_parallel_serially(phase: PhaseResult) -> bool:
-    """Retry parallel pytest serially after xdist worker instability."""
+    """Retry parallel pytest serially after xdist worker instability.
+
+    Never retry after a timeout/SIGINT interrupt: the outer audit budget is
+    already nearly spent, and a fresh serial attempt can burn another hour.
+    """
+    if phase.interrupted:
+        return False
     if phase.classification not in {"crashed", "failed"}:
         return False
     tail = phase.output_tail or ""
@@ -401,14 +426,130 @@ def _should_retry_parallel_serially(phase: PhaseResult) -> bool:
     )
 
 
-def _run_phase(
+def _announce(message: str) -> None:
+    """Write a progress line to the audit console and the tools log."""
+    print(message, flush=True)
+    if _suite_logger:
+        _suite_logger.info(message)
+
+
+def _phase_timeout_seconds(cfg: dict[str, Any]) -> int:
+    """Return the configured pytest phase timeout in seconds."""
+    try:
+        return max(1, int(cfg.get("timeout_seconds") or 3600))
+    except (TypeError, ValueError):
+        return 3600
+
+
+def _merged_return_code(parts: list[PhaseResult]) -> int | None:
+    """Return the worst pytest exit code from split host/tools invocations."""
+    if any(part.interrupted for part in parts):
+        interrupted = next(part for part in parts if part.interrupted)
+        return interrupted.return_code
+    codes = [part.return_code if part.return_code is not None else 2 for part in parts]
+    crash = next((code for code in codes if code not in (0, 1, 5)), None)
+    if crash is not None:
+        return crash
+    if any(code == 1 for code in codes):
+        return 1
+    if all(code == 5 for code in codes):
+        return 5
+    return 0
+
+
+def _merge_phase_results(name: str, parts: list[PhaseResult]) -> PhaseResult:
+    """Combine host and tools pytest results into one named track."""
+    if len(parts) == 1:
+        only = parts[0]
+        if only.name == name:
+            return only
+        return PhaseResult(
+            name=name,
+            command=only.command,
+            return_code=only.return_code,
+            duration_seconds=only.duration_seconds,
+            counts=only.counts,
+            failed_node_ids=only.failed_node_ids,
+            output_tail=only.output_tail,
+            junit_xml=only.junit_xml,
+            interrupted=only.interrupted,
+        )
+    commands: list[str] = []
+    for part in parts:
+        commands.extend(part.command)
+        commands.append(";")
+    if commands:
+        commands.pop()
+    tails = [part.output_tail for part in parts if part.output_tail]
+    failed: list[str] = []
+    for part in parts:
+        failed.extend(part.failed_node_ids)
+    return PhaseResult(
+        name=name,
+        command=commands,
+        return_code=_merged_return_code(parts),
+        duration_seconds=round(sum(part.duration_seconds for part in parts), 3),
+        counts=_merge_counts(*(part.counts for part in parts)),
+        failed_node_ids=sorted(set(failed)),
+        output_tail="\n".join(tails),
+        junit_xml=parts[0].junit_xml,
+        interrupted=any(part.interrupted for part in parts),
+    )
+
+
+def _collapse_tools_paths(tools_paths: list[str], tools_roots: list[str]) -> list[str]:
+    """Prefer tools roots when every selected path sits under those roots.
+
+    Selective cache often passes ~140 individual files; collapsing keeps the
+    Windows CreateProcess command line short and matches a normal tools collect.
+    """
+    if not tools_paths or not tools_roots:
+        return tools_paths
+    if is_tools_test_path is None or normalize_rel is None:
+        return tools_paths
+    if not all(is_tools_test_path(path, tools_roots) for path in tools_paths):
+        return tools_paths
+    used: list[str] = []
+    for root in tools_roots:
+        root_n = normalize_rel(root)
+        if any(is_tools_test_path(path, [root_n]) for path in tools_paths):
+            if root_n not in used:
+                used.append(root_n)
+    return used or tools_paths
+
+
+def _tools_roots_from_cfg(cfg: dict[str, Any]) -> list[str]:
+    """Return configured tools-test roots that exist on disk."""
+    if existing_tools_roots is None:
+        return []
+    configured = cfg.get("devtools_test_paths") or []
+    if not isinstance(configured, list):
+        return []
+    roots = [str(root) for root in configured if str(root).strip()]
+    return existing_tools_roots(roots)
+
+
+def _tools_isolation_args(cfg: dict[str, Any], tools_roots: list[str]) -> list[str]:
+    """Return ``-c`` / ``--confcutdir`` argv for the tools pytest invocation."""
+    if tools_suite_pytest_args is None:
+        return []
+    pytest_ini = str(cfg.get("devtools_pytest_config") or "development_tools/pytest.ini")
+    confcutdir = str(cfg.get("devtools_confcutdir") or (tools_roots[0] if tools_roots else "tests/development_tools"))
+    return tools_suite_pytest_args(pytest_ini=pytest_ini, confcutdir=confcutdir)
+
+
+def _invoke_pytest(
     name: str,
     cfg: dict[str, Any],
     junit_dir: Path,
     *,
     force_serial: bool = False,
     test_paths: list[str] | None = None,
+    extra_args: list[str] | None = None,
+    marker_phase: str | None = None,
+    timeout_seconds: int | None = None,
 ) -> PhaseResult:
+    """Run one pytest subprocess and return a structured phase result."""
     global _ACTIVE_PROCESS
     junit_xml = junit_dir / f"{name}.xml"
     with contextlib.suppress(OSError):
@@ -419,12 +560,13 @@ def _run_phase(
         junit_xml=junit_xml,
         force_serial=force_serial,
         test_paths=test_paths,
+        extra_args=extra_args,
+        marker_phase=marker_phase or name,
     )
     start = time.perf_counter()
     output = ""
     return_code: int | None = None
     interrupted = False
-    creationflags = 0
     popen_kwargs: dict[str, Any] = {
         "stdout": subprocess.PIPE,
         "stderr": subprocess.STDOUT,
@@ -432,14 +574,16 @@ def _run_phase(
         "cwd": str(Path.cwd()),
         "env": {
             **os.environ,
-            # Keep pytest on test loggers (see tests/conftest.py); do not inherit
-            # audit CLI MHM_TESTING=0 into workers.
+            # Keep pytest on test loggers; do not inherit audit CLI MHM_TESTING=0.
             "MHM_TESTING": "1",
             "MHM_TIER3_AUDIT": "1",
         },
     }
     if os.name == "nt":
-        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        # Match coverage: hide the console so Ctrl+C / console events do not
+        # strand xdist workers and hang teardown near 100%.
+        creationflags = int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) or 0)
+        creationflags |= int(getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) or 0)
         if creationflags:
             popen_kwargs["creationflags"] = creationflags
     else:
@@ -447,7 +591,9 @@ def _run_phase(
     try:
         _ACTIVE_PROCESS = subprocess.Popen(command, **popen_kwargs)
         try:
-            output, _ = _ACTIVE_PROCESS.communicate(timeout=int(cfg.get("timeout_seconds") or 3600))
+            output, _ = _ACTIVE_PROCESS.communicate(
+                timeout=int(timeout_seconds if timeout_seconds is not None else cfg.get("timeout_seconds") or 3600)
+            )
         except subprocess.TimeoutExpired:
             interrupted = True
             _terminate_process_tree(_ACTIVE_PROCESS)
@@ -474,6 +620,84 @@ def _run_phase(
         junit_xml=str(junit_xml),
         interrupted=interrupted,
     )
+
+
+def _run_phase(
+    name: str,
+    cfg: dict[str, Any],
+    junit_dir: Path,
+    *,
+    force_serial: bool = False,
+    test_paths: list[str] | None = None,
+) -> PhaseResult:
+    """Run host and tools pytest invocations for one parallel/serial track."""
+    requested = test_paths if test_paths is not None else (cfg.get("test_paths") or ["tests"])
+    requested_list = [str(path) for path in requested]
+    tools_roots = _tools_roots_from_cfg(cfg)
+    host_paths = requested_list
+    tools_paths: list[str] = []
+    if tools_roots and partition_test_paths is not None:
+        host_paths, tools_paths = partition_test_paths(requested_list, tools_roots)
+        tools_paths = _collapse_tools_paths(tools_paths, tools_roots)
+
+    deadline = time.perf_counter() + _phase_timeout_seconds(cfg)
+
+    def _remaining() -> int:
+        return max(1, int(deadline - time.perf_counter()))
+
+    parts: list[PhaseResult] = []
+    if host_paths:
+        _announce(
+            f"run_test_suite {name}: host pytest files={len(host_paths)} "
+            f"timeout={_remaining()}s"
+        )
+        host_extra = host_ignore_args(tools_roots) if tools_roots and host_ignore_args is not None else []
+        parts.append(
+            _invoke_pytest(
+                name,
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=host_paths,
+                extra_args=host_extra,
+                marker_phase=name,
+                timeout_seconds=_remaining(),
+            )
+        )
+        if _STOP_REQUESTED or parts[-1].interrupted:
+            return _merge_phase_results(name, parts)
+    if tools_paths:
+        remaining = int(deadline - time.perf_counter())
+        if remaining < 1:
+            _announce(f"run_test_suite {name}: skipping tools pytest (timeout budget exhausted)")
+            return _merge_phase_results(name, parts)
+        _announce(
+            f"run_test_suite {name}: tools pytest paths={len(tools_paths)} "
+            f"timeout={remaining}s"
+        )
+        parts.append(
+            _invoke_pytest(
+                f"{name}_devtools",
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=tools_paths,
+                extra_args=_tools_isolation_args(cfg, tools_roots),
+                marker_phase=name,
+                timeout_seconds=remaining,
+            )
+        )
+    if not parts:
+        return _invoke_pytest(
+            name,
+            cfg,
+            junit_dir,
+            force_serial=force_serial,
+            test_paths=requested_list,
+            marker_phase=name,
+            timeout_seconds=_remaining(),
+        )
+    return _merge_phase_results(name, parts)
 
 
 def _track_from_phase(phase: PhaseResult) -> dict[str, Any]:
@@ -631,6 +855,7 @@ def _merge_phase_with_cache(
     cached_by_file: dict[str, dict[str, Any]],
     phase_key: str,
 ) -> PhaseResult:
+    """Merge cached counts without erasing fresh process diagnostics."""
     fresh_by_file = _parse_junit_by_test_file(Path(phase.junit_xml))
     merged_counts: dict[str, int] = {}
     merged_failed: list[str] = []
@@ -647,13 +872,16 @@ def _merge_phase_with_cache(
         elif isinstance(fresh_phase, dict):
             merged_counts = _merge_counts(merged_counts, fresh_phase.get("counts") or {})
             merged_failed.extend(fresh_phase.get("failed_node_ids") or [])
-    return _phase_from_counts(
+    return PhaseResult(
         name=phase.name,
-        counts=merged_counts,
-        failed_node_ids=merged_failed,
-        junit_xml=phase.junit_xml,
+        command=list(phase.command),
+        return_code=phase.return_code,
         duration_seconds=phase.duration_seconds,
-        return_code=phase.return_code or 0,
+        counts=merged_counts,
+        failed_node_ids=sorted(set(merged_failed)),
+        output_tail=phase.output_tail,
+        junit_xml=phase.junit_xml,
+        interrupted=phase.interrupted,
     )
 
 
@@ -785,7 +1013,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     parallel_phase, cached_per_file, "parallel"
                 )
             phases.append(parallel_phase)
-            if not _STOP_REQUESTED:
+            if not _STOP_REQUESTED and not parallel_phase.interrupted:
                 no_parallel_phase = _run_phase(
                     "no_parallel",
                     cfg,

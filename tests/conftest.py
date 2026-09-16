@@ -247,6 +247,7 @@ collect_ignore = [
     "fixtures",
     "logs",
     "temp",
+    "development_tools",
     "ai/test_ai_core.py",
     "ai/test_ai_integration.py",
     "ai/test_ai_errors.py",

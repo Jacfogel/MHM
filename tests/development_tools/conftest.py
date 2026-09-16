@@ -1,4 +1,8 @@
-"""Pytest configuration for development_tools tests."""
+"""Pytest configuration for development_tools tests.
+
+Host ``tests/conftest.py`` is not loaded when these tests run with
+``development_tools/pytest.ini`` (``confcutdir=tests/development_tools``).
+"""
 
 import sys
 import shutil
@@ -9,136 +13,89 @@ import uuid
 import pytest
 import logging
 import contextlib
-
-# Override core-dependent fixtures from parent conftest.py with no-op versions
-# These fixtures are not needed for development tools tests which don't use core modules
+import os
 
 
-@pytest.fixture(scope="session", autouse=True)
-def initialize_loader_import_order():
-    """No-op override: development tools tests don't need core user data loader initialization."""
-    yield
+def _patch_windows_mkdir_mode() -> None:
+    """Avoid Windows ACL lockout when pytest creates temp roots with mode 0o700."""
+    if os.name != "nt":
+        return
+    original_mkdir = Path.mkdir
+    if getattr(original_mkdir, "__name__", "") == "_devtools_safe_mkdir":
+        return
+
+    def _devtools_safe_mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        if mode == 0o700:
+            mode = 0o777
+        return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+
+    Path.mkdir = _devtools_safe_mkdir
 
 
-@pytest.fixture(scope="session", autouse=True)
-def register_user_data_loaders_session():
-    """No-op override: development tools tests don't need core user data loader registration."""
-    yield
+_patch_windows_mkdir_mode()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def verify_user_data_loader_registry():
-    """No-op override: development tools tests don't need core user data loader verification."""
-    yield
+def pytest_configure(config):
+    """Refuse to run under the host pytest.ini, which loads MHM conftest plugins."""
+    ini = getattr(config, "inipath", None)
+    if ini is None:
+        return
+    ini_path = Path(str(ini)).resolve()
+    if ini_path.parent.name != "development_tools":
+        raise pytest.UsageError(
+            "Development tools tests must use development_tools/pytest.ini so "
+            "MHM tests/conftest.py is not loaded. Run: python -m pytest -c "
+            "development_tools/pytest.ini tests/development_tools/"
+        )
 
 
-@pytest.fixture(scope="session", autouse=True)
-def shim_get_user_data_to_invoke_loaders():
-    """No-op override: development tools tests don't need core user data shim."""
-    yield
-
-
-@pytest.fixture(scope="session", autouse=True)
-def verify_required_loaders_present():
-    """No-op override: development tools tests don't need core user data loader verification."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def mock_config():
-    """No-op override: development tools tests don't need core.config mocking."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def ensure_mock_config_applied():
-    """No-op override: development tools tests don't need core.config verification."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def fix_user_data_loaders():
-    """No-op override: development tools tests don't need core user data loader fixes."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def clear_user_caches_between_tests():
-    """No-op override: development tools tests don't need core user cache clearing."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def cleanup_conversation_manager():
-    """No-op override: development tools tests don't need conversation manager cleanup."""
-    yield
-
-
-@pytest.fixture(scope="function", autouse=True)
-def cleanup_communication_threads():
-    """No-op override: development tools tests don't need communication thread cleanup."""
-    yield
-
-
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_communication_manager():
-    """No-op override: development tools tests don't need CommunicationManager cleanup."""
-    yield
+_tests_dir = Path(__file__).resolve().parent
+_project_root = _tests_dir.parent.parent
+_tests_tmp = _project_root / "tests" / "data" / "tmp"
+_tests_tmp.mkdir(parents=True, exist_ok=True)
+for _temp_key in ("TMPDIR", "TEMP", "TMP"):
+    os.environ.setdefault(_temp_key, str(_tests_tmp))
 
 
 # Track test start times for duration calculation (for debugging)
 _dev_tools_test_start_times = {}
+_test_logger = logging.getLogger("development_tools.tests")
 
 
 def pytest_runtest_setup(item):
     """Log when a development_tools test starts with timestamp (DEBUG level only)."""
+    try:
+        Path.cwd()
+    except FileNotFoundError:
+        os.chdir(_project_root)
     test_id = item.nodeid
     start_time = datetime.now()
     _dev_tools_test_start_times[test_id] = start_time
-    timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
-    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
-    try:
-        from tests.conftest import test_logger
-        test_logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
-    except ImportError:
-        # Fallback if parent conftest logger not available
-        logger = logging.getLogger("mhm_tests")
-        logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
+    timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    _test_logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
 
 
 def pytest_runtest_teardown(item, nextitem):
     """Log when a development_tools test ends with timestamp and duration (DEBUG level only)."""
     test_id = item.nodeid
     end_time = datetime.now()
-    timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
-    
-    # Calculate duration if we have start time
+    timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
     duration = None
     if test_id in _dev_tools_test_start_times:
         start_time = _dev_tools_test_start_times[test_id]
         duration_seconds = (end_time - start_time).total_seconds()
         duration = f"{duration_seconds:.3f}s"
         del _dev_tools_test_start_times[test_id]
-    
-    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
-    try:
-        from tests.conftest import test_logger
-        if duration:
-            test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
-        else:
-            test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
-    except ImportError:
-        # Fallback if parent conftest logger not available
-        logger = logging.getLogger("mhm_tests")
-        if duration:
-            logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
-        else:
-            logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
+
+    if duration:
+        _test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
+    else:
+        _test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
 
 
 def pytest_sessionfinish(session, exitstatus):
     """Print verification summary after development tools audit tier tests complete."""
-    # Only print summary if we're running audit tier tests
     audit_tier_tests = [
         'test_audit_tier_comprehensive.py',
         'test_audit_tier_e2e_verification.py'
@@ -148,11 +105,11 @@ def pytest_sessionfinish(session, exitstatus):
             from tests.development_tools.test_verification_summary import print_verification_summary
             print_verification_summary()
         except Exception:
-            pass  # Don't fail if summary can't be printed
+            pass
 
 
 # Add project root to path for imports
-project_root = Path(__file__).parent.parent.parent
+project_root = _project_root
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
