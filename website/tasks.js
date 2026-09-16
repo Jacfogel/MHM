@@ -9,6 +9,7 @@
   const tabs = [...document.querySelectorAll('[data-task-view]')];
   let view = 'active';
   let tasks = [];
+  let templates = [];
 
   function showStatus(message, error = false) {
     status.textContent = message;
@@ -69,6 +70,15 @@
     const shown = periods.slice(0, 2).map(period => `${period.date} ${period.start_time}–${period.end_time}`);
     return `Reminders: ${shown.join(', ')}${periods.length > 2 ? ` (+${periods.length - 2} more)` : ''}`;
   }
+  function readLinks(value) {
+    return String(value || '').split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+      const separator = line.indexOf('|');
+      return separator < 0 ? { url: line, label: '' } : { label: line.slice(0, separator).trim(), url: line.slice(separator + 1).trim() };
+    });
+  }
+  function linksText(links) {
+    return (Array.isArray(links) ? links : []).map(link => link.label ? `${link.label} | ${link.url}` : link.url).join('\n');
+  }
 
   function addReminderRow(parent, period = {}) {
     const row = document.createElement('div'); row.className = 'task-reminder-row';
@@ -105,10 +115,18 @@
       const repeat = recurrenceText(task); if (repeat) { const recurring = document.createElement('span'); recurring.textContent = repeat; meta.append(recurring); }
       const tags = tagsText(task); if (tags) { const tagLabel = document.createElement('span'); tagLabel.textContent = tags; meta.append(tagLabel); }
       const reminders = remindersText(task); if (reminders) { const reminderLabel = document.createElement('span'); reminderLabel.textContent = reminders; meta.append(reminderLabel); }
+      if (Array.isArray(task.links) && task.links.length) {
+        const links = document.createElement('div'); links.className = 'task-links';
+        for (const item of task.links) {
+          const anchor = document.createElement('a'); anchor.href = item.url; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.textContent = item.label || item.url; links.append(anchor);
+        }
+        content.append(links);
+      }
       content.append(meta);
       const actions = document.createElement('div'); actions.className = 'task-actions';
       if (view === 'active') {
         actions.append(button('Edit', 'plain-button', () => openEditor(task)));
+        actions.append(button('More', 'plain-button', () => openSupportActions(task)));
         actions.append(button('Complete', 'button task-action-primary', () => changeTask(task, 'complete')));
       } else {
         actions.append(button('Restore', 'plain-button', () => changeTask(task, 'restore')));
@@ -132,6 +150,54 @@
   async function changeTask(task, action) {
     try { await api(`/api/tasks/${encodeURIComponent(task.id)}/${action}`, 'POST', {}); await load(); }
     catch (error) { showStatus(error.message, true); }
+  }
+
+  async function runSupportAction(task, action, payload, dialog) {
+    try {
+      const result = await api(`/api/tasks/${encodeURIComponent(task.id)}/${action}`, 'POST', payload);
+      dialog.close();
+      await load();
+      showStatus(result.message || 'Task updated.');
+    } catch (error) { showStatus(error.message, true); }
+  }
+
+  function openSupportActions(task) {
+    const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
+    const heading = document.createElement('h2'); heading.textContent = `Help with “${task.title}”`;
+    const copy = document.createElement('p'); copy.textContent = 'Delay the reminder without moving the due date, skip this occurrence, or turn it into a smaller next step.';
+    const actions = document.createElement('div'); actions.className = 'task-support-actions';
+    actions.append(
+      button('Remind me in 1 hour', 'plain-button', () => runSupportAction(task, 'snooze', { option: '1_hour' }, dialog)),
+      button('Remind me tonight', 'plain-button', () => runSupportAction(task, 'snooze', { option: 'tonight' }, dialog)),
+      button('Remind me next week', 'plain-button', () => runSupportAction(task, 'snooze', { option: 'next_week' }, dialog)),
+      button('Skip this occurrence', 'plain-button', () => {
+        if (window.confirm(`Skip this occurrence of “${task.title}”? It will not be marked complete.`)) runSupportAction(task, 'skip', {}, dialog);
+      }),
+    );
+    const simplify = document.createElement('div'); simplify.className = 'settings-field';
+    const label = document.createElement('label'); label.htmlFor = 'simplify-title'; label.textContent = 'A smaller next step';
+    const smaller = document.createElement('input'); smaller.id = 'simplify-title'; smaller.maxLength = 500; smaller.placeholder = 'e.g. Put the dishes beside the sink';
+    const simplifyButton = button('Simplify task', 'button', () => {
+      if (smaller.value.trim()) runSupportAction(task, 'simplify', { new_title: smaller.value.trim() }, dialog);
+      else { smaller.setCustomValidity('Enter a smaller next step.'); smaller.reportValidity(); }
+    });
+    smaller.addEventListener('input', () => smaller.setCustomValidity(''));
+    simplify.append(label, smaller, simplifyButton);
+    const close = button('Close', 'plain-button', () => dialog.close());
+    dialog.append(heading, copy, actions, simplify, close); document.body.append(dialog);
+    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
+  }
+
+  async function loadTemplates() {
+    try {
+      const result = await api('/api/task-templates');
+      templates = result.templates || [];
+      const select = document.getElementById('task-template');
+      for (const template of templates) {
+        const option = document.createElement('option'); option.value = template.id; option.textContent = template.name; select.append(option);
+      }
+    } catch (error) { showStatus(error.message, true); }
   }
 
   async function removeTask(task) {
@@ -175,6 +241,7 @@
     const recurrence = select(form, 'Repeat pattern', task.recurrence && task.recurrence.pattern, 'edit-recurrence', [['', 'Does not repeat'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']]);
     const tags = input(form, 'Tags', 'text', Array.isArray(task.tags) ? task.tags.join(', ') : '', 'edit-tags');
     tags.maxLength = 1000; tags.placeholder = 'health, errands, home';
+    const links = input(form, 'Links (one per line, optional label before |)', 'textarea', linksText(task.links), 'edit-links'); links.maxLength = 5000;
     const reminderFieldset = document.createElement('fieldset'); reminderFieldset.className = 'task-reminders';
     const reminderLegend = document.createElement('legend'); reminderLegend.textContent = 'Scheduled reminders'; reminderFieldset.append(reminderLegend);
     const reminderList = document.createElement('div'); reminderList.className = 'task-reminder-list'; reminderFieldset.append(reminderList);
@@ -193,6 +260,7 @@
           due_date: date.value || null, due_time: time.value || null, priority: priority.value.trim().toLowerCase(),
           recurrence_pattern: recurrence.value.trim().toLowerCase() || null,
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
+          links: readLinks(links.value),
           reminder_periods: readReminderPeriods(reminderList),
         });
         dialog.close(); await load();
@@ -213,6 +281,7 @@
         due_date: form.get('due_date') || null, due_time: form.get('due_time') || null,
         priority: form.get('priority') || 'medium', recurrence_pattern: form.get('recurrence_pattern') || null,
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
+        links: readLinks(form.get('links')),
         reminder_periods: readReminderPeriods(document.getElementById('task-reminder-list')),
       });
       createForm.reset(); document.getElementById('task-priority').value = 'medium'; document.getElementById('task-reminder-list').replaceChildren(); showStatus(''); await load();
@@ -220,6 +289,17 @@
     finally { submit.disabled = false; }
   });
   document.getElementById('task-add-reminder').addEventListener('click', () => addReminderRow(document.getElementById('task-reminder-list')));
+  document.getElementById('task-template').addEventListener('change', event => {
+    const template = templates.find(item => item.id === event.target.value);
+    if (!template) return;
+    document.getElementById('task-title').value = template.title || '';
+    document.getElementById('task-description').value = template.description || '';
+    document.getElementById('task-priority').value = template.priority || 'medium';
+    document.getElementById('task-recurrence').value = template.recurrence_pattern || '';
+    document.getElementById('task-tags').value = (template.tags || []).join(', ');
+    if (template.due_time) document.getElementById('task-due-time').value = template.due_time;
+  });
   for (const tab of tabs) tab.addEventListener('click', () => { view = tab.dataset.taskView; tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab))); load(); });
+  loadTemplates();
   load();
 })();

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Your insights — MHM</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js?v=password-social-1" defer></script>
+  <script src="insights.js?v=insights-1" defer></script>
+</head>
+<body class="account-body">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="index.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <div class="nav-actions"><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="button button-small" href="insights.html" aria-current="page">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div>
+  </div></header>
+  <main id="main" class="container app-layout">
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section aria-labelledby="insights-heading">
+      <div class="tasks-heading"><div><span class="eyebrow">Patterns, not pressure</span><h1 id="insights-heading">Your insights</h1><p class="hero-lead">A private view of the patterns in your recent check-ins.</p></div><label class="insights-period">Time period<select id="insights-days"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></label></div>
+      <p id="insights-status" class="form-status" role="status" aria-live="polite">Loading your insights…</p>
+      <div id="insights-content" hidden>
+        <div id="insights-summary" class="insights-grid"></div>
+        <div class="insights-detail-grid">
+          <article class="card insights-card"><h2>Mood and energy</h2><div id="mood-energy"></div></article>
+          <article class="card insights-card"><h2>Sleep and habits</h2><div id="sleep-habits"></div></article>
+        </div>
+        <article class="card insights-card insights-history"><div class="settings-heading"><div><h2>Recent check-ins</h2><p>Your latest saved check-ins in this period.</p></div><button id="insights-refresh" class="plain-button" type="button">Refresh</button></div><div id="checkin-history"></div></article>
+      </div>
+    </section>
+    <section class="settings-area" aria-labelledby="health-heading">
+      <div class="settings-heading"><div><span class="eyebrow">Optional connection</span><h2 id="health-heading">Google Health</h2></div><p>Use recent health signals to make support more relevant.</p></div>
+      <p id="health-status-message" class="form-status" role="status" aria-live="polite">Loading Google Health status…</p>
+      <article id="health-card" class="card health-card" hidden>
+        <dl class="account-details"><dt>Status</dt><dd id="health-feature-state"></dd><dt>Connected</dt><dd id="health-connected"></dd><dt>Last sync</dt><dd id="health-last-sync"></dd></dl>
+        <p id="health-guidance" class="field-hint"></p>
+        <div class="health-actions"><button id="health-connect" class="button" type="button">Connect Google Health</button><button id="health-enable" class="plain-button" type="button">Enable</button><button id="health-pause" class="plain-button" type="button">Pause</button><button id="health-sync" class="plain-button" type="button">Sync now</button><button id="health-delete" class="plain-button danger-button" type="button">Delete health data</button></div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -62,6 +62,8 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "create_journal", lambda uid, **values: (entries.append(make(kind="journal_entry", **values)) or entries[-1]))
     monkeypatch.setattr(manager, "create_list", lambda uid, **values: (entries.append(make(kind="list", **values)) or entries[-1]))
     monkeypatch.setattr(manager, "list_recent", list_recent)
+    monkeypatch.setattr(manager, "list_pinned", lambda uid, limit=100: [entry for entry in entries if entry.status == "active" and entry.pinned][:limit])
+    monkeypatch.setattr(manager, "list_inbox", lambda uid, days=30, limit=100: [entry for entry in entries if entry.status == "active" and not entry.tags][:limit])
     monkeypatch.setattr(manager, "search_entries", lambda uid, query, limit=100: [entry for entry in list_recent(uid, 100, True) if query.casefold() in (entry.title or "").casefold()])
     monkeypatch.setattr(manager, "set_entry_body", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "description", text)))
     monkeypatch.setattr(manager, "set_entry_title", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "title", text.strip())))
@@ -197,3 +199,16 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     assert (await client.get("/api/notes?status=unknown")).status == 400
     result = await (await client.get("/api/notes?q=grocer")).json()
     assert [entry["title"] for entry in result["notes"]] == ["Groceries"]
+
+    entry_id = result["notes"][0]["id"]
+    pinned = await client.patch(
+        f"/api/notes/{entry_id}",
+        json={"pinned": True, "tags": []},
+        headers={"Origin": ORIGIN},
+    )
+    assert pinned.status == 200
+    assert (await pinned.json())["note"]["pinned"] is True
+    pinned_view = await (await client.get("/api/notes?status=pinned")).json()
+    inbox_view = await (await client.get("/api/notes?status=inbox")).json()
+    assert [entry["id"] for entry in pinned_view["notes"]] == [entry_id]
+    assert [entry["id"] for entry in inbox_view["notes"]] == [entry_id]

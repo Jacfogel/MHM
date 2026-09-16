@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-09-15 (task offers, pronoun leftover fix, in-flow notes, task-list wording, which-task numbers, dev-tools extraction)
+> **Last Updated**: 2026-09-16 (internal username cleanup follow-up)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -54,6 +54,12 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 ## Medium Priority
 
 ### Integrations / refactor hygiene
+
+**Retire the legacy internal username field** - Remove the temporary account alias after all remaining admin, lookup, export, and migration paths use the canonical UUID and optional contact identifiers.
+- *What it means*: Migrate legacy `internal_username` reads and displays, rebuild indexes without depending on it, then remove the generated alias from new account records and schemas.
+- *Why it helps*: Keeps identity based on immutable UUIDs while preventing an internal compatibility field from becoming a second public account identity.
+- *Estimated effort*: Medium
+- *Created*: 2026-09-16
 
 **Google Health deferred leftovers (from archived plan)** - Optional follow-ups after V0/V1 ship; not required for personal use. Live monitoring checklist is in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](archive/HEALTH_INTEGRATION_PLAN.md).
 - *Created*: 2026-07-28

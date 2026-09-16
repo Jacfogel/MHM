@@ -2,13 +2,18 @@ const routes = new Map([
   ['/api/auth/request-code', 'POST'], ['/api/auth/verify', 'POST'],
   ['/api/auth/password', 'POST'], ['/api/auth/password/setup', 'POST'],
   ['/api/auth/logout', 'POST'], ['/api/account', 'GET'],
+  ['/api/account/connections', 'POST'], ['/api/account/export', 'GET'],
   ['/api/auth/oauth/providers', 'GET'],
   ['/api/auth/discord/start', 'GET'], ['/api/auth/discord/callback', 'GET'],
   ['/api/settings', ['GET', 'POST']],
+  ['/api/insights', 'GET'],
+  ['/api/health', ['GET', 'POST']],
+  ['/api/task-templates', 'GET'],
   ['/api/tasks', ['GET', 'POST']],
+  ['/api/messages', ['GET', 'POST']],
   ['/api/notes', ['GET', 'POST']],
 ]);
-const assets = new Set(['/', '/index.html', '/login', '/login.html', '/app', '/app.html', '/tasks', '/tasks.html', '/notes', '/notes.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/settings.js', '/tasks.js', '/notes.js', '/mhm-logo.png']);
+const assets = new Set(['/', '/index.html', '/login', '/login.html', '/app', '/app.html', '/tasks', '/tasks.html', '/notes', '/notes.html', '/insights', '/insights.html', '/messages', '/messages.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/settings.js', '/tasks.js', '/notes.js', '/insights.js', '/messages.js', '/mhm-logo.png']);
 const csp = "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 function secured(response, api = false) {
@@ -30,19 +35,21 @@ export default {
       if (!assets.has(url.pathname)) return secured(new Response('Page not found.', { status: 404 }));
       return secured(await env.ASSETS.fetch(request));
     }
-    const taskAction = url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore))?$/);
+    const taskAction = url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify))?$/);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
+    const messageAction = url.pathname.match(/^\/api\/messages\/[^/]+\/[^/]+$/);
     const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/start$/);
     const oauthCallback = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/callback$/);
-    const routePath = taskAction || noteAction || oauthStart || oauthCallback
-      ? taskAction ? '/api/tasks/:task_id' : noteAction ? '/api/notes/:note_id' : oauthStart ? '/api/auth/oauth/:provider/start' : '/api/auth/oauth/:provider/callback'
+    const routePath = taskAction || noteAction || messageAction || oauthStart || oauthCallback
+      ? taskAction ? '/api/tasks/:task_id' : noteAction ? '/api/notes/:note_id' : messageAction ? '/api/messages/:category/:message_id' : oauthStart ? '/api/auth/oauth/:provider/start' : '/api/auth/oauth/:provider/callback'
       : url.pathname;
     const methods = oauthStart ? ['GET']
       : oauthCallback ? (url.pathname.includes('/apple/') ? ['GET', 'POST'] : ['GET'])
       : taskAction
-      ? (url.pathname.endsWith('/complete') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH', 'DELETE'])
+      ? (/\/(?:complete|restore|snooze|skip|simplify)$/.test(url.pathname) ? ['POST'] : ['PATCH', 'DELETE'])
       : noteAction
         ? (url.pathname.endsWith('/archive') || url.pathname.endsWith('/restore') ? ['POST'] : ['PATCH'])
+      : messageAction ? ['PATCH', 'DELETE']
       : routes.get(routePath);
     if (!methods) return error('Page not found.', 404);
     const method = request.method;

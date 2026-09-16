@@ -1,8 +1,9 @@
 (() => {
-  const titles = { profile: 'Profile', delivery: 'Delivery', messages: 'Messages', tasks: 'Tasks', checkins: 'Check-ins' };
+  const titles = { profile: 'Profile', delivery: 'Delivery', phrases: 'Phrases', messages: 'Messages', tasks: 'Tasks', checkins: 'Check-ins' };
   const descriptions = {
     profile: 'Tell MHM a little about you. Use one entry per line in each list.',
     delivery: 'Choose where your support arrives and the time zone for your reminders.',
+    phrases: 'Choose how MHM interprets everyday time phrases when you create tasks or reminders.',
     messages: 'Choose the encouragement you want and when it can reach you.',
     tasks: 'Set reminder windows and the defaults for new recurring tasks.',
     checkins: 'Choose when to check in and which questions to include.',
@@ -123,16 +124,41 @@
     let read;
     if (section === 'profile') {
       const name = field(form, 'Preferred name', 'preferred-name', 'text', values.preferred_name, { maxlength: '100' });
+      const birthDate = field(form, 'Date of birth (optional)', 'date-of-birth', 'date', values.date_of_birth);
       const fields = {};
-      const labels = { pronouns: 'Pronouns', interests: 'Interests', goals: 'Goals', activities_for_encouragement: 'Activities that encourage you', notes_for_ai: 'What you’d like MHM to keep in mind' };
+      const labels = {
+        pronouns: 'Pronouns', gender_identity: 'Gender identity', interests: 'Interests', goals: 'Goals',
+        activities_for_encouragement: 'Activities that encourage you', health_conditions: 'Health conditions',
+        medications_treatments: 'Medications and treatments', allergies_sensitivities: 'Allergies and sensitivities',
+        reminders_needed: 'Things you may need reminders for', notes_for_ai: 'What you’d like MHM to keep in mind',
+      };
       for (const [key, label] of Object.entries(labels)) fields[key] = field(form, label, key, 'textarea', values[key].join('\n'), { rows: key === 'notes_for_ai' ? '4' : '2' });
-      read = () => ({ preferred_name: name.value, ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, lines(input)])) });
+      form.append(el('p', 'Health details are optional and are used only to personalize MHM support.', { className: 'field-hint' }));
+      read = () => ({ preferred_name: name.value, date_of_birth: birthDate.value, ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, lines(input)])) });
     } else if (section === 'delivery') {
       const timezone = select(form, 'Time zone', 'timezone', data.options.timezones.map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
       timezone.required = true;
       const channel = select(form, 'Deliver reminders through', 'delivery-channel', [['email', 'Email'], ...(data.discord_linked ? [['discord', 'Discord']] : [])], values.channel);
       form.append(el('p', data.discord_linked ? 'Your verified email and linked Discord account are available for delivery.' : 'Link your account with the MHM Discord bot to enable Discord delivery.', { className: 'field-hint' }));
       read = () => ({ timezone: timezone.value, channel: channel.value });
+    } else if (section === 'phrases') {
+      const first = el('div', null, { className: 'settings-two-col' });
+      const tonight = field(first, '“Tonight” starts at', 'phrase-tonight', 'time', values.tonight_start_time, { required: '' });
+      const afterWork = field(first, '“After work/school” starts at', 'phrase-after-work', 'time', values.after_work_school_time, { required: '' });
+      form.append(first);
+      const dayParts = el('div', null, { className: 'settings-two-col' });
+      const timeFields = {};
+      for (const key of ['morning', 'afternoon', 'evening', 'night']) {
+        timeFields[key] = field(dayParts, `${key[0].toUpperCase()}${key.slice(1)} time`, `phrase-${key}`, 'time', values.time_of_day_defaults[key], { required: '' });
+      }
+      form.append(dayParts);
+      const weekend = field(form, 'On weekends, “this week” means the coming week', 'phrase-weekend', 'checkbox', values.weekend_this_week_means_coming_week);
+      read = () => ({
+        tonight_start_time: tonight.value,
+        after_work_school_time: afterWork.value,
+        time_of_day_defaults: Object.fromEntries(Object.entries(timeFields).map(([key, input]) => [key, input.value])),
+        weekend_this_week_means_coming_week: weekend.checked,
+      });
     } else {
       const enabled = field(form, `Enable ${titles[section].toLowerCase()}`, `enabled-${section}`, 'checkbox', values.enabled);
       if (section === 'messages') {

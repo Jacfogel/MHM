@@ -20,6 +20,10 @@ test('static pages get security headers and internal files stay private', async 
   assert.equal((await worker.fetch(new Request(url + '/tasks.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/notes.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/notes.js'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/insights.html'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/insights.js'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/messages.html'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/messages.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/other-image.png'), env)).status, 404);
 });
 test('missing configuration, cross-origin submissions and unknown routes fail closed', async () => {
@@ -96,6 +100,31 @@ test('settings allow authenticated reads and bounded saves through the proxy', a
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test('account self-service and insights routes proxy only their supported methods', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push([target.href, options.method]);
+    return Response.json({ ok: true });
+  };
+  try {
+    const cookie = { Cookie: 'mhm_session=owned' };
+    assert.equal((await worker.fetch(new Request(url + '/api/account/export', { headers: cookie }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/insights?days=30', { headers: cookie }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/health', { headers: cookie }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/health', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"action":"sync"}' }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/account/connections', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"provider":"google"}' }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/account/export', { method: 'POST', headers: { Origin: url } }), env)).status, 405);
+    assert.deepEqual(calls, [
+      ['https://gateway.example/api/account/export', 'GET'],
+      ['https://gateway.example/api/insights?days=30', 'GET'],
+      ['https://gateway.example/api/health', 'GET'],
+      ['https://gateway.example/api/health', 'POST'],
+      ['https://gateway.example/api/account/connections', 'POST'],
+    ]);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('task CRUD routes forward dynamic IDs and mutating methods safely', async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
@@ -111,12 +140,17 @@ test('task CRUD routes forward dynamic IDs and mutating methods safely', async (
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/complete', {
       method: 'POST', headers: { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' }, body: '{}',
     }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/snooze', {
+      method: 'POST', headers: { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' }, body: '{"option":"1_hour"}',
+    }), env)).status, 200);
     assert.deepEqual(calls.map(call => [call.href, call.method]), [
       [url.replace('https://mhm.example', 'https://gateway.example') + '/api/tasks/task-1', 'PATCH'],
       [url.replace('https://mhm.example', 'https://gateway.example') + '/api/tasks/task-1/complete', 'POST'],
+      [url.replace('https://mhm.example', 'https://gateway.example') + '/api/tasks/task-1/snooze', 'POST'],
     ]);
     assert.equal(calls[0].body, '{"title":"Updated"}');
     assert.equal(calls[1].body, '{}');
+    assert.equal(calls[2].body, '{"option":"1_hour"}');
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -129,6 +163,23 @@ test('notes routes forward dynamic IDs and archive actions', async () => {
     assert.equal((await worker.fetch(new Request(url + '/api/notes/note-1/archive', { method: 'POST', headers: { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' }, body: '{}' }), env)).status, 200);
     assert.deepEqual(calls.map(call => [call.href, call.method]), [[url.replace('https://mhm.example', 'https://gateway.example') + '/api/notes/note-1', 'PATCH'], [url.replace('https://mhm.example', 'https://gateway.example') + '/api/notes/note-1/archive', 'POST']]);
     assert.equal(calls[0].body, '{"description":"Updated"}');
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('message library routes preserve categories and allow bounded edits', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => { calls.push([target.href, options.method]); return Response.json({ message: { id: 'message-1' } }); };
+  try {
+    const headers = { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' };
+    assert.equal((await worker.fetch(new Request(url + '/api/messages?category=motivational', { headers: { Cookie: 'mhm_session=owned' } }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/messages/motivational/message-1', { method: 'PATCH', headers, body: '{"text":"Keep going","active":true,"days":["ALL"],"periods":["ALL"]}' }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/messages/motivational/message-1', { method: 'DELETE', headers, body: '{}' }), env)).status, 200);
+    assert.deepEqual(calls, [
+      ['https://gateway.example/api/messages?category=motivational', 'GET'],
+      ['https://gateway.example/api/messages/motivational/message-1', 'PATCH'],
+      ['https://gateway.example/api/messages/motivational/message-1', 'DELETE'],
+    ]);
   } finally { globalThis.fetch = originalFetch; }
 });
 

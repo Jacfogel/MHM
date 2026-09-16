@@ -136,6 +136,7 @@
       type.className = `entry-kind entry-kind-${note.kind}`;
       type.textContent = note.kind === 'journal_entry' ? 'Journal' : note.kind === 'list' ? 'List' : 'Note';
       content.append(type);
+      if (note.pinned) content.append(button('Pinned', 'entry-kind entry-pinned', () => pin(note, false)));
       const title = document.createElement('h3');
       title.textContent = note.title || 'Untitled entry';
       content.append(title);
@@ -170,8 +171,9 @@
       content.append(meta);
       const actions = document.createElement('div');
       actions.className = 'task-actions';
-      if (view === 'active') {
+      if (note.status === 'active') {
         actions.append(button('Edit', 'plain-button', () => edit(note)));
+        actions.append(button(note.pinned ? 'Unpin' : 'Pin', 'plain-button', () => pin(note, !note.pinned)));
         actions.append(button('Archive', 'button task-action-primary', () => archive(note, 'archive')));
       } else {
         actions.append(button('Restore', 'plain-button', () => archive(note, 'restore')));
@@ -198,7 +200,7 @@
   async function loadIdentity() {
     try {
       const result = await api('/api/account');
-      account.textContent = `Signed in as ${result.username}`;
+      account.textContent = `Signed in as ${result.preferred_name || result.email}`;
     } catch (error) {
       showStatus(error.message, true);
     }
@@ -211,6 +213,13 @@
     } catch (error) {
       showStatus(error.message, true);
     }
+  }
+
+  async function pin(note, pinned) {
+    try {
+      await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', { pinned });
+      await load();
+    } catch (error) { showStatus(error.message, true); }
   }
 
   function edit(note) {

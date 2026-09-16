@@ -147,6 +147,37 @@ class TestProvisionAdminAccount:
         )
         assert resolved == user_id
 
+    def test_provision_admin_account_generates_alias_when_username_missing(
+        self, test_data_dir
+    ):
+        account_data = {
+            "timezone": "America/Regina",
+            "channel": {"type": "email"},
+            "contact_info": {
+                "email": f"no-username-{uuid.uuid4().hex[:8]}@example.com",
+                "phone": "",
+                "discord": "",
+            },
+            "categories": [],
+            "task_settings": {},
+            "checkin_settings": {},
+            "features_enabled": {
+                "messages": False,
+                "tasks": False,
+                "checkins": False,
+            },
+            "personalization_data": {"preferred_name": "No Username"},
+        }
+
+        user_id = provision_admin_account(account_data)
+        assert user_id is not None
+
+        from core import get_user_data, get_user_id_by_identifier
+
+        account = get_user_data(user_id, "account")["account"]
+        assert account["internal_username"].startswith("mhm_")
+        assert get_user_id_by_identifier(user_id) == user_id
+
 
 @pytest.mark.integration
 @pytest.mark.user

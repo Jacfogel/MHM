@@ -328,6 +328,7 @@ button:disabled { cursor: wait; opacity: .65; }
 .entry-kind { display: inline-block; margin-bottom: 7px; padding: 3px 8px; border-radius: 999px; background: var(--lavender); color: var(--purple-dark); font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .entry-kind-list { background: #e8f3ed; color: #35654f; }
 .entry-kind-journal_entry { background: #f7eadf; color: #805331; }
+.entry-pinned { margin-left: 8px; border: 0; cursor: pointer; background: #fff1bd; color: #745814; }
 .notebook-list-items { display: grid; gap: 6px; margin: 10px 0 12px; padding-left: 22px; color: var(--muted); }
 .notebook-list-items .is-done { text-decoration: line-through; opacity: .68; }
 .notebook-kind-row { grid-template-columns: minmax(130px, .45fr) minmax(0, 1.55fr); margin-bottom: 12px; }
@@ -373,6 +374,8 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-card p { margin: 0 0 9px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .task-card-content { min-width: 0; }
 .task-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: .875rem; }
+.task-links { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: .875rem; }
+.task-links a { color: var(--purple-dark); font-weight: 700; overflow-wrap: anywhere; }
 .priority { font-weight: 700; text-transform: capitalize; }
 .priority-high, .priority-urgent, .priority-critical { color: #a24848; }
 .priority-low { color: #4f7d68; }
@@ -386,6 +389,32 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-dialog h2 { font-size: 2rem; margin-bottom: 24px; }
 .task-edit-form .settings-field { margin-bottom: 18px; }
 .task-dialog-actions { display: flex; justify-content: end; align-items: center; gap: 18px; border-top: 1px solid var(--border); padding-top: 20px; }
+.insights-period { display: grid; gap: 7px; min-width: 150px; color: var(--muted); font-size: .85rem; font-weight: 700; }
+.insights-period select { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: white; color: var(--ink); }
+.insights-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 26px 0; }
+.insight-metric { min-height: 0; padding: 22px; }
+.insight-metric .eyebrow { margin-bottom: 8px; }
+.insight-metric strong { display: block; font-family: 'Nunito', system-ui, sans-serif; font-size: 1.75rem; }
+.insight-metric p { margin-top: 6px; font-size: .84rem; }
+.insights-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.insights-card { min-height: 0; }
+.insights-card h2 { font-size: 1.65rem; }
+.insights-card li { margin: 7px 0; color: var(--muted); }
+.insights-history { margin-top: 18px; }
+.history-list { display: grid; gap: 10px; }
+.history-row { display: grid; gap: 3px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.history-row:last-child { border-bottom: 0; }
+.history-row span { color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
+.health-card { min-height: 0; }
+.health-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 22px; }
+.danger-button { color: #a24848; }
+.task-support-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+.task-support-actions .plain-button { text-align: left; }
+.message-category-field { min-width: 220px; }
+.message-form { margin-bottom: 28px; }
+.message-active { display: flex; align-items: center; gap: 9px; font-weight: 700; }
+.message-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
+.message-choice-grid label { display: flex; align-items: center; gap: 8px; }
 @media (max-width: 760px) {
   .settings-heading { display: block; }
   .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -413,4 +442,6 @@ button:disabled { cursor: wait; opacity: .65; }
   .note-list-header { display: block; }
   .note-search { display: block; margin-top: 12px; }
   .note-search input { width: 100%; min-width: 0; }
+  .insights-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .insights-detail-grid { grid-template-columns: 1fr; }
 }

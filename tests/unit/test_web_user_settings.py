@@ -101,6 +101,55 @@ def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
     assert documents == original
 
 
+def test_extended_profile_and_phrase_settings_round_trip_without_losing_private_data(
+    documents,
+):
+    assert values(documents, "phrases")["time_of_day_defaults"]["morning"] == "09:00"
+    profile = values(documents, "profile")
+    profile.update(
+        date_of_birth="1990-02-28",
+        gender_identity=["non-binary"],
+        health_conditions=["Migraine"],
+        medications_treatments=["Daily medication"],
+        reminders_needed=["Refill prescription"],
+        allergies_sensitivities=["Latex"],
+    )
+    updates = build_settings_updates(documents, OPTIONS, "profile", profile)
+    assert updates["context"]["date_of_birth"] == "1990-02-28"
+    assert updates["context"]["gender_identity"] == ["non-binary"]
+    assert updates["context"]["custom_fields"] == {
+        "private": "keep",
+        "health_conditions": ["Migraine"],
+        "medications_treatments": ["Daily medication"],
+        "reminders_needed": ["Refill prescription"],
+        "allergies_sensitivities": ["Latex"],
+    }
+
+    phrases = values(documents, "phrases")
+    phrases.update(
+        tonight_start_time="19:30",
+        after_work_school_time="16:45",
+        time_of_day_defaults={
+            "morning": "08:00",
+            "afternoon": "13:30",
+            "evening": "18:30",
+            "night": "22:00",
+        },
+        weekend_this_week_means_coming_week=False,
+    )
+    phrase_updates = build_settings_updates(documents, OPTIONS, "phrases", phrases)
+    assert phrase_updates["preferences"]["natural_language_defaults"] == phrases
+    assert phrase_updates["preferences"]["task_settings"] == {"custom": "keep"}
+
+
+@pytest.mark.parametrize("invalid", ["1990-02-30", "2999-01-01", "02/28/1990"])
+def test_profile_rejects_invalid_or_future_birth_dates(documents, invalid):
+    profile = values(documents, "profile")
+    profile["date_of_birth"] = invalid
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, OPTIONS, "profile", profile)
+
+
 @pytest.mark.parametrize(
     "section,field,bad",
     [
@@ -268,6 +317,64 @@ async def test_api_session_ownership_csrf_conflicts_and_injected_fields(
     assert (await client.get("/settings.js")).status == 200
     accounts.users["existing"]["account_status"] = "suspended"
     assert (await client.get("/api/settings")).status == 401
+
+
+@pytest.mark.asyncio
+async def test_personal_message_library_crud_uses_allowed_categories_and_periods(
+    settings_gateway, monkeypatch
+):
+    from messages import message_data_manager as manager
+
+    client, _, sent = settings_gateway
+    stored = []
+    monkeypatch.setattr(manager, "load_user_messages", lambda uid, category: deepcopy(stored))
+    monkeypatch.setattr(manager, "is_ai_generated_message_category", lambda category: False)
+    monkeypatch.setattr(manager, "add_message", lambda uid, category, message: stored.append(deepcopy(message)))
+
+    def edit(uid, category, message_id, values):
+        target = next(item for item in stored if item["id"] == message_id)
+        target.update(deepcopy(values))
+
+    monkeypatch.setattr(manager, "edit_message", edit)
+    monkeypatch.setattr(manager, "delete_message", lambda uid, category, message_id: stored.remove(next(item for item in stored if item["id"] == message_id)))
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1])).status == 200
+
+    payload = {
+        "text": "Take one gentle step.",
+        "active": True,
+        "days": ["MONDAY"],
+        "periods": ["Morning"],
+    }
+    created = await client.post(
+        "/api/messages?category=motivational",
+        json=payload,
+        headers={"Origin": ORIGIN},
+    )
+    assert created.status == 201
+    message = (await created.json())["message"]
+    assert message["text"] == payload["text"]
+    assert message["periods"] == ["Morning"]
+
+    changed = {**payload, "text": "Pause, then take one gentle step.", "active": False}
+    edited = await client.patch(
+        f"/api/messages/motivational/{message['id']}",
+        json=changed,
+        headers={"Origin": ORIGIN},
+    )
+    assert edited.status == 200
+    assert (await edited.json())["message"]["active"] is False
+    assert (await client.post(
+        "/api/messages?category=motivational",
+        json={**payload, "periods": ["Unknown"]},
+        headers={"Origin": ORIGIN},
+    )).status == 400
+    assert (await client.delete(
+        f"/api/messages/motivational/{message['id']}",
+        json={},
+        headers={"Origin": ORIGIN},
+    )).status == 200
+    assert stored == []
 
 
 @pytest.mark.file_io

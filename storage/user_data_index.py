@@ -29,9 +29,9 @@ logger = get_component_logger("main")
 def _index_entries_for_account(
     user_id: str, account: dict[str, Any] | None
 ) -> dict[str, str]:
-    """Return username / email / discord / phone lookup keys for one account."""
+    """Return canonical and optional account lookup keys for one user."""
     account = account or {}
-    entries: dict[str, str] = {}
+    entries: dict[str, str] = {str(user_id): str(user_id)}
     internal_username = account.get("internal_username") or ""
     if internal_username:
         entries[str(internal_username)] = user_id
@@ -63,8 +63,8 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
     """
     Update the user index with current information for a specific user.
 
-    Creates flat lookup mappings for fast O(1) user lookups:
-    - {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+    Creates flat lookup mappings for fast O(1) user lookups. The UUID is always
+    indexed; legacy usernames and contact identifiers are optional aliases.
     """
     if not user_id or not isinstance(user_id, str):
         logger.error(f"Invalid user_id: {user_id}")
@@ -89,7 +89,7 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
             try:
                 user_data_result = get_user_data(user_id, "account")
                 user_account = user_data_result.get("account") or {}
-                if user_account and user_account.get("internal_username"):
+                if user_account:
                     break
             except Exception as e:
                 logger.debug(
@@ -99,26 +99,26 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
 
-        internal_username = user_account.get("internal_username", "")
-        if not internal_username:
+        if not user_account:
             if os.getenv("MHM_TESTING") == "1":
                 logger.debug(
-                    f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})"
+                    f"No account data found for user {user_id} after {max_retries} attempts"
                 )
             else:
                 logger.warning(
-                    f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})"
+                    f"No account data found for user {user_id} after {max_retries} attempts"
                 )
             return False
 
+        internal_username = str(user_account.get("internal_username") or "")
         entries = _index_entries_for_account(user_id, user_account)
-        if (
-            internal_username not in index_data
-            or index_data[internal_username] == user_id
-        ):
-            index_data[internal_username] = user_id
         for key, mapped_user_id in entries.items():
-            if key == internal_username:
+            if (
+                internal_username
+                and key == internal_username
+                and key in index_data
+                and index_data[key] != user_id
+            ):
                 continue
             index_data[key] = mapped_user_id
 
@@ -129,7 +129,7 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
         for write_attempt in range(max_write_retries):
             if safe_json_write(index_path, index_data, indent=4):
                 logger.debug(
-                    f"Updated user index for user {user_id} (internal_username: {internal_username})"
+                    f"Updated user index for user {user_id}"
                 )
                 return True
             if write_attempt < max_write_retries - 1:
@@ -217,7 +217,7 @@ def rebuild_full_index(index_file: str | None = None) -> bool:
                 try:
                     user_data_result = get_user_data(user_id, "account")
                     user_account = user_data_result.get("account") or {}
-                    if user_account and user_account.get("internal_username"):
+                    if user_account:
                         break
                 except Exception as e:
                     logger.debug(
@@ -227,14 +227,14 @@ def rebuild_full_index(index_file: str | None = None) -> bool:
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
 
-            if not user_account.get("internal_username"):
+            if not user_account:
                 if os.getenv("MHM_TESTING") == "1":
                     logger.debug(
-                        f"No internal_username found for user {user_id} after {max_retries} attempts, skipping"
+                        f"No account data found for user {user_id} after {max_retries} attempts, skipping"
                     )
                 else:
                     logger.warning(
-                        f"No internal_username found for user {user_id} after {max_retries} attempts, skipping"
+                        f"No account data found for user {user_id} after {max_retries} attempts, skipping"
                     )
                 failed_count += 1
                 continue
@@ -350,9 +350,7 @@ def build_user_index() -> dict[str, Any]:
                     account_path = Path(get_user_data_dir(user_id)) / "account.json"
                     if account_path.exists():
                         account_data = safe_json_read(str(account_path), default={})
-                        if isinstance(account_data, dict) and account_data.get(
-                            "internal_username"
-                        ):
+                        if isinstance(account_data, dict) and account_data:
                             user_info = {
                                 "user_id": user_id,
                                 "internal_username": account_data.get(

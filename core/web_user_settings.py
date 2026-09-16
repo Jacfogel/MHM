@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import re
+from datetime import date
 
 import pytz
 
@@ -15,10 +16,18 @@ from storage.user_data_validation import validate_schedule_periods
 
 PROFILE_LISTS = (
     "pronouns",
+    "gender_identity",
     "interests",
     "goals",
     "activities_for_encouragement",
     "notes_for_ai",
+)
+
+PROFILE_CUSTOM_LISTS = (
+    "health_conditions",
+    "medications_treatments",
+    "reminders_needed",
+    "allergies_sensitivities",
 )
 
 
@@ -52,6 +61,26 @@ def settings_snapshot(documents, options):
     features = account.get("features") or {}
     task = prefs.get("task_settings") or {}
     checkin = prefs.get("checkin_settings") or {}
+    custom_fields = context.get("custom_fields") or {}
+
+    from core.natural_language_defaults import (
+        NaturalLanguageDefaults,
+        natural_language_defaults_to_preferences_dict,
+    )
+
+    phrase_defaults = natural_language_defaults_to_preferences_dict(
+        NaturalLanguageDefaults.from_preferences(
+            prefs.get("natural_language_defaults")
+        )
+    )
+    from tasks.task_time_parsing import parse_time_string
+
+    for key in ("tonight_start_time", "after_work_school_time"):
+        phrase_defaults[key] = parse_time_string(phrase_defaults[key]) or phrase_defaults[key]
+    phrase_defaults["time_of_day_defaults"] = {
+        key: parse_time_string(value) or value
+        for key, value in phrase_defaults["time_of_day_defaults"].items()
+    }
 
     # ERROR_HANDLING_EXCLUDE: Pure helper protected by settings_snapshot's boundary.
     def periods(category):
@@ -89,7 +118,9 @@ def settings_snapshot(documents, options):
     sections = {
         "profile": {
             "preferred_name": context.get("preferred_name", ""),
+            "date_of_birth": context.get("date_of_birth", ""),
             **{key: context.get(key) or [] for key in PROFILE_LISTS},
+            **{key: custom_fields.get(key) or [] for key in PROFILE_CUSTOM_LISTS},
         },
         "delivery": {
             "timezone": account.get("timezone", ""),
@@ -122,6 +153,7 @@ def settings_snapshot(documents, options):
             "min_questions": checkin.get("min_questions", 1),
             "max_questions": checkin.get("max_questions", 1),
         },
+        "phrases": phrase_defaults,
     }
     revisions = {
         key: hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
@@ -261,7 +293,17 @@ def build_settings_updates(documents, options, section, values):
         name = values["preferred_name"]
         if not isinstance(name, str) or len(name) > 100:
             raise ValidationError("Use a preferred name of at most 100 characters.")
-        for key in PROFILE_LISTS:
+        date_of_birth = values["date_of_birth"]
+        if not isinstance(date_of_birth, str):
+            raise ValidationError("Use a valid date of birth.")
+        if date_of_birth:
+            try:
+                parsed_birth_date = date.fromisoformat(date_of_birth)
+            except ValueError:
+                raise ValidationError("Use a valid date of birth.") from None
+            if parsed_birth_date > date.today():
+                raise ValidationError("Date of birth cannot be in the future.")
+        for key in (*PROFILE_LISTS, *PROFILE_CUSTOM_LISTS):
             items = values[key]
             limit = 1000 if key == "notes_for_ai" else 200
             if (
@@ -272,8 +314,14 @@ def build_settings_updates(documents, options, section, values):
                 raise ValidationError(
                     "Use at most 30 entries in each profile list and keep entries brief."
                 )
-        context.update(values)
+        context.update({key: values[key] for key in PROFILE_LISTS})
         context["preferred_name"] = name.strip()
+        context["date_of_birth"] = date_of_birth
+        custom_fields = copy.deepcopy(context.get("custom_fields") or {})
+        for key in PROFILE_CUSTOM_LISTS:
+            if values[key] or key in custom_fields:
+                custom_fields[key] = values[key]
+        context["custom_fields"] = custom_fields
         context["last_updated"] = now_timestamp_full()
         return {"context": context}
     if section == "delivery":
@@ -395,6 +443,31 @@ def build_settings_updates(documents, options, section, values):
             {"questions": questions, "min_questions": minimum, "max_questions": maximum}
         )
         prefs["checkin_settings"] = checkin
+    elif section == "phrases":
+        time_fields = (
+            "tonight_start_time",
+            "after_work_school_time",
+        )
+        time_of_day = values["time_of_day_defaults"]
+        if not isinstance(time_of_day, dict) or set(time_of_day) != {
+            "morning",
+            "afternoon",
+            "evening",
+            "night",
+        }:
+            raise ValidationError("Check the morning, afternoon, evening, and night times.")
+        all_times = [values[key] for key in time_fields] + list(time_of_day.values())
+        if any(
+            not isinstance(value, str)
+            or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", value)
+            for value in all_times
+        ):
+            raise ValidationError("Use valid times for each phrase setting.")
+        weekend = values["weekend_this_week_means_coming_week"]
+        if type(weekend) is not bool:
+            raise ValidationError("Choose how MHM should interpret ‘this week’ on weekends.")
+        prefs["natural_language_defaults"] = copy.deepcopy(values)
+        return {"preferences": prefs}
     return {"account": account, "preferences": prefs, "schedules": schedules}
 
 

@@ -52,7 +52,7 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
             user_data = get_user_data(user_id, "all", auto_create=True)
             if user_data and isinstance(user_data, dict) and len(user_data) > 0:
                 account_data = user_data.get("account", {})
-                if account_data and account_data.get("internal_username"):
+                if account_data:
                     break
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)

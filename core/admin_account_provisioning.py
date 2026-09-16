@@ -15,6 +15,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.file_operations import create_user_files
 from core.logger import get_component_logger
+from core.user_management import generate_internal_alias
 from storage.user_data_operations import update_user_index
 
 logger = get_component_logger("main")
@@ -66,7 +67,7 @@ def build_user_preferences_from_account_data(
     features = build_features_dict(features_enabled)
 
     user_preferences: dict[str, Any] = {
-        "internal_username": account_data["username"],
+        "internal_username": account_data.get("username", ""),
         "chat_id": chat_id,
         "phone": phone,
         "email": email,
@@ -110,7 +111,7 @@ def wait_for_user_files_ready(user_id: str, max_wait_attempts: int = 10) -> bool
                 test_prefs = get_user_data(user_id, "preferences")
                 if (
                     test_account
-                    and test_account.get("account", {}).get("internal_username")
+                    and test_account.get("account")
                     and test_prefs
                     and test_prefs.get("preferences")
                 ):
@@ -160,9 +161,7 @@ def update_user_index_with_retry(user_id: str, max_retries: int = 5) -> None:
     for attempt in range(max_retries):
         try:
             test_data = get_user_data(user_id, "account")
-            if not test_data or not test_data.get("account", {}).get(
-                "internal_username"
-            ):
+            if not test_data or not test_data.get("account"):
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                     continue
@@ -181,14 +180,10 @@ def update_user_index_with_retry(user_id: str, max_retries: int = 5) -> None:
                 )
                 return
 
-            internal_username = test_data.get("account", {}).get("internal_username")
-            if not internal_username:
-                break
-
             time.sleep(0.2)
             found_user_id = None
             for verify_attempt in range(3):
-                found_user_id = get_user_id_by_identifier(internal_username)
+                found_user_id = get_user_id_by_identifier(user_id)
                 if found_user_id == user_id:
                     time.sleep(0.1)
                     break
@@ -202,7 +197,7 @@ def update_user_index_with_retry(user_id: str, max_retries: int = 5) -> None:
                 continue
             logger.warning(
                 f"User index not updated correctly for user {user_id} "
-                f"(internal_username: {internal_username}) after {max_retries} attempts"
+                f"after {max_retries} attempts"
             )
         except Exception as retry_error:
             if attempt < max_retries - 1:
@@ -241,6 +236,8 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
     """
     user_id = str(uuid.uuid4())
     user_preferences = build_user_preferences_from_account_data(account_data)
+    if not str(user_preferences.get("internal_username") or "").strip():
+        user_preferences["internal_username"] = generate_internal_alias(user_id)
 
     create_user_files(user_id, account_data["categories"], user_preferences)
 
@@ -257,5 +254,7 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
     update_user_index_with_retry(user_id)
     schedule_new_user_if_available(user_id)
 
-    logger.info(f"Created new user: {user_id} ({account_data['username']})")
+    logger.info(
+        f"Created new user: {user_id} ({user_preferences['internal_username']})"
+    )
     return user_id

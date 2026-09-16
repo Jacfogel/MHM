@@ -50,9 +50,9 @@
         <div class="account-divider"><span>or use email</span></div>
         <form id="account-form">
           <div id="create-fields" hidden>
-            <label for="username">MHM username</label>
-            <input id="username" name="username" autocomplete="nickname" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" placeholder="How should we know you?" />
-            <p class="field-hint">3–32 letters, numbers, underscores, or hyphens.</p>
+            <label for="preferred-name">Preferred name <span class="optional-label">Optional</span></label>
+            <input id="preferred-name" name="preferred-name" autocomplete="name" maxlength="100" placeholder="What should MHM call you?" />
+            <p class="field-hint">You can change this later in your account settings.</p>
           </div>
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" />

@@ -12,7 +12,6 @@ if (creating) {
   document.getElementById('login-tab').removeAttribute('aria-current');
   document.getElementById('create-tab').setAttribute('aria-current', 'page');
   document.getElementById('create-fields').hidden = false;
-  document.getElementById('username').required = true;
   document.getElementById('confirm-password-field').hidden = false;
   document.getElementById('confirm-password').required = true;
   password.autocomplete = 'new-password';
@@ -63,7 +62,7 @@ function accountValues() {
   return {
     email: document.getElementById('email').value.trim(),
     password: password.value,
-    username: document.getElementById('username').value.trim(),
+    preferred_name: document.getElementById('preferred-name').value.trim(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Regina',
   };
 }
@@ -71,7 +70,7 @@ function accountValues() {
 async function requestEmailCode(values) {
   const result = await api('/api/auth/request-code', {
     mode: creating ? 'create' : 'login', email: values.email,
-    username: values.username, timezone: values.timezone,
+    preferred_name: values.preferred_name, timezone: values.timezone,
   });
   challenge = result.challenge;
   entry.hidden = true;

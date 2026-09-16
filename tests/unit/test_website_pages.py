@@ -43,6 +43,8 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     account = parse_page("app.html")
     tasks = parse_page("tasks.html")
     notebook = parse_page("notes.html")
+    insights = parse_page("insights.html")
+    messages = parse_page("messages.html")
 
     assert "task-create-form" not in account.ids
     assert "note-create-form" not in account.ids
@@ -51,10 +53,39 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "note-create-form" in notebook.ids
     assert "task-create-form" not in notebook.ids
 
-    assert {"tasks.html", "notes.html"} <= account.hrefs
-    assert {"app.html", "notes.html"} <= tasks.hrefs
-    assert {"app.html", "tasks.html"} <= notebook.hrefs
-    assert "logout" in account.ids & tasks.ids & notebook.ids
+    assert {"tasks.html", "notes.html", "messages.html", "insights.html"} <= account.hrefs
+    assert {"app.html", "notes.html", "messages.html", "insights.html"} <= tasks.hrefs
+    assert {"app.html", "tasks.html", "messages.html", "insights.html"} <= notebook.hrefs
+    assert {"app.html", "tasks.html", "notes.html", "messages.html"} <= insights.hrefs
+    assert {"app.html", "tasks.html", "notes.html", "insights.html"} <= messages.hrefs
+    assert "logout" in account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
+
+
+def test_insights_page_exposes_history_and_google_health_controls():
+    insights = parse_page("insights.html")
+    assert {
+        "insights-days",
+        "insights-summary",
+        "checkin-history",
+        "health-connect",
+        "health-enable",
+        "health-pause",
+        "health-sync",
+        "health-delete",
+    } <= insights.ids
+
+
+def test_message_library_exposes_category_schedule_and_editing_controls():
+    messages = parse_page("messages.html")
+    assert {
+        "message-category",
+        "message-form",
+        "message-text",
+        "message-active",
+        "message-days",
+        "message-periods",
+        "message-list",
+    } <= messages.ids
 
 
 def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
@@ -74,9 +105,13 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     assert {
         "password",
         "confirm-password",
+        "preferred-name",
         "send-code",
         "primary-action",
     } <= login.ids
+    assert "username" not in login.ids
+    assert login.controls["preferred-name"].get("required") is None
+    assert login.controls["preferred-name"]["maxlength"] == "100"
     assert login.controls["password"]["minlength"] == "12"
     assert login.controls["password"]["maxlength"] == "128"
     assert {
@@ -88,7 +123,7 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     } <= account.ids
 
 
-@pytest.mark.parametrize("page_name", ["index.html", "login.html", "app.html", "tasks.html", "notes.html"])
+@pytest.mark.parametrize("page_name", ["index.html", "login.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html"])
 def test_page_local_scripts_and_assets_exist(page_name):
     page = parse_page(page_name)
     for source in page.scripts:

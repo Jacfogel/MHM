@@ -2,7 +2,8 @@
 
 
 > **File**: `website/README.md`
-Marketing site, password and social login/create-account page, signed-in account settings, task workspace, and notebook.
+Marketing site, password and social login/create-account page, signed-in account
+settings, task workspace, notebook, personal message library, and private insights.
 The Python gateway uses the **same account store as MHM**. It never stores browser
 passwords in plaintext or creates a separate website database. Passwords are
 stored as salted scrypt hashes in the canonical account document.
@@ -51,14 +52,28 @@ also has a Connect Discord button for existing accounts. The gateway exchanges t
 authorization code server-side, verifies the Discord identity, and stores only the Discord ID
 and username in the existing MHM account. A Discord account already linked to another MHM
 account is rejected. The bot's existing “Link account” flow remains available as a fallback.
-Settings cover preferred name and profile lists, time zone and linked delivery
-channel, message categories and reminder windows, task recurrence defaults, and
-check-in windows, question selection, and counts. Each section saves to the same
-profile documents used by the admin console, preserving other fields. Invalid
-input is rejected, and edits to a section made elsewhere require reloading it.
-Email, account identifiers, and administrator controls cannot be changed here.
-Tasks can be created, edited, completed, restored, and deleted from the signed-in website;
-completing check-ins still uses the existing app interface.
+Settings cover preferred name, birth date, identity and health-context lists,
+time zone and linked delivery channel, natural-language phrase times, message
+categories and reminder windows, task recurrence defaults, and check-in windows,
+question selection, and counts. Each section saves to the same profile documents
+used by the admin console, preserving other fields. Invalid input is rejected,
+and edits made elsewhere require reloading the affected section.
+
+Users can disconnect Discord or optional social sign-ins (while retaining at
+least one sign-in method) and download a secret-scrubbed JSON data export,
+including tasks and notebook entries. Email,
+internal account identifiers, suspension, and other administrator controls still
+cannot be changed here.
+
+Tasks can be created from built-in templates, edited, linked to web resources,
+completed, restored, deleted, snoozed, skipped, or simplified. The notebook adds
+pinned and inbox views alongside active and archived entries. The message library
+supports personal template creation, editing, scheduling, pausing, and deletion.
+Insights show recent check-in patterns and history. Google Health can be viewed,
+paused, enabled, synced, or deleted there; initial connection still uses the
+existing callback configured by `GOOGLE_HEALTH_REDIRECT_URI` (the default local
+callback works only when the browser can reach the MHM host). Completing check-ins
+still uses the existing app interface, as intentionally excluded from this work.
 
 ## Cloudflare Workers deployment
 
@@ -140,6 +155,8 @@ return to login; request failures allow retrying logout.
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout
 - `tasks.html`, `tasks.js` — signed-in task workspace and CRUD interactions
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
+- `messages.html`, `messages.js` — personal message-template library and schedules
+- `insights.html`, `insights.js` — private check-in analytics and Google Health controls
 - `settings.js` — signed-in user settings forms
 - `worker.mjs` — same-origin API proxy
 - `../core/web_account_service.py` — account API and email verification

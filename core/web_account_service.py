@@ -143,14 +143,6 @@ class MHMAccounts:
             for _, account in self.all()
         )
 
-    @handle_errors("checking website account username", user_friendly=False, default_return=False)
-    def username_exists(self, username):
-        """Return whether any account already uses an internal username."""
-        return any(
-            account.get("internal_username", "").casefold() == username.casefold()
-            for _, account in self.all()
-        )
-
     @handle_errors("loading website account", user_friendly=False, default_return={})
     def get(self, uid):
         """Load one account document by canonical user ID."""
@@ -199,6 +191,22 @@ class MHMAccounts:
                 uid, {"oauth_identities": identities}, auto_create=False
             )
             else "failed"
+        )
+
+    @handle_errors("unlinking website OAuth account", user_friendly=False, default_return=False)
+    def unlink_oauth(self, uid, provider):
+        """Remove one social sign-in identity from an account."""
+        from core import update_user_account
+
+        current = self.get(uid)
+        identities = dict(current.get("oauth_identities") or {})
+        if provider not in identities:
+            return True
+        identities.pop(provider)
+        return bool(
+            update_user_account(
+                uid, {"oauth_identities": identities}, auto_create=False
+            )
         )
 
     @handle_errors("loading website account documents", user_friendly=False, re_raise=True)
@@ -250,17 +258,42 @@ class MHMAccounts:
             else "failed"
         )
 
+    @handle_errors("unlinking website Discord account", user_friendly=False, default_return=False)
+    def unlink_discord(self, uid):
+        """Remove Discord and fall back to verified email delivery when needed."""
+        from core import save_user_data_transaction
+
+        documents = self.documents(uid)
+        account = dict(documents.get("account") or {})
+        preferences = dict(documents.get("preferences") or {})
+        account.update(
+            {
+                "discord_user_id": "",
+                "discord_username": "",
+            }
+        )
+        if (preferences.get("channel") or {}).get("type") == "discord":
+            preferences["channel"] = {"type": "email"}
+            account["chat_id"] = account.get("email", "")
+        return bool(
+            save_user_data_transaction(
+                uid,
+                {"account": account, "preferences": preferences},
+                auto_create=False,
+            )
+        )
+
     @handle_errors("creating website account", user_friendly=False)
-    def create(self, email, username, timezone, password_hash):
+    def create(self, email, preferred_name, timezone, password_hash):
         """Create an MHM account after website email verification succeeds."""
         from core import create_new_user
 
         return create_new_user(
             {
-                "internal_username": username,
                 "email": email,
                 "chat_id": email,
                 "timezone": timezone,
+                "preferred_name": preferred_name,
                 "password_hash": password_hash,
                 "channel": {"type": "email"},
                 "categories": [],
@@ -308,7 +341,7 @@ class Challenge:
     expires: float
     email: str
     mode: str
-    username: str
+    preferred_name: str
     timezone: str
     user_id: str | None
     eligible: bool
@@ -579,10 +612,12 @@ def create_web_app(
     limits = {}
     verification_lock = asyncio.Lock()
     settings_lock = asyncio.Lock()
+    health_lock = asyncio.Lock()
     discord_link_lock = asyncio.Lock()
     oauth_link_lock = asyncio.Lock()
     discord_states = {}
     oauth_states = {}
+    health_connecting = set()
     discord_identity = discord_identity or _fetch_discord_identity
     oauth_identity = oauth_identity or _fetch_oauth_identity
 
@@ -850,15 +885,14 @@ def create_web_app(
         email = email.strip().casefold()
         if mode not in {"login", "create"}:
             raise web.HTTPBadRequest(text="Choose log in or create account.")
-        username = data.get("username", "")
+        preferred_name = data.get("preferred_name", data.get("username", ""))
         timezone = data.get("timezone", "America/Regina")
         if mode == "create":
-            if not isinstance(username, str) or not re.fullmatch(
-                r"[A-Za-z0-9_-]{3,32}", username
-            ):
+            if not isinstance(preferred_name, str) or len(preferred_name) > 100:
                 raise web.HTTPBadRequest(
-                    text="Choose a username with 3–32 letters, numbers, underscores, or hyphens."
+                    text="Use a preferred name of at most 100 characters."
                 )
+            preferred_name = preferred_name.strip()
             try:
                 ZoneInfo(timezone)
             except (ZoneInfoNotFoundError, ValueError, TypeError):
@@ -866,7 +900,7 @@ def create_web_app(
                     text="Your time zone could not be recognized."
                 ) from None
         else:
-            username, timezone = "", "America/Regina"
+            preferred_name, timezone = "", "America/Regina"
         throttle(("email", email), 3, 600)
         if len(challenges) >= 10000:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
@@ -906,7 +940,7 @@ def create_web_app(
             clock() + CODE_TTL,
             email,
             mode,
-            username,
+            preferred_name,
             timezone,
             existing[0] if existing else None,
             eligible,
@@ -950,18 +984,11 @@ def create_web_app(
                     raise web.HTTPConflict(
                         text="An account already uses this email. Please log in."
                     )
-                if await asyncio.to_thread(
-                    accounts.username_exists, challenge.username
-                ):
-                    del challenges[token]
-                    raise web.HTTPConflict(
-                        text="That username is taken. Please choose another username."
-                    )
                 encoded = await asyncio.to_thread(_password_hash, password)
                 uid = await asyncio.to_thread(
                     accounts.create,
                     challenge.email,
-                    challenge.username,
+                    challenge.preferred_name,
                     challenge.timezone,
                     encoded,
                 )
@@ -1001,7 +1028,11 @@ def create_web_app(
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def account(request):
         """Return the signed-in account summary used by website pages."""
-        _, current = await authenticated_account(request)
+        uid, current = await authenticated_account(request)
+        documents = await asyncio.to_thread(accounts.documents, uid)
+        preferred_name = str(
+            (documents.get("context") or {}).get("preferred_name", "")
+        ).strip()
         session_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
@@ -1014,7 +1045,7 @@ def create_web_app(
         app_id = str(config.DISCORD_APPLICATION_ID or "")
         return web.json_response(
             {
-                "username": current.get("internal_username", ""),
+                "preferred_name": preferred_name,
                 "email": current.get("email", ""),
                 "timezone": current.get("timezone", ""),
                 "discord_linked": bool(current.get("discord_user_id")),
@@ -1037,6 +1068,80 @@ def create_web_app(
             }
         )
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def account_connections(request):
+        """Disconnect one optional sign-in or communication provider."""
+        uid, current = await authenticated_account(request)
+        data = await body(request)
+        provider = data.get("provider")
+        if set(data) != {"provider"} or provider not in {
+            "discord",
+            *OAUTH_PROVIDERS,
+        }:
+            raise web.HTTPBadRequest(text="Choose a connected account to disconnect.")
+        password_set = bool(current.get("password_hash"))
+        identities = current.get("oauth_identities") or {}
+        if provider != "discord" and provider not in identities:
+            return web.json_response({"ok": True, "provider": provider})
+        other_oauth = (set(identities) & set(OAUTH_PROVIDERS)) - {provider}
+        if provider != "discord" and not password_set and not other_oauth:
+            raise web.HTTPBadRequest(
+                text="Set a password before disconnecting your only social sign-in."
+            )
+        if provider == "discord":
+            ok = await asyncio.to_thread(accounts.unlink_discord, uid)
+        else:
+            ok = await asyncio.to_thread(accounts.unlink_oauth, uid, provider)
+        if not ok:
+            raise web.HTTPServiceUnavailable(text="That account could not be disconnected.")
+        return web.json_response({"ok": True, "provider": provider})
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def account_export(request):
+        """Download a JSON copy of the signed-in user's stored MHM data."""
+        uid, current = await authenticated_account(request)
+        from storage.user_data_operations import export_user_data
+
+        exported = await asyncio.to_thread(export_user_data, uid, "json")
+        if not exported:
+            raise web.HTTPServiceUnavailable(text="Your data export could not be prepared.")
+        from tasks.task_service import load_active_tasks, load_completed_tasks
+        from notebook.notebook_data_manager import list_recent
+
+        active_tasks, completed_tasks, notebook_entries = await asyncio.gather(
+            asyncio.to_thread(load_active_tasks, uid),
+            asyncio.to_thread(load_completed_tasks, uid),
+            asyncio.to_thread(list_recent, uid, n=10000, include_archived=True),
+        )
+        exported["tasks"] = {
+            "active": [task_view(task) for task in active_tasks],
+            "completed": [task_view(task) for task in completed_tasks],
+        }
+        exported["notebook"] = [note_view(entry) for entry in notebook_entries]
+
+        @handle_errors(
+            "removing secrets from website export",
+            user_friendly=False,
+            re_raise=True,
+        )
+        def remove_secrets(value):
+            """Remove authentication secrets from an otherwise complete export."""
+            if isinstance(value, dict):
+                return {
+                    key: remove_secrets(item)
+                    for key, item in value.items()
+                    if key not in {"password_hash"}
+                }
+            if isinstance(value, list):
+                return [remove_secrets(item) for item in value]
+            return value
+
+        payload = json.dumps(remove_secrets(exported), indent=2, default=str)
+        return web.Response(
+            text=payload,
+            content_type="application/json",
+            headers={"Content-Disposition": 'attachment; filename="mhm-data.json"'},
+        )
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def oauth_providers(request):
         """Report which optional social sign-in providers are configured."""
@@ -1308,6 +1413,132 @@ def create_web_app(
             latest = await asyncio.to_thread(accounts.documents, uid)
             return web.json_response(settings_snapshot(latest, options))
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def insights(request):
+        """Return authenticated wellness, habit, and check-in analytics."""
+        uid, _ = await authenticated_account(request)
+        try:
+            days = int(request.query.get("days", "30"))
+        except ValueError:
+            raise web.HTTPBadRequest(text="Choose a valid analysis period.") from None
+        if days not in {7, 14, 30, 60, 90}:
+            raise web.HTTPBadRequest(text="Choose 7, 14, 30, 60, or 90 days.")
+
+        @handle_errors(
+            "building website insights",
+            user_friendly=False,
+            re_raise=True,
+        )
+        def build_insights():
+            """Build one JSON-safe analytics snapshot off the event loop."""
+            from checkins.checkin_analytics import CheckinAnalytics
+
+            analytics = CheckinAnalytics()
+            result = {
+                "days": days,
+                "available": analytics.get_available_data_types(uid, days),
+                "wellness": analytics.get_wellness_score(uid, days),
+                "mood": analytics.get_mood_trends(uid, days),
+                "energy": analytics.get_energy_trends(uid, days),
+                "habits": analytics.get_habit_analysis(uid, days),
+                "sleep": analytics.get_sleep_analysis(uid, days),
+                "quantitative": analytics.get_quantitative_summaries(uid, days),
+                "completion": analytics.get_completion_rate(uid, days),
+                "history": analytics.get_checkin_history(uid, days)[:100],
+            }
+            return json.loads(json.dumps(result, default=str))
+
+        return web.json_response(await asyncio.to_thread(build_insights))
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def health_settings(request):
+        """Read or change the signed-in user's Google Health integration."""
+        uid, _ = await authenticated_account(request)
+        from integrations.google_health.user_settings import (
+            delete_health_integration,
+            enable_health_integration,
+            get_connect_authorization_url,
+            get_connect_readiness,
+            get_health_integration_status,
+            pause_health_integration,
+            run_connect_flow_async,
+            sync_health_integration,
+        )
+
+        @handle_errors(
+            "building Google Health website status",
+            user_friendly=False,
+            re_raise=True,
+        )
+        def snapshot():
+            """Return the browser-safe Google Health state."""
+            status = get_health_integration_status(uid)
+            ready, readiness_error = get_connect_readiness()
+            return {
+                "feature_state": status.feature_state if status else "disabled",
+                "connected": bool(status and status.connected),
+                "last_success_at": status.last_success_at if status else "never",
+                "has_recent_error": bool(status and status.has_recent_error),
+                "connect_available": ready,
+                "connect_error": readiness_error,
+                "connecting": uid in health_connecting,
+            }
+
+        if request.method == "GET":
+            return web.json_response(await asyncio.to_thread(snapshot))
+        data = await body(request)
+        if set(data) != {"action"} or data.get("action") not in {
+            "connect",
+            "pause",
+            "enable",
+            "sync",
+            "delete",
+        }:
+            raise web.HTTPBadRequest(text="Choose a valid Google Health action.")
+        action = data["action"]
+        throttle(("health", uid), 12, 600)
+        async with health_lock:
+            await authenticated_account(request)
+            if action == "connect":
+                ready, error = await asyncio.to_thread(get_connect_readiness)
+                if not ready:
+                    raise web.HTTPServiceUnavailable(text=error)
+                if uid in health_connecting:
+                    raise web.HTTPConflict(text="Google Health connection is already in progress.")
+                url = await asyncio.to_thread(get_connect_authorization_url, uid)
+                if not url:
+                    raise web.HTTPServiceUnavailable(text="Google Health could not start connecting.")
+                health_connecting.add(uid)
+
+                @handle_errors(
+                    "finishing Google Health website connection",
+                    user_friendly=False,
+                    default_return=None,
+                )
+                def finished(_success, _error):
+                    """Release the single in-progress connect slot for this user."""
+                    health_connecting.discard(uid)
+
+                run_connect_flow_async(uid, finished)
+                return web.json_response({"ok": True, "url": url, **snapshot()})
+            if action == "pause":
+                ok = await asyncio.to_thread(pause_health_integration, uid)
+                message = "Google Health personalization is paused."
+            elif action == "enable":
+                ok, error = await asyncio.to_thread(enable_health_integration, uid)
+                message = "Google Health personalization is enabled."
+                if not ok and error:
+                    raise web.HTTPBadRequest(text=error)
+            elif action == "sync":
+                ok = await asyncio.to_thread(sync_health_integration, uid)
+                message = "Google Health sync finished."
+            else:
+                ok = await asyncio.to_thread(delete_health_integration, uid)
+                message = "Google Health data was deleted and the integration was disabled."
+            if not ok:
+                raise web.HTTPServiceUnavailable(text="Google Health could not complete that action.")
+            return web.json_response({"ok": True, "message": message, **snapshot()})
+
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by the guarded task route.
     def task_view(task):
         """Return the stable, browser-safe task shape used by the website."""
@@ -1407,6 +1638,28 @@ def create_web_app(
                 cleaned.append({"date": date, "start_time": start, "end_time": end})
             return cleaned
 
+        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+        def clean_links(value):
+            """Validate task links without silently dropping malformed input."""
+            from tasks.task_link_helpers import MAX_TASK_LINKS, sanitize_task_links
+
+            if value is None:
+                return []
+            if not isinstance(value, list) or len(value) > MAX_TASK_LINKS:
+                raise web.HTTPBadRequest(text=f"Add at most {MAX_TASK_LINKS} task links.")
+            if any(
+                not isinstance(item, dict)
+                or set(item) != {"url", "label"}
+                or not isinstance(item["url"], str)
+                or not isinstance(item["label"], str)
+                for item in value
+            ):
+                raise web.HTTPBadRequest(text="Each task link needs a web address and optional label.")
+            cleaned = sanitize_task_links(value)
+            if len(cleaned) != len(value):
+                raise web.HTTPBadRequest(text="Use unique http:// or https:// task links.")
+            return cleaned
+
         if request.method == "GET":
             status = request.query.get("status", "active")
             if status not in {"active", "completed", "all"}:
@@ -1425,7 +1678,7 @@ def create_web_app(
             allowed = {
                 "title", "description", "due_date", "due_time", "priority",
                 "recurrence_pattern", "recurrence_interval", "repeat_after_completion",
-                "tags", "reminder_periods",
+                "tags", "reminder_periods", "links",
             }
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported task fields.")
@@ -1441,6 +1694,7 @@ def create_web_app(
             from tasks.task_tag_helpers import sanitize_task_tags
             tags = sanitize_task_tags(tags)
             reminder_periods = clean_reminder_periods(data.get("reminder_periods", []))
+            links = clean_links(data.get("links", []))
             due_date = data.get("due_date")
             if due_date == "":
                 due_date = None
@@ -1471,7 +1725,7 @@ def create_web_app(
                 due_date=due_date, due_time=due_time, priority=priority.lower(),
                 recurrence_pattern=pattern, recurrence_interval=interval,
                 repeat_after_completion=repeat_after,
-                tags=tags, reminder_periods=reminder_periods,
+                tags=tags, reminder_periods=reminder_periods, links=links,
             )
             if not created_id:
                 raise web.HTTPServiceUnavailable(text="MHM could not create that task. Please try again.")
@@ -1479,15 +1733,77 @@ def create_web_app(
 
         if not task_id:
             raise web.HTTPBadRequest(text="A task ID is required.")
+        action_message = ""
         if action == "complete" and request.method == "POST":
             if not await asyncio.to_thread(complete_task, uid, task_id):
                 raise web.HTTPNotFound(text="That active task could not be completed.")
         elif action == "restore" and request.method == "POST":
             if not await asyncio.to_thread(restore_task, uid, task_id):
                 raise web.HTTPNotFound(text="That completed task could not be restored.")
+        elif action == "snooze" and request.method == "POST":
+            data = await body(request)
+            option = data.get("option")
+            custom_when = data.get("custom_when")
+            if (
+                set(data) - {"option", "custom_when"}
+                or option not in {"1_hour", "tonight", "next_week", "custom"}
+                or (
+                    custom_when is not None
+                    and (not isinstance(custom_when, str) or len(custom_when) > 200)
+                )
+                or (option == "custom" and not str(custom_when or "").strip())
+            ):
+                raise web.HTTPBadRequest(
+                    text="Choose one hour, tonight, next week, or enter a custom reminder time."
+                )
+            from tasks.task_reminder_snooze import snooze_task_reminder
+
+            result = await asyncio.to_thread(
+                snooze_task_reminder,
+                uid,
+                task_id,
+                option,
+                custom_when=str(custom_when or "").strip() or None,
+            )
+            if not result or not result.success:
+                raise web.HTTPBadRequest(
+                    text=(result.message if result else "That reminder could not be snoozed.")
+                )
+            action_message = result.message
+        elif action == "skip" and request.method == "POST":
+            if await body(request):
+                raise web.HTTPBadRequest(text="Skipping this occurrence does not need any other details.")
+            from tasks.task_occurrence_skip import skip_task_occurrence
+
+            result = await asyncio.to_thread(skip_task_occurrence, uid, task_id)
+            if not result or not result.success:
+                raise web.HTTPBadRequest(
+                    text=(result.message if result else "That task occurrence could not be skipped.")
+                )
+            action_message = result.message
+        elif action == "simplify" and request.method == "POST":
+            data = await body(request)
+            new_title = data.get("new_title")
+            if (
+                set(data) != {"new_title"}
+                or not isinstance(new_title, str)
+                or not new_title.strip()
+                or len(new_title.strip()) > 500
+            ):
+                raise web.HTTPBadRequest(text="Enter a smaller next step for this task.")
+            from tasks.task_simplify import simplify_task
+
+            result = await asyncio.to_thread(
+                simplify_task, uid, task_id, new_title.strip()
+            )
+            if not result or not result.success or result.needs_title:
+                raise web.HTTPBadRequest(
+                    text=(result.message if result else "That task could not be simplified.")
+                )
+            action_message = result.message
         elif action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods"}
+            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "links"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported task changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip()):
@@ -1501,6 +1817,8 @@ def create_web_app(
                 data["tags"] = sanitize_task_tags(data["tags"])
             if "reminder_periods" in data:
                 data["reminder_periods"] = clean_reminder_periods(data["reminder_periods"])
+            if "links" in data:
+                data["links"] = clean_links(data["links"])
             for key, parser, message in (("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."), ("due_time", parse_time_only_minute, "Due times must use HH:MM.")):
                 if key in data and data[key] not in (None, "") and (not isinstance(data[key], str) or parser(data[key]) is None):
                     raise web.HTTPBadRequest(text=message)
@@ -1523,7 +1841,165 @@ def create_web_app(
             return web.json_response({"ok": True})
         else:
             raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
-        return web.json_response({"task": task_view(find(task_id))})
+        return web.json_response(
+            {"task": task_view(find(task_id)), **({"message": action_message} if action_message else {})}
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def task_templates(request):
+        """Return safe built-in task templates for quick website creation."""
+        await authenticated_account(request)
+        from tasks.task_service import list_task_templates
+
+        templates = await asyncio.to_thread(list_task_templates)
+        return web.json_response(
+            {
+                "templates": [
+                    {
+                        "id": template.template_id,
+                        "name": template.display_name,
+                        "title": template.title,
+                        "description": template.description,
+                        "priority": template.priority,
+                        "tags": list(template.tags),
+                        "due_time": template.default_due_time,
+                        "recurrence_pattern": template.recurrence_pattern,
+                        "recurrence_interval": template.recurrence_interval,
+                    }
+                    for template in templates
+                ]
+            }
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def messages_api(request):
+        """Manage the signed-in user's reusable message templates."""
+        uid, _ = await authenticated_account(request)
+        from messages.message_data_manager import (
+            add_message,
+            delete_message,
+            edit_message,
+            is_ai_generated_message_category,
+            load_user_messages,
+        )
+
+        options = await asyncio.to_thread(accounts.settings_options, uid)
+        categories = [
+            category
+            for category in options.get("categories", [])
+            if isinstance(category, str)
+            and not is_ai_generated_message_category(category)
+        ]
+        category = request.match_info.get("category") or request.query.get("category")
+        if not category and categories:
+            category = categories[0]
+        if category not in categories:
+            raise web.HTTPBadRequest(text="Choose an available message category.")
+
+        documents = await asyncio.to_thread(accounts.documents, uid)
+        from core.profile_v2_io import schedule_categories
+
+        schedule = schedule_categories(documents.get("schedules") or {})
+        period_names = [
+            name
+            for name in (schedule.get(category, {}).get("periods") or {})
+            if name != "ALL"
+        ]
+
+        @handle_errors(
+            "serializing website message template",
+            user_friendly=False,
+            re_raise=True,
+        )
+        def view(message):
+            """Return one browser-safe message template."""
+            message_schedule = message.get("schedule") or {}
+            return {
+                "id": str(message.get("id") or ""),
+                "text": str(message.get("text") or ""),
+                "active": bool(message.get("active", True)),
+                "days": [str(day) for day in message_schedule.get("days") or ["ALL"]],
+                "periods": [str(period) for period in message_schedule.get("periods") or ["ALL"]],
+                "updated_at": message.get("updated_at"),
+            }
+
+        # error_handling_exclude: Raises intentional HTTP validation responses;
+        # unexpected failures propagate to the guarded messages_api boundary.
+        def clean(data):
+            """Validate an editable message template payload."""
+            if set(data) != {"text", "active", "days", "periods"}:
+                raise web.HTTPBadRequest(text="Submit the message text, schedule, and enabled state.")
+            text = data["text"]
+            days = data["days"]
+            periods = data["periods"]
+            valid_days = {"ALL", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
+            allowed_periods = {"ALL", *period_names}
+            if not isinstance(text, str) or not text.strip() or len(text.strip()) > 5000:
+                raise web.HTTPBadRequest(text="Messages must be between 1 and 5,000 characters.")
+            if type(data["active"]) is not bool:
+                raise web.HTTPBadRequest(text="Choose whether this message is enabled.")
+            if (
+                not isinstance(days, list)
+                or not days
+                or len(days) > 7
+                or any(not isinstance(day, str) or day not in valid_days for day in days)
+                or len(set(days)) != len(days)
+                or ("ALL" in days and len(days) != 1)
+            ):
+                raise web.HTTPBadRequest(text="Choose valid days for this message.")
+            if (
+                not isinstance(periods, list)
+                or not periods
+                or len(periods) > 20
+                or any(not isinstance(period, str) or period not in allowed_periods for period in periods)
+                or len(set(periods)) != len(periods)
+                or ("ALL" in periods and len(periods) != 1)
+            ):
+                raise web.HTTPBadRequest(text="Choose valid reminder windows for this message.")
+            return {
+                "text": text.strip(),
+                "active": data["active"],
+                "schedule": {"days": days, "periods": periods},
+            }
+
+        if request.method == "GET":
+            messages = await asyncio.to_thread(load_user_messages, uid, category)
+            return web.json_response(
+                {
+                    "category": category,
+                    "categories": categories,
+                    "period_names": period_names,
+                    "messages": [view(message) for message in messages],
+                }
+            )
+        if request.method == "POST" and not request.match_info.get("message_id"):
+            values = clean(await body(request))
+            message_id = secrets.token_urlsafe(18)
+            await asyncio.to_thread(
+                add_message, uid, category, {"id": message_id, **values}
+            )
+        else:
+            message_id = request.match_info.get("message_id")
+            if not message_id or len(message_id) > 200:
+                raise web.HTTPBadRequest(text="Choose a valid message.")
+            existing = await asyncio.to_thread(load_user_messages, uid, category)
+            if not any(str(message.get("id")) == message_id for message in existing):
+                raise web.HTTPNotFound(text="That message could not be found.")
+            if request.method == "PATCH":
+                values = clean(await body(request))
+                await asyncio.to_thread(edit_message, uid, category, message_id, values)
+            elif request.method == "DELETE":
+                if await body(request):
+                    raise web.HTTPBadRequest(text="Deleting a message does not need a request body.")
+                await asyncio.to_thread(delete_message, uid, category, message_id)
+                return web.json_response({"ok": True})
+            else:
+                raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
+        saved = await asyncio.to_thread(load_user_messages, uid, category)
+        message = next((item for item in saved if str(item.get("id")) == message_id), None)
+        if not message:
+            raise web.HTTPServiceUnavailable(text="MHM could not finish saving that message.")
+        return web.json_response({"message": view(message)}, status=201 if request.method == "POST" else 200)
 
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by the guarded notebook route.
     def note_view(entry):
@@ -1592,14 +2068,19 @@ def create_web_app(
 
         if request.method == "GET":
             status = request.query.get("status", "active")
-            if status not in {"active", "archived", "all"}:
-                raise web.HTTPBadRequest(text="Choose active, archived, or all notes.")
+            if status not in {"active", "pinned", "inbox", "archived", "all"}:
+                raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, or all notes.")
             query = request.query.get("q", "").strip()
             if query:
                 entries = notes.search_entries(uid, query, limit=100)
+            elif status == "pinned":
+                entries = notes.list_pinned(uid, limit=100)
+            elif status == "inbox":
+                entries = notes.list_inbox(uid, limit=100)
             else:
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
-            entries = [entry for entry in entries if status == "all" or entry.status == status]
+            if status not in {"all", "pinned", "inbox"}:
+                entries = [entry for entry in entries if entry.status == status]
             return web.json_response({"notes": [note_view(entry) for entry in entries], "count": len(entries)})
 
         if request.method == "POST" and not note_id:
@@ -1710,13 +2191,26 @@ def create_web_app(
     app.router.add_get("/api/auth/discord/start", discord_start)
     app.router.add_get("/api/auth/discord/callback", discord_callback)
     app.router.add_get("/api/account", account)
+    app.router.add_post("/api/account/connections", account_connections)
+    app.router.add_get("/api/account/export", account_export)
     app.router.add_get("/api/settings", settings)
     app.router.add_post("/api/settings", settings)
+    app.router.add_get("/api/insights", insights)
+    app.router.add_get("/api/health", health_settings)
+    app.router.add_post("/api/health", health_settings)
     app.router.add_get("/api/tasks", tasks_api)
     app.router.add_post("/api/tasks", tasks_api)
+    app.router.add_get("/api/task-templates", task_templates)
     app.router.add_route("PATCH", "/api/tasks/{task_id}", tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", tasks_api)
-    app.router.add_post("/api/tasks/{task_id}/{action:complete|restore}", tasks_api)
+    app.router.add_post(
+        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify}",
+        tasks_api,
+    )
+    app.router.add_get("/api/messages", messages_api)
+    app.router.add_post("/api/messages", messages_api)
+    app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
+    app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_get("/api/notes", notes_api)
     app.router.add_post("/api/notes", notes_api)
     app.router.add_route("PATCH", "/api/notes/{note_id}", notes_api)
@@ -1734,6 +2228,8 @@ def create_web_app(
             "app.html",
             "tasks.html",
             "notes.html",
+            "insights.html",
+            "messages.html",
             "styles.css",
             "mhm-logo.png",
             "script.js",
@@ -1742,6 +2238,8 @@ def create_web_app(
             "settings.js",
             "tasks.js",
             "notes.js",
+            "insights.js",
+            "messages.js",
         }:
             raise web.HTTPNotFound(text="Page not found.")
         return web.FileResponse(root / name)

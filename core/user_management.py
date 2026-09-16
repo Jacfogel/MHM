@@ -19,6 +19,12 @@ from core.schedule_document_defaults import ensure_category_has_default_schedule
 logger = get_component_logger("main")
 
 
+def generate_internal_alias(user_id: str) -> str:
+    """Return an opaque, legacy-compatible alias derived from a canonical UUID."""
+    compact_id = str(user_id).replace("-", "")
+    return f"mhm_{compact_id[:28]}"
+
+
 @handle_errors(
     "resolving users directory for listing",
     default_return=None,
@@ -86,10 +92,13 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     """Create a new user with the new data structure."""
     user_id = str(uuid.uuid4())
     created_ts = now_timestamp_full()
+    internal_alias = str(user_data.get("internal_username") or "").strip()
+    if not internal_alias:
+        internal_alias = generate_internal_alias(user_id)
 
     account_data = {
         "user_id": user_id,
-        "internal_username": user_data.get("internal_username", ""),
+        "internal_username": internal_alias,
         "account_status": "active",
         "chat_id": user_data.get("chat_id", ""),
         "phone": user_data.get("phone", ""),
@@ -183,9 +192,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     except Exception as e:
         logger.warning(f"Failed to update user index for new user {user_id}: {e}")
 
-    logger.info(
-        f"Created new user: {user_id} ({user_data.get('internal_username', '')})"
-    )
+    logger.info(f"Created new user: {user_id} ({internal_alias})")
     return user_id
 
 

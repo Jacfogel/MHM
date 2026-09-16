@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 const source = await readFile(new URL('./app.js', import.meta.url), 'utf8');
-const profile = { username: 'test', email: 'test@example.com', timezone: 'America/Regina' };
+const profile = { preferred_name: 'Test', email: 'test@example.com', timezone: 'America/Regina' };
 
 async function page(logoutFetch = async () => Response.json({ ok: true })) {
   let click;

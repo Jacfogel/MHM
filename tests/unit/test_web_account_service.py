@@ -23,6 +23,9 @@ class Accounts:
                 "timezone": "America/Regina",
             }
         }
+        self.contexts: dict[str, dict] = {
+            "existing": {"preferred_name": "River"}
+        }
 
     def by_email(self, email):
         matches = [
@@ -37,25 +40,26 @@ class Accounts:
             user["email"].casefold() == email.casefold() for user in self.users.values()
         )
 
-    def username_exists(self, username):
-        return any(
-            user["internal_username"].casefold() == username.casefold()
-            for user in self.users.values()
-        )
-
     def get(self, uid):
         return self.users.get(uid, {})
 
-    def create(self, email, username, timezone, password_hash):
+    def create(self, email, preferred_name, timezone, password_hash):
         uid = f"new-{len(self.users)}"
         self.users[uid] = {
             "email": email,
-            "internal_username": username,
+            "internal_username": f"mhm_{uid}",
             "timezone": timezone,
             "account_status": "active",
             "password_hash": password_hash,
         }
+        self.contexts[uid] = {"preferred_name": preferred_name}
         return uid
+
+    def documents(self, uid):
+        return {
+            "account": self.users.get(uid, {}),
+            "context": self.contexts.get(uid, {}),
+        }
 
     def set_password(self, uid, password_hash):
         self.users[uid]["password_hash"] = password_hash
@@ -88,6 +92,17 @@ class Accounts:
         self.users[uid]["discord_username"] = discord_username
         return "linked"
 
+    def unlink_oauth(self, uid, provider):
+        identities = dict(self.users[uid].get("oauth_identities", {}))
+        identities.pop(provider, None)
+        self.users[uid]["oauth_identities"] = identities
+        return True
+
+    def unlink_discord(self, uid):
+        self.users[uid]["discord_user_id"] = ""
+        self.users[uid]["discord_username"] = ""
+        return True
+
 
 @pytest_asyncio.fixture
 async def gateway():
@@ -105,16 +120,18 @@ async def gateway():
     await client.close()
 
 
-async def request_code(client, email="river@example.com", mode="login", username=None):
+async def request_code(
+    client, email="river@example.com", mode="login", preferred_name=None
+):
     return await client.post(
         "/api/auth/request-code",
         json={
             "email": email,
             "mode": mode,
-            "username": (
-                username
-                if username is not None
-                else ("brook" if mode == "create" else "")
+            "preferred_name": (
+                preferred_name
+                if preferred_name is not None
+                else ("Brook" if mode == "create" else "")
             ),
             "timezone": "America/Regina",
         },
@@ -136,6 +153,110 @@ async def verify(client, token, code, password=None):
 async def test_existing_login_session_logout_and_replay(gateway):
     client, _, sent, _ = gateway
     assert (await client.get("/api/account")).status == 401
+
+
+async def test_connected_accounts_can_be_disconnected_without_removing_last_sign_in(
+    gateway,
+):
+    client, accounts, sent, _ = gateway
+    accounts.users["existing"].update(
+        password_hash="saved",
+        oauth_identities={"google": "google-subject", "facebook": "facebook-subject"},
+        discord_user_id="discord-1",
+        discord_username="river",
+    )
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+
+    disconnected = await client.post(
+        "/api/account/connections",
+        json={"provider": "google"},
+        headers={"Origin": ORIGIN},
+    )
+    assert disconnected.status == 200
+    assert accounts.users["existing"]["oauth_identities"] == {
+        "facebook": "facebook-subject"
+    }
+    discord = await client.post(
+        "/api/account/connections",
+        json={"provider": "discord"},
+        headers={"Origin": ORIGIN},
+    )
+    assert discord.status == 200
+    assert accounts.users["existing"]["discord_user_id"] == ""
+
+    accounts.users["existing"].pop("password_hash")
+    last = await client.post(
+        "/api/account/connections",
+        json={"provider": "facebook"},
+        headers={"Origin": ORIGIN},
+    )
+    assert last.status == 400
+    assert accounts.users["existing"]["oauth_identities"] == {
+        "facebook": "facebook-subject"
+    }
+
+
+async def test_account_export_strips_authentication_secrets(gateway, monkeypatch):
+    from storage import user_data_operations
+    from tasks import task_service
+    from notebook import notebook_data_manager
+
+    client, _, sent, _ = gateway
+    monkeypatch.setattr(
+        user_data_operations,
+        "export_user_data",
+        lambda uid, export_format: {
+            "user_id": uid,
+            "profile": {"email": "river@example.com", "password_hash": "secret"},
+            "nested": [{"password_hash": "also-secret", "safe": True}],
+        },
+    )
+    monkeypatch.setattr(task_service, "load_active_tasks", lambda uid: [])
+    monkeypatch.setattr(task_service, "load_completed_tasks", lambda uid: [])
+    monkeypatch.setattr(
+        notebook_data_manager,
+        "list_recent",
+        lambda uid, n=10000, include_archived=True: [],
+    )
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    response = await client.get("/api/account/export")
+    assert response.status == 200
+    assert response.headers["Content-Disposition"] == (
+        'attachment; filename="mhm-data.json"'
+    )
+    exported = await response.json()
+    assert exported["profile"] == {"email": "river@example.com"}
+    assert exported["nested"] == [{"safe": True}]
+    assert exported["tasks"] == {"active": [], "completed": []}
+    assert exported["notebook"] == []
+
+
+async def test_insights_are_authenticated_bounded_and_json_safe(gateway, monkeypatch):
+    from checkins.checkin_analytics import CheckinAnalytics
+
+    client, _, sent, _ = gateway
+    assert (await client.get("/api/insights")).status == 401
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    monkeypatch.setattr(CheckinAnalytics, "get_available_data_types", lambda self, uid, days: ["mood"])
+    monkeypatch.setattr(CheckinAnalytics, "get_wellness_score", lambda self, uid, days: {"score": 4.2})
+    monkeypatch.setattr(CheckinAnalytics, "get_mood_trends", lambda self, uid, days: {"average": 4})
+    monkeypatch.setattr(CheckinAnalytics, "get_energy_trends", lambda self, uid, days: {})
+    monkeypatch.setattr(CheckinAnalytics, "get_habit_analysis", lambda self, uid, days: {})
+    monkeypatch.setattr(CheckinAnalytics, "get_sleep_analysis", lambda self, uid, days: {})
+    monkeypatch.setattr(CheckinAnalytics, "get_quantitative_summaries", lambda self, uid, days: {})
+    monkeypatch.setattr(CheckinAnalytics, "get_completion_rate", lambda self, uid, days: {"rate": 50})
+    monkeypatch.setattr(CheckinAnalytics, "get_checkin_history", lambda self, uid, days: [{"when": object()}])
+
+    assert (await client.get("/api/insights?days=31")).status == 400
+    response = await client.get("/api/insights?days=14")
+    assert response.status == 200
+    insights = await response.json()
+    assert insights["days"] == 14
+    assert insights["wellness"] == {"score": 4.2}
+    assert isinstance(insights["history"][0]["when"], str)
     token = (await (await request_code(client)).json())["challenge"]
     result = await verify(client, token, sent[-1][1])
     assert result.status == 200
@@ -143,7 +264,8 @@ async def test_existing_login_session_logout_and_replay(gateway):
     assert "SameSite=Lax" in result.headers["Set-Cookie"]
     assert result.headers["Cache-Control"] == "no-store"
     profile = await (await client.get("/api/account")).json()
-    assert profile["username"] == "river"
+    assert profile["preferred_name"] == "River"
+    assert "username" not in profile
     assert "user_id" not in profile
     assert (await verify(client, token, sent[-1][1])).status == 401
     assert (
@@ -162,7 +284,7 @@ async def test_creation_waits_for_verified_email(gateway):
     assert accounts.email_exists("brook@example.com")
     assert accounts.users["new-1"]["password_hash"].startswith("$mhm$scrypt$")
     assert "a secure password phrase" not in accounts.users["new-1"]["password_hash"]
-    assert (await (await client.get("/api/account")).json())["username"] == "brook"
+    assert (await (await client.get("/api/account")).json())["preferred_name"] == "Brook"
 
 
 async def test_password_login_and_authenticated_password_setup(gateway):
@@ -249,12 +371,12 @@ async def test_creation_rechecks_duplicates_after_verification(gateway):
         "challenge"
     ]
     accounts.users["racing"] = {
-        "internal_username": "BROOK",
-        "email": "other@example.com",
+        "internal_username": "mhm_racing",
+        "email": "brook@example.com",
         "account_status": "active",
     }
     assert (await verify(client, token, sent[-1][1], "a secure password phrase")).status == 409
-    assert not accounts.email_exists("brook@example.com")
+    assert len(accounts.users) == 2
 
 
 async def test_unknown_email_and_duplicate_signup_are_not_signed_in(gateway):
@@ -297,6 +419,23 @@ async def test_session_expires(gateway):
     assert (await verify(client, token, sent[-1][1])).status == 200
     now[0] += 43201
     assert (await client.get("/api/account")).status == 401
+
+
+async def test_signup_preferred_name_is_optional_and_bounded(gateway):
+    client, _, _, _ = gateway
+    assert (
+        await request_code(
+            client,
+            "long-name@example.com",
+            "create",
+            preferred_name="x" * 101,
+        )
+    ).status == 400
+    assert (
+        await request_code(
+            client, "no-name@example.com", "create", preferred_name=""
+        )
+    ).status == 200
 
 
 async def test_csrf_validation_rate_limits_and_static_allowlist(gateway):
@@ -367,11 +506,13 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
     adapter = MHMAccounts()
     assert adapter.create(
         "new@example.com",
-        "new-user",
+        "New User",
         "America/Regina",
         "$mhm$scrypt$16384$8$1$salt$digest",
     ) == "new-id"
     assert captured[0]["channel"] == {"type": "email"}
+    assert captured[0]["preferred_name"] == "New User"
+    assert "internal_username" not in captured[0]
     assert not captured[0]["messages_enabled"]
     monkeypatch.setattr(
         adapter,
@@ -381,7 +522,6 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
     match = adapter.by_email("river@example.com")
     assert match is not None
     assert match[0] == "one"
-    assert adapter.username_exists("RIVER")
     monkeypatch.setattr(
         adapter,
         "all",
@@ -393,7 +533,7 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
     assert adapter.by_email("same@example.com") is None
 
 
-async def test_duplicate_email_cannot_be_selected_by_username(gateway):
+async def test_duplicate_email_cannot_be_disambiguated_by_preferred_name(gateway):
     client, accounts, sent, _ = gateway
     accounts.users["second"] = {
         "email": "river@example.com",
@@ -404,7 +544,7 @@ async def test_duplicate_email_cannot_be_selected_by_username(gateway):
     response = await request_code(client)
     assert response.status == 200
     assert not sent
-    token = (await (await request_code(client, username="BROOK")).json())["challenge"]
+    token = (await (await request_code(client, preferred_name="Brook")).json())["challenge"]
     assert not sent
     assert (await client.get("/api/account")).status == 401
     assert (await verify(client, token, "000000")).status == 401

@@ -20,7 +20,7 @@ async function loadAccount() {
     if (!response.ok) throw new Error('Your account could not load. Please refresh to try again.');
     const account = await response.json();
     if (accountSessionEnded) return;
-    document.getElementById('account-name').textContent = account.username;
+    document.getElementById('account-name').textContent = account.preferred_name || 'there';
     document.getElementById('account-email').textContent = account.email;
     document.getElementById('account-timezone').textContent = account.timezone || 'Not set';
     document.getElementById('account-discord').textContent = account.discord_linked ? 'Connected' : 'Not connected yet';
@@ -48,12 +48,20 @@ async function loadAccount() {
         button.textContent = 'Connect';
         button.addEventListener('click', () => startOAuth(provider, button));
         row.append(button);
+      } else if (details.linked) {
+        const button = document.createElement('button');
+        button.className = 'plain-button';
+        button.type = 'button';
+        button.textContent = 'Disconnect';
+        button.addEventListener('click', () => disconnectProvider(provider, button));
+        row.append(button);
       }
       socialConnections.append(row);
     }
     document.getElementById('connected-signins').hidden = socialCount === 0;
     const connect = document.getElementById('connect-discord');
     connect.hidden = account.discord_linked || !account.discord_available;
+    document.getElementById('disconnect-discord').hidden = !account.discord_linked;
     document.getElementById('discord-guidance').textContent = account.discord_linked
       ? 'Your Discord identity is connected. Manage tasks here, or open MHM in Discord for tasks, check-ins, and support.'
       : account.discord_available
@@ -70,6 +78,23 @@ async function loadAccount() {
         : discordResult === 'account-linked' ? 'This MHM account already has a different Discord account connected.'
           : discordResult === 'error' ? 'Discord could not be connected. Please try again.' : '';
   } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+}
+async function disconnectProvider(provider, button) {
+  if (button.disabled || !window.confirm(`Disconnect ${provider} from your MHM account?`)) return;
+  button.disabled = true;
+  status.textContent = `Disconnecting ${provider}…`;
+  status.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/account/connections', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.status === 401) { returnToLogin(); return; }
+    if (!response.ok) throw new Error(result.error || `${provider} could not be disconnected.`);
+    status.textContent = `${provider[0].toUpperCase()}${provider.slice(1)} was disconnected.`;
+    await loadAccount();
+  } catch (error) { status.textContent = error.message; status.classList.add('is-error'); button.disabled = false; }
 }
 async function startOAuth(provider, button) {
   if (button.disabled) return;
@@ -105,6 +130,8 @@ if (connectDiscord) connectDiscord.addEventListener('click', async (event) => {
     button.disabled = false;
   }
 });
+const disconnectDiscord = document.getElementById('disconnect-discord');
+if (disconnectDiscord) disconnectDiscord.addEventListener('click', event => disconnectProvider('discord', event.currentTarget));
 const logout = document.getElementById('logout');
 if (logout) logout.addEventListener('click', async (event) => {
   const button = event.currentTarget;
