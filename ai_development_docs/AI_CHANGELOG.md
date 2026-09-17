@@ -30,11 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-09-17 - Categorize remaining personalized-message ValueError raises **COMPLETED**
-- Replaced the last two Phase 2 `ValueError` raises for unsupported personalized-message sources with `ValidationError` in `chatbot.py` and `personalized.py`.
-- Decorated entry points still return the existing safe default; tests cover the inner raise and the fallback path.
-- CI: Tooling Policy Consistency now uses `development_tools/pytest.ini` isolation; the owned-gateway port-release test restarts aiohttp instead of a raw bind that Linux TIME_WAIT rejected.
-- Marked whole-tree policy scanners and the copied-tree `audit --quick` smoke test as `slow` so the quick suite skips them; nightly still runs them.
+### 2026-09-17 - Website account and settings corrections **COMPLETED**
+- Account navigation no longer signs users out; profile lists accept lines, commas, or semicolons; clicking anywhere in date/time inputs opens the native picker; and disabled feature details are visibly unavailable.
+- Personalized messages are split into check-in, Google Health, and profile sources, with source-dependent availability. Check-ins support custom questions, and new check-in/task windows default to 9:30-11:30 AM and 3:00-5:00 PM.
+- Newly created accounts immediately require the current password for later changes. Discord connection failures now explain likely duplicate-account links, and account creation no longer silently starts Discord linking.
+- Settings tolerate missing optional data from older/partial accounts instead of raising a raw browser error. Related legacy facades were removed, error-handling/registry findings were cleared, and focused Python/Node tests plus CI policy checks pass.
 
 ### 2026-09-15 - Website self-service expansion **COMPLETED**
 - Added richer profile and phrase settings, personal message-template management, private check-in insights/history, Google Health controls, account connection removal, and a secret-scrubbed data export.

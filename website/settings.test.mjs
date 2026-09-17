@@ -15,6 +15,14 @@ test('profile entries accept lines, commas, and semicolons', () => {
   );
 });
 
+test('missing optional settings collections fall back safely', () => {
+  assert.deepEqual({ ...context.helpers.record(undefined) }, {});
+  assert.deepEqual({ ...context.helpers.record(null) }, {});
+  assert.deepEqual([...context.helpers.list(undefined)], []);
+  assert.deepEqual([...context.helpers.list({})], []);
+  assert.deepEqual([...context.helpers.profileEntries(null)], []);
+});
+
 test('clicking date and time inputs opens the native picker when available', () => {
   let opened = 0;
   context.helpers.openPicker({ disabled: false, readOnly: false, showPicker() { opened++; } });
@@ -52,4 +60,5 @@ test('feature details and custom check-in controls are present', async () => {
   assert.match(source, /custom_\$\{crypto\.randomUUID\(\)/);
   assert.match(source, /category === 'tasks'[\s\S]*'15:00'[\s\S]*'17:00'/);
   assert.match(source, /category === 'checkin'[\s\S]*'09:30'[\s\S]*'11:30'/);
+  assert.match(source, /const customQuestions = MHMSettingsInput\.record\(values\.custom_questions\)/);
 });

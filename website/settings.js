@@ -1,6 +1,12 @@
 const MHMSettingsInput = Object.freeze({
   profileEntries(value) {
-    return value.split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
+    return String(value ?? '').split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
+  },
+  record(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  },
+  list(value) {
+    return Array.isArray(value) ? value : [];
   },
   openPicker(input) {
     if (typeof input.showPicker !== 'function' || input.disabled || input.readOnly) return;
@@ -85,12 +91,15 @@ const MHMSettingsInput = Object.freeze({
   }
 
   function customQuestionEditor(parent, initial, states) {
+    initial = MHMSettingsInput.record(initial);
+    states = MHMSettingsInput.record(states);
     const group = el('fieldset', null, { className: 'custom-question-editor' });
     group.append(el('legend', 'Custom questions'));
     group.append(el('p', 'Add questions that fit your own routines. Custom questions can use text, yes/no, or a 1–5 scale.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
     function add(key, definition, state = 'off') {
+      definition = MHMSettingsInput.record(definition);
       const row = el('div', null, { className: 'custom-question-row' });
       const text = field(row, 'Question', `${key}-text`, 'text', definition.question_text, { required: '', maxlength: '300' });
       const type = select(row, 'Answer type', `${key}-type`, [['optional_text', 'Text'], ['yes_no', 'Yes or no'], ['scale_1_5', '1–5 scale']], definition.type || 'optional_text');
@@ -128,12 +137,15 @@ const MHMSettingsInput = Object.freeze({
   }
 
   function periodEditor(parent, category, initial) {
+    initial = MHMSettingsInput.record(initial);
     const group = el('fieldset', null, { className: 'period-editor' });
     group.append(el('legend', category.replaceAll('_', ' ') + ' reminder windows'));
     group.append(el('p', 'MHM picks a time within each enabled window. Times use your account’s time zone.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
     function add(name, value) {
+      value = MHMSettingsInput.record(value);
+      const selectedDays = MHMSettingsInput.list(value.days);
       const row = el('div', null, { className: 'period-row' });
       const id = `period-${category}-${crypto.randomUUID()}`;
       const input = field(row, 'Window name', id + '-name', 'text', name, { required: '', maxlength: '80' });
@@ -144,7 +156,7 @@ const MHMSettingsInput = Object.freeze({
       const enabled = field(row, 'Enable this window', id + '-active', 'checkbox', value.active);
       const dayGroup = el('fieldset', null, { className: 'day-picker' });
       dayGroup.append(el('legend', 'Days'));
-      const dayInputs = days.map(day => [day, field(dayGroup, day.slice(0, 3), id + day, 'checkbox', value.days.includes('ALL') || value.days.includes(day))]);
+      const dayInputs = days.map(day => [day, field(dayGroup, day.slice(0, 3), id + day, 'checkbox', selectedDays.includes('ALL') || selectedDays.includes(day))]);
       row.append(dayGroup);
       const remove = el('button', 'Remove window', { type: 'button', className: 'plain-button' });
       const control = { row, input, start, end, enabled, dayInputs };
@@ -181,6 +193,21 @@ const MHMSettingsInput = Object.freeze({
       },
     };
   }
+  function completeSettingsData(data) {
+    const payload = MHMSettingsInput.record(data);
+    const sections = MHMSettingsInput.record(payload.sections);
+    const revisions = MHMSettingsInput.record(payload.revisions);
+    if (Object.keys(titles).some(section => !Object.hasOwn(sections, section))) {
+      throw new Error('MHM received incomplete settings data. Please reload your settings.');
+    }
+    return {
+      ...payload,
+      sections,
+      revisions,
+      options: MHMSettingsInput.record(payload.options),
+      available_message_periods: MHMSettingsInput.record(payload.available_message_periods),
+    };
+  }
   async function api(method, payload) {
     const response = await fetch('/api/settings', {
       method, credentials: 'same-origin', cache: 'no-store',
@@ -198,10 +225,10 @@ const MHMSettingsInput = Object.freeze({
       error.status = response.status;
       throw error;
     }
-    return data;
+    return completeSettingsData(data);
   }
   function renderSection(section, data) {
-    const values = data.sections[section];
+    const values = MHMSettingsInput.record(data.sections[section]);
     let revision = data.revisions[section];
     const form = el('form', null, { id: `settings-${section}`, className: 'settings-panel', 'aria-labelledby': `title-${section}` });
     form.hidden = section !== 'profile';
@@ -217,11 +244,11 @@ const MHMSettingsInput = Object.freeze({
         medications_treatments: 'Medications and treatments', allergies_sensitivities: 'Allergies and sensitivities',
         reminders_needed: 'Things you may need reminders for', notes_for_ai: 'What you’d like MHM to keep in mind',
       };
-      for (const [key, label] of Object.entries(labels)) fields[key] = field(form, label, key, 'textarea', values[key].join('\n'), { rows: key === 'notes_for_ai' ? '4' : '2' });
+      for (const [key, label] of Object.entries(labels)) fields[key] = field(form, label, key, 'textarea', MHMSettingsInput.list(values[key]).join('\n'), { rows: key === 'notes_for_ai' ? '4' : '2' });
       form.append(el('p', 'Health details are optional and are used only to personalize MHM support.', { className: 'field-hint' }));
       read = () => ({ preferred_name: name.value, date_of_birth: birthDate.value, ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, lines(input)])) });
     } else if (section === 'delivery') {
-      const timezone = select(form, 'Time zone', 'timezone', data.options.timezones.map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
+      const timezone = select(form, 'Time zone', 'timezone', MHMSettingsInput.list(data.options.timezones).map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
       timezone.required = true;
       const channel = select(form, 'Deliver reminders through', 'delivery-channel', [['email', 'Email'], ...(data.discord_linked ? [['discord', 'Discord']] : [])], values.channel);
       form.append(el('p', data.discord_linked ? 'Your verified email and linked Discord account are available for delivery.' : 'Link your account with the MHM Discord bot to enable Discord delivery.', { className: 'field-hint' }));
@@ -233,8 +260,9 @@ const MHMSettingsInput = Object.freeze({
       form.append(first);
       const dayParts = el('div', null, { className: 'settings-two-col' });
       const timeFields = {};
+      const timeDefaults = MHMSettingsInput.record(values.time_of_day_defaults);
       for (const key of ['morning', 'afternoon', 'evening', 'night']) {
-        timeFields[key] = field(dayParts, `${key[0].toUpperCase()}${key.slice(1)} time`, `phrase-${key}`, 'time', values.time_of_day_defaults[key], { required: '' });
+        timeFields[key] = field(dayParts, `${key[0].toUpperCase()}${key.slice(1)} time`, `phrase-${key}`, 'time', timeDefaults[key], { required: '' });
       }
       form.append(dayParts);
       const weekend = field(form, 'On weekends, “this week” means the coming week', 'phrase-weekend', 'checkbox', values.weekend_this_week_means_coming_week);
@@ -248,13 +276,15 @@ const MHMSettingsInput = Object.freeze({
       const enabled = field(form, `Enable ${titles[section].toLowerCase()}`, `enabled-${section}`, 'checkbox', values.enabled);
       const details = featureDetails(form, enabled, titles[section]);
       if (section === 'messages') {
+        const selectedCategories = MHMSettingsInput.list(values.categories);
+        const messagePeriods = MHMSettingsInput.record(values.periods);
         const choices = el('fieldset', null, { className: 'category-picker' });
         choices.append(el('legend', 'Message categories'));
         const editors = {};
-        const inputs = data.options.categories.map(category => [category, field(choices, categoryLabels[category] || category.replaceAll('_', ' '), `category-${category}`, 'checkbox', values.categories.includes(category))]);
+        const inputs = MHMSettingsInput.list(data.options.categories).map(category => [category, field(choices, categoryLabels[category] || category.replaceAll('_', ' '), `category-${category}`, 'checkbox', selectedCategories.includes(category))]);
         details.append(choices);
         for (const [category, input] of inputs) {
-          const editor = periodEditor(details, category, values.periods[category] || data.available_message_periods[category]);
+          const editor = periodEditor(details, category, messagePeriods[category] || data.available_message_periods[category]);
           editors[category] = editor;
           editor.group.hidden = !input.checked;
           editor.group.disabled = !input.checked;
@@ -267,17 +297,21 @@ const MHMSettingsInput = Object.freeze({
       } else {
         const periods = periodEditor(details, section === 'tasks' ? 'tasks' : 'checkin', values.periods);
         if (section === 'tasks') {
-          const pattern = select(details, 'Default repeat pattern for new tasks', 'recurrence-pattern', [['', 'One-time task'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']], values.recurring.default_recurrence_pattern);
-          const interval = field(details, 'Repeat every (interval)', 'recurrence-interval', 'number', values.recurring.default_recurrence_interval, { min: '1', max: '365', required: '' });
-          const after = field(details, 'Count the next repeat from completion', 'repeat-after', 'checkbox', values.recurring.default_repeat_after_completion);
+          const recurring = MHMSettingsInput.record(values.recurring);
+          const pattern = select(details, 'Default repeat pattern for new tasks', 'recurrence-pattern', [['', 'One-time task'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']], recurring.default_recurrence_pattern);
+          const interval = field(details, 'Repeat every (interval)', 'recurrence-interval', 'number', recurring.default_recurrence_interval ?? 1, { min: '1', max: '365', required: '' });
+          const after = field(details, 'Count the next repeat from completion', 'repeat-after', 'checkbox', recurring.default_repeat_after_completion);
           details.append(el('p', 'These defaults apply to new tasks. Existing tasks keep their own repeat settings.', { className: 'field-hint' }));
           read = () => ({ enabled: enabled.checked, periods: periods.read(), recurring: { default_recurrence_pattern: pattern.value || null, default_recurrence_interval: Number(interval.value), default_repeat_after_completion: after.checked } });
         } else {
+          const standardQuestions = MHMSettingsInput.record(data.options.questions);
+          const customQuestions = MHMSettingsInput.record(values.custom_questions);
+          const questionStates = MHMSettingsInput.record(values.questions);
           const questions = {};
-          for (const [key, label] of Object.entries(data.options.questions)) {
-            if (!Object.hasOwn(values.custom_questions, key)) questions[key] = select(details, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], values.questions[key]);
+          for (const [key, label] of Object.entries(standardQuestions)) {
+            if (!Object.hasOwn(customQuestions, key)) questions[key] = select(details, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], questionStates[key]);
           }
-          const custom = customQuestionEditor(details, values.custom_questions, values.questions);
+          const custom = customQuestionEditor(details, customQuestions, questionStates);
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
           const maximum = field(counts, 'Maximum questions', 'max-questions', 'number', values.max_questions, { min: '1', max: '100', required: '' });
