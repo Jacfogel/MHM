@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 
-pytestmark = [pytest.mark.user]
+pytestmark = [pytest.mark.user, pytest.mark.slow]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = PROJECT_ROOT / "tests"

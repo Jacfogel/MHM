@@ -9,7 +9,12 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from core.error_handling import ValidationError
 from core.web_account_service import create_web_app, MHMAccounts
-from core.web_user_settings import build_settings_updates, settings_snapshot
+from core.web_user_settings import (
+    _available_message_categories,
+    _editable_custom_questions,
+    build_settings_updates,
+    settings_snapshot,
+)
 from tests.unit.test_web_account_service import Accounts, ORIGIN, request_code, verify
 
 pytestmark = [pytest.mark.unit, pytest.mark.user]
@@ -77,6 +82,11 @@ def documents():
 
 def values(documents, section):
     return deepcopy(settings_snapshot(documents, OPTIONS)["sections"][section])
+
+
+def test_settings_helpers_return_safe_defaults_for_invalid_inputs():
+    assert _available_message_categories(None, {}) == []
+    assert _editable_custom_questions(None) == {}
 
 
 def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
@@ -224,6 +234,63 @@ def test_checkin_rules_and_custom_metadata_are_preserved(documents):
         build_settings_updates(documents, OPTIONS, "checkins", draft)
 
 
+def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):
+    question_key = "custom_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    draft = values(documents, "checkins")
+    draft.update(enabled=True, min_questions=2, max_questions=2)
+    draft["custom_questions"] = {
+        question_key: {
+            "question_text": "Did you spend time outside?",
+            "type": "yes_no",
+        }
+    }
+    draft["questions"][question_key] = "always"
+
+    updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
+    checkin = updates["preferences"]["checkin_settings"]
+    assert checkin["custom_questions"]["keep"] is True
+    assert checkin["custom_questions"][question_key] == {
+        "question_text": "Did you spend time outside?",
+        "ui_display_name": "Did you spend time outside?",
+        "type": "yes_no",
+        "category": "general",
+        "enabled": True,
+        "validation": {},
+    }
+    assert checkin["questions"][question_key]["always_include"] is True
+
+    saved = deepcopy(documents)
+    saved.update(deepcopy(updates))
+    loaded = values(saved, "checkins")
+    assert loaded["custom_questions"][question_key]["question_text"] == (
+        "Did you spend time outside?"
+    )
+    assert loaded["questions"][question_key] == "always"
+
+    loaded["custom_questions"].pop(question_key)
+    loaded["questions"].pop(question_key)
+    loaded.update(enabled=True, min_questions=1, max_questions=1)
+    removed = build_settings_updates(saved, OPTIONS, "checkins", loaded)
+    removed_checkin = removed["preferences"]["checkin_settings"]
+    assert question_key not in removed_checkin["custom_questions"]
+    assert question_key not in removed_checkin["questions"]
+    assert removed_checkin["custom_questions"]["keep"] is True
+
+
+def test_custom_checkin_question_rejects_untrusted_definition(documents):
+    draft = values(documents, "checkins")
+    draft["custom_questions"] = {
+        "custom_not-a-safe-id": {
+            "question_text": "Unsafe question",
+            "type": "html",
+        }
+    }
+    draft["questions"]["custom_not-a-safe-id"] = "off"
+
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, OPTIONS, "checkins", draft)
+
+
 def test_unselected_message_windows_and_new_question_defaults_are_loaded(documents):
     options = {**OPTIONS, "question_defaults": {"energy": "sometimes"}}
     documents["preferences"]["checkin_settings"]["custom_questions"]["sleep"] = {
@@ -241,6 +308,63 @@ def test_unselected_message_windows_and_new_question_defaults_are_loaded(documen
         settings_snapshot(documents, options)["revisions"]["messages"]
         != snapshot["revisions"]["messages"]
     )
+
+
+@pytest.mark.parametrize("feature", ["checkins", "google_health"])
+def test_personalized_messages_are_available_with_a_health_data_source(
+    documents, feature
+):
+    options = {
+        **OPTIONS,
+        "categories": [
+            *OPTIONS["categories"],
+            "personalized_checkin",
+            "personalized_google_health",
+            "personalized_profile",
+        ],
+    }
+    documents["account"]["features"].update(
+        {"checkins": "disabled", "google_health": "disabled", feature: "enabled"}
+    )
+
+    snapshot = settings_snapshot(documents, options)
+
+    expected = (
+        "personalized_checkin"
+        if feature == "checkins"
+        else "personalized_google_health"
+    )
+    assert expected in snapshot["options"]["categories"]
+    assert expected in snapshot["available_message_periods"]
+    assert "personalized_profile" in snapshot["options"]["categories"]
+
+
+def test_personalized_messages_are_hidden_and_rejected_without_health_data(documents):
+    options = {
+        **OPTIONS,
+        "categories": [
+            *OPTIONS["categories"],
+            "personalized_checkin",
+            "personalized_google_health",
+            "personalized_profile",
+        ],
+    }
+    documents["account"]["features"].update(
+        {"checkins": "disabled", "google_health": "disabled"}
+    )
+    documents["preferences"]["categories"].append("personalized_checkin")
+
+    snapshot = settings_snapshot(documents, options)
+
+    assert "personalized_checkin" not in snapshot["options"]["categories"]
+    assert "personalized_google_health" not in snapshot["options"]["categories"]
+    assert "personalized_profile" in snapshot["options"]["categories"]
+    assert "personalized_checkin" not in snapshot["sections"]["messages"]["categories"]
+    forged = deepcopy(snapshot["sections"]["messages"])
+    forged["categories"].append("personalized_checkin")
+    forged["periods"]["personalized_checkin"] = {"Morning": deepcopy(WINDOW)}
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, options, "messages", forged)
 
 
 class SettingsAccounts(Accounts):

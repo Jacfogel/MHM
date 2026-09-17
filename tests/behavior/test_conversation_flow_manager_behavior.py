@@ -479,7 +479,7 @@ class TestConversationFlowManagerBehavior:
         )
 
         # Send a non-scheduled message and verify the active check-in is expired
-        comm_manager.handle_message_sending(user_id, 'personalized')
+        comm_manager.handle_message_sending(user_id, 'personalized_profile')
 
         assert user_id not in manager.user_states, "Check-in flow should expire after unrelated outbound message"
     

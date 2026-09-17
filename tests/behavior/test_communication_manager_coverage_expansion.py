@@ -622,7 +622,13 @@ class TestCommunicationManagerCoverageExpansion:
         # Mock send_message_sync
         with patch.object(comm_manager, 'send_message_sync', return_value=True):
             # Test sending AI generated message
-            comm_manager._send_ai_generated_message(user_id, 'motivational', 'discord', 'test_recipient')
+            comm_manager._send_ai_generated_message(
+                user_id,
+                'personalized_profile',
+                'discord',
+                'test_recipient',
+                source='profile',
+            )
             
             # Verify message was sent
             comm_manager.send_message_sync.assert_called_once()

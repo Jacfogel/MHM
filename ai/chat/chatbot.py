@@ -69,7 +69,7 @@ from ai.chat.response_postprocess import (
     strip_ungrounded_checkin_claims,
     trim_verbose_reply_for_simple_prompt,
 )
-from core.error_handling import handle_errors
+from core.error_handling import ValidationError, handle_errors
 
 
 ai_logger = get_component_logger("ai")
@@ -719,6 +719,7 @@ class AIChatBotSingleton:
         user_id: str,
         timeout: int | None = None,
         *,
+        source: str,
         prompt_prefix: str | None = None,
         skip_cache: bool = False,
     ) -> str:
@@ -733,33 +734,53 @@ class AIChatBotSingleton:
             timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT
 
         if not self.lm_studio_available:
-            return get_fallback_responses().personalized(user_id)
+            return get_fallback_responses().personalized(user_id, source=source)
 
         from core.health_context_builder import (
             PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS,
-            build_personalized_wellness_context,
+            build_personalized_checkin_context,
+            build_personalized_google_health_context,
+            build_personalized_profile_context,
         )
 
-        user_summary = build_personalized_wellness_context(user_id)[
+        context_builders = {
+            "checkin": build_personalized_checkin_context,
+            "google_health": build_personalized_google_health_context,
+            "profile": build_personalized_profile_context,
+        }
+        if source not in context_builders:
+            raise ValidationError(
+                f"Unsupported personalized message source: {source}",
+                details={"source": source},
+            )
+        context_builder = context_builders[source]
+        user_summary = context_builder(user_id)[
             :PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS
         ]
 
+        source_rules = {
+            "checkin": (
+                "Use only the recent check-in answers in the Data block. Do not infer "
+                "Google Health patterns or add health statistics."
+            ),
+            "google_health": (
+                "Use only the Google Health patterns in the Data block. Speak in plain "
+                "language about rest, sleep quality, activity, and multi-day streaks. "
+                "Only mention approximate sleep hours, step counts, or active minutes if "
+                "those exact ~ values appear in Data; never invent or average them. Never "
+                "say 'wearable', 'wellness signal', internal field labels, heart-rate or "
+                "HRV numbers, or device names."
+            ),
+            "profile": (
+                "Use only the profile preferences in the Data block. Do not infer recent "
+                "mood, check-in answers, sleep, activity, or Google Health patterns."
+            ),
+        }
         instruction = (
-            "Create a brief, encouraging message based on the wellness data below. "
-            "When 'Recent wellness patterns' is present, base the message on sleep and "
-            "activity only. "
-            "Never mention check-ins, wellness check-ins, or claim the user mentioned "
-            "something in a check-in unless the Data block contains 'Recent check-ins'. "
-            "Do not mention hopelessness. "
-            "Speak in plain everyday language about rest, sleep quality, activity, and "
-            "multi-day streaks when those ideas appear in the Data block. "
-            "Only mention approximate sleep hours, step counts, or active minutes if those "
-            "exact ~ values appear in the Data block — copy them; never invent, average, "
-            "or reuse sample numbers. If Data says there is no recent wellness data, write "
-            "a warm general supportive message with no sleep, steps, or activity statistics. "
-            "Never say 'wearable', 'wellness signal', 'high recovery', 'low recovery', "
-            "'sleep_recovery', 'sleep_quality', 'active_intensity', or other internal labels. "
-            "Do not mention heart-rate numbers, HRV numbers, or device names. "
+            f"Create a brief, encouraging {source.replace('_', ' ')}-based message from the data below. "
+            f"{source_rules[source]} "
+            "Do not mention hopelessness. If Data says its source has no recent information, "
+            "write a warm general supportive message without inventing details. "
             f"Data: {user_summary}. "
             "Keep it supportive, personal, and under 100 words. "
             "Start with 'Hi Name.' or 'Hey Name.' on the same line as the body — never 'Dear', "

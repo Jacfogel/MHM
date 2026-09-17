@@ -43,7 +43,8 @@ class TestMessageCategories:
     def test_get_message_categories_success(self):
         """Test getting message categories successfully."""
         env_value = (
-            "motivational,health,fun_facts,quotes_to_ponder,word_of_the_day,personalized"
+            "motivational,health,fun_facts,quotes_to_ponder,word_of_the_day,"
+            "personalized_checkin,personalized_google_health,personalized_profile"
         )
         with patch.dict(os.environ, {"CATEGORIES": env_value}, clear=False):
             categories = get_message_categories()

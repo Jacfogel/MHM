@@ -167,3 +167,9 @@ def test_create_default_schedule_periods_named_defaults():
     assert "Task Reminder Default" in tasks
     assert "Check-in Reminder Default" in checkin
     assert "Health And Wellness Message Default" in health
+    assert tasks["Task Reminder Default"]["start_time"] == "15:00"
+    assert tasks["Task Reminder Default"]["end_time"] == "17:00"
+    assert checkin["Check-in Reminder Default"]["start_time"] == "09:30"
+    assert checkin["Check-in Reminder Default"]["end_time"] == "11:30"
+    assert health["Health And Wellness Message Default"]["start_time"] == "18:00"
+    assert health["Health And Wellness Message Default"]["end_time"] == "20:00"

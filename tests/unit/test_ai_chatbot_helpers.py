@@ -395,7 +395,9 @@ class TestAIChatBotHelpers:
                 }
             }
             
-            result = get_fallback_responses().personalized("user123")
+            result = get_fallback_responses().personalized(
+                "user123", source="profile"
+            )
             
             assert "TestUser" in result, "Should include user name"
 
@@ -408,7 +410,9 @@ class TestAIChatBotHelpers:
                 {'mood': 5, 'energy': 5}
             ]
             
-            result = get_fallback_responses().personalized("user123")
+            result = get_fallback_responses().personalized(
+                "user123", source="checkin"
+            )
             
             assert "doing great" in result.lower() or "positive" in result.lower() or "progress" in result.lower(), "Should adapt to positive mood"
 
@@ -421,7 +425,9 @@ class TestAIChatBotHelpers:
                 {'mood': 1, 'energy': 1}
             ]
             
-            result = get_fallback_responses().personalized("user123")
+            result = get_fallback_responses().personalized(
+                "user123", source="checkin"
+            )
             
             assert "challenging" in result.lower() or "tough" in result.lower() or "temporary" in result.lower(), "Should adapt to low mood"
 
@@ -430,7 +436,9 @@ class TestAIChatBotHelpers:
         with patch('ai.fallback.data_access.get_user_data', return_value={}), \
              patch('ai.fallback.data_access.get_recent_responses', return_value=[]):
             
-            result = get_fallback_responses().personalized("user123")
+            result = get_fallback_responses().personalized(
+                "user123", source="checkin"
+            )
             
             assert isinstance(result, str), "Should return string"
             assert len(result) > 0, "Should return non-empty message"
@@ -474,7 +482,7 @@ class TestAIChatBotHelpers:
             patch.object(chatbot_instance.response_cache, "get") as mock_get,
             patch.object(chatbot_instance.response_cache, "set") as mock_set,
             patch(
-                "core.health_context_builder.build_personalized_wellness_context",
+                "core.health_context_builder.build_personalized_google_health_context",
                 return_value="Recent wellness patterns: sleep looked solid (a fuller night).",
             ),
             patch.object(
@@ -482,12 +490,67 @@ class TestAIChatBotHelpers:
             ),
         ):
             result = chatbot_instance.generate_personalized_message(
-                "user123", skip_cache=True
+                "user123", source="google_health", skip_cache=True
             )
 
         assert result == "Fresh test message."
         mock_get.assert_not_called()
         mock_set.assert_not_called()
+
+    def test_personalized_profile_message_uses_only_profile_context(
+        self, chatbot_instance
+    ):
+        chatbot_instance.lm_studio_available = True
+        with (
+            patch(
+                "core.health_context_builder.build_personalized_profile_context",
+                return_value="Preferred name: River; Interests: gardening",
+            ) as profile_context,
+            patch(
+                "core.health_context_builder.build_personalized_checkin_context"
+            ) as checkin_context,
+            patch(
+                "core.health_context_builder.build_personalized_google_health_context"
+            ) as health_context,
+            patch.object(
+                chatbot_instance, "generate_response", return_value="Hi River. Enjoy the garden."
+            ) as generate,
+        ):
+            result = chatbot_instance.generate_personalized_message(
+                "user123", source="profile", skip_cache=True
+            )
+
+        assert result == "Hi River. Enjoy the garden."
+        profile_context.assert_called_once_with("user123")
+        checkin_context.assert_not_called()
+        health_context.assert_not_called()
+        prompt = generate.call_args.args[0]
+        assert "profile-based message" in prompt
+        assert "Interests: gardening" in prompt
+        assert "Recent check-ins" not in prompt
+
+    def test_personalized_message_unsupported_source_raises_validation_error(
+        self, chatbot_instance
+    ):
+        from core.error_handling import ValidationError
+
+        chatbot_instance.lm_studio_available = True
+        with pytest.raises(ValidationError) as exc_info:
+            chatbot_instance.generate_personalized_message.__wrapped__(
+                chatbot_instance, "user123", source="unknown"
+            )
+        assert "unknown" in str(exc_info.value)
+        assert exc_info.value.details["source"] == "unknown"
+
+    def test_personalized_message_unsupported_source_returns_safe_default(
+        self, chatbot_instance
+    ):
+        chatbot_instance.lm_studio_available = True
+        result = chatbot_instance.generate_personalized_message(
+            "user123", source="unknown"
+        )
+        assert isinstance(result, str)
+        assert result.strip()
 
     def test_post_process_keeps_first_personalized_block(self, chatbot_instance):
         """Models sometimes return multiple drafts in one reply — keep the first only."""

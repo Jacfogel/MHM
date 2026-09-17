@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-16 19:41:43
+> **Last Generated**: 2026-09-17 12:14:04
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 0
 **Legacy Compatibility Markers Detected**: 0
@@ -17,6 +17,6 @@
 ## Deprecation Inventory
 - Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 1
-- Removed entries: 55
+- Removed entries: 57
 - Active search terms: 0
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)

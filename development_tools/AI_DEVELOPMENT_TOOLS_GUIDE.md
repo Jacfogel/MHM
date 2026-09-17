@@ -298,7 +298,7 @@ File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file(
 
 **Import boundary (Section 8.6 in paired guide)**: No host-package imports inside `development_tools/**` (`constants.local_module_prefixes` except `development_tools`). Use `shared/logging` (`get_dev_tools_logger`), `shared/time_helpers`, `shared/error_helpers`, and `shared/host_hooks.load_host_backup_manager` (config `host.backup_manager_module`; skip when empty). Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `tests/development_tools/test_import_boundary_policy.py`.
 
-**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` (`confcutdir=tests/development_tools`). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini tests/development_tools/`.
+**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` (`confcutdir=tests/development_tools`). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini tests/development_tools/`. CI `logging-enforcement.yml` Tooling Policy Consistency uses the same `-c` / `--confcutdir` flags.
 
 See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for full rules, function-level exclusions, and import-boundary detail.
 

@@ -210,7 +210,11 @@ class DynamicCheckinManager:
         default_return="Please answer this question:",
     )
     def build_next_question_with_response(
-        self, question_key: str, previous_question_key: str, previous_answer: Any
+        self,
+        question_key: str,
+        previous_question_key: str,
+        previous_answer: Any,
+        user_id: str | None = None,
     ) -> str:
         """Build the next question text with a response statement from the previous answer."""
         # Get response statement for the previous answer
@@ -219,7 +223,7 @@ class DynamicCheckinManager:
         )
 
         # Get the next question text
-        question_text = self.get_question_text(question_key)
+        question_text = self.get_question_text(question_key, user_id)
 
         # Build the complete message
         if previous_answer is None:

@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-16 18:42:53
+> **Last Generated**: 2026-09-17 01:11:01
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000056 5EAC:07BC
+Volume serial number is 00000087 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -1328,30 +1328,37 @@ C:.
 |   |   __init__.py
 |   |
 +---website
-|       .assetsignore
-|       app.html
-|       app.js
-|       app.test.mjs
-|       auth.js
-|       index.html
-|       insights.html
-|       insights.js
-|       login.html
-|       messages.html
-|       messages.js
-|       mhm-logo.png
-|       notes.html
-|       notes.js
-|       README.md
-|       script.js
-|       settings.js
-|       styles.css
-|       tasks.html
-|       tasks.js
-|       worker.mjs
-|       worker.test.mjs
-|       wrangler.jsonc
-|
+|   |   .assetsignore
+|   |   app.html
+|   |   app.js
+|   |   app.test.mjs
+|   |   auth.js
+|   |   auth.test.mjs
+|   |   index.html
+|   |   insights.html
+|   |   insights.js
+|   |   login.html
+|   |   messages.html
+|   |   messages.js
+|   |   mhm-logo.png
+|   |   notes.html
+|   |   notes.js
+|   |   README.md
+|   |   script.js
+|   |   settings.js
+|   |   settings.test.mjs
+|   |   styles.css
+|   |   tasks.html
+|   |   tasks.js
+|   |   worker.mjs
+|   |   worker.test.mjs
+|   |   wrangler.jsonc
+|   |
+|   \---.wrangler
+|       +---cache
+|       |       wrangler-account.json
+|       |
+|       \---tmp
 
 ---
 

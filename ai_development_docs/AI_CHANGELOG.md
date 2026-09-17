@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-17 - Categorize remaining personalized-message ValueError raises **COMPLETED**
+- Replaced the last two Phase 2 `ValueError` raises for unsupported personalized-message sources with `ValidationError` in `chatbot.py` and `personalized.py`.
+- Decorated entry points still return the existing safe default; tests cover the inner raise and the fallback path.
+- CI: Tooling Policy Consistency now uses `development_tools/pytest.ini` isolation; the owned-gateway port-release test restarts aiohttp instead of a raw bind that Linux TIME_WAIT rejected.
+- Marked whole-tree policy scanners and the copied-tree `audit --quick` smoke test as `slow` so the quick suite skips them; nightly still runs them.
+
 ### 2026-09-15 - Website self-service expansion **COMPLETED**
 - Added richer profile and phrase settings, personal message-template management, private check-in insights/history, Google Health controls, account connection removal, and a secret-scrubbed data export.
 - Tasks now support templates, links, snooze, skip, and simplify; notebook views include pinned and inbox filters. All operations reuse canonical MHM services and storage.

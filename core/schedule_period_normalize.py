@@ -22,13 +22,17 @@ def create_default_schedule_periods(category: str | None = None) -> dict[str, An
         if category in ("tasks", "checkin"):
             if category == "tasks":
                 default_period_name = "Task Reminder Default"
+                default_start_time, default_end_time = "15:00", "17:00"
             else:
                 default_period_name = "Check-in Reminder Default"
+                default_start_time, default_end_time = "09:30", "11:30"
         else:
             category_display = category.replace("_", " ").title()
             default_period_name = f"{category_display} Message Default"
+            default_start_time, default_end_time = "18:00", "20:00"
     else:
         default_period_name = "Default"
+        default_start_time, default_end_time = "18:00", "20:00"
 
     return {
         "ALL": {
@@ -40,8 +44,8 @@ def create_default_schedule_periods(category: str | None = None) -> dict[str, An
         default_period_name: {
             "active": True,
             "days": ["ALL"],
-            "start_time": "18:00",
-            "end_time": "20:00",
+            "start_time": default_start_time,
+            "end_time": default_end_time,
         },
     }
 

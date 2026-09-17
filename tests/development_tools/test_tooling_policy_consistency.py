@@ -181,6 +181,17 @@ def _collect_direct_core_imports(project_root: Path) -> list[str]:
 
 
 @pytest.mark.unit
+def test_github_tooling_policy_job_uses_tools_pytest_ini():
+    project_root = Path(__file__).resolve().parents[2]
+    workflow = (
+        project_root / ".github" / "workflows" / "logging-enforcement.yml"
+    ).read_text(encoding="utf-8")
+    assert "-c development_tools/pytest.ini" in workflow
+    assert "--rootdir=." in workflow
+    assert "--confcutdir=tests/development_tools" in workflow
+
+
+@pytest.mark.unit
 def test_cli_alias_policy_rules():
     cli_module = load_development_tools_module("shared.cli_interface")
     command_flags = _build_command_flag_inventory(cli_module)
@@ -208,6 +219,7 @@ def test_scanner_exclusion_policy_consistency():
 
 
 @pytest.mark.unit
+@pytest.mark.slow
 def test_dev_tools_has_no_direct_core_imports():
     project_root = Path(__file__).resolve().parents[2]
     violations = _collect_direct_core_imports(project_root)

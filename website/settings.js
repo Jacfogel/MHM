@@ -1,7 +1,23 @@
+const MHMSettingsInput = Object.freeze({
+  profileEntries(value) {
+    return value.split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
+  },
+  openPicker(input) {
+    if (typeof input.showPicker !== 'function' || input.disabled || input.readOnly) return;
+    try { input.showPicker(); } catch (_) { /* The browser's native picker remains available. */ }
+  },
+  bindPicker(input) {
+    input.addEventListener('pointerdown', event => {
+      if (typeof event.button === 'number' && event.button !== 0) return;
+      MHMSettingsInput.openPicker(input);
+    });
+  },
+});
+
 (() => {
   const titles = { profile: 'Profile', delivery: 'Delivery', phrases: 'Phrases', messages: 'Messages', tasks: 'Tasks', checkins: 'Check-ins' };
   const descriptions = {
-    profile: 'Tell MHM a little about you. Use one entry per line in each list.',
+    profile: 'Tell MHM a little about you. Separate entries with a new line, comma, or semicolon.',
     delivery: 'Choose where your support arrives and the time zone for your reminders.',
     phrases: 'Choose how MHM interprets everyday time phrases when you create tasks or reminders.',
     messages: 'Choose the encouragement you want and when it can reach you.',
@@ -9,6 +25,11 @@
     checkins: 'Choose when to check in and which questions to include.',
   };
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const categoryLabels = {
+    personalized_checkin: 'Personalized from check-ins',
+    personalized_google_health: 'Personalized from Google Health',
+    personalized_profile: 'Personalized from your profile',
+  };
   const status = document.getElementById('settings-status');
   const retry = document.getElementById('settings-retry');
   const forms = {};
@@ -31,6 +52,9 @@
     if (kind !== 'textarea') input.type = kind;
     if (kind === 'checkbox') input.checked = !!value;
     else input.value = value ?? '';
+    if (kind === 'date' || kind === 'time') {
+      MHMSettingsInput.bindPicker(input);
+    }
     if (kind === 'checkbox') { wrapper.classList.add('settings-toggle'); wrapper.append(input, label); }
     else wrapper.append(label, input);
     parent.append(wrapper);
@@ -45,7 +69,63 @@
     parent.append(wrapper);
     return input;
   }
-  function lines(input) { return input.value.split('\n').map(line => line.trim()).filter(Boolean); }
+  function lines(input) { return MHMSettingsInput.profileEntries(input.value); }
+
+  function featureDetails(form, enabled, title) {
+    const details = el('fieldset', null, { className: 'settings-feature-details' });
+    details.append(el('legend', `${title} details`, { className: 'feature-details-legend' }));
+    const update = () => {
+      details.disabled = !enabled.checked;
+      details.classList.toggle('is-disabled', !enabled.checked);
+    };
+    enabled.addEventListener('change', update);
+    update();
+    form.append(details);
+    return details;
+  }
+
+  function customQuestionEditor(parent, initial, states) {
+    const group = el('fieldset', null, { className: 'custom-question-editor' });
+    group.append(el('legend', 'Custom questions'));
+    group.append(el('p', 'Add questions that fit your own routines. Custom questions can use text, yes/no, or a 1–5 scale.', { className: 'field-hint' }));
+    const rows = el('div');
+    const controls = [];
+    function add(key, definition, state = 'off') {
+      const row = el('div', null, { className: 'custom-question-row' });
+      const text = field(row, 'Question', `${key}-text`, 'text', definition.question_text, { required: '', maxlength: '300' });
+      const type = select(row, 'Answer type', `${key}-type`, [['optional_text', 'Text'], ['yes_no', 'Yes or no'], ['scale_1_5', '1–5 scale']], definition.type || 'optional_text');
+      const frequency = select(row, 'Include', `${key}-frequency`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], state);
+      const remove = el('button', 'Remove question', { type: 'button', className: 'plain-button danger-button' });
+      const control = { key, row, text, type, frequency };
+      remove.addEventListener('click', () => {
+        controls.splice(controls.indexOf(control), 1);
+        row.remove();
+        parent.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      row.append(remove);
+      controls.push(control);
+      rows.append(row);
+    }
+    for (const [key, definition] of Object.entries(initial)) add(key, definition, states[key] || 'sometimes');
+    const button = el('button', '+ Add custom question', { type: 'button', className: 'plain-button' });
+    button.addEventListener('click', () => {
+      if (controls.length >= 20) return;
+      const key = `custom_${crypto.randomUUID().replaceAll('-', '')}`;
+      add(key, { question_text: '', type: 'optional_text' }, 'off');
+      parent.dispatchEvent(new Event('input', { bubbles: true }));
+      controls.at(-1).text.focus();
+    });
+    group.append(rows, button);
+    parent.append(group);
+    return {
+      read() {
+        return {
+          customQuestions: Object.fromEntries(controls.map(item => [item.key, { question_text: item.text.value.trim(), type: item.type.value }])),
+          states: Object.fromEntries(controls.map(item => [item.key, item.frequency.value])),
+        };
+      },
+    };
+  }
 
   function periodEditor(parent, category, initial) {
     const group = el('fieldset', null, { className: 'period-editor' });
@@ -77,7 +157,12 @@
     const button = el('button', '+ Add reminder window', { type: 'button', className: 'plain-button' });
     button.addEventListener('click', () => {
       if (controls.length >= 20) return;
-      add(`Window ${controls.length + 1}`, { start_time: '18:00', end_time: '20:00', active: true, days: ['ALL'] });
+      const defaults = category === 'tasks'
+        ? { start_time: '15:00', end_time: '17:00' }
+        : category === 'checkin'
+          ? { start_time: '09:30', end_time: '11:30' }
+          : { start_time: '18:00', end_time: '20:00' };
+      add(`Window ${controls.length + 1}`, { ...defaults, active: true, days: ['ALL'] });
       parent.dispatchEvent(new Event('input', { bubbles: true }));
     });
     group.append(rows, button);
@@ -161,14 +246,15 @@
       });
     } else {
       const enabled = field(form, `Enable ${titles[section].toLowerCase()}`, `enabled-${section}`, 'checkbox', values.enabled);
+      const details = featureDetails(form, enabled, titles[section]);
       if (section === 'messages') {
         const choices = el('fieldset', null, { className: 'category-picker' });
         choices.append(el('legend', 'Message categories'));
         const editors = {};
-        const inputs = data.options.categories.map(category => [category, field(choices, category.replaceAll('_', ' '), `category-${category}`, 'checkbox', values.categories.includes(category))]);
-        form.append(choices);
+        const inputs = data.options.categories.map(category => [category, field(choices, categoryLabels[category] || category.replaceAll('_', ' '), `category-${category}`, 'checkbox', values.categories.includes(category))]);
+        details.append(choices);
         for (const [category, input] of inputs) {
-          const editor = periodEditor(form, category, values.periods[category] || data.available_message_periods[category]);
+          const editor = periodEditor(details, category, values.periods[category] || data.available_message_periods[category]);
           editors[category] = editor;
           editor.group.hidden = !input.checked;
           editor.group.disabled = !input.checked;
@@ -179,21 +265,27 @@
           return { enabled: enabled.checked, categories, periods: Object.fromEntries(categories.map(category => [category, editors[category].read()])) };
         };
       } else {
-        const periods = periodEditor(form, section === 'tasks' ? 'tasks' : 'checkin', values.periods);
+        const periods = periodEditor(details, section === 'tasks' ? 'tasks' : 'checkin', values.periods);
         if (section === 'tasks') {
-          const pattern = select(form, 'Default repeat pattern for new tasks', 'recurrence-pattern', [['', 'One-time task'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']], values.recurring.default_recurrence_pattern);
-          const interval = field(form, 'Repeat every (interval)', 'recurrence-interval', 'number', values.recurring.default_recurrence_interval, { min: '1', max: '365', required: '' });
-          const after = field(form, 'Count the next repeat from completion', 'repeat-after', 'checkbox', values.recurring.default_repeat_after_completion);
-          form.append(el('p', 'These defaults apply to new tasks. Existing tasks keep their own repeat settings.', { className: 'field-hint' }));
+          const pattern = select(details, 'Default repeat pattern for new tasks', 'recurrence-pattern', [['', 'One-time task'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']], values.recurring.default_recurrence_pattern);
+          const interval = field(details, 'Repeat every (interval)', 'recurrence-interval', 'number', values.recurring.default_recurrence_interval, { min: '1', max: '365', required: '' });
+          const after = field(details, 'Count the next repeat from completion', 'repeat-after', 'checkbox', values.recurring.default_repeat_after_completion);
+          details.append(el('p', 'These defaults apply to new tasks. Existing tasks keep their own repeat settings.', { className: 'field-hint' }));
           read = () => ({ enabled: enabled.checked, periods: periods.read(), recurring: { default_recurrence_pattern: pattern.value || null, default_recurrence_interval: Number(interval.value), default_repeat_after_completion: after.checked } });
         } else {
           const questions = {};
-          for (const [key, label] of Object.entries(data.options.questions)) questions[key] = select(form, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], values.questions[key]);
+          for (const [key, label] of Object.entries(data.options.questions)) {
+            if (!Object.hasOwn(values.custom_questions, key)) questions[key] = select(details, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], values.questions[key]);
+          }
+          const custom = customQuestionEditor(details, values.custom_questions, values.questions);
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
           const maximum = field(counts, 'Maximum questions', 'max-questions', 'number', values.max_questions, { min: '1', max: '100', required: '' });
-          form.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the maximum must leave at least one out so check-ins can vary.', { className: 'field-hint' }));
-          read = () => ({ enabled: enabled.checked, periods: periods.read(), questions: Object.fromEntries(Object.entries(questions).map(([key, input]) => [key, input.value])), min_questions: Number(minimum.value), max_questions: Number(maximum.value) });
+          details.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the maximum must leave at least one out so check-ins can vary.', { className: 'field-hint' }));
+          read = () => {
+            const customValues = custom.read();
+            return { enabled: enabled.checked, periods: periods.read(), questions: { ...Object.fromEntries(Object.entries(questions).map(([key, input]) => [key, input.value])), ...customValues.states }, custom_questions: customValues.customQuestions, min_questions: Number(minimum.value), max_questions: Number(maximum.value) };
+          };
         }
       }
     }
@@ -230,6 +322,13 @@
         form.dataset.dirty = 'false';
         feedback.textContent = 'Changes saved';
         if (section === 'delivery') document.getElementById('account-timezone').textContent = latest.sections.delivery.timezone;
+        if (section === 'checkins' && forms.messages?.dataset.dirty === 'false') {
+          const currentMessages = forms.messages;
+          const replacement = renderSection('messages', latest);
+          replacement.hidden = currentMessages.hidden;
+          currentMessages.replaceWith(replacement);
+          forms.messages = replacement;
+        }
         reload.hidden = true;
       } catch (error) {
         feedback.textContent = error.message;

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-16 18:41:32
+> **Last Generated**: 2026-09-17 01:09:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.2% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2747
+- **Functions Found**: 2753
 - **Methods Found**: 1419
 - **Classes Found**: 264
-- **Total Items**: 4166
-- **Functions Documented**: 2444
+- **Total Items**: 4172
+- **Functions Documented**: 2450
 - **Methods Documented**: 1274
 - **Classes Documented**: 198
-- **Total Documented**: 3718
+- **Total Documented**: 3724
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-16
+- **Last Updated**: 2026-09-17
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (527)
+### **Core System Functions** (531)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (707)
@@ -1030,7 +1030,7 @@ Supports either:
 - Single window: "11:30 PM and 7:00 AM"
 - Interrupted chunks (up to 3):
   "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
-- [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+- [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer, user_id)` - Build the next question text with a response statement from the previous answer.
 - [OK] `delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
 - [OK] `get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
 
@@ -1078,7 +1078,7 @@ Supports either:
 - Single window: "11:30 PM and 7:00 AM"
 - Interrupted chunks (up to 3):
   "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
-  - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+  - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer, user_id)` - Build the next question text with a response statement from the previous answer.
   - [OK] `DynamicCheckinManager.delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
   - [OK] `DynamicCheckinManager.get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
 
@@ -2464,7 +2464,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using check-in context and optional health guidance.
+- [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -2542,7 +2542,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using check-in context and optional health guidance.
+  - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -4043,9 +4043,9 @@ Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
 - [OK] `_format_rounded_steps(steps)` - Return '~2,400 steps' or empty when unavailable.
 - [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
 - [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour.
-- [OK] `build_personalized_wellness_context(user_id)` - Compact wellness context for scheduled personalized messages.
-
-Google Health signals take priority; stale check-ins are excluded.
+- [OK] `build_personalized_checkin_context(user_id)` - Build scheduled-message context from recent check-ins only.
+- [OK] `build_personalized_google_health_context(user_id)` - Build scheduled-message context from Google Health signals only.
+- [OK] `build_personalized_profile_context(user_id)` - Build scheduled-message context from non-medical profile preferences.
 - [OK] `build_recent_health_patterns(user_id)` - Return 'Recent wellness patterns: ...' for scheduled messages and chat.
 
 Includes rounded sleep/steps/active minutes and multi-day streaks when
@@ -4728,8 +4728,8 @@ Call from service entry points (``MHMService`` construction / ``start()``) inste
 - [OK] `initialize_paths(self)` - Initialize and verify required file paths for the service.
 
 Includes log files, user data directories, and on-disk message library
-files. AI-generated categories such as personalized have no library file
-and are skipped.
+files. Source-specific personalized categories are AI-generated and have
+no library file, so they are skipped.
 
 Returns:
     List[str]: List of all initialized file paths
@@ -4784,8 +4784,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService.initialize_paths(self)` - Initialize and verify required file paths for the service.
 
 Includes log files, user data directories, and on-disk message library
-files. AI-generated categories such as personalized have no library file
-and are skipped.
+files. Source-specific personalized categories are AI-generated and have
+no library file, so they are skipped.
 
 Returns:
     List[str]: List of all initialized file paths
@@ -5133,6 +5133,8 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_user_settings.py`
 **Functions:**
+- [OK] `_available_message_categories(options, features)` - Return categories supported by the user's currently enabled data sources.
+- [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
 - [OK] `flag(key)` - Apply a validated website feature flag to the account document.
 - [OK] `periods(category)` - Return editable named periods for one schedule category.
@@ -5471,6 +5473,7 @@ Allows for either a comma-separated string or a JSON array.
 
 Returns:
     List[str]: List of message categories
+- [OK] `get_personalized_message_source(category)` - Return the context source for an AI-generated message category.
 - [OK] `get_recent_messages(user_id, category, limit, days_back)` - Get recent messages with flexible filtering.
 
 This function replaces get_last_10_messages() with enhanced functionality
@@ -5493,6 +5496,7 @@ Returns:
     float: Timestamp as float for sorting, or 0.0 for invalid items
 - [OK] `is_ai_generated_message_category(category)` - Return True when category content is generated by AI, not loaded from a library.
 - [OK] `is_automated_messages_enabled(user_id)` - Check if automated outbound messages are enabled for a user.
+- [OK] `is_personalized_message_category_available(user_id, category)` - Return whether the saved feature state still permits a personalized source.
 - [OK] `load_default_messages(category)` - Load default messages for a specific category.
 - [OK] `load_user_messages(user_id, category)` - Load user's message templates for a specific category.
 

@@ -284,7 +284,25 @@ async def test_creation_waits_for_verified_email(gateway):
     assert accounts.email_exists("brook@example.com")
     assert accounts.users["new-1"]["password_hash"].startswith("$mhm$scrypt$")
     assert "a secure password phrase" not in accounts.users["new-1"]["password_hash"]
-    assert (await (await client.get("/api/account")).json())["preferred_name"] == "Brook"
+    account = await (await client.get("/api/account")).json()
+    assert account["preferred_name"] == "Brook"
+    assert account["password_change_requires_current"] is True
+    replacement = "a replacement password phrase"
+    missing_current = await client.post(
+        "/api/auth/password/setup",
+        json={"password": replacement},
+        headers={"Origin": ORIGIN},
+    )
+    assert missing_current.status == 401
+    changed = await client.post(
+        "/api/auth/password/setup",
+        json={
+            "current_password": "a secure password phrase",
+            "password": replacement,
+        },
+        headers={"Origin": ORIGIN},
+    )
+    assert changed.status == 200
 
 
 async def test_password_login_and_authenticated_password_setup(gateway):
@@ -675,6 +693,7 @@ async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatc
 
     monkeypatch.setattr(service.config, "DISCORD_APPLICATION_ID", 123456789)
     monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "DISCORD_OAUTH_REDIRECT_URI", "")
     identity_calls = []
 
     async def discord_identity(code, **kwargs):

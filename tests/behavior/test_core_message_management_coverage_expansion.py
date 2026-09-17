@@ -12,7 +12,9 @@ from unittest.mock import patch
 from messages.message_data_manager import (
     ensure_user_message_files,
     get_message_categories,
+    get_personalized_message_source,
     is_ai_generated_message_category,
+    is_personalized_message_category_available,
     load_default_messages,
     _parse_message_timestamp,
     get_timestamp_for_sorting,
@@ -122,15 +124,50 @@ class TestCoreMessageManagementCoverageExpansion:
     @pytest.mark.behavior
     def test_is_ai_generated_message_category_real_behavior(self):
         """Test AI-generated category detection."""
-        assert is_ai_generated_message_category("personalized") is True
+        assert is_ai_generated_message_category("personalized_checkin") is True
+        assert is_ai_generated_message_category("personalized_google_health") is True
+        assert is_ai_generated_message_category("personalized_profile") is True
         assert is_ai_generated_message_category("motivational") is False
         assert is_ai_generated_message_category("ai_personalized") is False
+
+    @pytest.mark.behavior
+    def test_personalized_message_categories_map_to_distinct_sources(self):
+        assert get_personalized_message_source("personalized_checkin") == "checkin"
+        assert (
+            get_personalized_message_source("personalized_google_health")
+            == "google_health"
+        )
+        assert get_personalized_message_source("personalized_profile") == "profile"
+        assert get_personalized_message_source("motivational") is None
+
+    @pytest.mark.behavior
+    def test_personalized_source_availability_follows_feature_state(self):
+        with patch(
+            "core.get_user_data",
+            return_value={
+                "account": {
+                    "features": {
+                        "checkins": "enabled",
+                        "google_health": "disabled",
+                    }
+                }
+            },
+        ):
+            assert is_personalized_message_category_available(
+                "user-1", "personalized_checkin"
+            )
+            assert not is_personalized_message_category_available(
+                "user-1", "personalized_google_health"
+            )
+            assert is_personalized_message_category_available(
+                "user-1", "personalized_profile"
+            )
 
     @pytest.mark.behavior
     def test_ensure_user_message_files_skips_ai_generated_category(self, test_data_dir):
         """AI-generated categories do not require a message library file."""
         user_id = "test-user-ai-category"
-        categories = ["motivational", "personalized"]
+        categories = ["motivational", "personalized_checkin"]
 
         with patch(
             "messages.message_data_manager.create_message_file_from_defaults",

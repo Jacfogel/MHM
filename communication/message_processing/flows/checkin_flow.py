@@ -176,7 +176,7 @@ class CheckinFlowMixin(FlowStateMixin):
 
                 # Build the question with response statement
                 return dynamic_checkin_manager.build_next_question_with_response(
-                    question_key, last_question, last_answer
+                    question_key, last_question, last_answer, user_id
                 )
 
         return question_text
@@ -192,7 +192,7 @@ class CheckinFlowMixin(FlowStateMixin):
         )
         if not question_order:
             return None
-        return self._get_question_text(question_order[0], {})
+        return self._get_question_text(question_order[0], {}, user_id)
 
     @handle_errors(
         "handling checkin",

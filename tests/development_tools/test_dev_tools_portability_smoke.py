@@ -261,6 +261,7 @@ def test_ruff_empty_shards_uses_monolithic_scan_on_external_project(tmp_path, mo
 
 
 @pytest.mark.unit
+@pytest.mark.slow
 def test_copied_devtools_cli_audit_quick_succeeds_on_external_project(tmp_path):
     """B-004: subprocess ``audit --quick`` against a copied tree with a host package."""
     _copy_development_tools_tree(tmp_path, with_host_package=True)

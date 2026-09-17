@@ -3,7 +3,7 @@
 import pytest
 
 
-pytestmark = [pytest.mark.user]
+pytestmark = [pytest.mark.user, pytest.mark.slow]
 
 @pytest.mark.unit
 @pytest.mark.user

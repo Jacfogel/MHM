@@ -1,5 +1,6 @@
 const creating = new URLSearchParams(location.search).get('mode') === 'create';
 const socialResult = new URLSearchParams(location.search).get('social');
+const discordResult = new URLSearchParams(location.search).get('discord');
 const status = document.getElementById('auth-status');
 const entry = document.getElementById('entry-step');
 const verification = document.getElementById('verify-step');
@@ -33,6 +34,9 @@ const socialMessages = {
 if (socialResult && socialMessages[socialResult]) {
   status.textContent = socialMessages[socialResult];
   status.classList.toggle('is-error', socialResult !== 'cancelled');
+} else if (discordResult === 'expired') {
+  status.textContent = 'Your Discord connection attempt expired because your sign-in session changed. Log in and connect Discord again.';
+  status.classList.add('is-error');
 }
 
 async function api(path, data) {
@@ -114,14 +118,6 @@ document.getElementById('verify-form').addEventListener('submit', (event) => {
     const payload = { challenge, code: document.getElementById('code').value.trim() };
     if (creating) payload.password = password.value;
     await api('/api/auth/verify', payload);
-    if (creating) {
-      try {
-        const connection = await api('/api/auth/discord/start');
-        if (connection.url) { location.assign(connection.url); return; }
-      } catch (_) {
-        // Account creation still succeeds when Discord OAuth is not configured.
-      }
-    }
     location.assign('app.html');
   });
 });

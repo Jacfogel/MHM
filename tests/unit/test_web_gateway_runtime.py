@@ -34,8 +34,20 @@ def test_owned_gateway_lifecycle_and_port_release():
     assert runtime._thread is not None
     assert not runtime._thread.is_alive()
     runtime.stop()
-    with socket.socket() as released:
-        released.bind(("127.0.0.1", runtime.bound_port))
+    released_port = runtime.bound_port
+    # Linux keeps the accepted urlopen connection in TIME_WAIT. A raw bind
+    # without SO_REUSEADDR then fails with EADDRINUSE even though the listening
+    # socket is gone. aiohttp sets reuse_address on POSIX, which is the real
+    # restart path after MHM releases the gateway.
+    successor = WebGatewayRuntime(
+        host="127.0.0.1", port=released_port, app_factory=app_factory
+    )
+    try:
+        assert successor.start(), successor.error
+        with urlopen(f"http://127.0.0.1:{released_port}/", timeout=3) as response:
+            assert response.read() == b"owned gateway"
+    finally:
+        successor.stop()
 
 
 def test_port_collision_does_not_interrupt_existing_server():

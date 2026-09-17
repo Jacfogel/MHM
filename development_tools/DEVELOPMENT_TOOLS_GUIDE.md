@@ -610,7 +610,7 @@ python -m pytest -c development_tools/pytest.ini tests/development_tools/
 python run_tests.py --mode development_tools
 ```
 
-Tier 3 (`development_tools/tests/run_test_suite.py`) and tools coverage use the same isolation flags. Test files still live under `tests/development_tools/` until a later move with the package.
+Tier 3 (`development_tools/tests/run_test_suite.py`), tools coverage, and GitHub `logging-enforcement.yml` Tooling Policy Consistency use the same isolation flags. Test files still live under `tests/development_tools/` until a later move with the package.
 
 ---
 

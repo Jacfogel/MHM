@@ -46,9 +46,10 @@ ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts choose a password and are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
-Users can configure these on their signed-in settings page. When Discord OAuth is configured,
-new accounts are sent through Discord immediately after email verification; the account page
-also has a Connect Discord button for existing accounts. The gateway exchanges the one-time
+Users can configure these on their signed-in settings page. Account creation completes without
+requiring a communication channel connection. Email is available immediately, Discord can be
+connected optionally from the account page, and SMS can be added as another channel later.
+The gateway exchanges the one-time
 authorization code server-side, verifies the Discord identity, and stores only the Discord ID
 and username in the existing MHM account. A Discord account already linked to another MHM
 account is rejected. The bot's existing “Link account” flow remains available as a fallback.
@@ -167,7 +168,7 @@ return to login; request failures allow retrying logout.
 
 ```powershell
 python -m pytest tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_gateway_runtime.py -q
-node --test website/worker.test.mjs website/app.test.mjs
+node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/settings.test.mjs
 ```
 
 Tests inject isolated account and email adapters; they do not send real email or

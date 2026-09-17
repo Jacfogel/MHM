@@ -231,7 +231,7 @@ See [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
 
 Defines the enabled categories list (comma-separated).  
 Standard categories (`motivational`, `health`, `quotes_to_ponder`, `word_of_the_day`, `fun_facts`) use pre-written message libraries under `data/users/{user_id}/messages/`.  
-`personalized` is AI-generated at send time (profile, check-ins, tasks, optional Google Health tone hints) and does not use a message library file.  
+`personalized_checkin`, `personalized_google_health`, and `personalized_profile` are AI-generated at send time from their named source and do not use message library files.
 **Breaks if wrong:** categories vanish, message loading does not match expectations, or UI lists are incomplete.
 
 ---

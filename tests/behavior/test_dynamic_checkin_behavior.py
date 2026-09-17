@@ -4,6 +4,7 @@ Tests the new dynamic question and response system.
 """
 
 import pytest
+from unittest.mock import patch
 
 from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 from communication.message_processing.conversation_flow_manager import conversation_manager
@@ -125,6 +126,28 @@ class TestDynamicCheckinManager:
         # Should just be the question text
         assert 'How are you feeling today' in question_text
         assert '\n\n' not in question_text
+
+    def test_build_next_custom_question_uses_the_users_definition(self):
+        custom = {
+            "question_text": "Did you spend time outside?",
+            "type": "yes_no",
+        }
+        with patch.object(
+            dynamic_checkin_manager,
+            "get_question_definition",
+            return_value=custom,
+        ) as definition:
+            question_text = dynamic_checkin_manager.build_next_question_with_response(
+                "custom_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "none",
+                None,
+                "user-1",
+            )
+
+        assert question_text == "Did you spend time outside?"
+        definition.assert_called_once_with(
+            "custom_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "user-1"
+        )
     
     def test_ui_questions_format(self):
         """Test that questions are formatted correctly for UI."""

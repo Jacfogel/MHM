@@ -283,9 +283,9 @@ def test_latest_usable_signal_falls_back_when_today_missing(test_data_dir):
 
 @pytest.mark.unit
 @pytest.mark.user
-def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
+def test_personalized_google_health_context_uses_coarse_health(test_data_dir):
     from core import update_user_account
-    from core.health_context_builder import build_personalized_wellness_context
+    from core.health_context_builder import build_personalized_google_health_context
     from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
     user_id = "health-personalized-context-user"
@@ -320,7 +320,7 @@ def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
 
     fixed_now = datetime.strptime("2026-06-30 11:44:00", "%Y-%m-%d %H:%M:%S")
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
-        context = build_personalized_wellness_context(user_id)
+        context = build_personalized_google_health_context(user_id)
 
     assert "~10 hours of sleep" in context
     assert "~1,800 steps" in context
@@ -335,3 +335,54 @@ def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
     assert "Recent check-ins" not in context
     assert "%" not in context
     assert "90" not in context
+
+
+@pytest.mark.unit
+@pytest.mark.user
+def test_personalized_context_builders_keep_sources_separate():
+    from core.health_context_builder import (
+        build_personalized_checkin_context,
+        build_personalized_google_health_context,
+        build_personalized_profile_context,
+    )
+
+    with patch(
+        "checkins.checkin_data_manager.get_checkins_by_days",
+        return_value=[{"submitted_at": "2026-09-16 09:00:00", "mood": 4}],
+    ):
+        checkin = build_personalized_checkin_context("source-test")
+    assert "Recent check-ins" in checkin
+    assert "mood=4" in checkin
+    assert "wellness patterns" not in checkin
+
+    with (
+        patch(
+            "core.health_context_builder.build_recent_health_patterns",
+            return_value="Recent wellness patterns: sleep looked solid.",
+        ),
+        patch(
+            "core.health_context_builder.build_safe_health_guidance_summary",
+            return_value="Use a gentle tone.",
+        ),
+    ):
+        health = build_personalized_google_health_context("source-test")
+    assert health == "Recent wellness patterns: sleep looked solid. Use a gentle tone."
+    assert "check-in" not in health.lower()
+
+    with patch(
+        "core.get_user_data",
+        return_value={
+            "context": {
+                "preferred_name": "River",
+                "interests": ["gardening"],
+                "goals": ["rest"],
+                "custom_fields": {"health_conditions": ["private diagnosis"]},
+            }
+        },
+    ):
+        profile = build_personalized_profile_context("source-test")
+    assert "Preferred name: River" in profile
+    assert "Interests: gardening" in profile
+    assert "Goals: rest" in profile
+    assert "private diagnosis" not in profile
+    assert "check-in" not in profile.lower()

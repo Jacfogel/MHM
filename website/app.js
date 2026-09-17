@@ -76,7 +76,8 @@ async function loadAccount() {
       : discordResult === 'cancelled' ? 'Discord connection was canceled. You can try again whenever you are ready.'
       : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
         : discordResult === 'account-linked' ? 'This MHM account already has a different Discord account connected.'
-          : discordResult === 'error' ? 'Discord could not be connected. Please try again.' : '';
+          : discordResult === 'unavailable' ? 'Discord connection is not configured right now. Please ask your MHM administrator for help.'
+            : discordResult === 'error' ? 'Discord could not be connected. This can happen when that Discord account is already linked to another MHM account. Disconnect it from the other account first, or try again; if it still fails, ask your MHM administrator for help.' : '';
   } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
 }
 async function disconnectProvider(provider, button) {

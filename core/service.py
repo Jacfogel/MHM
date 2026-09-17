@@ -156,8 +156,8 @@ class MHMService:
         Initialize and verify required file paths for the service.
 
         Includes log files, user data directories, and on-disk message library
-        files. AI-generated categories such as personalized have no library file
-        and are skipped.
+        files. Source-specific personalized categories are AI-generated and have
+        no library file, so they are skipped.
 
         Returns:
             List[str]: List of all initialized file paths

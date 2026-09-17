@@ -74,4 +74,4 @@ jobs:
         run: python -m pip install pytest python-dotenv
 
       - name: Run tooling policy consistency tests
-        run: python -m pytest tests/development_tools/test_tooling_policy_consistency.py -q
+        run: python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/test_tooling_policy_consistency.py -q

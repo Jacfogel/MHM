@@ -224,7 +224,11 @@ class TestCoreServiceCoverageExpansion:
             mock_get_users.return_value = ["user1"]
             mock_get_data.return_value = {
                 "preferences": {
-                    "categories": ["motivational", "personalized", "health"]
+                    "categories": [
+                        "motivational",
+                        "personalized_checkin",
+                        "health",
+                    ]
                 }
             }
             mock_get_dir.return_value = str(Path("users") / "user1")
@@ -233,13 +237,15 @@ class TestCoreServiceCoverageExpansion:
 
             assert any(path.endswith("motivational.json") for path in paths)
             assert any(path.endswith("health.json") for path in paths)
-            assert not any(path.endswith("personalized.json") for path in paths)
+            assert not any(
+                path.endswith("personalized_checkin.json") for path in paths
+            )
 
     @pytest.mark.behavior
-    def test_startup_file_check_allows_missing_personalized_library(
+    def test_startup_file_check_allows_missing_personalized_checkin_library(
         self, service, temp_base_dir
     ):
-        """Missing personalized.json is expected; startup must not treat it as a hard error."""
+        """AI-generated personalized categories require no message library file."""
         from core.file_operations import verify_file_access
 
         user_id = "user1"
@@ -255,7 +261,9 @@ class TestCoreServiceCoverageExpansion:
             patch(
                 "core.service.get_user_data",
                 return_value={
-                    "preferences": {"categories": ["motivational", "personalized"]}
+                    "preferences": {
+                        "categories": ["motivational", "personalized_checkin"]
+                    }
                 },
             ),
             patch("core.config.get_user_data_dir", return_value=str(user_dir)),
@@ -263,7 +271,7 @@ class TestCoreServiceCoverageExpansion:
             patch("core.config.USER_INFO_DIR_PATH", str(temp_base_dir)),
         ):
             paths = service.initialize_paths()
-            assert not (messages_dir / "personalized.json").exists()
+            assert not (messages_dir / "personalized_checkin.json").exists()
             assert verify_file_access(paths) is True
 
     @pytest.mark.behavior

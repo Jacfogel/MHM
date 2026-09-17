@@ -1007,7 +1007,8 @@ def create_web_app(
                 )
             del challenges[token]
         response = web.json_response({"ok": True})
-        return start_session(uid, challenge.email, response, auth_method="email_code")
+        auth_method = "password" if challenge.mode == "create" else "email_code"
+        return start_session(uid, challenge.email, response, auth_method=auth_method)
 
     # ERROR_HANDLING_EXCLUDE: Authentication failures are HTTP responses by design.
     async def authenticated_account(request):
@@ -1372,7 +1373,7 @@ def create_web_app(
         except web.HTTPUnauthorized:
             return web.HTTPFound(website_redirect("/login.html", discord="expired"))
         except Exception:
-            logger.error("Website Discord connection failed")
+            logger.error("Website Discord connection failed", exc_info=True)
             return web.HTTPFound(website_redirect("/app.html", discord="error"))
         return web.HTTPFound(website_redirect("/app.html", discord="connected"))
 

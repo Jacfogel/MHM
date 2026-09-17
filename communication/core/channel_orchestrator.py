@@ -1110,14 +1110,32 @@ class CommunicationManager:
         # Handle AI-generated messages and track if message was actually sent
         message_sent = False
         sent_message_content = None
-        from messages.message_data_manager import is_ai_generated_message_category
+        from messages.message_data_manager import (
+            get_personalized_message_source,
+            is_ai_generated_message_category,
+            is_personalized_message_category_available,
+        )
 
         if is_ai_generated_message_category(category):
+            if not is_personalized_message_category_available(user_id, category):
+                logger.info(
+                    "Skipping personalized message because its data source is disabled",
+                    extra={"user_id": user_id, "category": category},
+                )
+                return MessageSendResult.skipped(user_id, category)
+            source = get_personalized_message_source(category)
+            if source is None:
+                logger.error(
+                    "AI-generated message category has no context source",
+                    extra={"user_id": user_id, "category": category},
+                )
+                return MessageSendResult.failed(user_id, category)
             message_sent, sent_message_content = self._send_ai_generated_message(
                 user_id,
                 category,
                 messaging_service,
                 recipient,
+                source=source,
                 skip_ai_cache=skip_ai_cache,
             )
         else:
@@ -1201,10 +1219,11 @@ class CommunicationManager:
         messaging_service: str,
         recipient: str,
         *,
+        source: str,
         skip_ai_cache: bool = False,
     ) -> tuple[bool, str | None]:
         """
-        Send an AI-generated personalized message using check-in context and optional health guidance.
+        Send an AI-generated personalized message using one explicit data source.
 
         Returns:
             tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -1219,12 +1238,15 @@ class CommunicationManager:
 
             ai_bot = get_ai_chatbot()
 
-            guidance = get_message_guidance(user_id)
-            prefix = build_scheduled_message_context_prefix(guidance)
+            prefix = None
+            if source == "google_health":
+                guidance = get_message_guidance(user_id)
+                prefix = build_scheduled_message_context_prefix(guidance) or None
             message_to_send = ai_bot.generate_personalized_message(
                 user_id,
                 timeout=AI_PERSONALIZED_MESSAGE_TIMEOUT,
-                prompt_prefix=prefix or None,
+                source=source,
+                prompt_prefix=prefix,
                 skip_cache=skip_ai_cache,
             )
 

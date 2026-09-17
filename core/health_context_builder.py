@@ -541,45 +541,59 @@ def build_recent_health_patterns(user_id: str) -> str:
 
 
 @handle_errors("building personalized wellness context", default_return="")
-def build_personalized_wellness_context(user_id: str) -> str:
-    """
-    Compact wellness context for scheduled personalized messages.
-
-    Google Health signals take priority; stale check-ins are excluded.
-    """
+def build_personalized_checkin_context(user_id: str) -> str:
+    """Build scheduled-message context from recent check-ins only."""
     from checkins.checkin_data_manager import get_checkins_by_days
 
-    sections: list[str] = []
-    health_signal = None
-    if is_personalization_active(user_id):
-        health_signal = resolve_active_health_signal(user_id)
-        patterns = build_recent_health_patterns(user_id)
-        if patterns:
-            sections.append(patterns)
-
-    health_summary = build_safe_health_guidance_summary(user_id)
-    if health_summary:
-        sections.append(health_summary)
-
-    health_is_primary = bool(
-        health_signal and health_signal.get("confidence") in ("medium", "high")
+    recent_checkins = get_checkins_by_days(
+        user_id, days=PERSONALIZED_CHECKIN_LOOKBACK_DAYS
     )
-    if not health_is_primary:
-        recent_checkins = get_checkins_by_days(
-            user_id, days=PERSONALIZED_CHECKIN_LOOKBACK_DAYS
+    formatted = [
+        line
+        for line in (
+            _format_checkin_entry_for_prompt(entry) for entry in recent_checkins
         )
-        if recent_checkins:
-            formatted = [
-                line
-                for line in (
-                    _format_checkin_entry_for_prompt(entry) for entry in recent_checkins
-                )
-                if line
-            ]
-            if formatted:
-                sections.append("Recent check-ins: " + " | ".join(formatted))
+        if line
+    ]
+    return (
+        "Recent check-ins: " + " | ".join(formatted)
+        if formatted
+        else "No recent check-in data available."
+    )
 
-    if not sections:
-        return "No recent wellness data available."
 
-    return " ".join(sections)
+@handle_errors("building personalized Google Health context", default_return="")
+def build_personalized_google_health_context(user_id: str) -> str:
+    """Build scheduled-message context from Google Health signals only."""
+    sections = []
+    patterns = build_recent_health_patterns(user_id)
+    if patterns:
+        sections.append(patterns)
+    guidance = build_safe_health_guidance_summary(user_id)
+    if guidance:
+        sections.append(guidance)
+    return " ".join(sections) or "No recent Google Health data available."
+
+
+@handle_errors("building personalized profile context", default_return="")
+def build_personalized_profile_context(user_id: str) -> str:
+    """Build scheduled-message context from non-medical profile preferences."""
+    from core import get_user_data
+
+    context = get_user_data(user_id, "context").get("context") or {}
+    fields = (
+        ("Preferred name", context.get("preferred_name")),
+        ("Interests", context.get("interests")),
+        ("Goals", context.get("goals")),
+        ("Encouraging activities", context.get("activities_for_encouragement")),
+        ("Notes for support", context.get("notes_for_ai")),
+    )
+    parts = []
+    for label, value in fields:
+        if isinstance(value, list):
+            text = ", ".join(str(item).strip() for item in value if str(item).strip())
+        else:
+            text = str(value or "").strip()
+        if text:
+            parts.append(f"{label}: {text[:300]}")
+    return "; ".join(parts) or "No profile preferences are available yet."

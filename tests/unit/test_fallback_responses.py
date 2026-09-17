@@ -198,7 +198,7 @@ class TestFallbackResponses:
     @patch("ai.fallback.data_access.get_user_data", return_value={"context": {}})
     @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_personalized_returns_non_empty(self, _mock_recent, _mock_user_data, fallback):
-        response = fallback.personalized("user-test")
+        response = fallback.personalized("user-test", source="checkin")
         assert response
         assert len(response.strip()) > 0
 
@@ -207,8 +207,22 @@ class TestFallbackResponses:
     def test_personalized_category(self, _mock_recent, _mock_user_data):
         from ai.fallback.personalized import build_personalized_message
 
-        _text, category = build_personalized_message("user-test")
+        _text, category = build_personalized_message("user-test", source="checkin")
         assert category == FallbackCategory.PERSONALIZED_MESSAGE
+
+    def test_personalized_unsupported_source_raises_validation_error(self):
+        from ai.fallback.personalized import build_personalized_message
+        from core.error_handling import ValidationError
+
+        with pytest.raises(ValidationError) as exc_info:
+            build_personalized_message.__wrapped__("user-test", source="unknown")
+        assert "unknown" in str(exc_info.value)
+        assert exc_info.value.details["source"] == "unknown"
+
+    def test_personalized_unsupported_source_returns_safe_default(self, fallback):
+        result = fallback.personalized("user-test", source="unknown")
+        assert isinstance(result, str)
+        assert result.strip()
 
     def test_get_fallback_responses_returns_singleton(self):
         assert get_fallback_responses() is get_fallback_responses()

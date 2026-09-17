@@ -55,8 +55,8 @@ class FallbackResponses:
         "getting fallback personalized message",
         default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.",
     )
-    def personalized(self, user_id: str) -> str:
-        text, _category = build_personalized_message(user_id)
+    def personalized(self, user_id: str, *, source: str) -> str:
+        text, _category = build_personalized_message(user_id, source=source)
         return text
 
     @handle_errors("personalizing fallback with profile name", default_return="")

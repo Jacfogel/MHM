@@ -30,6 +30,49 @@ PROFILE_CUSTOM_LISTS = (
     "allergies_sensitivities",
 )
 
+PERSONALIZED_CATEGORIES = {
+    "personalized_checkin": "checkins",
+    "personalized_google_health": "google_health",
+    "personalized_profile": None,
+}
+CUSTOM_QUESTION_TYPES = frozenset({"optional_text", "yes_no", "scale_1_5"})
+
+
+@handle_errors("filtering available website message categories", default_return=[])
+def _available_message_categories(options, features):
+    """Return categories supported by the user's currently enabled data sources."""
+    categories = options.get("categories") or []
+    return [
+        category
+        for category in categories
+        if category not in PERSONALIZED_CATEGORIES
+        or PERSONALIZED_CATEGORIES[category] is None
+        or features.get(PERSONALIZED_CATEGORIES[category]) == "enabled"
+    ]
+
+
+@handle_errors("reading editable custom check-in questions", default_return={})
+def _editable_custom_questions(checkin_settings):
+    """Return browser-editable custom question definitions from saved preferences."""
+    result = {}
+    for key, definition in (checkin_settings.get("custom_questions") or {}).items():
+        if (
+            isinstance(key, str)
+            and key.startswith("custom_")
+            and isinstance(definition, dict)
+            and isinstance(definition.get("question_text"), str)
+            and definition.get("question_text", "").strip()
+        ):
+            result[key] = {
+                "question_text": definition["question_text"].strip(),
+                "type": (
+                    definition.get("type")
+                    if definition.get("type") in CUSTOM_QUESTION_TYPES
+                    else "optional_text"
+                ),
+            }
+    return result
+
 
 @handle_errors("loading website settings options", user_friendly=False, re_raise=True)
 def settings_options(user_id):
@@ -59,8 +102,18 @@ def settings_snapshot(documents, options):
     context = documents.get("context") or {}
     schedules = schedule_categories(copy.deepcopy(documents.get("schedules") or {}))
     features = account.get("features") or {}
+    effective_options = copy.deepcopy(options)
+    effective_options["categories"] = _available_message_categories(
+        options, features
+    )
     task = prefs.get("task_settings") or {}
     checkin = prefs.get("checkin_settings") or {}
+    custom_questions = _editable_custom_questions(checkin)
+    effective_options.setdefault("questions", {})
+    effective_options.setdefault("question_defaults", {})
+    for key, definition in custom_questions.items():
+        effective_options["questions"].setdefault(key, definition["question_text"])
+        effective_options["question_defaults"].setdefault(key, "sometimes")
     custom_fields = context.get("custom_fields") or {}
 
     from core.natural_language_defaults import (
@@ -94,19 +147,25 @@ def settings_snapshot(documents, options):
             if name != "ALL"
         }
 
-    selected = prefs.get("categories") or []
+    selected_raw = prefs.get("categories") or []
+    selected = [
+        category
+        for category in selected_raw
+        if category in effective_options["categories"]
+    ]
     question_states = {}
-    for key in options["questions"]:
+    for key in effective_options["questions"]:
         question = (checkin.get("questions") or {}).get(key)
         if not question:
             custom = (checkin.get("custom_questions") or {}).get(key)
             if isinstance(custom, dict):
                 question = {
-                    "always_include": custom.get("always_include", True),
+                    "always_include": custom.get("enabled", True)
+                    and custom.get("always_include", True),
                     "sometimes_include": custom.get("sometimes_include", False),
                 }
             else:
-                question_states[key] = options.get("question_defaults", {}).get(
+                question_states[key] = effective_options.get("question_defaults", {}).get(
                     key, "off"
                 )
                 continue
@@ -150,6 +209,7 @@ def settings_snapshot(documents, options):
             "enabled": features.get("checkins") == "enabled",
             "periods": periods("checkin"),
             "questions": question_states,
+            "custom_questions": custom_questions,
             "min_questions": checkin.get("min_questions", 1),
             "max_questions": checkin.get("max_questions", 1),
         },
@@ -160,7 +220,7 @@ def settings_snapshot(documents, options):
         for key, value in sections.items()
     }
     available_message_periods = {
-        category: periods(category) for category in options["categories"]
+        category: periods(category) for category in effective_options["categories"]
     }
     revisions["messages"] = hashlib.sha256(
         json.dumps(
@@ -174,7 +234,7 @@ def settings_snapshot(documents, options):
     return {
         "sections": sections,
         "revisions": revisions,
-        "options": options,
+        "options": effective_options,
         "available_message_periods": available_message_periods,
         "discord_linked": bool(account.get("discord_user_id")),
     }
@@ -183,7 +243,8 @@ def settings_snapshot(documents, options):
 @handle_errors("validating website settings updates", user_friendly=False, re_raise=True)
 def build_settings_updates(documents, options, section, values):
     """Validate all input before producing updates; preserve unrelated saved fields."""
-    current = settings_snapshot(documents, options)["sections"]
+    snapshot = settings_snapshot(documents, options)
+    current = snapshot["sections"]
     if (
         not isinstance(section, str)
         or section not in current
@@ -349,10 +410,11 @@ def build_settings_updates(documents, options, section, values):
         return {"account": account, "preferences": prefs}
     if section == "messages":
         categories = values["categories"]
+        available_categories = snapshot["options"]["categories"]
         if (
             not isinstance(categories, list)
             or any(
-                not isinstance(c, str) or c not in options["categories"]
+                not isinstance(c, str) or c not in available_categories
                 for c in categories
             )
             or len(set(categories)) != len(categories)
@@ -395,10 +457,31 @@ def build_settings_updates(documents, options, section, values):
         }
         prefs["task_settings"] = task
     elif section == "checkins":
+        checkin = prefs.get("checkin_settings") or {}
+        custom_questions = values["custom_questions"]
+        if not isinstance(custom_questions, dict) or len(custom_questions) > 20:
+            raise ValidationError("Add at most 20 custom check-in questions.")
+        for key, definition in custom_questions.items():
+            if (
+                not isinstance(key, str)
+                or not re.fullmatch(r"custom_[a-f0-9]{32}", key)
+                or not isinstance(definition, dict)
+                or set(definition) != {"question_text", "type"}
+                or not isinstance(definition["question_text"], str)
+                or not definition["question_text"].strip()
+                or len(definition["question_text"].strip()) > 300
+                or definition["type"] not in CUSTOM_QUESTION_TYPES
+            ):
+                raise ValidationError("Check each custom question and answer type.")
         states = values["questions"]
+        existing_custom = _editable_custom_questions(checkin)
+        predefined_questions = set(snapshot["options"]["questions"]) - set(
+            existing_custom
+        )
+        expected_questions = predefined_questions | set(custom_questions)
         if (
             not isinstance(states, dict)
-            or set(states) != set(options["questions"])
+            or set(states) != expected_questions
             or any(
                 not isinstance(state, str)
                 or state not in {"off", "always", "sometimes"}
@@ -429,12 +512,35 @@ def build_settings_updates(documents, options, section, values):
             )
         flag("checkins")
         save_periods("checkin", values["periods"])
-        checkin = prefs.get("checkin_settings") or {}
         questions = copy.deepcopy(checkin.get("questions") or {})
+        for removed_key in set(existing_custom) - set(custom_questions):
+            questions.pop(removed_key, None)
+        preserved_custom = {
+            key: definition
+            for key, definition in (checkin.get("custom_questions") or {}).items()
+            if key not in existing_custom
+        }
+        checkin["custom_questions"] = {
+            **preserved_custom,
+            **{
+                key: {
+                    "question_text": definition["question_text"].strip(),
+                    "ui_display_name": definition["question_text"].strip(),
+                    "type": definition["type"],
+                    "category": "general",
+                    "enabled": states[key] != "off",
+                    "validation": {},
+                }
+                for key, definition in custom_questions.items()
+            },
+        }
         for key, state in states.items():
+            label = snapshot["options"]["questions"].get(key)
+            if not label:
+                label = custom_questions[key]["question_text"]
             questions[key] = {
                 **questions.get(key, {}),
-                "label": options["questions"][key],
+                "label": label,
                 "enabled": state != "off",
                 "always_include": state == "always",
                 "sometimes_include": state == "sometimes",

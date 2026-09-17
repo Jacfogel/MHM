@@ -82,6 +82,26 @@
   ],
   "removed_inventory": [
     {
+      "id": "personalized_message_category_expansion_bridge",
+      "removed_at": "2026-09-17",
+      "search_terms": [
+        "_expanded_message_categories",
+        "LEGACY_PERSONALIZED_CATEGORY"
+      ],
+      "replacement": "Source-specific personalized_checkin, personalized_google_health, and personalized_profile categories in runtime configuration and saved preferences",
+      "notes": "Migrated the active environment, example configuration, tests, website settings, and message routing to explicit categories; removed runtime expansion and saved-category fallback behavior."
+    },
+    {
+      "id": "personalized_wellness_context_bridge",
+      "removed_at": "2026-09-17",
+      "search_terms": [
+        "build_personalized_wellness_context",
+        "source: str = \"combined\""
+      ],
+      "replacement": "build_personalized_checkin_context, build_personalized_google_health_context, or build_personalized_profile_context selected by an explicit source",
+      "notes": "Migrated chatbot, fallback, delivery, and test callers to require one explicit personalized data source; removed the combined context builder and silent combined fallback."
+    },
+    {
       "id": "core_schemas_in_memory_profile_validators",
       "removed_at": "2026-08-25",
       "search_terms": [
