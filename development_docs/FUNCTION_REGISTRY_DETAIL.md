@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 22:36:25
+> **Last Generated**: 2026-09-16 18:41:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2738
-- **Methods Found**: 1418
+- **Functions Found**: 2747
+- **Methods Found**: 1419
 - **Classes Found**: 264
-- **Total Items**: 4156
-- **Functions Documented**: 2435
-- **Methods Documented**: 1273
+- **Total Items**: 4166
+- **Functions Documented**: 2444
+- **Methods Documented**: 1274
 - **Classes Documented**: 198
-- **Total Documented**: 3708
+- **Total Documented**: 3718
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-15
+- **Last Updated**: 2026-09-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (518)
+### **Core System Functions** (527)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (707)
@@ -5053,6 +5053,7 @@ Returns:
 
 Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
+- [OK] `generate_internal_alias(user_id)` - Return an opaque storage alias derived from a canonical UUID.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
 
@@ -5062,11 +5063,14 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
+- [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
+- [OK] `clean(data)` - Validate an editable message template payload.
+- [OK] `clean_links(value)` - Validate task links without silently dropping malformed input.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
-- [OK] `create(self, email, username, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
+- [OK] `create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
 - [OK] `discord_available()` - Return whether the Discord OAuth credentials are configured.
 - [OK] `discord_redirect_uri()` - Return the configured Discord callback URI or the website default.
@@ -5074,21 +5078,26 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
 - [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
+- [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
 - [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
 - [OK] `oauth_provider_config(provider)` - Return provider credentials and callback settings from configuration.
 - [OK] `prune()` - Remove expired challenges, sessions, rate limits, and OAuth states.
+- [OK] `remove_secrets(value)` - Remove authentication secrets from an otherwise complete export.
 - [OK] `save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
 - [OK] `send_code(email, code)` - Use MHM's configured SMTP account, with TLS and no code logging.
 - [OK] `set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
 - [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
+- [OK] `snapshot()` - Return the browser-safe Google Health state.
 - [OK] `start_session(uid, email, response)` - Attach a new opaque browser session to a response.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
 - [OK] `throttle(key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
-- [OK] `username_exists(self, username)` - Return whether any account already uses an internal username.
+- [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
+- [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `valid_password(value)` - Accept long passphrases without brittle composition requirements.
+- [OK] `view(message)` - Return one browser-safe message template.
 - [OK] `website_redirect(path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description
@@ -5096,7 +5105,7 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.all(self)` - Return account documents paired with their canonical user IDs.
   - [OK] `MHMAccounts.by_email(self, email)` - Return the unique account matching an email address, if one exists.
   - [OK] `MHMAccounts.by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
-  - [OK] `MHMAccounts.create(self, email, username, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
+  - [OK] `MHMAccounts.create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
   - [OK] `MHMAccounts.documents(self, uid)` - Load the account documents exposed through self-service settings.
   - [OK] `MHMAccounts.email_exists(self, email)` - Return whether any account already uses an email address.
   - [OK] `MHMAccounts.get(self, uid)` - Load one account document by canonical user ID.
@@ -5105,7 +5114,8 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
   - [OK] `MHMAccounts.set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
   - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
-  - [OK] `MHMAccounts.username_exists(self, username)` - Return whether any account already uses an internal username.
+  - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
+  - [OK] `MHMAccounts.unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
 
 #### `core/web_gateway_runtime.py`
@@ -5953,7 +5963,7 @@ Returns:
 
 #### `storage/user_data_index.py`
 **Functions:**
-- [OK] `_index_entries_for_account(user_id, account)` - Return username / email / discord / phone lookup keys for one account.
+- [OK] `_index_entries_for_account(user_id, account)` - Return canonical and optional account lookup keys for one user.
 - [OK] `_index_file_path(index_file)` - Return the user_index.json path, using BASE_DATA_DIR when none is given.
 - [OK] `build_user_index()` - Build an index of all users and their message data.
 - [OK] `rebuild_full_index(index_file)` - Rebuild the complete user index from scratch.
@@ -5962,8 +5972,8 @@ Returns:
 - [OK] `search_users(query, search_fields)` - Search for users based on query string and specified fields.
 - [OK] `update_user_index(user_id, index_file)` - Update the user index with current information for a specific user.
 
-Creates flat lookup mappings for fast O(1) user lookups:
-- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+Creates flat lookup mappings for fast O(1) user lookups. The UUID is always
+indexed; existing internal usernames and contact identifiers are optional keys.
 
 #### `storage/user_data_operations.py`
 **Functions:**

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 22:37:09
+> **Last Generated**: 2026-09-16 18:42:03
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 278
-- **Total Imports Found**: 2439
+- **Total Imports Found**: 2457
 - **Dependencies Documented**: 278 (100% coverage)
-- **Standard Library Imports**: 719 (29.5%)
+- **Standard Library Imports**: 720 (29.3%)
 - **Third-Party Imports**: 223 (9.1%)
-- **Local Imports**: 1497 (61.4%)
-- **Last Updated**: 2026-09-15
+- **Local Imports**: 1514 (61.6%)
+- **Last Updated**: 2026-09-16
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 719 imports (29.5%)
+- **Standard Library**: 720 imports (29.3%)
 - **Third-Party**: 223 imports (9.1%)
-- **Local**: 1497 imports (61.4%)
+- **Local**: 1514 imports (61.6%)
 
 ## Module Dependencies by Directory
 
@@ -1010,11 +1010,12 @@
     - `statistics`
     - `typing (Any)`
 - **Used by**:
+  - `core/web_account_service.py`
   - `ui/dialogs/user_analytics_dialog.py`
 
 **Dependency Changes**:
 - Added: checkins.analysis, checkins.checkin_data_manager, checkins.checkin_dynamic_manager, core, core.error_handling, core.logger, core.time_utilities
-- Removed: ui/dialogs/user_analytics_dialog.py
+- Removed: core/web_account_service.py, ui/dialogs/user_analytics_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3309,6 +3310,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (create_user_files)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.user_management (generate_internal_alias)` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `storage.user_data_operations (update_user_index)` (NEW)
     - `tasks (add_user_task_tag, setup_default_task_tags)` (NEW)
@@ -3322,7 +3324,7 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, scheduler.runtime_access, storage.user_data_operations, tasks
+- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.user_management, scheduler.runtime_access, storage.user_data_operations, tasks
 - Removed: ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4140,6 +4142,7 @@
 - **Used by**:
   - `communication/command_handlers/natural_language_handler.py`
   - `communication/message_processing/command_parser.py`
+  - `core/web_user_settings.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reminder_snooze.py`
   - `tasks/task_service.py`
@@ -4148,7 +4151,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, storage.user_data_write, tasks.task_time_parsing
-- Removed: collections.abc, communication/command_handlers/natural_language_handler.py, communication/message_processing/command_parser.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_service.py, ui/dialogs/natural_language_settings_dialog.py, ui/widgets/natural_language_settings_widget.py
+- Removed: collections.abc, communication/command_handlers/natural_language_handler.py, communication/message_processing/command_parser.py, core/web_user_settings.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_service.py, ui/dialogs/natural_language_settings_dialog.py, ui/widgets/natural_language_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4215,6 +4218,7 @@
   - `core/schedule_document_defaults.py`
   - `core/schedule_runtime.py`
   - `core/tags.py`
+  - `core/web_account_service.py`
   - `core/web_user_settings.py`
   - `storage/user_data_read.py`
   - `storage/user_data_registry.py`
@@ -4224,7 +4228,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.profile_v2_schemas, core.time_format_constants, core.time_utilities, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, core/file_operations.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/tags.py, core/web_user_settings.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, user/user_context.py
+- Removed: ai/context/phraser.py, ai/context/service.py, core/file_operations.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/tags.py, core/web_account_service.py, core/web_user_settings.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, user/user_context.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4695,7 +4699,7 @@
 - **Dependencies**:
   - **Local**:
     - `core.config (_normalize_path, core.config)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
+    - `core.error_handling (error_handler, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_document_defaults (ensure_category_has_default_schedule)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
@@ -4708,6 +4712,7 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
+  - `core/admin_account_provisioning.py`
   - `core/service.py`
   - `core/user_lookup.py`
   - `integrations/google_health/sync_manager.py`
@@ -4726,16 +4731,26 @@
 - **Purpose**: Main service orchestration and management
 - **Dependencies**:
   - **Local**:
-    - `core (config, create_new_user, get_all_user_ids, get_user_data, update_user_account)` (NEW)
+    - `checkins.checkin_analytics (CheckinAnalytics)` (NEW)
+    - `core (config, create_new_user, get_all_user_ids, get_user_data, save_user_data_transaction, update_user_account)` (NEW)
     - `core.error_handling (CommunicationError, ConfigurationError, DataError, ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.profile_v2_io (schedule_categories)` (NEW)
     - `core.tags (normalize_tags)` (NEW)
     - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
     - `core.web_user_settings (build_settings_updates, save_settings, settings_options, settings_snapshot)` (NEW)
+    - `integrations.google_health.user_settings (delete_health_integration, enable_health_integration, get_connect_authorization_url, get_connect_readiness, get_health_integration_status, pause_health_integration, run_connect_flow_async, sync_health_integration)` (NEW)
+    - `messages.message_data_manager (add_message, delete_message, edit_message, is_ai_generated_message_category, load_user_messages)` (NEW)
     - `notebook (notebook_data_manager)` (NEW)
+    - `notebook.notebook_data_manager (list_recent)` (NEW)
+    - `storage.user_data_operations (export_user_data)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
+    - `tasks.task_link_helpers (MAX_TASK_LINKS, sanitize_task_links)` (NEW)
+    - `tasks.task_occurrence_skip (skip_task_occurrence)` (NEW)
+    - `tasks.task_reminder_snooze (snooze_task_reminder)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
-    - `tasks.task_service (complete_task, create_task, delete_task, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
+    - `tasks.task_service (complete_task, create_task, delete_task, list_task_templates, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
+    - `tasks.task_simplify (simplify_task)` (NEW)
     - `tasks.task_tag_helpers (sanitize_task_tags)` (NEW)
   - **Standard Library**:
     - `asyncio`
@@ -4761,8 +4776,8 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, core.web_user_settings, notebook, tasks.task_data_manager, tasks.task_schemas, tasks.task_service, tasks.task_tag_helpers
-- Removed: core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
+- Added: checkins.checkin_analytics, core, core.error_handling, core.logger, core.profile_v2_io, core.tags, core.time_utilities, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.user_data_operations, tasks.task_data_manager, tasks.task_link_helpers, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
+- Removed: core/web_gateway_runtime.py, cryptography.hazmat.primitives, cryptography.hazmat.primitives.asymmetric, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4801,6 +4816,7 @@
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core (save_user_data_transaction)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `core.natural_language_defaults (NaturalLanguageDefaults, natural_language_defaults_to_preferences_dict)` (NEW)
     - `core.profile_v2_io (schedule_categories)` (NEW)
     - `core.schedule_period_normalize (create_default_schedule_periods)` (NEW)
     - `core.schedule_runtime (clear_schedule_periods_cache)` (NEW)
@@ -4808,8 +4824,10 @@
     - `messages.message_data_manager (ensure_user_message_files, get_message_categories)` (NEW)
     - `storage.user_data_validation (validate_schedule_periods)` (NEW)
     - `tasks (setup_default_task_tags)` (NEW)
+    - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `copy`
+    - `datetime (date)`
     - `hashlib`
     - `json`
     - `re`
@@ -4819,7 +4837,7 @@
   - `core/web_account_service.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_dynamic_manager, core, core.error_handling, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks
+- Added: checkins.checkin_dynamic_manager, core, core.error_handling, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_time_parsing
 - Removed: core/web_account_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5135,11 +5153,12 @@
     - `threading`
 - **Used by**:
   - `communication/command_handlers/health_handler.py`
+  - `core/web_account_service.py`
   - `ui/dialogs/google_health_settings_dialog.py`
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.logger, integrations.google_health.auth, integrations.google_health.data_handlers, integrations.google_health.sync_manager
-- Removed: collections.abc, communication/command_handlers/health_handler.py, ui/dialogs/google_health_settings_dialog.py
+- Removed: collections.abc, communication/command_handlers/health_handler.py, core/web_account_service.py, ui/dialogs/google_health_settings_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5207,6 +5226,7 @@
   - `core/auto_cleanup.py`
   - `core/response_tracking.py`
   - `core/service.py`
+  - `core/web_account_service.py`
   - `core/web_user_settings.py`
   - `messages/message_analytics.py`
   - `messages/message_service.py`
@@ -5219,7 +5239,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_account_service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5664,11 +5684,12 @@
 - **Used by**:
   - `communication/command_handlers/account_handler.py`
   - `core/admin_account_provisioning.py`
+  - `core/web_account_service.py`
   - `storage/user_data_write.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, storage.user_data_backup, storage.user_data_index, storage.user_data_summaries, storage.user_data_user_info
-- Removed: communication/command_handlers/account_handler.py, core/admin_account_provisioning.py, storage/user_data_write.py
+- Removed: communication/command_handlers/account_handler.py, core/admin_account_provisioning.py, core/web_account_service.py, storage/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6088,6 +6109,7 @@
     - `urllib.parse (urlparse)`
 - **Used by**:
   - `communication/message_processing/command_parser.py`
+  - `core/web_account_service.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
   - `tasks/task_service.py`
@@ -6095,7 +6117,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/message_processing/command_parser.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, urllib.parse
+- Removed: communication/message_processing/command_parser.py, core/web_account_service.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6121,10 +6143,11 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/task_handler.py`
+  - `core/web_account_service.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_snooze, tasks.task_time_parsing
-- Removed: communication/command_handlers/task_handler.py
+- Removed: communication/command_handlers/task_handler.py, core/web_account_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6180,12 +6203,13 @@
   - `communication/command_handlers/task_handler.py`
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/command_parser.py`
+  - `core/web_account_service.py`
   - `scheduler/task_reminders.py`
   - `tasks/task_occurrence_skip.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_service, tasks.task_time_parsing
-- Removed: communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/command_parser.py, scheduler/task_reminders.py, tasks/task_occurrence_skip.py
+- Removed: communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/command_parser.py, core/web_account_service.py, scheduler/task_reminders.py, tasks/task_occurrence_skip.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6273,10 +6297,11 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/task_handler.py`
+  - `core/web_account_service.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_validation
-- Removed: communication/command_handlers/task_handler.py
+- Removed: communication/command_handlers/task_handler.py, core/web_account_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6338,6 +6363,7 @@
 - **Used by**:
   - `communication/message_processing/flows/task_flow.py`
   - `core/natural_language_defaults.py`
+  - `core/web_user_settings.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reminder_snooze.py`
   - `tasks/task_service.py`
@@ -6345,7 +6371,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/message_processing/flows/task_flow.py, core/natural_language_defaults.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_service.py, ui/widgets/natural_language_settings_widget.py
+- Removed: communication/message_processing/flows/task_flow.py, core/natural_language_defaults.py, core/web_user_settings.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_service.py, ui/widgets/natural_language_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

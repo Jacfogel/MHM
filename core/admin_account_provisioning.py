@@ -12,10 +12,10 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+import core.user_management as _user_management
 from core.error_handling import handle_errors
 from core.file_operations import create_user_files
 from core.logger import get_component_logger
-from core.user_management import generate_internal_alias
 from storage.user_data_operations import update_user_index
 
 logger = get_component_logger("main")
@@ -237,7 +237,9 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
     user_id = str(uuid.uuid4())
     user_preferences = build_user_preferences_from_account_data(account_data)
     if not str(user_preferences.get("internal_username") or "").strip():
-        user_preferences["internal_username"] = generate_internal_alias(user_id)
+        user_preferences["internal_username"] = _user_management.generate_internal_alias(
+            user_id
+        )
 
     create_user_files(user_id, account_data["categories"], user_preferences)
 

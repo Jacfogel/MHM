@@ -533,3 +533,48 @@ def test_invoke_pytest_sets_create_no_window_on_windows(monkeypatch, tmp_path):
     no_window = int(getattr(runner.subprocess, "CREATE_NO_WINDOW", 0x08000000))
     assert flags & no_window
     assert flags & int(getattr(runner.subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
+
+
+@pytest.mark.unit
+def test_invoke_pytest_returns_structured_result_when_timeout_cleanup_stalls(
+    monkeypatch, tmp_path
+):
+    class FakeProc:
+        returncode = None
+
+        def __init__(self):
+            self.communicate_calls = 0
+            self.kill_calls = 0
+
+        def communicate(self, timeout=None):
+            self.communicate_calls += 1
+            if self.communicate_calls == 1:
+                raise runner.subprocess.TimeoutExpired(
+                    cmd=["pytest"], timeout=timeout, output="partial test output"
+                )
+            if self.communicate_calls == 2:
+                raise runner.subprocess.TimeoutExpired(
+                    cmd=["pytest"], timeout=timeout, output="cleanup still pending"
+                )
+            return ("drained output", None)
+
+        def kill(self):
+            self.kill_calls += 1
+
+    process = FakeProc()
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *args, **kwargs: process)
+    monkeypatch.setattr(runner, "_parse_junit", lambda path: ({"total": 0}, []))
+    monkeypatch.setattr(runner, "_terminate_process_tree", lambda proc: None)
+
+    result = runner._invoke_pytest(
+        "parallel",
+        _cfg(timeout_seconds=1),
+        tmp_path,
+        test_paths=["tests/unit/test_example.py"],
+        timeout_seconds=1,
+    )
+
+    assert result.interrupted is True
+    assert result.return_code == 124
+    assert result.output_tail == "drained output"
+    assert process.kill_calls == 1

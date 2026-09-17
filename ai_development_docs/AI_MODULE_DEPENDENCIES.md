@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 22:37:30
+> **Last Generated**: 2026-09-16 18:42:22
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 278
-- **Total Imports**: 2439
-- **Standard Library**: 719 (29.5%)
+- **Total Imports**: 2457
+- **Standard Library**: 720 (29.3%)
 - **Third-Party**: 223 (9.1%)
-- **Local Imports**: 1497 (61.4%)
+- **Local Imports**: 1514 (61.6%)
 
 ## Dependency Decision Trees
 
@@ -115,10 +115,10 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
+- `core/web_account_service.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (36 import statements; 15 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
-- `core/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 5 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)

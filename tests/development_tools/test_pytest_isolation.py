@@ -29,7 +29,7 @@ def test_get_test_run_config_defaults_tools_isolation():
     assert cfg["devtools_test_paths"] == ["tests/development_tools"]
     assert cfg["devtools_pytest_config"] == "development_tools/pytest.ini"
     assert cfg["devtools_confcutdir"] == "tests/development_tools"
-    assert cfg["timeout_seconds"] == 900
+    assert cfg["timeout_seconds"] == 3600
 
     full_cfg = get_test_run_config("full")
     assert full_cfg["timeout_seconds"] == 3600

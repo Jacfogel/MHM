@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-15 - Website self-service expansion **COMPLETED**
+- Added richer profile and phrase settings, personal message-template management, private check-in insights/history, Google Health controls, account connection removal, and a secret-scrubbed data export.
+- Tasks now support templates, links, snooze, skip, and simplify; notebook views include pinned and inbox filters. All operations reuse canonical MHM services and storage.
+- Session, origin, allowlist, payload, and last-sign-in protections are covered by focused Python and Node tests. Check-in completion remains on the existing app interface by explicit request.
+- Resolved all six reported website-account error-handling gaps; full-scope coverage is 2,520/2,520.
+- Reproduced Tier 3's timeout: 5,513 tests completed without assertion failures and the remaining 67 passed separately. Full-audit concurrency remained productive past 30 minutes, so Tier 3 keeps a 60-minute phase ceiling plus a five-minute cleanup buffer; stalled Windows cleanup returns structured timeout diagnostics instead of crashing.
+- Regenerated the function/dependency registries with zero missing entries and fixed the sole Pyright error; full Pyright, targeted tests, Ruff, docs checks, and the final Tier 3 full audit pass.
+
 ### 2026-09-15 - Dev-tools pytest isolation from host conftest **COMPLETED**
 - Tools tests run with `development_tools/pytest.ini` (`confcutdir` stops `tests/conftest.py`). Host pytest ignores `tests/development_tools/`.
 - Tier 3, coverage, and `run_tests.py --mode development_tools` pass the isolation flags. Host+tools pytest share one timeout budget so a slow host run cannot chain a second hour.
@@ -101,16 +109,6 @@ Guidelines:
 - Google Health tests: 156 passed; `integrations` measured at 95% on that set. `client.py` is 99%; remaining gap is mostly `signal_builder.py` / `sync_manager.py` edge cases.
 - Coverage cache no longer treats a selective product-domain run as a full snapshot: missing cache does not imply a full run, tool/config invalidation keeps the merge base, and 0% `development_tools` from unrun tests is merged back from the prior JSON.
 - Coverage pytest waits ignore spurious Windows SIGINT/control events (same multi-tap stop as audit: 5 Ctrl+C within 2s). A stray console event no longer aborts `--dev-tools-only` at 0%. Dev-tools coverage tests now stub `_run_pytest_wait`; changelog ASCII quotes restored.
-
-### 2026-08-30 - Create hub splits tasks from notes **COMPLETED**
-- Discord `create` hub first row is Call, Clean, Forms, Custom task; second row is green notes. Meds/Appt stay on `list task templates`.
-- Call and Clean forms prefill title `Call` / `Clean` with due `this week`.
-- Copy is "First row starts a task." (green note buttons are unlabeled).
-
-### 2026-08-30 - Task CRUD multi-select and completed-task delete **COMPLETED**
-- Completed-tab **Delete Permanently** failed because `delete_task` only searched active tasks.
-- Task tables now allow Ctrl/Shift multi-select; delete, restore, and complete apply to all selected rows.
-- Category column is filled in both tables.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

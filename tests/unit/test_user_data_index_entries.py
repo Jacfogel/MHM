@@ -1,8 +1,13 @@
 """Focused tests for shared user-index lookup keys."""
 
+from types import SimpleNamespace
+from typing import cast
+
 import pytest
 
+import core.error_handling as error_handling
 import core.file_locking as file_locking
+import core.user_management as user_management
 import storage.user_data_index as user_data_index
 from core.user_management import generate_internal_alias
 from storage.user_data_index import _index_entries_for_account
@@ -15,6 +20,35 @@ class TestIndexEntriesForAccount:
         alias = generate_internal_alias("12345678-1234-5678-9abc-def012345678")
         assert alias == "mhm_12345678123456789abcdef01234"
         assert len(alias) == 32
+
+    def test_generated_internal_alias_reports_invalid_identifier(
+        self, monkeypatch
+    ):
+        class InvalidIdentifier:
+            def __str__(self) -> str:
+                raise RuntimeError("cannot stringify identifier")
+
+        handled_errors = []
+        monkeypatch.setattr(
+            error_handling.error_handler,
+            "handle_error",
+            lambda *args, **kwargs: handled_errors.append((args, kwargs)) or False,
+        )
+        with pytest.raises(RuntimeError, match="cannot stringify identifier"):
+            generate_internal_alias(cast(str, InvalidIdentifier()))
+
+        assert handled_errors
+
+    def test_generated_internal_alias_uses_unique_fallback_for_empty_identifier(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(
+            user_management.uuid,
+            "uuid4",
+            lambda: SimpleNamespace(hex="f" * 32),
+        )
+
+        assert generate_internal_alias("") == f"mhm_{'f' * 28}"
 
     def test_includes_username_and_contact_keys(self):
         entries = _index_entries_for_account(

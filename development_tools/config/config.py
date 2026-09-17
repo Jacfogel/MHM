@@ -711,8 +711,10 @@ TEST_RUN_DEFAULTS: dict[str, Any] = {
     "test_paths": None,
     "workers": "auto",
     # Interactive Tier 3 audits must remain bounded when pytest or a worker
-    # hangs. The nightly/full profile overrides this with a larger budget.
-    "timeout_seconds": 900,
+    # hangs. The host suite needs more than 30 minutes when a full audit runs
+    # CPU-heavy Tier 3 tools concurrently, so retain the established one-hour
+    # ceiling even though a standalone four-worker run is substantially faster.
+    "timeout_seconds": 3600,
     "exclude_markers": ["e2e", "slow"],
     "default_profile": "quick",
     "profiles": copy.deepcopy(SUITE_PROFILES),

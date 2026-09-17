@@ -64,7 +64,7 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
     Update the user index with current information for a specific user.
 
     Creates flat lookup mappings for fast O(1) user lookups. The UUID is always
-    indexed; legacy usernames and contact identifiers are optional aliases.
+    indexed; existing internal usernames and contact identifiers are optional keys.
     """
     if not user_id or not isinstance(user_id, str):
         logger.error(f"Invalid user_id: {user_id}")

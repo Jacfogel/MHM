@@ -594,11 +594,30 @@ def _invoke_pytest(
             output, _ = _ACTIVE_PROCESS.communicate(
                 timeout=int(timeout_seconds if timeout_seconds is not None else cfg.get("timeout_seconds") or 3600)
             )
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as timeout_error:
             interrupted = True
             _terminate_process_tree(_ACTIVE_PROCESS)
-            output, _ = _ACTIVE_PROCESS.communicate(timeout=30)
+            try:
+                output, _ = _ACTIVE_PROCESS.communicate(timeout=30)
+            except subprocess.TimeoutExpired as cleanup_error:
+                # A Windows xdist tree can outlive taskkill long enough for the
+                # drain itself to time out. Preserve the partial diagnostics
+                # and return a structured interrupted result instead of
+                # crashing the Tier 3 orchestrator.
+                partial_output = cleanup_error.output or timeout_error.output or ""
+                if isinstance(partial_output, bytes):
+                    partial_output = partial_output.decode(errors="replace")
+                output = str(partial_output)
+                _terminate_process_tree(_ACTIVE_PROCESS)
+                with contextlib.suppress(Exception):
+                    _ACTIVE_PROCESS.kill()
+                with contextlib.suppress(Exception):
+                    drained_output, _ = _ACTIVE_PROCESS.communicate(timeout=5)
+                    if drained_output:
+                        output = drained_output
         return_code = _ACTIVE_PROCESS.returncode
+        if interrupted and return_code is None:
+            return_code = 124
     except KeyboardInterrupt:
         interrupted = True
         if _ACTIVE_PROCESS is not None:

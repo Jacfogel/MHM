@@ -8,20 +8,29 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.logger import get_component_logger
+from core.schedule_document_defaults import ensure_category_has_default_schedule
 from core.time_utilities import now_timestamp_full
-
 from storage.user_data_read import get_user_data
 from storage.user_data_write import save_user_data
-from core.schedule_document_defaults import ensure_category_has_default_schedule
 
 logger = get_component_logger("main")
 
 
+# devtools: ignore[facade-shims]: canonical account field helper, not a compatibility bridge
+@handle_errors(
+    "generating internal user alias",
+    user_friendly=False,
+    re_raise=True,
+)
 def generate_internal_alias(user_id: str) -> str:
-    """Return an opaque, legacy-compatible alias derived from a canonical UUID."""
-    compact_id = str(user_id).replace("-", "")
+    """Return an opaque storage alias derived from a canonical UUID."""
+    compact_id = str(user_id).replace("-", "").strip()
+
+    # An empty identifier still receives a unique value rather than a shared alias.
+    if not compact_id:
+        compact_id = uuid.uuid4().hex
     return f"mhm_{compact_id[:28]}"
 
 

@@ -1062,7 +1062,9 @@ class CommandsMixin:
     def _test_suite_orchestration_timeout_seconds(cfg: dict, profile: str) -> int:
         """Outer subprocess budget for run_test_suite (parallel + no_parallel for full)."""
         phase_timeout = int(cfg.get("timeout_seconds", 1200) or 1200)
-        buffer_seconds = 120
+        # Leave enough time for Windows task-tree termination, pipe draining,
+        # result serialization, and the audit wrapper to persist diagnostics.
+        buffer_seconds = 300
         if str(profile).strip().lower() == "full":
             return (2 * phase_timeout) + buffer_seconds
         return phase_timeout + buffer_seconds

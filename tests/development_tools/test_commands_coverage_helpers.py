@@ -489,7 +489,7 @@ def test_test_suite_orchestration_timeout_full_profile_allows_two_phases():
         {"timeout_seconds": 1200},
         "full",
     )
-    assert timeout == 2520
+    assert timeout == 2700
 
 
 @pytest.mark.unit
@@ -498,7 +498,7 @@ def test_test_suite_orchestration_timeout_quick_profile_single_phase_buffer():
         {"timeout_seconds": 900},
         "quick",
     )
-    assert timeout == 1020
+    assert timeout == 1200
 
 
 @pytest.mark.unit

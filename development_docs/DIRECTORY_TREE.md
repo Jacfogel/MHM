@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-15 22:38:08
+> **Last Generated**: 2026-09-16 18:42:53
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 0000004A 5EAC:07BC
+Volume serial number is 00000056 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -1334,7 +1334,11 @@ C:.
 |       app.test.mjs
 |       auth.js
 |       index.html
+|       insights.html
+|       insights.js
 |       login.html
+|       messages.html
+|       messages.js
 |       mhm-logo.png
 |       notes.html
 |       notes.js
