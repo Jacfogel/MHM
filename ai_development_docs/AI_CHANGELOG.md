@@ -35,6 +35,7 @@ Guidelines:
 - Personalized messages are split into check-in, Google Health, and profile sources, with source-dependent availability. Check-ins support custom questions, and new check-in/task windows default to 9:30-11:30 AM and 3:00-5:00 PM.
 - Newly created accounts immediately require the current password for later changes. Discord connection failures now explain likely duplicate-account links, and account creation no longer silently starts Discord linking.
 - Settings tolerate missing optional data from older/partial accounts instead of raising a raw browser error. Related legacy facades were removed, error-handling/registry findings were cleared, and focused Python/Node tests plus CI policy checks pass.
+- Website parity now includes the complete custom-question editor and structured important-people profiles; task completion details, recurrence intervals, relative reminders, bulk actions, and due-soon counts; fuller wellness analytics; notebook group/tag browsing; live message previews; and manual test-message, check-in, and task-reminder requests.
 
 ### 2026-09-15 - Website self-service expansion **COMPLETED**
 - Added richer profile and phrase settings, personal message-template management, private check-in insights/history, Google Health controls, account connection removal, and a secret-scrubbed data export.

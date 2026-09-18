@@ -11,6 +11,8 @@
   const empty = document.getElementById('messages-empty');
   const summary = document.getElementById('messages-summary');
   const cancel = document.getElementById('message-cancel');
+  const previewText = document.getElementById('message-preview-text');
+  const previewMeta = document.getElementById('message-preview-meta');
   const dayChoices = [['ALL', 'Every day'], ['MONDAY', 'Monday'], ['TUESDAY', 'Tuesday'], ['WEDNESDAY', 'Wednesday'], ['THURSDAY', 'Thursday'], ['FRIDAY', 'Friday'], ['SATURDAY', 'Saturday'], ['SUNDAY', 'Sunday']];
   let messages = [];
   let editing = null;
@@ -44,15 +46,25 @@
     const values = [...parent.querySelectorAll('input:checked')].map(input => input.value);
     return values.includes('ALL') ? ['ALL'] : values;
   }
+  function updatePreview() {
+    previewText.textContent = text.value.trim() || 'Your message preview will appear here.';
+    const days = selected(daysBox); const periods = selected(periodsBox);
+    previewMeta.replaceChildren();
+    for (const value of [active.checked ? 'Enabled' : 'Paused', `Days: ${days.length ? days.join(', ') : 'none selected'}`, `Windows: ${periods.length ? periods.join(', ') : 'none selected'}`]) {
+      const item = document.createElement('span'); item.textContent = value; previewMeta.append(item);
+    }
+  }
   function resetForm(periodNames = []) {
     editing = null; form.reset(); active.checked = true;
     document.getElementById('message-form-title').textContent = 'Add a message'; cancel.hidden = true;
     renderChoices(periodNames);
+    updatePreview();
   }
   function edit(message, periodNames) {
     editing = message; text.value = message.text; active.checked = message.active;
     document.getElementById('message-form-title').textContent = 'Edit message'; cancel.hidden = false;
     renderChoices(periodNames, message.days, message.periods); text.focus();
+    updatePreview();
   }
   function render(periodNames) {
     list.replaceChildren(); summary.textContent = `${messages.length} personal ${messages.length === 1 ? 'message' : 'messages'}`; empty.hidden = messages.length !== 0;
@@ -95,6 +107,14 @@
     finally { submit.disabled = false; }
   });
   cancel.addEventListener('click', () => resetForm(JSON.parse(form.dataset.periodNames || '[]')));
+  form.addEventListener('input', updatePreview);
+  form.addEventListener('change', updatePreview);
+  document.getElementById('message-test').addEventListener('click', async () => {
+    try {
+      const result = await api('/api/actions', 'POST', { action: 'test_message', category: category.value });
+      showStatus(result.message || 'Your test message was queued.');
+    } catch (error) { showStatus(error.message, true); }
+  });
   category.addEventListener('change', () => load(category.value));
   load();
 })();

@@ -1562,6 +1562,12 @@ def create_web_app(
                         "end_time": period.get("end_time"),
                     },
                 })
+            elif (
+                isinstance(reminder, dict)
+                and reminder.get("kind") == "quick"
+                and isinstance(reminder.get("value"), str)
+            ):
+                reminders.append({"kind": "quick", "value": reminder["value"]})
         return {
             "id": str(task.get("id") or ""),
             "short_id": str(task.get("short_id") or ""),
@@ -1598,6 +1604,7 @@ def create_web_app(
             complete_task,
             create_task,
             delete_task,
+            get_tasks_due_soon,
             load_active_tasks,
             load_completed_tasks,
             restore_task,
@@ -1606,6 +1613,9 @@ def create_web_app(
         from tasks.task_data_manager import get_task_by_id
         task_id = request.match_info.get("task_id")
         action = request.match_info.get("action")
+        quick_reminder_values = {
+            "5-10min", "30min-1hour", "1-2hour", "1-2day", "3-5day", "1-2week"
+        }
 
         # ERROR_HANDLING_EXCLUDE: Lookup helper raises an intentional HTTP response.
         def find(identifier):
@@ -1661,17 +1671,60 @@ def create_web_app(
                 raise web.HTTPBadRequest(text="Use unique http:// or https:// task links.")
             return cleaned
 
+        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+        def clean_quick_reminders(value):
+            """Validate the desktop-compatible relative reminder choices."""
+            if value is None:
+                return []
+            if (
+                not isinstance(value, list)
+                or len(value) > len(quick_reminder_values)
+                or len(set(value)) != len(value)
+                or any(item not in quick_reminder_values for item in value)
+            ):
+                raise web.HTTPBadRequest(text="Choose valid relative reminders.")
+            return value
+
+        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+        def clean_completion(value):
+            """Validate optional completion date, time, and notes."""
+            if value in (None, {}):
+                return None
+            if not isinstance(value, dict) or set(value) != {
+                "completion_date", "completion_time", "completion_notes"
+            }:
+                raise web.HTTPBadRequest(text="Please submit valid completion details.")
+            completion_date = value["completion_date"]
+            completion_time = value["completion_time"]
+            completion_notes = value["completion_notes"]
+            if (
+                not isinstance(completion_date, str)
+                or parse_date_only(completion_date) is None
+                or not isinstance(completion_time, str)
+                or parse_time_only_minute(completion_time) is None
+                or not isinstance(completion_notes, str)
+                or len(completion_notes) > 5000
+            ):
+                raise web.HTTPBadRequest(text="Use a valid completion date, time, and notes.")
+            return {
+                "completion_date": completion_date,
+                "completion_time": completion_time,
+                "completion_notes": completion_notes,
+            }
+
         if request.method == "GET":
             status = request.query.get("status", "active")
             if status not in {"active", "completed", "all"}:
                 raise web.HTTPBadRequest(text="Choose active, completed, or all tasks.")
             active = await asyncio.to_thread(load_active_tasks, uid)
             completed = await asyncio.to_thread(load_completed_tasks, uid)
+            due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
             selected = active if status == "active" else completed if status == "completed" else active + completed
             return web.json_response({
                 "tasks": [task_view(task) for task in selected],
                 "active_count": len(active),
                 "completed_count": len(completed),
+                "due_soon_count": len(due_soon),
             })
 
         if request.method == "POST" and not task_id:
@@ -1679,7 +1732,7 @@ def create_web_app(
             allowed = {
                 "title", "description", "due_date", "due_time", "priority",
                 "recurrence_pattern", "recurrence_interval", "repeat_after_completion",
-                "tags", "reminder_periods", "links",
+                "tags", "reminder_periods", "quick_reminders", "links",
             }
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported task fields.")
@@ -1695,6 +1748,7 @@ def create_web_app(
             from tasks.task_tag_helpers import sanitize_task_tags
             tags = sanitize_task_tags(tags)
             reminder_periods = clean_reminder_periods(data.get("reminder_periods", []))
+            quick_reminders = clean_quick_reminders(data.get("quick_reminders", []))
             links = clean_links(data.get("links", []))
             due_date = data.get("due_date")
             if due_date == "":
@@ -1726,7 +1780,8 @@ def create_web_app(
                 due_date=due_date, due_time=due_time, priority=priority.lower(),
                 recurrence_pattern=pattern, recurrence_interval=interval,
                 repeat_after_completion=repeat_after,
-                tags=tags, reminder_periods=reminder_periods, links=links,
+                tags=tags, reminder_periods=reminder_periods,
+                quick_reminders=quick_reminders, links=links,
             )
             if not created_id:
                 raise web.HTTPServiceUnavailable(text="MHM could not create that task. Please try again.")
@@ -1736,7 +1791,10 @@ def create_web_app(
             raise web.HTTPBadRequest(text="A task ID is required.")
         action_message = ""
         if action == "complete" and request.method == "POST":
-            if not await asyncio.to_thread(complete_task, uid, task_id):
+            completion_data = clean_completion(await body(request))
+            if not await asyncio.to_thread(
+                complete_task, uid, task_id, completion_data
+            ):
                 raise web.HTTPNotFound(text="That active task could not be completed.")
         elif action == "restore" and request.method == "POST":
             if not await asyncio.to_thread(restore_task, uid, task_id):
@@ -1804,7 +1862,7 @@ def create_web_app(
             action_message = result.message
         elif action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "links"}
+            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "quick_reminders", "links"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported task changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip()):
@@ -1818,6 +1876,8 @@ def create_web_app(
                 data["tags"] = sanitize_task_tags(data["tags"])
             if "reminder_periods" in data:
                 data["reminder_periods"] = clean_reminder_periods(data["reminder_periods"])
+            if "quick_reminders" in data:
+                data["quick_reminders"] = clean_quick_reminders(data["quick_reminders"])
             if "links" in data:
                 data["links"] = clean_links(data["links"])
             for key, parser, message in (("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."), ("due_time", parse_time_only_minute, "Due times must use HH:MM.")):
@@ -1844,6 +1904,53 @@ def create_web_app(
             raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
         return web.json_response(
             {"task": task_view(find(task_id)), **({"message": action_message} if action_message else {})}
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def tasks_bulk(request):
+        """Apply one task action to an explicit set of the signed-in user's tasks."""
+        uid, _ = await authenticated_account(request)
+        data = await body(request)
+        task_ids = data.get("task_ids")
+        if (
+            set(data) != {"task_ids"}
+            or not isinstance(task_ids, list)
+            or not 1 <= len(task_ids) <= 100
+            or len(set(task_ids)) != len(task_ids)
+            or any(
+                not isinstance(task_id, str) or not 1 <= len(task_id) <= 100
+                for task_id in task_ids
+            )
+        ):
+            raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
+        action = request.match_info["action"]
+        from tasks.task_service import complete_task, delete_task, restore_task
+
+        operation = {
+            "complete": complete_task,
+            "restore": restore_task,
+            "delete": delete_task,
+        }[action]
+
+        @handle_errors(
+            "applying bulk website task actions",
+            user_friendly=False,
+            re_raise=True,
+        )
+        def apply_actions():
+            """Return the requested task identifiers successfully changed in bulk."""
+            return [task_id for task_id in task_ids if operation(uid, task_id)]
+
+        throttle(("tasks-bulk", uid), 20, 60)
+        changed = await asyncio.to_thread(apply_actions)
+        if not changed:
+            raise web.HTTPNotFound(text="None of those tasks could be updated.")
+        return web.json_response(
+            {
+                "ok": True,
+                "changed": changed,
+                "failed": [task_id for task_id in task_ids if task_id not in changed],
+            }
         )
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -2002,6 +2109,85 @@ def create_web_app(
             raise web.HTTPServiceUnavailable(text="MHM could not finish saving that message.")
         return web.json_response({"message": view(message)}, status=201 if request.method == "POST" else 200)
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def request_action(request):
+        """Queue an authenticated one-off delivery request for the MHM service."""
+        uid, _ = await authenticated_account(request)
+        data = await body(request)
+        action = data.get("action")
+        allowed_fields = {
+            "test_message": {"action", "category"},
+            "checkin_prompt": {"action"},
+            "task_reminder": {"action", "task_id"},
+        }
+        if action not in allowed_fields or set(data) != allowed_fields[action]:
+            raise web.HTTPBadRequest(text="Choose a valid request action.")
+        documents = await asyncio.to_thread(accounts.documents, uid)
+        account_data = documents.get("account") or {}
+        features = account_data.get("features") or {}
+        preferences = documents.get("preferences") or {}
+        channel = (preferences.get("channel") or {}).get("type")
+        if channel not in {"email", "discord"}:
+            raise web.HTTPBadRequest(text="Choose a delivery channel in your settings first.")
+
+        from core.service_utilities import get_flags_dir
+        from core.time_utilities import now_timestamp_full
+        from storage.service_flag_storage import write_service_flag_json
+
+        if action == "test_message":
+            category = data["category"]
+            options = await asyncio.to_thread(accounts.settings_options, uid)
+            if not isinstance(category, str) or category not in options.get("categories", []):
+                raise web.HTTPBadRequest(text="Choose an available message category.")
+            filename = f"test_message_request_{uid}_{category}.flag"
+            payload = {
+                "user_id": uid,
+                "category": category,
+                "timestamp": now_timestamp_full(),
+                "source": "website",
+            }
+            message = "Your test message was queued for delivery."
+        elif action == "checkin_prompt":
+            if features.get("checkins") != "enabled":
+                raise web.HTTPBadRequest(text="Enable check-ins before requesting one.")
+            filename = f"checkin_prompt_request_{uid}.flag"
+            payload = {
+                "user_id": uid,
+                "timestamp": now_timestamp_full(),
+                "source": "website",
+            }
+            message = "Your check-in was queued for delivery."
+        else:
+            if features.get("task_management") != "enabled":
+                raise web.HTTPBadRequest(text="Enable task reminders before requesting one.")
+            task_id = data["task_id"]
+            if not isinstance(task_id, str) or not 1 <= len(task_id) <= 100:
+                raise web.HTTPBadRequest(text="Choose a valid task.")
+            from tasks.task_data_manager import get_task_by_id
+
+            if not await asyncio.to_thread(get_task_by_id, uid, task_id):
+                raise web.HTTPNotFound(text="That task could not be found.")
+            filename = f"task_reminder_request_{uid}_{task_id}.flag"
+            payload = {
+                "user_id": uid,
+                "task_identifier": task_id,
+                "timestamp": now_timestamp_full(),
+                "source": "website",
+            }
+            message = "That task reminder was queued for delivery."
+
+        throttle(("request-action", uid), 10, 60)
+        request_file = Path(get_flags_dir()) / filename
+        if not await asyncio.to_thread(
+            write_service_flag_json,
+            request_file,
+            payload,
+            audit_reason="website_delivery_request",
+            audit_extra={"user_id": uid, "action": action},
+        ):
+            raise web.HTTPServiceUnavailable(text="MHM could not queue that request.")
+        return web.json_response({"ok": True, "message": message})
+
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by the guarded notebook route.
     def note_view(entry):
         """Return the stable, browser-safe representation of a notebook entry."""
@@ -2072,6 +2258,10 @@ def create_web_app(
             if status not in {"active", "pinned", "inbox", "archived", "all"}:
                 raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, or all notes.")
             query = request.query.get("q", "").strip()
+            group_filter = request.query.get("group", "").strip()
+            tag_filter = request.query.get("tag", "").strip()
+            if len(query) > 500 or len(group_filter) > 50 or len(tag_filter) > 100:
+                raise web.HTTPBadRequest(text="Keep notebook filters brief.")
             if query:
                 entries = notes.search_entries(uid, query, limit=100)
             elif status == "pinned":
@@ -2082,7 +2272,34 @@ def create_web_app(
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
             if status not in {"all", "pinned", "inbox"}:
                 entries = [entry for entry in entries if entry.status == status]
-            return web.json_response({"notes": [note_view(entry) for entry in entries], "count": len(entries)})
+            if group_filter:
+                entries = [
+                    entry
+                    for entry in entries
+                    if str(entry.group or "").casefold() == group_filter.casefold()
+                ]
+            if tag_filter:
+                entries = [
+                    entry
+                    for entry in entries
+                    if tag_filter.casefold()
+                    in {str(tag).casefold() for tag in (entry.tags or [])}
+                ]
+            all_entries = notes.list_recent(uid, n=1000, include_archived=True)
+            groups = sorted(
+                {str(entry.group).strip() for entry in all_entries if str(entry.group or "").strip()},
+                key=str.casefold,
+            )
+            tags = sorted(
+                {str(tag).strip() for entry in all_entries for tag in (entry.tags or []) if str(tag).strip()},
+                key=str.casefold,
+            )
+            return web.json_response({
+                "notes": [note_view(entry) for entry in entries],
+                "count": len(entries),
+                "groups": groups,
+                "tags": tags,
+            })
 
         if request.method == "POST" and not note_id:
             data = await body(request)
@@ -2202,6 +2419,9 @@ def create_web_app(
     app.router.add_get("/api/tasks", tasks_api)
     app.router.add_post("/api/tasks", tasks_api)
     app.router.add_get("/api/task-templates", task_templates)
+    app.router.add_post(
+        "/api/tasks/bulk/{action:complete|restore|delete}", tasks_bulk
+    )
     app.router.add_route("PATCH", "/api/tasks/{task_id}", tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", tasks_api)
     app.router.add_post(
@@ -2210,6 +2430,7 @@ def create_web_app(
     )
     app.router.add_get("/api/messages", messages_api)
     app.router.add_post("/api/messages", messages_api)
+    app.router.add_post("/api/actions", request_action)
     app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_get("/api/notes", notes_api)

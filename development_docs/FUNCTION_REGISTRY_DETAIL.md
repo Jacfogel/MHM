@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-17 01:09:28
+> **Last Generated**: 2026-09-17 16:54:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2753
+- **Functions Found**: 2756
 - **Methods Found**: 1419
 - **Classes Found**: 264
-- **Total Items**: 4172
-- **Functions Documented**: 2450
+- **Total Items**: 4175
+- **Functions Documented**: 2453
 - **Methods Documented**: 1274
 - **Classes Documented**: 198
-- **Total Documented**: 3724
+- **Total Documented**: 3727
 - **Template-Generated**: 54
 - **Last Updated**: 2026-09-17
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (531)
+### **Core System Functions** (534)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (707)
@@ -5063,12 +5063,15 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
+- [MISSING] `apply_actions()` - No description
 - [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
 - [OK] `clean(data)` - Validate an editable message template payload.
+- [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
 - [OK] `clean_links(value)` - Validate task links without silently dropping malformed input.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
+- [OK] `clean_quick_reminders(value)` - Validate the desktop-compatible relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
 - [OK] `create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
@@ -6393,7 +6396,7 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `append_task_description(user_id, task_id, text)` - Append text to a task description (notes field), preserving existing content.
 - [OK] `append_task_link(user_id, task_id, url, label)` - Append a web link to a task. Returns added, duplicate, invalid, missing, or limit.
 - [OK] `build_task_data_from_template(user_id, template_id)` - Merge template defaults with optional overrides into create_task kwargs.
-- [MISSING] `complete_task(user_id, task_id)` - No description
+- [OK] `complete_task(user_id, task_id, completion_data)` - Complete a task, optionally recording an explicit date, time, and notes.
 - [MISSING] `create_task(user_id)` - No description
 - [OK] `create_task_from_template(user_id, template_id)` - Create a task from a built-in template with optional field overrides.
 - [OK] `default_due_date_for_recurring_time(due_time, now_dt)` - Return today for future recurring times, otherwise tomorrow.

@@ -314,8 +314,11 @@ button:disabled { cursor: wait; opacity: .65; }
 .settings-actions { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 28px; }
 .custom-question-editor { border: 1px solid var(--border); padding: 20px; border-radius: 14px; margin: 28px 0; min-width: 0; }
 .custom-question-editor > legend { font-weight: 700; }
-.custom-question-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(130px, .7fr) minmax(130px, .7fr) auto; gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
+.custom-question-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
 .custom-question-row .settings-field { margin: 0; }
+.custom-question-row > .danger-button { justify-self: start; }
+.profile-person-row { display: grid; grid-template-columns: minmax(140px, .7fr) minmax(160px, .8fr) minmax(0, 1.5fr) auto; gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
+.profile-person-row .settings-field { margin: 0; }
 
 .tasks-area { margin-top: 76px; padding-top: 52px; border-top: 1px solid var(--border); }
 .notes-area { margin-top: 20px; }
@@ -326,6 +329,8 @@ button:disabled { cursor: wait; opacity: .65; }
 .note-form-fields > .settings-field { margin-bottom: 12px; }
 .note-form-fields > .settings-field:last-child { margin-bottom: 0; }
 .note-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
+.notebook-filters { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; }
+.notebook-filters select { min-width: 130px; border: 1px solid #d8d3e7; border-radius: 11px; padding: 10px 13px; background: white; color: var(--ink); }
 .note-search input { min-width: 230px; border: 1px solid #d8d3e7; border-radius: 11px; padding: 10px 13px; background: white; color: var(--ink); }
 .note-list { display: grid; gap: 12px; }
 .note-card { display: flex; justify-content: space-between; align-items: center; gap: 22px; padding: 22px 24px; background: white; border: 1px solid var(--border); border-radius: 16px; }
@@ -361,6 +366,9 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-form-fields > .settings-field:last-child { margin-bottom: 0; }
 .task-form-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .task-form-row .settings-field { margin-bottom: 0; }
+.task-recurrence-options { grid-template-columns: minmax(120px, .4fr) minmax(220px, 1fr); align-items: center; margin-top: 12px; }
+.task-inline-check { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: .9rem; }
+.task-inline-check input, .task-quick-reminders input, .task-select input { width: 18px; height: 18px; accent-color: var(--purple); }
 .task-create-form .button { white-space: nowrap; }
 .optional-label { color: var(--muted); font-size: .8rem; font-weight: 400; }
 .task-reminders { border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin: 16px 0 0; }
@@ -369,8 +377,12 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-reminder-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px; align-items: end; padding: 12px; background: rgba(255,255,255,.62); border-radius: 10px; }
 .task-reminder-row .settings-field { margin: 0; }
 .task-reminder-remove { padding: 9px 0; font-size: .82rem; }
+.task-quick-reminders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; }
+.task-quick-reminders label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: .875rem; }
 .field-help { margin: 10px 0 0; color: var(--muted); font-size: .82rem; line-height: 1.4; }
 .task-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
+.task-list-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 12px; }
+.task-bulk-actions { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .875rem; }
 .task-tabs { display: flex; gap: 6px; padding: 4px; background: var(--lavender); border-radius: 11px; }
 .task-tabs button { border: 0; border-radius: 8px; padding: 9px 15px; background: transparent; color: var(--muted); font-weight: 700; }
 .task-tabs button[aria-selected="true"] { background: white; color: var(--purple-dark); box-shadow: 0 2px 6px rgba(30,36,83,.08); }
@@ -380,7 +392,9 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-card h3 { margin-bottom: 6px; font-size: 1.15rem; }
 .task-card.is-completed h3 { text-decoration: line-through; color: var(--muted); }
 .task-card p { margin: 0 0 9px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-.task-card-content { min-width: 0; }
+.task-card-content { min-width: 0; flex: 1; }
+.task-select { align-self: flex-start; padding-top: 3px; }
+.task-completion-notes { margin-top: 10px !important; padding: 9px 11px; border-radius: 9px; background: var(--soft); }
 .task-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: .875rem; }
 .task-links { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: .875rem; }
 .task-links a { color: var(--purple-dark); font-weight: 700; overflow-wrap: anywhere; }
@@ -423,6 +437,8 @@ button:disabled { cursor: wait; opacity: .65; }
 .message-active { display: flex; align-items: center; gap: 9px; font-weight: 700; }
 .message-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
 .message-choice-grid label { display: flex; align-items: center; gap: 8px; }
+.message-preview { margin-top: 18px; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: white; }
+.message-preview p { margin: 8px 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
   .settings-heading { display: block; }
   .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -433,6 +449,7 @@ button:disabled { cursor: wait; opacity: .65; }
   .period-row { padding: 14px; }
   .settings-two-col { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .custom-question-row { grid-template-columns: 1fr; }
+  .profile-person-row { grid-template-columns: 1fr; }
   .tasks-area { margin-top: 48px; padding-top: 38px; }
   .notes-area { margin-top: 0; }
   .tasks-heading, .task-list-header { display: block; }
@@ -440,15 +457,22 @@ button:disabled { cursor: wait; opacity: .65; }
   .task-create-form { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
   .note-create-form { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
   .task-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .task-recurrence-options { grid-template-columns: 1fr; }
+  .task-quick-reminders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .notebook-kind-row { grid-template-columns: 1fr; }
   .task-reminder-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .task-reminder-remove { justify-self: start; }
   .task-create-form .button { width: 100%; }
   .task-tabs { margin-bottom: 12px; width: max-content; }
   .task-card { display: block; padding: 20px; }
+  .task-select { display: block; margin-bottom: 10px; }
   .note-card { display: block; padding: 20px; }
   .task-actions { margin-top: 17px; justify-content: flex-start; }
+  .task-list-tools { display: block; }
+  .task-bulk-actions { flex-wrap: wrap; margin-top: 10px; }
   .note-list-header { display: block; }
+  .notebook-filters { display: grid; justify-content: stretch; }
+  .notebook-filters select { width: 100%; }
   .note-search { display: block; margin-top: 12px; }
   .note-search input { width: 100%; min-width: 0; }
   .insights-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -23,6 +23,13 @@ OPTIONS = {
     "timezones": ["America/Regina", "Europe/London"],
     "categories": ["motivational", "health"],
     "questions": {"mood": "Mood", "energy": "Energy", "sleep": "Sleep"},
+    "question_categories": {
+        "mood": {"name": "Mood"},
+        "energy": {"name": "Energy"},
+        "health": {"name": "Health"},
+        "activities": {"name": "Activities"},
+    },
+    "question_templates": {},
 }
 WINDOW = {
     "active": True,
@@ -123,10 +130,24 @@ def test_extended_profile_and_phrase_settings_round_trip_without_losing_private_
         medications_treatments=["Daily medication"],
         reminders_needed=["Refill prescription"],
         allergies_sensitivities=["Latex"],
+        loved_ones=[
+            {
+                "name": "Sam",
+                "type": "friend",
+                "relationships": ["walking buddy", "emergency contact"],
+            }
+        ],
     )
     updates = build_settings_updates(documents, OPTIONS, "profile", profile)
     assert updates["context"]["date_of_birth"] == "1990-02-28"
     assert updates["context"]["gender_identity"] == ["non-binary"]
+    assert updates["context"]["loved_ones"] == [
+        {
+            "name": "Sam",
+            "type": "friend",
+            "relationships": ["walking buddy", "emergency contact"],
+        }
+    ]
     assert updates["context"]["custom_fields"] == {
         "private": "keep",
         "health_conditions": ["Migraine"],
@@ -241,7 +262,10 @@ def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):
     draft["custom_questions"] = {
         question_key: {
             "question_text": "Did you spend time outside?",
+            "ui_display_name": "Time outside",
             "type": "yes_no",
+            "category": "activities",
+            "validation": {"error_message": "Please answer yes or no."},
         }
     }
     draft["questions"][question_key] = "always"
@@ -251,11 +275,11 @@ def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):
     assert checkin["custom_questions"]["keep"] is True
     assert checkin["custom_questions"][question_key] == {
         "question_text": "Did you spend time outside?",
-        "ui_display_name": "Did you spend time outside?",
+        "ui_display_name": "Time outside",
         "type": "yes_no",
-        "category": "general",
+        "category": "activities",
         "enabled": True,
-        "validation": {},
+        "validation": {"error_message": "Please answer yes or no."},
     }
     assert checkin["questions"][question_key]["always_include"] is True
 
@@ -499,6 +523,45 @@ async def test_personal_message_library_crud_uses_allowed_categories_and_periods
         headers={"Origin": ORIGIN},
     )).status == 200
     assert stored == []
+
+
+@pytest.mark.asyncio
+async def test_authenticated_delivery_actions_write_scoped_service_requests(
+    settings_gateway, monkeypatch, tmp_path
+):
+    from core import service_utilities
+    from tasks import task_data_manager
+
+    client, accounts, sent = settings_gateway
+    accounts.docs["existing"]["preferences"]["channel"] = {"type": "email"}
+    accounts.docs["existing"]["account"]["features"].update(
+        {"checkins": "enabled", "task_management": "enabled"}
+    )
+    monkeypatch.setattr(service_utilities, "get_flags_dir", lambda: tmp_path)
+    monkeypatch.setattr(
+        task_data_manager,
+        "get_task_by_id",
+        lambda uid, task_id: {"id": task_id, "title": "One step"},
+    )
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1])).status == 200
+
+    for payload, filename in (
+        (
+            {"action": "test_message", "category": "motivational"},
+            "test_message_request_existing_motivational.flag",
+        ),
+        ({"action": "checkin_prompt"}, "checkin_prompt_request_existing.flag"),
+        (
+            {"action": "task_reminder", "task_id": "task-1"},
+            "task_reminder_request_existing_task-1.flag",
+        ),
+    ):
+        response = await client.post(
+            "/api/actions", json=payload, headers={"Origin": ORIGIN}
+        )
+        assert response.status == 200
+        assert (tmp_path / filename).exists()
 
 
 @pytest.mark.file_io

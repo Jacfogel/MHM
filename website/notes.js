@@ -15,6 +15,8 @@
   const createHeading = document.getElementById('entry-create-heading');
   const createHelp = document.getElementById('entry-create-help');
   const search = document.getElementById('note-search');
+  const groupFilter = document.getElementById('note-group-filter');
+  const tagFilter = document.getElementById('note-tag-filter');
   const tabs = [...document.querySelectorAll('[data-note-view]')];
   let view = 'active';
   let notes = [];
@@ -186,8 +188,16 @@
   async function load() {
     try {
       const query = search.value.trim();
-      const result = await api(`/api/notes?status=${view}${query ? `&q=${encodeURIComponent(query)}` : ''}`);
+      const params = new URLSearchParams({ status: view });
+      if (query) params.set('q', query);
+      if (groupFilter.value) params.set('group', groupFilter.value);
+      if (tagFilter.value) params.set('tag', tagFilter.value);
+      const result = await api(`/api/notes?${params}`);
       notes = result.notes || [];
+      const chosenGroup = groupFilter.value; const chosenTag = tagFilter.value;
+      groupFilter.replaceChildren(new Option('All groups', ''), ...(result.groups || []).map(value => new Option(value, value)));
+      tagFilter.replaceChildren(new Option('All tags', ''), ...(result.tags || []).map(value => new Option(value, value)));
+      groupFilter.value = chosenGroup; tagFilter.value = chosenTag;
       workspace.hidden = false;
       showStatus('');
       render();
@@ -338,6 +348,8 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(load, 250);
   });
+  groupFilter.addEventListener('change', load);
+  tagFilter.addEventListener('change', load);
   document.getElementById('notes-refresh').addEventListener('click', load);
   window.addEventListener('focus', load);
   document.addEventListener('visibilitychange', () => {

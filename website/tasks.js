@@ -7,9 +7,19 @@
   const summary = document.getElementById('task-list-summary');
   const createForm = document.getElementById('task-create-form');
   const tabs = [...document.querySelectorAll('[data-task-view]')];
+  const dueSoon = document.getElementById('task-due-soon');
+  const selectedCount = document.getElementById('task-selected-count');
+  const bulkPrimary = document.getElementById('task-bulk-primary');
+  const bulkDelete = document.getElementById('task-bulk-delete');
   let view = 'active';
   let tasks = [];
   let templates = [];
+  let dueSoonCount = 0;
+  const selected = new Set();
+  const quickReminderOptions = [
+    ['5-10min', '5–10 minutes'], ['30min-1hour', '30–60 minutes'], ['1-2hour', '1–2 hours'],
+    ['1-2day', '1–2 days'], ['3-5day', '3–5 days'], ['1-2week', '1–2 weeks'],
+  ];
 
   function showStatus(message, error = false) {
     status.textContent = message;
@@ -66,9 +76,12 @@
   function remindersText(task) {
     const reminders = Array.isArray(task.reminders) ? task.reminders : [];
     const periods = reminders.filter(item => item && item.kind === 'scheduled' && item.period).map(item => item.period);
-    if (!periods.length) return '';
+    const quick = reminders.filter(item => item && item.kind === 'quick').map(item => new Map(quickReminderOptions).get(item.value) || item.value);
     const shown = periods.slice(0, 2).map(period => `${period.date} ${period.start_time}–${period.end_time}`);
-    return `Reminders: ${shown.join(', ')}${periods.length > 2 ? ` (+${periods.length - 2} more)` : ''}`;
+    const details = [];
+    if (shown.length) details.push(`${shown.join(', ')}${periods.length > 2 ? ` (+${periods.length - 2} more)` : ''}`);
+    if (quick.length) details.push(`relative: ${quick.join(', ')}`);
+    return details.length ? `Reminders: ${details.join('; ')}` : '';
   }
   function readLinks(value) {
     return String(value || '').split('\n').map(line => line.trim()).filter(Boolean).map(line => {
@@ -102,10 +115,16 @@
     list.replaceChildren();
     count.textContent = `${tasks.length} ${view === 'active' ? 'active' : 'completed'} ${tasks.length === 1 ? 'task' : 'tasks'}`;
     summary.textContent = view === 'active' ? 'Make room for the next small step.' : 'You did these.';
+    dueSoon.textContent = `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
+    bulkPrimary.textContent = view === 'active' ? 'Complete selected' : 'Restore selected';
     empty.hidden = tasks.length !== 0;
     for (const task of tasks) {
       const article = document.createElement('article');
       article.className = `task-card${view === 'completed' ? ' is-completed' : ''}`;
+      const chooser = document.createElement('label'); chooser.className = 'task-select';
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = selected.has(task.id); checkbox.setAttribute('aria-label', `Select ${task.title}`);
+      checkbox.addEventListener('change', () => { checkbox.checked ? selected.add(task.id) : selected.delete(task.id); updateBulkActions(); });
+      chooser.append(checkbox);
       const content = document.createElement('div'); content.className = 'task-card-content';
       const title = document.createElement('h3'); title.textContent = task.title; content.append(title);
       if (task.description) { const description = document.createElement('p'); description.textContent = task.description; content.append(description); }
@@ -115,6 +134,12 @@
       const repeat = recurrenceText(task); if (repeat) { const recurring = document.createElement('span'); recurring.textContent = repeat; meta.append(recurring); }
       const tags = tagsText(task); if (tags) { const tagLabel = document.createElement('span'); tagLabel.textContent = tags; meta.append(tagLabel); }
       const reminders = remindersText(task); if (reminders) { const reminderLabel = document.createElement('span'); reminderLabel.textContent = reminders; meta.append(reminderLabel); }
+      if (view === 'completed' && task.completion && task.completion.completed_at) {
+        const completed = document.createElement('span'); completed.textContent = `Completed ${String(task.completion.completed_at).replace('T', ' ')}`; meta.append(completed);
+      }
+      if (view === 'completed' && task.completion && task.completion.notes) {
+        const notes = document.createElement('p'); notes.className = 'task-completion-notes'; notes.textContent = `Completion notes: ${task.completion.notes}`; content.append(notes);
+      }
       if (Array.isArray(task.links) && task.links.length) {
         const links = document.createElement('div'); links.className = 'task-links';
         for (const item of task.links) {
@@ -127,19 +152,23 @@
       if (view === 'active') {
         actions.append(button('Edit', 'plain-button', () => openEditor(task)));
         actions.append(button('More', 'plain-button', () => openSupportActions(task)));
-        actions.append(button('Complete', 'button task-action-primary', () => changeTask(task, 'complete')));
+        actions.append(button('Remind now', 'plain-button', () => requestTaskReminder(task)));
+        actions.append(button('Complete', 'button task-action-primary', () => openCompletionDialog(task)));
       } else {
         actions.append(button('Restore', 'plain-button', () => changeTask(task, 'restore')));
       }
       actions.append(button('Delete', 'plain-button task-delete', () => removeTask(task)));
-      article.append(content, actions); list.append(article);
+      article.append(chooser, content, actions); list.append(article);
     }
+    updateBulkActions();
   }
 
   async function load() {
     try {
       const result = await api(`/api/tasks?status=${view}`);
       tasks = result.tasks || [];
+      dueSoonCount = result.due_soon_count || 0;
+      selected.clear();
       workspace.hidden = false; showStatus(''); render();
     } catch (error) {
       workspace.hidden = error.status === 403;
@@ -150,6 +179,61 @@
   async function changeTask(task, action) {
     try { await api(`/api/tasks/${encodeURIComponent(task.id)}/${action}`, 'POST', {}); await load(); }
     catch (error) { showStatus(error.message, true); }
+  }
+
+  async function requestTaskReminder(task) {
+    try {
+      const result = await api('/api/actions', 'POST', { action: 'task_reminder', task_id: task.id });
+      showStatus(result.message || 'That reminder was queued.');
+    } catch (error) { showStatus(error.message, true); }
+  }
+
+  function updateBulkActions() {
+    selectedCount.textContent = `${selected.size} selected`;
+    bulkPrimary.disabled = selected.size === 0;
+    bulkDelete.disabled = selected.size === 0;
+  }
+
+  async function runBulk(action) {
+    if (!selected.size) return;
+    const label = action === 'delete' ? 'delete' : action;
+    if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${selected.size} selected ${selected.size === 1 ? 'task' : 'tasks'}?`)) return;
+    try {
+      const result = await api(`/api/tasks/bulk/${action}`, 'POST', { task_ids: [...selected] });
+      await load();
+      showStatus(result.failed && result.failed.length ? `${result.changed.length} updated; ${result.failed.length} could not be changed.` : `${result.changed.length} ${result.changed.length === 1 ? 'task' : 'tasks'} updated.`);
+    } catch (error) { showStatus(error.message, true); }
+  }
+
+  function localDateTime() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+    return { date: local.slice(0, 10), time: local.slice(11, 16) };
+  }
+
+  function openCompletionDialog(task) {
+    const defaults = localDateTime();
+    const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
+    const heading = document.createElement('h2'); heading.textContent = `Complete “${task.title}”`;
+    const form = document.createElement('form'); form.className = 'task-edit-form';
+    const row = document.createElement('div'); row.className = 'task-form-row';
+    const date = input(row, 'Completion date', 'date', defaults.date, 'complete-date'); date.required = true;
+    const time = input(row, 'Completion time', 'time', defaults.time, 'complete-time'); time.required = true;
+    form.append(row);
+    const notes = input(form, 'Completion notes (optional)', 'textarea', '', 'complete-notes'); notes.maxLength = 5000;
+    const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
+    actions.append(button('Cancel', 'plain-button', () => dialog.close()));
+    const save = document.createElement('button'); save.type = 'submit'; save.className = 'button'; save.textContent = 'Complete task'; actions.append(save);
+    form.append(actions); dialog.append(heading, form); document.body.append(dialog);
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); save.disabled = true;
+      try {
+        await api(`/api/tasks/${encodeURIComponent(task.id)}/complete`, 'POST', { completion_date: date.value, completion_time: time.value, completion_notes: notes.value });
+        dialog.close(); await load();
+      } catch (error) { showStatus(error.message, true); save.disabled = false; }
+    });
+    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }
 
   async function runSupportAction(task, action, payload, dialog) {
@@ -212,6 +296,12 @@
     const field = type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
     field.id = id; field.name = id; field.value = value || '';
     if (type === 'textarea') field.rows = 3; else field.type = type;
+    if (type === 'date' || type === 'time') {
+      field.addEventListener('pointerdown', event => {
+        if (typeof event.button === 'number' && event.button !== 0) return;
+        if (typeof field.showPicker === 'function') try { field.showPicker(); } catch (_) { /* Native icon remains available. */ }
+      });
+    }
     wrapper.append(label, field); parent.append(wrapper); return field;
   }
 
@@ -227,6 +317,19 @@
     wrapper.append(label, field); parent.append(wrapper); return field;
   }
 
+  function quickReminderEditor(parent, selectedValues = []) {
+    const fieldset = document.createElement('fieldset'); fieldset.className = 'task-reminders';
+    const legend = document.createElement('legend'); legend.textContent = 'Quick relative reminders'; fieldset.append(legend);
+    const choices = document.createElement('div'); choices.className = 'task-quick-reminders';
+    const inputs = quickReminderOptions.map(([value, labelText]) => {
+      const label = document.createElement('label'); const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = selectedValues.includes(value);
+      label.append(checkbox, document.createTextNode(` ${labelText}`)); choices.append(label); return checkbox;
+    });
+    fieldset.append(choices); parent.append(fieldset);
+    return () => inputs.filter(item => item.checked).map(item => item.value);
+  }
+
   function openEditor(task) {
     const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
     const heading = document.createElement('h2'); heading.textContent = 'Edit task';
@@ -239,6 +342,11 @@
     const priority = select(row, 'Priority', task.priority, 'edit-priority', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['urgent', 'Urgent'], ['critical', 'Critical']]);
     form.append(row);
     const recurrence = select(form, 'Repeat pattern', task.recurrence && task.recurrence.pattern, 'edit-recurrence', [['', 'Does not repeat'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']]);
+    const recurrenceOptions = document.createElement('div'); recurrenceOptions.className = 'task-form-row';
+    const interval = input(recurrenceOptions, 'Repeat every', 'number', task.recurrence && task.recurrence.interval || 1, 'edit-recurrence-interval'); interval.min = 1; interval.max = 365;
+    const afterWrapper = document.createElement('label'); afterWrapper.className = 'task-inline-check';
+    const repeatAfter = document.createElement('input'); repeatAfter.type = 'checkbox'; repeatAfter.checked = !task.recurrence || task.recurrence.repeat_after_completion !== false;
+    afterWrapper.append(repeatAfter, document.createTextNode(' Count the next repeat from completion')); recurrenceOptions.append(afterWrapper); form.append(recurrenceOptions);
     const tags = input(form, 'Tags', 'text', Array.isArray(task.tags) ? task.tags.join(', ') : '', 'edit-tags');
     tags.maxLength = 1000; tags.placeholder = 'health, errands, home';
     const links = input(form, 'Links (one per line, optional label before |)', 'textarea', linksText(task.links), 'edit-links'); links.maxLength = 5000;
@@ -248,6 +356,7 @@
     const addReminder = button('+ Add a reminder', 'plain-button', () => addReminderRow(reminderList)); reminderFieldset.append(addReminder);
     if (Array.isArray(task.reminders)) task.reminders.filter(item => item && item.kind === 'scheduled' && item.period).forEach(item => addReminderRow(reminderList, item.period));
     form.append(reminderFieldset);
+    const readQuickReminders = quickReminderEditor(form, (task.reminders || []).filter(item => item && item.kind === 'quick').map(item => item.value));
     const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
     actions.append(button('Cancel', 'plain-button', () => dialog.close()));
     const save = document.createElement('button'); save.type = 'submit'; save.className = 'button'; save.textContent = 'Save changes'; actions.append(save);
@@ -259,9 +368,11 @@
           title: title.value.trim(), description: description.value,
           due_date: date.value || null, due_time: time.value || null, priority: priority.value.trim().toLowerCase(),
           recurrence_pattern: recurrence.value.trim().toLowerCase() || null,
+          recurrence_interval: Number(interval.value), repeat_after_completion: repeatAfter.checked,
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
           links: readLinks(links.value),
           reminder_periods: readReminderPeriods(reminderList),
+          quick_reminders: readQuickReminders(),
         });
         dialog.close(); await load();
       } catch (error) { showStatus(error.message, true); save.disabled = false; }
@@ -280,11 +391,13 @@
         title: String(form.get('title') || '').trim(), description: String(form.get('description') || ''),
         due_date: form.get('due_date') || null, due_time: form.get('due_time') || null,
         priority: form.get('priority') || 'medium', recurrence_pattern: form.get('recurrence_pattern') || null,
+        recurrence_interval: Number(form.get('recurrence_interval') || 1), repeat_after_completion: form.get('repeat_after_completion') === 'on',
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
         links: readLinks(form.get('links')),
         reminder_periods: readReminderPeriods(document.getElementById('task-reminder-list')),
+        quick_reminders: form.getAll('quick_reminders'),
       });
-      createForm.reset(); document.getElementById('task-priority').value = 'medium'; document.getElementById('task-reminder-list').replaceChildren(); showStatus(''); await load();
+      createForm.reset(); document.getElementById('task-priority').value = 'medium'; document.getElementById('task-recurrence-interval').value = '1'; document.getElementById('task-repeat-after-completion').checked = true; document.getElementById('task-reminder-list').replaceChildren(); showStatus(''); await load();
     } catch (error) { showStatus(error.message, true); }
     finally { submit.disabled = false; }
   });
@@ -296,9 +409,18 @@
     document.getElementById('task-description').value = template.description || '';
     document.getElementById('task-priority').value = template.priority || 'medium';
     document.getElementById('task-recurrence').value = template.recurrence_pattern || '';
+    document.getElementById('task-recurrence-interval').value = template.recurrence_interval || 1;
     document.getElementById('task-tags').value = (template.tags || []).join(', ');
     if (template.due_time) document.getElementById('task-due-time').value = template.due_time;
   });
+  bulkPrimary.addEventListener('click', () => runBulk(view === 'active' ? 'complete' : 'restore'));
+  bulkDelete.addEventListener('click', () => runBulk('delete'));
+  for (const picker of document.querySelectorAll('input[type="date"], input[type="time"]')) {
+    picker.addEventListener('pointerdown', event => {
+      if (typeof event.button === 'number' && event.button !== 0) return;
+      if (typeof picker.showPicker === 'function') try { picker.showPicker(); } catch (_) { /* Native icon remains available. */ }
+    });
+  }
   for (const tab of tabs) tab.addEventListener('click', () => { view = tab.dataset.taskView; tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab))); load(); });
   loadTemplates();
   load();

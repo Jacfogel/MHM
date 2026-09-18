@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=password-social-1" defer></script>
-  <script src="messages.js?v=messages-1" defer></script>
+  <script src="messages.js?v=messages-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -32,8 +32,9 @@
             <label class="message-active"><input id="message-active" type="checkbox" checked /> Enable this message</label>
             <fieldset class="category-picker"><legend>Days</legend><div id="message-days" class="message-choice-grid"></div></fieldset>
             <fieldset class="category-picker"><legend>Reminder windows</legend><div id="message-periods" class="message-choice-grid"></div></fieldset>
+            <article class="message-preview" aria-live="polite"><span class="eyebrow">Preview</span><p id="message-preview-text">Your message preview will appear here.</p><div id="message-preview-meta" class="task-meta"></div></article>
           </div>
-          <div class="task-dialog-actions"><button id="message-cancel" class="plain-button" type="button" hidden>Cancel editing</button><button class="button" type="submit">Save message</button></div>
+          <div class="task-dialog-actions"><button id="message-test" class="plain-button" type="button">Send me a test</button><button id="message-cancel" class="plain-button" type="button" hidden>Cancel editing</button><button class="button" type="submit">Save message</button></div>
         </form>
         <div class="task-list-header"><strong id="messages-summary"></strong></div>
         <div id="message-list" class="note-list"></div>

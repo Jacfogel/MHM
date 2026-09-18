@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=discord-1" defer></script>
-  <script src="tasks.js?v=tasks-2" defer></script>
+  <script src="tasks.js?v=tasks-3" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -40,13 +40,19 @@
               <div class="settings-field"><label for="task-priority">Priority</label><select id="task-priority" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select></div>
               <div class="settings-field"><label for="task-recurrence">Repeat</label><select id="task-recurrence" name="recurrence_pattern"><option value="">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
             </div>
+            <div class="task-form-row task-recurrence-options">
+              <div class="settings-field"><label for="task-recurrence-interval">Repeat every</label><input id="task-recurrence-interval" name="recurrence_interval" type="number" min="1" max="365" value="1" /></div>
+              <label class="task-inline-check"><input id="task-repeat-after-completion" name="repeat_after_completion" type="checkbox" checked /> Count the next repeat from completion</label>
+            </div>
             <div class="settings-field"><label for="task-tags">Tags <span class="optional-label">Optional, comma separated</span></label><input id="task-tags" name="tags" maxlength="1000" placeholder="health, errands, home" /></div>
             <div class="settings-field"><label for="task-links">Links <span class="optional-label">Optional, one per line</span></label><textarea id="task-links" name="links" rows="2" maxlength="5000" placeholder="Appointment portal | https://example.com"></textarea></div>
             <fieldset class="task-reminders"><legend>Scheduled reminders <span class="optional-label">Optional</span></legend><div id="task-reminder-list" class="task-reminder-list"></div><button id="task-add-reminder" class="plain-button" type="button">+ Add a reminder</button><p class="field-help">Choose a date and a time window. MHM will send the task reminder within that window.</p></fieldset>
+            <fieldset class="task-reminders"><legend>Quick relative reminders <span class="optional-label">Optional</span></legend><div class="task-quick-reminders"><label><input type="checkbox" name="quick_reminders" value="5-10min" /> 5–10 minutes</label><label><input type="checkbox" name="quick_reminders" value="30min-1hour" /> 30–60 minutes</label><label><input type="checkbox" name="quick_reminders" value="1-2hour" /> 1–2 hours</label><label><input type="checkbox" name="quick_reminders" value="1-2day" /> 1–2 days</label><label><input type="checkbox" name="quick_reminders" value="3-5day" /> 3–5 days</label><label><input type="checkbox" name="quick_reminders" value="1-2week" /> 1–2 weeks</label></div></fieldset>
           </div>
           <button class="button" type="submit">Add task <span aria-hidden="true">→</span></button>
         </form>
         <div class="task-list-header"><div class="task-tabs" role="tablist" aria-label="Task views"><button type="button" role="tab" aria-selected="true" data-task-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-task-view="completed">Completed</button></div><span id="task-list-summary" class="task-list-summary"></span></div>
+        <div class="task-list-tools"><span id="task-due-soon" class="task-list-summary"></span><div id="task-bulk-actions" class="task-bulk-actions"><span id="task-selected-count">0 selected</span><button id="task-bulk-primary" class="plain-button" type="button" disabled>Complete selected</button><button id="task-bulk-delete" class="plain-button task-delete" type="button" disabled>Delete selected</button></div></div>
         <div id="task-list" class="task-list"></div>
         <div id="task-empty" class="task-empty" hidden><strong>No tasks here yet.</strong><span>Add something small, or give yourself a clear next step.</span></div>
       </div>

@@ -76,8 +76,15 @@ def get_tasks_due_soon(user_id: str, *, days_ahead: int = 7):
 
 
 @handle_errors("task service: complete_task", user_friendly=False, re_raise=True)
-def complete_task(user_id: str, task_id: str) -> bool:
-    return _tasks().complete_task(user_id, task_id)
+def complete_task(
+    user_id: str,
+    task_id: str,
+    completion_data: dict[str, Any] | None = None,
+) -> bool:
+    """Complete a task, optionally recording an explicit date, time, and notes."""
+    if completion_data is None:
+        return _tasks().complete_task(user_id, task_id)
+    return _tasks().complete_task(user_id, task_id, completion_data)
 
 
 @handle_errors("task service: restore_task", user_friendly=False, re_raise=True)

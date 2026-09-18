@@ -88,6 +88,12 @@ async def test_note_create_edit_search_and_archive(notes_gateway):
     client = notes_gateway
     existing = await (await client.get("/api/notes")).json()
     assert {entry["kind"] for entry in existing["notes"]} == {"list", "journal_entry"}
+    assert existing["groups"] == ["Errands"]
+    assert existing["tags"] == ["home", "journal"]
+    grouped = await (await client.get("/api/notes?group=Errands")).json()
+    assert [entry["title"] for entry in grouped["notes"]] == ["Groceries"]
+    tagged = await (await client.get("/api/notes?tag=journal")).json()
+    assert [entry["title"] for entry in tagged["notes"]] == ["Today"]
     created = await client.post("/api/notes", json={"title": "Appointment questions", "description": "Bring the list", "tags": ["Health", "prep"], "group": "Personal"}, headers={"Origin": ORIGIN})
     assert created.status == 201
     note = (await created.json())["note"]

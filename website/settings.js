@@ -77,6 +77,48 @@ const MHMSettingsInput = Object.freeze({
   }
   function lines(input) { return MHMSettingsInput.profileEntries(input.value); }
 
+  function lovedOnesEditor(parent, initial) {
+    const group = el('fieldset', null, { className: 'custom-question-editor' });
+    group.append(el('legend', 'Important people'));
+    group.append(el('p', 'Add the people MHM should understand when personalizing support. Relationship details can be separated by commas or semicolons.', { className: 'field-hint' }));
+    const rows = el('div');
+    const controls = [];
+    function add(person = {}) {
+      person = MHMSettingsInput.record(person);
+      const row = el('div', null, { className: 'profile-person-row' });
+      const id = `person-${crypto.randomUUID()}`;
+      const name = field(row, 'Name', `${id}-name`, 'text', person.name, { required: '', maxlength: '100' });
+      const type = field(row, 'Who they are to you', `${id}-type`, 'text', person.type, { maxlength: '100', placeholder: 'Friend, family member, therapist…' });
+      const relationships = field(row, 'Relationship details', `${id}-relationships`, 'text', MHMSettingsInput.list(person.relationships).join(', '), { maxlength: '1000', placeholder: 'Sister, caregiver, emergency contact…' });
+      const remove = el('button', 'Remove person', { type: 'button', className: 'plain-button danger-button' });
+      const control = { row, name, type, relationships };
+      remove.addEventListener('click', () => {
+        controls.splice(controls.indexOf(control), 1);
+        row.remove();
+        parent.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      row.append(remove);
+      controls.push(control);
+      rows.append(row);
+    }
+    for (const person of MHMSettingsInput.list(initial)) add(person);
+    const button = el('button', '+ Add important person', { type: 'button', className: 'plain-button' });
+    button.addEventListener('click', () => {
+      if (controls.length >= 30) return;
+      add();
+      controls.at(-1).name.focus();
+    });
+    group.append(rows, button);
+    parent.append(group);
+    return {
+      read: () => controls.map(item => ({
+        name: item.name.value.trim(),
+        type: item.type.value.trim(),
+        relationships: MHMSettingsInput.profileEntries(item.relationships.value),
+      })),
+    };
+  }
+
   function featureDetails(form, enabled, title) {
     const details = el('fieldset', null, { className: 'settings-feature-details' });
     details.append(el('legend', `${title} details`, { className: 'feature-details-legend' }));
@@ -90,25 +132,55 @@ const MHMSettingsInput = Object.freeze({
     return details;
   }
 
-  function customQuestionEditor(parent, initial, states) {
+  function customQuestionEditor(parent, initial, states, options) {
     initial = MHMSettingsInput.record(initial);
     states = MHMSettingsInput.record(states);
+    options = MHMSettingsInput.record(options);
+    const categories = MHMSettingsInput.record(options.question_categories);
+    const categoryChoices = Object.entries(categories).map(([key, value]) => [key, MHMSettingsInput.record(value).name || key.replaceAll('_', ' ')]);
+    if (!categoryChoices.length) categoryChoices.push(['mood', 'Mood'], ['energy', 'Energy'], ['health', 'Health'], ['activities', 'Activities']);
+    if (!categoryChoices.some(([key]) => key === 'general')) categoryChoices.push(['general', 'General']);
+    const templates = MHMSettingsInput.record(options.question_templates);
     const group = el('fieldset', null, { className: 'custom-question-editor' });
     group.append(el('legend', 'Custom questions'));
-    group.append(el('p', 'Add questions that fit your own routines. Custom questions can use text, yes/no, or a 1–5 scale.', { className: 'field-hint' }));
+    group.append(el('p', 'Add questions that fit your routines, including numeric and paired-time answers. You can begin with a template or build your own.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
+    const deleted = [];
+    const undo = el('button', 'Undo last question deletion', { type: 'button', className: 'plain-button' });
+    undo.hidden = true;
+    function currentValue(item) {
+      const validation = {};
+      if (item.minimum.value !== '') validation.min = Number(item.minimum.value);
+      if (item.maximum.value !== '') validation.max = Number(item.maximum.value);
+      if (item.errorMessage.value.trim()) validation.error_message = item.errorMessage.value.trim();
+      return {
+        definition: {
+          question_text: item.text.value.trim(), ui_display_name: item.displayName.value.trim(),
+          type: item.type.value, category: item.category.value, validation,
+        },
+        state: item.frequency.value,
+      };
+    }
     function add(key, definition, state = 'off') {
       definition = MHMSettingsInput.record(definition);
+      const validation = MHMSettingsInput.record(definition.validation);
       const row = el('div', null, { className: 'custom-question-row' });
       const text = field(row, 'Question', `${key}-text`, 'text', definition.question_text, { required: '', maxlength: '300' });
-      const type = select(row, 'Answer type', `${key}-type`, [['optional_text', 'Text'], ['yes_no', 'Yes or no'], ['scale_1_5', '1–5 scale']], definition.type || 'optional_text');
+      const displayName = field(row, 'Short display name', `${key}-display-name`, 'text', definition.ui_display_name || definition.question_text, { required: '', maxlength: '150' });
+      const type = select(row, 'Answer type', `${key}-type`, [['optional_text', 'Text'], ['yes_no', 'Yes or no'], ['scale_1_5', '1–5 scale'], ['number', 'Number'], ['time_pair', 'Two times']], definition.type || 'optional_text');
+      const category = select(row, 'Category', `${key}-category`, categoryChoices, definition.category || categoryChoices[0][0]);
       const frequency = select(row, 'Include', `${key}-frequency`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], state);
+      const minimum = field(row, 'Minimum (optional)', `${key}-minimum`, 'number', validation.min, { step: 'any' });
+      const maximum = field(row, 'Maximum (optional)', `${key}-maximum`, 'number', validation.max, { step: 'any' });
+      const errorMessage = field(row, 'Validation message (optional)', `${key}-error`, 'text', validation.error_message, { maxlength: '300' });
       const remove = el('button', 'Remove question', { type: 'button', className: 'plain-button danger-button' });
-      const control = { key, row, text, type, frequency };
+      const control = { key, row, text, displayName, type, category, frequency, minimum, maximum, errorMessage };
       remove.addEventListener('click', () => {
+        deleted.push({ key, ...currentValue(control) });
         controls.splice(controls.indexOf(control), 1);
         row.remove();
+        undo.hidden = false;
         parent.dispatchEvent(new Event('input', { bubbles: true }));
       });
       row.append(remove);
@@ -116,20 +188,31 @@ const MHMSettingsInput = Object.freeze({
       rows.append(row);
     }
     for (const [key, definition] of Object.entries(initial)) add(key, definition, states[key] || 'sometimes');
+    const templateChoices = [['', 'Blank question'], ...Object.entries(templates).map(([key, value]) => [key, MHMSettingsInput.record(value).ui_display_name || key.replaceAll('_', ' ')])];
+    const template = select(group, 'Start from', 'custom-question-template', templateChoices, '');
     const button = el('button', '+ Add custom question', { type: 'button', className: 'plain-button' });
     button.addEventListener('click', () => {
       if (controls.length >= 20) return;
       const key = `custom_${crypto.randomUUID().replaceAll('-', '')}`;
-      add(key, { question_text: '', type: 'optional_text' }, 'off');
+      const chosen = MHMSettingsInput.record(templates[template.value]);
+      add(key, Object.keys(chosen).length ? chosen : { question_text: '', ui_display_name: '', type: 'optional_text', category: categoryChoices[0][0], validation: {} }, 'off');
+      template.value = '';
       parent.dispatchEvent(new Event('input', { bubbles: true }));
       controls.at(-1).text.focus();
     });
-    group.append(rows, button);
+    undo.addEventListener('click', () => {
+      const item = deleted.pop();
+      if (!item || controls.length >= 20) return;
+      add(item.key, item.definition, item.state);
+      undo.hidden = deleted.length === 0;
+      parent.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    group.append(rows, button, undo);
     parent.append(group);
     return {
       read() {
         return {
-          customQuestions: Object.fromEntries(controls.map(item => [item.key, { question_text: item.text.value.trim(), type: item.type.value }])),
+          customQuestions: Object.fromEntries(controls.map(item => [item.key, currentValue(item).definition])),
           states: Object.fromEntries(controls.map(item => [item.key, item.frequency.value])),
         };
       },
@@ -143,6 +226,13 @@ const MHMSettingsInput = Object.freeze({
     group.append(el('p', 'MHM picks a time within each enabled window. Times use your account’s time zone.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
+    const deleted = [];
+    const undo = el('button', 'Undo last window deletion', { type: 'button', className: 'plain-button' });
+    undo.hidden = true;
+    function currentValue(item) {
+      const selected = item.dayInputs.filter(([, input]) => input.checked).map(([day]) => day);
+      return { name: item.input.value, value: { active: item.enabled.checked, days: selected.length === 7 ? ['ALL'] : selected, start_time: item.start.value, end_time: item.end.value } };
+    }
     function add(name, value) {
       value = MHMSettingsInput.record(value);
       const selectedDays = MHMSettingsInput.list(value.days);
@@ -160,7 +250,13 @@ const MHMSettingsInput = Object.freeze({
       row.append(dayGroup);
       const remove = el('button', 'Remove window', { type: 'button', className: 'plain-button' });
       const control = { row, input, start, end, enabled, dayInputs };
-      remove.addEventListener('click', () => { controls.splice(controls.indexOf(control), 1); row.remove(); parent.dispatchEvent(new Event('input', { bubbles: true })); });
+      remove.addEventListener('click', () => {
+        deleted.push(currentValue(control));
+        controls.splice(controls.indexOf(control), 1);
+        row.remove();
+        undo.hidden = false;
+        parent.dispatchEvent(new Event('input', { bubbles: true }));
+      });
       row.append(remove);
       controls.push(control);
       rows.append(row);
@@ -177,7 +273,14 @@ const MHMSettingsInput = Object.freeze({
       add(`Window ${controls.length + 1}`, { ...defaults, active: true, days: ['ALL'] });
       parent.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    group.append(rows, button);
+    undo.addEventListener('click', () => {
+      const item = deleted.pop();
+      if (!item || controls.length >= 20) return;
+      add(item.name, item.value);
+      undo.hidden = deleted.length === 0;
+      parent.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    group.append(rows, button, undo);
     parent.append(group);
     return {
       group,
@@ -245,8 +348,9 @@ const MHMSettingsInput = Object.freeze({
         reminders_needed: 'Things you may need reminders for', notes_for_ai: 'What you’d like MHM to keep in mind',
       };
       for (const [key, label] of Object.entries(labels)) fields[key] = field(form, label, key, 'textarea', MHMSettingsInput.list(values[key]).join('\n'), { rows: key === 'notes_for_ai' ? '4' : '2' });
+      const lovedOnes = lovedOnesEditor(form, values.loved_ones);
       form.append(el('p', 'Health details are optional and are used only to personalize MHM support.', { className: 'field-hint' }));
-      read = () => ({ preferred_name: name.value, date_of_birth: birthDate.value, ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, lines(input)])) });
+      read = () => ({ preferred_name: name.value, date_of_birth: birthDate.value, ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, lines(input)])), loved_ones: lovedOnes.read() });
     } else if (section === 'delivery') {
       const timezone = select(form, 'Time zone', 'timezone', MHMSettingsInput.list(data.options.timezones).map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
       timezone.required = true;
@@ -311,7 +415,7 @@ const MHMSettingsInput = Object.freeze({
           for (const [key, label] of Object.entries(standardQuestions)) {
             if (!Object.hasOwn(customQuestions, key)) questions[key] = select(details, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], questionStates[key]);
           }
-          const custom = customQuestionEditor(details, customQuestions, questionStates);
+          const custom = customQuestionEditor(details, customQuestions, questionStates, data.options);
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
           const maximum = field(counts, 'Maximum questions', 'max-questions', 'number', values.max_questions, { min: '1', max: '100', required: '' });

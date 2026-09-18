@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=password-social-1" defer></script>
-  <script src="insights.js?v=insights-1" defer></script>
+  <script src="insights.js?v=insights-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -28,9 +28,11 @@
         <div id="insights-summary" class="insights-grid"></div>
         <div class="insights-detail-grid">
           <article class="card insights-card"><h2>Mood and energy</h2><div id="mood-energy"></div></article>
-          <article class="card insights-card"><h2>Sleep and habits</h2><div id="sleep-habits"></div></article>
+          <article class="card insights-card"><h2>Wellness recommendations</h2><div id="wellness-recommendations"></div></article>
+          <article class="card insights-card"><h2>Sleep</h2><div id="sleep-detail"></div></article>
+          <article class="card insights-card"><h2>Habits</h2><div id="habit-detail"></div></article>
         </div>
-        <article class="card insights-card insights-history"><div class="settings-heading"><div><h2>Recent check-ins</h2><p>Your latest saved check-ins in this period.</p></div><button id="insights-refresh" class="plain-button" type="button">Refresh</button></div><div id="checkin-history"></div></article>
+        <article class="card insights-card insights-history"><div class="settings-heading"><div><h2>Recent check-ins</h2><p>Your latest saved check-ins in this period.</p></div><div class="health-actions"><button id="checkin-request" class="plain-button" type="button">Send me a check-in</button><button id="insights-refresh" class="plain-button" type="button">Refresh</button></div></div><div id="checkin-history"></div></article>
       </div>
     </section>
     <section class="settings-area" aria-labelledby="health-heading">

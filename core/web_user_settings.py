@@ -35,7 +35,12 @@ PERSONALIZED_CATEGORIES = {
     "personalized_google_health": "google_health",
     "personalized_profile": None,
 }
-CUSTOM_QUESTION_TYPES = frozenset({"optional_text", "yes_no", "scale_1_5"})
+CUSTOM_QUESTION_TYPES = frozenset(
+    {"optional_text", "yes_no", "scale_1_5", "number", "time_pair"}
+)
+DEFAULT_QUESTION_CATEGORIES = frozenset(
+    {"mood", "energy", "health", "activities", "general"}
+)
 
 
 @handle_errors("filtering available website message categories", default_return=[])
@@ -63,13 +68,28 @@ def _editable_custom_questions(checkin_settings):
             and isinstance(definition.get("question_text"), str)
             and definition.get("question_text", "").strip()
         ):
+            validation = definition.get("validation")
+            if not isinstance(validation, dict):
+                validation = {}
             result[key] = {
                 "question_text": definition["question_text"].strip(),
+                "ui_display_name": str(
+                    definition.get("ui_display_name")
+                    or definition["question_text"]
+                ).strip(),
                 "type": (
                     definition.get("type")
                     if definition.get("type") in CUSTOM_QUESTION_TYPES
                     else "optional_text"
                 ),
+                "category": str(definition.get("category") or "health"),
+                "validation": {
+                    field: value
+                    for field, value in validation.items()
+                    if field in {"min", "max", "error_message"}
+                    and isinstance(value, (int, float, str))
+                    and not isinstance(value, bool)
+                },
             }
     return result
 
@@ -81,6 +101,8 @@ def settings_options(user_id):
     from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
     questions = dynamic_checkin_manager.get_enabled_questions_for_ui(user_id)
+    categories = dynamic_checkin_manager.get_categories()
+    templates = dynamic_checkin_manager.get_question_templates()
     return {
         "timezones": pytz.all_timezones,
         "categories": get_message_categories(),
@@ -91,6 +113,8 @@ def settings_options(user_id):
             key: "sometimes" if value["enabled"] else "off"
             for key, value in questions.items()
         },
+        "question_categories": categories,
+        "question_templates": templates,
     }
 
 
@@ -180,6 +204,7 @@ def settings_snapshot(documents, options):
             "date_of_birth": context.get("date_of_birth", ""),
             **{key: context.get(key) or [] for key in PROFILE_LISTS},
             **{key: custom_fields.get(key) or [] for key in PROFILE_CUSTOM_LISTS},
+            "loved_ones": context.get("loved_ones") or [],
         },
         "delivery": {
             "timezone": account.get("timezone", ""),
@@ -375,9 +400,43 @@ def build_settings_updates(documents, options, section, values):
                 raise ValidationError(
                     "Use at most 30 entries in each profile list and keep entries brief."
                 )
+        loved_ones = values["loved_ones"]
+        if not isinstance(loved_ones, list) or len(loved_ones) > 30:
+            raise ValidationError("Add at most 30 people to your support network.")
+        for person in loved_ones:
+            if (
+                not isinstance(person, dict)
+                or set(person) != {"name", "type", "relationships"}
+                or not isinstance(person["name"], str)
+                or not person["name"].strip()
+                or len(person["name"].strip()) > 100
+                or not isinstance(person["type"], str)
+                or len(person["type"].strip()) > 100
+                or not isinstance(person["relationships"], list)
+                or len(person["relationships"]) > 20
+                or any(
+                    not isinstance(relationship, str)
+                    or not relationship.strip()
+                    or len(relationship.strip()) > 100
+                    for relationship in person["relationships"]
+                )
+            ):
+                raise ValidationError(
+                    "Each support person needs a name and valid relationship details."
+                )
         context.update({key: values[key] for key in PROFILE_LISTS})
         context["preferred_name"] = name.strip()
         context["date_of_birth"] = date_of_birth
+        context["loved_ones"] = [
+            {
+                "name": person["name"].strip(),
+                "type": person["type"].strip(),
+                "relationships": [
+                    relationship.strip() for relationship in person["relationships"]
+                ],
+            }
+            for person in loved_ones
+        ]
         custom_fields = copy.deepcopy(context.get("custom_fields") or {})
         for key in PROFILE_CUSTOM_LISTS:
             if values[key] or key in custom_fields:
@@ -462,17 +521,55 @@ def build_settings_updates(documents, options, section, values):
         if not isinstance(custom_questions, dict) or len(custom_questions) > 20:
             raise ValidationError("Add at most 20 custom check-in questions.")
         for key, definition in custom_questions.items():
+            allowed_categories = set(
+                snapshot["options"].get("question_categories") or {}
+            ) | {"general"}
+            if not allowed_categories:
+                allowed_categories = set(DEFAULT_QUESTION_CATEGORIES)
             if (
                 not isinstance(key, str)
-                or not re.fullmatch(r"custom_[a-f0-9]{32}", key)
+                or not re.fullmatch(r"custom_[a-z0-9_]{1,100}", key)
                 or not isinstance(definition, dict)
-                or set(definition) != {"question_text", "type"}
+                or set(definition)
+                != {
+                    "question_text",
+                    "ui_display_name",
+                    "type",
+                    "category",
+                    "validation",
+                }
                 or not isinstance(definition["question_text"], str)
                 or not definition["question_text"].strip()
                 or len(definition["question_text"].strip()) > 300
+                or not isinstance(definition["ui_display_name"], str)
+                or not definition["ui_display_name"].strip()
+                or len(definition["ui_display_name"].strip()) > 150
                 or definition["type"] not in CUSTOM_QUESTION_TYPES
+                or definition["category"] not in allowed_categories
+                or not isinstance(definition["validation"], dict)
+                or set(definition["validation"])
+                - {"min", "max", "error_message"}
             ):
                 raise ValidationError("Check each custom question and answer type.")
+            validation = definition["validation"]
+            for bound in ("min", "max"):
+                if bound in validation and (
+                    not isinstance(validation[bound], (int, float))
+                    or isinstance(validation[bound], bool)
+                    or not -1000000 <= validation[bound] <= 1000000
+                ):
+                    raise ValidationError("Use valid numeric question limits.")
+            if (
+                "min" in validation
+                and "max" in validation
+                and validation["min"] >= validation["max"]
+            ):
+                raise ValidationError(
+                    "A numeric question's minimum must be below its maximum."
+                )
+            error_message = validation.get("error_message", "")
+            if not isinstance(error_message, str) or len(error_message) > 300:
+                raise ValidationError("Keep question validation messages brief.")
         states = values["questions"]
         existing_custom = _editable_custom_questions(checkin)
         predefined_questions = set(snapshot["options"]["questions"]) - set(
@@ -525,11 +622,11 @@ def build_settings_updates(documents, options, section, values):
             **{
                 key: {
                     "question_text": definition["question_text"].strip(),
-                    "ui_display_name": definition["question_text"].strip(),
+                    "ui_display_name": definition["ui_display_name"].strip(),
                     "type": definition["type"],
-                    "category": "general",
+                    "category": definition["category"],
                     "enabled": states[key] != "off",
-                    "validation": {},
+                    "validation": copy.deepcopy(definition["validation"]),
                 }
                 for key, definition in custom_questions.items()
             },

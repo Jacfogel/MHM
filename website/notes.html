@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-4" defer></script>
+  <script src="notes.js?v=notes-5" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,7 +41,7 @@
           </div>
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
-        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label></div>
+        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by group</span><select id="note-group-filter"><option value="">All groups</option></select></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
         <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong><span>Capture a note, journal entry, or list you want MHM to remember.</span></div>
       </div>
     </section>

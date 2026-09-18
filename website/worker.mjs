@@ -10,6 +10,7 @@ const routes = new Map([
   ['/api/health', ['GET', 'POST']],
   ['/api/task-templates', 'GET'],
   ['/api/tasks', ['GET', 'POST']],
+  ['/api/actions', 'POST'],
   ['/api/messages', ['GET', 'POST']],
   ['/api/notes', ['GET', 'POST']],
 ]);

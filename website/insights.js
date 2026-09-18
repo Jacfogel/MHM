@@ -54,23 +54,62 @@
     else {
       if (!data.mood?.error) moodEnergy.append(text('p', `Mood averaged ${number(data.mood.average_mood)} with a ${data.mood.trend || 'stable'} trend.`));
       if (!data.energy?.error) moodEnergy.append(text('p', `Energy averaged ${number(data.energy.average_energy)} with a ${data.energy.trend || 'stable'} trend.`));
+      const moodValues = Array.isArray(data.mood?.recent_data) ? data.mood.recent_data.map(item => Number(item.mood)).filter(Number.isFinite) : [];
+      if (moodValues.length) {
+        const changes = moodValues.slice(1).filter((value, index) => value !== moodValues[index]).length;
+        const high = moodValues.filter(value => value >= 4).length;
+        const low = moodValues.filter(value => value <= 2).length;
+        const details = document.createElement('ul');
+        details.append(text('li', `Mood changes: ${changes}`), text('li', `High-mood days: ${high}`), text('li', `Low-mood days: ${low}`));
+        if (data.mood.best_day) details.append(text('li', `Highest: ${number(data.mood.best_day.mood)} on ${data.mood.best_day.date}`));
+        if (data.mood.worst_day) details.append(text('li', `Lowest: ${number(data.mood.worst_day.mood)} on ${data.mood.worst_day.date}`));
+        moodEnergy.append(details);
+      }
       const quantitative = data.quantitative && !data.quantitative.error ? data.quantitative : {};
       const list = document.createElement('ul');
       for (const [key, value] of Object.entries(quantitative)) list.append(text('li', `${key.replaceAll('_', ' ')}: ${number(value.average)} average (${value.count || 0} responses)`));
       if (list.children.length) moodEnergy.append(list);
     }
 
-    const sleepHabits = document.getElementById('sleep-habits');
-    sleepHabits.replaceChildren();
-    if (!data.sleep?.error) sleepHabits.append(text('p', `Average sleep: ${number(data.sleep.average_hours)} hours. Average quality: ${number(data.sleep.average_quality)}.`));
+    const recommendations = document.getElementById('wellness-recommendations');
+    recommendations.replaceChildren();
+    const recommendationList = Array.isArray(data.wellness?.recommendations) ? data.wellness.recommendations : [];
+    if (recommendationList.length) {
+      const list = document.createElement('ul');
+      for (const item of recommendationList) list.append(text('li', String(item)));
+      recommendations.append(list);
+    } else message(recommendations, 'Recommendations will appear when enough check-in data is available.');
+
+    const sleep = document.getElementById('sleep-detail');
+    sleep.replaceChildren();
+    if (!data.sleep?.error) {
+      sleep.append(text('p', `Average sleep: ${number(data.sleep.average_hours)} hours. Average quality: ${number(data.sleep.average_quality)}.`));
+      const sleepStats = document.createElement('ul');
+      sleepStats.append(
+        text('li', `Good sleep days: ${data.sleep.good_sleep_days || 0}`),
+        text('li', `Poor sleep days: ${data.sleep.poor_sleep_days || 0}`),
+        text('li', `Sleep consistency: ${data.sleep.sleep_consistency == null ? '—' : `${number(data.sleep.sleep_consistency)}%`}`),
+      );
+      for (const item of Array.isArray(data.sleep.recommendations) ? data.sleep.recommendations : []) sleepStats.append(text('li', `Recommendation: ${item}`));
+      sleep.append(sleepStats);
+    } else message(sleep, 'Sleep patterns will appear after sleep is included in your check-ins.');
+
+    const habits = document.getElementById('habit-detail');
+    habits.replaceChildren();
     const habitStats = data.habits?.habit_stats || data.habits?.habits || {};
     const habitList = document.createElement('ul');
+    let completedHabitDays = 0;
+    let answeredHabitDays = 0;
     for (const [key, value] of Object.entries(habitStats)) {
       const rate = value.completion_rate ?? value.rate;
-      habitList.append(text('li', `${key.replaceAll('_', ' ')}${rate == null ? '' : `: ${rate}%`}`));
+      const completed = value.completed_days || 0;
+      const answered = value.answered_days ?? value.total_days ?? 0;
+      completedHabitDays += completed; answeredHabitDays += answered;
+      habitList.append(text('li', `${value.name || key.replaceAll('_', ' ')}${rate == null ? '' : `: ${rate}%`} (${completed}/${answered} days)${value.status ? ` — ${value.status}` : ''}`));
     }
-    if (habitList.children.length) sleepHabits.append(habitList);
-    if (data.sleep?.error && !habitList.children.length) message(sleepHabits, 'Sleep and habit patterns will appear after they are included in your check-ins.');
+    if (habitList.children.length) {
+      habits.append(text('p', `Overall completion: ${number(data.habits?.overall_completion, '0')}%. Completed ${completedHabitDays} of ${answeredHabitDays} recorded habit days.`), habitList);
+    } else message(habits, 'Habit patterns will appear after yes/no habits are included in your check-ins.');
 
     const history = document.getElementById('checkin-history');
     history.replaceChildren();
@@ -135,6 +174,13 @@
 
   document.getElementById('insights-days').addEventListener('change', loadInsights);
   document.getElementById('insights-refresh').addEventListener('click', loadInsights);
+  document.getElementById('checkin-request').addEventListener('click', async () => {
+    try {
+      const result = await api('/api/actions', 'POST', { action: 'checkin_prompt' });
+      status.textContent = result.message || 'Your check-in was queued.';
+      status.classList.remove('is-error');
+    } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+  });
   for (const action of ['connect', 'enable', 'pause', 'sync']) document.getElementById(`health-${action}`).addEventListener('click', () => healthAction(action));
   document.getElementById('health-delete').addEventListener('click', () => {
     if (window.confirm('Delete all locally stored Google Health data and disable the integration? This cannot be undone.')) healthAction('delete');
