@@ -402,11 +402,31 @@ const MHMSettingsInput = Object.freeze({
         const periods = periodEditor(details, section === 'tasks' ? 'tasks' : 'checkin', values.periods);
         if (section === 'tasks') {
           const recurring = MHMSettingsInput.record(values.recurring);
-          const pattern = select(details, 'Default repeat pattern for new tasks', 'recurrence-pattern', [['', 'One-time task'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']], recurring.default_recurrence_pattern);
-          const interval = field(details, 'Repeat every (interval)', 'recurrence-interval', 'number', recurring.default_recurrence_interval ?? 1, { min: '1', max: '365', required: '' });
+          const savedPattern = recurring.default_recurrence_pattern || '';
+          const savedInterval = Number(recurring.default_recurrence_interval ?? 1);
+          const presetPattern = savedInterval === 1 && ['daily', 'weekly', 'monthly'].includes(savedPattern) ? savedPattern : savedPattern ? 'custom' : '';
+          const pattern = select(details, 'Default repeat for new tasks', 'recurrence-pattern', [['', 'Does not repeat'], ['daily', 'Every day'], ['weekly', 'Every week'], ['monthly', 'Every month'], ['custom', 'Custom…']], presetPattern);
+          const customRepeat = el('div', null, { className: 'settings-two-col' });
+          const interval = field(customRepeat, 'Repeat every', 'recurrence-interval', 'number', savedInterval, { min: '1', max: '365', required: '' });
+          const unit = select(customRepeat, 'Unit', 'recurrence-unit', [['daily', 'Day(s)'], ['weekly', 'Week(s)'], ['monthly', 'Month(s)'], ['yearly', 'Year(s)']], savedPattern || 'daily');
+          details.append(customRepeat);
           const after = field(details, 'Count the next repeat from completion', 'repeat-after', 'checkbox', recurring.default_repeat_after_completion);
+          const syncRepeatDefaults = () => {
+            const repeats = Boolean(pattern.value);
+            const isCustom = pattern.value === 'custom';
+            customRepeat.hidden = !isCustom;
+            interval.disabled = !isCustom;
+            unit.disabled = !isCustom;
+            after.parentElement.hidden = !repeats;
+            after.disabled = !repeats;
+          };
+          pattern.addEventListener('change', syncRepeatDefaults);
+          syncRepeatDefaults();
           details.append(el('p', 'These defaults apply to new tasks. Existing tasks keep their own repeat settings.', { className: 'field-hint' }));
-          read = () => ({ enabled: enabled.checked, periods: periods.read(), recurring: { default_recurrence_pattern: pattern.value || null, default_recurrence_interval: Number(interval.value), default_repeat_after_completion: after.checked } });
+          read = () => {
+            const recurrencePattern = pattern.value === 'custom' ? unit.value : pattern.value || null;
+            return { enabled: enabled.checked, periods: periods.read(), recurring: { default_recurrence_pattern: recurrencePattern, default_recurrence_interval: pattern.value === 'custom' ? Number(interval.value) : 1, default_repeat_after_completion: recurrencePattern ? after.checked : false } };
+          };
         } else {
           const standardQuestions = MHMSettingsInput.record(data.options.questions);
           const customQuestions = MHMSettingsInput.record(values.custom_questions);

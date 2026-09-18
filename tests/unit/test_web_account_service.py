@@ -1,10 +1,12 @@
 """Browser auth checks with isolated accounts and captured email only."""
 
+from contextlib import asynccontextmanager
+from urllib.parse import parse_qs, urlsplit
+
 import pytest
 import pytest_asyncio
-from urllib.parse import parse_qs, urlsplit
-from aiohttp.test_utils import TestClient, TestServer
 from aiohttp import CookieJar
+from aiohttp.test_utils import TestClient, TestServer
 
 from core.error_handling import ConfigurationError
 from core.web_account_service import OAuthIdentity, create_web_app, MHMAccounts
@@ -104,6 +106,19 @@ class Accounts:
         return True
 
 
+@asynccontextmanager
+async def web_client(app, **kwargs):
+    """Yield an aiohttp TestClient whose server shutdown cannot block for 60s."""
+    server = TestServer(app)
+    await server.start_server(shutdown_timeout=1)
+    client = TestClient(server, **kwargs)
+    try:
+        await client.start_server()
+        yield client
+    finally:
+        await client.close()
+
+
 @pytest_asyncio.fixture
 async def gateway():
     accounts, sent, now = Accounts(), [], [100.0]
@@ -114,10 +129,8 @@ async def gateway():
         proxy_secret="",
         clock=lambda: now[0],
     )
-    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
-    await client.start_server()
-    yield client, accounts, sent, now
-    await client.close()
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        yield client, accounts, sent, now
 
 
 async def request_code(
@@ -148,6 +161,19 @@ async def verify(client, token, code, password=None):
         json=payload,
         headers={"Origin": ORIGIN},
     )
+
+
+async def test_web_client_uses_a_short_server_shutdown_timeout():
+    app = create_web_app(
+        accounts=Accounts(),
+        mailer=lambda email, code: None,
+        origin=ORIGIN,
+        proxy_secret="",
+    )
+    async with web_client(app) as client:
+        runner = client.server.runner
+        assert runner is not None
+        assert runner._shutdown_timeout == 1
 
 
 async def test_existing_login_session_logout_and_replay(gateway):
@@ -495,7 +521,7 @@ async def test_production_requires_authenticated_proxy_and_secure_cookie():
         origin=origin,
         proxy_secret=secret,
     )
-    async with TestClient(TestServer(app)) as client:
+    async with web_client(app) as client:
         assert (await client.get("/api/account")).status == 403
         response = await client.post(
             "/api/auth/request-code",
@@ -584,7 +610,7 @@ async def test_smtp_failure_reports_delivery_problem_without_leaking_details():
     app = create_web_app(
         accounts=Accounts(), mailer=fail, origin=ORIGIN, proxy_secret=""
     )
-    async with TestClient(TestServer(app)) as client:
+    async with web_client(app) as client:
         response = await request_code(client)
         assert response.status == 503
         message = (await response.json())["error"]
@@ -617,9 +643,7 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         proxy_secret="",
         oauth_identity=identity,
     )
-    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
-    await client.start_server()
-    try:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         providers = await (await client.get("/api/auth/oauth/providers")).json()
         assert providers["providers"][provider] is True
         start = await client.get(f"/api/auth/oauth/{provider}/start")
@@ -646,8 +670,6 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
         assert calls[0][0:2] == (provider, "oauth-code")
         assert (await client.get("/api/account")).status == 200
-    finally:
-        await client.close()
 
 
 async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(
@@ -671,9 +693,7 @@ async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(
         proxy_secret="",
         oauth_identity=identity,
     )
-    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
-    await client.start_server()
-    try:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         url = (await (await client.get("/api/auth/oauth/google/start")).json())["url"]
         state = parse_qs(urlsplit(url).query)["state"][0]
         callback = await client.get(
@@ -683,8 +703,6 @@ async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(
         assert callback.headers["Location"].endswith("/login.html?social=not-linked")
         assert "oauth_identities" not in accounts.users["existing"]
         assert (await client.get("/api/account")).status == 401
-    finally:
-        await client.close()
 
 
 async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatch):
@@ -708,9 +726,7 @@ async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatc
         proxy_secret="",
         discord_identity=discord_identity,
     )
-    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
-    await client.start_server()
-    try:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         token = (await (await request_code(client)).json())["challenge"]
         assert (await verify(client, token, sent[-1][1])).status == 200
         start = await client.get("/api/auth/discord/start")
@@ -737,8 +753,6 @@ async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatc
         )
         assert replay.headers["Location"].endswith("/app.html?discord=cancelled")
         assert len(identity_calls) == 1
-    finally:
-        await client.close()
 
 
 @pytest.mark.parametrize("case", ["no_cookie", "new_session", "logout", "expired"])
@@ -761,7 +775,7 @@ async def test_discord_callback_requires_the_original_live_session(monkeypatch, 
         clock=lambda: now[0],
         discord_identity=identity,
     )
-    async with TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True)) as client:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         token = (await (await request_code(client)).json())["challenge"]
         login = await verify(client, token, sent[-1])
         assert "SameSite=Lax" in login.headers["Set-Cookie"]
@@ -812,9 +826,7 @@ async def test_discord_oauth_rejects_an_identity_linked_to_another_account(
         proxy_secret="",
         discord_identity=discord_identity,
     )
-    client = TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True))
-    await client.start_server()
-    try:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         token = (await (await request_code(client)).json())["challenge"]
         assert (await verify(client, token, sent[-1][1])).status == 200
         start = await client.get("/api/auth/discord/start")
@@ -825,5 +837,3 @@ async def test_discord_oauth_rejects_an_identity_linked_to_another_account(
         )
         assert callback.headers["Location"].endswith("/app.html?discord=in-use")
         assert "discord_user_id" not in accounts.users["existing"]
-    finally:
-        await client.close()

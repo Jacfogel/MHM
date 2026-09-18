@@ -1720,11 +1720,21 @@ def create_web_app(
             completed = await asyncio.to_thread(load_completed_tasks, uid)
             due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
             selected = active if status == "active" else completed if status == "completed" else active + completed
+            tags = sorted(
+                {
+                    str(tag).strip()
+                    for task in active + completed
+                    for tag in (task.get("tags") or [])
+                    if str(tag).strip()
+                },
+                key=str.casefold,
+            )
             return web.json_response({
                 "tasks": [task_view(task) for task in selected],
                 "active_count": len(active),
                 "completed_count": len(completed),
                 "due_soon_count": len(due_soon),
+                "tags": tags,
             })
 
         if request.method == "POST" and not task_id:

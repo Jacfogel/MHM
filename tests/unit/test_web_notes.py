@@ -6,9 +6,9 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from aiohttp import CookieJar
-from aiohttp.test_utils import TestClient, TestServer
 
 from core.web_account_service import create_web_app
+from tests.unit.test_web_account_service import web_client
 
 pytestmark = [pytest.mark.unit, pytest.mark.notebook, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
@@ -78,7 +78,7 @@ async def notes_gateway(monkeypatch):
         SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], group=None, pinned=False, status="active", submitted_at="2026-09-18 09:00:00", created_at="2026-09-18 09:00:00", updated_at="2026-09-18 09:00:00"),
     ])
 
-    async with TestClient(TestServer(create_web_app(accounts=Accounts(), mailer=lambda email, code: sent.append(code), origin=ORIGIN, proxy_secret="")), cookie_jar=CookieJar(unsafe=True)) as client:
+    async with web_client(create_web_app(accounts=Accounts(), mailer=lambda email, code: sent.append(code), origin=ORIGIN, proxy_secret=""), cookie_jar=CookieJar(unsafe=True)) as client:
         challenge = (await (await client.post("/api/auth/request-code", json={"email": "river@example.com", "mode": "login"}, headers={"Origin": ORIGIN})).json())["challenge"]
         assert (await client.post("/api/auth/verify", json={"challenge": challenge, "code": sent[-1]}, headers={"Origin": ORIGIN})).status == 200
         yield client

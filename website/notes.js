@@ -20,12 +20,20 @@
   const tabs = [...document.querySelectorAll('[data-note-view]')];
   let view = 'active';
   let notes = [];
+  let existingGroups = [];
+  let existingTags = [];
   let searchTimer;
   let itemId = 0;
 
   function showStatus(message, error = false) {
     status.textContent = message;
     status.classList.toggle('is-error', error);
+  }
+
+  function replaceSuggestions(listId, values) {
+    const listElement = document.getElementById(listId);
+    if (!listElement) return;
+    listElement.replaceChildren(...values.map(value => new Option(value, value)));
   }
 
   async function api(path, method = 'GET', payload) {
@@ -194,9 +202,13 @@
       if (tagFilter.value) params.set('tag', tagFilter.value);
       const result = await api(`/api/notes?${params}`);
       notes = result.notes || [];
+      existingGroups = result.groups || [];
+      existingTags = result.tags || [];
+      replaceSuggestions('note-group-options', existingGroups);
+      replaceSuggestions('note-tag-options', existingTags);
       const chosenGroup = groupFilter.value; const chosenTag = tagFilter.value;
-      groupFilter.replaceChildren(new Option('All groups', ''), ...(result.groups || []).map(value => new Option(value, value)));
-      tagFilter.replaceChildren(new Option('All tags', ''), ...(result.tags || []).map(value => new Option(value, value)));
+      groupFilter.replaceChildren(new Option('All groups', ''), ...existingGroups.map(value => new Option(value, value)));
+      tagFilter.replaceChildren(new Option('All tags', ''), ...existingTags.map(value => new Option(value, value)));
       groupFilter.value = chosenGroup; tagFilter.value = chosenTag;
       workspace.hidden = false;
       showStatus('');
@@ -262,8 +274,10 @@
     const tags = input(form, 'Tags', 'text', note.tags?.join(', '), 'edit-note-tags');
     tags.maxLength = 1000;
     tags.placeholder = 'health, ideas, home';
+    tags.setAttribute('list', 'note-tag-options');
     const group = input(form, 'Group', 'text', note.group, 'edit-note-group');
     group.maxLength = 50;
+    group.setAttribute('list', 'note-group-options');
     const actions = document.createElement('div');
     actions.className = 'task-dialog-actions';
     const save = document.createElement('button');

@@ -444,6 +444,52 @@ def test_cache_merge_preserves_timeout_diagnostics(tmp_path: Path, monkeypatch):
 
 
 @pytest.mark.unit
+def test_pytest_output_tail_keeps_worker_crash_and_drops_progress_dots():
+    output = "\n".join(
+        [
+            "...." * 20 + " [ 93%]",
+            "...." * 20 + " [ 99%]",
+            "..............[gw5] node down: Not properly terminated",
+            "F",
+        ]
+    )
+    tail = runner._pytest_output_tail(output, limit=10)
+    assert "node down: Not properly terminated" in tail
+    assert "F" in tail.splitlines()
+    assert "[ 93%]" not in tail
+    assert "[ 99%]" not in tail
+
+
+@pytest.mark.unit
+def test_should_not_write_suite_cache_after_interrupt(tmp_path: Path):
+    interrupted = runner.PhaseResult(
+        name="parallel",
+        command=[],
+        return_code=1,
+        duration_seconds=3600.0,
+        counts={"total": 39, "passed": 39, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="[gw5] node down: Not properly terminated",
+        junit_xml=str(tmp_path / "parallel.xml"),
+        interrupted=True,
+    )
+    passed = runner.PhaseResult(
+        name="parallel",
+        command=[],
+        return_code=0,
+        duration_seconds=12.0,
+        counts={"total": 1, "passed": 1, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="1 passed",
+        junit_xml=str(tmp_path / "parallel.xml"),
+        interrupted=False,
+    )
+    assert runner._should_write_suite_cache([]) is False
+    assert runner._should_write_suite_cache([interrupted]) is False
+    assert runner._should_write_suite_cache([passed]) is True
+
+
+@pytest.mark.unit
 def test_run_suite_skips_no_parallel_after_interrupted_parallel(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "_has_xdist", lambda: True)
     cast(Any, runner)._STOP_REQUESTED = False

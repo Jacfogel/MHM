@@ -6,9 +6,9 @@ from types import SimpleNamespace
 import pytest
 import pytest_asyncio
 from aiohttp import CookieJar
-from aiohttp.test_utils import TestClient, TestServer
 
 from core.web_account_service import create_web_app
+from tests.unit.test_web_account_service import web_client
 
 pytestmark = [pytest.mark.unit, pytest.mark.tasks, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
@@ -136,7 +136,7 @@ async def task_gateway(monkeypatch):
     monkeypatch.setattr(simplify_module, "simplify_task", simplify)
     accounts = Accounts()
     app = create_web_app(accounts=accounts, mailer=lambda email, code: sent.append(code), origin=ORIGIN, proxy_secret="")
-    async with TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True)) as client:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         token = (await (await client.post("/api/auth/request-code", json={"email": "river@example.com", "mode": "login"}, headers={"Origin": ORIGIN})).json())["challenge"]
         assert (await client.post("/api/auth/verify", json={"challenge": token, "code": sent[-1]}, headers={"Origin": ORIGIN})).status == 200
         yield client, active, completed
@@ -154,7 +154,9 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     assert task["reminders"][0]["period"]["start_time"] == "09:00"
     assert task["reminders"][1] == {"kind": "quick", "value": "1-2hour"}
     assert task["recurrence"] == {"pattern": "weekly", "interval": 2, "repeat_after_completion": False, "next_due_date": None}
-    assert (await (await client.get("/api/tasks")).json())["due_soon_count"] == 1
+    task_list = await (await client.get("/api/tasks")).json()
+    assert task_list["due_soon_count"] == 1
+    assert task_list["tags"] == ["health", "morning"]
     templates = await (await client.get("/api/task-templates")).json()
     assert {template["id"] for template in templates["templates"]} >= {
         "medication",

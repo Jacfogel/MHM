@@ -36,6 +36,9 @@ Guidelines:
 - Newly created accounts immediately require the current password for later changes. Discord connection failures now explain likely duplicate-account links, and account creation no longer silently starts Discord linking.
 - Settings tolerate missing optional data from older/partial accounts instead of raising a raw browser error. Related legacy facades were removed, error-handling/registry findings were cleared, and focused Python/Node tests plus CI policy checks pass.
 - Website parity now includes the complete custom-question editor and structured important-people profiles; task completion details, recurrence intervals, relative reminders, bulk actions, and due-soon counts; fuller wellness analytics; notebook group/tag browsing; live message previews; and manual test-message, check-in, and task-reminder requests.
+- Task recurrence now hides irrelevant controls for one-time tasks and uses clear presets plus a custom number/unit editor. Suggested and date-specific task reminders share one editor, while task/notebook tag and group fields suggest existing values without preventing new ones.
+- A Tier 3 timeout at 99% with no named failures no longer wipes the suite cache or forces a 348-file rerun; interrupted pytest keeps prior per-file results and useful worker-crash diagnostics. Website tests now cap aiohttp server shutdown at 1 second so leftover connections cannot stall workers for a minute each.
+- The web-client shutdown test no longer triggers a Pyright optional-member warning on `runner._shutdown_timeout`.
 
 ### 2026-09-15 - Website self-service expansion **COMPLETED**
 - Added richer profile and phrase settings, personal message-template management, private check-in insights/history, Google Health controls, account connection removal, and a secret-scrubbed data export.

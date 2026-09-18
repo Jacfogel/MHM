@@ -14,6 +14,7 @@ import contextlib
 import importlib.util
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -177,7 +178,6 @@ def _append_pytest_runtime_options(
             "--ignore=tests/data/tmp",
             "--ignore-glob=tests/data/tmp/**",
             "-q",
-            "--durations=0",
         ]
     )
     if not force_serial and worker_count and worker_count > 1:
@@ -379,6 +379,30 @@ def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
         node = f"{classname}.py::{name}" if classname else name
         failed_nodes.append(node)
     return counts, sorted(set(failed_nodes))
+
+
+_DOT_PROGRESS_LINE = re.compile(r"^[.\s]+(?:\[\s*\d+%\s*\])?$")
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _pytest_output_tail(output: str, *, limit: int = 80) -> str:
+    """Keep the last diagnostic lines, skipping pytest progress-only dots."""
+    lines = (output or "").splitlines()
+    if not lines:
+        return ""
+    useful: list[str] = []
+    for line in lines:
+        stripped = _ANSI_ESCAPE.sub("", line).strip()
+        if not stripped or _DOT_PROGRESS_LINE.fullmatch(stripped):
+            continue
+        useful.append(line)
+    selected = useful[-limit:] if useful else lines[-limit:]
+    return "\n".join(selected)
+
+
+def _should_write_suite_cache(phases: list[PhaseResult]) -> bool:
+    """Skip cache writes after timeout/SIGINT so incomplete JUnit cannot wipe results."""
+    return bool(phases) and not any(phase.interrupted for phase in phases)
 
 
 def _is_xdist_teardown_interrupt_output(output: str) -> bool:
@@ -627,7 +651,7 @@ def _invoke_pytest(
     counts, failed_nodes = _parse_junit(junit_xml)
     if _STOP_REQUESTED:
         interrupted = True
-    tail = "\n".join((output or "").splitlines()[-80:])
+    tail = _pytest_output_tail(output)
     return PhaseResult(
         name=name,
         command=command,
@@ -1046,7 +1070,12 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     )
                 phases.append(no_parallel_phase)
 
-            if use_domain_cache and suite_cache and not _STOP_REQUESTED:
+            if (
+                use_domain_cache
+                and suite_cache
+                and not _STOP_REQUESTED
+                and _should_write_suite_cache(phases)
+            ):
                 parallel_by_file = _parse_junit_by_test_file(Path(parallel_phase.junit_xml))
                 no_parallel_by_file = (
                     _parse_junit_by_test_file(Path(phases[-1].junit_xml))
@@ -1117,24 +1146,29 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     suite_profile=suite_profile,
                 )
                 if outcome_preview["state"] == "clean":
-                    suite_cache.cache_full_suite(
-                        {
-                            "parallel": {
-                                "counts": phases[0].counts,
-                                "failed_node_ids": phases[0].failed_node_ids,
-                            },
-                            "no_parallel": {
-                                "counts": phases[-1].counts,
-                                "failed_node_ids": phases[-1].failed_node_ids,
-                            },
-                            "parallel_duration_seconds": phases[0].duration_seconds,
-                            "no_parallel_duration_seconds": phases[-1].duration_seconds,
-                        }
-                    )
-                    if _suite_logger:
+                    if cache_mode != "selective_run" or cached_per_file:
+                        suite_cache.cache_full_suite(
+                            {
+                                "parallel": {
+                                    "counts": phases[0].counts,
+                                    "failed_node_ids": phases[0].failed_node_ids,
+                                },
+                                "no_parallel": {
+                                    "counts": phases[-1].counts,
+                                    "failed_node_ids": phases[-1].failed_node_ids,
+                                },
+                                "parallel_duration_seconds": phases[0].duration_seconds,
+                                "no_parallel_duration_seconds": phases[-1].duration_seconds,
+                            }
+                        )
+                        if _suite_logger:
+                            _suite_logger.info(
+                                "run_test_suite cached full suite snapshot (mode=%s)",
+                                cache_mode,
+                            )
+                    elif _suite_logger:
                         _suite_logger.info(
-                            "run_test_suite cached full suite snapshot (mode=%s)",
-                            cache_mode,
+                            "run_test_suite skipped incomplete full-suite snapshot after selective run"
                         )
                 else:
                     suite_cache.clear_full_suite_cache()
@@ -1143,6 +1177,11 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                             "run_test_suite cleared full suite snapshot after state=%s",
                             outcome_preview["state"],
                         )
+            elif use_domain_cache and suite_cache and not _STOP_REQUESTED:
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite skipping suite-cache update after interrupted pytest"
+                    )
     finally:
         if hasattr(signal, "SIGINT") and previous_handler is not None:
             signal.signal(signal.SIGINT, previous_handler)
@@ -1185,6 +1224,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     "failed_node_ids": phase.failed_node_ids,
                     "junit_xml": phase.junit_xml,
                     "output_tail": phase.output_tail,
+                    "interrupted": phase.interrupted,
                 }
                 for phase in phases
             ],

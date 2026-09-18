@@ -109,3 +109,27 @@ def test_suite_profile_change_invalidates_full_cache(tmp_path: Path):
     changed = cache.get_changed_domains("full")
     assert changed == cache._all_domains()
     assert "suite_profile_change" in str(cache.last_invalidation_reason)
+
+
+@pytest.mark.unit
+def test_cache_test_file_suite_keeps_existing_results_when_phase_missing(tmp_path: Path):
+    cache = _make_cache(tmp_path)
+    test_file = Path.cwd() / "tests/development_tools/test_test_file_suite_cache.py"
+    cache.cache_test_file_suite(
+        test_file,
+        parallel={
+            "counts": {"passed": 3, "failed": 0, "errors": 0, "skipped": 0, "total": 3},
+            "failed_node_ids": [],
+        },
+        no_parallel={
+            "counts": {"passed": 1, "failed": 0, "errors": 0, "skipped": 0, "total": 1},
+            "failed_node_ids": [],
+        },
+    )
+
+    cache.cache_test_file_suite(test_file, parallel=None, no_parallel=None)
+
+    rel = "tests/development_tools/test_test_file_suite_cache.py"
+    entry = cache.cache_data["test_files"][rel]
+    assert entry["parallel"]["counts"]["passed"] == 3
+    assert entry["no_parallel"]["counts"]["passed"] == 1

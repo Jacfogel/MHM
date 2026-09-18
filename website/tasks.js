@@ -14,12 +14,42 @@
   let view = 'active';
   let tasks = [];
   let templates = [];
+  let existingTags = [];
   let dueSoonCount = 0;
   const selected = new Set();
   const quickReminderOptions = [
     ['5-10min', '5–10 minutes'], ['30min-1hour', '30–60 minutes'], ['1-2hour', '1–2 hours'],
     ['1-2day', '1–2 days'], ['3-5day', '3–5 days'], ['1-2week', '1–2 weeks'],
   ];
+
+  function replaceSuggestions(listId, values) {
+    const listElement = document.getElementById(listId);
+    if (!listElement) return;
+    listElement.replaceChildren(...values.map(value => new Option(value, value)));
+  }
+
+  function recurrenceChoice(pattern, interval) {
+    if (!pattern) return '';
+    return Number(interval || 1) === 1 && ['daily', 'weekly', 'monthly'].includes(pattern) ? pattern : 'custom';
+  }
+
+  function syncRecurrenceControls(choice, options, custom, interval, unit, repeatAfter) {
+    const repeats = Boolean(choice.value);
+    const isCustom = choice.value === 'custom';
+    options.hidden = !repeats;
+    custom.hidden = !isCustom;
+    interval.disabled = !isCustom;
+    unit.disabled = !isCustom;
+    repeatAfter.disabled = !repeats;
+  }
+
+  function readRecurrence(choice, interval, unit) {
+    if (!choice.value) return { pattern: null, interval: 1 };
+    if (choice.value === 'custom') {
+      return { pattern: unit.value, interval: Number(interval.value || 1) };
+    }
+    return { pattern: choice.value, interval: 1 };
+  }
 
   function showStatus(message, error = false) {
     status.textContent = message;
@@ -167,6 +197,8 @@
     try {
       const result = await api(`/api/tasks?status=${view}`);
       tasks = result.tasks || [];
+      existingTags = result.tags || [];
+      replaceSuggestions('task-tag-options', existingTags);
       dueSoonCount = result.due_soon_count || 0;
       selected.clear();
       workspace.hidden = false; showStatus(''); render();
@@ -317,17 +349,25 @@
     wrapper.append(label, field); parent.append(wrapper); return field;
   }
 
-  function quickReminderEditor(parent, selectedValues = []) {
+  function reminderEditor(parent, reminders = []) {
     const fieldset = document.createElement('fieldset'); fieldset.className = 'task-reminders';
-    const legend = document.createElement('legend'); legend.textContent = 'Quick relative reminders'; fieldset.append(legend);
+    const legend = document.createElement('legend'); legend.textContent = 'Task reminders'; fieldset.append(legend);
+    const help = document.createElement('p'); help.className = 'field-help'; help.textContent = 'Choose a suggested reminder or add a specific date and time window.'; fieldset.append(help);
     const choices = document.createElement('div'); choices.className = 'task-quick-reminders';
+    const selectedValues = reminders.filter(item => item && item.kind === 'quick').map(item => item.value);
     const inputs = quickReminderOptions.map(([value, labelText]) => {
       const label = document.createElement('label'); const checkbox = document.createElement('input');
       checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = selectedValues.includes(value);
       label.append(checkbox, document.createTextNode(` ${labelText}`)); choices.append(label); return checkbox;
     });
-    fieldset.append(choices); parent.append(fieldset);
-    return () => inputs.filter(item => item.checked).map(item => item.value);
+    const reminderList = document.createElement('div'); reminderList.className = 'task-reminder-list';
+    reminders.filter(item => item && item.kind === 'scheduled' && item.period).forEach(item => addReminderRow(reminderList, item.period));
+    fieldset.append(choices, reminderList, button('+ Add a custom reminder', 'plain-button', () => addReminderRow(reminderList)));
+    parent.append(fieldset);
+    return {
+      readQuick: () => inputs.filter(item => item.checked).map(item => item.value),
+      readScheduled: () => readReminderPeriods(reminderList),
+    };
   }
 
   function openEditor(task) {
@@ -341,22 +381,22 @@
     const time = input(row, 'Time', 'time', task.due_time, 'edit-due-time');
     const priority = select(row, 'Priority', task.priority, 'edit-priority', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['urgent', 'Urgent'], ['critical', 'Critical']]);
     form.append(row);
-    const recurrence = select(form, 'Repeat pattern', task.recurrence && task.recurrence.pattern, 'edit-recurrence', [['', 'Does not repeat'], ['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']]);
-    const recurrenceOptions = document.createElement('div'); recurrenceOptions.className = 'task-form-row';
-    const interval = input(recurrenceOptions, 'Repeat every', 'number', task.recurrence && task.recurrence.interval || 1, 'edit-recurrence-interval'); interval.min = 1; interval.max = 365;
+    const pattern = task.recurrence && task.recurrence.pattern;
+    const savedInterval = task.recurrence && task.recurrence.interval || 1;
+    const recurrence = select(form, 'Repeat', recurrenceChoice(pattern, savedInterval), 'edit-recurrence', [['', 'Does not repeat'], ['daily', 'Every day'], ['weekly', 'Every week'], ['monthly', 'Every month'], ['custom', 'Custom…']]);
+    const recurrenceOptions = document.createElement('div'); recurrenceOptions.className = 'task-form-row task-recurrence-options';
+    const customRecurrence = document.createElement('div'); customRecurrence.className = 'task-custom-recurrence';
+    const interval = input(customRecurrence, 'Repeat every', 'number', savedInterval, 'edit-recurrence-interval'); interval.min = 1; interval.max = 365;
+    const unit = select(customRecurrence, 'Unit', pattern || 'daily', 'edit-recurrence-unit', [['daily', 'Day(s)'], ['weekly', 'Week(s)'], ['monthly', 'Month(s)'], ['yearly', 'Year(s)']]);
     const afterWrapper = document.createElement('label'); afterWrapper.className = 'task-inline-check';
     const repeatAfter = document.createElement('input'); repeatAfter.type = 'checkbox'; repeatAfter.checked = !task.recurrence || task.recurrence.repeat_after_completion !== false;
-    afterWrapper.append(repeatAfter, document.createTextNode(' Count the next repeat from completion')); recurrenceOptions.append(afterWrapper); form.append(recurrenceOptions);
+    afterWrapper.append(repeatAfter, document.createTextNode(' Count the next repeat from completion')); recurrenceOptions.append(customRecurrence, afterWrapper); form.append(recurrenceOptions);
+    const syncEditorRecurrence = () => syncRecurrenceControls(recurrence, recurrenceOptions, customRecurrence, interval, unit, repeatAfter);
+    recurrence.addEventListener('change', syncEditorRecurrence); syncEditorRecurrence();
     const tags = input(form, 'Tags', 'text', Array.isArray(task.tags) ? task.tags.join(', ') : '', 'edit-tags');
-    tags.maxLength = 1000; tags.placeholder = 'health, errands, home';
+    tags.maxLength = 1000; tags.placeholder = 'health, errands, home'; tags.setAttribute('list', 'task-tag-options');
     const links = input(form, 'Links (one per line, optional label before |)', 'textarea', linksText(task.links), 'edit-links'); links.maxLength = 5000;
-    const reminderFieldset = document.createElement('fieldset'); reminderFieldset.className = 'task-reminders';
-    const reminderLegend = document.createElement('legend'); reminderLegend.textContent = 'Scheduled reminders'; reminderFieldset.append(reminderLegend);
-    const reminderList = document.createElement('div'); reminderList.className = 'task-reminder-list'; reminderFieldset.append(reminderList);
-    const addReminder = button('+ Add a reminder', 'plain-button', () => addReminderRow(reminderList)); reminderFieldset.append(addReminder);
-    if (Array.isArray(task.reminders)) task.reminders.filter(item => item && item.kind === 'scheduled' && item.period).forEach(item => addReminderRow(reminderList, item.period));
-    form.append(reminderFieldset);
-    const readQuickReminders = quickReminderEditor(form, (task.reminders || []).filter(item => item && item.kind === 'quick').map(item => item.value));
+    const reminders = reminderEditor(form, Array.isArray(task.reminders) ? task.reminders : []);
     const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
     actions.append(button('Cancel', 'plain-button', () => dialog.close()));
     const save = document.createElement('button'); save.type = 'submit'; save.className = 'button'; save.textContent = 'Save changes'; actions.append(save);
@@ -364,15 +404,16 @@
     form.addEventListener('submit', async event => {
       event.preventDefault(); save.disabled = true;
       try {
+        const recurrenceValue = readRecurrence(recurrence, interval, unit);
         await api(`/api/tasks/${encodeURIComponent(task.id)}`, 'PATCH', {
           title: title.value.trim(), description: description.value,
           due_date: date.value || null, due_time: time.value || null, priority: priority.value.trim().toLowerCase(),
-          recurrence_pattern: recurrence.value.trim().toLowerCase() || null,
-          recurrence_interval: Number(interval.value), repeat_after_completion: repeatAfter.checked,
+          recurrence_pattern: recurrenceValue.pattern,
+          recurrence_interval: recurrenceValue.interval, repeat_after_completion: recurrenceValue.pattern ? repeatAfter.checked : false,
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
           links: readLinks(links.value),
-          reminder_periods: readReminderPeriods(reminderList),
-          quick_reminders: readQuickReminders(),
+          reminder_periods: reminders.readScheduled(),
+          quick_reminders: reminders.readQuick(),
         });
         dialog.close(); await load();
       } catch (error) { showStatus(error.message, true); save.disabled = false; }
@@ -382,22 +423,33 @@
     title.focus();
   }
 
+  const createRecurrence = document.getElementById('task-recurrence');
+  const createRecurrenceOptions = document.getElementById('task-recurrence-options');
+  const createCustomRecurrence = document.getElementById('task-custom-recurrence');
+  const createRecurrenceInterval = document.getElementById('task-recurrence-interval');
+  const createRecurrenceUnit = document.getElementById('task-recurrence-unit');
+  const createRepeatAfter = document.getElementById('task-repeat-after-completion');
+  const syncCreateRecurrence = () => syncRecurrenceControls(createRecurrence, createRecurrenceOptions, createCustomRecurrence, createRecurrenceInterval, createRecurrenceUnit, createRepeatAfter);
+  createRecurrence.addEventListener('change', syncCreateRecurrence);
+  syncCreateRecurrence();
+
   createForm.addEventListener('submit', async event => {
     event.preventDefault();
     const submit = createForm.querySelector('button[type="submit"]'); submit.disabled = true; showStatus('Adding task…');
     const form = new FormData(createForm);
     try {
+      const recurrence = readRecurrence(createRecurrence, createRecurrenceInterval, createRecurrenceUnit);
       await api('/api/tasks', 'POST', {
         title: String(form.get('title') || '').trim(), description: String(form.get('description') || ''),
         due_date: form.get('due_date') || null, due_time: form.get('due_time') || null,
-        priority: form.get('priority') || 'medium', recurrence_pattern: form.get('recurrence_pattern') || null,
-        recurrence_interval: Number(form.get('recurrence_interval') || 1), repeat_after_completion: form.get('repeat_after_completion') === 'on',
+        priority: form.get('priority') || 'medium', recurrence_pattern: recurrence.pattern,
+        recurrence_interval: recurrence.interval, repeat_after_completion: recurrence.pattern ? createRepeatAfter.checked : false,
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
         links: readLinks(form.get('links')),
         reminder_periods: readReminderPeriods(document.getElementById('task-reminder-list')),
         quick_reminders: form.getAll('quick_reminders'),
       });
-      createForm.reset(); document.getElementById('task-priority').value = 'medium'; document.getElementById('task-recurrence-interval').value = '1'; document.getElementById('task-repeat-after-completion').checked = true; document.getElementById('task-reminder-list').replaceChildren(); showStatus(''); await load();
+      createForm.reset(); document.getElementById('task-priority').value = 'medium'; createRecurrenceInterval.value = '1'; createRecurrenceUnit.value = 'daily'; createRepeatAfter.checked = true; document.getElementById('task-reminder-list').replaceChildren(); syncCreateRecurrence(); showStatus(''); await load();
     } catch (error) { showStatus(error.message, true); }
     finally { submit.disabled = false; }
   });
@@ -408,8 +460,10 @@
     document.getElementById('task-title').value = template.title || '';
     document.getElementById('task-description').value = template.description || '';
     document.getElementById('task-priority').value = template.priority || 'medium';
-    document.getElementById('task-recurrence').value = template.recurrence_pattern || '';
-    document.getElementById('task-recurrence-interval').value = template.recurrence_interval || 1;
+    createRecurrence.value = recurrenceChoice(template.recurrence_pattern, template.recurrence_interval);
+    createRecurrenceInterval.value = template.recurrence_interval || 1;
+    createRecurrenceUnit.value = template.recurrence_pattern || 'daily';
+    syncCreateRecurrence();
     document.getElementById('task-tags').value = (template.tags || []).join(', ');
     if (template.due_time) document.getElementById('task-due-time').value = template.due_time;
   });

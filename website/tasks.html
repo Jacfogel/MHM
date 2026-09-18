@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=discord-1" defer></script>
-  <script src="tasks.js?v=tasks-3" defer></script>
+  <script src="tasks.js?v=tasks-4" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -38,16 +38,18 @@
               <div class="settings-field"><label for="task-due-date">Due date <span class="optional-label">Optional</span></label><input id="task-due-date" name="due_date" type="date" /></div>
               <div class="settings-field"><label for="task-due-time">Time <span class="optional-label">Optional</span></label><input id="task-due-time" name="due_time" type="time" /></div>
               <div class="settings-field"><label for="task-priority">Priority</label><select id="task-priority" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select></div>
-              <div class="settings-field"><label for="task-recurrence">Repeat</label><select id="task-recurrence" name="recurrence_pattern"><option value="">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
+              <div class="settings-field"><label for="task-recurrence">Repeat</label><select id="task-recurrence" name="recurrence_choice"><option value="">Does not repeat</option><option value="daily">Every day</option><option value="weekly">Every week</option><option value="monthly">Every month</option><option value="custom">Custom…</option></select></div>
             </div>
-            <div class="task-form-row task-recurrence-options">
-              <div class="settings-field"><label for="task-recurrence-interval">Repeat every</label><input id="task-recurrence-interval" name="recurrence_interval" type="number" min="1" max="365" value="1" /></div>
+            <div id="task-recurrence-options" class="task-form-row task-recurrence-options" hidden>
+              <div id="task-custom-recurrence" class="task-custom-recurrence" hidden>
+                <div class="settings-field"><label for="task-recurrence-interval">Repeat every</label><input id="task-recurrence-interval" name="recurrence_interval" type="number" min="1" max="365" value="1" /></div>
+                <div class="settings-field"><label for="task-recurrence-unit">Unit</label><select id="task-recurrence-unit" name="recurrence_unit"><option value="daily">Day(s)</option><option value="weekly">Week(s)</option><option value="monthly">Month(s)</option><option value="yearly">Year(s)</option></select></div>
+              </div>
               <label class="task-inline-check"><input id="task-repeat-after-completion" name="repeat_after_completion" type="checkbox" checked /> Count the next repeat from completion</label>
             </div>
-            <div class="settings-field"><label for="task-tags">Tags <span class="optional-label">Optional, comma separated</span></label><input id="task-tags" name="tags" maxlength="1000" placeholder="health, errands, home" /></div>
+            <div class="settings-field"><label for="task-tags">Tags <span class="optional-label">Optional — select existing or add new, comma separated</span></label><input id="task-tags" name="tags" list="task-tag-options" maxlength="1000" placeholder="health, errands, home" /><datalist id="task-tag-options"></datalist></div>
             <div class="settings-field"><label for="task-links">Links <span class="optional-label">Optional, one per line</span></label><textarea id="task-links" name="links" rows="2" maxlength="5000" placeholder="Appointment portal | https://example.com"></textarea></div>
-            <fieldset class="task-reminders"><legend>Scheduled reminders <span class="optional-label">Optional</span></legend><div id="task-reminder-list" class="task-reminder-list"></div><button id="task-add-reminder" class="plain-button" type="button">+ Add a reminder</button><p class="field-help">Choose a date and a time window. MHM will send the task reminder within that window.</p></fieldset>
-            <fieldset class="task-reminders"><legend>Quick relative reminders <span class="optional-label">Optional</span></legend><div class="task-quick-reminders"><label><input type="checkbox" name="quick_reminders" value="5-10min" /> 5–10 minutes</label><label><input type="checkbox" name="quick_reminders" value="30min-1hour" /> 30–60 minutes</label><label><input type="checkbox" name="quick_reminders" value="1-2hour" /> 1–2 hours</label><label><input type="checkbox" name="quick_reminders" value="1-2day" /> 1–2 days</label><label><input type="checkbox" name="quick_reminders" value="3-5day" /> 3–5 days</label><label><input type="checkbox" name="quick_reminders" value="1-2week" /> 1–2 weeks</label></div></fieldset>
+            <fieldset class="task-reminders"><legend>Task reminders <span class="optional-label">Optional</span></legend><p class="field-help">Choose a suggested reminder or add a specific date and time window.</p><div class="task-quick-reminders"><label><input type="checkbox" name="quick_reminders" value="5-10min" /> 5–10 minutes</label><label><input type="checkbox" name="quick_reminders" value="30min-1hour" /> 30–60 minutes</label><label><input type="checkbox" name="quick_reminders" value="1-2hour" /> 1–2 hours</label><label><input type="checkbox" name="quick_reminders" value="1-2day" /> 1–2 days</label><label><input type="checkbox" name="quick_reminders" value="3-5day" /> 3–5 days</label><label><input type="checkbox" name="quick_reminders" value="1-2week" /> 1–2 weeks</label></div><div id="task-reminder-list" class="task-reminder-list"></div><button id="task-add-reminder" class="plain-button" type="button">+ Add a custom reminder</button></fieldset>
           </div>
           <button class="button" type="submit">Add task <span aria-hidden="true">→</span></button>
         </form>

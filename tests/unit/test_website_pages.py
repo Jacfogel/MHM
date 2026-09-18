@@ -96,6 +96,20 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
     assert notebook.controls["note-title"]["maxlength"] == "200"
     assert notebook.controls["note-description"]["maxlength"] == "10000"
     assert notebook.controls["note-group"]["maxlength"] == "50"
+    assert notebook.controls["note-tags"]["list"] == "note-tag-options"
+    assert notebook.controls["note-group"]["list"] == "note-group-options"
+
+
+def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
+    tasks = parse_page("tasks.html")
+
+    assert "hidden" in tasks.controls["task-recurrence-options"]
+    assert "hidden" in tasks.controls["task-custom-recurrence"]
+    assert tasks.controls["task-recurrence-interval"]["min"] == "1"
+    assert tasks.controls["task-recurrence-unit"]["name"] == "recurrence_unit"
+    assert tasks.controls["task-tags"]["list"] == "task-tag-options"
+    assert "task-reminder-list" in tasks.ids
+    assert "custom" in tasks.option_values
 
 
 def test_login_and_account_pages_expose_password_and_provider_controls():

@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-5" defer></script>
+  <script src="notes.js?v=notes-6" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -35,8 +35,8 @@
             <div id="entry-description-field" class="settings-field"><label id="entry-description-label" for="note-description">Note</label><textarea id="note-description" name="description" rows="5" maxlength="10000" placeholder="Start wherever you are…"></textarea></div>
             <fieldset id="entry-list-field" class="notebook-item-editor" hidden><legend>List items</legend><div id="entry-create-items" class="notebook-item-edit-list"></div><button id="entry-add-item" class="plain-button notebook-add-item" type="button">+ Add item</button></fieldset>
             <div class="task-form-row">
-              <div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional, comma separated</span></label><input id="note-tags" name="tags" maxlength="1000" placeholder="health, ideas, home" /></div>
-              <div class="settings-field"><label for="note-group">Group <span class="optional-label">Optional</span></label><input id="note-group" name="group" maxlength="50" placeholder="Personal" /></div>
+              <div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional — select existing or add new, comma separated</span></label><input id="note-tags" name="tags" list="note-tag-options" maxlength="1000" placeholder="health, ideas, home" /><datalist id="note-tag-options"></datalist></div>
+              <div class="settings-field"><label for="note-group">Group <span class="optional-label">Optional — select existing or add new</span></label><input id="note-group" name="group" list="note-group-options" maxlength="50" placeholder="Personal" /><datalist id="note-group-options"></datalist></div>
             </div>
           </div>
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>

@@ -5,7 +5,6 @@ from copy import deepcopy
 import pytest
 import pytest_asyncio
 from aiohttp import CookieJar
-from aiohttp.test_utils import TestClient, TestServer
 
 from core.error_handling import ValidationError
 from core.web_account_service import create_web_app, MHMAccounts
@@ -15,7 +14,7 @@ from core.web_user_settings import (
     build_settings_updates,
     settings_snapshot,
 )
-from tests.unit.test_web_account_service import Accounts, ORIGIN, request_code, verify
+from tests.unit.test_web_account_service import Accounts, ORIGIN, request_code, verify, web_client
 
 pytestmark = [pytest.mark.unit, pytest.mark.user]
 
@@ -420,7 +419,7 @@ async def settings_gateway(documents):
         origin=ORIGIN,
         proxy_secret="",
     )
-    async with TestClient(TestServer(app), cookie_jar=CookieJar(unsafe=True)) as client:
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
         yield client, accounts, sent
 
 

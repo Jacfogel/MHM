@@ -367,6 +367,7 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-form-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .task-form-row .settings-field { margin-bottom: 0; }
 .task-recurrence-options { grid-template-columns: minmax(120px, .4fr) minmax(220px, 1fr); align-items: center; margin-top: 12px; }
+.task-custom-recurrence { display: grid; grid-template-columns: minmax(100px, .7fr) minmax(120px, 1fr); gap: 12px; }
 .task-inline-check { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: .9rem; }
 .task-inline-check input, .task-quick-reminders input, .task-select input { width: 18px; height: 18px; accent-color: var(--purple); }
 .task-create-form .button { white-space: nowrap; }
@@ -379,6 +380,8 @@ button:disabled { cursor: wait; opacity: .65; }
 .task-reminder-remove { padding: 9px 0; font-size: .82rem; }
 .task-quick-reminders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; }
 .task-quick-reminders label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: .875rem; }
+.task-reminders > .field-help { margin: 0 0 14px; }
+.task-reminders .task-quick-reminders + .task-reminder-list { margin-top: 14px; }
 .field-help { margin: 10px 0 0; color: var(--muted); font-size: .82rem; line-height: 1.4; }
 .task-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
 .task-list-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 12px; }
@@ -458,6 +461,7 @@ button:disabled { cursor: wait; opacity: .65; }
   .note-create-form { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
   .task-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .task-recurrence-options { grid-template-columns: 1fr; }
+  .task-custom-recurrence { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .task-quick-reminders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .notebook-kind-row { grid-template-columns: 1fr; }
   .task-reminder-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }

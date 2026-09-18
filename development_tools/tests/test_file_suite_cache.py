@@ -308,6 +308,8 @@ class TestFileSuiteCache:
         rel = TestFileCoverageCache._normalize_test_file_rel(
             str(test_file.relative_to(self.project_root))
         )
+        existing = self.cache_data.setdefault("test_files", {}).get(rel)
+        existing_entry = existing if isinstance(existing, dict) else {}
         domains = sorted(self.coverage_cache.get_test_files_domains(test_file))
         entry: dict[str, Any] = {
             "domains": domains,
@@ -315,9 +317,13 @@ class TestFileSuiteCache:
         }
         if parallel is not None:
             entry["parallel"] = parallel
+        elif existing_entry.get("parallel"):
+            entry["parallel"] = existing_entry["parallel"]
         if no_parallel is not None:
             entry["no_parallel"] = no_parallel
-        self.cache_data.setdefault("test_files", {})[rel] = entry
+        elif existing_entry.get("no_parallel"):
+            entry["no_parallel"] = existing_entry["no_parallel"]
+        self.cache_data["test_files"][rel] = entry
         self.coverage_cache.update_test_file_mapping(test_file, save_cache=True)
         self._save_cache()
 
