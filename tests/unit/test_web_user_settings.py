@@ -22,6 +22,7 @@ OPTIONS = {
     "timezones": ["America/Regina", "Europe/London"],
     "categories": ["motivational", "health"],
     "questions": {"mood": "Mood", "energy": "Energy", "sleep": "Sleep"},
+    "question_category_map": {"mood": "mood", "energy": "energy", "sleep": "energy"},
     "question_categories": {
         "mood": {"name": "Mood"},
         "energy": {"name": "Energy"},
@@ -65,7 +66,7 @@ def documents():
             "natural_language_defaults": {"keep": True},
             "task_settings": {"custom": "keep"},
             "checkin_settings": {
-                "custom_questions": {"keep": True},
+                "custom_questions": {},
                 "questions": {
                     "mood": {"custom": "keep", "always_include": True},
                     "archived": {"enabled": False},
@@ -90,9 +91,10 @@ def values(documents, section):
     return deepcopy(settings_snapshot(documents, OPTIONS)["sections"][section])
 
 
-def test_settings_helpers_return_safe_defaults_for_invalid_inputs():
+def test_settings_helpers_reject_invalid_current_schema_inputs():
     assert _available_message_categories(None, {}) == []
-    assert _editable_custom_questions(None) == {}
+    with pytest.raises(ValidationError):
+        _editable_custom_questions(None)
 
 
 def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
@@ -235,7 +237,7 @@ def test_feature_requires_active_window_and_discord_requires_link(documents):
     )
 
 
-def test_checkin_rules_and_custom_metadata_are_preserved(documents):
+def test_checkin_rules_and_question_metadata_are_preserved(documents):
     draft = values(documents, "checkins")
     draft.update(
         enabled=True,
@@ -245,7 +247,7 @@ def test_checkin_rules_and_custom_metadata_are_preserved(documents):
     )
     updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
     checkin = updates["preferences"]["checkin_settings"]
-    assert checkin["custom_questions"] == {"keep": True}
+    assert checkin["custom_questions"] == {}
     assert checkin["questions"]["mood"]["custom"] == "keep"
     assert checkin["questions"]["energy"]["sometimes_include"] is True
     assert "archived" in checkin["questions"]
@@ -271,13 +273,14 @@ def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):
 
     updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
     checkin = updates["preferences"]["checkin_settings"]
-    assert checkin["custom_questions"]["keep"] is True
     assert checkin["custom_questions"][question_key] == {
         "question_text": "Did you spend time outside?",
         "ui_display_name": "Time outside",
         "type": "yes_no",
         "category": "activities",
         "enabled": True,
+        "always_include": True,
+        "sometimes_include": False,
         "validation": {"error_message": "Please answer yes or no."},
     }
     assert checkin["questions"][question_key]["always_include"] is True
@@ -297,7 +300,7 @@ def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):
     removed_checkin = removed["preferences"]["checkin_settings"]
     assert question_key not in removed_checkin["custom_questions"]
     assert question_key not in removed_checkin["questions"]
-    assert removed_checkin["custom_questions"]["keep"] is True
+    assert removed_checkin["custom_questions"] == {}
 
 
 def test_custom_checkin_question_rejects_untrusted_definition(documents):
@@ -314,15 +317,19 @@ def test_custom_checkin_question_rejects_untrusted_definition(documents):
         build_settings_updates(documents, OPTIONS, "checkins", draft)
 
 
+def test_settings_snapshot_rejects_obsolete_saved_custom_question_shape(documents):
+    documents["preferences"]["checkin_settings"]["custom_questions"] = {
+        "custom_old": {"question_text": "Old incomplete definition"}
+    }
+
+    with pytest.raises(ValidationError):
+        settings_snapshot(documents, OPTIONS)
+
+
 def test_unselected_message_windows_and_new_question_defaults_are_loaded(documents):
     options = {**OPTIONS, "question_defaults": {"energy": "sometimes"}}
-    documents["preferences"]["checkin_settings"]["custom_questions"]["sleep"] = {
-        "question_text": "Custom sleep",
-        "always_include": True,
-    }
     snapshot = settings_snapshot(documents, options)
     assert snapshot["sections"]["checkins"]["questions"]["energy"] == "sometimes"
-    assert snapshot["sections"]["checkins"]["questions"]["sleep"] == "always"
     assert snapshot["available_message_periods"]["health"] == {"Morning": WINDOW}
     documents["schedules"]["categories"]["health"]["periods"]["Morning"][
         "start_time"
@@ -529,19 +536,10 @@ async def test_authenticated_delivery_actions_write_scoped_service_requests(
     settings_gateway, monkeypatch, tmp_path
 ):
     from core import service_utilities
-    from tasks import task_data_manager
-
     client, accounts, sent = settings_gateway
     accounts.docs["existing"]["preferences"]["channel"] = {"type": "email"}
-    accounts.docs["existing"]["account"]["features"].update(
-        {"checkins": "enabled", "task_management": "enabled"}
-    )
+    accounts.docs["existing"]["account"]["features"]["checkins"] = "enabled"
     monkeypatch.setattr(service_utilities, "get_flags_dir", lambda: tmp_path)
-    monkeypatch.setattr(
-        task_data_manager,
-        "get_task_by_id",
-        lambda uid, task_id: {"id": task_id, "title": "One step"},
-    )
     token = (await (await request_code(client)).json())["challenge"]
     assert (await verify(client, token, sent[-1])).status == 200
 
@@ -551,16 +549,19 @@ async def test_authenticated_delivery_actions_write_scoped_service_requests(
             "test_message_request_existing_motivational.flag",
         ),
         ({"action": "checkin_prompt"}, "checkin_prompt_request_existing.flag"),
-        (
-            {"action": "task_reminder", "task_id": "task-1"},
-            "task_reminder_request_existing_task-1.flag",
-        ),
     ):
         response = await client.post(
             "/api/actions", json=payload, headers={"Origin": ORIGIN}
         )
         assert response.status == 200
         assert (tmp_path / filename).exists()
+
+    removed = await client.post(
+        "/api/actions",
+        json={"action": "task_reminder", "task_id": "task-1"},
+        headers={"Origin": ORIGIN},
+    )
+    assert removed.status == 400
 
 
 @pytest.mark.file_io
@@ -626,6 +627,7 @@ def test_saved_settings_use_existing_v2_profile_and_schedule_storage(test_data_d
     saved = adapter.documents(uid)
     assert saved["preferences"]["categories"] == ["motivational"]
     options = adapter.settings_options(uid)
+    assert set(options["question_category_map"]) == set(options["questions"])
     checkins = deepcopy(settings_snapshot(saved, options)["sections"]["checkins"])
     checkins.update(
         enabled=True,

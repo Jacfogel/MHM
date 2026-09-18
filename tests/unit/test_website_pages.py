@@ -107,9 +107,24 @@ def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
     assert "hidden" in tasks.controls["task-custom-recurrence"]
     assert tasks.controls["task-recurrence-interval"]["min"] == "1"
     assert tasks.controls["task-recurrence-unit"]["name"] == "recurrence_unit"
-    assert tasks.controls["task-tags"]["list"] == "task-tag-options"
+    assert "list" not in tasks.controls["task-tags"]
+    assert "task-existing-tag" in tasks.ids
     assert "task-reminder-list" in tasks.ids
+    assert "task-links" not in tasks.ids
     assert "custom" in tasks.option_values
+
+
+def test_website_scripts_use_only_current_task_and_insights_shapes():
+    tasks_source = (WEBSITE / "tasks.js").read_text(encoding="utf-8")
+    insights_source = (WEBSITE / "insights.js").read_text(encoding="utf-8")
+
+    assert "task.links" not in tasks_source
+    assert "Remind now" not in tasks_source
+    assert "requestTaskReminder" not in tasks_source
+    assert "habit_stats" not in insights_source
+    assert "wellness_score" not in insights_source
+    assert "value.rate" not in insights_source
+    assert "value.total_days" not in insights_source
 
 
 def test_login_and_account_pages_expose_password_and_provider_controls():

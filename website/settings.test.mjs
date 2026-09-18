@@ -15,12 +15,28 @@ test('profile entries accept lines, commas, and semicolons', () => {
   );
 });
 
-test('missing optional settings collections fall back safely', () => {
-  assert.deepEqual({ ...context.helpers.record(undefined) }, {});
-  assert.deepEqual({ ...context.helpers.record(null) }, {});
-  assert.deepEqual([...context.helpers.list(undefined)], []);
-  assert.deepEqual([...context.helpers.list({})], []);
-  assert.deepEqual([...context.helpers.profileEntries(null)], []);
+test('settings collections must use the current schema', () => {
+  assert.throws(() => context.helpers.record(undefined), /current object format/);
+  assert.throws(() => context.helpers.record(null), /current object format/);
+  assert.throws(() => context.helpers.list(undefined), /current list format/);
+  assert.throws(() => context.helpers.list({}), /current list format/);
+  assert.throws(() => context.helpers.profileEntries(null), /must be text/);
+});
+
+test('standard check-in questions are grouped by category', () => {
+  const groups = context.helpers.questionGroups(
+    { mood: 'Mood', stress: 'Stress', hydration: 'Hydration', custom_one: 'Custom' },
+    { custom_one: {} },
+    { mood: 'mood', stress: 'mood', hydration: 'health' },
+    { mood: { name: 'Mood', description: 'Feelings' }, health: { name: 'Health' } },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(groups)),
+    [
+      { key: 'mood', name: 'Mood', description: 'Feelings', questions: [{ key: 'mood', label: 'Mood' }, { key: 'stress', label: 'Stress' }] },
+      { key: 'health', name: 'Health', description: '', questions: [{ key: 'hydration', label: 'Hydration' }] },
+    ],
+  );
 });
 
 test('clicking date and time inputs opens the native picker when available', () => {
@@ -47,6 +63,14 @@ test('date and time inputs open on the initial pointer action', () => {
   assert.equal(opened, 1);
 });
 
+test('changing settings sections returns to the settings heading', () => {
+  let options;
+  context.helpers.scrollToSection({ scrollIntoView(value) { options = value; } });
+  assert.deepEqual({ ...options }, { behavior: 'smooth', block: 'start' });
+  context.helpers.scrollToSection({ scrollIntoView(value) { options = value; } }, true);
+  assert.deepEqual({ ...options }, { behavior: 'auto', block: 'start' });
+});
+
 test('signed-in page logos return to the account home', async () => {
   for (const page of ['app', 'tasks', 'notes', 'messages', 'insights']) {
     const html = await readFile(new URL(`./${page}.html`, import.meta.url), 'utf8');
@@ -61,4 +85,11 @@ test('feature details and custom check-in controls are present', async () => {
   assert.match(source, /category === 'tasks'[\s\S]*'15:00'[\s\S]*'17:00'/);
   assert.match(source, /category === 'checkin'[\s\S]*'09:30'[\s\S]*'11:30'/);
   assert.match(source, /const customQuestions = MHMSettingsInput\.record\(values\.custom_questions\)/);
+  assert.doesNotMatch(source, /completeSettingsData/);
+});
+
+test('important-person prompts distinguish roles from useful context', () => {
+  assert.match(source, /Family, friend, partner, healthcare provider/);
+  assert.match(source, /Lives nearby; calls every Sunday; helps with appointments/);
+  assert.doesNotMatch(source, /Sister, caregiver, emergency contact/);
 });

@@ -39,8 +39,8 @@
 
   function renderInsights(data) {
     const summary = document.getElementById('insights-summary');
-    const total = data.available?.total_checkins ?? data.wellness?.total_checkins ?? 0;
-    const wellness = data.wellness?.score ?? data.wellness?.wellness_score;
+    const total = data.available?.total_checkins ?? 0;
+    const wellness = data.wellness?.score;
     summary.replaceChildren(
       metric('Check-ins', number(total, '0'), `Last ${data.days} days`),
       metric('Wellness score', number(wellness), data.wellness?.interpretation || 'Shown when enough data is available'),
@@ -96,14 +96,14 @@
 
     const habits = document.getElementById('habit-detail');
     habits.replaceChildren();
-    const habitStats = data.habits?.habit_stats || data.habits?.habits || {};
+    const habitStats = data.habits?.habits || {};
     const habitList = document.createElement('ul');
     let completedHabitDays = 0;
     let answeredHabitDays = 0;
     for (const [key, value] of Object.entries(habitStats)) {
-      const rate = value.completion_rate ?? value.rate;
+      const rate = value.completion_rate;
       const completed = value.completed_days || 0;
-      const answered = value.answered_days ?? value.total_days ?? 0;
+      const answered = value.answered_days ?? 0;
       completedHabitDays += completed; answeredHabitDays += answered;
       habitList.append(text('li', `${value.name || key.replaceAll('_', ' ')}${rate == null ? '' : `: ${rate}%`} (${completed}/${answered} days)${value.status ? ` — ${value.status}` : ''}`));
     }

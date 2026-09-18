@@ -40,6 +40,7 @@ class Accounts:
 
 @pytest_asyncio.fixture
 async def task_gateway(monkeypatch):
+    import core.tags as tags_module
     import tasks.task_service as service
     import tasks.task_data_manager as manager
     import tasks.task_occurrence_skip as skip_module
@@ -52,7 +53,7 @@ async def task_gateway(monkeypatch):
 
     def create(user_id, **values):
         task_number = len(active) + len(completed) + 1
-        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "links": values.get("links", []), "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
+        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
         active.append(task)
         return task["id"]
 
@@ -108,6 +109,7 @@ async def task_gateway(monkeypatch):
         return True
 
     monkeypatch.setattr(service, "create_task", create)
+    monkeypatch.setattr(tags_module, "get_user_tags", lambda user_id: ["existing", "health"])
     monkeypatch.setattr(manager, "get_task_by_id", find)
     monkeypatch.setattr(service, "load_active_tasks", lambda user_id: deepcopy(active))
     monkeypatch.setattr(service, "load_completed_tasks", lambda user_id: deepcopy(completed))
@@ -145,18 +147,18 @@ async def task_gateway(monkeypatch):
 async def test_task_crud_lifecycle_and_validation(task_gateway):
     client, active, completed = task_gateway
     assert (await client.get("/api/tasks")).json  # route is authenticated
-    created = await client.post("/api/tasks", json={"title": "Plan a gentle start", "description": "One step", "due_date": "2026-09-20", "priority": "high", "recurrence_pattern": "weekly", "recurrence_interval": 2, "repeat_after_completion": False, "tags": ["Health", "morning"], "links": [{"url": "https://example.com/plan", "label": "Plan"}], "reminder_periods": [{"date": "2026-09-20", "start_time": "09:00", "end_time": "10:00"}], "quick_reminders": ["1-2hour"]}, headers={"Origin": ORIGIN})
+    created = await client.post("/api/tasks", json={"title": "Plan a gentle start", "description": "One step", "due_date": "2026-09-20", "priority": "high", "recurrence_pattern": "weekly", "recurrence_interval": 2, "repeat_after_completion": False, "tags": ["Health", "morning"], "reminder_periods": [{"date": "2026-09-20", "start_time": "09:00", "end_time": "10:00"}], "quick_reminders": ["1-2hour"]}, headers={"Origin": ORIGIN})
     assert created.status == 201
     task = (await created.json())["task"]
     assert task["title"] == "Plan a gentle start"
     assert task["tags"] == ["health", "morning"]
-    assert task["links"] == [{"url": "https://example.com/plan", "label": "Plan"}]
+    assert "links" not in task
     assert task["reminders"][0]["period"]["start_time"] == "09:00"
     assert task["reminders"][1] == {"kind": "quick", "value": "1-2hour"}
     assert task["recurrence"] == {"pattern": "weekly", "interval": 2, "repeat_after_completion": False, "next_due_date": None}
     task_list = await (await client.get("/api/tasks")).json()
     assert task_list["due_soon_count"] == 1
-    assert task_list["tags"] == ["health", "morning"]
+    assert task_list["tags"] == ["existing", "health", "morning"]
     templates = await (await client.get("/api/task-templates")).json()
     assert {template["id"] for template in templates["templates"]} >= {
         "medication",
@@ -185,7 +187,7 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     assert (await client.delete(f"/api/tasks/{task['id']}", json={}, headers={"Origin": ORIGIN})).status == 200
     assert (await client.post("/api/tasks", json={"title": "", "due_date": "tomorrow"}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.post("/api/tasks", json={"title": "Bad reminder", "reminder_periods": [{"date": "2026-09-20", "start_time": "10:00", "end_time": "09:00"}]}, headers={"Origin": ORIGIN})).status == 400
-    assert (await client.post("/api/tasks", json={"title": "Bad link", "links": [{"url": "javascript:alert(1)", "label": "No"}]}, headers={"Origin": ORIGIN})).status == 400
+    assert (await client.post("/api/tasks", json={"title": "Old task shape", "links": []}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.post(f"/api/tasks/{task['id']}/snooze", json={"option": "later"}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.post(f"/api/tasks/{task['id']}/simplify", json={"new_title": ""}, headers={"Origin": ORIGIN})).status == 400
 

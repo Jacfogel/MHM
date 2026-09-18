@@ -1590,7 +1590,6 @@ def create_web_app(
                 "notes": str(completion.get("notes") or ""),
             },
             "tags": task.get("tags") if isinstance(task.get("tags"), list) else [],
-            "links": task.get("links") if isinstance(task.get("links"), list) else [],
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
@@ -1650,30 +1649,8 @@ def create_web_app(
             return cleaned
 
         # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
-        def clean_links(value):
-            """Validate task links without silently dropping malformed input."""
-            from tasks.task_link_helpers import MAX_TASK_LINKS, sanitize_task_links
-
-            if value is None:
-                return []
-            if not isinstance(value, list) or len(value) > MAX_TASK_LINKS:
-                raise web.HTTPBadRequest(text=f"Add at most {MAX_TASK_LINKS} task links.")
-            if any(
-                not isinstance(item, dict)
-                or set(item) != {"url", "label"}
-                or not isinstance(item["url"], str)
-                or not isinstance(item["label"], str)
-                for item in value
-            ):
-                raise web.HTTPBadRequest(text="Each task link needs a web address and optional label.")
-            cleaned = sanitize_task_links(value)
-            if len(cleaned) != len(value):
-                raise web.HTTPBadRequest(text="Use unique http:// or https:// task links.")
-            return cleaned
-
-        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
         def clean_quick_reminders(value):
-            """Validate the desktop-compatible relative reminder choices."""
+            """Validate the canonical relative reminder choices."""
             if value is None:
                 return []
             if (
@@ -1719,12 +1696,21 @@ def create_web_app(
             active = await asyncio.to_thread(load_active_tasks, uid)
             completed = await asyncio.to_thread(load_completed_tasks, uid)
             due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
+            from core.tags import get_user_tags
+
+            saved_tags = await asyncio.to_thread(get_user_tags, uid)
             selected = active if status == "active" else completed if status == "completed" else active + completed
             tags = sorted(
                 {
                     str(tag).strip()
-                    for task in active + completed
-                    for tag in (task.get("tags") or [])
+                    for tag in [
+                        *saved_tags,
+                        *[
+                            task_tag
+                            for task in active + completed
+                            for task_tag in (task.get("tags") or [])
+                        ],
+                    ]
                     if str(tag).strip()
                 },
                 key=str.casefold,
@@ -1742,7 +1728,7 @@ def create_web_app(
             allowed = {
                 "title", "description", "due_date", "due_time", "priority",
                 "recurrence_pattern", "recurrence_interval", "repeat_after_completion",
-                "tags", "reminder_periods", "quick_reminders", "links",
+                "tags", "reminder_periods", "quick_reminders",
             }
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported task fields.")
@@ -1759,7 +1745,6 @@ def create_web_app(
             tags = sanitize_task_tags(tags)
             reminder_periods = clean_reminder_periods(data.get("reminder_periods", []))
             quick_reminders = clean_quick_reminders(data.get("quick_reminders", []))
-            links = clean_links(data.get("links", []))
             due_date = data.get("due_date")
             if due_date == "":
                 due_date = None
@@ -1791,7 +1776,7 @@ def create_web_app(
                 recurrence_pattern=pattern, recurrence_interval=interval,
                 repeat_after_completion=repeat_after,
                 tags=tags, reminder_periods=reminder_periods,
-                quick_reminders=quick_reminders, links=links,
+                quick_reminders=quick_reminders,
             )
             if not created_id:
                 raise web.HTTPServiceUnavailable(text="MHM could not create that task. Please try again.")
@@ -1872,7 +1857,7 @@ def create_web_app(
             action_message = result.message
         elif action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "quick_reminders", "links"}
+            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "quick_reminders"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported task changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip()):
@@ -1888,8 +1873,6 @@ def create_web_app(
                 data["reminder_periods"] = clean_reminder_periods(data["reminder_periods"])
             if "quick_reminders" in data:
                 data["quick_reminders"] = clean_quick_reminders(data["quick_reminders"])
-            if "links" in data:
-                data["links"] = clean_links(data["links"])
             for key, parser, message in (("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."), ("due_time", parse_time_only_minute, "Due times must use HH:MM.")):
                 if key in data and data[key] not in (None, "") and (not isinstance(data[key], str) or parser(data[key]) is None):
                     raise web.HTTPBadRequest(text=message)
@@ -2128,7 +2111,6 @@ def create_web_app(
         allowed_fields = {
             "test_message": {"action", "category"},
             "checkin_prompt": {"action"},
-            "task_reminder": {"action", "task_id"},
         }
         if action not in allowed_fields or set(data) != allowed_fields[action]:
             raise web.HTTPBadRequest(text="Choose a valid request action.")
@@ -2167,25 +2149,6 @@ def create_web_app(
                 "source": "website",
             }
             message = "Your check-in was queued for delivery."
-        else:
-            if features.get("task_management") != "enabled":
-                raise web.HTTPBadRequest(text="Enable task reminders before requesting one.")
-            task_id = data["task_id"]
-            if not isinstance(task_id, str) or not 1 <= len(task_id) <= 100:
-                raise web.HTTPBadRequest(text="Choose a valid task.")
-            from tasks.task_data_manager import get_task_by_id
-
-            if not await asyncio.to_thread(get_task_by_id, uid, task_id):
-                raise web.HTTPNotFound(text="That task could not be found.")
-            filename = f"task_reminder_request_{uid}_{task_id}.flag"
-            payload = {
-                "user_id": uid,
-                "task_identifier": task_id,
-                "timestamp": now_timestamp_full(),
-                "source": "website",
-            }
-            message = "That task reminder was queued for delivery."
-
         throttle(("request-action", uid), 10, 60)
         request_file = Path(get_flags_dir()) / filename
         if not await asyncio.to_thread(

@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-17 16:56:15
+> **Last Generated**: 2026-09-18 13:47:56
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000AE 5EAC:07BC
+Volume serial number is 000000DD 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -99,6 +99,7 @@ C:.
 |   |   |   v5_dev-tools_continuation_95e84204.plan.md
 |   |   |
 |   \---rules
+|           alpha-no-backward-compatibility.mdc
 |           communication-guidelines.mdc
 |           context.mdc
 |           core-guidelines.mdc
@@ -1350,6 +1351,7 @@ C:.
 |   |   styles.css
 |   |   tasks.html
 |   |   tasks.js
+|   |   tasks.test.mjs
 |   |   worker.mjs
 |   |   worker.test.mjs
 |   |   wrangler.jsonc

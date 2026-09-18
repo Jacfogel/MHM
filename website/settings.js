@@ -1,12 +1,29 @@
 const MHMSettingsInput = Object.freeze({
   profileEntries(value) {
-    return String(value ?? '').split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
+    if (typeof value !== 'string') throw new TypeError('Profile entries must be text.');
+    return value.split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
   },
   record(value) {
-    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Settings data must use the current object format.');
+    return value;
   },
   list(value) {
-    return Array.isArray(value) ? value : [];
+    if (!Array.isArray(value)) throw new TypeError('Settings data must use the current list format.');
+    return value;
+  },
+  questionGroups(questions, customQuestions, categoryMap, categories) {
+    const groups = new Map();
+    for (const [key, value] of Object.entries(MHMSettingsInput.record(categories))) {
+      const metadata = MHMSettingsInput.record(value);
+      groups.set(key, { key, name: metadata.name || key.replaceAll('_', ' '), description: metadata.description || '', questions: [] });
+    }
+    for (const [key, label] of Object.entries(MHMSettingsInput.record(questions))) {
+      if (Object.hasOwn(MHMSettingsInput.record(customQuestions), key)) continue;
+      const category = MHMSettingsInput.record(categoryMap)[key] || 'general';
+      if (!groups.has(category)) groups.set(category, { key: category, name: category === 'general' ? 'General' : category.replaceAll('_', ' '), description: '', questions: [] });
+      groups.get(category).questions.push({ key, label });
+    }
+    return [...groups.values()].filter(group => group.questions.length);
   },
   openPicker(input) {
     if (typeof input.showPicker !== 'function' || input.disabled || input.readOnly) return;
@@ -17,6 +34,10 @@ const MHMSettingsInput = Object.freeze({
       if (typeof event.button === 'number' && event.button !== 0) return;
       MHMSettingsInput.openPicker(input);
     });
+  },
+  scrollToSection(section, reducedMotion = false) {
+    if (!section || typeof section.scrollIntoView !== 'function') return;
+    section.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
   },
 });
 
@@ -80,16 +101,16 @@ const MHMSettingsInput = Object.freeze({
   function lovedOnesEditor(parent, initial) {
     const group = el('fieldset', null, { className: 'custom-question-editor' });
     group.append(el('legend', 'Important people'));
-    group.append(el('p', 'Add the people MHM should understand when personalizing support. Relationship details can be separated by commas or semicolons.', { className: 'field-hint' }));
+    group.append(el('p', 'Add the people MHM should understand when personalizing support. Helpful context can include how they support you, how often you connect, or anything sensitive MHM should keep in mind. Separate details with commas or semicolons.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
-    function add(person = {}) {
+    function add(person = { name: '', type: '', relationships: [] }) {
       person = MHMSettingsInput.record(person);
       const row = el('div', null, { className: 'profile-person-row' });
       const id = `person-${crypto.randomUUID()}`;
       const name = field(row, 'Name', `${id}-name`, 'text', person.name, { required: '', maxlength: '100' });
-      const type = field(row, 'Who they are to you', `${id}-type`, 'text', person.type, { maxlength: '100', placeholder: 'Friend, family member, therapist…' });
-      const relationships = field(row, 'Relationship details', `${id}-relationships`, 'text', MHMSettingsInput.list(person.relationships).join(', '), { maxlength: '1000', placeholder: 'Sister, caregiver, emergency contact…' });
+      const type = field(row, 'Who they are to you', `${id}-type`, 'text', person.type, { maxlength: '100', placeholder: 'Family, friend, partner, healthcare provider…' });
+      const relationships = field(row, 'Helpful context', `${id}-relationships`, 'text', MHMSettingsInput.list(person.relationships).join(', '), { maxlength: '1000', placeholder: 'Lives nearby; calls every Sunday; helps with appointments…' });
       const remove = el('button', 'Remove person', { type: 'button', className: 'plain-button danger-button' });
       const control = { row, name, type, relationships };
       remove.addEventListener('click', () => {
@@ -194,8 +215,8 @@ const MHMSettingsInput = Object.freeze({
     button.addEventListener('click', () => {
       if (controls.length >= 20) return;
       const key = `custom_${crypto.randomUUID().replaceAll('-', '')}`;
-      const chosen = MHMSettingsInput.record(templates[template.value]);
-      add(key, Object.keys(chosen).length ? chosen : { question_text: '', ui_display_name: '', type: 'optional_text', category: categoryChoices[0][0], validation: {} }, 'off');
+      const chosen = template.value ? MHMSettingsInput.record(templates[template.value]) : null;
+      add(key, chosen || { question_text: '', ui_display_name: '', type: 'optional_text', category: categoryChoices[0][0], validation: {} }, 'off');
       template.value = '';
       parent.dispatchEvent(new Event('input', { bubbles: true }));
       controls.at(-1).text.focus();
@@ -296,20 +317,19 @@ const MHMSettingsInput = Object.freeze({
       },
     };
   }
-  function completeSettingsData(data) {
+  function validateSettingsData(data) {
     const payload = MHMSettingsInput.record(data);
     const sections = MHMSettingsInput.record(payload.sections);
     const revisions = MHMSettingsInput.record(payload.revisions);
-    if (Object.keys(titles).some(section => !Object.hasOwn(sections, section))) {
-      throw new Error('MHM received incomplete settings data. Please reload your settings.');
+    MHMSettingsInput.record(payload.options);
+    MHMSettingsInput.record(payload.available_message_periods);
+    for (const section of Object.keys(titles)) {
+      if (!Object.hasOwn(sections, section) || typeof revisions[section] !== 'string') {
+        throw new Error('MHM received settings data that does not match the current format.');
+      }
+      MHMSettingsInput.record(sections[section]);
     }
-    return {
-      ...payload,
-      sections,
-      revisions,
-      options: MHMSettingsInput.record(payload.options),
-      available_message_periods: MHMSettingsInput.record(payload.available_message_periods),
-    };
+    return payload;
   }
   async function api(method, payload) {
     const response = await fetch('/api/settings', {
@@ -328,7 +348,7 @@ const MHMSettingsInput = Object.freeze({
       error.status = response.status;
       throw error;
     }
-    return completeSettingsData(data);
+    return validateSettingsData(data);
   }
   function renderSection(section, data) {
     const values = MHMSettingsInput.record(data.sections[section]);
@@ -432,9 +452,19 @@ const MHMSettingsInput = Object.freeze({
           const customQuestions = MHMSettingsInput.record(values.custom_questions);
           const questionStates = MHMSettingsInput.record(values.questions);
           const questions = {};
-          for (const [key, label] of Object.entries(standardQuestions)) {
-            if (!Object.hasOwn(customQuestions, key)) questions[key] = select(details, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], questionStates[key]);
+          const questionGroups = MHMSettingsInput.questionGroups(standardQuestions, customQuestions, data.options.question_category_map, data.options.question_categories);
+          const groupLayout = el('div', null, { className: 'checkin-question-groups' });
+          for (const group of questionGroups) {
+            const questionGroup = el('fieldset', null, { className: 'checkin-question-group' });
+            questionGroup.append(el('legend', group.name));
+            if (group.description) questionGroup.append(el('p', group.description, { className: 'field-hint' }));
+            for (const { key, label } of group.questions) {
+              questions[key] = select(questionGroup, label, `question-${key}`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], questionStates[key]);
+              questions[key].parentElement.classList.add('checkin-question-row');
+            }
+            groupLayout.append(questionGroup);
           }
+          details.append(groupLayout);
           const custom = customQuestionEditor(details, customQuestions, questionStates, data.options);
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
@@ -514,6 +544,8 @@ const MHMSettingsInput = Object.freeze({
           for (const [key, form] of Object.entries(forms)) form.hidden = key !== section;
           for (const other of nav.children) other.removeAttribute('aria-current');
           button.setAttribute('aria-current', 'page');
+          const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          MHMSettingsInput.scrollToSection(document.getElementById('settings'), reducedMotion);
         });
         nav.append(button);
         forms[section] = renderSection(section, data);

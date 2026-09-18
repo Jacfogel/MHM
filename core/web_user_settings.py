@@ -56,41 +56,77 @@ def _available_message_categories(options, features):
     ]
 
 
-@handle_errors("reading editable custom check-in questions", default_return={})
+@handle_errors(
+    "reading editable custom check-in questions",
+    user_friendly=False,
+    re_raise=True,
+)
 def _editable_custom_questions(checkin_settings):
     """Return browser-editable custom question definitions from saved preferences."""
+    if not isinstance(checkin_settings, dict):
+        raise ValidationError("Saved check-in settings must use the current format.")
+    saved_questions = checkin_settings.get("custom_questions", {})
+    if not isinstance(saved_questions, dict):
+        raise ValidationError("Saved custom questions must use the current format.")
     result = {}
-    for key, definition in (checkin_settings.get("custom_questions") or {}).items():
+    expected_fields = {
+        "type",
+        "question_text",
+        "ui_display_name",
+        "category",
+        "validation",
+        "enabled",
+        "always_include",
+        "sometimes_include",
+    }
+    for key, definition in saved_questions.items():
         if (
-            isinstance(key, str)
-            and key.startswith("custom_")
-            and isinstance(definition, dict)
-            and isinstance(definition.get("question_text"), str)
-            and definition.get("question_text", "").strip()
+            not isinstance(key, str)
+            or not re.fullmatch(r"custom_[a-z0-9_]{1,100}", key)
+            or not isinstance(definition, dict)
+            or set(definition) != expected_fields
+            or definition["type"] not in CUSTOM_QUESTION_TYPES
+            or not isinstance(definition["question_text"], str)
+            or not definition["question_text"].strip()
+            or len(definition["question_text"].strip()) > 300
+            or not isinstance(definition["ui_display_name"], str)
+            or not definition["ui_display_name"].strip()
+            or len(definition["ui_display_name"].strip()) > 150
+            or not isinstance(definition["category"], str)
+            or definition["category"] not in DEFAULT_QUESTION_CATEGORIES
+            or not isinstance(definition["validation"], dict)
+            or set(definition["validation"])
+            - {"min", "max", "error_message"}
+            or type(definition["enabled"]) is not bool
+            or type(definition["always_include"]) is not bool
+            or type(definition["sometimes_include"]) is not bool
+            or definition["always_include"]
+            and definition["sometimes_include"]
+            or definition["enabled"]
+            != (
+                definition["always_include"]
+                or definition["sometimes_include"]
+            )
         ):
-            validation = definition.get("validation")
-            if not isinstance(validation, dict):
-                validation = {}
-            result[key] = {
-                "question_text": definition["question_text"].strip(),
-                "ui_display_name": str(
-                    definition.get("ui_display_name")
-                    or definition["question_text"]
-                ).strip(),
-                "type": (
-                    definition.get("type")
-                    if definition.get("type") in CUSTOM_QUESTION_TYPES
-                    else "optional_text"
-                ),
-                "category": str(definition.get("category") or "health"),
-                "validation": {
-                    field: value
-                    for field, value in validation.items()
-                    if field in {"min", "max", "error_message"}
-                    and isinstance(value, (int, float, str))
-                    and not isinstance(value, bool)
-                },
-            }
+            raise ValidationError("Saved custom questions must use the current format.")
+        validation = definition["validation"]
+        if any(
+            not isinstance(validation[field], (int, float))
+            or isinstance(validation[field], bool)
+            for field in ("min", "max")
+            if field in validation
+        ) or (
+            "error_message" in validation
+            and not isinstance(validation["error_message"], str)
+        ):
+            raise ValidationError("Saved custom questions must use the current format.")
+        result[key] = {
+            "question_text": definition["question_text"].strip(),
+            "ui_display_name": definition["ui_display_name"].strip(),
+            "type": definition["type"],
+            "category": definition["category"].strip(),
+            "validation": copy.deepcopy(definition["validation"]),
+        }
     return result
 
 
@@ -111,6 +147,10 @@ def settings_options(user_id):
         },
         "question_defaults": {
             key: "sometimes" if value["enabled"] else "off"
+            for key, value in questions.items()
+        },
+        "question_category_map": {
+            key: str(value.get("category") or "general")
             for key, value in questions.items()
         },
         "question_categories": categories,
@@ -612,24 +652,18 @@ def build_settings_updates(documents, options, section, values):
         questions = copy.deepcopy(checkin.get("questions") or {})
         for removed_key in set(existing_custom) - set(custom_questions):
             questions.pop(removed_key, None)
-        preserved_custom = {
-            key: definition
-            for key, definition in (checkin.get("custom_questions") or {}).items()
-            if key not in existing_custom
-        }
         checkin["custom_questions"] = {
-            **preserved_custom,
-            **{
-                key: {
-                    "question_text": definition["question_text"].strip(),
-                    "ui_display_name": definition["ui_display_name"].strip(),
-                    "type": definition["type"],
-                    "category": definition["category"],
-                    "enabled": states[key] != "off",
-                    "validation": copy.deepcopy(definition["validation"]),
-                }
-                for key, definition in custom_questions.items()
-            },
+            key: {
+                "question_text": definition["question_text"].strip(),
+                "ui_display_name": definition["ui_display_name"].strip(),
+                "type": definition["type"],
+                "category": definition["category"],
+                "enabled": states[key] != "off",
+                "always_include": states[key] == "always",
+                "sometimes_include": states[key] == "sometimes",
+                "validation": copy.deepcopy(definition["validation"]),
+            }
+            for key, definition in custom_questions.items()
         }
         for key, state in states.items():
             label = snapshot["options"]["questions"].get(key)
