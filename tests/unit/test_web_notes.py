@@ -29,6 +29,7 @@ class Accounts:
 @pytest_asyncio.fixture
 async def notes_gateway(monkeypatch):
     import notebook.notebook_data_manager as manager
+    import core.tags as shared_tags
 
     entries = []
     sent = []
@@ -73,6 +74,7 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "set_group", lambda uid, ref, group: update(uid, ref, lambda entry: setattr(entry, "group", group)))
     monkeypatch.setattr(manager, "pin_entry", lambda uid, ref, pinned: update(uid, ref, lambda entry: setattr(entry, "pinned", pinned)))
     monkeypatch.setattr(manager, "archive_entry", archive)
+    monkeypatch.setattr(shared_tags, "get_user_tags", lambda uid: ["work", "personal"])
     entries.extend([
         SimpleNamespace(id=uuid4(), short_id="labc12", kind="list", title="Groceries", description=None, items=[SimpleNamespace(id=uuid4(), text="Oats", done=False, order=0)], tags=["home"], group="Errands", pinned=False, status="active", submitted_at=None, created_at="2026-09-19 09:00:00", updated_at="2026-09-19 09:00:00"),
         SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], group=None, pinned=False, status="active", submitted_at="2026-09-18 09:00:00", created_at="2026-09-18 09:00:00", updated_at="2026-09-18 09:00:00"),
@@ -88,13 +90,11 @@ async def test_note_create_edit_search_and_archive(notes_gateway):
     client = notes_gateway
     existing = await (await client.get("/api/notes")).json()
     assert {entry["kind"] for entry in existing["notes"]} == {"list", "journal_entry"}
-    assert existing["groups"] == ["Errands"]
-    assert existing["tags"] == ["home", "journal"]
-    grouped = await (await client.get("/api/notes?group=Errands")).json()
-    assert [entry["title"] for entry in grouped["notes"]] == ["Groceries"]
+    assert "groups" not in existing
+    assert existing["tags"] == ["home", "journal", "personal", "work"]
     tagged = await (await client.get("/api/notes?tag=journal")).json()
     assert [entry["title"] for entry in tagged["notes"]] == ["Today"]
-    created = await client.post("/api/notes", json={"title": "Appointment questions", "description": "Bring the list", "tags": ["Health", "prep"], "group": "Personal"}, headers={"Origin": ORIGIN})
+    created = await client.post("/api/notes", json={"title": "Appointment questions", "description": "Bring the list", "tags": ["Health", "prep"]}, headers={"Origin": ORIGIN})
     assert created.status == 201
     note = (await created.json())["note"]
     assert note["tags"] == ["health", "prep"]
@@ -126,7 +126,7 @@ async def test_journal_and_list_create_and_edit(notes_gateway):
 
     list_response = await client.post(
         "/api/notes",
-        json={"kind": "list", "title": "Weekend", "items": [{"text": "Laundry", "done": False}, {"text": "Walk", "done": True}], "group": "Home"},
+        json={"kind": "list", "title": "Weekend", "items": [{"text": "Laundry", "done": False}, {"text": "Walk", "done": True}], "tags": ["home"]},
         headers={"Origin": ORIGIN},
     )
     assert list_response.status == 201
@@ -155,6 +155,7 @@ async def test_journal_and_list_create_and_edit(notes_gateway):
         {"kind": "list", "title": "Missing list"},
         {"kind": "list", "title": "Bad state", "items": [{"text": "One", "done": "yes"}]},
         {"kind": "journal_entry", "title": "Bad tags", "description": "Text", "tags": "daily"},
+        {"kind": "note", "title": "Groups are retired", "group": "Personal"},
         {"kind": "note", "title": "Extra field", "unexpected": True},
     ],
 )
@@ -218,3 +219,8 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     inbox_view = await (await client.get("/api/notes?status=inbox")).json()
     assert [entry["id"] for entry in pinned_view["notes"]] == [entry_id]
     assert [entry["id"] for entry in inbox_view["notes"]] == [entry_id]
+    archived = await client.post(
+        f"/api/notes/{entry_id}/archive", json={}, headers={"Origin": ORIGIN}
+    )
+    assert archived.status == 200
+    assert (await archived.json())["note"]["pinned"] is False

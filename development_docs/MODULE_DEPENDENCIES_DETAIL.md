@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-18 13:46:59
+> **Last Generated**: 2026-09-19 00:40:14
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 278
-- **Total Imports Found**: 2464
+- **Total Imports Found**: 2467
 - **Dependencies Documented**: 278 (100% coverage)
-- **Standard Library Imports**: 720 (29.2%)
-- **Third-Party Imports**: 223 (9.1%)
-- **Local Imports**: 1521 (61.7%)
-- **Last Updated**: 2026-09-18
+- **Standard Library Imports**: 718 (29.1%)
+- **Third-Party Imports**: 223 (9.0%)
+- **Local Imports**: 1526 (61.9%)
+- **Last Updated**: 2026-09-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 720 imports (29.2%)
-- **Third-Party**: 223 imports (9.1%)
-- **Local**: 1521 imports (61.7%)
+- **Standard Library**: 718 imports (29.1%)
+- **Third-Party**: 223 imports (9.0%)
+- **Local**: 1526 imports (61.9%)
 
 ## Module Dependencies by Directory
 
@@ -1100,7 +1100,11 @@
   - **Third-party**:
     - `pydantic (BaseModel, ConfigDict, Field, field_validator)`
 - **Used by**:
+  - `communication/message_processing/flows/checkin_flow.py`
+  - `core/web_user_settings.py`
   - `storage/user_data_v2_envelopes.py`
+  - `ui/dialogs/checkin_management_dialog.py`
+  - `ui/widgets/checkin_settings_widget.py`
 
 **Dependency Changes**:
 - Added: core.time_utilities, storage.user_data_v2_base
@@ -2826,6 +2830,7 @@
   - **Local**:
     - `checkins.checkin_data_manager (get_recent_checkins, store_checkin_response)` (NEW)
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
+    - `checkins.checkin_schemas (DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS)` (NEW)
     - `communication.command_handlers.interaction_handlers (get_interaction_handler)` (NEW)
     - `communication.command_handlers.shared_types (ParsedCommand)` (NEW)
     - `communication.command_handlers.task_handler (TaskManagementHandler)` (NEW)
@@ -2844,7 +2849,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_data_manager, checkins.checkin_dynamic_manager, communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.flows.flow_constants, communication.message_processing.flows.flow_state, core, core.error_handling, core.logger, core.time_utilities
+- Added: checkins.checkin_data_manager, checkins.checkin_dynamic_manager, checkins.checkin_schemas, communication.command_handlers.interaction_handlers, communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.flows.flow_constants, communication.message_processing.flows.flow_state, core, core.error_handling, core.logger, core.time_utilities
 - Removed: communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4531,6 +4536,7 @@
   - `storage/user_data_registry.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_tag_helpers.py`
+  - `ui/widgets/tag_widget.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
@@ -4819,6 +4825,7 @@
 - **Dependencies**:
   - **Local**:
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
+    - `checkins.checkin_schemas (DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS)` (NEW)
     - `core (save_user_data_transaction)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, natural_language_defaults_to_preferences_dict)` (NEW)
@@ -4842,7 +4849,7 @@
   - `core/web_account_service.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_dynamic_manager, core, core.error_handling, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_time_parsing
+- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.error_handling, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_time_parsing
 - Removed: core/web_account_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5977,7 +5984,6 @@
     - `storage.user_data_validation (is_valid_user_id, validate_new_user_data, validate_user_update)` (NEW)
   - **Standard Library**:
     - `contextlib`
-    - `copy`
     - `os`
     - `typing (Any)`
 - **Used by**:
@@ -6122,7 +6128,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/message_processing/command_parser.py, core/web_account_service.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, urllib.parse
+- Removed: communication/message_processing/command_parser.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6606,20 +6612,21 @@
 - **Purpose**: Dialog component for checkin management dialog
 - **Dependencies**:
   - **Local**:
+    - `checkins.checkin_schemas (DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS)` (NEW)
     - `core (get_user_data, update_user_account, update_user_preferences)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.schedule_runtime (clear_schedule_periods_cache, set_schedule_periods)` (NEW)
     - `storage.user_data_validation (validate_schedule_periods)`
     - `ui.generated.checkin_management_dialog_pyqt (Ui_Dialog_checkin_management)`
-    - `ui.widgets.checkin_settings_widget (CheckinSettingsWidget)`
+    - `ui.widgets.checkin_settings_widget (CheckinSettingsWidget, compute_question_count_bounds)`
   - **Third-party**:
     - `PySide6.QtCore (Signal)`
     - `PySide6.QtWidgets (QDialog, QMessageBox, QWidget)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.schedule_runtime
+- Added: checkins.checkin_schemas, core, core.error_handling, core.logger, core.schedule_runtime
 - Removed: PySide6.QtCore, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7185,6 +7192,7 @@
 - **Dependencies**:
   - **Local**:
     - `checkins.checkin_dynamic_manager (dynamic_checkin_manager)`
+    - `checkins.checkin_schemas (DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (UserInterfaceError, handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
@@ -7202,7 +7210,7 @@
   - `ui/dialogs/checkin_management_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.ui_management, ui.period_row_management
+- Added: checkins.checkin_schemas, core, core.error_handling, core.logger, core.ui_management, ui.period_row_management
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/account_creator_dialog.py, ui/dialogs/checkin_management_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7307,9 +7315,9 @@
 - **Purpose**: UI widget component for tag widget
 - **Dependencies**:
   - **Local**:
-    - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
+    - `core.tags (get_default_tags, get_user_tags)` (NEW)
     - `tasks (add_user_task_tag, remove_user_task_tag)` (NEW)
     - `ui.generated.tag_widget_pyqt (Ui_Widget_tag)`
   - **Third-party**:
@@ -7320,7 +7328,7 @@
   - `ui/widgets/task_settings_widget.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, tasks
+- Added: core.error_handling, core.logger, core.tags, tasks
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/task_edit_dialog.py, ui/widgets/task_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

@@ -92,12 +92,19 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
     notebook = parse_page("notes.html")
 
     assert {"note", "journal_entry", "list"} <= notebook.option_values
-    assert {"entry-kind", "note-title", "note-description", "entry-list-field", "entry-add-item"} <= notebook.ids
+    assert {
+        "entry-kind",
+        "note-title",
+        "note-description",
+        "entry-list-field",
+        "entry-add-item",
+        "note-existing-tag",
+    } <= notebook.ids
     assert notebook.controls["note-title"]["maxlength"] == "200"
     assert notebook.controls["note-description"]["maxlength"] == "10000"
-    assert notebook.controls["note-group"]["maxlength"] == "50"
-    assert notebook.controls["note-tags"]["list"] == "note-tag-options"
-    assert notebook.controls["note-group"]["list"] == "note-group-options"
+    assert notebook.controls["note-tags"]["maxlength"] == "1000"
+    assert "list" not in notebook.controls["note-tags"]
+    assert "note-group" not in notebook.ids
 
 
 def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():

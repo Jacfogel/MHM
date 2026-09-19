@@ -284,7 +284,7 @@ Common commands:
 
   ```bash
   python run_tests.py --mode development_tools
-  python -m pytest -c development_tools/pytest.ini tests/development_tools/
+  python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/
   ```
 
 - Run only unit tests:

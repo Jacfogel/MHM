@@ -429,7 +429,9 @@ def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Entry | None:
         logger.error(f"Entry not found for ref '{ref}'")
         return None
 
-    entry.pinned = pinned
+    # Pinning is an active-entry quality. Archived entries stay unpinned even
+    # when reached through a non-website interface or older client.
+    entry.pinned = bool(pinned) if _is_entry_active(entry) else False
     return _save_updated_entry(user_id, entry, entries)
 
 
@@ -445,6 +447,8 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
 
     entry.status = "archived" if archived else "active"
     entry.archived_at = now_timestamp_full() if archived else None
+    if archived:
+        entry.pinned = False
     return _save_updated_entry(user_id, entry, entries)
 
 

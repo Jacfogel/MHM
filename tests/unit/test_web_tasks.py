@@ -185,6 +185,44 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     assert completed_view["tasks"][0]["completion"]["notes"] == "Finished gently"
     assert (await client.post(f"/api/tasks/{task['id']}/restore", json={}, headers={"Origin": ORIGIN})).status == 200
     assert (await client.delete(f"/api/tasks/{task['id']}", json={}, headers={"Origin": ORIGIN})).status == 200
+    point_reminder = await client.post(
+        "/api/tasks",
+        json={
+            "title": "Point reminder",
+            "reminder_periods": [{"date": "2026-09-22", "start_time": "09:15"}],
+        },
+        headers={"Origin": ORIGIN},
+    )
+    assert point_reminder.status == 201
+    assert (await point_reminder.json())["task"]["reminders"][0]["period"] == {
+        "date": "2026-09-22",
+        "start_time": "09:15",
+        "end_time": None,
+    }
+    assert (
+        await client.post(
+            "/api/tasks",
+            json={"title": "Missing due date", "quick_reminders": ["1-2hour"]},
+            headers={"Origin": ORIGIN},
+        )
+    ).status == 400
+    relative_task = await client.post(
+        "/api/tasks",
+        json={
+            "title": "Relative reminder",
+            "due_date": "2026-09-23",
+            "quick_reminders": ["1-2hour"],
+        },
+        headers={"Origin": ORIGIN},
+    )
+    relative_task_id = (await relative_task.json())["task"]["id"]
+    assert (
+        await client.patch(
+            f"/api/tasks/{relative_task_id}",
+            json={"due_date": None},
+            headers={"Origin": ORIGIN},
+        )
+    ).status == 400
     assert (await client.post("/api/tasks", json={"title": "", "due_date": "tomorrow"}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.post("/api/tasks", json={"title": "Bad reminder", "reminder_periods": [{"date": "2026-09-20", "start_time": "10:00", "end_time": "09:00"}]}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.post("/api/tasks", json={"title": "Old task shape", "links": []}, headers={"Origin": ORIGIN})).status == 400

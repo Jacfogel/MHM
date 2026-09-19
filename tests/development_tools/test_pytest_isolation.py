@@ -80,7 +80,9 @@ def test_tools_conftest_does_not_import_host_conftest():
     assert "initialize_loader_import_order" not in text
     assert "mock_config" not in text
     ini = _TOOLS_INI.read_text(encoding="utf-8")
-    assert "confcutdir = tests/development_tools" in ini
+    assignment_lines = [line.split("#", 1)[0].strip() for line in ini.splitlines()]
+    assert not any(line.lower().startswith("confcutdir") for line in assignment_lines)
+    assert "--confcutdir=tests/development_tools" in ini
 
 
 @pytest.mark.unit

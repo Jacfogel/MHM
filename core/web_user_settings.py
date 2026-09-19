@@ -8,6 +8,7 @@ from datetime import date
 
 import pytz
 
+from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 from core.error_handling import ValidationError, handle_errors
 from core.profile_v2_io import schedule_categories
 from core.schedule_period_normalize import create_default_schedule_periods
@@ -275,8 +276,8 @@ def settings_snapshot(documents, options):
             "periods": periods("checkin"),
             "questions": question_states,
             "custom_questions": custom_questions,
-            "min_questions": checkin.get("min_questions", 1),
-            "max_questions": checkin.get("max_questions", 1),
+            "min_questions": checkin.get("min_questions", DEFAULT_MIN_QUESTIONS),
+            "max_questions": checkin.get("max_questions", DEFAULT_MAX_QUESTIONS),
         },
         "phrases": phrase_defaults,
     }
@@ -639,13 +640,15 @@ def build_settings_updates(documents, options, section, values):
             )
         always = list(states.values()).count("always")
         sometimes = list(states.values()).count("sometimes")
+        total_enabled = always + sometimes
         if values["enabled"] and (
             minimum < max(always, 1)
+            or (sometimes and minimum > total_enabled - 1)
             or maximum < max(always + bool(sometimes), 1)
-            or maximum > always + sometimes - bool(sometimes)
+            or maximum > total_enabled
         ):
             raise ValidationError(
-                "Question counts must include all Always questions and leave room to vary Sometimes questions."
+                "Question counts must include all Always questions; when Sometimes questions are enabled, the minimum must leave at least one question out so check-ins can vary."
             )
         flag("checkins")
         save_periods("checkin", values["periods"])

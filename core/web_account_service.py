@@ -1552,7 +1552,9 @@ def create_web_app(
             if (
                 isinstance(period, dict)
                 and reminder.get("kind") == "scheduled"
-                and all(isinstance(period.get(key), str) for key in ("date", "start_time", "end_time"))
+                and isinstance(period.get("date"), str)
+                and isinstance(period.get("start_time"), str)
+                and (period.get("end_time") is None or isinstance(period.get("end_time"), str))
             ):
                 reminders.append({
                     "kind": "scheduled",
@@ -1633,18 +1635,21 @@ def create_web_app(
                 raise web.HTTPBadRequest(text="Add at most 20 scheduled reminders.")
             cleaned = []
             for period in value:
-                if not isinstance(period, dict) or set(period) != {"date", "start_time", "end_time"}:
-                    raise web.HTTPBadRequest(text="Each reminder needs a date, start time, and end time.")
+                if (
+                    not isinstance(period, dict)
+                    or set(period) - {"date", "start_time", "end_time"}
+                    or not {"date", "start_time"}.issubset(period)
+                ):
+                    raise web.HTTPBadRequest(text="Each reminder needs a date and time; end time is optional.")
                 date = period["date"]
                 start = period["start_time"]
-                end = period["end_time"]
+                end = period.get("end_time") or None
                 if (
                     not isinstance(date, str) or parse_date_only(date) is None
                     or not isinstance(start, str) or parse_time_only_minute(start) is None
-                    or not isinstance(end, str) or parse_time_only_minute(end) is None
-                    or start >= end
+                    or (end is not None and (not isinstance(end, str) or parse_time_only_minute(end) is None or start >= end))
                 ):
-                    raise web.HTTPBadRequest(text="Reminder dates and times must be valid, with the start before the end.")
+                    raise web.HTTPBadRequest(text="Reminder dates and times must be valid, and an optional end must be after the reminder time.")
                 cleaned.append({"date": date, "start_time": start, "end_time": end})
             return cleaned
 
@@ -1755,6 +1760,8 @@ def create_web_app(
                 due_time = None
             if due_time is not None and (not isinstance(due_time, str) or parse_time_only_minute(due_time) is None):
                 raise web.HTTPBadRequest(text="Due times must use HH:MM.")
+            if quick_reminders and not due_date:
+                raise web.HTTPBadRequest(text="Relative reminders need a due date.")
             priority = data.get("priority", "medium")
             from tasks.task_schemas import VALID_PRIORITIES
             if not isinstance(priority, str) or priority.lower() not in VALID_PRIORITIES:
@@ -1876,6 +1883,20 @@ def create_web_app(
             for key, parser, message in (("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."), ("due_time", parse_time_only_minute, "Due times must use HH:MM.")):
                 if key in data and data[key] not in (None, "") and (not isinstance(data[key], str) or parser(data[key]) is None):
                     raise web.HTTPBadRequest(text=message)
+                if key in data and data[key] == "":
+                    data[key] = None
+            current_task = find(task_id)
+            resulting_due_date = data.get("due_date", (current_task.get("due") or {}).get("date"))
+            if "quick_reminders" in data:
+                resulting_quick = data["quick_reminders"]
+            else:
+                resulting_quick = [
+                    reminder.get("value")
+                    for reminder in current_task.get("reminders", [])
+                    if isinstance(reminder, dict) and reminder.get("kind") == "quick"
+                ]
+            if resulting_quick and not resulting_due_date:
+                raise web.HTTPBadRequest(text="Relative reminders need a due date.")
             if "priority" in data:
                 from tasks.task_schemas import VALID_PRIORITIES
                 if not isinstance(data["priority"], str) or data["priority"].lower() not in VALID_PRIORITIES:
@@ -2180,8 +2201,7 @@ def create_web_app(
             "description": str(entry.description or ""),
             "items": items,
             "tags": [str(tag) for tag in (entry.tags or [])],
-            "group": str(entry.group or ""),
-            "pinned": bool(entry.pinned),
+            "pinned": bool(entry.pinned) if str(entry.status) == "active" else False,
             "status": str(entry.status),
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
@@ -2231,9 +2251,8 @@ def create_web_app(
             if status not in {"active", "pinned", "inbox", "archived", "all"}:
                 raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, or all notes.")
             query = request.query.get("q", "").strip()
-            group_filter = request.query.get("group", "").strip()
             tag_filter = request.query.get("tag", "").strip()
-            if len(query) > 500 or len(group_filter) > 50 or len(tag_filter) > 100:
+            if len(query) > 500 or len(tag_filter) > 100:
                 raise web.HTTPBadRequest(text="Keep notebook filters brief.")
             if query:
                 entries = notes.search_entries(uid, query, limit=100)
@@ -2245,12 +2264,6 @@ def create_web_app(
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
             if status not in {"all", "pinned", "inbox"}:
                 entries = [entry for entry in entries if entry.status == status]
-            if group_filter:
-                entries = [
-                    entry
-                    for entry in entries
-                    if str(entry.group or "").casefold() == group_filter.casefold()
-                ]
             if tag_filter:
                 entries = [
                     entry
@@ -2259,24 +2272,28 @@ def create_web_app(
                     in {str(tag).casefold() for tag in (entry.tags or [])}
                 ]
             all_entries = notes.list_recent(uid, n=1000, include_archived=True)
-            groups = sorted(
-                {str(entry.group).strip() for entry in all_entries if str(entry.group or "").strip()},
-                key=str.casefold,
-            )
+            from core.tags import get_user_tags
+            saved_tags = await asyncio.to_thread(get_user_tags, uid)
             tags = sorted(
-                {str(tag).strip() for entry in all_entries for tag in (entry.tags or []) if str(tag).strip()},
+                {
+                    str(tag).strip()
+                    for tag in [
+                        *saved_tags,
+                        *[tag for entry in all_entries for tag in (entry.tags or [])],
+                    ]
+                    if str(tag).strip()
+                },
                 key=str.casefold,
             )
             return web.json_response({
                 "notes": [note_view(entry) for entry in entries],
                 "count": len(entries),
-                "groups": groups,
                 "tags": tags,
             })
 
         if request.method == "POST" and not note_id:
             data = await body(request)
-            allowed = {"kind", "title", "description", "items", "tags", "group"}
+            allowed = {"kind", "title", "description", "items", "tags"}
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported note fields.")
             kind = data.get("kind", "note")
@@ -2294,18 +2311,15 @@ def create_web_app(
             if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             tags = normalize_tags(tags)
-            group = data.get("group")
-            if group is not None and (not isinstance(group, str) or len(group.strip()) > 50):
-                raise web.HTTPBadRequest(text="Note groups must be text.")
             if kind == "list":
                 items = clean_list_items(data.get("items"))
-                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags)
                 if entry and any(item["done"] for item in items):
                     entry = await asyncio.to_thread(notes.set_list_items, uid, str(entry.id), items)
             elif kind == "journal_entry":
-                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags)
             else:
-                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags)
             if not entry:
                 raise web.HTTPBadRequest(text="MHM could not create that entry.")
             return web.json_response({"note": note_view(entry)}, status=201)
@@ -2319,7 +2333,7 @@ def create_web_app(
             return web.json_response({"note": note_view(find(note_id, include_archived=True))})
         if action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "items", "tags", "group", "pinned"}
+            allowed = {"title", "description", "items", "tags", "pinned"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported note changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip() or len(data["title"].strip()) > 200):
@@ -2330,8 +2344,6 @@ def create_web_app(
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             if "tags" in data:
                 data["tags"] = normalize_tags(data["tags"])
-            if "group" in data and data["group"] is not None and (not isinstance(data["group"], str) or len(data["group"].strip()) > 50):
-                raise web.HTTPBadRequest(text="Note groups must be text.")
             current_entry = find(note_id, include_archived=False)
             if "items" in data:
                 data["items"] = clean_list_items(data["items"])
@@ -2350,8 +2362,6 @@ def create_web_app(
                 await asyncio.to_thread(notes.remove_tags, uid, note_id, list(current.tags))
                 if data["tags"] and not await asyncio.to_thread(notes.add_tags, uid, note_id, data["tags"]):
                     raise web.HTTPNotFound(text="That note could not be updated.")
-            if "group" in data and not await asyncio.to_thread(notes.set_group, uid, note_id, data["group"]):
-                raise web.HTTPNotFound(text="That note could not be updated.")
             if "pinned" in data and type(data["pinned"]) is not bool:
                 raise web.HTTPBadRequest(text="Choose whether the entry is pinned.")
             if "pinned" in data and not await asyncio.to_thread(notes.pin_entry, uid, note_id, data["pinned"]):

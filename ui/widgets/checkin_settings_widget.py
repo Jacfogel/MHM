@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
 
+from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 from core.ui_management import (
     find_lowest_available_period_number,
     _number_after_prefix,
@@ -46,25 +47,25 @@ logger = get_component_logger("ui")
 widget_logger = logger
 
 
-@handle_errors("computing question count bounds", default_return=(1, 1, 50))
+@handle_errors("computing question count bounds", default_return=(1, 50, 1, 50))
 def compute_question_count_bounds(
     always_count: int, sometimes_count: int, total_enabled: int
-) -> tuple[int, int, int]:
-    """Return (min_required, max_spinbox_floor, max_allowed) for question counts.
+) -> tuple[int, int, int, int]:
+    """Return the valid minimum and maximum ranges for question counts.
 
-    max_spinbox_floor is the lowest Maximum the user may choose. It depends only
-    on always/sometimes counts, not the current Minimum, so lowering Maximum can
-    pull Minimum down with it.
+    When Sometimes questions exist, Minimum must be below the total enabled
+    count so at least one question can be omitted. Maximum may include every
+    enabled question.
     """
     min_required = max(int(always_count), 1)
     if sometimes_count > 0 and total_enabled > 0:
-        max_allowed = total_enabled - 1
+        min_allowed = max(total_enabled - 1, min_required)
     else:
-        max_allowed = total_enabled if total_enabled > 0 else 50
+        min_allowed = total_enabled if total_enabled > 0 else 50
     max_spinbox_floor = always_count + 1 if sometimes_count > 0 else always_count
     max_spinbox_floor = max(max_spinbox_floor, min_required)
-    max_allowed = max(max_allowed, max_spinbox_floor)
-    return min_required, max_spinbox_floor, max_allowed
+    max_allowed = max(total_enabled if total_enabled > 0 else 50, max_spinbox_floor)
+    return min_required, min_allowed, max_spinbox_floor, max_allowed
 
 
 @handle_errors(
@@ -252,9 +253,9 @@ class CheckinSettingsWidget(QWidget):
         self.min_questions_spinbox = QSpinBox(self.count_group)
         self.min_questions_spinbox.setMinimum(1)
         self.min_questions_spinbox.setMaximum(50)
-        self.min_questions_spinbox.setValue(1)
+        self.min_questions_spinbox.setValue(DEFAULT_MIN_QUESTIONS)
         self.min_questions_spinbox.setToolTip(
-            "Minimum number of questions to ask per check-in. Must be at least the number of 'always include' questions (+1 if any 'sometimes' questions are enabled)."
+            "Minimum number of questions to ask per check-in. It must include all Always questions and, when Sometimes questions are enabled, leave at least one question out."
         )
         count_layout.addRow("Minimum Questions:", self.min_questions_spinbox)
         # Process events so offscreen/Windows platform can finish first control (avoids access violation on some setups).
@@ -266,7 +267,7 @@ class CheckinSettingsWidget(QWidget):
         self.max_questions_spinbox = QSpinBox(self.count_group)
         self.max_questions_spinbox.setMinimum(1)
         self.max_questions_spinbox.setMaximum(50)
-        self.max_questions_spinbox.setValue(8)
+        self.max_questions_spinbox.setValue(DEFAULT_MAX_QUESTIONS)
         self.max_questions_spinbox.setToolTip(
             "Maximum number of questions to ask per check-in. Lowering this also lowers Minimum when needed. Limited by how many questions are enabled."
         )
@@ -299,7 +300,7 @@ class CheckinSettingsWidget(QWidget):
                 sometimes_count += 1
                 total_enabled += 1
 
-        min_required, max_floor, max_allowed = compute_question_count_bounds(
+        min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(
             always_count, sometimes_count, total_enabled
         )
 
@@ -311,11 +312,11 @@ class CheckinSettingsWidget(QWidget):
             # Max floor is independent of current min so the user can lower Maximum
             # and have Minimum follow.
             min_box.setMinimum(min_required)
-            min_box.setMaximum(max_allowed)
+            min_box.setMaximum(min_allowed)
             max_box.setMinimum(max_floor)
             max_box.setMaximum(max_allowed)
 
-            current_min = min(max(min_box.value(), min_required), max_allowed)
+            current_min = min(max(min_box.value(), min_required), min_allowed)
             current_max = min(max(max_box.value(), max_floor), max_allowed)
             if current_min > current_max:
                 current_max = current_min
@@ -412,11 +413,11 @@ class CheckinSettingsWidget(QWidget):
         # Load min/max question counts AFTER questions are loaded
         if self.min_questions_spinbox:
             self.min_questions_spinbox.setValue(
-                checkin_settings.get("min_questions", 1)
+                checkin_settings.get("min_questions", DEFAULT_MIN_QUESTIONS)
             )
         if self.max_questions_spinbox:
             self.max_questions_spinbox.setValue(
-                checkin_settings.get("max_questions", 8)
+                checkin_settings.get("max_questions", DEFAULT_MAX_QUESTIONS)
             )
 
         # Validate to set proper ranges based on loaded questions
@@ -1181,8 +1182,8 @@ class CheckinSettingsWidget(QWidget):
             "You can enable/disable it in the check-in questions list.",
         )
 
-        current_min = self.min_questions_spinbox.value() if self.min_questions_spinbox else 1
-        current_max = self.max_questions_spinbox.value() if self.max_questions_spinbox else 8
+        current_min = self.min_questions_spinbox.value() if self.min_questions_spinbox else DEFAULT_MIN_QUESTIONS
+        current_max = self.max_questions_spinbox.value() if self.max_questions_spinbox else DEFAULT_MAX_QUESTIONS
 
         current_questions = self._collect_current_question_states()
         current_questions[final_key] = {
@@ -1269,12 +1270,12 @@ class CheckinSettingsWidget(QWidget):
                 current_min = (
                     self.min_questions_spinbox.value()
                     if self.min_questions_spinbox
-                    else 1
+                    else DEFAULT_MIN_QUESTIONS
                 )
                 current_max = (
                     self.max_questions_spinbox.value()
                     if self.max_questions_spinbox
-                    else 8
+                    else DEFAULT_MAX_QUESTIONS
                 )
 
                 # Get current state from UI and remove the deleted question
@@ -1354,10 +1355,10 @@ class CheckinSettingsWidget(QWidget):
             )
             # Preserve current min/max values
             current_min = (
-                self.min_questions_spinbox.value() if self.min_questions_spinbox else 1
+                self.min_questions_spinbox.value() if self.min_questions_spinbox else DEFAULT_MIN_QUESTIONS
             )
             current_max = (
-                self.max_questions_spinbox.value() if self.max_questions_spinbox else 8
+                self.max_questions_spinbox.value() if self.max_questions_spinbox else DEFAULT_MAX_QUESTIONS
             )
 
             # Get current state from UI and add the restored question
@@ -1447,10 +1448,10 @@ class CheckinSettingsWidget(QWidget):
 
         # Get min/max question counts
         min_questions = (
-            self.min_questions_spinbox.value() if self.min_questions_spinbox else 1
+            self.min_questions_spinbox.value() if self.min_questions_spinbox else DEFAULT_MIN_QUESTIONS
         )
         max_questions = (
-            self.max_questions_spinbox.value() if self.max_questions_spinbox else 8
+            self.max_questions_spinbox.value() if self.max_questions_spinbox else DEFAULT_MAX_QUESTIONS
         )
 
         return {
@@ -1487,10 +1488,10 @@ class CheckinSettingsWidget(QWidget):
 
         # Set min/max question counts
         if self.min_questions_spinbox:
-            min_questions = settings.get("min_questions", 1)
+            min_questions = settings.get("min_questions", DEFAULT_MIN_QUESTIONS)
             self.min_questions_spinbox.setValue(min_questions)
         if self.max_questions_spinbox:
-            max_questions = settings.get("max_questions", 8)
+            max_questions = settings.get("max_questions", DEFAULT_MAX_QUESTIONS)
             self.max_questions_spinbox.setValue(max_questions)
 
         # Validate after setting values

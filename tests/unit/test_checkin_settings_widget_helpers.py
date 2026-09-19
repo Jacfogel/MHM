@@ -56,23 +56,26 @@ class TestCheckinSettingsWidgetHelpers:
         assert combo.currentData() == "number"
 
     def test_question_count_bounds_keep_max_floor_independent_of_current_min(self):
-        min_required, max_floor, max_allowed = compute_question_count_bounds(0, 0, 0)
+        min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(0, 0, 0)
         assert min_required == 1
+        assert min_allowed == 50
         assert max_floor == 1
         assert max_allowed == 50
 
-        min_required, max_floor, max_allowed = compute_question_count_bounds(1, 2, 3)
+        min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(1, 2, 3)
         assert min_required == 1
+        assert min_allowed == 2
         assert max_floor == 2
-        assert max_allowed == 2
+        assert max_allowed == 3
 
-        min_required, max_floor, max_allowed = compute_question_count_bounds(2, 0, 2)
+        min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(2, 0, 2)
         assert min_required == 2
+        assert min_allowed == 2
         assert max_floor == 2
         assert max_allowed == 2
 
     def test_max_spinbox_accepts_value_below_current_min(self, qapp):
-        min_required, max_floor, max_allowed = compute_question_count_bounds(0, 0, 0)
+        min_required, _min_allowed, max_floor, max_allowed = compute_question_count_bounds(0, 0, 0)
         max_box = QSpinBox()
         max_box.setRange(max_floor, max_allowed)
         max_box.setValue(8)

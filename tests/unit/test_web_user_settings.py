@@ -97,6 +97,14 @@ def test_settings_helpers_reject_invalid_current_schema_inputs():
         _editable_custom_questions(None)
 
 
+def test_checkin_defaults_are_two_and_three(documents):
+    documents["preferences"]["checkin_settings"].pop("min_questions")
+    documents["preferences"]["checkin_settings"].pop("max_questions")
+    checkins = values(documents, "checkins")
+    assert checkins["min_questions"] == 2
+    assert checkins["max_questions"] == 3
+
+
 def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
     original = deepcopy(documents)
     profile = values(documents, "profile")
@@ -252,6 +260,9 @@ def test_checkin_rules_and_question_metadata_are_preserved(documents):
     assert checkin["questions"]["energy"]["sometimes_include"] is True
     assert "archived" in checkin["questions"]
     draft["max_questions"] = 3
+    updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
+    assert updates["preferences"]["checkin_settings"]["max_questions"] == 3
+    draft["min_questions"] = 3
     with pytest.raises(ValidationError):
         build_settings_updates(documents, OPTIONS, "checkins", draft)
 

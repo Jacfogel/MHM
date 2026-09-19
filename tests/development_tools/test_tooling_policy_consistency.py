@@ -192,6 +192,18 @@ def test_github_tooling_policy_job_uses_tools_pytest_ini():
 
 
 @pytest.mark.unit
+def test_tools_pytest_ini_does_not_set_cli_only_confcutdir():
+    project_root = Path(__file__).resolve().parents[2]
+    ini_path = project_root / "development_tools" / "pytest.ini"
+    for raw in ini_path.read_text(encoding="utf-8").splitlines():
+        stripped = raw.split("#", 1)[0].strip()
+        assert not stripped.lower().startswith("confcutdir"), (
+            "confcutdir is a pytest CLI option only; an INI assignment fails "
+            "under --strict-config: " + raw
+        )
+
+
+@pytest.mark.unit
 def test_cli_alias_policy_rules():
     cli_module = load_development_tools_module("shared.cli_interface")
     command_flags = _build_command_flag_inventory(cli_module)

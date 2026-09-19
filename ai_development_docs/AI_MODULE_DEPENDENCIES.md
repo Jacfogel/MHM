@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-18 13:47:19
+> **Last Generated**: 2026-09-19 00:40:36
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 278
-- **Total Imports**: 2464
-- **Standard Library**: 720 (29.2%)
-- **Third-Party**: 223 (9.1%)
-- **Local Imports**: 1521 (61.7%)
+- **Total Imports**: 2467
+- **Standard Library**: 718 (29.1%)
+- **Third-Party**: 223 (9.0%)
+- **Local Imports**: 1526 (61.9%)
 
 ## Dependency Decision Trees
 
@@ -67,7 +67,7 @@ UI Dependencies:
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, message_data_manager, logger
   - ui/widgets/channel_selection_widget.py <- third-party (PySide6.QtWidgets), channel_selection_widget_pyqt, core, logger, error_handling
-  - ui/widgets/checkin_settings_widget.py <- standard library (re, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, period_row_management, core, error_handling (+2 more)
+  - ui/widgets/checkin_settings_widget.py <- standard library (re, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, checkin_schemas, ui_management, period_row_management, core (+3 more)
 
 
 ## Key Dependency Patterns
@@ -114,7 +114,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (40 import statements; 18 duplicate)
+- `core/web_account_service.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (41 import statements; 19 duplicate)
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)

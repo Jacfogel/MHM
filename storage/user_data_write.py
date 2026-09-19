@@ -5,7 +5,6 @@ save_user_data_transaction, and high-level section updates (formerly ``user_data
 
 import os
 import contextlib
-import copy
 from typing import Any
 
 from core.logger import get_component_logger
@@ -331,44 +330,16 @@ def _save_user_data__check_cross_file_invariants(
     user_id: str, merged_data: dict[str, dict[str, Any]], valid_types: list[str]
 ) -> dict[str, dict[str, Any]] | None:
     try:
-        account_data = merged_data.get("account")
         preferences_data = merged_data.get("preferences")
-        if "account" not in valid_types:
-            account_result = get_user_data(user_id, "account", auto_create=False)
-            account_data = account_result.get("account", {})
         if "preferences" not in valid_types:
             prefs_result = get_user_data(user_id, "preferences", auto_create=False)
             preferences_data = prefs_result.get("preferences", {})
         if preferences_data:
             categories_list = preferences_data.get("categories", [])
             if isinstance(categories_list, list) and len(categories_list) > 0:
-                if not account_data:
-                    account_result = get_user_data(
-                        user_id, "account", auto_create=False
-                    )
-                    account_data = account_result.get("account", {})
-                if account_data:
-                    feats = (
-                        dict(account_data.get("features", {}))
-                        if isinstance(account_data.get("features"), dict)
-                        else {}
-                    )
-                    if feats.get("automated_messages") != "enabled":
-                        feats["automated_messages"] = "enabled"
-                        if "account" in valid_types:
-                            merged_data["account"]["features"] = feats
-                        else:
-                            if "account" not in merged_data:
-                                merged_account = (
-                                    copy.deepcopy(account_data) if account_data else {}
-                                )
-                                _save_user_data__normalize_data(
-                                    "account", merged_account
-                                )
-                                merged_data["account"] = merged_account
-                            if "features" not in merged_data["account"]:
-                                merged_data["account"]["features"] = {}
-                            merged_data["account"]["features"].update(feats)
+                # Saved category choices are configuration, not an implicit request
+                # to enable delivery. Keeping them while messages are disabled lets
+                # users turn the feature back on without rebuilding their setup.
                 with contextlib.suppress(Exception):
                     ensure_all_categories_have_schedules(user_id, suppress_logging=True)
         return merged_data

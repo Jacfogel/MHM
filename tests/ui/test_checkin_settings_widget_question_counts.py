@@ -144,7 +144,7 @@ class TestCheckinSettingsWidgetQuestionCounts:
         assert widget.min_questions_spinbox.minimum() == 1
         assert widget.min_questions_spinbox.maximum() == 2
         assert widget.max_questions_spinbox.minimum() == 2
-        assert widget.max_questions_spinbox.maximum() == 2
+        assert widget.max_questions_spinbox.maximum() == 3
 
     def test_on_max_changed_reduces_min_when_max_drops_below_min(self, widget):
         widget.min_questions_spinbox.setValue(5)

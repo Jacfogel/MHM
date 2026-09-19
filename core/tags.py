@@ -165,6 +165,12 @@ def _load_default_tags_from_resources() -> list[str]:
         return []
 
 
+@handle_errors("getting default tags", default_return=[])
+def get_default_tags() -> list[str]:
+    """Return the normalized default tags used for new accounts."""
+    return _load_default_tags_from_resources()
+
+
 @handle_errors("loading user tags", default_return={})
 def load_user_tags(user_id: str) -> dict[str, Any]:
     """

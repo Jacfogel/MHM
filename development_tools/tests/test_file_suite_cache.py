@@ -44,9 +44,18 @@ class TestFileSuiteCache:
         }
     )
 
-    def __init__(self, project_root: Path, cache_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        project_root: Path,
+        cache_dir: Path | None = None,
+        mapper_config: dict[str, Any] | None = None,
+    ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.coverage_cache = TestFileCoverageCache(self.project_root, cache_dir)
+        self.coverage_cache = TestFileCoverageCache(
+            self.project_root,
+            cache_dir,
+            mapper_config=mapper_config,
+        )
         self.cache_dir = self.coverage_cache.cache_dir
         self.cache_file = self.cache_dir / "test_file_suite_cache.json"
         self.tool_paths = self._get_default_tool_paths()
@@ -197,10 +206,13 @@ class TestFileSuiteCache:
             self.cache_data.pop(self.FULL_SUITE_KEY, None)
 
     def _domains_for_runner_helper_change(self) -> set[str]:
-        """Re-run tools tests plus any domains the coverage cache already flagged."""
+        """Re-run tools tests plus any domains the coverage cache already flagged.
+
+        Always include ``development_tools``. Helper edits belong to that suite even
+        when a polluted or empty domain map omits the key (xdist config reloads).
+        """
         domains = set(self.coverage_cache.get_changed_domains())
-        if "development_tools" in self._all_domains():
-            domains.add("development_tools")
+        domains.add("development_tools")
         self.last_invalidation_reason = getattr(
             self.coverage_cache, "last_invalidation_reason", None
         )

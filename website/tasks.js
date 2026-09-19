@@ -124,7 +124,7 @@ const MHMTaskInput = Object.freeze({
     const reminders = Array.isArray(task.reminders) ? task.reminders : [];
     const periods = reminders.filter(item => item && item.kind === 'scheduled' && item.period).map(item => item.period);
     const quick = reminders.filter(item => item && item.kind === 'quick').map(item => new Map(quickReminderOptions).get(item.value) || item.value);
-    const shown = periods.slice(0, 2).map(period => `${period.date} ${period.start_time}–${period.end_time}`);
+    const shown = periods.slice(0, 2).map(period => `${period.date} ${period.start_time}${period.end_time ? `–${period.end_time}` : ''}`);
     const details = [];
     if (shown.length) details.push(`${shown.join(', ')}${periods.length > 2 ? ` (+${periods.length - 2} more)` : ''}`);
     if (quick.length) details.push(`relative: ${quick.join(', ')}`);
@@ -133,8 +133,8 @@ const MHMTaskInput = Object.freeze({
   function addReminderRow(parent, period = {}) {
     const row = document.createElement('div'); row.className = 'task-reminder-row';
     const date = input(row, 'Date', 'date', period.date, `reminder-date-${Math.random().toString(36).slice(2)}`);
-    const start = input(row, 'From', 'time', period.start_time, `reminder-start-${Math.random().toString(36).slice(2)}`);
-    const end = input(row, 'To', 'time', period.end_time, `reminder-end-${Math.random().toString(36).slice(2)}`);
+    const start = input(row, 'Time', 'time', period.start_time, `reminder-start-${Math.random().toString(36).slice(2)}`);
+    const end = input(row, 'End (optional)', 'time', period.end_time, `reminder-end-${Math.random().toString(36).slice(2)}`);
     const remove = button('Remove', 'plain-button task-reminder-remove', () => row.remove());
     row.append(remove); parent.append(row);
     return { date, start, end };
@@ -344,7 +344,7 @@ const MHMTaskInput = Object.freeze({
   function reminderEditor(parent, reminders = []) {
     const fieldset = document.createElement('fieldset'); fieldset.className = 'task-reminders';
     const legend = document.createElement('legend'); legend.textContent = 'Task reminders'; fieldset.append(legend);
-    const help = document.createElement('p'); help.className = 'field-help'; help.textContent = 'Choose a suggested reminder or add a specific date and time window.'; fieldset.append(help);
+    const help = document.createElement('p'); help.className = 'field-help'; help.textContent = 'Choose a relative reminder or add a specific date and time. End time is optional.'; fieldset.append(help);
     const choices = document.createElement('div'); choices.className = 'task-quick-reminders';
     const selectedValues = reminders.filter(item => item && item.kind === 'quick').map(item => item.value);
     const inputs = quickReminderOptions.map(([value, labelText]) => {

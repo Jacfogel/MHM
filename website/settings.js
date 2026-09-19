@@ -469,7 +469,7 @@ const MHMSettingsInput = Object.freeze({
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
           const maximum = field(counts, 'Maximum questions', 'max-questions', 'number', values.max_questions, { min: '1', max: '100', required: '' });
-          details.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the maximum must leave at least one out so check-ins can vary.', { className: 'field-hint' }));
+          details.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the minimum must leave at least one out so check-ins can vary.', { className: 'field-hint' }));
           read = () => {
             const customValues = custom.read();
             return { enabled: enabled.checked, periods: periods.read(), questions: { ...Object.fromEntries(Object.entries(questions).map(([key, input]) => [key, input.value])), ...customValues.states }, custom_questions: customValues.customQuestions, min_questions: Number(minimum.value), max_questions: Number(maximum.value) };

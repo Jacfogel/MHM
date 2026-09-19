@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-19 - Website, task, check-in, and notebook consistency fixes **COMPLETED**
+- Automated messages now stay disabled when category preferences are saved. Check-ins default to 2-3 questions, apply the variability constraint to Minimum instead of Maximum, and select a count within that range at runtime across the website and desktop app.
+- Default task tags now populate creation/editing, notebook forms have working existing-tag selectors, notebook groups are retired from the website/API, and archived notebook entries cannot retain or display a pinned state.
+- Custom task reminders accept a single date/time with an optional window end; relative reminders require a due date during creation and editing.
+- Added the missing `get_default_tags` error boundary and registry entry. Focused Python/Node tests, Ruff, compilation, docs regeneration, and the error-handling analyzer pass; two stale Tier 3 expectations were corrected and their parallel/no-parallel suites pass.
+- Removed `confcutdir` from `development_tools/pytest.ini`; pytest only accepts `--confcutdir` and `--strict-config` treated the INI key as unknown, so CI Tooling Policy Consistency ran zero tests.
+- Isolation tests now require the CLI flag and forbid the INI assignment.
+- Suite-cache helper edits always rerun the `development_tools` domain, even when a worker's domain map omitted that key.
+
 ### 2026-09-17 - Website account and settings corrections **COMPLETED**
 - Account navigation no longer signs users out; profile lists accept lines, commas, or semicolons; clicking anywhere in date/time inputs opens the native picker; and disabled feature details are visibly unavailable.
 - Personalized messages are split into check-in, Google Health, and profile sources, with source-dependent availability. Check-ins support custom questions, group standard questions by category with compact inline frequency controls, and default new check-in/task windows to 9:30-11:30 AM and 3:00-5:00 PM.
@@ -109,16 +118,6 @@ Guidelines:
 - Linux `file_lock` now flocks a sidecar `.lock` file and opens the JSON after that, so a locked data fd cannot look empty.
 - `safe_json_read` rereads the path when the locked handle is empty but the file still has bytes.
 - Existing-file read tests use pytest `tmp_path`; added a stale-handle fallback case.
-
-### 2026-09-01 - Completing a task no longer leaves a duplicate active copy **COMPLETED**
-- `complete_task` and `restore_task` now write active and completed lists in one save, so a leftover task cannot reappear as still active after a successful complete.
-- "That" after completing a different recent task still resolves to no task, instead of the leftover.
-
-### 2026-08-31 - Google Health coverage for connect, auth, and notices **COMPLETED**
-- Unit tests now cover OAuth connect/refresh, user settings, health JSON recovery, reconnect notices, and the Google Health HTTP client (pagination, rollup fallback, parsers, sleep/steps/active-minute merges).
-- Google Health tests: 156 passed; `integrations` measured at 95% on that set. `client.py` is 99%; remaining gap is mostly `signal_builder.py` / `sync_manager.py` edge cases.
-- Coverage cache no longer treats a selective product-domain run as a full snapshot: missing cache does not imply a full run, tool/config invalidation keeps the merge base, and 0% `development_tools` from unrun tests is merged back from the prior JSON.
-- Coverage pytest waits ignore spurious Windows SIGINT/control events (same multi-tap stop as audit: 5 Ctrl+C within 2s). A stray console event no longer aborts `--dev-tools-only` at 0%. Dev-tools coverage tests now stub `_run_pytest_wait`; changelog ASCII quotes restored.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

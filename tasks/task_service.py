@@ -682,6 +682,8 @@ def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = N
             end = period.get("end_time", "")
             if start and end:
                 reminder_bits.append(f"{date_part} {start}-{end}")
+            elif start:
+                reminder_bits.append(f"{date_part} {start}".strip())
             elif date_part:
                 reminder_bits.append(str(date_part))
         extra = len(periods) - 3

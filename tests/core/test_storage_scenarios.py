@@ -110,7 +110,7 @@ class TestUserDataWriteScenarios:
         assert feats.get("checkins") == "enabled"
 
     @pytest.mark.no_parallel  # shared session tests/data dir races under xdist
-    def test_save_user_data_cross_file_invariant_enables_messages(
+    def test_save_user_data_cross_file_invariant_preserves_disabled_messages(
         self, test_data_dir, mock_config
     ):
         user_id = f"cross-file-{uuid.uuid4().hex}"
@@ -133,7 +133,7 @@ class TestUserDataWriteScenarios:
         assert result.get("preferences") is True
         clear_user_caches(user_id)
         account = get_user_data(user_id, "account").get("account", {})
-        assert account.get("features", {}).get("automated_messages") == "enabled"
+        assert account.get("features", {}).get("automated_messages") == "disabled"
 
     @pytest.mark.no_parallel  # shared session tests/data dir races under xdist
     def test_save_and_read_schedules_with_normalize_on_read(

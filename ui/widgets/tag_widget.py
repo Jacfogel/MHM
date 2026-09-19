@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QWidget, QListWidgetItem, QInputDialog, QMessageBo
 from PySide6.QtCore import Qt, Signal
 from ui.generated.tag_widget_pyqt import Ui_Widget_tag
 from tasks import add_user_task_tag, remove_user_task_tag
-from core import get_user_data
+from core.tags import get_default_tags, get_user_tags
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 
@@ -105,15 +105,14 @@ class TagWidget(QWidget):
     def load_tags(self):
         """Load the user's tags."""
         if not self.user_id:
+            self.available_tags = get_default_tags()
+            self.refresh_tag_list()
+            if self.mode == "management":
+                self.update_button_states()
             return
 
         try:
-            prefs_result = get_user_data(self.user_id, "preferences")
-            preferences_data = (
-                prefs_result.get("preferences", {}) if prefs_result else {}
-            )
-            task_settings = preferences_data.get("task_settings", {})
-            self.available_tags = task_settings.get("tags", [])
+            self.available_tags = get_user_tags(self.user_id)
             self.refresh_tag_list()
             if self.mode == "management":
                 self.update_button_states()

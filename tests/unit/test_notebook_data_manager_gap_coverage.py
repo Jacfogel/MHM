@@ -407,6 +407,11 @@ class TestNotebookDataManagerGapCoverage:
         archived = ndm.archive_entry("user-1", str(first.id), archived=True)
         assert archived is not None
         assert archived.status == "archived"
+        assert archived.pinned is False
+
+        repinned = ndm.pin_entry("user-1", str(first.id), pinned=True)
+        assert repinned is not None
+        assert repinned.pinned is False
 
         grouped = ndm.set_group("user-1", str(first.id), "  work  ")
         assert grouped is not None

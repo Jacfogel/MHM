@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-18 13:46:21
+> **Last Generated**: 2026-09-19 00:39:30
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2755
+- **Functions Found**: 2756
 - **Methods Found**: 1419
 - **Classes Found**: 264
-- **Total Items**: 4174
-- **Functions Documented**: 2453
+- **Total Items**: 4175
+- **Functions Documented**: 2454
 - **Methods Documented**: 1274
 - **Classes Documented**: 198
-- **Total Documented**: 3727
+- **Total Documented**: 3728
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-18
+- **Last Updated**: 2026-09-19
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (533)
+### **Core System Functions** (534)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (707)
@@ -4916,6 +4916,7 @@ Args:
 
 Returns:
     Path to user directory, or None if failed
+- [OK] `get_default_tags()` - Return the normalized default tags used for new accounts.
 - [OK] `get_user_tags(user_id)` - Get list of user's tags (lazy initialization).
 
 Args:
@@ -7561,11 +7562,11 @@ Args:
 - [OK] `build_custom_question_payload(question_type, question_text, display_name_with_hint, category, validation)` - Build the saved custom-question definition for create or edit.
 - [OK] `category_combo_label(cat_key, cat_info)` - Return the category name shown in the custom-question combo.
 - [OK] `clear_layout_widgets(layout)` - Remove and schedule deletion of all widgets in a layout.
-- [OK] `compute_question_count_bounds(always_count, sometimes_count, total_enabled)` - Return (min_required, max_spinbox_floor, max_allowed) for question counts.
+- [OK] `compute_question_count_bounds(always_count, sometimes_count, total_enabled)` - Return the valid minimum and maximum ranges for question counts.
 
-max_spinbox_floor is the lowest Maximum the user may choose. It depends only
-on always/sometimes counts, not the current Minimum, so lowering Maximum can
-pull Minimum down with it.
+When Sometimes questions exist, Minimum must be below the total enabled
+count so at least one question can be omitted. Maximum may include every
+enabled question.
 - [OK] `connect_question_checkboxes(self)` - Connect all question checkboxes to track changes.
 - [OK] `ensure_vbox_layout(widget, spacing, margins)` - Return widget's QVBoxLayout, creating it only when the widget has none.
 

@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-6" defer></script>
+  <script src="notes.js?v=notes-7" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -34,14 +34,11 @@
             </div>
             <div id="entry-description-field" class="settings-field"><label id="entry-description-label" for="note-description">Note</label><textarea id="note-description" name="description" rows="5" maxlength="10000" placeholder="Start wherever you are…"></textarea></div>
             <fieldset id="entry-list-field" class="notebook-item-editor" hidden><legend>List items</legend><div id="entry-create-items" class="notebook-item-edit-list"></div><button id="entry-add-item" class="plain-button notebook-add-item" type="button">+ Add item</button></fieldset>
-            <div class="task-form-row">
-              <div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional — select existing or add new, comma separated</span></label><input id="note-tags" name="tags" list="note-tag-options" maxlength="1000" placeholder="health, ideas, home" /><datalist id="note-tag-options"></datalist></div>
-              <div class="settings-field"><label for="note-group">Group <span class="optional-label">Optional — select existing or add new</span></label><input id="note-group" name="group" list="note-group-options" maxlength="50" placeholder="Personal" /><datalist id="note-group-options"></datalist></div>
-            </div>
+            <div class="task-tag-fields"><div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional — type new tags, comma separated</span></label><input id="note-tags" name="tags" maxlength="1000" placeholder="health, ideas, home" /></div><div class="settings-field"><label for="note-existing-tag">Add an existing tag</label><select id="note-existing-tag"><option value="">Choose a tag…</option></select></div></div>
           </div>
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
-        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by group</span><select id="note-group-filter"><option value="">All groups</option></select></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
+        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
         <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong><span>Capture a note, journal entry, or list you want MHM to remember.</span></div>
       </div>
     </section>

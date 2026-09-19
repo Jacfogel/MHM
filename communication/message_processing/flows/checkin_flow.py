@@ -3,10 +3,12 @@
 """Check-in conversation flow mixin."""
 
 import importlib
+import random
 from contextlib import suppress
 from datetime import timedelta
 
 from checkins.checkin_data_manager import get_recent_checkins
+from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -600,15 +602,13 @@ class CheckinFlowMixin(FlowStateMixin):
             List of question keys in selected order
         """
         try:
-            import random
-
             # Get user's check-in preferences for min/max settings
             prefs_result = get_user_data(user_id, "preferences")
             checkin_prefs = prefs_result.get("preferences", {}).get(
                 "checkin_settings", {}
             )
-            min_questions = checkin_prefs.get("min_questions", 1)
-            max_questions = checkin_prefs.get("max_questions", 8)
+            min_questions = checkin_prefs.get("min_questions", DEFAULT_MIN_QUESTIONS)
+            max_questions = checkin_prefs.get("max_questions", DEFAULT_MAX_QUESTIONS)
 
             # Separate questions into always, sometimes, and disabled
             always_questions = []
@@ -631,28 +631,34 @@ class CheckinFlowMixin(FlowStateMixin):
             if total_enabled == 0:
                 return []
 
-            # Ensure min is at least number of always questions (+1 if any sometimes)
-            min_required = len(always_questions)
-            if sometimes_questions and min_required == len(always_questions):
-                min_required = max(min_required, len(always_questions) + 1)
-            min_questions = max(min_questions, min_required, 1)  # Absolute minimum is 1
+            # Always questions set the floor. With Sometimes questions, Minimum
+            # must leave at least one enabled question out so the set can vary.
+            min_required = max(len(always_questions), 1)
+            min_questions = max(min_questions, min_required)
+            if sometimes_questions and total_enabled > min_required:
+                min_questions = min(min_questions, total_enabled - 1)
 
-            # Ensure max is valid
+            # Maximum may include every enabled question, but must leave room for
+            # at least one Sometimes question to appear when those are enabled.
+            max_floor = len(always_questions) + (1 if sometimes_questions else 0)
+            max_questions = max(max_questions, max_floor, min_questions)
             max_questions = min(max_questions, total_enabled)
             max_questions = max(max_questions, min_questions)
+
+            target_count = random.randint(min_questions, max_questions)
 
             # Start with always questions
             selected_questions = always_questions.copy()
 
             # If we already have enough, return early
-            if len(selected_questions) >= max_questions:
+            if len(selected_questions) >= target_count:
                 random.shuffle(selected_questions)
-                return selected_questions[:max_questions]
+                return selected_questions[:target_count]
 
             # If we need more questions, select from sometimes questions
             if sometimes_questions:
                 # Calculate how many more we need
-                remaining_slots = max_questions - len(selected_questions)
+                remaining_slots = target_count - len(selected_questions)
                 needed = max(min_questions - len(selected_questions), 0)
 
                 # Get recent check-in history to avoid repetition
@@ -739,7 +745,7 @@ class CheckinFlowMixin(FlowStateMixin):
             random.shuffle(selected_questions)
 
             # Ensure we don't exceed max
-            selected_questions = selected_questions[:max_questions]
+            selected_questions = selected_questions[:target_count]
 
             logger.debug(
                 f"Selected {len(selected_questions)} check-in questions for user {user_id} (always: {len(always_questions)}, sometimes: {len(sometimes_questions)}): {selected_questions}"
@@ -757,6 +763,4 @@ class CheckinFlowMixin(FlowStateMixin):
             ]
             if not enabled_keys:
                 return []
-            import random
-
             return random.sample(enabled_keys, min(len(enabled_keys), 6))

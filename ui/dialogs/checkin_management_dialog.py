@@ -20,9 +20,10 @@ from core import update_user_preferences, update_user_account
 from core import get_user_data
 from core.error_handling import handle_errors
 from storage.user_data_validation import validate_schedule_periods
+from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 
 # Import widget
-from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
+from ui.widgets.checkin_settings_widget import CheckinSettingsWidget, compute_question_count_bounds
 from ui.generated.checkin_management_dialog_pyqt import Ui_Dialog_checkin_management
 
 
@@ -149,8 +150,8 @@ class CheckinManagementDialog(QDialog):
                     return
 
                 # Validate min/max question counts
-                min_questions = checkin_settings.get("min_questions", 1)
-                max_questions = checkin_settings.get("max_questions", 8)
+                min_questions = checkin_settings.get("min_questions", DEFAULT_MIN_QUESTIONS)
+                max_questions = checkin_settings.get("max_questions", DEFAULT_MAX_QUESTIONS)
 
                 # Count always and sometimes questions
                 questions = checkin_settings.get("questions", {})
@@ -171,26 +172,9 @@ class CheckinManagementDialog(QDialog):
                     )
                     return
 
-                # Calculate minimum required
-                # Minimum must be at least always_count (doesn't depend on sometimes questions)
-                min_required = max(always_count, 1)
-
-                # Calculate maximum allowed: if sometimes questions > 0, max is total_enabled - 1
-                # Otherwise, max is total_enabled
-                if sometimes_count > 0:
-                    max_allowed = total_enabled - 1
-                else:
-                    max_allowed = total_enabled
-
-                # Minimum maximum: if sometimes questions > 0, minimum max is always_count + 1
-                # Otherwise, minimum max is just always_count
-                min_maximum = always_count + 1 if sometimes_count > 0 else always_count
-                min_maximum = max(
-                    min_maximum, min_required
-                )  # Must be at least min_required
-
-                # Ensure max_allowed is at least min_maximum
-                max_allowed = max(max_allowed, min_maximum)
+                min_required, _min_allowed, max_floor, max_allowed = compute_question_count_bounds(
+                    always_count, sometimes_count, total_enabled
+                )
 
                 if min_questions < min_required:
                     QMessageBox.warning(
@@ -209,18 +193,29 @@ class CheckinManagementDialog(QDialog):
                     )
                     return
 
+                if sometimes_count and min_questions > total_enabled - 1:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Minimum",
+                        f"Minimum questions ({min_questions}) cannot exceed {total_enabled - 1}; "
+                        "the minimum must leave at least one Sometimes question out so check-ins can vary.",
+                    )
+                    return
+
+                if max_questions < max_floor:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Maximum",
+                        f"Maximum questions ({max_questions}) must be at least {max_floor} so enabled Sometimes questions can be included.",
+                    )
+                    return
+
                 if max_questions > max_allowed:
                     QMessageBox.warning(
                         self,
                         "Invalid Maximum",
                         f"Maximum questions ({max_questions}) cannot exceed {max_allowed} "
-                        f"(total enabled questions: {total_enabled}"
-                        + (
-                            ", minus 1 because you have 'sometimes' questions enabled"
-                            if sometimes_count > 0
-                            else ""
-                        )
-                        + ").",
+                        f"(total enabled questions: {total_enabled}).",
                     )
                     return
 
@@ -258,8 +253,8 @@ class CheckinManagementDialog(QDialog):
             prefs["checkin_settings"] = {
                 "questions": checkin_settings.get("questions", {}),
                 "custom_questions": custom_questions,  # Preserve custom questions
-                "min_questions": checkin_settings.get("min_questions", 1),
-                "max_questions": checkin_settings.get("max_questions", 8),
+                "min_questions": checkin_settings.get("min_questions", DEFAULT_MIN_QUESTIONS),
+                "max_questions": checkin_settings.get("max_questions", DEFAULT_MAX_QUESTIONS),
             }
 
             # Save updated preferences

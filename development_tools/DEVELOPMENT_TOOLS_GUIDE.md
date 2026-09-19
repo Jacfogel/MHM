@@ -596,17 +596,17 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or add a documented `host.*` adapter; do not add host-package static imports under `development_tools/**`.
 
-**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `pytest -c development_tools/pytest.ini tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md) Section 6.4 for the extraction roadmap.
+**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md) Section 6.4 for the extraction roadmap.
 
 ### 8.7. Pytest isolation (portability)
 
 **Purpose**: Tools tests must not load the host project's `tests/conftest.py` (Qt, user-data loaders, MHM logging).
 
-**How**: Run them with [`development_tools/pytest.ini`](pytest.ini). Runners pass `-c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools`. Helper: [`tests/pytest_isolation.py`](tests/pytest_isolation.py). Host `pytest.ini` ignores `tests/development_tools/` so a default `pytest` at repo root does not mix the suites.
+**How**: Run them with [`development_tools/pytest.ini`](pytest.ini). Runners pass `-c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools`. `confcutdir` is a CLI option only; do not set it in the INI file because `--strict-config` treats that key as unknown. Helper: [`tests/pytest_isolation.py`](tests/pytest_isolation.py). Host `pytest.ini` ignores `tests/development_tools/` so a default `pytest` at repo root does not mix the suites.
 
 **Commands**:
 ```powershell
-python -m pytest -c development_tools/pytest.ini tests/development_tools/
+python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/
 python run_tests.py --mode development_tools
 ```
 

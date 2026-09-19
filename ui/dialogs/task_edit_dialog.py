@@ -489,14 +489,14 @@ class TaskEditDialog(QDialog):
                 pass
         row_layout.addWidget(date_edit)
 
-        # Start time fields
-        row_layout.addWidget(QLabel("Start:"))
+        # Reminder time fields
+        row_layout.addWidget(QLabel("Time:"))
         start_hour, start_minute, start_ampm = _add_time_combos_to_layout(
             row_layout, period.get("start_time", "")
         )
 
-        # End time fields
-        row_layout.addWidget(QLabel("End:"))
+        # An end time is optional; when omitted this is a point-in-time reminder.
+        row_layout.addWidget(QLabel("End (optional):"))
         end_hour, end_minute, end_ampm = _add_time_combos_to_layout(
             row_layout, period.get("end_time", "")
         )
@@ -558,7 +558,7 @@ class TaskEditDialog(QDialog):
                 widgets.get("end_ampm"),
             )
 
-            if date and start_time and end_time:
+            if date and start_time:
                 periods.append(
                     {"date": date, "start_time": start_time, "end_time": end_time}
                 )
@@ -646,6 +646,26 @@ class TaskEditDialog(QDialog):
                 # Add quick reminders
                 quick_reminders = self.collect_quick_reminders()
                 # TODO: Convert quick reminders to actual reminder periods based on due date/time
+
+            if quick_reminders and not due_date:
+                QMessageBox.warning(
+                    self,
+                    "Due Date Required",
+                    "Relative reminders need a due date. Add a due date or clear the relative reminders.",
+                )
+                return
+
+            if any(
+                period.get("end_time")
+                and period["end_time"] <= period["start_time"]
+                for period in reminder_periods
+            ):
+                QMessageBox.warning(
+                    self,
+                    "Invalid Reminder",
+                    "A custom reminder's optional end time must be after its reminder time.",
+                )
+                return
 
             # Collect recurring task settings
             recurring_data = self.collect_recurring_task_data()

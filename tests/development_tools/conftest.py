@@ -45,7 +45,8 @@ def pytest_configure(config):
         raise pytest.UsageError(
             "Development tools tests must use development_tools/pytest.ini so "
             "MHM tests/conftest.py is not loaded. Run: python -m pytest -c "
-            "development_tools/pytest.ini tests/development_tools/"
+            "development_tools/pytest.ini --rootdir=. "
+            "--confcutdir=tests/development_tools tests/development_tools/"
         )
 
 

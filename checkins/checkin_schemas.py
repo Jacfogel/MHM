@@ -14,6 +14,10 @@ from storage.user_data_v2_base import (
 )
 
 
+DEFAULT_MIN_QUESTIONS = 2
+DEFAULT_MAX_QUESTIONS = 3
+
+
 class CheckinV2Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

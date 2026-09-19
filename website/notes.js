@@ -15,12 +15,10 @@
   const createHeading = document.getElementById('entry-create-heading');
   const createHelp = document.getElementById('entry-create-help');
   const search = document.getElementById('note-search');
-  const groupFilter = document.getElementById('note-group-filter');
   const tagFilter = document.getElementById('note-tag-filter');
   const tabs = [...document.querySelectorAll('[data-note-view]')];
   let view = 'active';
   let notes = [];
-  let existingGroups = [];
   let existingTags = [];
   let searchTimer;
   let itemId = 0;
@@ -30,10 +28,25 @@
     status.classList.toggle('is-error', error);
   }
 
-  function replaceSuggestions(listId, values) {
-    const listElement = document.getElementById(listId);
-    if (!listElement) return;
-    listElement.replaceChildren(...values.map(value => new Option(value, value)));
+  function withTag(value, tag) {
+    const tags = String(value || '').split(',').map(item => item.trim()).filter(Boolean);
+    const newTag = String(tag || '').trim();
+    if (newTag && !tags.some(item => item.toLowerCase() === newTag.toLowerCase())) tags.push(newTag);
+    return tags.join(', ');
+  }
+
+  function populateTagPicker(picker, values) {
+    picker.replaceChildren(new Option('Choose a tag…', ''), ...values.map(value => new Option(value, value)));
+  }
+
+  function bindTagPicker(input, picker) {
+    picker.addEventListener('change', () => {
+      if (!picker.value) return;
+      input.value = withTag(input.value, picker.value);
+      picker.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+    });
   }
 
   async function api(path, method = 'GET', payload) {
@@ -146,7 +159,7 @@
       type.className = `entry-kind entry-kind-${note.kind}`;
       type.textContent = note.kind === 'journal_entry' ? 'Journal' : note.kind === 'list' ? 'List' : 'Note';
       content.append(type);
-      if (note.pinned) content.append(button('Pinned', 'entry-kind entry-pinned', () => pin(note, false)));
+      if (note.status === 'active' && note.pinned) content.append(button('Pinned', 'entry-kind entry-pinned', () => pin(note, false)));
       const title = document.createElement('h3');
       title.textContent = note.title || 'Untitled entry';
       content.append(title);
@@ -168,11 +181,6 @@
       }
       const meta = document.createElement('div');
       meta.className = 'task-meta';
-      if (note.group) {
-        const group = document.createElement('span');
-        group.textContent = note.group;
-        meta.append(group);
-      }
       if (note.tags?.length) {
         const tags = document.createElement('span');
         tags.textContent = `Tags: ${note.tags.join(', ')}`;
@@ -198,18 +206,14 @@
       const query = search.value.trim();
       const params = new URLSearchParams({ status: view });
       if (query) params.set('q', query);
-      if (groupFilter.value) params.set('group', groupFilter.value);
       if (tagFilter.value) params.set('tag', tagFilter.value);
       const result = await api(`/api/notes?${params}`);
       notes = result.notes || [];
-      existingGroups = result.groups || [];
       existingTags = result.tags || [];
-      replaceSuggestions('note-group-options', existingGroups);
-      replaceSuggestions('note-tag-options', existingTags);
-      const chosenGroup = groupFilter.value; const chosenTag = tagFilter.value;
-      groupFilter.replaceChildren(new Option('All groups', ''), ...existingGroups.map(value => new Option(value, value)));
+      populateTagPicker(document.getElementById('note-existing-tag'), existingTags);
+      const chosenTag = tagFilter.value;
       tagFilter.replaceChildren(new Option('All tags', ''), ...existingTags.map(value => new Option(value, value)));
-      groupFilter.value = chosenGroup; tagFilter.value = chosenTag;
+      tagFilter.value = chosenTag;
       workspace.hidden = false;
       showStatus('');
       render();
@@ -274,10 +278,17 @@
     const tags = input(form, 'Tags', 'text', note.tags?.join(', '), 'edit-note-tags');
     tags.maxLength = 1000;
     tags.placeholder = 'health, ideas, home';
-    tags.setAttribute('list', 'note-tag-options');
-    const group = input(form, 'Group', 'text', note.group, 'edit-note-group');
-    group.maxLength = 50;
-    group.setAttribute('list', 'note-group-options');
+    const existingTag = document.createElement('select');
+    existingTag.id = 'edit-note-existing-tag';
+    populateTagPicker(existingTag, existingTags);
+    const pickerWrapper = document.createElement('div');
+    pickerWrapper.className = 'settings-field';
+    const pickerLabel = document.createElement('label');
+    pickerLabel.htmlFor = existingTag.id;
+    pickerLabel.textContent = 'Add an existing tag';
+    pickerWrapper.append(pickerLabel, existingTag);
+    form.append(pickerWrapper);
+    bindTagPicker(tags, existingTag);
     const actions = document.createElement('div');
     actions.className = 'task-dialog-actions';
     const save = document.createElement('button');
@@ -301,7 +312,6 @@
         const payload = {
           title: title.value.trim(),
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
-          group: group.value.trim() || null,
           ...(editItems ? { items } : { description: body.value }),
         };
         await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', payload);
@@ -336,7 +346,6 @@
         kind,
         title: String(form.get('title') || '').trim(),
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
-        group: String(form.get('group') || '').trim() || null,
         ...(kind === 'list' ? { items } : { description: String(form.get('description') || '') }),
       });
       createForm.reset();
@@ -362,13 +371,13 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(load, 250);
   });
-  groupFilter.addEventListener('change', load);
   tagFilter.addEventListener('change', load);
   document.getElementById('notes-refresh').addEventListener('click', load);
   window.addEventListener('focus', load);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') load();
   });
+  bindTagPicker(document.getElementById('note-tags'), document.getElementById('note-existing-tag'));
   syncCreateMode();
   load();
   loadIdentity();

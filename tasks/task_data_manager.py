@@ -147,6 +147,9 @@ def create_task(
     if tags is not None and not isinstance(tags, list):
         logger.error(f"Invalid tags type: {type(tags)}")
         return None
+    if quick_reminders and not due_date:
+        logger.error("Relative task reminders require a due date")
+        return None
 
     from core.tags import ensure_tags_initialized
     from tasks.task_tag_helpers import sanitize_task_tags
@@ -212,6 +215,19 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     for task in tasks:
         if _task_matches_identifier(task, task_id):
             canonical_task_id = _task_id(task)
+            if "quick_reminders" in updates or "due_date" in updates:
+                resulting_due_date = updates.get("due_date", _task_due_date(task))
+                resulting_quick = updates.get(
+                    "quick_reminders",
+                    [
+                        reminder.get("value")
+                        for reminder in task.get("reminders", [])
+                        if isinstance(reminder, dict) and reminder.get("kind") == "quick"
+                    ],
+                )
+                if resulting_quick and not resulting_due_date:
+                    logger.error("Relative task reminders require a due date")
+                    return False
             updated_fields = []
             for field, value in updates.items():
                 ok, reason = validate_update_field(field, value)
@@ -479,8 +495,7 @@ def schedule_task_reminders(
     for period in reminder_periods:
         date = period.get("date")
         start_time = period.get("start_time")
-        end_time = period.get("end_time")
-        if not date or not start_time or not end_time:
+        if not date or not start_time:
             logger.warning(f"Incomplete reminder period data for task {task_id}: {period}")
             continue
         if scheduler_manager.schedule_task_reminder_at_datetime(user_id, task_id, date, start_time):

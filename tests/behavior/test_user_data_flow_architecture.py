@@ -20,10 +20,9 @@ class TestCrossFileInvariants:
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel
-    def test_cross_file_invariant_preferences_categories_enables_account_messages(self, test_data_dir, mock_config):
+    def test_saved_categories_do_not_reenable_automated_messages(self, test_data_dir, mock_config):
         """
-        Test: When preferences are saved with categories, account.features.automated_messages 
-        should be enabled via cross-file invariant using in-memory data.
+        Saved category choices must not override an explicit disabled feature flag.
         """
         from core import save_user_data, get_user_data
         
@@ -45,7 +44,7 @@ class TestCrossFileInvariants:
         assert initial_data['account']['features']['automated_messages'] == 'disabled', \
             "Initial state should have messages disabled"
         
-        # Act: Save preferences with categories (should trigger cross-file invariant)
+        # Act: Save preferences while retaining category choices.
         preferences_data = TestUserDataFactory.create_preferences_data(
             user_id=user_id,
             categories=['motivational', 'health']
@@ -53,7 +52,7 @@ class TestCrossFileInvariants:
         
         result = save_user_data(user_id, {'preferences': preferences_data})
         
-        # Assert: Cross-file invariant should have enabled messages in account
+        # Assert: category configuration is preserved without enabling delivery.
         assert result.get('preferences') is True, "Preferences should be saved successfully"
         # Account may be added to merged_data by invariants, but it might not be in result if it wasn't in original update
         # Check the actual file contents instead
@@ -67,8 +66,8 @@ class TestCrossFileInvariants:
                 time.sleep(0.1)  # Brief delay before retry
         
         assert updated_data and 'account' in updated_data, "Account data should be available"
-        assert updated_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should enable automated_messages when preferences have categories"
+        assert updated_data['account']['features']['automated_messages'] == 'disabled', \
+            "Saved categories must not re-enable automated messages"
         assert 'motivational' in updated_data['preferences']['categories'], \
             "Preferences should have categories saved"
         assert 'health' in updated_data['preferences']['categories'], \
@@ -81,8 +80,8 @@ class TestCrossFileInvariants:
     @pytest.mark.no_parallel
     def test_cross_file_invariant_simultaneous_account_preferences_save(self, test_data_dir, mock_config):
         """
-        Test: When account and preferences are saved simultaneously, cross-file invariants 
-        should use in-memory merged data, not stale disk data.
+        Saving categories alongside an explicitly disabled account must preserve
+        that disabled state.
         """
         from core import save_user_data, get_user_data
         
@@ -108,14 +107,14 @@ class TestCrossFileInvariants:
             'preferences': preferences_data
         })
         
-        # Assert: Both should succeed, and invariant should use in-memory data
+        # Assert: Both should succeed without overriding the feature flag.
         assert result.get('account') is True, "Account should be saved successfully"
         assert result.get('preferences') is True, "Preferences should be saved successfully"
         
-        # Verify cross-file invariant worked using in-memory data (not stale disk data)
+        # Verify the explicit account state wins.
         final_data = get_user_data(user_id, 'all')
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should enable messages using in-memory merged data, not stale disk data"
+        assert final_data['account']['features']['automated_messages'] == 'disabled', \
+            "Saved categories must not enable messages"
         assert 'motivational' in final_data['preferences']['categories'], \
             "Preferences should have categories"
     
@@ -123,10 +122,9 @@ class TestCrossFileInvariants:
     @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel  # Sensitive to file system state and cross-file invariants during parallel execution
-    def test_cross_file_invariant_account_not_in_original_update(self, test_data_dir, mock_config):
+    def test_category_update_does_not_add_account_to_original_update(self, test_data_dir, mock_config):
         """
-        Test: When only preferences are updated and invariant requires account update,
-        account should be added to merged_data and written in Phase 2.
+        Updating categories alone must not manufacture an account update.
         """
         import uuid
         from core import save_user_data, get_user_data
@@ -152,13 +150,10 @@ class TestCrossFileInvariants:
         
         # Assert: Preferences should be saved
         assert result.get('preferences') is True, "Preferences should be saved"
-        # Account may be added to merged_data by invariants, but it might not be in result if it wasn't in original update
-        # Check the actual file contents instead to verify the invariant worked
+        assert result.get('account') is None, "No account write should be added"
         
-        # Verify account was updated
-        # The invariant should have updated account.features.automated_messages to 'enabled'
-        # when preferences with categories were saved. However, during parallel execution,
-        # file writes may not be immediately visible, so we need to retry with cache clearing.
+        # Verify the account remains disabled. During parallel execution, file
+        # writes may not be immediately visible, so retry with cache clearing.
         import time
         from core import clear_user_caches
         
@@ -180,7 +175,7 @@ class TestCrossFileInvariants:
                     final_data
                     and 'account' in final_data
                     and 'preferences' in final_data
-                    and final_data['account'].get('features', {}).get('automated_messages') == 'enabled'
+                    and final_data['account'].get('features', {}).get('automated_messages') == 'disabled'
                 ):
                     break
             except Exception:
@@ -193,10 +188,10 @@ class TestCrossFileInvariants:
         assert final_data and 'account' in final_data, \
             f"Account data should be loaded for user {user_id}. Final data keys: {list(final_data.keys()) if final_data else 'empty'}"
         
-        # Verify the invariant was applied - automated_messages should be enabled
+        # Verify category configuration did not alter the feature flag.
         account_features = final_data['account'].get('features', {})
-        assert account_features.get('automated_messages') == 'enabled', \
-            f"Account should be updated by cross-file invariant when preferences have categories. " \
+        assert account_features.get('automated_messages') == 'disabled', \
+            f"Account should stay disabled when preferences have categories. " \
             f"Account features: {account_features}, Preferences categories: {final_data.get('preferences', {}).get('categories', [])}"
 
 
@@ -283,8 +278,8 @@ class TestProcessingOrder:
     @pytest.mark.file_io
     def test_processing_order_account_before_preferences(self, test_data_dir, mock_config):
         """
-        Test: Account should be processed before preferences to ensure cross-file invariants
-        have access to updated account data.
+        Account and preferences should retain their explicitly supplied values
+        regardless of deterministic processing order.
         """
         from core import save_user_data, get_user_data
         
@@ -315,7 +310,7 @@ class TestProcessingOrder:
         assert result.get('account') is True, "Account should be processed"
         assert result.get('preferences') is True, "Preferences should be processed"
         
-        # Verify cross-file invariant worked (account updated based on preferences)
+        # Verify categories did not override the account feature flag.
         # Retry in case of race conditions with file writes in parallel execution
         import time
         final_data = {}
@@ -326,8 +321,8 @@ class TestProcessingOrder:
             if attempt < 4:
                 time.sleep(0.1)  # Brief delay before retry
         assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should work correctly with account processed before preferences"
+        assert final_data['account']['features']['automated_messages'] == 'disabled', \
+            "Processing order must preserve the explicit disabled state"
 
 
 class TestAtomicOperations:
@@ -468,8 +463,8 @@ class TestNoNestedSaves:
     @pytest.mark.no_parallel
     def test_no_nested_saves_update_user_preferences(self, test_data_dir, mock_config):
         """
-        Test: update_user_preferences should not call update_user_account (no nested saves).
-        Cross-file invariants should update in-memory data instead.
+        update_user_preferences should not call update_user_account or change an
+        unrelated feature flag.
         """
         from core import update_user_preferences, get_user_data
         
@@ -485,7 +480,7 @@ class TestNoNestedSaves:
         from core import save_user_data
         save_user_data(user_id, {'account': account_data})
         
-        # Act: Update preferences with categories (should trigger cross-file invariant)
+        # Act: Update category preferences.
         # Mock update_user_account to verify it's NOT called
         with patch('storage.user_data_write.update_user_account') as mock_update_account:
             result = update_user_preferences(user_id, {'categories': ['motivational', 'health']})
@@ -494,7 +489,7 @@ class TestNoNestedSaves:
             mock_update_account.assert_not_called()
             assert result is True, "Preferences should be updated successfully"
         
-        # Verify cross-file invariant still worked (account updated via in-memory data)
+        # Verify no account mutation occurred.
         # Retry in case of race conditions with file writes in parallel execution
         import time
         final_data = {}
@@ -505,8 +500,8 @@ class TestNoNestedSaves:
             if attempt < 4:
                 time.sleep(0.1)  # Brief delay before retry
         assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should update account via in-memory data, not nested save"
+        assert final_data['account']['features']['automated_messages'] == 'disabled', \
+            "Category updates must not enable automated messages"
         assert 'motivational' in final_data['preferences']['categories'], \
             "Preferences should be updated"
         assert 'health' in final_data['preferences']['categories'], \
@@ -546,9 +541,9 @@ class TestNoNestedSaves:
             # Assert: update_user_account should NOT be called (no nested saves)
             mock_update_account.assert_not_called()
             assert result.get('preferences') is True, "Preferences should be saved"
-            assert result.get('account') is True, "Account should be updated via cross-file invariant"
+            assert result.get('account') is None, "No account update should be added"
         
-        # Verify cross-file invariant worked
+        # Verify the account was left alone.
         # Retry in case of race conditions with file writes in parallel execution
         import time
         final_data = {}
@@ -559,8 +554,8 @@ class TestNoNestedSaves:
             if attempt < 4:
                 time.sleep(0.1)  # Brief delay before retry
         assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should update account via in-memory data"
+        assert final_data['account']['features']['automated_messages'] == 'disabled', \
+            "Category updates must not enable automated messages"
 
 
 class TestTwoPhaseSave:
@@ -628,9 +623,9 @@ class TestTwoPhaseSave:
         assert 'motivational' in final_data['preferences']['categories'], \
             "Preferences should be written to disk in Phase 2"
         
-        # Verify cross-file invariant worked (account updated in Phase 1, written in Phase 2)
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Cross-file invariant should update account in Phase 1, written in Phase 2"
+        # Verify the explicit disabled state survived both phases.
+        assert final_data['account']['features']['automated_messages'] == 'disabled', \
+            "Two-phase save must preserve the explicit disabled state"
     
     @pytest.mark.behavior
     @pytest.mark.user

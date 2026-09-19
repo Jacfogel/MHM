@@ -13,6 +13,14 @@ from core import tags as tags_module
 @pytest.mark.unit
 @pytest.mark.user
 class TestTagsGapCoverage:
+    def test_get_default_tags_returns_safe_default_on_error(self, monkeypatch):
+        def fail_to_load():
+            raise RuntimeError("resource failure")
+
+        monkeypatch.setattr(tags_module, "_load_default_tags_from_resources", fail_to_load)
+
+        assert tags_module.get_default_tags() == []
+
     def test_ensure_user_dir_for_tags_exception(self, monkeypatch):
         monkeypatch.setattr(
             tags_module,
