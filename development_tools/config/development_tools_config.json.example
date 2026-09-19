@@ -213,8 +213,7 @@
     "source_to_test_mapping": {
       "core": [
         [
-          "tests/core/",
-          "tests/unit/"
+          "tests/core/"
         ],
         [
           "core"
@@ -294,56 +293,16 @@
       ]
     },
     "domain_dependencies": {
-      "core": [
-        "communication",
-        "ui",
-        "tasks",
-        "ai",
-        "user",
-        "notebook",
-        "scheduler",
-        "checkins",
-        "messages",
-        "storage"
-      ],
-      "communication": [
-        "ui",
-        "tasks",
-        "ai",
-        "user",
-        "checkins",
-        "messages"
-      ],
-      "tasks": [
-        "communication",
-        "ui"
-      ],
-      "user": [
-        "communication",
-        "ui",
-        "ai",
-        "storage"
-      ],
-      "ai": [
-        "communication",
-        "ui"
-      ],
+      "core": [],
+      "communication": [],
+      "tasks": [],
+      "user": [],
+      "ai": [],
       "ui": [],
-      "notebook": [
-        "communication",
-        "ui"
-      ],
-      "scheduler": [
-        "communication",
-        "core"
-      ],
-      "checkins": [
-        "communication",
-        "user"
-      ],
-      "messages": [
-        "communication"
-      ],
+      "notebook": [],
+      "scheduler": [],
+      "checkins": [],
+      "messages": [],
       "storage": [],
       "development_tools": []
     },

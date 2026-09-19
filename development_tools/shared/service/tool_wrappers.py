@@ -5,6 +5,7 @@ Contains methods for running analysis, generation, and fix tools.
 """
 # pyright: reportAttributeAccessIssue=false
 
+import argparse
 import copy
 import json
 import os
@@ -31,6 +32,19 @@ import contextlib
 from ..tool_metadata import get_script_registry
 
 SCRIPT_REGISTRY = get_script_registry()
+
+
+def _module_import_analyzer_class():
+    """Return ModuleImportAnalyzer from the live imports module.
+
+    Tests patch this name on the running wrapper's ``__globals__`` so xdist
+    cannot miss a second ``analyze_module_imports`` copy created by
+    ``load_development_tools_module``.
+    """
+    import development_tools.imports.analyze_module_imports as imports_mod
+
+    return imports_mod.ModuleImportAnalyzer
+
 
 def _static_check_tool_cache_metadata(*, from_disk_cache: bool) -> dict[str, str]:
     """Labels for audit logs (orchestration maps cache_hit/cold_scan to utilized/created)."""
@@ -284,32 +298,17 @@ class ToolWrappersMixin:
         return result
 
     def run_analyze_function_registry(self) -> dict:
-        """Run analyze_function_registry with structured JSON handling."""
+        """Run analyze_function_registry in-process using the shared parse."""
         logger.debug("Analyzing function registry...")
-        result = self.run_script("analyze_function_registry", "--json")
-        stderr_output = result.get("error", "")
-        if stderr_output:
-            logger.debug(f"analyze_function_registry stderr output: {stderr_output}")
-            if "Traceback" in stderr_output or 'File "' in stderr_output:
-                logger.error(
-                    f"analyze_function_registry traceback found in stderr:\n{stderr_output}"
-                )
-            if not result.get("success"):
-                original_error = result.get("error", "")
-                result["error"] = (
-                    f"{original_error}\nStderr: {stderr_output}"
-                    if original_error != stderr_output
-                    else stderr_output
-                )
-        output = result.get("output", "")
-        data = None
-        if output:
-            try:
-                data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        if data is not None:
-            result["data"] = data
+        try:
+            from development_tools.functions.analyze_function_registry import execute
+
+            self._ensure_shared_function_scan()
+            _exit_code, _text, data = execute(
+                argparse.Namespace(),
+                project_root=Path(self.project_root),
+                parsed_modules=self._shared_parsed_modules(),
+            )
             try:
                 save_tool_result(
                     "analyze_function_registry",
@@ -319,35 +318,28 @@ class ToolWrappersMixin:
                 )
             except Exception as e:
                 logger.warning(f"Failed to save analyze_function_registry result: {e}")
-            missing = (
-                data.get("missing", {})
-                if isinstance(data.get("missing"), dict)
-                else data.get("missing")
-            )
-            extra = (
-                data.get("extra", {})
-                if isinstance(data.get("extra"), dict)
-                else data.get("extra")
-            )
-            errors = data.get("errors") or []
+            if not isinstance(data, dict):
+                return {"success": False, "error": "function registry returned no payload"}
+            details_raw = data.get("details")
+            details = details_raw if isinstance(details_raw, dict) else data
+            missing = details.get("missing") or {}
+            extra = details.get("extra") or {}
+            errors = details.get("errors") or []
             missing_count = (
                 missing.get("count") if isinstance(missing, dict) else missing
             )
             extra_count = extra.get("count") if isinstance(extra, dict) else extra
-            result["issues_found"] = bool(missing_count or extra_count or errors)
-            result["success"] = True
-            result["error"] = ""
-        else:
-            lowered = output.lower() if isinstance(output, str) else ""
-            if (
-                "missing from registry" in lowered
-                or "missing items" in lowered
-                or "extra functions" in lowered
-            ):
-                result["issues_found"] = True
-                result["success"] = True
-                result["error"] = ""
-        return result
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(missing_count or extra_count or errors),
+                "error": "",
+                "output": _text or "",
+                "returncode": _exit_code,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_function_registry: {e}")
+            return {"success": False, "error": str(e)}
 
     def run_analyze_module_dependencies(self) -> dict:
         """Run analyze_module_dependencies and capture dependency drift summary."""
@@ -720,12 +712,13 @@ class ToolWrappersMixin:
         """Run analyze_module_imports and save results."""
         logger.debug("Analyzing module imports...")
         try:
-            from development_tools.imports.analyze_module_imports import (
-                ModuleImportAnalyzer,
+            analyzer = _module_import_analyzer_class()(
+                project_root=str(self.project_root)
             )
-
-            analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
-            import_data = analyzer.scan_all_python_files()
+            self._ensure_shared_function_scan()
+            import_data = analyzer.scan_all_python_files(
+                parsed_modules=self._shared_parsed_modules()
+            )
             standard_format = {
                 "summary": {"total_issues": 0, "files_affected": 0},
                 "details": import_data,
@@ -821,8 +814,14 @@ class ToolWrappersMixin:
                 packages = ["core", "communication", "ui", "tasks", "ai", "user"]
             all_reports = {}
             max_workers = min(6, len(packages))
-            import_usage_index = analyze_imports_for_packages(packages)
-            package_api_index = scan_package_modules_for_packages(packages)
+            self._ensure_shared_function_scan()
+            parsed_modules = self._shared_parsed_modules()
+            import_usage_index = analyze_imports_for_packages(
+                packages, parsed_modules=parsed_modules
+            )
+            package_api_index = scan_package_modules_for_packages(
+                packages, parsed_modules=parsed_modules
+            )
             registry_index = parse_function_registry_for_packages(packages)
             logger.debug(
                 f"Analyzing package exports with parallel package scanning ({len(packages)} packages, {max_workers} workers)..."
@@ -901,84 +900,57 @@ class ToolWrappersMixin:
             return {"success": False, "error": str(e)}
 
     def run_analyze_error_handling(self) -> dict:
-        """Run analyze_error_handling with structured JSON handling."""
-        args = ["--json"]
-        if self.exclusion_config.get("include_tests", False):
-            args.append("--include-tests")
-        if self.exclusion_config.get("include_dev_tools", False):
-            args.append("--include-dev-tools")
-        result = self.run_script("analyze_error_handling", *args)
-        output = result.get("output", "")
-        stderr_output = result.get("error", "")
-        # Log errors for debugging
-        if stderr_output and not result.get("success", False):
-            logger.warning(
-                f"analyze_error_handling stderr: {stderr_output[:500]}"
-            )  # Log first 500 chars
-            if "Traceback" in stderr_output or "Error" in stderr_output:
-                logger.error(f"analyze_error_handling error details:\n{stderr_output}")
-        data = None
-        if output:
+        """Run analyze_error_handling in-process using the shared parse."""
+        logger.debug("Analyzing error handling...")
+        try:
+            from development_tools.error_handling.analyze_error_handling import (
+                ErrorHandlingAnalyzer,
+            )
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            self._ensure_shared_function_scan()
+            analyzer = ErrorHandlingAnalyzer(str(self.project_root))
+            data = analyzer.analyze_project(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                parsed_modules=self._shared_parsed_modules(),
+            )
             try:
-                lines = output.split("\n")
-                json_start = -1
-                for i, line in enumerate(lines):
-                    if line.strip().startswith("{"):
-                        json_start = i
-                        break
-                if json_start >= 0:
-                    json_output = "\n".join(lines[json_start:])
-                    data = json.loads(json_output)
-                else:
-                    data = json.loads(output)
-            except json.JSONDecodeError:
-                data = None
-        # If JSON parsing failed, try loading from standardized output storage
-        # BUT: Only use cached data if the script actually succeeded (returncode == 0)
-        # If the script failed, don't perpetuate stale cached data by saving it back
-        script_succeeded = (
-            result.get("success", False) and result.get("returncode") == 0
-        )
-        if data is None and script_succeeded:
-            try:
-                data = load_tool_result(
+                save_tool_result(
                     "analyze_error_handling",
                     "error_handling",
+                    data,
                     project_root=self.project_root,
                 )
-            except (OSError, json.JSONDecodeError):
-                data = None
-        if data is not None:
-            result["data"] = data
-            # Only save if we got data from the script output (script succeeded)
-            # Don't save cached data back when script failed - that perpetuates stale data
-            if script_succeeded:
-                try:
-                    save_tool_result(
-                        "analyze_error_handling",
-                        "error_handling",
-                        data,
-                        project_root=self.project_root,
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to save analyze_error_handling result: {e}")
-            coverage = data.get("analyze_error_handling") or data.get(
-                "error_handling_coverage", 0
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_error_handling result: {e}")
+            if not isinstance(data, dict):
+                return {
+                    "success": False,
+                    "error": "error handling returned no payload",
+                }
+            details_raw = data.get("details")
+            details = details_raw if isinstance(details_raw, dict) else {}
+            summary_raw = data.get("summary")
+            summary = summary_raw if isinstance(summary_raw, dict) else {}
+            missing_count = details.get("functions_missing_error_handling", 0)
+            coverage = details.get("analyze_error_handling") or details.get(
+                "error_handling_coverage", 100
             )
-            missing_count = data.get("functions_missing_error_handling", 0)
-            result["issues_found"] = coverage < 80 or missing_count > 0
-            # Only mark as successful if script actually succeeded
-            # If we're using cached data from a failed run, keep success=False
-            if script_succeeded:
-                result["success"] = True
-                result["error"] = ""
-        else:
-            lowered = output.lower() if isinstance(output, str) else ""
-            if "missing error handling" in lowered or "coverage" in lowered:
-                result["issues_found"] = True
-                result["success"] = True
-                result["error"] = ""
-        return result
+            total_issues = summary.get("total_issues", 0)
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(total_issues)
+                or coverage < 80
+                or missing_count > 0,
+                "error": "",
+                "output": "",
+                "returncode": 0,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_error_handling: {e}")
+            return {"success": False, "error": str(e)}
 
     def _persist_documentation_sync_aggregate_json(self) -> dict[str, Any]:
         """Build aggregate doc-sync payload and save `docs/jsons/analyze_documentation_sync_results.json`.

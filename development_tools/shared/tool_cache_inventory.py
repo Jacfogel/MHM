@@ -136,6 +136,33 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "artifact_glob": "development_tools/**/jsons/scopes/*/verify_process_cleanup*.json",
             "invalidation": "N/A — advisory probe; JSON is per-run output only",
         }
+    if tool_name in {"analyze_error_handling", "analyze_module_imports"}:
+        return {
+            "tool": tool_name,
+            "strategy": "mtime_file_cache_plus_shared_parse",
+            "implementation": (
+                "MtimeFileCache per-file results plus in-process reuse of "
+                "shared_function_scan.ParsedModule trees from _ensure_shared_function_scan"
+            ),
+            "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*.json",
+            "invalidation": (
+                "File mtimes, config content hash, and tool hash; audit runs skip "
+                "re-parse when the shared AST is already available"
+            ),
+        }
+    if tool_name in {"analyze_package_exports", "analyze_function_registry"}:
+        return {
+            "tool": tool_name,
+            "strategy": "shared_function_scan_reuse",
+            "implementation": (
+                "In-process wrappers walk shared_function_scan.ParsedModule trees "
+                "instead of subprocess re-parse"
+            ),
+            "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*.json",
+            "invalidation": (
+                "Full re-walk of shared parse trees each audit; no extra file parse"
+            ),
+        }
     if tool_name == "analyze_backup_health":
         return {
             "tool": tool_name,

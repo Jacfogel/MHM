@@ -252,10 +252,11 @@ class TestFileSuiteCache:
             or self.cache_data.get("last_parallel_ok") is False
         ):
             return self._domains_for_previous_suite_failure()
+        changed = self.coverage_cache.get_changed_domains()
         self.last_invalidation_reason = getattr(
             self.coverage_cache, "last_invalidation_reason", None
         )
-        return self.coverage_cache.get_changed_domains()
+        return changed
 
     def get_test_files_to_run(self, changed_domains: set[str]) -> list[Path]:
         return self.coverage_cache.get_test_files_to_run(changed_domains)

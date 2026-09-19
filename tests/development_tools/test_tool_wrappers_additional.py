@@ -23,21 +23,31 @@ def temp_project_copy():
 
 
 @pytest.mark.unit
-def test_run_analyze_function_registry_keyword_fallback_marks_issues(
+def test_run_analyze_function_registry_marks_issues_from_payload(
     temp_project_copy, monkeypatch
 ):
-    """Non-JSON diagnostic output should still be treated as actionable issues."""
+    """Missing/extra registry counts from the in-process payload mark issues."""
     service = AIToolsService(project_root=str(temp_project_copy))
-    monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_args, **_kwargs: {
-            "success": False,
-            "output": "2 items are missing from registry",
-            "error": "non-zero",
-            "returncode": 1,
+    payload = {
+        "summary": {"total_issues": 2, "files_affected": 0},
+        "details": {
+            "missing": {"count": 2, "files": {}, "missing_files": []},
+            "extra": {"count": 0, "files": {}},
+            "errors": [],
         },
+    }
+    monkeypatch.setattr(service, "_ensure_shared_function_scan", lambda: None)
+    monkeypatch.setattr(service, "_shared_parsed_modules", lambda: ())
+    import development_tools.functions.analyze_function_registry as registry_mod
+
+    monkeypatch.setattr(
+        registry_mod,
+        "execute",
+        lambda *_args, **_kwargs: (1, "missing", payload),
         raising=True,
+    )
+    monkeypatch.setattr(
+        tool_wrappers_module, "save_tool_result", lambda *_a, **_k: None, raising=True
     )
 
     result = service.run_analyze_function_registry()

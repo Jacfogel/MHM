@@ -9,7 +9,9 @@ Extracts and analyzes imports from Python files.
 
 import ast
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -64,7 +66,9 @@ class ModuleImportAnalyzer:
         except Exception:
             self.cache = None
 
-    def extract_imports_from_file(self, file_path: str) -> dict[str, list[dict]]:
+    def extract_imports_from_file(
+        self, file_path: str, *, tree: ast.AST | None = None
+    ) -> dict[str, list[dict]]:
         """Extract all imports from a Python file with detailed information."""
         # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
         # This function processes any file passed to it (including test fixtures and files in tests/),
@@ -85,10 +89,10 @@ class ModuleImportAnalyzer:
         imports = {"standard_library": [], "third_party": [], "local": []}
 
         try:
-            with open(file_path, encoding="utf-8") as f:
-                content = f.read()
-
-            tree = ast.parse(content)
+            if tree is None:
+                with open(file_path, encoding="utf-8") as f:
+                    content = f.read()
+                tree = ast.parse(content)
 
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
@@ -184,8 +188,38 @@ class ModuleImportAnalyzer:
             items_str = ", ".join(unique_items)
             return ensure_ascii(f"{module} ({items_str})")
 
-    def scan_all_python_files(self) -> dict[str, dict]:
+    def scan_all_python_files(
+        self, parsed_modules: Sequence[Any] | None = None
+    ) -> dict[str, dict]:
         """Scan all Python files in the project and extract import information."""
+        if parsed_modules is not None:
+            results: dict[str, dict] = {}
+            for module in parsed_modules:
+                file_key = str(
+                    getattr(module, "relative", None) or Path(module.path).name
+                ).replace("\\", "/")
+                py_file = Path(module.path)
+                if self.cache:
+                    cached = self.cache.get_cached(py_file)
+                    if cached is not None:
+                        results[file_key] = cached
+                        continue
+                imports = self.extract_imports_from_file(
+                    str(py_file), tree=module.tree
+                )
+                file_result = {
+                    "imports": imports,
+                    "total_imports": sum(
+                        len(imp_list) for imp_list in imports.values()
+                    ),
+                }
+                results[file_key] = file_result
+                if self.cache:
+                    self.cache.cache_results(py_file, file_result)
+            if self.cache:
+                self.cache.save_cache()
+            return results
+
         results = {}
 
         # Import exclusion utilities (import at module level for testability)

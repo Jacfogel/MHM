@@ -237,43 +237,30 @@ def test_run_analyze_documentation_uses_keyword_fallback_for_issues(temp_project
 
 
 @pytest.mark.unit
-def test_run_analyze_error_handling_loads_cached_data_on_successful_run_with_non_json_output(
+def test_run_analyze_error_handling_marks_issues_from_payload(
     temp_project_copy, monkeypatch
 ):
-    """Wrapper should use standardized cached output when script succeeds but emits non-JSON."""
+    """In-process analyzer payload with missing coverage should mark issues."""
     service = AIToolsService(project_root=str(temp_project_copy))
-
-    monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_args, **_kwargs: {
-            "success": True,
-            "output": "some prefix text before json parse fails",
-            "error": "",
-            "returncode": 0,
-        },
-        raising=True,
-    )
-    monkeypatch.setattr(
-        output_storage_module,
-        "load_tool_result",
-        lambda *_args, **_kwargs: {
+    payload = {
+        "summary": {"total_issues": 2, "files_affected": 1},
+        "details": {
             "analyze_error_handling": 70,
             "functions_missing_error_handling": 2,
         },
-        raising=True,
-    )
-    monkeypatch.setattr(
-        tool_wrappers_module,
-        "load_tool_result",
-        output_storage_module.load_tool_result,
-        raising=True,
-    )
-    monkeypatch.setitem(
-        service.run_analyze_error_handling.__func__.__globals__,
-        "load_tool_result",
-        output_storage_module.load_tool_result,
-    )
+    }
+    monkeypatch.setattr(service, "_ensure_shared_function_scan", lambda: None)
+    monkeypatch.setattr(service, "_shared_parsed_modules", lambda: ())
+
+    class _Analyzer:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def analyze_project(self, **_kwargs):
+            return payload
+
+    error_mod = load_development_tools_module("error_handling.analyze_error_handling")
+    monkeypatch.setattr(error_mod, "ErrorHandlingAnalyzer", _Analyzer, raising=True)
     monkeypatch.setattr(
         tool_wrappers_module,
         "save_tool_result",
@@ -285,26 +272,28 @@ def test_run_analyze_error_handling_loads_cached_data_on_successful_run_with_non
 
     assert result["success"] is True
     assert result["issues_found"] is True
-    assert result["data"]["functions_missing_error_handling"] == 2
+    assert result["data"]["details"]["functions_missing_error_handling"] == 2
 
 
 @pytest.mark.unit
-def test_run_analyze_error_handling_skips_cache_when_script_failed(temp_project_copy, monkeypatch):
-    """Wrapper must not pull cached data when script itself fails."""
+def test_run_analyze_error_handling_failure_does_not_load_cache(
+    temp_project_copy, monkeypatch
+):
+    """Wrapper must not pull cached data when the in-process analyzer fails."""
     service = AIToolsService(project_root=str(temp_project_copy))
     cache_load_calls = {"count": 0}
+    monkeypatch.setattr(service, "_ensure_shared_function_scan", lambda: None)
+    monkeypatch.setattr(service, "_shared_parsed_modules", lambda: ())
 
-    monkeypatch.setattr(
-        service,
-        "run_script",
-        lambda *_args, **_kwargs: {
-            "success": False,
-            "output": "non json plain text",
-            "error": "script failed",
-            "returncode": 1,
-        },
-        raising=True,
-    )
+    class _Analyzer:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def analyze_project(self, **_kwargs):
+            raise RuntimeError("script failed")
+
+    error_mod = load_development_tools_module("error_handling.analyze_error_handling")
+    monkeypatch.setattr(error_mod, "ErrorHandlingAnalyzer", _Analyzer, raising=True)
 
     def _track_cache_calls(*_args, **_kwargs):
         cache_load_calls["count"] += 1

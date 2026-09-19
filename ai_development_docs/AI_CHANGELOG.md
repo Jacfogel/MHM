@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-19 - Domain cache invalidation no longer fans out from core **COMPLETED**
+- Test-file cache lookups now use forward-slash paths, so Windows no longer treats cached unit tests as new whenever core changes. Keyword fallback uses the project-relative path so parent folders cannot steal extra domains.
+- Core maps to `tests/core/` and `@pytest.mark.core` only; `domain_dependencies` no longer expands a core edit across the product.
+- Targeted coverage-cache and suite-cache tests cover the new selection rules.
+- Tier 2 error-handling, function-registry, package-exports, and module-imports now reuse the shared function-scan AST in-process instead of re-parsing (or spawning a subprocess) after `analyze_functions`.
+- Function-registry still inventories excluded root key files (`run_mhm.py`, `run_tests.py`). Check-in start tests pin always-include questions so the leave-one-out min/max rule is deterministic.
+- The shared-scan wrapper test patches `_module_import_analyzer_class` on the running wrapper's globals so xdist cannot miss a second `analyze_module_imports` copy.
+- The hostile analyzer in that regression test no longer iterates an optional `parsed_modules` value, clearing the remaining Pyright error.
+
 ### 2026-09-19 - Website, task, check-in, and notebook consistency fixes **COMPLETED**
 - Automated messages now stay disabled when category preferences are saved. Check-ins default to 2-3 questions, apply the variability constraint to Minimum instead of Maximum, and select a count within that range at runtime across the website and desktop app.
 - Default task tags now populate creation/editing, notebook forms have working existing-tag selectors, notebook groups are retired from the website/API, and archived notebook entries cannot retain or display a pinned state.

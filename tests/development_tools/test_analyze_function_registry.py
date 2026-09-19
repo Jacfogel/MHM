@@ -432,6 +432,53 @@ class TestCollectProjectInventory:
         assert any(record.name == "main" for record in inventory["run_tests.py"]["functions"])
         assert errors == []
 
+    @pytest.mark.unit
+    def test_collect_inventory_includes_key_files_with_parsed_modules(
+        self, tmp_path, monkeypatch
+    ):
+        scanned = tmp_path / "core"
+        scanned.mkdir()
+        scanned_file = scanned / "mod.py"
+        scanned_file.write_text("def helper():\n    return 1\n", encoding="utf-8")
+        key_file = tmp_path / "run_tests.py"
+        key_file.write_text("def main():\n    return 0\n", encoding="utf-8")
+
+        monkeypatch.setattr(registry_module.PATHS, "root", tmp_path)
+        monkeypatch.setattr(registry_module, "CURRENT_DIR", tmp_path)
+        monkeypatch.setattr(
+            registry_module.config,
+            "get_project_key_files",
+            lambda default=None: ["run_tests.py"],
+        )
+        monkeypatch.setattr(
+            registry_module,
+            "should_exclude_file",
+            lambda *_args, **_kwargs: True,
+        )
+
+        import ast
+
+        source = scanned_file.read_text(encoding="utf-8")
+        module = type(
+            "Parsed",
+            (),
+            {
+                "path": scanned_file,
+                "relative": "core/mod.py",
+                "source": source,
+                "tree": ast.parse(source),
+            },
+        )()
+        errors = []
+        inventory = registry_module.collect_project_inventory(
+            errors, parsed_modules=(module,)
+        )
+
+        assert "core/mod.py" in inventory
+        assert "run_tests.py" in inventory
+        assert any(record.name == "main" for record in inventory["run_tests.py"]["functions"])
+        assert errors == []
+
 
 class TestBuildAnalysis:
     """Test build_analysis function."""

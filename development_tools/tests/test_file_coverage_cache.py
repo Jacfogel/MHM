@@ -581,8 +581,7 @@ class TestFileCoverageCache:
         mtimes: dict[str, float] = {}
         for test_file in self._iter_test_files():
             try:
-                rel_path = str(test_file.relative_to(self.project_root))
-                mtimes[rel_path] = test_file.stat().st_mtime
+                mtimes[self._test_file_rel(test_file)] = test_file.stat().st_mtime
             except OSError:
                 continue
         return mtimes
@@ -596,7 +595,11 @@ class TestFileCoverageCache:
         """
         affected_domains: set[str] = set()
         current_mtimes = self._get_current_test_file_mtimes()
-        cached_mtimes = self.cache_data.get("test_files_mtime", {}) or {}
+        raw_cached_mtimes = self.cache_data.get("test_files_mtime", {}) or {}
+        cached_mtimes = {
+            self._normalize_test_file_rel(str(path)): mtime
+            for path, mtime in raw_cached_mtimes.items()
+        }
         changed_test_files = {
             path
             for path in set(current_mtimes.keys()).union(set(cached_mtimes.keys()))
@@ -605,7 +608,6 @@ class TestFileCoverageCache:
         if not changed_test_files:
             return affected_domains
 
-        cached_test_entries = self.cache_data.get("test_files", {}) or {}
         for test_file_rel in changed_test_files:
             test_file_path = self.project_root / test_file_rel
 
@@ -617,7 +619,7 @@ class TestFileCoverageCache:
                     )
 
             # Also include cached domains (for deleted files or mapping drift).
-            cached_entry = cached_test_entries.get(test_file_rel, {})
+            cached_entry = self._cache_entry_for_rel(test_file_rel) or {}
             cached_domains = cached_entry.get("domains", [])
             if isinstance(cached_domains, list):
                 affected_domains.update(
@@ -679,20 +681,34 @@ class TestFileCoverageCache:
         legacy = entries.get(rel)
         return legacy if isinstance(legacy, dict) else None
 
-    def _normalize_test_files_cache_keys(self) -> bool:
-        """Migrate legacy backslash keys to forward-slash form (Windows)."""
-        test_files = self.cache_data.get("test_files", {})
-        if not isinstance(test_files, dict):
-            return False
+    @classmethod
+    def _migrate_rel_keyed_dict(cls, mapping: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+        """Return a forward-slash-keyed copy of *mapping* and whether any key changed."""
         migrated: dict[str, Any] = {}
         changed = False
-        for rel, data in test_files.items():
-            norm = self._normalize_test_file_rel(rel)
+        for rel, data in mapping.items():
+            norm = cls._normalize_test_file_rel(str(rel))
             if norm != rel:
                 changed = True
-            migrated[norm] = data
-        if changed:
-            self.cache_data["test_files"] = migrated
+            if norm not in migrated:
+                migrated[norm] = data
+        return migrated, changed
+
+    def _normalize_test_files_cache_keys(self) -> bool:
+        """Migrate legacy backslash keys to forward-slash form (Windows)."""
+        changed = False
+        test_files = self.cache_data.get("test_files", {})
+        if isinstance(test_files, dict):
+            migrated, files_changed = self._migrate_rel_keyed_dict(test_files)
+            if files_changed:
+                self.cache_data["test_files"] = migrated
+                changed = True
+        test_files_mtime = self.cache_data.get("test_files_mtime", {})
+        if isinstance(test_files_mtime, dict):
+            migrated_mtime, mtime_changed = self._migrate_rel_keyed_dict(test_files_mtime)
+            if mtime_changed:
+                self.cache_data["test_files_mtime"] = migrated_mtime
+                changed = True
         return changed
 
     def _get_current_test_files(self) -> set[str]:
@@ -1100,30 +1116,15 @@ class TestFileCoverageCache:
                 if test_file_path_obj.exists():
                     test_files_to_run.add(test_file_path_obj)
 
-        # Also discover test files that aren't in cache yet (new test files)
-        # These should be run if they cover changed domains
+        # Also discover test files that aren't in cache yet (new test files).
+        # Compare normalized paths so Windows backslashes cannot look "new".
         for test_file in self._iter_test_files():
-            test_file_rel = str(test_file.relative_to(self.project_root))
-            if test_file_rel not in test_files:
-                # New test file - check if it covers changed domains
-                test_file_markers = self.domain_mapper.parse_markers_from_test_file(
-                    test_file
+            if self._cache_entry_for_rel(self._test_file_rel(test_file)) is None:
+                file_domains = self.get_test_files_domains(
+                    test_file, force_refresh=True
                 )
-                # Check if test file is in a directory that maps to changed domains
-                for domain in changed_domains:
-                    test_dirs = self.domain_mapper.get_test_domains_for_source(
-                        f"{domain}/dummy.py"
-                    )
-                    for test_dir in test_dirs:
-                        if test_file.is_relative_to(self.project_root / test_dir):
-                            test_files_to_run.add(test_file)
-                            break
-                    # Also check markers
-                    domain_markers = self.domain_mapper.get_markers_for_source(
-                        f"{domain}/dummy.py"
-                    )
-                    if test_file_markers & domain_markers:
-                        test_files_to_run.add(test_file)
+                if file_domains & changed_domains:
+                    test_files_to_run.add(test_file)
 
         return sorted(test_files_to_run)
 
@@ -1146,13 +1147,12 @@ class TestFileCoverageCache:
             Set of domain names that this test file covers
         """
         domains = set()
-        test_file_rel = str(test_file.relative_to(self.project_root))
 
         # Check cache first unless caller explicitly requests a refresh from file content.
         if not force_refresh:
-            test_files = self.cache_data.get("test_files", {})
-            if test_file_rel in test_files:
-                cached_domains = test_files[test_file_rel].get("domains", [])
+            cached_entry = self._cache_entry_for_rel(self._test_file_rel(test_file))
+            if cached_entry:
+                cached_domains = cached_entry.get("domains", [])
                 if cached_domains:
                     domains.update(cached_domains)
                     return domains

@@ -40,7 +40,7 @@ def _default_domain_mapper_config() -> dict:
     """Fallback when config module is unavailable."""
     return {
         "source_to_test_mapping": {
-            "core": [["tests/core/", "tests/unit/"], ["core"]],
+            "core": [["tests/core/"], ["core"]],
             "communication": [["tests/communication/"], ["communication"]],
             "ui": [["tests/ui/"], ["ui"]],
             "tasks": [[], ["tasks"]],
@@ -55,30 +55,18 @@ def _default_domain_mapper_config() -> dict:
             "development_tools": [["tests/development_tools/"], []],
         },
         "domain_dependencies": {
-            "core": [
-                "communication",
-                "ui",
-                "tasks",
-                "ai",
-                "user",
-                "notebook",
-                "scheduler",
-                "checkins",
-                "integrations",
-                "messages",
-                "storage",
-            ],
-            "communication": ["ui", "tasks", "ai", "user", "checkins", "messages"],
-            "tasks": ["communication", "ui"],
-            "user": ["communication", "ui", "ai", "storage"],
-            "ai": ["communication", "ui"],
+            "core": [],
+            "communication": [],
+            "tasks": [],
+            "user": [],
+            "ai": [],
             "ui": [],
-            "notebook": ["communication", "ui"],
-            "scheduler": ["communication", "core"],
-            "checkins": ["communication", "user"],
-            "messages": ["communication"],
+            "notebook": [],
+            "scheduler": [],
+            "checkins": [],
+            "messages": [],
             "storage": [],
-            "integrations": ["core", "communication", "scheduler"],
+            "integrations": [],
             "development_tools": [],
         },
         "keyword_map": {
@@ -402,10 +390,10 @@ class DomainMapper:
         """
         Expand domains to include transitive cross-domain dependencies.
 
-        ``domain_dependencies[X]`` is the set of domains to also invalidate when
-        *X* changes. Keep leaves such as ``storage`` empty so a persistence-only
-        edit does not walk through ``core`` and invalidate the whole product suite.
-        ``core`` may still list ``storage`` (core edits still rerun storage tests).
+        ``domain_dependencies[X]`` is the set of extra domains to invalidate when
+        *X* changes. Product defaults keep these lists empty so a core (or other)
+        source edit does not fan out to unrelated domains. Tests for other domains
+        are selected via domain markers and mapped test directories, not this map.
 
         Args:
             domains: Initial changed domains
@@ -496,13 +484,25 @@ class DomainMapper:
         """
         Infer test domains from file path/name when markers are missing.
 
+        Uses the path relative to the project root so drive/user folders and
+        scratch parents (for example ``Users`` or ``coverage`` in a temp path)
+        cannot attribute unrelated domains.
+
         Args:
             test_file: Path to test file
 
         Returns:
             Set of inferred domain names
         """
-        path_lower = test_file.as_posix().lower()
+        try:
+            path_lower = (
+                test_file.resolve()
+                .relative_to(self.project_root.resolve())
+                .as_posix()
+                .lower()
+            )
+        except ValueError:
+            path_lower = Path(test_file).as_posix().lower()
         inferred = set()
 
         for domain, keywords in self._keyword_map.items():

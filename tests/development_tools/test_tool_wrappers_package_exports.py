@@ -19,13 +19,13 @@ def test_run_analyze_package_exports_success_populates_summary(temp_project_copy
     monkeypatch.setattr(
         target_module,
         "analyze_imports_for_packages",
-        lambda packages: {pkg: {} for pkg in packages},
+        lambda packages, parsed_modules=None: {pkg: {} for pkg in packages},
         raising=True,
     )
     monkeypatch.setattr(
         target_module,
         "scan_package_modules_for_packages",
-        lambda packages: {pkg: {} for pkg in packages},
+        lambda packages, parsed_modules=None: {pkg: {} for pkg in packages},
         raising=True,
     )
     monkeypatch.setattr(

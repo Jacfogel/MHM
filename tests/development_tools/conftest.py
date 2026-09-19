@@ -264,10 +264,12 @@ def load_development_tools_module(module_name: str):
 
     # Load imports package if needed (for generate_module_dependencies imports)
     imports_init = project_root / "development_tools" / "imports" / "__init__.py"
+    imports_pkg_path = str(project_root / "development_tools" / "imports")
     if imports_init.exists() and "development_tools.imports" not in sys.modules:
         imports_spec = importlib.util.spec_from_file_location("development_tools.imports", imports_init)
         if imports_spec is not None and imports_spec.loader is not None:
             imports_module = importlib.util.module_from_spec(imports_spec)
+            imports_module.__path__ = [imports_pkg_path]
             sys.modules["development_tools.imports"] = imports_module
             imports_spec.loader.exec_module(imports_module)
             # Make config available for "from . import config" imports
@@ -275,6 +277,11 @@ def load_development_tools_module(module_name: str):
                 setattr(imports_module, "config", sys.modules["development_tools.config"])  # noqa: B010
             elif "development_tools.config.config" in sys.modules:
                 setattr(imports_module, "config", sys.modules["development_tools.config.config"])  # noqa: B010
+    imports_pkg = sys.modules.get("development_tools.imports")
+    if imports_pkg is not None:
+        imports_pkg.__path__ = [imports_pkg_path]
+        if "development_tools" in sys.modules:
+            setattr(sys.modules["development_tools"], "imports", imports_pkg)  # noqa: B010
 
     # Load reports package if needed (for system_signals and quick_status imports)
     reports_init = project_root / "development_tools" / "reports" / "__init__.py"
@@ -303,6 +310,22 @@ def load_development_tools_module(module_name: str):
                 setattr(functions_module, "config", sys.modules["development_tools.config"])  # noqa: B010
             elif "development_tools.config.config" in sys.modules:
                 setattr(functions_module, "config", sys.modules["development_tools.config.config"])  # noqa: B010
+
+    # Load error_handling package if needed (for in-process analyze_error_handling imports)
+    error_init = project_root / "development_tools" / "error_handling" / "__init__.py"
+    if error_init.exists() and "development_tools.error_handling" not in sys.modules:
+        error_spec = importlib.util.spec_from_file_location(
+            "development_tools.error_handling", error_init
+        )
+        if error_spec is not None and error_spec.loader is not None:
+            error_module = importlib.util.module_from_spec(error_spec)
+            error_module.__path__ = [
+                str(project_root / "development_tools" / "error_handling")
+            ]
+            sys.modules["development_tools.error_handling"] = error_module
+            error_spec.loader.exec_module(error_module)
+            if "development_tools" in sys.modules:
+                setattr(sys.modules["development_tools"], "error_handling", error_module)  # noqa: B010
 
     # Load docs package if needed (for analyze_path_drift and other docs tools)
     docs_init = project_root / "development_tools" / "docs" / "__init__.py"

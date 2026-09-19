@@ -121,9 +121,11 @@ class TestConversationManagerBehavior:
             mock_get_data.return_value = {
                 'preferences': {
                     'checkin_settings': {
+                        'min_questions': 2,
+                        'max_questions': 2,
                         'questions': {
-                            'mood': {'enabled': True},
-                            'energy': {'enabled': True}
+                            'mood': {'enabled': True, 'always_include': True},
+                            'energy': {'enabled': True, 'always_include': True}
                         },
                         'welcome_message': 'Welcome to your check-in!'
                     }
@@ -583,10 +585,12 @@ class TestConversationManagerIntegration:
             mock_get_data.return_value = {
                 'preferences': {
                     'checkin_settings': {
+                        'min_questions': 3,
+                        'max_questions': 3,
                         'questions': {
-                            'mood': {'enabled': True},
-                            'energy': {'enabled': True},
-                            'daily_reflection': {'enabled': True}
+                            'mood': {'enabled': True, 'always_include': True},
+                            'energy': {'enabled': True, 'always_include': True},
+                            'daily_reflection': {'enabled': True, 'always_include': True}
                         },
                         'welcome_message': 'Welcome to your check-in!'
                     }

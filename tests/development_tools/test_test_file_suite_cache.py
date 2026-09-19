@@ -142,6 +142,29 @@ def test_suite_profile_change_invalidates_full_cache(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_suite_cache_copies_coverage_invalidation_reason_after_lookup(tmp_path: Path):
+    """Coverage invalidation reason must be read after get_changed_domains runs."""
+    cache = _make_cache(tmp_path)
+    cache.cache_data["last_run_ok"] = True
+    cache.cache_data["last_parallel_ok"] = True
+    cache.cache_data["last_suite_profile"] = "quick"
+    cache._store_tool_hashes()
+    cache._save_cache()
+    cache.coverage_cache.last_invalidation_reason = None
+
+    def _fake_changed() -> set[str]:
+        cache.coverage_cache.last_invalidation_reason = "source_domain_changed"
+        return {"core"}
+
+    cache.coverage_cache.get_changed_domains = _fake_changed
+
+    changed = cache.get_changed_domains("quick")
+
+    assert changed == {"core"}
+    assert cache.last_invalidation_reason == "source_domain_changed"
+
+
+@pytest.mark.unit
 def test_cache_test_file_suite_keeps_existing_results_when_phase_missing(tmp_path: Path):
     cache = _make_cache(tmp_path)
     test_file = _PROJECT_ROOT / "tests/development_tools/test_test_file_suite_cache.py"

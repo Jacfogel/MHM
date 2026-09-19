@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import ast
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
@@ -144,18 +145,24 @@ def node_complexity(node: ast.AST) -> int:
 
 
 def extract_functions_and_classes(
-    path: Path, errors: list[str]
+    path: Path,
+    errors: list[str],
+    *,
+    source: str | None = None,
+    tree: ast.AST | None = None,
 ) -> tuple[list[FunctionRecord], list[ClassRecord]]:
-    try:
-        source = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as exc:
-        errors.append(f"Read error {path}: {exc}")
-        return [], []
-    try:
-        tree = ast.parse(source, filename=str(path))
-    except SyntaxError as exc:
-        errors.append(f"Syntax error {path}: line {exc.lineno}: {exc.msg}")
-        return [], []
+    if source is None:
+        try:
+            source = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            errors.append(f"Read error {path}: {exc}")
+            return [], []
+    if tree is None:
+        try:
+            tree = ast.parse(source, filename=str(path))
+        except SyntaxError as exc:
+            errors.append(f"Syntax error {path}: line {exc.lineno}: {exc.msg}")
+            return [], []
 
     functions: list[FunctionRecord] = []
     classes: list[ClassRecord] = []
@@ -196,27 +203,49 @@ def extract_functions_and_classes(
     return functions, classes
 
 
-def collect_project_inventory(errors: list[str]) -> dict[str, InventoryEntry]:
+def collect_project_inventory(
+    errors: list[str],
+    parsed_modules: Sequence[Any] | None = None,
+) -> dict[str, InventoryEntry]:
     inventory: dict[str, InventoryEntry] = {}
     seen: set[Path] = set()
+    skip_self = (CURRENT_DIR / "analyze_function_registry.py").resolve()
 
-    for source_path in iter_python_sources(
-        config.get_scan_directories(), context="production"
-    ):
-        resolved = source_path.resolve()
-        seen.add(resolved)
-        try:
-            relative = resolved.relative_to(PATHS.root)
-            key = str(relative).replace("\\", "/")
-        except ValueError:
-            key = str(resolved)
-        functions, classes = extract_functions_and_classes(resolved, errors)
-        inventory[key] = {
-            "functions": functions,
-            "classes": classes,
-            "total_functions": len(functions),
-            "total_classes": len(classes),
-        }
+    if parsed_modules is not None:
+        for module in parsed_modules:
+            resolved = Path(module.path).resolve()
+            if resolved == skip_self:
+                continue
+            seen.add(resolved)
+            key = str(getattr(module, "relative", None) or Path(module.path).name)
+            key = key.replace("\\", "/")
+            functions, classes = extract_functions_and_classes(
+                resolved, errors, source=module.source, tree=module.tree
+            )
+            inventory[key] = {
+                "functions": functions,
+                "classes": classes,
+                "total_functions": len(functions),
+                "total_classes": len(classes),
+            }
+    else:
+        for source_path in iter_python_sources(
+            config.get_scan_directories(), context="production"
+        ):
+            resolved = source_path.resolve()
+            seen.add(resolved)
+            try:
+                relative = resolved.relative_to(PATHS.root)
+                key = str(relative).replace("\\", "/")
+            except ValueError:
+                key = str(resolved)
+            functions, classes = extract_functions_and_classes(resolved, errors)
+            inventory[key] = {
+                "functions": functions,
+                "classes": classes,
+                "total_functions": len(functions),
+                "total_classes": len(classes),
+            }
 
     key_file_names = {
         Path(name).name for name in (config.get_project_key_files([]) or [])
@@ -224,9 +253,7 @@ def collect_project_inventory(errors: list[str]) -> dict[str, InventoryEntry]:
 
     for source_path in PATHS.root.glob("*.py"):
         resolved = source_path.resolve()
-        if resolved in seen or resolved == (
-            CURRENT_DIR / "analyze_function_registry.py"
-        ):
+        if resolved in seen or resolved == skip_self:
             continue
         is_key_file = source_path.name in key_file_names
         if not is_key_file and should_exclude_file(
@@ -630,6 +657,7 @@ def execute(
     args: argparse.Namespace,
     project_root: Path | None = None,
     config_path: str | None = None,
+    parsed_modules: Sequence[Any] | None = None,
 ):
     """Execute audit with optional project_root and config_path."""
     try:
@@ -660,7 +688,7 @@ def execute(
             )
             MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
         errors: list[str] = []
-        inventory = collect_project_inventory(errors)
+        inventory = collect_project_inventory(errors, parsed_modules=parsed_modules)
         registry = parse_registry_document()
         try:
             metrics = build_metrics(inventory, registry)

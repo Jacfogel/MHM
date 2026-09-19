@@ -100,31 +100,32 @@ def test_scratch_mapper_keeps_builtin_map_when_live_config_is_empty(
             "communication"
         }
         expanded = mapper.expand_domains_with_dependencies({"core"})
-        assert "communication" in expanded
-        assert "ui" in expanded
+        assert expanded == {"core"}
+        assert "communication" not in expanded
+        assert "ui" not in expanded
     finally:
         _cleanup_local_scratch_dir(temp_dir)
 
 
 @pytest.mark.unit
 def test_domain_mapper_expands_cross_domain_dependencies() -> None:
-    """Changed domains should include configured dependent domains."""
+    """Configured dependents are included; product defaults do not fan out from core."""
     temp_dir = _make_local_scratch_dir()
     try:
-        mapper = _scratch_mapper(temp_dir)
+        default_mapper = _scratch_mapper(temp_dir)
+        assert default_mapper.expand_domains_with_dependencies({"core"}) == {"core"}
+
+        custom = dict(_SCRATCH_MAPPER_CONFIG)
+        custom["domain_dependencies"] = {
+            "core": ["communication"],
+            "communication": ["ui"],
+        }
+        mapper = DomainMapper(temp_dir, mapper_config=custom)
         expanded = mapper.expand_domains_with_dependencies({"core"})
 
-        assert "core" in expanded
-        assert "communication" in expanded
-        assert "ui" in expanded
-        assert "tasks" in expanded
-        assert "ai" in expanded
-        assert "user" in expanded
-        assert "notebook" in expanded
-        assert "scheduler" in expanded
-        assert "checkins" in expanded
-        assert "messages" in expanded
-        assert "storage" in expanded
+        assert expanded == {"core", "communication", "ui"}
+        assert "tasks" not in expanded
+        assert "storage" not in expanded
     finally:
         _cleanup_local_scratch_dir(temp_dir)
 
@@ -152,12 +153,12 @@ def test_domain_mapper_get_test_files_for_source_includes_domain_tests() -> None
     temp_dir = _make_local_scratch_dir()
     try:
         core_dir = temp_dir / "core"
-        tests_unit_dir = temp_dir / "tests" / "unit"
+        tests_core_dir = temp_dir / "tests" / "core"
         core_dir.mkdir(parents=True, exist_ok=True)
-        tests_unit_dir.mkdir(parents=True, exist_ok=True)
+        tests_core_dir.mkdir(parents=True, exist_ok=True)
 
         (core_dir / "service.py").write_text("def f():\n    return 1\n", encoding="utf-8")
-        expected_test_file = tests_unit_dir / "test_service.py"
+        expected_test_file = tests_core_dir / "test_service.py"
         expected_test_file.write_text(
             "import pytest\n\n@pytest.mark.unit\ndef test_service():\n    assert True\n",
             encoding="utf-8",
@@ -177,14 +178,14 @@ def test_domain_mapper_get_test_files_for_source_excludes_tests_data() -> None:
     temp_dir = _make_local_scratch_dir()
     try:
         core_dir = temp_dir / "core"
-        tests_unit_dir = temp_dir / "tests" / "unit"
+        tests_core_dir = temp_dir / "tests" / "core"
         tests_data_dir = temp_dir / "tests" / "data" / "pytest-of-worker"
         core_dir.mkdir(parents=True, exist_ok=True)
-        tests_unit_dir.mkdir(parents=True, exist_ok=True)
+        tests_core_dir.mkdir(parents=True, exist_ok=True)
         tests_data_dir.mkdir(parents=True, exist_ok=True)
 
         (core_dir / "service.py").write_text("def f():\n    return 1\n", encoding="utf-8")
-        included_test_file = tests_unit_dir / "test_service.py"
+        included_test_file = tests_core_dir / "test_service.py"
         included_test_file.write_text(
             "import pytest\n\n@pytest.mark.unit\ndef test_service():\n    assert True\n",
             encoding="utf-8",
@@ -235,18 +236,18 @@ def test_domain_mapper_domains_from_attribution_markers_none_without_domain_mark
 
 @pytest.mark.unit
 def test_cache_invalidates_domains_when_test_file_changes() -> None:
-    """Changing a test file should invalidate affected (and dependent) domains."""
+    """Changing a test file should invalidate only the domains that file covers."""
     temp_path = _make_local_scratch_dir()
     try:
-        (temp_path / "tests" / "unit").mkdir(parents=True, exist_ok=True)
+        (temp_path / "tests" / "core").mkdir(parents=True, exist_ok=True)
         (temp_path / "core").mkdir(parents=True, exist_ok=True)
 
         source_file = temp_path / "core" / "demo_module.py"
         source_file.write_text("def f():\n    return 1\n", encoding="utf-8")
 
-        test_file = temp_path / "tests" / "unit" / "test_demo_module.py"
+        test_file = temp_path / "tests" / "core" / "test_demo_module.py"
         test_file.write_text(
-            "import pytest\n\n@pytest.mark.unit\ndef test_demo():\n    assert True\n",
+            "import pytest\n\n@pytest.mark.core\ndef test_demo():\n    assert True\n",
             encoding="utf-8",
         )
 
@@ -267,7 +268,7 @@ def test_cache_invalidates_domains_when_test_file_changes() -> None:
 
         # Modify the test file and bump mtime explicitly for deterministic detection.
         test_file.write_text(
-            "import pytest\n\n@pytest.mark.unit\ndef test_demo():\n    assert 1 == 1\n",
+            "import pytest\n\n@pytest.mark.core\ndef test_demo():\n    assert 1 == 1\n",
             encoding="utf-8",
         )
         current_stat = test_file.stat()
@@ -276,9 +277,7 @@ def test_cache_invalidates_domains_when_test_file_changes() -> None:
         cache._cached_changed_domains = None
         changed_domains = cache.get_changed_domains()
 
-        assert "core" in changed_domains
-        # Dependency expansion should pull in communication from core changes.
-        assert "communication" in changed_domains
+        assert changed_domains == {"core"}
         assert cache.last_invalidation_reason == "test_file_content_or_mapping_changed"
     finally:
         _cleanup_local_scratch_dir(temp_path)
@@ -606,7 +605,7 @@ def test_get_test_files_domains_fallback_uses_directory_when_no_attribution_mark
     """No domain-attribution markers → legacy directory / keyword mapping."""
     temp_path = _make_local_scratch_dir()
     try:
-        unit_dir = temp_path / "tests" / "unit"
+        unit_dir = temp_path / "tests" / "core"
         unit_dir.mkdir(parents=True)
         f = unit_dir / "test_no_marks.py"
         f.write_text("def test_x():\n    assert True\n", encoding="utf-8")
@@ -640,5 +639,105 @@ def test_config_changed_ignores_mtime_only_rewrite() -> None:
         cfg.write_text('{"k": 2}\n', encoding="utf-8")
         os.utime(cfg, (cached_mtime + 10, cached_mtime + 10))
         assert cache._config_changed() is True
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_unit_tests_are_not_selected_for_core_domain() -> None:
+    """tests/unit/ is a category folder; core owns tests/core/ plus @pytest.mark.core."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        core_dir = temp_path / "tests" / "core"
+        unit_dir.mkdir(parents=True)
+        core_dir.mkdir(parents=True)
+        tasks_file = unit_dir / "test_saved_items.py"
+        tasks_file.write_text(
+            "import pytest\n\n@pytest.mark.tasks\ndef test_x():\n    assert True\n",
+            encoding="utf-8",
+        )
+        core_file = core_dir / "test_logger.py"
+        core_file.write_text(
+            "import pytest\n\n@pytest.mark.core\ndef test_y():\n    assert True\n",
+            encoding="utf-8",
+        )
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
+        cache.update_test_file_mapping(tasks_file)
+        cache.update_test_file_mapping(core_file)
+        to_run = cache.get_test_files_to_run({"core"})
+        rels = {str(p.relative_to(temp_path)).replace("\\", "/") for p in to_run}
+        assert rels == {"tests/core/test_logger.py"}
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_get_test_files_domains_uses_normalized_cache_keys() -> None:
+    """Cache lookups must match Windows Path relatives to forward-slash keys."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        unit_dir.mkdir(parents=True)
+        tasks_file = unit_dir / "test_saved_items.py"
+        tasks_file.write_text(
+            "import pytest\n\n@pytest.mark.tasks\ndef test_x():\n    assert True\n",
+            encoding="utf-8",
+        )
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
+        cache.cache_data["test_files"] = {
+            "tests/unit/test_saved_items.py": {"domains": ["tasks"]}
+        }
+        doms = cache.get_test_files_domains(tasks_file)
+        assert doms == {"tasks"}
+        to_run = cache.get_test_files_to_run({"core"})
+        assert to_run == []
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_uncached_unit_file_uses_markers_not_core_directory() -> None:
+    """A new tests/unit/ file is attributed by domain markers, not the core tree."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        unit_dir.mkdir(parents=True)
+        tasks_file = unit_dir / "test_saved_items.py"
+        tasks_file.write_text(
+            "import pytest\n\n@pytest.mark.tasks\ndef test_x():\n    assert True\n",
+            encoding="utf-8",
+        )
+        cache = _scratch_cache(temp_path, cache_dir=temp_path / "cache")
+        assert cache.cache_data.get("test_files") == {}
+        core_rels = {
+            str(p.relative_to(temp_path)).replace("\\", "/")
+            for p in cache.get_test_files_to_run({"core"})
+        }
+        task_rels = {
+            str(p.relative_to(temp_path)).replace("\\", "/")
+            for p in cache.get_test_files_to_run({"tasks"})
+        }
+        assert core_rels == set()
+        assert task_rels == {"tests/unit/test_saved_items.py"}
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_keyword_inference_uses_project_relative_path() -> None:
+    """Absolute parents such as Users/ or coverage scratch folders must not attribute domains."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        unit_dir.mkdir(parents=True)
+        f = unit_dir / "test_zz.py"
+        f.write_text("def test_x():\n    assert True\n", encoding="utf-8")
+        mapper = _scratch_mapper(temp_path)
+        inferred = mapper.infer_domains_from_test_path(f)
+        assert "user" not in inferred
+        assert "development_tools" not in inferred
+        assert "ai" not in inferred
+        assert inferred == set()
     finally:
         _cleanup_local_scratch_dir(temp_path)

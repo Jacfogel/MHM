@@ -39,10 +39,10 @@
     },
     {
       "tool": "analyze_error_handling",
-      "strategy": "per_run_json_overwrite",
-      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "strategy": "mtime_file_cache_plus_shared_parse",
+      "implementation": "MtimeFileCache per-file results plus in-process reuse of shared_function_scan.ParsedModule trees from _ensure_shared_function_scan",
       "artifact_glob": "development_tools/**/jsons/scopes/*/error_handling/*.json",
-      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+      "invalidation": "File mtimes, config content hash, and tool hash; audit runs skip re-parse when the shared AST is already available"
     },
     {
       "tool": "analyze_facade_shims",
@@ -60,10 +60,10 @@
     },
     {
       "tool": "analyze_function_registry",
-      "strategy": "per_run_json_overwrite",
-      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "strategy": "shared_function_scan_reuse",
+      "implementation": "In-process wrappers walk shared_function_scan.ParsedModule trees instead of subprocess re-parse",
       "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
-      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+      "invalidation": "Full re-walk of shared parse trees each audit; no extra file parse"
     },
     {
       "tool": "analyze_functions",
@@ -88,10 +88,10 @@
     },
     {
       "tool": "analyze_module_imports",
-      "strategy": "per_run_json_overwrite",
-      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "strategy": "mtime_file_cache_plus_shared_parse",
+      "implementation": "MtimeFileCache per-file results plus in-process reuse of shared_function_scan.ParsedModule trees from _ensure_shared_function_scan",
       "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
-      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+      "invalidation": "File mtimes, config content hash, and tool hash; audit runs skip re-parse when the shared AST is already available"
     },
     {
       "tool": "analyze_module_refactor_candidates",
@@ -102,10 +102,10 @@
     },
     {
       "tool": "analyze_package_exports",
-      "strategy": "per_run_json_overwrite",
-      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "strategy": "shared_function_scan_reuse",
+      "implementation": "In-process wrappers walk shared_function_scan.ParsedModule trees instead of subprocess re-parse",
       "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
-      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+      "invalidation": "Full re-walk of shared parse trees each audit; no extra file parse"
     },
     {
       "tool": "analyze_pip_audit",

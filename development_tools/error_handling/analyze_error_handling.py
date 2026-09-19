@@ -218,15 +218,30 @@ class ErrorHandlingAnalyzer:
             'details': self.results.copy()
         }
 
-    def analyze_file(self, file_path: Path) -> dict[str, Any]:
+    def analyze_file(
+        self,
+        file_path: Path,
+        *,
+        source: str | None = None,
+        tree: ast.AST | None = None,
+    ) -> dict[str, Any]:
         """Analyze error handling in a single Python file."""
         try:
-            with open(file_path, encoding='utf-8') as f:
-                content = f.read()
-            
-            tree = ast.parse(content)
+            if source is None:
+                with open(file_path, encoding='utf-8') as f:
+                    content = f.read()
+            else:
+                content = source
+            if tree is None:
+                tree = ast.parse(content)
+            try:
+                file_path_str = str(
+                    Path(file_path).resolve().relative_to(self.project_root.resolve())
+                )
+            except ValueError:
+                file_path_str = str(file_path)
             file_results = {
-                'file_path': str(file_path.relative_to(self.project_root)),
+                'file_path': file_path_str,
                 'functions': [],
                 'classes': [],
                 'error_patterns_found': set(),
@@ -286,7 +301,12 @@ class ErrorHandlingAnalyzer:
             return file_results
             
         except Exception as e:
-            file_path_str = str(file_path.relative_to(self.project_root))
+            try:
+                file_path_str = str(
+                    Path(file_path).resolve().relative_to(self.project_root.resolve())
+                )
+            except ValueError:
+                file_path_str = str(file_path)
             logger.warning(f"Failed to analyze file {file_path_str}: {e}", exc_info=True)
             return {
                 'file_path': file_path_str,
@@ -949,54 +969,66 @@ class ErrorHandlingAnalyzer:
         else:
             return "root"
 
-    def analyze_project(self, include_tests: bool = False, include_dev_tools: bool = False) -> dict[str, Any]:
+    def analyze_project(
+        self,
+        include_tests: bool = False,
+        include_dev_tools: bool = False,
+        parsed_modules: list[Any] | tuple[Any, ...] | None = None,
+    ) -> dict[str, Any]:
         """Analyze error handling across the entire project."""
         logger.debug("Analyzing error handling coverage...")
         
-        # Determine context based on configuration
-        if include_tests and include_dev_tools:
-            context = 'development'  # Include everything
-        elif include_tests or include_dev_tools:
-            context = 'development'  # More permissive
+        parsed_by_resolved: dict[Path, Any] = {}
+        if parsed_modules is not None:
+            python_files = []
+            for module in parsed_modules:
+                resolved = Path(module.path).resolve()
+                parsed_by_resolved[resolved] = module
+                python_files.append(Path(module.path))
         else:
-            context = 'production'   # Exclude tests and dev tools
-        
-        # Find all Python files using context-based exclusions
-        # Use same scan directories as analyze_functions for consistency
-        try:
-            from .. import config  # Go up one level from error_handling/ to development_tools/
-        except ImportError:
-            from development_tools import config
-        
-        # Load external config if not already loaded
-        config.load_external_config()
-        
-        # Get scan directories from config (same as analyze_functions)
-        scan_directories = config.get_scan_directories()
-        
-        # Add optional directories based on flags
-        if include_tests and 'tests' not in scan_directories:
-            scan_directories = list(scan_directories) + ['tests']
-        if include_dev_tools and 'development_tools' not in scan_directories:
-            scan_directories = list(scan_directories) + ['development_tools']
-        
-        python_files = []
-        
-        # Scan configured directories (same approach as analyze_functions)
-        for scan_dir in scan_directories:
-            dir_path = self.project_root / scan_dir
-            if not dir_path.exists():
-                continue
-            for py_file in dir_path.rglob('*.py'):
+            # Determine context based on configuration
+            if include_tests and include_dev_tools:
+                context = 'development'  # Include everything
+            elif include_tests or include_dev_tools:
+                context = 'development'  # More permissive
+            else:
+                context = 'production'   # Exclude tests and dev tools
+            # Find all Python files using context-based exclusions
+            # Use same scan directories as analyze_functions for consistency
+            try:
+                from .. import config  # Go up one level from error_handling/ to development_tools/
+            except ImportError:
+                from development_tools import config
+            
+            # Load external config if not already loaded
+            config.load_external_config()
+            
+            # Get scan directories from config (same as analyze_functions)
+            scan_directories = config.get_scan_directories()
+            
+            # Add optional directories based on flags
+            if include_tests and 'tests' not in scan_directories:
+                scan_directories = list(scan_directories) + ['tests']
+            if include_dev_tools and 'development_tools' not in scan_directories:
+                scan_directories = list(scan_directories) + ['development_tools']
+            
+            python_files = []
+            
+            # Scan configured directories (same approach as analyze_functions)
+            for scan_dir in scan_directories:
+                dir_path = self.project_root / scan_dir
+                if not dir_path.exists():
+                    continue
+                for py_file in dir_path.rglob('*.py'):
+                    # Use context-based exclusions
+                    if not should_exclude_file(str(py_file), 'analysis', context):
+                        python_files.append(py_file)
+            
+            # Also scan root directory for .py files (entry points)
+            for py_file in self.project_root.glob('*.py'):
                 # Use context-based exclusions
                 if not should_exclude_file(str(py_file), 'analysis', context):
                     python_files.append(py_file)
-        
-        # Also scan root directory for .py files (entry points)
-        for py_file in self.project_root.glob('*.py'):
-            # Use context-based exclusions
-            if not should_exclude_file(str(py_file), 'analysis', context):
-                python_files.append(py_file)
         
         logger.debug(f"Found {len(python_files)} Python files to analyze")
         
@@ -1008,7 +1040,13 @@ class ErrorHandlingAnalyzer:
                 if cached is not None:
                     file_results.append(cached)
                     continue
-            file_analysis = self.analyze_file(file_path)
+            module = parsed_by_resolved.get(Path(file_path).resolve())
+            if module is not None:
+                file_analysis = self.analyze_file(
+                    file_path, source=module.source, tree=module.tree
+                )
+            else:
+                file_analysis = self.analyze_file(file_path)
             # Cache-friendly: convert set to list for serialization
             if isinstance(file_analysis, dict) and isinstance(
                 file_analysis.get("error_patterns_found"), set

@@ -19,6 +19,7 @@ import ast
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -79,13 +80,19 @@ def _import_is_inside_package(file_key: str, package_name: str) -> bool:
     )
 
 
-def extract_imports_from_file(file_path: str) -> dict[str, Any]:
+def extract_imports_from_file(
+    file_path: str,
+    *,
+    source: str | None = None,
+    tree: ast.AST | None = None,
+) -> dict[str, Any]:
     """Extract all imports from a Python file."""
     try:
-        with open(file_path, encoding="utf-8") as f:
-            content = f.read()
-
-        tree = ast.parse(content, filename=file_path)
+        if not isinstance(tree, ast.Module):
+            if source is None:
+                with open(file_path, encoding="utf-8") as f:
+                    source = f.read()
+            tree = ast.parse(source, filename=file_path)
 
         imports = {
             "from_imports": [],  # from package.module import item
@@ -163,14 +170,39 @@ def extract_imports_from_file(file_path: str) -> dict[str, Any]:
         return {"from_imports": [], "direct_imports": [], "module_items": []}
 
 
-def scan_package_modules(package_name: str) -> dict[str, list[str]]:
+def scan_package_modules(
+    package_name: str,
+    parsed_modules: Sequence[Any] | None = None,
+) -> dict[str, list[str]]:
     """Scan all modules in a package and extract public API items."""
     package_path = project_root / package_name
 
-    if not package_path.exists() or not package_path.is_dir():
+    if parsed_modules is None and (
+        not package_path.exists() or not package_path.is_dir()
+    ):
         return {}
 
     package_api = defaultdict(list)
+    prefix = f"{package_name}/"
+
+    if parsed_modules is not None:
+        for module in parsed_modules:
+            rel = str(getattr(module, "relative", "") or "").replace("\\", "/")
+            if not (rel == f"{package_name}.py" or rel.startswith(prefix)):
+                continue
+            if Path(rel).name == "__init__.py":
+                continue
+            if "generated" in rel:
+                continue
+            module_path = rel.replace("/", ".").replace(".py", "")
+            imports = extract_imports_from_file(
+                str(module.path), source=module.source, tree=module.tree
+            )
+            module_items = imports.get("module_items") or []
+            for item in module_items:
+                if isinstance(item, dict) and "name" in item:
+                    package_api[module_path].append(item["name"])
+        return dict(package_api)
 
     for py_file in package_path.rglob("*.py"):
         # Skip __init__.py for now
@@ -206,7 +238,10 @@ def analyze_imports_for_package(package_name: str) -> dict[str, UsageStats]:
     return analyze_imports_for_packages([package_name]).get(package_name, {})
 
 
-def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str, UsageStats]]:
+def analyze_imports_for_packages(
+    package_names: list[str],
+    parsed_modules: Sequence[Any] | None = None,
+) -> dict[str, dict[str, UsageStats]]:
     """Analyze imports for multiple packages with one full-repo scan."""
     package_set = set(package_names)
     # Intermediate structure uses set() for import_types; result converts to List for UsageStats
@@ -214,17 +249,26 @@ def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str
         package: defaultdict(_empty_usage_stats) for package in package_set
     }
 
-    # Scan all Python files once for all packages
-    for py_file in project_root.rglob("*.py"):
-        if should_exclude_file(str(py_file), "analysis", "production"):
-            continue
+    file_iter: list[tuple[str, str, str | None, ast.AST | None]] = []
+    if parsed_modules is not None:
+        for module in parsed_modules:
+            rel = str(getattr(module, "relative", "") or "").replace("\\", "/")
+            file_iter.append((str(module.path), rel, module.source, module.tree))
+    else:
+        # Scan all Python files once for all packages
+        for py_file in project_root.rglob("*.py"):
+            if should_exclude_file(str(py_file), "analysis", "production"):
+                continue
 
-        if "__pycache__" in str(py_file) or "pytest-of-" in str(py_file):
-            continue
+            if "__pycache__" in str(py_file) or "pytest-of-" in str(py_file):
+                continue
 
-        imports = extract_imports_from_file(str(py_file))
-        rel_path = py_file.relative_to(project_root)
-        file_key = str(rel_path).replace("\\", "/")
+            rel_path = py_file.relative_to(project_root)
+            file_key = str(rel_path).replace("\\", "/")
+            file_iter.append((str(py_file), file_key, None, None))
+
+    for file_path, file_key, source, tree in file_iter:
+        imports = extract_imports_from_file(file_path, source=source, tree=tree)
 
         for imp in imports.get("from_imports") or []:
             if not isinstance(imp, dict):
@@ -273,9 +317,17 @@ def analyze_imports_for_packages(package_names: list[str]) -> dict[str, dict[str
     return result
 
 
-def scan_package_modules_for_packages(package_names: list[str]) -> dict[str, dict[str, list[str]]]:
+def scan_package_modules_for_packages(
+    package_names: list[str],
+    parsed_modules: Sequence[Any] | None = None,
+) -> dict[str, dict[str, list[str]]]:
     """Scan package modules for public API once per package and return an index."""
-    return {package_name: scan_package_modules(package_name) for package_name in package_names}
+    return {
+        package_name: scan_package_modules(
+            package_name, parsed_modules=parsed_modules
+        )
+        for package_name in package_names
+    }
 
 
 def parse_function_registry_for_packages(package_names: list[str]) -> dict[str, set[str]]:

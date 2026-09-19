@@ -46,3 +46,12 @@ def test_static_analysis_tools_use_shard_fragment_cache() -> None:
     by_tool = {e["tool"]: e for e in build_tool_cache_inventory()["entries"]}
     for name in ("analyze_pyright", "analyze_ruff", "analyze_bandit"):
         assert by_tool[name]["strategy"] == "shard_fragment_json_cache"
+
+
+@pytest.mark.unit
+def test_tier2_parse_reuse_cache_strategies() -> None:
+    by_tool = {e["tool"]: e for e in build_tool_cache_inventory()["entries"]}
+    assert by_tool["analyze_error_handling"]["strategy"] == "mtime_file_cache_plus_shared_parse"
+    assert by_tool["analyze_module_imports"]["strategy"] == "mtime_file_cache_plus_shared_parse"
+    assert by_tool["analyze_package_exports"]["strategy"] == "shared_function_scan_reuse"
+    assert by_tool["analyze_function_registry"]["strategy"] == "shared_function_scan_reuse"

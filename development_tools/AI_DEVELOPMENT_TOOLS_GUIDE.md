@@ -225,6 +225,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Caching**:
   - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when `development_tools/config/development_tools_config.json` *content* or the tool source changes. A timestamp-only rewrite of the config file does not bust the cache. Cache keys are namespaced by tool/domain/config-signature/tool-hash, and cache payload includes tool hash, tool mtimes, config hash, and last run status for failure-aware invalidation. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`. Legacy cache hits reuse stored matches without re-reading file contents; the INTENTIONAL LEGACY probe runs only on cache misses. Doc-sync freshness uses scoped `docs/jsons/scopes/<scope>/` result JSON, includes both changelogs, skips generated coverage/legacy-report mtimes, runs changelog trim before Tier 2 doc-sync, and path-drift uses the same skip as the other subchecks.
+  - **Shared function-scan reuse**: `analyze_error_handling`, `analyze_function_registry`, `analyze_package_exports`, and `analyze_module_imports` consume `_ensure_shared_function_scan()` trees in-process. Error-handling and module-imports still use `MtimeFileCache` for derived per-file results.
   - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
   - **Domain test suite cache (`tests/test_file_suite_cache.py`)**:
     - Per-test-file pytest outcomes for `run_test_suite`; reuses domain invalidation from `tests/test_file_coverage_cache.py`.
@@ -233,7 +234,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
     - Cache file: `development_tools/tests/jsons/test_file_suite_cache.json` (enabled by default; disable with `--no-domain-cache` on `run_test_suite`).
   - **Domain test coverage cache (`tests/test_file_coverage_cache.py`)**:
     - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
-    - `domain_dependencies.storage` is a leaf so storage-only edits do not fan out through `core`.
+    - Core maps to `tests/core/` and `@pytest.mark.core`, not all of `tests/unit/`. `domain_dependencies` defaults are empty so a source edit does not fan out to other product domains. Cache path keys are forward-slash normalized so Windows lookups do not treat cached files as new.
     - Stores run status and failed domains for failure-aware invalidation.
     - Stores tool hash/tool mtimes and config mtime plus content hash for global invalidation when cache logic or config *content* changes (mtime-only rewrites do not bust).
     - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`). Incomplete `--no-domain-cache` runs still merge with the last good `coverage.json` when overall coverage collapses.
