@@ -189,6 +189,7 @@ class TestCheckinSettingsWidgetQuestionCounts:
         }
         widget.min_questions_spinbox.setValue(2)
         widget.max_questions_spinbox.setValue(4)
+        widget._validate_question_counts()
 
         with (
             patch(
@@ -209,7 +210,9 @@ class TestCheckinSettingsWidgetQuestionCounts:
         assert settings["questions"]["q_always"]["enabled"] is True
         assert settings["questions"]["q_always"]["always_include"] is True
         assert settings["questions"]["q_sometimes"]["sometimes_include"] is True
-        assert settings["min_questions"] == 2
+        # 1 Always + 1 Sometimes: Minimum must leave the Sometimes question
+        # optional, so the requested min of 2 clamps to 1. Maximum may include both.
+        assert settings["min_questions"] == 1
         assert settings["max_questions"] == 2
 
     def test_set_checkin_settings_populates_periods_and_question_ranges(self, widget):

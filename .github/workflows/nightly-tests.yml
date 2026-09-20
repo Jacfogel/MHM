@@ -74,8 +74,8 @@ jobs:
           for phase in payload.get("details", {}).get("phases", []):
               tail = str(phase.get("output_tail") or "").strip()
               if tail:
-          print(f"\n--- {phase.get('name')} output tail ---")
-          print(tail)
+                  print(f"\n--- {phase.get('name')} output tail ---")
+                  print(tail)
           PY
 
       - name: Upload nightly results

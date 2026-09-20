@@ -68,6 +68,12 @@ class TestCheckinSettingsWidgetHelpers:
         assert max_floor == 2
         assert max_allowed == 3
 
+        min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(1, 1, 2)
+        assert min_required == 1
+        assert min_allowed == 1
+        assert max_floor == 2
+        assert max_allowed == 2
+
         min_required, min_allowed, max_floor, max_allowed = compute_question_count_bounds(2, 0, 2)
         assert min_required == 2
         assert min_allowed == 2

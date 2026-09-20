@@ -33,7 +33,7 @@ Guidelines:
 ### 2026-09-20 - Nightly suite workers no longer leak communication event loops **COMPLETED**
 - CommunicationManager now stops tracked event-loop threads on shutdown, including loops abandoned when tests clear the singleton.
 - Linux pytest-timeout uses `signal` so hung tests abort at 300s; nightly output keeps the timeout-dump start so the hung thread is visible.
-- This addresses consecutive GitHub nightly crashes at 96-98% with `node down: Not properly terminated` and zero failed node IDs.
+- The GitHub summary script indent is restored, and the serial check-in UI test expects Minimum to clamp to 1 for one Always plus one Sometimes question.
 
 ### 2026-09-20 - Verified password recovery and transparent mood trends **COMPLETED**
 - Added a forgot-password flow that verifies the account by emailed code, replaces the password, revokes older sessions, and signs the recovered account in without revealing whether unknown emails exist.
