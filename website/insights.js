@@ -41,18 +41,29 @@
     const summary = document.getElementById('insights-summary');
     const total = data.available?.total_checkins ?? 0;
     const wellness = data.wellness?.score;
+    const moodCount = Number(data.mood?.total_checkins) || 0;
+    const moodMinimum = Number(data.mood?.trend_minimum) || 14;
+    const moodReady = data.mood?.trend_ready === true || moodCount >= moodMinimum;
+    const moodValue = data.mood?.error ? 'No mood ratings' : moodReady ? data.mood.trend : 'Building trend';
+    const moodNote = data.mood?.error
+      ? 'Add mood to a check-in to see a trend'
+      : moodReady
+        ? `Average ${number(data.mood.average_mood)} · ${moodCount} ratings`
+        : `${moodCount} of ${moodMinimum} mood ratings · average ${number(data.mood.average_mood)}`;
     summary.replaceChildren(
       metric('Check-ins', number(total, '0'), `Last ${data.days} days`),
       metric('Wellness score', number(wellness), data.wellness?.interpretation || 'Shown when enough data is available'),
       metric('Completion', data.completion?.rate == null ? '—' : `${data.completion.rate}%`, `${data.completion?.days_completed || 0} completed check-ins`),
-      metric('Mood trend', data.mood?.trend || 'Not enough data', data.mood?.average_mood == null ? '' : `Average ${data.mood.average_mood}`),
+      metric('Mood trend', moodValue, moodNote),
     );
 
     const moodEnergy = document.getElementById('mood-energy');
     moodEnergy.replaceChildren();
     if (data.mood?.error && data.energy?.error) message(moodEnergy, 'Complete a few check-ins to see mood and energy patterns here.');
     else {
-      if (!data.mood?.error) moodEnergy.append(text('p', `Mood averaged ${number(data.mood.average_mood)} with a ${data.mood.trend || 'stable'} trend.`));
+      if (!data.mood?.error) moodEnergy.append(text('p', moodReady
+        ? `Mood averaged ${number(data.mood.average_mood)} with a ${data.mood.trend || 'stable'} trend.`
+        : `Mood averaged ${number(data.mood.average_mood)}. ${moodCount} of ${moodMinimum} mood ratings are available; the trend compares the latest 7 with the previous 7.`));
       if (!data.energy?.error) moodEnergy.append(text('p', `Energy averaged ${number(data.energy.average_energy)} with a ${data.energy.trend || 'stable'} trend.`));
       const moodValues = Array.isArray(data.mood?.recent_data) ? data.mood.recent_data.map(item => Number(item.mood)).filter(Number.isFinite) : [];
       if (moodValues.length) {

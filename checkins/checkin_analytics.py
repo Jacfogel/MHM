@@ -124,6 +124,7 @@ class CheckinAnalytics:
         mood_std = statistics.stdev(moods) if len(moods) > 1 else 0
 
         trend = determine_numeric_trend(moods, recent_count=7)
+        trend_minimum = 14
 
         # Find best and worst days
         best_day = max(mood_data, key=lambda x: x["mood"])
@@ -141,6 +142,9 @@ class CheckinAnalytics:
             "max_mood": max_mood,
             "mood_volatility": round(mood_std, 2),
             "trend": trend,
+            "trend_ready": len(moods) >= trend_minimum,
+            "trend_minimum": trend_minimum,
+            "trend_method": "Compares the 7 most recent mood ratings with the previous 7",
             "best_day": {
                 # ISO date should come from the date object
                 "date": best_day["date"].isoformat(),
@@ -196,6 +200,7 @@ class CheckinAnalytics:
         energy_std = statistics.stdev(energies) if len(energies) > 1 else 0
 
         trend = determine_numeric_trend(energies, recent_count=7)
+        trend_minimum = 14
 
         # Find best and worst days
         best_day = max(energy_data, key=lambda x: x["energy"])
@@ -213,6 +218,8 @@ class CheckinAnalytics:
             "max_energy": max_energy,
             "energy_volatility": round(energy_std, 2),
             "trend": trend,
+            "trend_ready": len(energies) >= trend_minimum,
+            "trend_minimum": trend_minimum,
             "best_day": {
                 "date": best_day["date"].isoformat(),
                 "energy": best_day["energy"],

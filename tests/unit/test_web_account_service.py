@@ -8,6 +8,7 @@ import pytest_asyncio
 from aiohttp import CookieJar
 from aiohttp.test_utils import TestClient, TestServer
 
+from core import web_account_service
 from core.error_handling import ConfigurationError
 from core.web_account_service import OAuthIdentity, create_web_app, MHMAccounts
 
@@ -409,6 +410,40 @@ async def test_password_validation_and_unknown_account_are_safe(gateway):
     assert "email or password" in (await unknown.json())["error"]
 
 
+async def test_forgot_password_verifies_email_replaces_password_and_logs_in(gateway):
+    client, accounts, sent, _ = gateway
+    old_password = "the original memorable password"
+    accounts.users["existing"]["password_hash"] = web_account_service._password_hash(
+        old_password
+    )
+
+    response = await request_code(client, mode="reset")
+    assert response.status == 200
+    token = (await response.json())["challenge"]
+    new_password = "a newly recovered password phrase"
+    reset = await verify(client, token, sent[-1][1], new_password)
+
+    assert reset.status == 200
+    assert "HttpOnly" in reset.headers["Set-Cookie"]
+    assert accounts.users["existing"]["password_hash"].startswith("$mhm$scrypt$")
+    assert new_password not in accounts.users["existing"]["password_hash"]
+    assert (await client.get("/api/account")).status == 200
+
+    await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})
+    old_login = await client.post(
+        "/api/auth/password",
+        json={"email": "river@example.com", "password": old_password},
+        headers={"Origin": ORIGIN},
+    )
+    new_login = await client.post(
+        "/api/auth/password",
+        json={"email": "river@example.com", "password": new_password},
+        headers={"Origin": ORIGIN},
+    )
+    assert old_login.status == 401
+    assert new_login.status == 200
+
+
 async def test_creation_rechecks_duplicates_after_verification(gateway):
     client, accounts, sent, _ = gateway
     token = (await (await request_code(client, "brook@example.com", "create")).json())[
@@ -427,6 +462,7 @@ async def test_unknown_email_and_duplicate_signup_are_not_signed_in(gateway):
     client, _, sent, _ = gateway
     for email, mode in [
         ("missing@example.com", "login"),
+        ("missing@example.com", "reset"),
         ("river@example.com", "create"),
     ]:
         response = await request_code(client, email, mode)

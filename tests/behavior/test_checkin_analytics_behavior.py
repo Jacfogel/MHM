@@ -118,6 +118,32 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
             "improving",
             "declining",
         ], "Trend should be valid"
+        assert result["trend_ready"] is True
+        assert result["trend_minimum"] == 14
+
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
+    def test_mood_trend_explains_when_comparison_is_still_building(self, analytics):
+        """Fewer than two seven-rating windows can show an average, not a trend."""
+        from core.time_utilities import format_timestamp, TIMESTAMP_FULL
+
+        checkins = [
+            _mock_checkin_row(
+                format_timestamp(TEST_ANCHOR_DT - timedelta(days=i), TIMESTAMP_FULL),
+                mood=3 + (i % 2),
+            )
+            for i in range(5)
+        ]
+        with patch(
+            "checkins.checkin_analytics.get_checkins_by_days", return_value=checkins
+        ):
+            result = analytics.get_mood_trends("test_user", days=30)
+
+        assert result["average_mood"] == 3.4
+        assert result["trend_ready"] is False
+        assert result["trend_minimum"] == 14
+        assert "7 most recent" in result["trend_method"]
 
     @pytest.mark.checkins
     @pytest.mark.analytics

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-20 - Verified password recovery and transparent mood trends **COMPLETED**
+- Added a forgot-password flow that verifies the account by emailed code, replaces the password, revokes older sessions, and signs the recovered account in without revealing whether unknown emails exist.
+- Website mood insights now explain that the trend compares the latest seven mood ratings with the previous seven, show progress until 14 ratings exist, and distinguish missing mood answers from missing check-ins.
+- Focused Python and browser/Worker coverage validates recovery, safe unknown-account behavior, trend readiness, and the updated login controls.
+
 ### 2026-09-19 - Desktop and website data-safety parity **COMPLETED**
 - Desktop tasks preserve urgent priority and can explicitly clear recurrence; message templates preserve custom/ALL schedules and active state.
 - Message delivery matches website day codes case-insensitively and excludes paused templates. General and future custom check-in categories remain visible.
@@ -121,12 +126,6 @@ Guidelines:
 - The three remaining Pyright warnings were `reportAttributeAccessIssue` on `lineEdit_preferred_name` in `tests/ui/test_user_profile_settings_widget.py`.
 - That field is created at runtime in `UserProfileSettingsWidget.__init__`, not in the generated UI class; the test file now uses the same Pyright suppression as the widget.
 - `python -m pyright tests/ui/test_user_profile_settings_widget.py` should report 0 errors / 0 warnings after this.
-
-### 2026-09-02 - UI coverage for Health, phrase settings, and admin actions **COMPLETED**
-- Added behavior tests for the previously uncovered Google Health settings dialog, phrase-settings widget/dialog, and remaining admin-action helpers (log file, cache cleanup, config report, health check).
-- Expanded coverage for dialog openers, channel-status log paths, request-file actions, channel-selection widget, and service force-stop.
-- Added profile-settings load/save, task-completion AM/PM conversion, and dynamic-list field row helpers.
-- Targeted UI tests passed (44, then 80, then 17 on the latest slice). Domain `ui` still needs a coverage refresh to update the 72.4% report figure.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

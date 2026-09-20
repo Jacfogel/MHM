@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-20 - Verified password recovery and transparent mood trends
+- **Password recovery**: Added a dedicated **Forgot your password?** flow to [`website/login.html`](../website/login.html) and [`website/auth.js`](../website/auth.js). Users choose a replacement password, receive the existing six-digit email verification code, and save the new salted scrypt hash only after successful verification. Recovery revokes older in-memory sessions and signs in the verified account with a new password-authenticated session.
+- **Authentication safety**: The gateway accepts a bounded `reset` challenge mode while retaining the existing generic response for unknown, duplicate, inactive, or suspended accounts, so the form does not disclose account existence. Verification codes remain single-use, attempt-limited, expiring, and rate-limited. Authentication email copy now calls the code a verification code so it fits sign-in, signup, and recovery.
+- **Mood trend clarity**: [`checkins/checkin_analytics.py`](../checkins/checkin_analytics.py) exposes whether two seven-rating comparison windows are ready and documents the comparison method. [`website/insights.js`](../website/insights.js) shows **No mood ratings** when check-ins omitted mood, **Building trend** with progress below 14 mood ratings, and improving/stable/declining only once the comparison is supported.
+- **Tests**: Added recovery coverage for password replacement, authenticated completion, rejection of the former password, acceptance of the replacement, and enumeration-safe unknown emails. Added mood readiness and login-control coverage. Focused Python tests pass 62 tests; JavaScript syntax and 15 Worker tests pass.
+- **Impact**: Users who forget a password can recover independently, while the insights page now states what "mood trend" measures and avoids presenting insufficient mood data as a stable trend.
+
 ### 2026-09-19 - Desktop and website data-safety parity
 - **Fix**: Desktop task editing now preserves the shared `urgent` priority and explicitly clears recurrence when a task is changed to one-time. Message editing supports website-authored `ALL` schedules, configured custom time periods, and active/paused state; runtime message selection normalizes website and desktop day casing and excludes paused templates.
 - **Fix**: Desktop check-in settings display `general` and future custom question categories instead of hiding them. Structured important-person profiles retain their original dictionaries and unexposed metadata during unchanged round trips and visible-field edits, while delimiter parsing no longer splits hyphenated values.

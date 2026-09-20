@@ -37,7 +37,9 @@ origin changes, update `WEB_PUBLIC_ORIGIN` to match.
 Existing users can continue signing in with an emailed code, then set a password
 from the account page. Replacing a saved password requires either the current
 password or a fresh emailed-code sign-in and revokes the account's other in-memory
-browser sessions. Each email must belong to only
+browser sessions. The login page also has a **Forgot your password?** flow: the
+replacement password is saved only after a six-digit email code is verified, all
+older browser sessions are revoked, and the recovered account is signed in. Each email must belong to only
 one account. Duplicate emails prevent browser sign-in until an administrator
 corrects the user data. Accounts without an email require an administrator to
 add one before browser sign-in.
@@ -70,7 +72,10 @@ Tasks can be created from built-in templates, edited, linked to web resources,
 completed, restored, deleted, snoozed, skipped, or simplified. The notebook adds
 pinned and inbox views alongside active and archived entries. The message library
 supports personal template creation, editing, scheduling, pausing, and deletion.
-Insights show recent check-in patterns and history. Google Health can be viewed,
+Insights show recent check-in patterns and history. A mood trend compares the seven
+most recent mood ratings with the previous seven; until 14 mood ratings exist, the
+page shows the average and progress toward a trend instead of labelling sparse data
+as stable. Check-ins without a mood answer do not count toward that total. Google Health can be viewed,
 paused, enabled, synced, or deleted there; initial connection still uses the
 existing callback configured by `GOOGLE_HEALTH_REDIRECT_URI` (the default local
 callback works only when the browser can reach the MHM host). Completing check-ins
@@ -152,7 +157,7 @@ return to login; request failures allow retrying logout.
 - `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
 - `script.js` — small client-side enhancements
 - `wrangler.jsonc` — Cloudflare Workers configuration
-- `login.html`, `auth.js` — password, email-code, and social login plus verified account creation
+- `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout
 - `tasks.html`, `tasks.js` — signed-in task workspace and CRUD interactions
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists

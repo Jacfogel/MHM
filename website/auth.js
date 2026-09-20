@@ -1,4 +1,6 @@
-const creating = new URLSearchParams(location.search).get('mode') === 'create';
+const accountMode = new URLSearchParams(location.search).get('mode');
+const creating = accountMode === 'create';
+const resetting = accountMode === 'reset';
 const socialResult = new URLSearchParams(location.search).get('social');
 const discordResult = new URLSearchParams(location.search).get('discord');
 const status = document.getElementById('auth-status');
@@ -21,6 +23,26 @@ if (creating) {
   document.getElementById('email-hint').textContent = 'We’ll send your one-time verification code here.';
   document.getElementById('primary-action').textContent = 'Create my account →';
   document.getElementById('send-code').hidden = true;
+  document.getElementById('forgot-password').hidden = true;
+} else if (resetting) {
+  document.title = 'Reset your password — MHM';
+  document.getElementById('login-tab').removeAttribute('aria-current');
+  document.getElementById('social-login').hidden = true;
+  document.getElementById('social-hint').hidden = true;
+  document.getElementById('account-divider').hidden = true;
+  document.getElementById('confirm-password-field').hidden = false;
+  document.getElementById('confirm-password').required = true;
+  document.getElementById('forgot-password').hidden = true;
+  document.getElementById('send-code').hidden = true;
+  password.autocomplete = 'new-password';
+  password.placeholder = 'Choose a new password';
+  document.getElementById('password-label').textContent = 'New password';
+  document.getElementById('form-title').textContent = 'Reset your password.';
+  document.getElementById('form-description').textContent = 'Choose a new password. We’ll email a code to verify that this is your account.';
+  document.getElementById('email-hint').textContent = 'Use the email connected to your MHM account.';
+  document.getElementById('password-hint').textContent = 'Use 12–128 characters.';
+  document.getElementById('primary-action').textContent = 'Email my reset code →';
+  document.getElementById('account-footnote').textContent = 'For your security, the new password is saved only after the emailed code is verified.';
 }
 
 const socialMessages = {
@@ -73,14 +95,14 @@ function accountValues() {
 
 async function requestEmailCode(values) {
   const result = await api('/api/auth/request-code', {
-    mode: creating ? 'create' : 'login', email: values.email,
+    mode: creating ? 'create' : resetting ? 'reset' : 'login', email: values.email,
     preferred_name: values.preferred_name, timezone: values.timezone,
   });
   challenge = result.challenge;
   entry.hidden = true;
   verification.hidden = false;
-  document.getElementById('code-description').textContent = creating
-    ? `Look for a code at ${values.email}. Your password is saved only after this verification succeeds.`
+  document.getElementById('code-description').textContent = creating || resetting
+    ? `Look for a code at ${values.email}. Your ${resetting ? 'new ' : ''}password is saved only after this verification succeeds.`
     : `Look for a code at ${values.email}. Codes are sent to the email saved on your MHM account.`;
   status.textContent = '';
   document.getElementById('code').focus();
@@ -91,7 +113,7 @@ document.getElementById('account-form').addEventListener('submit', (event) => {
   const values = accountValues();
   const button = document.getElementById('primary-action');
   submit(button, async () => {
-    if (creating) {
+    if (creating || resetting) {
       if (password.value !== document.getElementById('confirm-password').value) {
         throw new Error('Those passwords do not match.');
       }
@@ -116,7 +138,7 @@ document.getElementById('verify-form').addEventListener('submit', (event) => {
   event.preventDefault();
   submit(document.getElementById('verify-code'), async () => {
     const payload = { challenge, code: document.getElementById('code').value.trim() };
-    if (creating) payload.password = password.value;
+    if (creating || resetting) payload.password = password.value;
     await api('/api/auth/verify', payload);
     location.assign('app.html');
   });

@@ -228,6 +228,7 @@ button:disabled { cursor: wait; opacity: .65; }
 .field-hint { color: var(--muted); font-size: .875rem; margin: 7px 0 20px; }
 .account-submit { width: 100%; background: var(--purple-dark); margin-top: 4px; }
 .email-code-action { width: 100%; text-align: center !important; }
+.forgot-password-action { display: block; width: fit-content; margin: -10px 0 14px auto !important; text-decoration: none; }
 .social-login { display: grid; gap: 9px; }
 .social-button { width: 100%; border: 1px solid #d8d3e7; border-radius: 11px; padding: 12px 14px; background: #fff; color: var(--ink); font-weight: 650; }
 .social-button:not(:disabled):hover { border-color: var(--purple); background: #faf8ff; }

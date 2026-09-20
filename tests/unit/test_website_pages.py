@@ -143,6 +143,7 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
         "confirm-password",
         "preferred-name",
         "send-code",
+        "forgot-password",
         "primary-action",
     } <= login.ids
     assert "username" not in login.ids

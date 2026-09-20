@@ -321,9 +321,9 @@ def send_code(email, code):
     message = EmailMessage()
     message["From"] = smtp_username
     message["To"] = email
-    message["Subject"] = "Your MHM sign-in code"
+    message["Subject"] = "Your MHM verification code"
     message.set_content(
-        f"Your MHM code is: {code}\n\nIt expires in 10 minutes.\nIf you did not request this, ignore this email."
+        f"Your MHM verification code is: {code}\n\nIt expires in 10 minutes.\nIf you did not request this, ignore this email."
     )
     try:
         with smtplib.SMTP_SSL(
@@ -883,8 +883,10 @@ def create_web_app(
         ):
             raise web.HTTPBadRequest(text="Enter a valid email address.")
         email = email.strip().casefold()
-        if mode not in {"login", "create"}:
-            raise web.HTTPBadRequest(text="Choose log in or create account.")
+        if mode not in {"login", "create", "reset"}:
+            raise web.HTTPBadRequest(
+                text="Choose log in, create account, or reset password."
+            )
         preferred_name = data.get("preferred_name", data.get("username", ""))
         timezone = data.get("timezone", "America/Regina")
         if mode == "create":
@@ -917,7 +919,7 @@ def create_web_app(
         existing = await asyncio.to_thread(accounts.by_email, email)
         eligible = (
             bool(existing and existing[1].get("account_status") == "active")
-            if mode == "login"
+            if mode in {"login", "reset"}
             else not await asyncio.to_thread(accounts.email_exists, email)
         )
         code = f"{secrets.randbelow(1000000):06d}"
@@ -931,9 +933,9 @@ def create_web_app(
                     text="We couldn't send your code. Please ask your MHM administrator to check email delivery."
                 ) from None
             logger.info("Website verification email accepted by the mail sender")
-        elif mode == "login":
+        elif mode in {"login", "reset"}:
             logger.info(
-                "Website sign-in email skipped: no unique active account matched"
+                "Website account verification email skipped: no unique active account matched"
             )
         challenges[token] = Challenge(
             hashlib.sha256(code.encode()).hexdigest(),
@@ -1005,9 +1007,26 @@ def create_web_app(
                 raise web.HTTPUnauthorized(
                     text="This account cannot sign in. Please contact your MHM administrator."
                 )
+            if challenge.mode == "reset":
+                password = data.get("password")
+                if not isinstance(password, str) or not valid_password(password):
+                    raise web.HTTPBadRequest(
+                        text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
+                    )
+                encoded = await asyncio.to_thread(_password_hash, password)
+                if not await asyncio.to_thread(accounts.set_password, uid, encoded):
+                    raise web.HTTPServiceUnavailable(
+                        text="Your password could not be saved. Please try again."
+                    )
+                for key in [
+                    key for key, session in sessions.items() if session[0] == uid
+                ]:
+                    sessions.pop(key, None)
             del challenges[token]
         response = web.json_response({"ok": True})
-        auth_method = "password" if challenge.mode == "create" else "email_code"
+        auth_method = (
+            "password" if challenge.mode in {"create", "reset"} else "email_code"
+        )
         return start_session(uid, challenge.email, response, auth_method=auth_method)
 
     # ERROR_HANDLING_EXCLUDE: Authentication failures are HTTP responses by design.

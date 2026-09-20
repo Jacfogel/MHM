@@ -168,7 +168,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **AND** the previous title is kept in the task notes  
 - **AND** the due date is unchanged  
 
-## 2.3. Requirement: Task completion follow-up uses normal task command behavior
+## 3. 2.3. Requirement: Task completion follow-up uses normal task command behavior
 
 Completing a task from Discord SHALL go through the same command flow as typed task completion.
 
@@ -187,7 +187,7 @@ Completing a task from Discord SHALL go through the same command flow as typed t
 - **THEN** Discord routes the typed message through `handle_user_message`  
 - **AND** the task handler completes or disambiguates using normal task command behavior  
 
-### 2.4. Requirement: Recurring task reminders continue from the next generated task instance
+### 3.1. Requirement: Recurring task reminders continue from the next generated task instance
 
 Recurring task completion SHALL create or expose the next task instance according to task recurrence rules, and reminders SHALL follow the next active instance.
 
@@ -199,7 +199,7 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - **AND** the next recurring instance is created or scheduled according to recurrence rules  
 - **AND** future reminders apply to the next active instance rather than the completed one  
 
-## 3. Out of scope
+## 4. Out of scope
 
 - Asking why a reminder was skipped, or auto-creating a notebook blocker note (see [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) Section 5.5).
 - Changing the task due date as a way to postpone work (that remains a normal due-date update).
@@ -208,7 +208,7 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - UI configuration screens for task reminder settings.
 - Email task reminders.
 
-## 4. Manual test checklist
+## 5. Manual test checklist
 
 Run after changing Discord task reminder behavior:
 
@@ -231,7 +231,7 @@ Run after changing Discord task reminder behavior:
 13. [ ] Click `Skip` on a one-off task -> due date unchanged; no ping until tomorrow morning.
 14. [ ] Click `Simplify` and type a smaller version -> title shrinks, due date unchanged, old title is in notes.
 
-## 5. Related documentation
+## 6. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  
