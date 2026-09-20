@@ -375,6 +375,24 @@ class TestTaskEditDialogBehavior:
 
     @pytest.mark.ui
     @pytest.mark.critical
+    def test_urgent_priority_and_one_time_recurrence_are_saved(self, dialog):
+        """Website-supported priority and explicit recurrence clearing survive edits."""
+        assert dialog.ui.comboBox_task_priority.findText("Urgent") >= 0
+        dialog.ui.comboBox_task_priority.setCurrentText("Urgent")
+        dialog.ui.comboBox_recurring_pattern.setCurrentIndex(0)
+
+        with (
+            patch("ui.dialogs.task_edit_dialog.update_task", return_value=True) as mock_update,
+            patch("PySide6.QtWidgets.QMessageBox.information"),
+        ):
+            dialog.save_task()
+
+        saved = mock_update.call_args.args[2]
+        assert saved["priority"] == "urgent"
+        assert saved["recurrence_pattern"] is None
+
+    @pytest.mark.ui
+    @pytest.mark.critical
     def test_validation_error_handling_real_behavior(self, dialog, test_user_data, test_data_dir):
         """Test validation errors are handled gracefully."""
         # Clear required fields to trigger validation

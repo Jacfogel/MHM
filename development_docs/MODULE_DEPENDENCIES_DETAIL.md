@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-19 00:40:14
+> **Last Generated**: 2026-09-19 23:56:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 278
-- **Total Imports Found**: 2467
+- **Total Imports Found**: 2470
 - **Dependencies Documented**: 278 (100% coverage)
-- **Standard Library Imports**: 718 (29.1%)
+- **Standard Library Imports**: 719 (29.1%)
 - **Third-Party Imports**: 223 (9.0%)
-- **Local Imports**: 1526 (61.9%)
+- **Local Imports**: 1528 (61.9%)
 - **Last Updated**: 2026-09-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 718 imports (29.1%)
+- **Standard Library**: 719 imports (29.1%)
 - **Third-Party**: 223 imports (9.0%)
-- **Local**: 1526 imports (61.9%)
+- **Local**: 1528 imports (61.9%)
 
 ## Module Dependencies by Directory
 
@@ -1108,7 +1108,7 @@
 
 **Dependency Changes**:
 - Added: core.time_utilities, storage.user_data_v2_base
-- Removed: storage/user_data_v2_envelopes.py
+- Removed: communication/message_processing/flows/checkin_flow.py, core/web_user_settings.py, storage/user_data_v2_envelopes.py, ui/dialogs/checkin_management_dialog.py, ui/widgets/checkin_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2600,6 +2600,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
     - `messages.message_data_manager (get_recent_messages, load_user_messages, store_sent_message)`
+    - `messages.message_service (message_schedule_matches_current_window)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `random`
@@ -2609,7 +2610,7 @@
   - `communication/delivery/__init__.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_runtime
+- Added: core.error_handling, core.logger, core.schedule_runtime, messages.message_service
 - Removed: communication/core/channel_orchestrator.py, communication/delivery/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4374,6 +4375,7 @@
   - `scheduler/task_reminders.py`
   - `ui/dialogs/category_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
+  - `ui/dialogs/message_editor_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
   - `ui/dialogs/task_management_dialog.py`
   - `ui/period_row_management.py`
@@ -4540,7 +4542,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
-- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/create_item_ui.py, communication/message_processing/command_parser.py, communication/message_processing/flows/note_flow.py, core/web_account_service.py, storage/user_data_registry.py, tasks/task_data_manager.py, tasks/task_tag_helpers.py
+- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/create_item_ui.py, communication/message_processing/command_parser.py, communication/message_processing/flows/note_flow.py, core/web_account_service.py, storage/user_data_registry.py, tasks/task_data_manager.py, tasks/task_tag_helpers.py, ui/widgets/tag_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5291,7 +5293,8 @@
     - `__future__ (annotations)`
     - `random`
     - `typing (Any)`
-- **Used by**: None (not imported by other modules)
+- **Used by**:
+  - `communication/delivery/message_dispatcher.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.schedule_runtime, messages.message_data_manager
@@ -6686,6 +6689,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
+    - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `messages.message_data_manager (add_message, delete_message, edit_message, load_user_messages)`
     - `ui.generated.message_editor_dialog_pyqt (Ui_Dialog_message_editor)`
@@ -6696,7 +6700,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.time_utilities
+- Added: core.error_handling, core.logger, core.schedule_runtime, core.time_utilities
 - Removed: PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7370,6 +7374,7 @@
     - `ui.generated.user_profile_settings_widget_pyqt (Ui_Form_user_profile_settings)`
     - `ui.widgets.dynamic_list_container (DynamicListContainer)`
   - **Standard Library**:
+    - `copy (deepcopy)`
     - `typing (Any)`
   - **Third-party**:
     - `PySide6.QtCore (QDate, Qt)`

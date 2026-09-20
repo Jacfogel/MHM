@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-19 - Desktop and website data-safety parity
+- **Fix**: Desktop task editing now preserves the shared `urgent` priority and explicitly clears recurrence when a task is changed to one-time. Message editing supports website-authored `ALL` schedules, configured custom time periods, and active/paused state; runtime message selection normalizes website and desktop day casing and excludes paused templates.
+- **Fix**: Desktop check-in settings display `general` and future custom question categories instead of hiding them. Structured important-person profiles retain their original dictionaries and unexposed metadata during unchanged round trips and visible-field edits, while delimiter parsing no longer splits hyphenated values.
+- **Tests**: Added regression coverage for urgent priorities, recurrence clearing, custom message windows, paused delivery, cross-interface day matching, general check-in questions, and lossless structured-profile edits. The focused suites pass 81 tests; 19 Windows-disabled check-in UI tests remain platform-skipped. Ruff, Python compilation, and diff checks pass.
+- **Impact**: Website-authored settings can be opened and saved in the desktop app without silent downgrades, re-enabling paused content, hiding questions, or flattening structured profile data.
+
 ### 2026-09-19 - Domain cache invalidation no longer fans out from core
 - **Fix**: Windows path keys in [`test_file_coverage_cache.py`](../development_tools/tests/test_file_coverage_cache.py) are normalized to forward slashes before cache lookup. Cached `tests/unit/` files no longer look "new" and get pulled into every core rerun. Keyword fallback now uses the project-relative path so parent folders such as `Users` cannot attribute extra domains.
 - **Change**: Core's mapped test directory is `tests/core/` plus `@pytest.mark.core`. `tests/unit/` is a category folder, not the core domain. Product `domain_dependencies` defaults are empty so a core (or other) source edit does not expand into unrelated domains.

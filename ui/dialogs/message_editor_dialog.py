@@ -33,11 +33,25 @@ from messages.message_data_manager import (
 )
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
+from core.schedule_runtime import get_schedule_time_periods
 from core.time_utilities import now_timestamp_full
 import uuid
 
 setup_logging()
 logger = get_component_logger("ui")
+
+DAY_CHOICES = (
+    ("ALL", "Every day", "ALL"),
+    ("monday", "Monday", "MONDAY"),
+    ("tuesday", "Tuesday", "TUESDAY"),
+    ("wednesday", "Wednesday", "WEDNESDAY"),
+    ("thursday", "Thursday", "THURSDAY"),
+    ("friday", "Friday", "FRIDAY"),
+    ("saturday", "Saturday", "SATURDAY"),
+    ("sunday", "Sunday", "SUNDAY"),
+)
+DAY_STORAGE_VALUES = {key: storage_value for key, _, storage_value in DAY_CHOICES}
+LEGACY_PERIOD_CHOICES = ("morning", "afternoon", "evening", "night")
 
 
 @handle_errors("reading runtime template text", default_return="")
@@ -65,6 +79,39 @@ def _runtime_template_id(message: dict) -> str | None:
     """Return canonical template ``id`` when present."""
     mid = message.get("id")
     return str(mid).strip() if mid else None
+
+
+@handle_errors(
+    "loading message period choices",
+    default_return=["ALL", *LEGACY_PERIOD_CHOICES],
+)
+def _message_period_choices(user_id: str | None, category: str | None, message: dict) -> list[str]:
+    """Return configured and currently selected periods without losing custom names."""
+    configured = get_schedule_time_periods(user_id, category) if user_id and category else {}
+    configured_names = list(configured) if isinstance(configured, dict) else []
+    selected_names = _runtime_template_periods(message)
+    has_configured_named_periods = any(
+        str(name).strip().upper() != "ALL" for name in configured_names
+    )
+
+    choices: list[str] = []
+    for name in [*configured_names, *selected_names]:
+        clean_name = str(name).strip()
+        if clean_name and clean_name not in choices:
+            choices.append(clean_name)
+
+    all_choice = next((name for name in choices if name.upper() == "ALL"), None)
+    if all_choice:
+        choices.remove(all_choice)
+    choices.insert(0, "ALL")
+
+    # New users may only have the catch-all schedule. Retain the familiar
+    # defaults until they configure named periods.
+    if not has_configured_named_periods:
+        choices.extend(
+            period for period in LEGACY_PERIOD_CHOICES if period not in choices
+        )
+    return choices
 
 
 class MessageEditDialog(QDialog):
@@ -101,23 +148,18 @@ class MessageEditDialog(QDialog):
         layout.addWidget(message_label)
         layout.addWidget(self.message_text)
 
+        self.active_checkbox = QCheckBox("Enable this message")
+        self.active_checkbox.setChecked(True)
+        layout.addWidget(self.active_checkbox)
+
         # Days selection
         days_group = QGroupBox("Days")
         days_layout = QFormLayout(days_group)
 
         self.day_checkboxes = {}
-        days = [
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-            "sunday",
-        ]
-        for day in days:
-            checkbox = QCheckBox(day.title())
-            self.day_checkboxes[day] = checkbox
+        for day_key, label, _ in DAY_CHOICES:
+            checkbox = QCheckBox(label)
+            self.day_checkboxes[day_key] = checkbox
             days_layout.addRow(checkbox)
 
         layout.addWidget(days_group)
@@ -127,9 +169,11 @@ class MessageEditDialog(QDialog):
         periods_layout = QFormLayout(periods_group)
 
         self.period_checkboxes = {}
-        periods = ["morning", "afternoon", "evening", "night"]
-        for period in periods:
-            checkbox = QCheckBox(period.title())
+        for period in _message_period_choices(
+            self.user_id, self.category, self.message_data
+        ):
+            label = "Every period" if period == "ALL" else period
+            checkbox = QCheckBox(label)
             self.period_checkboxes[period] = checkbox
             periods_layout.addRow(checkbox)
 
@@ -156,11 +200,16 @@ class MessageEditDialog(QDialog):
         if self.is_edit and self.message_data:
             # Load message text
             self.message_text.setPlainText(_runtime_template_text(self.message_data))
+            self.active_checkbox.setChecked(
+                bool(self.message_data.get("active", True))
+            )
 
             # Load days
-            days = _runtime_template_days(self.message_data)
+            days = {
+                str(day).upper() for day in _runtime_template_days(self.message_data)
+            }
             for day, checkbox in self.day_checkboxes.items():
-                checkbox.setChecked(day in days)
+                checkbox.setChecked(DAY_STORAGE_VALUES[day] in days)
 
             # Load time periods
             periods = _runtime_template_periods(self.message_data)
@@ -177,9 +226,14 @@ class MessageEditDialog(QDialog):
             return
 
         # Validate days selection
-        selected_days = [
-            day for day, checkbox in self.day_checkboxes.items() if checkbox.isChecked()
-        ]
+        if self.day_checkboxes["ALL"].isChecked():
+            selected_days = ["ALL"]
+        else:
+            selected_days = [
+                DAY_STORAGE_VALUES[day]
+                for day, checkbox in self.day_checkboxes.items()
+                if day != "ALL" and checkbox.isChecked()
+            ]
         if not selected_days:
             QMessageBox.warning(
                 self, "Validation Error", "At least one day must be selected."
@@ -187,11 +241,14 @@ class MessageEditDialog(QDialog):
             return
 
         # Validate time periods selection
-        selected_periods = [
-            period
-            for period, checkbox in self.period_checkboxes.items()
-            if checkbox.isChecked()
-        ]
+        if self.period_checkboxes["ALL"].isChecked():
+            selected_periods = ["ALL"]
+        else:
+            selected_periods = [
+                period
+                for period, checkbox in self.period_checkboxes.items()
+                if period != "ALL" and checkbox.isChecked()
+            ]
         if not selected_periods:
             QMessageBox.warning(
                 self, "Validation Error", "At least one time period must be selected."
@@ -201,6 +258,7 @@ class MessageEditDialog(QDialog):
         # Prepare v2-shaped template payload (core normalizes to disk schema)
         message_data = {
             "text": message_text,
+            "active": self.active_checkbox.isChecked(),
             "schedule": {"days": selected_days, "periods": selected_periods},
         }
 

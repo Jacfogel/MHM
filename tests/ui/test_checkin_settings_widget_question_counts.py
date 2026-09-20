@@ -254,6 +254,12 @@ class TestCheckinSettingsWidgetQuestionCounts:
                 "category": "health",
                 "type": "yes_no",
             },
+            "custom_general": {
+                "enabled": True,
+                "ui_display_name": "Anything else",
+                "category": "general",
+                "type": "optional_text",
+            },
         }
         categories = {
             "mood": {"name": "Mood", "description": ""},
@@ -269,6 +275,11 @@ class TestCheckinSettingsWidgetQuestionCounts:
                 "enabled": True,
                 "always_include": True,
                 "sometimes_include": False,
+            },
+            "custom_general": {
+                "enabled": True,
+                "always_include": False,
+                "sometimes_include": True,
             },
         }
         manager = "checkins.checkin_dynamic_manager.dynamic_checkin_manager"
@@ -300,6 +311,7 @@ class TestCheckinSettingsWidgetQuestionCounts:
         assert second_count > 0
         assert container.isHidden() is False
         assert "custom_water" in widget.dynamic_question_checkboxes
+        assert "custom_general" in widget.dynamic_question_checkboxes
 
     def test_undo_last_question_delete_shows_info_when_no_deletions(self, widget):
         widget.deleted_questions = []

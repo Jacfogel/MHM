@@ -322,8 +322,8 @@ class TestMessageEditDialogSave:
             assert call_args[0][1] == dialog_add.category, "Should pass category"
             message_data = call_args[0][2]
             assert message_data["text"] == "New test message", "Should pass message text"
-            assert "monday" in message_data["schedule"]["days"], "Should include monday"
-            assert "tuesday" in message_data["schedule"]["days"], "Should include tuesday"
+            assert "MONDAY" in message_data["schedule"]["days"], "Should include monday"
+            assert "TUESDAY" in message_data["schedule"]["days"], "Should include tuesday"
             assert "morning" in message_data["schedule"]["periods"], "Should include morning"
             assert "afternoon" in message_data["schedule"]["periods"], "Should include afternoon"
             assert "id" in message_data, "Should include canonical template id"
@@ -356,13 +356,52 @@ class TestMessageEditDialogSave:
             assert call_args[0][2] == "test_message_id", "Should pass template id"
             message_data = call_args[0][3]
             assert message_data["text"] == "Updated test message", "Should pass updated message text"
-            assert "wednesday" in message_data["schedule"]["days"], "Should include wednesday"
+            assert "WEDNESDAY" in message_data["schedule"]["days"], "Should include wednesday"
             assert "evening" in message_data["schedule"]["periods"], "Should include evening"
+            assert message_data["active"] is True
             
             # Assert: Should show success message
             mock_info.assert_called_once()
             # Assert: Should accept dialog
             mock_accept.assert_called_once()
+
+    @pytest.mark.ui
+    def test_website_message_fields_round_trip_without_loss(self, qapp):
+        """Custom windows, ALL days, and paused state remain editable."""
+        message_data = {
+            "id": "website-message",
+            "text": "Website-authored message",
+            "active": False,
+            "schedule": {"days": ["ALL"], "periods": ["Quiet Window"]},
+        }
+        with patch(
+            "ui.dialogs.message_editor_dialog.get_schedule_time_periods",
+            return_value={"Quiet Window": {}},
+        ):
+            dialog = MessageEditDialog(
+                user_id="website-user",
+                category="motivational",
+                message_data=message_data,
+            )
+
+        assert dialog.day_checkboxes["ALL"].isChecked()
+        assert dialog.period_checkboxes["Quiet Window"].isChecked()
+        assert dialog.active_checkbox.isChecked() is False
+
+        with (
+            patch("ui.dialogs.message_editor_dialog.edit_message") as mock_edit,
+            patch("PySide6.QtWidgets.QMessageBox.information"),
+            patch.object(dialog, "accept"),
+        ):
+            dialog.save_message()
+
+        saved = mock_edit.call_args.args[3]
+        assert saved["active"] is False
+        assert saved["schedule"] == {
+            "days": ["ALL"],
+            "periods": ["Quiet Window"],
+        }
+        dialog.deleteLater()
     
     @pytest.mark.ui
     def test_save_edit_fails_without_message_id(self, dialog_edit):
@@ -685,4 +724,3 @@ class TestMessageEditorDialogOpenFunction:
             mock_dialog_class.assert_called_once()
             # Assert: Should return dialog result
             assert result == 1, "Should return dialog result"
-

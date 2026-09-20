@@ -150,10 +150,10 @@ class TaskEditDialog(QDialog):
         # Set default date to today
         self.ui.dateEdit_task_due_date.setDate(QDate.currentDate())
 
-        # Setup priority combo box with Critical option
+        # Keep every priority supported by the shared task schema editable.
         self.ui.comboBox_task_priority.clear()
         self.ui.comboBox_task_priority.addItems(
-            ["None", "Low", "Medium", "High", "Critical"]
+            ["None", "Low", "Medium", "High", "Urgent", "Critical"]
         )
         self.ui.comboBox_task_priority.setCurrentText("Medium")
 
@@ -682,8 +682,9 @@ class TaskEditDialog(QDialog):
                 "quick_reminders": quick_reminders,
             }
 
-            # Add recurring task fields if specified
-            if recurring_data["recurrence_pattern"]:
+            # Edits must include an empty pattern so choosing "One-time" clears
+            # recurrence that was previously configured on the website or app.
+            if self.is_edit or recurring_data["recurrence_pattern"]:
                 task_data.update(recurring_data)
 
             if self.is_edit:

@@ -66,6 +66,7 @@ class TestServiceMessageContentHelpers:
                 return_value=[
                     {
                         "text": "recent message",
+                        "active": False,
                         "schedule": {
                             "days": ["MONDAY"],
                             "periods": ["morning"],
@@ -107,6 +108,38 @@ class TestServiceMessageContentHelpers:
                 return_value=[],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
+        ):
+            content = get_predefined_message_preview_text("user-1", "motivational")
+
+        assert content is None
+
+    def test_message_preview_ignores_paused_templates(self):
+        with (
+            patch(
+                "messages.message_service.get_current_time_periods_with_validation",
+                return_value=(["morning"], ["morning"]),
+            ),
+            patch(
+                "messages.message_service.get_current_day_names",
+                return_value=["Monday"],
+            ),
+            patch(
+                "messages.message_service.load_user_messages",
+                return_value=[
+                    {
+                        "text": "paused",
+                        "active": False,
+                        "schedule": {
+                            "days": ["MONDAY"],
+                            "periods": ["morning"],
+                        },
+                    }
+                ],
+            ),
+            patch(
+                "messages.message_service.get_recent_messages",
+                return_value=[],
+            ),
         ):
             content = get_predefined_message_preview_text("user-1", "motivational")
 

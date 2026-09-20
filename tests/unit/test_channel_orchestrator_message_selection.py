@@ -78,6 +78,17 @@ class TestChannelOrchestratorMessageSelectionHelpers:
 
         assert result == messages[:3]
 
+    def test_filter_messages_accepts_website_days_and_skips_paused_templates(self):
+        enabled = _runtime_template("enabled", ["MONDAY"], ["morning"], "enabled")
+        paused = _runtime_template("paused", ["MONDAY"], ["morning"], "paused")
+        paused["active"] = False
+
+        result = self.dispatcher.filter_messages_by_day_and_period(
+            [enabled, paused], ["Monday"], ["morning"]
+        )
+
+        assert result == [enabled]
+
     def test_deduplicate_candidate_messages_filters_recent_duplicates(self):
         all_messages = [
             _runtime_template("Hello there", ["ALL"], ["ALL"], "a"),

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-19 00:39:30
+> **Last Generated**: 2026-09-19 23:56:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2756
+- **Functions Found**: 2757
 - **Methods Found**: 1419
 - **Classes Found**: 264
-- **Total Items**: 4175
-- **Functions Documented**: 2454
+- **Total Items**: 4176
+- **Functions Documented**: 2455
 - **Methods Documented**: 1274
 - **Classes Documented**: 198
-- **Total Documented**: 3728
+- **Total Documented**: 3729
 - **Template-Generated**: 54
 - **Last Updated**: 2026-09-19
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (707)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (537)
+### **User Interface Functions** (538)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (30)
@@ -6776,6 +6776,7 @@ Returns:
 **Functions:**
 - [OK] `__init__(self, parent, user_id, category, message_data)` - Initialize the message edit dialog.
 - [OK] `__init__(self, parent, user_id, category)` - Initialize the message editor dialog.
+- [OK] `_message_period_choices(user_id, category, message)` - Return configured and currently selected periods without losing custom names.
 - [OK] `_runtime_template_days(message)` - Return day codes from the v2 nested ``schedule`` dict (``days``).
 - [OK] `_runtime_template_id(message)` - Return canonical template ``id`` when present.
 - [OK] `_runtime_template_periods(message)` - Return period codes from the v2 nested ``schedule`` dict (``periods``).

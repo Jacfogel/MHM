@@ -5,6 +5,7 @@
 User Profile Settings Widget
 """
 
+from copy import deepcopy
 from typing import Any
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout
@@ -37,6 +38,8 @@ class UserProfileSettingsWidget(QWidget):
             super().__init__(parent)
             self.user_id = user_id
             self.existing_data = existing_data or {}
+            self._loved_one_source_rows: dict[str, list[dict[str, Any]]] = {}
+            self._loved_one_source_entries: list[dict[str, Any] | None] = []
 
             # Setup UI
             self.ui = Ui_Form_user_profile_settings()
@@ -229,19 +232,26 @@ class UserProfileSettingsWidget(QWidget):
             loved_ones = self.existing_data.get("loved_ones", [])
             if hasattr(self.ui, "textEdit_loved_ones"):
                 lines = []
+                self._loved_one_source_rows = {}
+                self._loved_one_source_entries = []
                 for entry in loved_ones:
                     if isinstance(entry, dict):
                         name = entry.get("name", "")
-                        type_val = entry.get("type", "")
+                        type_val = entry.get("type", entry.get("relationship", ""))
                         relationships = entry.get("relationships", [])
                         line = name
                         if type_val:
                             line += f" - {type_val}"
                         if relationships:
-                            line += f' - {" ,".join(relationships)}'
+                            line += f' - {", ".join(relationships)}'
                         lines.append(line)
+                        self._loved_one_source_rows.setdefault(line, []).append(
+                            deepcopy(entry)
+                        )
+                        self._loved_one_source_entries.append(deepcopy(entry))
                     elif isinstance(entry, str):
                         lines.append(entry)
+                        self._loved_one_source_entries.append(None)
                 self.ui.textEdit_loved_ones.setPlainText("\n".join(lines))
 
             # Date of Birth (if present in UI)
@@ -476,8 +486,23 @@ class UserProfileSettingsWidget(QWidget):
             loved_ones = []
 
             if loved_ones_text:
-                for line in loved_ones_text.split("\n"):
-                    parts = [p.strip() for p in line.split("-")]
+                lines = [line.strip() for line in loved_ones_text.split("\n")]
+                source_rows = {
+                    row: [deepcopy(entry) for entry in entries]
+                    for row, entries in self._loved_one_source_rows.items()
+                }
+                preserve_by_position = len(lines) == len(
+                    self._loved_one_source_entries
+                )
+                for index, line in enumerate(lines):
+                    preserved_entries = source_rows.get(line, [])
+                    if preserved_entries:
+                        loved_ones.append(preserved_entries.pop(0))
+                        continue
+
+                    # Delimit fields only on the explicit UI separator. Hyphens
+                    # inside a name or relationship remain intact.
+                    parts = [p.strip() for p in line.split(" - ", 2)]
                     name = parts[0] if len(parts) > 0 else ""
                     type_val = parts[1] if len(parts) > 1 else ""
                     relationships = []
@@ -487,13 +512,22 @@ class UserProfileSettingsWidget(QWidget):
                         ]
 
                     if name:
-                        loved_ones.append(
-                            {
-                                "name": name,
-                                "type": type_val,
-                                "relationships": relationships,
-                            }
+                        parsed_entry = {
+                            "name": name,
+                            "type": type_val,
+                            "relationships": relationships,
+                        }
+                        original_entry = (
+                            self._loved_one_source_entries[index]
+                            if preserve_by_position
+                            else None
                         )
+                        if original_entry is not None:
+                            updated_entry = deepcopy(original_entry)
+                            updated_entry.update(parsed_entry)
+                            loved_ones.append(updated_entry)
+                        else:
+                            loved_ones.append(parsed_entry)
 
             data["loved_ones"] = loved_ones
         except Exception as e:

@@ -43,9 +43,22 @@ def message_schedule_matches_current_window(
     matching_periods: list[str],
 ) -> bool:
     """True if template schedule overlaps current day/period (ALL matches any)."""
-    day_ok = "ALL" in day_names or any(d in day_names for d in current_days)
-    period_ok = "ALL" in time_periods or any(
-        p in time_periods for p in matching_periods
+    # Website templates use uppercase day codes while older desktop data often
+    # contains title-case or lowercase names. Treat them as the same schedule.
+    normalized_days = {day.upper() for day in day_names}
+    normalized_current_days = {day.upper() for day in current_days}
+    day_ok = "ALL" in normalized_days or bool(
+        normalized_days & normalized_current_days
+    )
+
+    normalized_periods = {
+        "ALL" if period.upper() == "ALL" else period for period in time_periods
+    }
+    normalized_matching_periods = {
+        "ALL" if period.upper() == "ALL" else period for period in matching_periods
+    }
+    period_ok = "ALL" in normalized_periods or bool(
+        normalized_periods & normalized_matching_periods
     )
     return day_ok and period_ok
 
@@ -71,6 +84,8 @@ def get_predefined_message_preview_text(user_id: str, category: str) -> str | No
 
     all_messages: list[dict[str, Any]] = []
     for msg in messages:
+        if not bool(msg.get("active", True)):
+            continue
         day_names, time_periods = message_template_schedule_lists(msg)
         if message_schedule_matches_current_window(
             day_names,

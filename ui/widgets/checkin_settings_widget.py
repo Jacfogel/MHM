@@ -117,7 +117,13 @@ QUESTION_TYPE_OPTIONS = {
     "optional_text": "Free Text (Optional)",
     "time_pair": "Time Pair (HH:MM)",
 }
-DEFAULT_QUESTION_CATEGORY_KEYS = ("mood", "energy", "health", "activities")
+DEFAULT_QUESTION_CATEGORY_KEYS = (
+    "mood",
+    "energy",
+    "health",
+    "activities",
+    "general",
+)
 
 
 class QuestionDialogFields(NamedTuple):
@@ -480,7 +486,14 @@ class CheckinSettingsWidget(QWidget):
 
             # Create category groups - reorganized categories
             # Mood, Energy (includes sleep), Health/Medical, Activities/Habits/Growth
-            category_order = ["mood", "energy", "health", "activities"]
+            category_order = [
+                *DEFAULT_QUESTION_CATEGORY_KEYS,
+                *(
+                    key
+                    for key in questions_by_category
+                    if key not in DEFAULT_QUESTION_CATEGORY_KEYS
+                ),
+            ]
             for category_key in category_order:
                 if category_key not in questions_by_category:
                     continue
@@ -836,7 +849,10 @@ class CheckinSettingsWidget(QWidget):
     ) -> None:
         """Fill the category combo from manager data, with fallback keys."""
         categories = categories or {}
-        category_keys = list(categories.keys() or DEFAULT_QUESTION_CATEGORY_KEYS)
+        category_keys = list(categories.keys())
+        for category_key in DEFAULT_QUESTION_CATEGORY_KEYS:
+            if category_key not in category_keys:
+                category_keys.append(category_key)
         for cat_key in category_keys:
             combo.addItem(
                 category_combo_label(cat_key, categories.get(cat_key, {})),

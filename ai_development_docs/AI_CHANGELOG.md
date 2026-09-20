@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-19 - Desktop and website data-safety parity **COMPLETED**
+- Desktop tasks preserve urgent priority and can explicitly clear recurrence; message templates preserve custom/ALL schedules and active state.
+- Message delivery matches website day codes case-insensitively and excludes paused templates. General and future custom check-in categories remain visible.
+- Structured important-person profiles round-trip without flattening or dropping metadata. Focused validation passed 81 tests plus Ruff and compilation; 19 check-in UI tests are platform-skipped on Windows.
+
 ### 2026-09-19 - Domain cache invalidation no longer fans out from core **COMPLETED**
 - Test-file cache lookups now use forward-slash paths, so Windows no longer treats cached unit tests as new whenever core changes. Keyword fallback uses the project-relative path so parent folders cannot steal extra domains.
 - Core maps to `tests/core/` and `@pytest.mark.core` only; `domain_dependencies` no longer expands a core edit across the product.
@@ -122,11 +127,6 @@ Guidelines:
 - Expanded coverage for dialog openers, channel-status log paths, request-file actions, channel-selection widget, and service force-stop.
 - Added profile-settings load/save, task-completion AM/PM conversion, and dynamic-list field row helpers.
 - Targeted UI tests passed (44, then 80, then 17 on the latest slice). Domain `ui` still needs a coverage refresh to update the 72.4% report figure.
-
-### 2026-09-01 - Nightly safe JSON read no longer returns an empty object **COMPLETED**
-- Linux `file_lock` now flocks a sidecar `.lock` file and opens the JSON after that, so a locked data fd cannot look empty.
-- `safe_json_read` rereads the path when the locked handle is empty but the file still has bytes.
-- Existing-file read tests use pytest `tmp_path`; added a stale-handle fallback case.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

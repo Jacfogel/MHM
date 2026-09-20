@@ -8,6 +8,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from messages.message_data_manager import get_recent_messages, load_user_messages, store_sent_message
+from messages.message_service import message_schedule_matches_current_window
 from core.schedule_runtime import (
     get_current_day_names,
     get_current_time_periods_with_validation,
@@ -77,10 +78,10 @@ class PredefinedMessageDispatcher:
         return [
             msg
             for msg in messages
-            if (
-                lambda days, periods: ("ALL" in days or any(day in days for day in current_days))
-                and ("ALL" in periods or any(period in periods for period in matching_periods))
-            )(*_schedule_fields(msg))
+            if bool(msg.get("active", True))
+            and message_schedule_matches_current_window(
+                *_schedule_fields(msg), current_days, matching_periods
+            )
         ]
 
     @handle_errors("deduplicating candidate messages", default_return=[])

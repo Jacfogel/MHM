@@ -164,6 +164,7 @@ class TestCheckinSettingsWidgetHelpers:
         )
         assert combo.itemText(0) == "Physical"
         assert combo.currentData() == "mood"
+        assert "general" in [combo.itemData(i) for i in range(combo.count())]
 
         fallback = QComboBox()
         CheckinSettingsWidget._populate_category_combo(fallback, {})

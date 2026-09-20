@@ -93,6 +93,29 @@ def test_get_personalization_data_round_trip(qapp):
     widget.deleteLater()
 
 
+def test_structured_loved_one_round_trips_without_flattening(qapp):
+    original = {
+        "name": "Mary-Jane",
+        "type": "long-distance friend",
+        "relationships": ["co-parent - weekends", "calls, when needed"],
+        "notes": "Website-only structured detail",
+    }
+    widget = _make_widget({"loved_ones": [original]})
+
+    data = widget.get_personalization_data()
+
+    assert data["loved_ones"] == [original]
+
+    widget.ui.textEdit_loved_ones.setPlainText(
+        "Mary-Jane - closest friend - co-parent - weekdays"
+    )
+    edited = widget.get_personalization_data()["loved_ones"][0]
+    assert edited["type"] == "closest friend"
+    assert edited["relationships"] == ["co-parent - weekdays"]
+    assert edited["notes"] == "Website-only structured detail"
+    widget.deleteLater()
+
+
 def test_set_settings_reloads_existing_data(qapp):
     widget = _make_widget()
     widget.set_settings({"preferred_name": "Reloaded", "notes_for_ai": []})
