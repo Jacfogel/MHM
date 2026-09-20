@@ -53,6 +53,30 @@ def test_parallel_command_uses_xdist_and_excludes_e2e_and_no_parallel(monkeypatc
 
 
 @pytest.mark.unit
+def test_posix_pytest_command_uses_signal_timeout_method(monkeypatch, tmp_path):
+    monkeypatch.setattr(runner, "_use_signal_timeout_method", lambda: True)
+    monkeypatch.setattr(runner, "_has_xdist", lambda: False)
+    command = runner.build_phase_command(
+        phase="parallel",
+        cfg=_cfg(),
+        junit_xml=tmp_path / "parallel.xml",
+    )
+    assert "--timeout-method=signal" in command
+
+
+@pytest.mark.unit
+def test_windows_pytest_command_keeps_ini_timeout_method(monkeypatch, tmp_path):
+    monkeypatch.setattr(runner, "_use_signal_timeout_method", lambda: False)
+    monkeypatch.setattr(runner, "_has_xdist", lambda: False)
+    command = runner.build_phase_command(
+        phase="parallel",
+        cfg=_cfg(),
+        junit_xml=tmp_path / "parallel.xml",
+    )
+    assert "--timeout-method=signal" not in command
+
+
+@pytest.mark.unit
 def test_parallel_command_falls_back_to_serial_without_xdist(monkeypatch, tmp_path):
     monkeypatch.setattr(runner, "_has_xdist", lambda: False)
 
@@ -458,6 +482,23 @@ def test_pytest_output_tail_keeps_worker_crash_and_drops_progress_dots():
     assert "F" in tail.splitlines()
     assert "[ 93%]" not in tail
     assert "[ 99%]" not in tail
+
+
+@pytest.mark.unit
+def test_pytest_output_tail_keeps_timeout_dump_start_and_node_down():
+    dump_lines = [
+        "+++ Timeout +++",
+        "Current thread 0x1 (most recent call first):",
+        '  File "tests/unit/test_hung.py", line 4 in test_hangs',
+    ]
+    dump_lines.extend(f"Thread 0x{index:x} comm-manager-event-loop" for index in range(20, 40))
+    dump_lines.append("[gw1] node down: Not properly terminated")
+    output = "\n".join(["...." * 20 + " [ 96%]", *dump_lines])
+    tail = runner._pytest_output_tail(output, limit=10)
+    assert "+++ Timeout +++" in tail
+    assert "test_hangs" in tail
+    assert "node down: Not properly terminated" in tail
+    assert "[ 96%]" not in tail
 
 
 @pytest.mark.unit

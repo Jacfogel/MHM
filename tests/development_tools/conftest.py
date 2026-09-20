@@ -48,6 +48,10 @@ def pytest_configure(config):
             "development_tools/pytest.ini --rootdir=. "
             "--confcutdir=tests/development_tools tests/development_tools/"
         )
+    if os.name != "nt":
+        timeout_method = getattr(config.option, "timeout_method", None)
+        if timeout_method in {None, "thread"}:
+            config.option.timeout_method = "signal"
 
 
 _tests_dir = Path(__file__).resolve().parent

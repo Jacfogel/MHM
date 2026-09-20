@@ -918,9 +918,13 @@ class TestCommunicationManagerCoverageExpansion:
         # Add a channel
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         comm_manager._running = True
+        loop_thread = comm_manager._loop_thread
         
         # Test stop all
         comm_manager.stop_all()
         
         # Verify shutdown was attempted
         assert comm_manager._running is False
+        assert comm_manager._loop_thread is None
+        if loop_thread is not None:
+            assert not loop_thread.is_alive()

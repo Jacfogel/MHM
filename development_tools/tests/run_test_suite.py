@@ -151,6 +151,11 @@ def _suite_run_id() -> str:
     return _CURRENT_SUITE_RUN_ID
 
 
+def _use_signal_timeout_method() -> bool:
+    """Return True when pytest-timeout can abort hung tests with SIGALRM."""
+    return os.name != "nt"
+
+
 def _append_pytest_runtime_options(
     command: list[str],
     *,
@@ -180,6 +185,8 @@ def _append_pytest_runtime_options(
             "-q",
         ]
     )
+    if _use_signal_timeout_method():
+        command.append("--timeout-method=signal")
     if not force_serial and worker_count and worker_count > 1:
         command.extend(["-n", str(worker_count), "--dist=loadscope"])
 
@@ -383,10 +390,19 @@ def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
 
 _DOT_PROGRESS_LINE = re.compile(r"^[.\s]+(?:\[\s*\d+%\s*\])?$")
 _ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+_TIMEOUT_DUMP_RE = re.compile(
+    r"(\+{3,}.*timeout.*\+{3,}|timeouterror|dumping stacks|current thread 0x|fatal python error)",
+    re.I,
+)
 
 
 def _pytest_output_tail(output: str, *, limit: int = 80) -> str:
-    """Keep the last diagnostic lines, skipping pytest progress-only dots."""
+    """Keep diagnostic lines, skipping pytest progress-only dots.
+
+    Timeout/faulthandler dumps put the hung thread first and leftover worker
+    threads last. Keep both ends so nightly summaries still show the hung
+    test instead of only leaked event-loop stacks.
+    """
     lines = (output or "").splitlines()
     if not lines:
         return ""
@@ -396,8 +412,19 @@ def _pytest_output_tail(output: str, *, limit: int = 80) -> str:
         if not stripped or _DOT_PROGRESS_LINE.fullmatch(stripped):
             continue
         useful.append(line)
-    selected = useful[-limit:] if useful else lines[-limit:]
-    return "\n".join(selected)
+    selected = useful or lines
+    dump_idx = None
+    for index, line in enumerate(selected):
+        if _TIMEOUT_DUMP_RE.search(_ANSI_ESCAPE.sub("", line)):
+            dump_idx = index
+            break
+    if dump_idx is not None:
+        selected = selected[dump_idx:]
+    if len(selected) <= limit:
+        return "\n".join(selected)
+    head_n = max(1, limit // 2)
+    tail_n = limit - head_n
+    return "\n".join([*selected[:head_n], *selected[-tail_n:]])
 
 
 def _should_write_suite_cache(phases: list[PhaseResult]) -> bool:

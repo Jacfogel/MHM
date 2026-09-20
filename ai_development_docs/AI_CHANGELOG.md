@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-20 - Nightly suite workers no longer leak communication event loops **COMPLETED**
+- CommunicationManager now stops tracked event-loop threads on shutdown, including loops abandoned when tests clear the singleton.
+- Linux pytest-timeout uses `signal` so hung tests abort at 300s; nightly output keeps the timeout-dump start so the hung thread is visible.
+- This addresses consecutive GitHub nightly crashes at 96-98% with `node down: Not properly terminated` and zero failed node IDs.
+
 ### 2026-09-20 - Verified password recovery and transparent mood trends **COMPLETED**
 - Added a forgot-password flow that verifies the account by emailed code, replaces the password, revokes older sessions, and signs the recovered account in without revealing whether unknown emails exist.
 - Website mood insights now explain that the trend compares the latest seven mood ratings with the previous seven, show progress until 14 ratings exist, and distinguish missing mood answers from missing check-ins.

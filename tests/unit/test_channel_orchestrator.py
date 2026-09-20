@@ -762,3 +762,43 @@ class TestChannelOrchestratorHelpers:
             processor._poll_once(email_channel)
 
         mock_process.assert_called_once_with(valid_email)
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+class TestCommunicationManagerEventLoopCleanup:
+    """Abandoned CommunicationManager singletons must not leak event-loop threads."""
+
+    def teardown_method(self):
+        CommunicationManager.shutdown_managed_event_loops()
+
+    def test_stop_all_stops_the_managed_event_loop(self):
+        """stop_all must terminate the background loop, not only set _running."""
+        CommunicationManager.shutdown_managed_event_loops()
+        manager = CommunicationManager()
+        thread = manager._loop_thread
+        assert thread is not None
+        assert thread.is_alive()
+        manager.stop_all()
+        assert manager._running is False
+        assert manager._loop_thread is None
+        assert not thread.is_alive()
+
+    def test_shutdown_managed_event_loops_stops_abandoned_instances(self):
+        """Clearing _instance without stop_all must not leave run_forever threads."""
+        CommunicationManager.shutdown_managed_event_loops()
+        first = CommunicationManager()
+        first_thread = first._loop_thread
+        CommunicationManager._instance = None
+        second = CommunicationManager()
+        second_thread = second._loop_thread
+        assert first_thread is not None
+        assert second_thread is not None
+        assert first_thread is not second_thread
+        assert first_thread.is_alive()
+        assert second_thread.is_alive()
+        CommunicationManager.shutdown_managed_event_loops()
+        assert not first_thread.is_alive()
+        assert not second_thread.is_alive()
+        assert CommunicationManager._instance is None
+

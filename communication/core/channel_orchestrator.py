@@ -63,6 +63,8 @@ class CommunicationManager:
 
     _instance = None
     _lock = threading.Lock()
+    _managed_loops_lock = threading.Lock()
+    _managed_loops: list[tuple[asyncio.AbstractEventLoop, threading.Thread]] = []
 
     # not_duplicate: singleton_new_methods
     @handle_errors("creating channel orchestrator instance", default_return=None)
@@ -113,6 +115,82 @@ class CommunicationManager:
         # Mark as initialized
         self._initialized = True
 
+    @classmethod
+    @handle_errors("registering managed event loop", default_return=None)
+    def _register_managed_loop(
+        cls, loop: asyncio.AbstractEventLoop, thread: threading.Thread
+    ) -> None:
+        """Track a managed loop so abandoned singleton resets can still stop it."""
+        with cls._managed_loops_lock:
+            cls._managed_loops.append((loop, thread))
+
+    @classmethod
+    @handle_errors("unregistering managed event loop", default_return=None)
+    def _unregister_managed_loop(cls, loop: asyncio.AbstractEventLoop) -> None:
+        """Remove a managed loop from the process-wide registry."""
+        with cls._managed_loops_lock:
+            cls._managed_loops = [
+                entry for entry in cls._managed_loops if entry[0] is not loop
+            ]
+
+    @staticmethod
+    @handle_errors("stopping a managed event loop", default_return=None)
+    def _stop_loop_and_thread(
+        loop: asyncio.AbstractEventLoop | None, thread: threading.Thread | None
+    ) -> None:
+        """Stop one managed asyncio loop and join its thread."""
+        if loop is not None and not loop.is_closed():
+            try:
+                if loop.is_running():
+                    loop.call_soon_threadsafe(loop.stop)
+                else:
+                    loop.close()
+            except Exception as e:
+                logger.error(f"Error stopping managed event loop: {e}")
+        if (
+            thread is not None
+            and thread.is_alive()
+            and thread is not threading.current_thread()
+        ):
+            thread.join(timeout=5)
+
+    @handle_errors("stopping instance event loop", default_return=None)
+    def _stop_managed_event_loop(self) -> None:
+        """Stop this instance's background event loop thread if it is running."""
+        loop = self._main_loop
+        thread = self._loop_thread
+        self._stop_loop_and_thread(loop, thread)
+        if loop is not None:
+            self._unregister_managed_loop(loop)
+        self._main_loop = None
+        self._event_loop = None
+        self._loop_thread = None
+
+    @classmethod
+    @handle_errors("shutting down all managed event loops", default_return=None)
+    def shutdown_managed_event_loops(cls) -> None:
+        """Stop every tracked communication event loop in this process.
+
+        Tests often clear ``_instance`` without calling ``stop_all()``. The
+        abandoned daemon loops then keep pytest-xdist workers from exiting.
+        """
+        with cls._managed_loops_lock:
+            pending = list(cls._managed_loops)
+            cls._managed_loops = []
+        for loop, thread in pending:
+            cls._stop_loop_and_thread(loop, thread)
+        with cls._lock:
+            instance = cls._instance
+            if instance is not None:
+                instance._main_loop = None
+                instance._event_loop = None
+                instance._loop_thread = None
+                instance._running = False
+                instance._initialized = False
+                if hasattr(instance, "_channels_dict"):
+                    instance._channels_dict.clear()
+            cls._instance = None
+
     @handle_errors("setting up event loop", default_return=None)
     def __init____setup_event_loop(self):
         """Set up a dedicated background event loop for sync->async bridging.
@@ -129,6 +207,8 @@ class CommunicationManager:
         ):
             return
 
+        self._stop_managed_event_loop()
+
         loop_ready = threading.Event()
 
         @handle_errors("running event loop", default_return=None)
@@ -138,8 +218,15 @@ class CommunicationManager:
             asyncio.set_event_loop(loop)
             self._main_loop = loop
             self._event_loop = loop
+            CommunicationManager._register_managed_loop(loop, threading.current_thread())
             loop_ready.set()
-            loop.run_forever()
+            try:
+                loop.run_forever()
+            finally:
+                with contextlib.suppress(Exception):
+                    if not loop.is_closed():
+                        loop.close()
+                CommunicationManager._unregister_managed_loop(loop)
 
         self._loop_thread = threading.Thread(
             target=run_event_loop,
@@ -973,6 +1060,9 @@ class CommunicationManager:
             logger.error(f"Error during shutdown: {e}")
             # Final fallback
             self._shutdown_sync()
+        finally:
+            self._running = False
+            self._stop_managed_event_loop()
 
     @handle_errors(
         "shutting down all channels (sync)", user_friendly=False, default_return=None
@@ -1009,14 +1099,7 @@ class CommunicationManager:
             except Exception as e:
                 logger.error(f"Error stopping channel {name}: {e}")
 
-        # Stop event loop
-        if self._main_loop and not self._main_loop.is_closed():
-            try:
-                self._main_loop.call_soon_threadsafe(self._main_loop.stop)
-                if self._loop_thread and self._loop_thread.is_alive():
-                    self._loop_thread.join(timeout=5)
-            except Exception as e:
-                logger.error(f"Error stopping event loop: {e}")
+        self._stop_managed_event_loop()
 
         logger.info("CommunicationManager shutdown complete")
 

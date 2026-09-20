@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-20 - Nightly suite workers no longer leak communication event loops
+- **Fix**: `CommunicationManager` now tracks every managed asyncio loop and always stops those threads in `stop_all()`. Tests that cleared the singleton without shutdown were leaving `run_forever` threads behind; pytest-xdist workers then sat in `selectors.select` until the 60-minute nightly budget sent SIGTERM (`node down: Not properly terminated`, no failing node IDs).
+- **Tests**: Autouse cleanup now stops all tracked loops after each test. POSIX pytest-timeout uses `signal` so a hung test aborts at 300s instead of only dumping stacks. Nightly summaries keep the start of a timeout dump (the hung thread) rather than only the leftover loop stacks.
+- **Impact**: Linux nightly `nightly-test-suite --strict` should finish or fail the actual hung test instead of crashing at 96-98% with an empty failure list.
+
 ### 2026-09-20 - Verified password recovery and transparent mood trends
 - **Password recovery**: Added a dedicated **Forgot your password?** flow to [`website/login.html`](../website/login.html) and [`website/auth.js`](../website/auth.js). Users choose a replacement password, receive the existing six-digit email verification code, and save the new salted scrypt hash only after successful verification. Recovery revokes older in-memory sessions and signs in the verified account with a new password-authenticated session.
 - **Authentication safety**: The gateway accepts a bounded `reset` challenge mode while retaining the existing generic response for unknown, duplicate, inactive, or suspended accounts, so the form does not disclose account existence. Verification codes remain single-use, attempt-limited, expiring, and rate-limited. Authentication email copy now calls the code a verification code so it fits sign-in, signup, and recovery.

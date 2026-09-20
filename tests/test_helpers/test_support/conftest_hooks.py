@@ -124,6 +124,14 @@ def pytest_configure(config):
     if not os.environ.get("PYTEST_XDIST_WORKER"):
         test_logger.debug("Configuring pytest for MHM testing")
 
+    # pytest.ini sets thread timeouts for Windows, where SIGALRM is unavailable.
+    # On POSIX the thread method only dumps stacks and cannot abort a hung test,
+    # so Linux CI workers sit until the outer suite budget expires.
+    if os.name != "nt":
+        timeout_method = getattr(config.option, "timeout_method", None)
+        if timeout_method in {None, "thread"}:
+            config.option.timeout_method = "signal"
+
     class _NoopCache:
         def __init__(self):
             self._store = {}
@@ -235,7 +243,7 @@ def pytest_sessionstart(session):
                     )
                     with contextlib.suppress(Exception):
                         CommunicationManager._instance.stop_all()
-                    CommunicationManager._instance = None
+                CommunicationManager.shutdown_managed_event_loops()
             except (ImportError, ModuleNotFoundError):
                 pass
             except Exception as e:
@@ -520,7 +528,7 @@ def pytest_sessionfinish(session, exitstatus):
             test_logger.debug("Session finish: Ensuring CommunicationManager cleanup")
             with contextlib.suppress(Exception):
                 CommunicationManager._instance.stop_all()
-            CommunicationManager._instance = None
+        CommunicationManager.shutdown_managed_event_loops()
     except (ImportError, ModuleNotFoundError):
         pass
     except Exception as e:
@@ -648,8 +656,8 @@ def cleanup_communication_manager():
                 elif stop_error[0]:
                     test_logger.warning(f"Error during stop_all(): {stop_error[0]}")
 
-                CommunicationManager._instance = None
-                test_logger.debug("CommunicationManager cleanup completed")
+            CommunicationManager.shutdown_managed_event_loops()
+            test_logger.debug("CommunicationManager cleanup completed")
         except (ImportError, ModuleNotFoundError):
             pass
         except Exception as e:
@@ -796,23 +804,18 @@ def cleanup_singletons():
 
 @pytest.fixture(autouse=True)
 def cleanup_communication_threads():
-    """
-    Lightweight cleanup of CommunicationManager state between tests.
-    Full cleanup is handled by cleanup_communication_manager at session end.
-    """
-    _project_root, _tests_data_dir, test_logger, _test_log_file, _ = _get_conftest_attrs()
+    """Stop CommunicationManager event loops abandoned between tests.
 
+    Tests often clear ``CommunicationManager._instance`` without ``stop_all()``.
+    The leftover ``run_forever`` threads then keep xdist workers alive until the
+    nightly 60-minute pytest budget expires.
+    """
     yield
 
     try:
         from communication.core.channel_orchestrator import CommunicationManager
 
-        if CommunicationManager._instance is not None:
-            try:
-                if hasattr(CommunicationManager._instance, "_channels_dict"):
-                    CommunicationManager._instance._channels_dict.clear()
-            except Exception:
-                pass
+        CommunicationManager.shutdown_managed_event_loops()
     except (ImportError, ModuleNotFoundError):
         pass
     except Exception:
