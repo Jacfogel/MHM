@@ -31,7 +31,7 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-09-20 - Compact website navigation and simpler task creation **COMPLETED**
-- After login, the website lands on a home screen (next task, check-in request, notebook capture). New accounts get a 3-step first run for name/time zone, when to hear from MHM, and one first task.
+- After login, the website lands on Home (next task, check-in request, notebook capture). New accounts get a 3-step first run for name/time zone, when to hear from MHM, and one first task. Home/setup scripts are page-scoped so they load with `app.js`.
 - Signed-in and marketing pages now use a Menu control below 1080px so destinations stay reachable, including Create account on small phones.
 - The task list is shown first; extra create fields stay behind More options unless a template fills them.
 - Notebook search labels use a real `.sr-only` style, and disabled buttons no longer look like they are loading.

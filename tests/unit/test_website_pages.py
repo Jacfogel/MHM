@@ -65,6 +65,7 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert signed_in_hrefs <= insights.hrefs
     assert signed_in_hrefs <= messages.hrefs
     assert "logout" in home.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
+    assert 'aria-current="page">Home</a>' in (WEBSITE / "home.html").read_text(encoding="utf-8")
 
 
 def test_insights_page_exposes_history_and_google_health_controls():
@@ -204,6 +205,12 @@ def test_first_run_exposes_three_setup_steps():
     assert "hidden" in setup.controls["step-2"]
     assert "hidden" in setup.controls["step-3"]
     assert setup.controls["first-task"]["maxlength"] == "500"
+
+
+def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():
+    for name in ("home.js", "setup.js"):
+        source = (WEBSITE / name).read_text(encoding="utf-8").lstrip()
+        assert source.startswith("(() =>"), f"{name} must keep page variables off the shared global scope"
 
 
 @pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html"])

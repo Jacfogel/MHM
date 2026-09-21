@@ -90,3 +90,21 @@ test('a one-line capture is saved as a notebook note', async () => {
   });
   assert.equal(view.nodes.get('home-note').value, '');
 });
+
+test('home.js can load after app.js without a global status clash', async () => {
+  const app = await readFile(new URL('./app.js', import.meta.url), 'utf8');
+  const home = await readFile(new URL('./home.js', import.meta.url), 'utf8');
+  const nodes = new Map([['app-status', node({ hidden: false })], ['home-content', node()], ['logout', node()]]);
+  const context = vm.createContext({
+    document: { getElementById(id) { return nodes.get(id) || node(); } },
+    window: { addEventListener() {}, dispatchEvent() { return true; } },
+    Event,
+    URLSearchParams,
+    AbortSignal: { timeout() { return undefined; } },
+    location: { search: '', replace() {}, assign() {} },
+    fetch: async (url) => Response.json(url === '/api/account' ? { preferred_name: 'River', needs_setup: false, checkins_enabled: false } : { tasks: [] }),
+    Response,
+  });
+  vm.runInContext(app, context);
+  vm.runInContext(home, context);
+});
