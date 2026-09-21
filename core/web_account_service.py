@@ -358,6 +358,68 @@ class OAuthIdentity:
     display_name: str = ""
 
 
+_DEFAULT_SETUP_FLAGS = {
+    "messages_enabled": False,
+    "tasks_enabled": False,
+    "checkins_enabled": False,
+    "needs_setup": True,
+}
+
+
+@handle_errors("reading account feature flags", user_friendly=False, default_return={})
+def _account_features(account):
+    """Return the feature-flag map from an account envelope or nested document."""
+    if not isinstance(account, dict):
+        return {}
+    features = account.get("features")
+    if isinstance(features, dict):
+        return features
+    nested = account.get("account")
+    if isinstance(nested, dict) and nested is not account:
+        nested_features = nested.get("features")
+        if isinstance(nested_features, dict):
+            return nested_features
+    return {}
+
+
+@handle_errors("checking website support feature", user_friendly=False, default_return=False)
+def _feature_enabled(features, key):
+    """True when a support feature is stored as enabled."""
+    if not isinstance(features, dict):
+        return False
+    value = features.get(key)
+    if value is True:
+        return True
+    return isinstance(value, str) and value.strip().lower() == "enabled"
+
+
+@handle_errors(
+    "computing website first-run flags",
+    user_friendly=False,
+    default_return=_DEFAULT_SETUP_FLAGS,
+)
+def _setup_flags(account):
+    """Return website first-run flags from one account document."""
+    features = _account_features(account)
+    messages_enabled = _feature_enabled(features, "automated_messages")
+    tasks_enabled = _feature_enabled(features, "task_management")
+    checkins_enabled = _feature_enabled(features, "checkins")
+    return {
+        "messages_enabled": messages_enabled,
+        "tasks_enabled": tasks_enabled,
+        "checkins_enabled": checkins_enabled,
+        "needs_setup": not (messages_enabled or tasks_enabled or checkins_enabled),
+    }
+
+
+@handle_errors("choosing signed-in website path", user_friendly=False, default_return="/home.html")
+def _signed_in_path(account, *, linking=False):
+    """Return Home, setup, or Account after a successful website sign-in."""
+    if linking:
+        return "/app.html"
+    return "/setup.html" if _setup_flags(account).get("needs_setup") else "/home.html"
+
+
 # ERROR_HANDLING_EXCLUDE: JWT parser intentionally raises into the OAuth boundary.
 def _jwt_part(value: str) -> dict:
     """Decode one base64url JSON JWT part after its signature is verified."""
@@ -1063,12 +1125,10 @@ def create_web_app(
             and current_session[3] == "email_code"
         )
         app_id = str(config.DISCORD_APPLICATION_ID or "")
-        features = (documents.get("account") or {}).get("features") or {}
-        checkins_enabled = features.get("checkins") == "enabled"
-        needs_setup = all(
-            features.get(flag) != "enabled"
-            for flag in ("automated_messages", "task_management", "checkins")
-        )
+        account_doc = documents.get("account")
+        if not isinstance(account_doc, dict) or not _account_features(account_doc):
+            account_doc = current
+        flags = _setup_flags(account_doc)
         return web.json_response(
             {
                 "preferred_name": preferred_name,
@@ -1079,8 +1139,10 @@ def create_web_app(
                 "password_set": bool(current.get("password_hash")),
                 "password_change_requires_current": bool(current.get("password_hash"))
                 and not code_reauthenticated,
-                "needs_setup": needs_setup,
-                "checkins_enabled": checkins_enabled,
+                "needs_setup": flags["needs_setup"],
+                "messages_enabled": flags["messages_enabled"],
+                "tasks_enabled": flags["tasks_enabled"],
+                "checkins_enabled": flags["checkins_enabled"],
                 "oauth": {
                     provider: {
                         "available": oauth_provider_config(provider) is not None,
@@ -1315,7 +1377,9 @@ def create_web_app(
                     )
                     if result not in {"linked", "already_linked"}:
                         raise DataError("OAuth account could not be linked")
-            landing = "/app.html" if pending.get("linked_uid") else "/home.html"
+            landing = _signed_in_path(
+                target[1], linking=bool(pending.get("linked_uid"))
+            )
             response = web.HTTPFound(
                 website_redirect(landing, social=f"{provider}-connected")
             )

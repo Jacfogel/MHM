@@ -45,15 +45,35 @@
     return line.trim().slice(0, 80);
   }
 
+  function supportOn(account) {
+    return Boolean(account.messages_enabled || account.tasks_enabled || account.checkins_enabled);
+  }
+
+  async function accountNeedsSetup(account) {
+    if (account.needs_setup === true) return true;
+    if (supportOn(account)) return false;
+    if ('messages_enabled' in account && 'tasks_enabled' in account && 'checkins_enabled' in account) {
+      return true;
+    }
+    try {
+      const settings = await api('/api/settings');
+      const sections = settings.sections || {};
+      return !sections.messages?.enabled && !sections.tasks?.enabled && !sections.checkins?.enabled;
+    } catch (error) {
+      return account.needs_setup === true;
+    }
+  }
+
   async function loadHome() {
     if (!homeContent) return;
     try {
       const account = await api('/api/account');
-      if (account.needs_setup) {
+      if (await accountNeedsSetup(account)) {
         location.replace('setup.html');
         return;
       }
       document.getElementById('home-name').textContent = account.preferred_name || 'there';
+      document.getElementById('home-task-off').hidden = account.tasks_enabled;
       document.getElementById('home-checkin').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-on').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;

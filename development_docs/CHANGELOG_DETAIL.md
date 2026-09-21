@@ -23,7 +23,7 @@ When adding new changes, follow this format:
 ```
 
 **Important Notes:**
-- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
+- **Outstanding tasks** should be documented in [TODO.md](../TODO.md), not in changelog entries
 - Entries should generally be limited to a maximum of 1 per session, if an entry already exists for the current session you can edit it to include additional updates. Exceptions may be made for multiple unrelated changes
 - **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
 - **Paired document maintenance**: When updating a document that has a paired counterpart, update both and keep H2 headings in lockstep. For the canonical list of paired docs, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 4.1 "Paired documentation files".
@@ -32,8 +32,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-21 - Website first-run helpers follow shared error handling
+- **Fix**: [_account_features](../core/web_account_service.py), [_feature_enabled](../core/web_account_service.py), [_setup_flags](../core/web_account_service.py), and [_signed_in_path](../core/web_account_service.py) now use `@handle_errors` with safe defaults so a malformed account document cannot crash login or first-run routing.
+- **Docs**: Normalized ASCII quotes in the 2026-09-20 Home/setup changelog line and linked [TODO.md](../TODO.md) in this file's update instructions.
+- **Tests**: Malformed feature maps return empty flags and send the browser to setup (or Account when linking).
+- **Impact**: Audit-flagged website helpers are protected the same way as the rest of the account gateway.
+
 ### 2026-09-20 - Compact website navigation and simpler task creation
-- **Home and first run**: After login, the website opens [`home.html`](../website/home.html) instead of account settings. Home shows the next due task, a check-in request (queued to email or Discord; completion stays off the website), and a one-line notebook capture. New website accounts, which start with messages, tasks, and check-ins off, are walked through a 3-step first run on [`setup.html`](../website/setup.html): name and time zone, when to hear from MHM, and one optional first task. `GET /api/account` now includes `needs_setup` and `checkins_enabled`. Accounts that already have any of those features enabled skip setup. Home and setup scripts keep their variables inside a page scope so they can load after [`app.js`](../website/app.js) without a `status` name clash that left Home stuck on “Loading your next steps…”.
+- **Home and first run**: After login, the website opens [`home.html`](../website/home.html) instead of account settings. Home shows the next due task, a check-in request (queued to email or Discord; completion stays off the website), and a one-line notebook capture. Task reminders and check-ins each show an Account link when that feature is off. New website accounts, which start with messages, tasks, and check-ins off, go straight to a 3-step first run on [`setup.html`](../website/setup.html): name and time zone, when to hear from MHM, and one optional first task. `GET /api/account` includes `needs_setup`, `messages_enabled`, `tasks_enabled`, and `checkins_enabled`. Accounts that already have any of those features enabled skip setup. Home and setup also read Account settings when those flags are missing, so a user with every support feature off still gets first-run. Home and setup scripts keep their variables inside a page scope so they can load after [`app.js`](../website/app.js) without a `status` name clash that left Home stuck on "Loading your next steps...".
 - **Navigation**: Marketing and signed-in headers keep a **Menu** control below 1080px so How it helps / Features / Philosophy, Log in, Create account, and the account workspaces stay reachable. Signed-in brand links go to Home. The previous rules that hid the marketing nav and the Create account button are gone. [`script.js`](../website/script.js) toggles the menu, closes it on Escape or after choosing a destination, and is loaded on the signed-in pages as well as the home page.
 - **Task creation**: [`tasks.html`](../website/tasks.html) shows the active/completed list before the create form. Title and Add task stay visible; template, details, due date, priority, recurrence, tags, and reminders are behind **More options**. Choosing a template opens those fields; resetting or adding a task collapses them again.
 - **CSS**: Added the missing `.sr-only` helper used by notebook search/tag labels. Disabled buttons use `not-allowed`; only `aria-busy` buttons show a wait cursor, so unused social-login buttons no longer look like the page is loading.

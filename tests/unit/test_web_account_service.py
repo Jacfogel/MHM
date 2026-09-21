@@ -10,7 +10,15 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from core import web_account_service
 from core.error_handling import ConfigurationError
-from core.web_account_service import OAuthIdentity, create_web_app, MHMAccounts
+from core.web_account_service import (
+    OAuthIdentity,
+    create_web_app,
+    MHMAccounts,
+    _account_features,
+    _feature_enabled,
+    _setup_flags,
+    _signed_in_path,
+)
 
 pytestmark = [pytest.mark.unit, pytest.mark.user, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
@@ -188,14 +196,41 @@ async def test_account_needs_setup_until_a_support_feature_is_enabled(gateway):
     assert (await verify(client, token, sent[-1][1])).status == 200
     account = await (await client.get("/api/account")).json()
     assert account["needs_setup"] is True
+    assert account["messages_enabled"] is False
+    assert account["tasks_enabled"] is False
+    assert account["checkins_enabled"] is False
     accounts.users["existing"]["features"] = {"task_management": "enabled"}
     account = await (await client.get("/api/account")).json()
     assert account["needs_setup"] is False
+    assert account["messages_enabled"] is False
+    assert account["tasks_enabled"] is True
     assert account["checkins_enabled"] is False
     accounts.users["existing"]["features"] = {"checkins": "enabled"}
     account = await (await client.get("/api/account")).json()
     assert account["needs_setup"] is False
+    assert account["tasks_enabled"] is False
     assert account["checkins_enabled"] is True
+    accounts.users["existing"]["features"] = {"automated_messages": "enabled"}
+    account = await (await client.get("/api/account")).json()
+    assert account["needs_setup"] is False
+    assert account["messages_enabled"] is True
+    assert account["tasks_enabled"] is False
+    assert account["checkins_enabled"] is False
+
+
+async def test_setup_helpers_use_safe_defaults_for_malformed_accounts():
+    class Broken(dict):
+        def get(self, *args, **kwargs):
+            raise RuntimeError("broken account document")
+
+    assert _account_features(None) == {}
+    assert _account_features(Broken()) == {}
+    assert _feature_enabled(["not-a-map"], "checkins") is False
+    flags = _setup_flags({"features": ["bad"]})
+    assert flags["needs_setup"] is True
+    assert flags["messages_enabled"] is False
+    assert _signed_in_path({"features": ["bad"]}) == "/setup.html"
+    assert _signed_in_path({}, linking=True) == "/app.html"
 
 
 async def test_connected_accounts_can_be_disconnected_without_removing_last_sign_in(
@@ -309,6 +344,7 @@ async def test_insights_are_authenticated_bounded_and_json_safe(gateway, monkeyp
     profile = await (await client.get("/api/account")).json()
     assert profile["preferred_name"] == "River"
     assert profile["needs_setup"] is True
+    assert profile["messages_enabled"] is False
     assert profile["checkins_enabled"] is False
     assert "username" not in profile
     assert "user_id" not in profile
@@ -723,7 +759,7 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
             )
         assert callback.status == 302
         assert callback.headers["Location"].endswith(
-            f"/home.html?social={provider}-connected"
+            f"/setup.html?social={provider}-connected"
         )
         assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
         assert calls[0][0:2] == (provider, "oauth-code")

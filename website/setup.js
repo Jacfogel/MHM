@@ -144,15 +144,29 @@
     location.assign('home.html');
   }
 
+  function supportOn(account) {
+    return Boolean(account.messages_enabled || account.tasks_enabled || account.checkins_enabled);
+  }
+
+  function accountNeedsSetup(account, snapshot) {
+    if (account.needs_setup === true) return true;
+    if (supportOn(account)) return false;
+    if ('messages_enabled' in account && 'tasks_enabled' in account && 'checkins_enabled' in account) {
+      return true;
+    }
+    const sections = (snapshot && snapshot.sections) || {};
+    return !sections.messages?.enabled && !sections.tasks?.enabled && !sections.checkins?.enabled;
+  }
+
   async function loadSetup() {
     if (!setupContent) return;
     try {
       const account = await api('/api/account');
-      if (!account.needs_setup) {
+      settings = await api('/api/settings');
+      if (!accountNeedsSetup(account, settings)) {
         goHome();
         return;
       }
-      settings = await api('/api/settings');
       document.getElementById('preferred-name').value = settings.sections.profile.preferred_name || account.preferred_name || '';
       const timezone = document.getElementById('timezone');
       const zones = settings.options.timezones || [];

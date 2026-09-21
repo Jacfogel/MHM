@@ -30,8 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-21 - Website first-run helpers follow shared error handling **COMPLETED**
+- Website first-run helpers now use `@handle_errors` with safe defaults so a broken account document cannot crash login routing.
+- Changelog ASCII quotes and the [TODO.md](../TODO.md) instruction link are cleaned up.
+
 ### 2026-09-20 - Compact website navigation and simpler task creation **COMPLETED**
-- After login, the website lands on Home (next task, check-in request, notebook capture). New accounts get a 3-step first run for name/time zone, when to hear from MHM, and one first task. Home/setup scripts are page-scoped so they load with `app.js`.
+- After login, the website lands on Home (next task, check-in request, notebook capture). Home warns when task reminders or check-ins are off. New accounts, and any account with messages, tasks, and check-ins all off, get a 3-step first run even if `needs_setup` is missing from the account summary. Home/setup scripts are page-scoped so they load with `app.js`.
 - Signed-in and marketing pages now use a Menu control below 1080px so destinations stay reachable, including Create account on small phones.
 - The task list is shown first; extra create fields stay behind More options unless a template fills them.
 - Notebook search labels use a real `.sr-only` style, and disabled buttons no longer look like they are loading.
@@ -120,12 +124,6 @@ Guidelines:
 - Import boundary now forbids all host prefixes from `local_module_prefixes` except `development_tools`.
 - Extraction remaining work (tests, report paths, later sibling repo) is in PLANS.md Section 6.4.
 - Hygiene: Ruff SIM103/B009, ASCII Section replacements, regenerated function registry for `_combined_message`. Host-hook test asserts `list_backups()` so Pyright does not warn on a dummy `marker` attribute.
-
-### 2026-09-12 - Google Health token expiry uses local time and 401 retries **COMPLETED**
-- Access-token `expires_at` is stored from the local clock, matching the refresh check (UTC storage made a 1-hour token look valid for extra hours in Regina).
-- HTTP 401 on health reads now force-refreshes once and retries instead of recording an empty successful sync.
-- Targeted tests: 97 passed (`test_google_health_auth.py`, `client.py`, `sync_manager.py`, `notifications.py`).
-- `DiscordReconnectNoiseFilter` drops discord.py reconnect/DNS ERROR spam from `errors.log`; MHM disconnect lines stay in `discord.log`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -57,7 +57,7 @@ test('account creation finishes without requiring Discord', async () => {
 
   assert.ok(requests.includes('/api/auth/verify'));
   assert.ok(!requests.includes('/api/auth/discord/start'));
-    assert.deepEqual(navigation, ['home.html']);
+    assert.deepEqual(navigation, ['setup.html']);
 });
 
 test('password recovery verifies the email code before sending the new password', async () => {

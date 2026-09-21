@@ -140,7 +140,7 @@ document.getElementById('verify-form').addEventListener('submit', (event) => {
     const payload = { challenge, code: document.getElementById('code').value.trim() };
     if (creating || resetting) payload.password = password.value;
     await api('/api/auth/verify', payload);
-    location.assign('home.html');
+    location.assign(creating ? 'setup.html' : 'home.html');
   });
 });
 

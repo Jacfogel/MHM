@@ -36,8 +36,9 @@ when starting the MHM service alongside a standalone gateway.
 origin changes, update `WEB_PUBLIC_ORIGIN` to match.
 
 Existing users can continue signing in with an emailed code, then set a password
-from the account page. After a successful sign-in, the browser opens Home rather
-than Account settings. Replacing a saved password requires either the current
+from the account page. After a successful sign-in, the browser opens Home, or
+first-run setup when messages, tasks, and check-ins are all off, rather than
+Account settings. Replacing a saved password requires either the current
 password or a fresh emailed-code sign-in and revokes the account's other in-memory
 browser sessions. The login page also has a **Forgot your password?** flow: the
 replacement password is saved only after a six-digit email code is verified, all
@@ -50,10 +51,12 @@ ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts choose a password and are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
-After sign-in they land on Home, then a 3-step first run for preferred name and
+After sign-in they land on the 3-step first run for preferred name and
 time zone, when to hear from MHM (messages, task reminders, and check-ins with
 gentle default windows), and one optional first task. Accounts that already have
-any of those features enabled skip setup. Users can still change everything later
+any of those features enabled skip setup. First-run also uses the same enabled
+flags as Account settings, so a user with messages, tasks, and check-ins all off
+still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
 on the signed-in settings page. Account creation completes without
 requiring a communication channel connection. Email is available immediately, Discord can be
 connected optionally from the account page, and SMS can be added as another channel later.

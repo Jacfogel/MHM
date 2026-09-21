@@ -17,13 +17,14 @@ function node(extras = {}) {
   };
 }
 
-async function page({ account = { preferred_name: 'River', needs_setup: false, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, fetchImpl } = {}) {
+async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, fetchImpl } = {}) {
   const nodes = new Map([
     ['app-status', node({ hidden: false })],
     ['home-content', node()],
     ['home-name', node()],
     ['home-task-title', node()],
     ['home-task-meta', node()],
+    ['home-task-off', node()],
     ['home-checkin', node()],
     ['home-checkin-on', node()],
     ['home-checkin-off', node()],
@@ -62,9 +63,36 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, c
 }
 
 test('new accounts are sent through first-run setup before home loads', async () => {
-  const view = await page({ account: { preferred_name: 'Brook', needs_setup: true, checkins_enabled: false } });
+  const view = await page({ account: { preferred_name: 'Brook', needs_setup: true, messages_enabled: false, tasks_enabled: false, checkins_enabled: false } });
   assert.deepEqual(view.navigation, ['setup.html']);
   assert.equal(view.nodes.get('home-content').hidden, true);
+});
+
+test('accounts with every support feature off are sent through setup even without needs_setup', async () => {
+  const view = await page({
+    account: { preferred_name: 'Brook', messages_enabled: false, tasks_enabled: false, checkins_enabled: false },
+  });
+  assert.deepEqual(view.navigation, ['setup.html']);
+});
+
+test('home uses saved settings when the account summary omits setup flags', async () => {
+  const view = await page({
+    account: { preferred_name: 'Brook' },
+    fetchImpl: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'Brook' });
+      if (url === '/api/settings') {
+        return Response.json({
+          sections: {
+            messages: { enabled: false },
+            tasks: { enabled: false },
+            checkins: { enabled: false },
+          },
+        });
+      }
+      return Response.json({ tasks: [] });
+    },
+  });
+  assert.deepEqual(view.navigation, ['setup.html']);
 });
 
 test('home shows the next due task and can queue a check-in', async () => {
@@ -72,11 +100,20 @@ test('home shows the next due task and can queue a check-in', async () => {
   assert.equal(view.nodes.get('home-name').textContent, 'River');
   assert.equal(view.nodes.get('home-task-title').textContent, 'Drink water');
   assert.match(view.nodes.get('home-task-meta').textContent, /2026-09-21/);
+  assert.equal(view.nodes.get('home-task-off').hidden, true);
   assert.equal(view.nodes.get('home-checkin').hidden, false);
   assert.equal(view.nodes.get('home-content').hidden, false);
   await view.checkin();
   assert.ok(view.requests.some(request => request.url === '/api/actions' && JSON.parse(request.options.body).action === 'checkin_prompt'));
   assert.match(view.nodes.get('home-checkin-status').textContent, /queued/);
+});
+
+test('home warns when task reminders are off', async () => {
+  const view = await page({
+    account: { preferred_name: 'River', needs_setup: false, tasks_enabled: false, checkins_enabled: true },
+  });
+  assert.equal(view.nodes.get('home-task-off').hidden, false);
+  assert.equal(view.nodes.get('home-checkin-off').hidden, true);
 });
 
 test('a one-line capture is saved as a notebook note', async () => {
@@ -102,7 +139,7 @@ test('home.js can load after app.js without a global status clash', async () => 
     URLSearchParams,
     AbortSignal: { timeout() { return undefined; } },
     location: { search: '', replace() {}, assign() {} },
-    fetch: async (url) => Response.json(url === '/api/account' ? { preferred_name: 'River', needs_setup: false, checkins_enabled: false } : { tasks: [] }),
+    fetch: async (url) => Response.json(url === '/api/account' ? { preferred_name: 'River', needs_setup: false, tasks_enabled: false, checkins_enabled: false } : { tasks: [] }),
     Response,
   });
   vm.runInContext(app, context);

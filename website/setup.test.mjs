@@ -40,7 +40,7 @@ function snapshot() {
   };
 }
 
-async function page() {
+async function page({ account = { preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true } } = {}) {
   const nodes = new Map([
     ['setup-status', node()],
     ['setup-content', node()],
@@ -74,7 +74,7 @@ async function page() {
     location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: async (url, options = {}) => {
       requests.push({ url, method: options.method || 'GET', body: options.body });
-      if (url === '/api/account') return Response.json({ preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true });
+      if (url === '/api/account') return Response.json(account);
       if (url === '/api/settings' && options.method !== 'POST') return Response.json(current);
       if (url === '/api/settings') {
         const payload = JSON.parse(options.body);
@@ -122,4 +122,20 @@ test('first-run walks name, support choices, and a first task', async () => {
   const task = view.requests.find(request => request.url === '/api/tasks');
   assert.deepEqual(JSON.parse(task.body), { title: 'Drink water' });
   assert.deepEqual(view.navigation, ['home.html']);
+});
+
+test('setup stays open when support features are all off even without needs_setup', async () => {
+  const view = await page({
+    account: { preferred_name: 'Brook', timezone: 'America/Regina' },
+  });
+  assert.deepEqual(view.navigation, []);
+  assert.equal(view.nodes.get('setup-content').hidden, false);
+});
+
+test('accounts that already have a support feature skip setup', async () => {
+  const view = await page({
+    account: { preferred_name: 'River', timezone: 'America/Regina', needs_setup: false, messages_enabled: true, tasks_enabled: false, checkins_enabled: false },
+  });
+  assert.deepEqual(view.navigation, ['home.html']);
+  assert.equal(view.nodes.get('setup-content').hidden, true);
 });

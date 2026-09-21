@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-20 22:12:05
+> **Last Generated**: 2026-09-21 11:21:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2762
+- **Functions Found**: 2766
 - **Methods Found**: 1424
 - **Classes Found**: 264
-- **Total Items**: 4186
-- **Functions Documented**: 2460
+- **Total Items**: 4190
+- **Functions Documented**: 2464
 - **Methods Documented**: 1279
 - **Classes Documented**: 198
-- **Total Documented**: 3739
+- **Total Documented**: 3743
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-20
+- **Last Updated**: 2026-09-21
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (534)
+### **Core System Functions** (538)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (712)
@@ -5076,9 +5076,13 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_account_service.py`
 **Functions:**
+- [OK] `_account_features(account)` - Return the feature-flag map from an account envelope or nested document.
+- [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
 - [OK] `_jwt_part(value)` - Decode one base64url JSON JWT part after its signature is verified.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
+- [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
+- [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
 - [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
 - [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.

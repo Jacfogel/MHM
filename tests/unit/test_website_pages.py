@@ -55,6 +55,7 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "task-create-form" not in notebook.ids
     assert "home-capture-form" in home.ids
     assert "home-checkin" in home.ids
+    assert "home-task-off" in home.ids
     assert "task-create-form" not in home.ids
 
     signed_in_hrefs = {"home.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
