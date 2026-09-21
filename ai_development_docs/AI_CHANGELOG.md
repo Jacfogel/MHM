@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-20 - Compact website navigation and simpler task creation **COMPLETED**
+- After login, the website lands on a home screen (next task, check-in request, notebook capture). New accounts get a 3-step first run for name/time zone, when to hear from MHM, and one first task.
+- Signed-in and marketing pages now use a Menu control below 1080px so destinations stay reachable, including Create account on small phones.
+- The task list is shown first; extra create fields stay behind More options unless a template fills them.
+- Notebook search labels use a real `.sr-only` style, and disabled buttons no longer look like they are loading.
+
 ### 2026-09-20 - Nightly suite workers no longer leak communication event loops **COMPLETED**
 - CommunicationManager now stops tracked event-loop threads on shutdown, including loops abandoned when tests clear the singleton.
 - Linux pytest-timeout uses `signal` so hung tests abort at 300s; nightly output keeps the timeout-dump start so the hung thread is visible.
@@ -120,17 +126,6 @@ Guidelines:
 - HTTP 401 on health reads now force-refreshes once and retries instead of recording an empty successful sync.
 - Targeted tests: 97 passed (`test_google_health_auth.py`, `client.py`, `sync_manager.py`, `notifications.py`).
 - `DiscordReconnectNoiseFilter` drops discord.py reconnect/DNS ERROR spam from `errors.log`; MHM disconnect lines stay in `discord.log`.
-
-### 2026-09-05 - Dev-tools report tests and trustworthy coverage refresh **COMPLETED**
-- Added issue-payload tests for AI_STATUS / AI_PRIORITIES / CONSOLIDATED and remaining error-handling analyzer helpers (consolidated 31%->73%, status 42%->66%, priorities 54%->75%, error handling 54%->81%).
-- Incomplete coverage runs no longer replace the published snapshot: keep `coverage_last_good.json` at 60%+, ignore stray Ctrl+C until 5 taps in 2s, and start Windows pytest with `CREATE_NO_WINDOW` so xdist workers are not killed.
-- Refresh with `python development_tools/tests/run_test_coverage.py` (not `--no-domain-cache`, not the skipping `coverage` wrapper). Successful pass: overall 80.2%, `development_tools` 72.9%; then `audit`. Added the missing H2 `Recent Changes (Most Recent First)` to CHANGELOG_DETAIL so the pair matches.
-- Cleared the 2 remaining Pyright warnings: `_percent_covered_from_totals` returns early when `percent_covered` is missing instead of passing `None` to `float()`.
-
-### 2026-09-03 - Clear Pyright warnings on profile-settings tests **COMPLETED**
-- The three remaining Pyright warnings were `reportAttributeAccessIssue` on `lineEdit_preferred_name` in `tests/ui/test_user_profile_settings_widget.py`.
-- That field is created at runtime in `UserProfileSettingsWidget.__init__`, not in the generated UI class; the test file now uses the same Pyright suppression as the widget.
-- `python -m pyright tests/ui/test_user_profile_settings_widget.py` should report 0 errors / 0 warnings after this.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

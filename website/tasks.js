@@ -423,8 +423,16 @@ const MHMTaskInput = Object.freeze({
   const createRepeatAfter = document.getElementById('task-repeat-after-completion');
   const createTagInput = document.getElementById('task-tags');
   const createTagPicker = document.getElementById('task-existing-tag');
+  const extraFields = document.getElementById('task-extra-fields');
+  const moreOptions = document.getElementById('task-more-options');
   const syncCreateRecurrence = () => syncRecurrenceControls(createRecurrence, createRecurrenceOptions, createCustomRecurrence, createRecurrenceInterval, createRecurrenceUnit, createRepeatAfter);
+  function setExtraFieldsOpen(open) {
+    extraFields.hidden = !open;
+    moreOptions.setAttribute('aria-expanded', String(open));
+    moreOptions.textContent = open ? 'Fewer options' : 'More options';
+  }
   createRecurrence.addEventListener('change', syncCreateRecurrence);
+  moreOptions.addEventListener('click', () => setExtraFieldsOpen(extraFields.hidden));
   bindTagPicker(createTagInput, createTagPicker);
   syncCreateRecurrence();
 
@@ -435,6 +443,7 @@ const MHMTaskInput = Object.freeze({
     createRepeatAfter.checked = true;
     document.getElementById('task-reminder-list').replaceChildren();
     syncCreateRecurrence();
+    setExtraFieldsOpen(false);
   }
 
   createForm.addEventListener('submit', async event => {
@@ -462,7 +471,8 @@ const MHMTaskInput = Object.freeze({
     const template = templates.find(item => item.id === templateId);
     resetCreateForm();
     event.target.value = templateId;
-    if (!template) { document.getElementById('task-title').focus(); return; }
+    if (!template) { setExtraFieldsOpen(false); document.getElementById('task-title').focus(); return; }
+    setExtraFieldsOpen(true);
     document.getElementById('task-title').value = template.title || '';
     document.getElementById('task-description').value = template.description || '';
     document.getElementById('task-priority').value = template.priority || 'medium';

@@ -24,6 +24,10 @@ test('static pages get security headers and internal files stay private', async 
   assert.equal((await worker.fetch(new Request(url + '/insights.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/messages.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/messages.js'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/home.html'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/home.js'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/setup.html'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/setup.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/other-image.png'), env)).status, 404);
 });
 test('missing configuration, cross-origin submissions and unknown routes fail closed', async () => {

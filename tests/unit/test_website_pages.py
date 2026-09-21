@@ -40,6 +40,7 @@ def parse_page(name: str) -> PageStructure:
 
 
 def test_signed_in_pages_keep_workspaces_separate_and_linked():
+    home = parse_page("home.html")
     account = parse_page("app.html")
     tasks = parse_page("tasks.html")
     notebook = parse_page("notes.html")
@@ -52,13 +53,18 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "note-create-form" not in tasks.ids
     assert "note-create-form" in notebook.ids
     assert "task-create-form" not in notebook.ids
+    assert "home-capture-form" in home.ids
+    assert "home-checkin" in home.ids
+    assert "task-create-form" not in home.ids
 
-    assert {"tasks.html", "notes.html", "messages.html", "insights.html"} <= account.hrefs
-    assert {"app.html", "notes.html", "messages.html", "insights.html"} <= tasks.hrefs
-    assert {"app.html", "tasks.html", "messages.html", "insights.html"} <= notebook.hrefs
-    assert {"app.html", "tasks.html", "notes.html", "messages.html"} <= insights.hrefs
-    assert {"app.html", "tasks.html", "notes.html", "insights.html"} <= messages.hrefs
-    assert "logout" in account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
+    signed_in_hrefs = {"home.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
+    assert signed_in_hrefs <= home.hrefs
+    assert signed_in_hrefs <= account.hrefs
+    assert signed_in_hrefs <= tasks.hrefs
+    assert signed_in_hrefs <= notebook.hrefs
+    assert signed_in_hrefs <= insights.hrefs
+    assert signed_in_hrefs <= messages.hrefs
+    assert "logout" in home.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
 
 
 def test_insights_page_exposes_history_and_google_health_controls():
@@ -109,7 +115,13 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
 
 def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
     tasks = parse_page("tasks.html")
+    html = (WEBSITE / "tasks.html").read_text(encoding="utf-8")
 
+    assert html.index('id="task-list"') < html.index('id="task-create-form"')
+    assert "task-more-options" in tasks.ids
+    assert "hidden" in tasks.controls["task-extra-fields"]
+    assert tasks.controls["task-more-options"]["aria-expanded"] == "false"
+    assert tasks.controls["task-more-options"]["aria-controls"] == "task-extra-fields"
     assert "hidden" in tasks.controls["task-recurrence-options"]
     assert "hidden" in tasks.controls["task-custom-recurrence"]
     assert tasks.controls["task-recurrence-interval"]["min"] == "1"
@@ -119,6 +131,32 @@ def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
     assert "task-reminder-list" in tasks.ids
     assert "task-links" not in tasks.ids
     assert "custom" in tasks.option_values
+
+
+def test_compact_menu_is_available_on_marketing_and_signed_in_pages():
+    marketing = parse_page("index.html")
+    assert marketing.controls["nav-toggle"]["aria-controls"] == "site-menu"
+    assert marketing.controls["nav-toggle"]["aria-expanded"] == "false"
+    assert "site-menu" in marketing.ids
+    assert "login.html?mode=create" in marketing.hrefs
+
+    for page_name in ("home.html", "setup.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"):
+        page = parse_page(page_name)
+        assert page.controls["nav-toggle"]["aria-controls"] == "site-menu"
+        assert "site-menu" in page.ids
+        assert "logout" in page.ids
+        assert any(source.startswith("script.js") for source in page.scripts)
+
+
+def test_website_css_hides_sr_only_labels_and_does_not_treat_disabled_as_loading():
+    css = (WEBSITE / "styles.css").read_text(encoding="utf-8")
+    assert ".sr-only" in css
+    assert "clip: rect(0, 0, 0, 0)" in css
+    assert "button:disabled { cursor: not-allowed;" in css
+    assert "button[aria-busy=\"true\"] { cursor: wait; }" in css
+    assert "button:disabled { cursor: wait;" not in css
+    assert ".site-header .nav-actions .button-small { display: none; }" not in css
+    assert ".nav { display: none; }" not in css
 
 
 def test_website_scripts_use_only_current_task_and_insights_shapes():
@@ -160,7 +198,15 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     } <= account.ids
 
 
-@pytest.mark.parametrize("page_name", ["index.html", "login.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html"])
+def test_first_run_exposes_three_setup_steps():
+    setup = parse_page("setup.html")
+    assert {"step-1", "step-2", "step-3", "preferred-name", "timezone", "enable-messages", "enable-tasks", "enable-checkins", "first-task"} <= setup.ids
+    assert "hidden" in setup.controls["step-2"]
+    assert "hidden" in setup.controls["step-3"]
+    assert setup.controls["first-task"]["maxlength"] == "500"
+
+
+@pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html"])
 def test_page_local_scripts_and_assets_exist(page_name):
     page = parse_page(page_name)
     for source in page.scripts:

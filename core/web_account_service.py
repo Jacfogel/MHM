@@ -1063,6 +1063,12 @@ def create_web_app(
             and current_session[3] == "email_code"
         )
         app_id = str(config.DISCORD_APPLICATION_ID or "")
+        features = (documents.get("account") or {}).get("features") or {}
+        checkins_enabled = features.get("checkins") == "enabled"
+        needs_setup = all(
+            features.get(flag) != "enabled"
+            for flag in ("automated_messages", "task_management", "checkins")
+        )
         return web.json_response(
             {
                 "preferred_name": preferred_name,
@@ -1073,6 +1079,8 @@ def create_web_app(
                 "password_set": bool(current.get("password_hash")),
                 "password_change_requires_current": bool(current.get("password_hash"))
                 and not code_reauthenticated,
+                "needs_setup": needs_setup,
+                "checkins_enabled": checkins_enabled,
                 "oauth": {
                     provider: {
                         "available": oauth_provider_config(provider) is not None,
@@ -1307,8 +1315,9 @@ def create_web_app(
                     )
                     if result not in {"linked", "already_linked"}:
                         raise DataError("OAuth account could not be linked")
+            landing = "/app.html" if pending.get("linked_uid") else "/home.html"
             response = web.HTTPFound(
-                website_redirect("/app.html", social=f"{provider}-connected")
+                website_redirect(landing, social=f"{provider}-connected")
             )
             return start_session(
                 target[0],
@@ -2449,6 +2458,8 @@ def create_web_app(
         if name not in {
             "index.html",
             "login.html",
+            "home.html",
+            "setup.html",
             "app.html",
             "tasks.html",
             "notes.html",
@@ -2459,6 +2470,8 @@ def create_web_app(
             "script.js",
             "auth.js",
             "app.js",
+            "home.js",
+            "setup.js",
             "settings.js",
             "tasks.js",
             "notes.js",

@@ -10,14 +10,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="script.js?v=nav-1" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="tasks.js?v=tasks-8" defer></script>
+  <script src="tasks.js?v=tasks-9" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="container nav-wrap">
-    <a class="brand" href="app.html" aria-label="MHM account home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
-    <div class="nav-actions"><a class="plain-button" href="app.html">Account</a><a class="button button-small" href="tasks.html" aria-current="page">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div>
+    <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="app.html">Account</a><a class="button button-small" href="tasks.html" aria-current="page">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
@@ -28,11 +30,17 @@
       </div>
       <p id="tasks-status" class="form-status" role="status" aria-live="polite">Loading your tasks…</p>
       <div id="tasks-workspace" hidden>
+        <div class="task-list-header"><div class="task-tabs" role="tablist" aria-label="Task views"><button type="button" role="tab" aria-selected="true" data-task-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-task-view="completed">Completed</button></div><span id="task-list-summary" class="task-list-summary"></span></div>
+        <div class="task-list-tools"><span id="task-due-soon" class="task-list-summary"></span><div id="task-bulk-actions" class="task-bulk-actions"><span id="task-selected-count">0 selected</span><button id="task-bulk-primary" class="plain-button" type="button" disabled>Complete selected</button><button id="task-bulk-delete" class="plain-button task-delete" type="button" disabled>Delete selected</button></div></div>
+        <div id="task-list" class="task-list"></div>
+        <div id="task-empty" class="task-empty" hidden><strong>No tasks here yet.</strong><span>Add something small, or give yourself a clear next step.</span></div>
         <form id="task-create-form" class="task-create-form">
           <div class="task-create-copy"><strong>What needs doing?</strong><span>Add one thing at a time. You can change the plan later.</span></div>
           <div class="task-form-fields">
-            <div class="settings-field"><label for="task-template">Start from a template <span class="optional-label">Optional</span></label><select id="task-template"><option value="">Blank task</option></select></div>
             <div class="settings-field task-title-field"><label for="task-title">Task title</label><input id="task-title" name="title" required maxlength="500" placeholder="e.g. Pack tomorrow’s lunch" /></div>
+            <button class="plain-button task-more-options" id="task-more-options" type="button" aria-expanded="false" aria-controls="task-extra-fields">More options</button>
+            <div id="task-extra-fields" hidden>
+            <div class="settings-field"><label for="task-template">Start from a template <span class="optional-label">Optional</span></label><select id="task-template"><option value="">Blank task</option></select></div>
             <div class="settings-field"><label for="task-description">Details <span class="optional-label">Optional</span></label><textarea id="task-description" name="description" rows="2" maxlength="10000" placeholder="Anything that will make this easier to start"></textarea></div>
             <div class="task-form-row">
               <div class="settings-field"><label for="task-due-date">Due date <span class="optional-label">Optional</span></label><input id="task-due-date" name="due_date" type="date" /></div>
@@ -49,13 +57,10 @@
             </div>
             <div class="task-tag-fields"><div class="settings-field"><label for="task-tags">Tags <span class="optional-label">Optional — type new tags, comma separated</span></label><input id="task-tags" name="tags" maxlength="1000" placeholder="health, errands, home" /></div><div class="settings-field"><label for="task-existing-tag">Add an existing tag</label><select id="task-existing-tag"><option value="">Choose a tag…</option></select></div></div>
             <fieldset class="task-reminders"><legend>Task reminders <span class="optional-label">Optional</span></legend><p class="field-help">Choose a relative reminder or add a specific date and time. Add an optional end time only when you want a window.</p><div class="task-quick-reminders"><label><input type="checkbox" name="quick_reminders" value="5-10min" /> 5–10 minutes</label><label><input type="checkbox" name="quick_reminders" value="30min-1hour" /> 30–60 minutes</label><label><input type="checkbox" name="quick_reminders" value="1-2hour" /> 1–2 hours</label><label><input type="checkbox" name="quick_reminders" value="1-2day" /> 1–2 days</label><label><input type="checkbox" name="quick_reminders" value="3-5day" /> 3–5 days</label><label><input type="checkbox" name="quick_reminders" value="1-2week" /> 1–2 weeks</label></div><div id="task-reminder-list" class="task-reminder-list"></div><button id="task-add-reminder" class="plain-button" type="button">+ Add a custom reminder</button></fieldset>
+            </div>
           </div>
           <button class="button" type="submit">Add task <span aria-hidden="true">→</span></button>
         </form>
-        <div class="task-list-header"><div class="task-tabs" role="tablist" aria-label="Task views"><button type="button" role="tab" aria-selected="true" data-task-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-task-view="completed">Completed</button></div><span id="task-list-summary" class="task-list-summary"></span></div>
-        <div class="task-list-tools"><span id="task-due-soon" class="task-list-summary"></span><div id="task-bulk-actions" class="task-bulk-actions"><span id="task-selected-count">0 selected</span><button id="task-bulk-primary" class="plain-button" type="button" disabled>Complete selected</button><button id="task-bulk-delete" class="plain-button task-delete" type="button" disabled>Delete selected</button></div></div>
-        <div id="task-list" class="task-list"></div>
-        <div id="task-empty" class="task-empty" hidden><strong>No tasks here yet.</strong><span>Add something small, or give yourself a clear next step.</span></div>
       </div>
     </section>
   </main>

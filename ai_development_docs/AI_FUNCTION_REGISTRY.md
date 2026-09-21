@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-19 23:56:05
+> **Last Generated**: 2026-09-20 22:12:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.3% [!] GOOD**
-- **Total Functions**: 2757
-- **Total Methods**: 1419
-- **Documented**: 3729/4176
+- **Total Functions**: 2762
+- **Total Methods**: 1424
+- **Documented**: 3739/4186
 - **Files Scanned**: 280
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (66 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (76 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -192,7 +192,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 13098
+1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 13311
 2. [OK] `run_tests.py::run_command()` - Complexity: 3215
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 4. [OK] `run_tests.py::main()` - Complexity: 2820
@@ -208,7 +208,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 410 functions)
 - `checkins/` -  (7 files, 151 functions)
-- `communication/` - Communication channels and message processing (90 files, 1252 functions)
+- `communication/` - Communication channels and message processing (90 files, 1262 functions)
 - `core/` - System utilities and data management (37 files, 694 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (5 files, 41 functions)

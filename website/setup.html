@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Get started — MHM</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js?v=nav-1" defer></script>
+  <script src="app.js?v=password-session-2" defer></script>
+  <script src="setup.js?v=setup-1" defer></script>
+</head>
+<body class="account-body">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+  </div></header>
+  <main id="main" class="container app-layout setup-layout">
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section id="setup-content" hidden>
+      <span class="eyebrow">First run</span>
+      <h1>Three small steps.</h1>
+      <p class="hero-lead">Name, when to hear from MHM, and one first task. You can change any of this later in Account.</p>
+      <ol class="setup-progress" aria-label="Setup steps">
+        <li id="progress-1" class="is-current">You</li>
+        <li id="progress-2">When to hear from MHM</li>
+        <li id="progress-3">A first task</li>
+      </ol>
+      <p id="setup-status" class="form-status" role="status" aria-live="polite"></p>
+      <form id="setup-form" class="account-panel setup-panel">
+        <div id="step-1">
+          <h2>What should MHM call you?</h2>
+          <p class="panel-description">A preferred name and time zone are enough to start.</p>
+          <div class="settings-field">
+            <label for="preferred-name">Preferred name <span class="optional-label">Optional</span></label>
+            <input id="preferred-name" name="preferred_name" maxlength="100" autocomplete="nickname" placeholder="e.g. Julie" />
+          </div>
+          <div class="settings-field">
+            <label for="timezone">Time zone</label>
+            <select id="timezone" name="timezone" required></select>
+          </div>
+        </div>
+        <div id="step-2" hidden>
+          <h2>How should MHM show up?</h2>
+          <p class="panel-description">Pick at least one. Gentle defaults are ready if you leave a box checked.</p>
+          <div class="setup-choices">
+            <label class="setup-choice"><input id="enable-messages" type="checkbox" checked /> <span><strong>Supportive messages</strong><span>A little encouragement in a quiet evening window.</span></span></label>
+            <label class="setup-choice"><input id="enable-tasks" type="checkbox" checked /> <span><strong>Task reminders</strong><span>A nudge in the afternoon for things you want to keep moving.</span></span></label>
+            <label class="setup-choice"><input id="enable-checkins" type="checkbox" checked /> <span><strong>Check-ins</strong><span>A morning window to ask how you are, without a long form here.</span></span></label>
+          </div>
+        </div>
+        <div id="step-3" hidden>
+          <h2>One first task.</h2>
+          <p class="panel-description">Something small counts. You can skip this and add it later.</p>
+          <div class="settings-field">
+            <label for="first-task">Task title <span class="optional-label">Optional</span></label>
+            <input id="first-task" name="first_task" maxlength="500" placeholder="e.g. Drink a glass of water" />
+          </div>
+        </div>
+        <div class="setup-actions">
+          <button class="button" id="setup-continue" type="submit">Continue →</button>
+          <button class="plain-button" id="setup-skip" type="button" hidden>Skip this step</button>
+        </div>
+      </form>
+    </section>
+    <noscript><p>Enable JavaScript to finish setting up your account.</p></noscript>
+  </main>
+</body>
+</html>

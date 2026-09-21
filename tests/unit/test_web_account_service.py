@@ -182,6 +182,22 @@ async def test_existing_login_session_logout_and_replay(gateway):
     assert (await client.get("/api/account")).status == 401
 
 
+async def test_account_needs_setup_until_a_support_feature_is_enabled(gateway):
+    client, accounts, sent, _ = gateway
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    account = await (await client.get("/api/account")).json()
+    assert account["needs_setup"] is True
+    accounts.users["existing"]["features"] = {"task_management": "enabled"}
+    account = await (await client.get("/api/account")).json()
+    assert account["needs_setup"] is False
+    assert account["checkins_enabled"] is False
+    accounts.users["existing"]["features"] = {"checkins": "enabled"}
+    account = await (await client.get("/api/account")).json()
+    assert account["needs_setup"] is False
+    assert account["checkins_enabled"] is True
+
+
 async def test_connected_accounts_can_be_disconnected_without_removing_last_sign_in(
     gateway,
 ):
@@ -292,6 +308,8 @@ async def test_insights_are_authenticated_bounded_and_json_safe(gateway, monkeyp
     assert result.headers["Cache-Control"] == "no-store"
     profile = await (await client.get("/api/account")).json()
     assert profile["preferred_name"] == "River"
+    assert profile["needs_setup"] is True
+    assert profile["checkins_enabled"] is False
     assert "username" not in profile
     assert "user_id" not in profile
     assert (await verify(client, token, sent[-1][1])).status == 401
@@ -536,6 +554,10 @@ async def test_csrf_validation_rate_limits_and_static_allowlist(gateway):
     assert (await request_code(client)).status == 200
     assert len(sent) == 4
     assert (await client.get("/login.html")).status == 200
+    assert (await client.get("/home.html")).status == 200
+    assert (await client.get("/home.js")).status == 200
+    assert (await client.get("/setup.html")).status == 200
+    assert (await client.get("/setup.js")).status == 200
     assert (await client.get("/tasks.js")).status == 200
     assert (await client.get("/tasks.html")).status == 200
     assert (await client.get("/notes.html")).status == 200
@@ -701,7 +723,7 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
             )
         assert callback.status == 302
         assert callback.headers["Location"].endswith(
-            f"/app.html?social={provider}-connected"
+            f"/home.html?social={provider}-connected"
         )
         assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
         assert calls[0][0:2] == (provider, "oauth-code")

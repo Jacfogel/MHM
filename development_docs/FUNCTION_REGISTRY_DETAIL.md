@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-19 23:56:05
+> **Last Generated**: 2026-09-20 22:12:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 280
-- **Functions Found**: 2757
-- **Methods Found**: 1419
+- **Functions Found**: 2762
+- **Methods Found**: 1424
 - **Classes Found**: 264
-- **Total Items**: 4176
-- **Functions Documented**: 2455
-- **Methods Documented**: 1274
+- **Total Items**: 4186
+- **Functions Documented**: 2460
+- **Methods Documented**: 1279
 - **Classes Documented**: 198
-- **Total Documented**: 3729
+- **Total Documented**: 3739
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-19
+- **Last Updated**: 2026-09-20
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (534)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (707)
+### **Communication Functions** (712)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2464,6 +2464,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
+- [OK] `_register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
@@ -2472,6 +2473,9 @@ Returns:
 
 Stops all communication channels and cleans up resources.
 - [OK] `_start_sync(self)` - Synchronous method to start all configured channels
+- [OK] `_stop_loop_and_thread(loop, thread)` - Stop one managed asyncio loop and join its thread.
+- [OK] `_stop_managed_event_loop(self)` - Stop this instance's background event loop thread if it is running.
+- [OK] `_unregister_managed_loop(cls, loop)` - Remove a managed loop from the process-wide registry.
 - [OK] `get_active_channels(self)` - Get active channels with validation.
 
 Returns:
@@ -2512,6 +2516,10 @@ Returns:
 - [OK] `send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
 - [OK] `send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
 - [OK] `set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
+- [OK] `shutdown_managed_event_loops(cls)` - Stop every tracked communication event loop in this process.
+
+Tests often clear ``_instance`` without calling ``stop_all()``. The
+abandoned daemon loops then keep pytest-xdist workers from exiting.
 - [OK] `start_all(self)` - Start all communication channels with validation.
 
 Returns:
@@ -2542,6 +2550,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
+  - [OK] `CommunicationManager._register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
@@ -2550,6 +2559,9 @@ Returns:
 
 Stops all communication channels and cleans up resources.
   - [OK] `CommunicationManager._start_sync(self)` - Synchronous method to start all configured channels
+  - [OK] `CommunicationManager._stop_loop_and_thread(loop, thread)` - Stop one managed asyncio loop and join its thread.
+  - [OK] `CommunicationManager._stop_managed_event_loop(self)` - Stop this instance's background event loop thread if it is running.
+  - [OK] `CommunicationManager._unregister_managed_loop(cls, loop)` - Remove a managed loop from the process-wide registry.
   - [OK] `CommunicationManager.get_active_channels(self)` - Get active channels with validation.
 
 Returns:
@@ -2589,6 +2601,10 @@ Returns:
   - [OK] `CommunicationManager.send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
   - [OK] `CommunicationManager.send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
   - [OK] `CommunicationManager.set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
+  - [OK] `CommunicationManager.shutdown_managed_event_loops(cls)` - Stop every tracked communication event loop in this process.
+
+Tests often clear ``_instance`` without calling ``stop_all()``. The
+abandoned daemon loops then keep pytest-xdist workers from exiting.
   - [OK] `CommunicationManager.start_all(self)` - Start all communication channels with validation.
 
 Returns:

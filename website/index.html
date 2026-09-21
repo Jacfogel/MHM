@@ -19,14 +19,17 @@
         <img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" />
         <span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span>
       </a>
-      <nav class="nav" aria-label="Primary navigation">
-        <a href="#how-it-helps">How it helps</a>
-        <a href="#features">Features</a>
-        <a href="#philosophy">Philosophy</a>
-      </nav>
-      <div class="nav-actions">
-        <a class="text-link" href="login.html">Log in</a>
-        <a class="button button-small" href="login.html?mode=create">Create account</a>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+      <div id="site-menu" class="site-menu">
+        <nav class="nav" aria-label="Primary navigation">
+          <a href="#how-it-helps">How it helps</a>
+          <a href="#features">Features</a>
+          <a href="#philosophy">Philosophy</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="text-link" href="login.html">Log in</a>
+          <a class="button button-small" href="login.html?mode=create">Create account</a>
+        </div>
       </div>
     </div>
   </header>
@@ -193,6 +196,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=nav-1"></script>
 </body>
 </html>

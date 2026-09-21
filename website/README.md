@@ -2,8 +2,9 @@
 
 
 > **File**: `website/README.md`
-Marketing site, password and social login/create-account page, signed-in account
-settings, task workspace, notebook, personal message library, and private insights.
+Marketing site, password and social login/create-account page, signed-in home,
+first-run setup, account settings, task workspace, notebook, personal message
+library, and private insights.
 The Python gateway uses the **same account store as MHM**. It never stores browser
 passwords in plaintext or creates a separate website database. Passwords are
 stored as salted scrypt hashes in the canonical account document.
@@ -35,7 +36,8 @@ when starting the MHM service alongside a standalone gateway.
 origin changes, update `WEB_PUBLIC_ORIGIN` to match.
 
 Existing users can continue signing in with an emailed code, then set a password
-from the account page. Replacing a saved password requires either the current
+from the account page. After a successful sign-in, the browser opens Home rather
+than Account settings. Replacing a saved password requires either the current
 password or a fresh emailed-code sign-in and revokes the account's other in-memory
 browser sessions. The login page also has a **Forgot your password?** flow: the
 replacement password is saved only after a six-digit email code is verified, all
@@ -48,7 +50,11 @@ ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts choose a password and are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
-Users can configure these on their signed-in settings page. Account creation completes without
+After sign-in they land on Home, then a 3-step first run for preferred name and
+time zone, when to hear from MHM (messages, task reminders, and check-ins with
+gentle default windows), and one optional first task. Accounts that already have
+any of those features enabled skip setup. Users can still change everything later
+on the signed-in settings page. Account creation completes without
 requiring a communication channel connection. Email is available immediately, Discord can be
 connected optionally from the account page, and SMS can be added as another channel later.
 The gateway exchanges the one-time
@@ -69,7 +75,9 @@ internal account identifiers, suspension, and other administrator controls still
 cannot be changed here.
 
 Tasks can be created from built-in templates, edited, linked to web resources,
-completed, restored, deleted, snoozed, skipped, or simplified. The notebook adds
+completed, restored, deleted, snoozed, skipped, or simplified. The task list is
+shown first; title-only creation is the default, and template, details, due date,
+priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
 pinned and inbox views alongside active and archived entries. The message library
 supports personal template creation, editing, scheduling, pausing, and deletion.
 Insights show recent check-in patterns and history. A mood trend compares the seven
@@ -155,11 +163,13 @@ return to login; request failures allow retrying logout.
 - `index.html` — page content
 - `styles.css` — layout and visual design
 - `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
-- `script.js` — small client-side enhancements
+- `script.js` — year stamp and compact navigation menu
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
+- `home.html`, `home.js` — signed-in home with the next task, a check-in request, and one-line notebook capture
+- `setup.html`, `setup.js` — 3-step first run for name/time zone, when to hear from MHM, and a first task
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout
-- `tasks.html`, `tasks.js` — signed-in task workspace and CRUD interactions
+- `tasks.html`, `tasks.js` — signed-in task list first, with optional create fields behind More options
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
 - `messages.html`, `messages.js` — personal message-template library and schedules
 - `insights.html`, `insights.js` — private check-in analytics and Google Health controls
@@ -172,8 +182,8 @@ return to login; request failures allow retrying logout.
 ## Verification
 
 ```powershell
-python -m pytest tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_gateway_runtime.py -q
-node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/settings.test.mjs
+python -m pytest tests/unit/test_website_pages.py tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_gateway_runtime.py -q
+node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/script.test.mjs
 ```
 
 Tests inject isolated account and email adapters; they do not send real email or

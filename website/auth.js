@@ -121,7 +121,7 @@ document.getElementById('account-form').addEventListener('submit', (event) => {
       return;
     }
     await api('/api/auth/password', { email: values.email, password: values.password });
-    location.assign('app.html');
+    location.assign('home.html');
   });
 });
 
@@ -140,7 +140,7 @@ document.getElementById('verify-form').addEventListener('submit', (event) => {
     const payload = { challenge, code: document.getElementById('code').value.trim() };
     if (creating || resetting) payload.password = password.value;
     await api('/api/auth/verify', payload);
-    location.assign('app.html');
+    location.assign('home.html');
   });
 });
 

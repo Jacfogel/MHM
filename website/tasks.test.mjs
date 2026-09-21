@@ -16,5 +16,11 @@ test('existing task tags append without duplicates', () => {
 
 test('blank template selection resets all create-form fields', () => {
   assert.match(source, /const templateId = event\.target\.value;[\s\S]*resetCreateForm\(\);[\s\S]*if \(!template\)/);
-  assert.match(source, /function resetCreateForm\(\) \{[\s\S]*createForm\.reset\(\);[\s\S]*task-reminder-list/);
+  assert.match(source, /function resetCreateForm\(\) \{[\s\S]*createForm\.reset\(\);[\s\S]*task-reminder-list[\s\S]*setExtraFieldsOpen\(false\)/);
+});
+
+test('extra create fields stay collapsed until More options is opened', () => {
+  assert.match(source, /function setExtraFieldsOpen\(open\) \{[\s\S]*extraFields\.hidden = !open;[\s\S]*Fewer options/);
+  assert.match(source, /moreOptions\.addEventListener\('click', \(\) => setExtraFieldsOpen\(extraFields\.hidden\)\)/);
+  assert.match(source, /if \(!template\) \{ setExtraFieldsOpen\(false\);[\s\S]*setExtraFieldsOpen\(true\);/);
 });

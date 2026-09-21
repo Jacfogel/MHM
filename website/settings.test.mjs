@@ -71,10 +71,10 @@ test('changing settings sections returns to the settings heading', () => {
   assert.deepEqual({ ...options }, { behavior: 'auto', block: 'start' });
 });
 
-test('signed-in page logos return to the account home', async () => {
-  for (const page of ['app', 'tasks', 'notes', 'messages', 'insights']) {
+test('signed-in page logos return to home', async () => {
+  for (const page of ['home', 'app', 'tasks', 'notes', 'messages', 'insights', 'setup']) {
     const html = await readFile(new URL(`./${page}.html`, import.meta.url), 'utf8');
-    assert.match(html, /class="brand" href="app\.html" aria-label="MHM account home"/);
+    assert.match(html, /class="brand" href="home\.html" aria-label="MHM home"/);
   }
 });
 
