@@ -60,8 +60,10 @@ any of those features enabled skip setup. First-run also uses the same enabled
 flags as Account settings, so a user with messages, tasks, and check-ins all off
 still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
 on the signed-in settings page. Account creation completes without
-requiring a communication channel connection. Email is available immediately, Discord can be
-connected optionally from the account page, and SMS can be added as another channel later.
+requiring a communication channel connection. Email is available immediately. First-run
+setup can connect Discord, and it explains that skipping Discord keeps email delivery
+and leaves Discord-only actions unavailable. Discord can also be connected later from
+the account page. SMS can be added as another channel later.
 The gateway exchanges the one-time
 authorization code server-side, verifies the Discord identity, and stores only the Discord ID
 and username in the existing MHM account. A Discord account already linked to another MHM

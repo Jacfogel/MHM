@@ -35,6 +35,7 @@ Guidelines:
 - An address that already belongs to an active account still signs into that account. Facebook without an email does not create an account.
 - Apple website sign-in, its settings, and its callback are removed. Google and Facebook remain.
 - First-run setup requires one of messages, tasks, or check-ins, and it no longer force-enables task reminders. Each feature left on gets its own category, question, or task step, plus a reminder-window step.
+- Setup can connect Discord and return to setup. Skipping it keeps email delivery and leaves Discord-only buttons and message reactions unavailable. Custom check-in questions and personalized message categories are added later in Account.
 
 ### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
 - Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.

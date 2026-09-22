@@ -14,6 +14,7 @@
   };
   const steps = {
     you: { label: 'You', panel: 'step-1', skip: false },
+    discord: { label: 'Discord', panel: 'step-discord', skip: false },
     features: { label: 'Features', panel: 'step-2', skip: false },
     'message-categories': { label: 'Categories', panel: 'step-message-categories', skip: false },
     'message-windows': { label: 'Message times', panel: 'step-message-windows', skip: true },
@@ -23,7 +24,8 @@
     'checkin-windows': { label: 'Check-in times', panel: 'step-checkin-windows', skip: true },
   };
   let settings;
-  let plan = ['you', 'features'];
+  let account;
+  let plan = ['you', 'discord', 'features'];
   let index = 0;
 
   function returnToLogin() {
@@ -83,7 +85,7 @@
 
   function buildPlan() {
     const chosen = selectedSupport();
-    const next = ['you', 'features'];
+    const next = ['you', 'discord', 'features'];
     if (chosen.messages) next.push('message-categories', 'message-windows');
     if (chosen.tasks) next.push('task-create', 'task-windows');
     if (chosen.checkins) next.push('checkin-questions', 'checkin-windows');
@@ -357,7 +359,21 @@
     if (plan[index] === 'task-windows') renderTaskWindows();
     if (plan[index] === 'checkin-questions') renderCheckinQuestions();
     if (plan[index] === 'checkin-windows') renderCheckinWindows();
-    continueButton.textContent = index === plan.length - 1 ? 'Finish →' : 'Continue →';
+    const discordLinked = Boolean(account && account.discord_linked);
+    const discordAvailable = Boolean(account && account.discord_available);
+    const connectDiscord = document.getElementById('setup-connect-discord');
+    const discordState = document.getElementById('discord-setup-state');
+    if (plan[index] === 'discord') {
+      connectDiscord.hidden = discordLinked || !discordAvailable;
+      discordState.textContent = discordLinked
+        ? 'Discord is connected. MHM can send reminders there. You can switch to email later in Account.'
+        : discordAvailable
+          ? 'Discord is not connected yet.'
+          : 'Discord connection is not available right now, so email will be used.';
+    }
+    continueButton.textContent = plan[index] === 'discord' && !discordLinked
+      ? 'Use email instead'
+      : index === plan.length - 1 ? 'Finish →' : 'Continue →';
     skipButton.hidden = !current.skip;
     skipButton.textContent = plan[index].endsWith('windows') ? 'Keep these windows' : 'Skip this step';
     backButton.hidden = index === 0;
@@ -391,6 +407,14 @@
     const current = { ...settings.sections.checkins, enabled };
     if (enabled) current.periods = withWindow(current.periods, '09:30', '11:30');
     return current;
+  }
+
+  async function saveDeliveryChannel(channel) {
+    await saveSection('delivery', { ...settings.sections.delivery, channel });
+  }
+
+  async function saveDiscordChoice() {
+    await saveDeliveryChannel(account && account.discord_linked ? 'discord' : 'email');
   }
 
   async function saveYou() {
@@ -512,6 +536,7 @@
 
   const actions = {
     you: saveYou,
+    discord: saveDiscordChoice,
     features: saveFeatures,
     'message-categories': saveMessageCategories,
     'message-windows': saveMessageWindows,
@@ -546,7 +571,7 @@
   async function loadSetup() {
     if (!setupContent) return;
     try {
-      const account = await api('/api/account');
+      account = await api('/api/account');
       settings = await api('/api/settings');
       if (!accountNeedsSetup(account, settings)) {
         location.assign('home.html');
@@ -571,8 +596,29 @@
       else messagesToggle.dataset.unavailable = 'true';
       messagesToggle.disabled = !canMessage;
       messagesToggle.checked = canMessage;
+      const discordResult = new URLSearchParams(location.search).get('discord');
+      if (discordResult) {
+        index = plan.indexOf('discord');
+        if (discordResult === 'connected' && account.discord_linked) {
+          await saveDeliveryChannel('discord');
+        }
+        history.replaceState(null, '', location.pathname);
+      }
       setupContent.hidden = false;
       showCurrent();
+      if (discordResult === 'connected' && account.discord_linked) {
+        showStatus('Discord is connected.');
+      } else if (discordResult === 'cancelled') {
+        showStatus('Discord connection was canceled. You can try again, or use email.');
+      } else if (discordResult === 'in-use') {
+        showStatus('That Discord account is already connected to another MHM account.', true);
+      } else if (discordResult === 'account-linked') {
+        showStatus('This MHM account already has a different Discord account connected.', true);
+      } else if (discordResult === 'unavailable') {
+        showStatus('Discord connection is not configured right now.', true);
+      } else if (discordResult === 'error') {
+        showStatus('Discord could not be connected. Please try again.', true);
+      }
     } catch (error) {
       showStatus(error.message, true);
     }
@@ -614,6 +660,21 @@
     index -= 1;
     showStatus('');
     showCurrent();
+  });
+
+  const connectDiscord = document.getElementById('setup-connect-discord');
+  if (connectDiscord) connectDiscord.addEventListener('click', async () => {
+    if (connectDiscord.disabled) return;
+    connectDiscord.disabled = true;
+    showStatus('Opening Discord…');
+    try {
+      const result = await api('/api/auth/discord/start?next=/setup.html');
+      if (!result.url) throw new Error('Discord connection is unavailable.');
+      location.assign(result.url);
+    } catch (error) {
+      showStatus(error.message, true);
+      connectDiscord.disabled = false;
+    }
   });
 
   for (const id of ['enable-messages', 'enable-tasks', 'enable-checkins']) {

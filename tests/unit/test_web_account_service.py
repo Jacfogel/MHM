@@ -976,6 +976,39 @@ async def test_discord_oauth_links_the_authenticated_account(gateway, monkeypatc
         assert len(identity_calls) == 1
 
 
+async def test_discord_oauth_can_return_to_setup(gateway, monkeypatch):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "DISCORD_APPLICATION_ID", 123456789)
+    monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
+
+    async def discord_identity(code, **kwargs):
+        return "987654321", "River"
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        discord_identity=discord_identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        token = (await (await request_code(client)).json())["challenge"]
+        assert (await verify(client, token, sent[-1][1])).status == 200
+        rejected = await client.get("/api/auth/discord/start?next=https://evil.example")
+        assert rejected.status == 400
+        start = await client.get("/api/auth/discord/start?next=/setup.html")
+        state = (await start.json())["url"].split("state=", 1)[1].split("&", 1)[0]
+        callback = await client.get(
+            f"/api/auth/discord/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.headers["Location"].endswith("/setup.html?discord=connected")
+        assert accounts.users["existing"]["discord_user_id"] == "987654321"
+
+
 @pytest.mark.parametrize("case", ["no_cookie", "new_session", "logout", "expired"])
 async def test_discord_callback_requires_the_original_live_session(monkeypatch, case):
     import core.web_account_service as service

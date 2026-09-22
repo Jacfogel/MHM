@@ -204,6 +204,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
     setup = parse_page("setup.html")
     assert {
         "step-1",
+        "step-discord",
         "step-2",
         "step-message-categories",
         "step-message-windows",
@@ -223,9 +224,11 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
         "enable-checkins",
         "first-task",
         "setup-back",
+        "setup-connect-discord",
         "setup-progress",
     } <= setup.ids
     for step_id in (
+        "step-discord",
         "step-2",
         "step-message-categories",
         "step-message-windows",
@@ -236,6 +239,10 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
     ):
         assert "hidden" in setup.controls[step_id]
     assert setup.controls["first-task"]["maxlength"] == "500"
+    html = (WEBSITE / "setup.html").read_text(encoding="utf-8")
+    assert "If you do not connect Discord, MHM uses email." in html
+    assert "Custom questions can be added in Account after this setup." in html
+    assert "Categories personalized from check-ins or Google Health can be turned on in Account after this setup." in html
 
 
 def test_setup_requires_one_feature_without_forcing_tasks():
@@ -245,6 +252,8 @@ def test_setup_requires_one_feature_without_forcing_tasks():
     assert "message-categories" in source
     assert "checkin-questions" in source
     assert "Keep these windows" in source
+    assert "Use email instead" in source
+    assert "/api/auth/discord/start?next=/setup.html" in source
 
 
 def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():

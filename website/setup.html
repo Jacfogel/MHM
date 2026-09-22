@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="setup.js?v=setup-6" defer></script>
+  <script src="setup.js?v=setup-7" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -42,6 +42,13 @@
             <select id="timezone" name="timezone" required></select>
           </div>
         </div>
+        <div id="step-discord" hidden>
+          <h2>Connect Discord?</h2>
+          <p class="panel-description">Connect Discord if you want MHM there. You can also do this later in Account.</p>
+          <p class="field-hint">If you do not connect Discord, MHM uses email. Reminders and check-ins can still arrive by email, and you can reply to those messages. Check-in and task buttons, and thumbs reactions that change later messages, are only in Discord.</p>
+          <p id="discord-setup-state" class="field-hint"></p>
+          <button id="setup-connect-discord" class="button" type="button">Connect Discord →</button>
+        </div>
         <div id="step-2" hidden>
           <h2>How should MHM show up?</h2>
           <p class="panel-description">Pick at least one. Each feature you leave on gets its own short setup next.</p>
@@ -54,6 +61,7 @@
         <div id="step-message-categories" hidden>
           <h2>Which messages should MHM send?</h2>
           <p class="panel-description">Pick at least one category. A quiet evening window is ready for each one you choose.</p>
+          <p class="field-hint">Categories personalized from check-ins or Google Health can be turned on in Account after this setup.</p>
           <div id="message-categories" class="setup-choices"></div>
         </div>
         <div id="step-message-windows" hidden>
@@ -77,6 +85,7 @@
         <div id="step-checkin-questions" hidden>
           <h2>Which check-in questions should MHM ask?</h2>
           <p class="panel-description">Always questions are included every time. Sometimes questions rotate, and at least one of those stays out.</p>
+          <p class="field-hint">Custom questions can be added in Account after this setup.</p>
           <div id="checkin-questions"></div>
         </div>
         <div id="step-checkin-windows" hidden>

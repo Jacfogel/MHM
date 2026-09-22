@@ -1367,10 +1367,14 @@ def create_web_app(
             )
         if len(discord_states) >= 10000:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+        next_path = request.query.get("next", "/app.html")
+        if next_path not in {"/app.html", "/setup.html"}:
+            raise web.HTTPBadRequest(text="Choose a valid return page.")
         state = secrets.token_urlsafe(32)
         discord_states[hashlib.sha256(state.encode()).hexdigest()] = (
             hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest(),
             clock() + DISCORD_STATE_TTL,
+            next_path,
         )
         query = urlencode(
             {
@@ -1391,13 +1395,18 @@ def create_web_app(
         state = request.query.get("state", "")
         state_key = hashlib.sha256(state.encode()).hexdigest()
         pending = discord_states.pop(state_key, None)
+        return_path = (
+            pending[2]
+            if pending and len(pending) > 2 and pending[2] in {"/app.html", "/setup.html"}
+            else "/app.html"
+        )
         if error or not pending or pending[1] <= clock():
-            return web.HTTPFound(website_redirect("/app.html", discord="cancelled"))
+            return web.HTTPFound(website_redirect(return_path, discord="cancelled"))
         if not discord_available():
-            return web.HTTPFound(website_redirect("/app.html", discord="unavailable"))
+            return web.HTTPFound(website_redirect(return_path, discord="unavailable"))
         code = request.query.get("code", "")
         if not code or len(code) > 2048:
-            return web.HTTPFound(website_redirect("/app.html", discord="error"))
+            return web.HTTPFound(website_redirect(return_path, discord="error"))
         try:
             uid, _ = await authenticated_account(request)
             session_key = hashlib.sha256(
@@ -1419,10 +1428,10 @@ def create_web_app(
                     accounts.link_discord, uid, discord_user_id, discord_username
                 )
             if result == "already_linked":
-                return web.HTTPFound(website_redirect("/app.html", discord="in-use"))
+                return web.HTTPFound(website_redirect(return_path, discord="in-use"))
             if result == "different_linked":
                 return web.HTTPFound(
-                    website_redirect("/app.html", discord="account-linked")
+                    website_redirect(return_path, discord="account-linked")
                 )
             if result != "linked":
                 raise DataError("Discord account could not be linked")
@@ -1430,8 +1439,8 @@ def create_web_app(
             return web.HTTPFound(website_redirect("/login.html", discord="expired"))
         except Exception:
             logger.error("Website Discord connection failed", exc_info=True)
-            return web.HTTPFound(website_redirect("/app.html", discord="error"))
-        return web.HTTPFound(website_redirect("/app.html", discord="connected"))
+            return web.HTTPFound(website_redirect(return_path, discord="error"))
+        return web.HTTPFound(website_redirect(return_path, discord="connected"))
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def settings(request):
