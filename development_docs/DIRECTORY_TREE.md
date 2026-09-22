@@ -1340,6 +1340,7 @@ C:.
 |   |   app.test.mjs
 |   |   auth.js
 |   |   auth.test.mjs
+|   |   data.html
 |   |   home.html
 |   |   home.js
 |   |   home.test.mjs
@@ -1353,6 +1354,7 @@ C:.
 |   |   notes.html
 |   |   notes.js
 |   |   notes.test.mjs
+|   |   privacy.html
 |   |   README.md
 |   |   script.js
 |   |   script.test.mjs
@@ -1365,6 +1367,7 @@ C:.
 |   |   tasks.html
 |   |   tasks.js
 |   |   tasks.test.mjs
+|   |   terms.html
 |   |   worker.mjs
 |   |   worker.test.mjs
 |   |   wrangler.jsonc

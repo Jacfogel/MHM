@@ -214,7 +214,32 @@ def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():
         assert source.startswith("(() =>"), f"{name} must keep page variables off the shared global scope"
 
 
-@pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html"])
+def test_public_pages_link_privacy_terms_and_data():
+    for page_name in ("index.html", "login.html", "app.html"):
+        assert {"privacy.html", "terms.html", "data.html"} <= parse_page(page_name).hrefs
+
+
+@pytest.mark.parametrize("page_name", ["privacy.html", "terms.html", "data.html"])
+def test_policy_pages_are_readable_and_cross_linked(page_name):
+    page = parse_page(page_name)
+    html = (WEBSITE / page_name).read_text(encoding="utf-8")
+    assert {"index.html", "privacy.html", "terms.html", "data.html"} <= page.hrefs
+    assert "<h1>" in html
+    assert "Last updated September 22, 2026." in html
+    assert any(source.startswith("script.js") for source in page.scripts)
+    if page_name == "privacy.html":
+        assert "mhm_session" in html
+        assert "Google Health" in html
+        assert "does not sell" in html
+    if page_name == "terms.html":
+        assert "does not provide medical care" in html
+        assert "988" in html
+    if page_name == "data.html":
+        assert "Download my data" in html
+        assert "delete-account button" in html
+
+
+@pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html", "privacy.html", "terms.html", "data.html"])
 def test_page_local_scripts_and_assets_exist(page_name):
     page = parse_page(page_name)
     for source in page.scripts:

@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
+- Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.
+- Home, login, and the account card link to them. The gateway and Worker allowlists serve the new files.
+
 ### 2026-09-21 - Discord thumbs reactions steer scheduled messages **COMPLETED**
 - Thumbs up on a scheduled Discord message adds similar library messages, or steers later personalized messages toward that one.
 - Thumbs down retires that exact message so selection and personalized generation stop using it.
@@ -117,12 +121,6 @@ Guidelines:
 ### 2026-09-14 - Task reminder snooze **COMPLETED**
 - Discord **Remind Me Later** snoozes the ping (1 hour / tonight or tomorrow morning / next week / custom) without changing the due date.
 - Same path from typed `snooze` / `remind me later` commands. Skip and Simplify remain later, separate actions.
-
-### 2026-09-14 - Website accounts, user settings, and integrated gateway **COMPLETED**
-- Email-code accounts and Discord OAuth use the existing MHM user store with expiring HttpOnly sessions, origin checks, one-time state, and duplicate-link protection; signed-in users can safely edit Profile, Delivery, Messages, Tasks, and Check-ins settings.
-- Added separate website workspaces for task CRUD and for notes, journal entries, and lists, including tags and scheduled task-reminder windows. The supplied bot icon now anchors the MHM / Motivational Health Messages branding and the site explains its randomized-message-window approach.
-- The service-owned gateway, Cloudflare Worker routing, logout/session behavior, validation, typed errors, and error-handling boundaries were hardened. Function docs and registries are complete; the full audit reports clean docstrings/error handling, Ruff, Pyright, and Tier 3 tests.
-- Tier 3 now has a 60-minute subprocess window instead of falsely crashing at 22 minutes. Real failures found after the timeout were fixed, stateful storage tests run serially, and newly identified long tests are marked `slow` so normal runs skip them while the existing nightly suite includes them.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

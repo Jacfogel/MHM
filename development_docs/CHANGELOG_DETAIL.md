@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-22 - Website privacy, terms, and data pages
+- **Feature**: Added public [privacy.html](../website/privacy.html), [terms.html](../website/terms.html), and [data.html](../website/data.html). The home page, login page, and account card link to them. The local gateway and Cloudflare Worker allowlists serve the new pages. The policy describes the current account, Discord, social sign-in, Google Health, session cookie, and local personalized-message behavior, and it states that full account deletion is requested rather than a website button.
+- **Impact**: People can read how MHM handles personal information before creating an account, and sign-in providers have stable privacy, terms, and data-deletion URLs.
+
 ### 2026-09-21 - Discord thumbs reactions steer scheduled messages
 - **Feature**: Scheduled Discord messages now offer thumbs-up and thumbs-down. Thumbs up adds similar messages to that library category, or steers later personalized messages toward the liked one. Thumbs down marks that exact message inactive and blocks its text from being sent again. Delivery records store the Discord message id so a reaction can find the message. See [messages/message_reactions.py](../messages/message_reactions.py) and [communication/communication_channels/discord/events/message_reactions.py](../communication/communication_channels/discord/events/message_reactions.py).
 - **Impact**: A reaction on a scheduled message changes which messages come next, without opening settings. Check-in questions do not.

@@ -164,6 +164,7 @@ return to login; request failures allow retrying logout.
 
 ## Files
 - `index.html` — page content
+- `privacy.html`, `terms.html`, `data.html` — privacy policy, terms of use, and download/deletion steps
 - `styles.css` — layout and visual design
 - `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
 - `script.js` — year stamp and compact navigation menu
