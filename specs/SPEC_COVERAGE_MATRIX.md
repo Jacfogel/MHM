@@ -107,6 +107,9 @@ Spec: [discord-message-delivery-and-rich-responses.md](discord-message-delivery-
 | Custom view factory provided | Partial | Custom view attachment is tested; add direct callable factory success/failure coverage. |
 | API client send message with options | Automated | [tests/unit/test_discord_api_client.py](../tests/unit/test_discord_api_client.py) |
 | API client handles Discord permission errors | Automated | [tests/unit/test_discord_api_client.py](../tests/unit/test_discord_api_client.py) |
+| Thumbs up on a library message | Automated | [tests/unit/test_message_reactions.py](../tests/unit/test_message_reactions.py) |
+| Thumbs on a check-in question | Automated | [tests/unit/test_message_reactions.py](../tests/unit/test_message_reactions.py) |
+| Thumbs down retires one message | Automated | [tests/unit/test_message_reactions.py](../tests/unit/test_message_reactions.py) |
 
 ## 5. Discord Task Reminder Flow
 

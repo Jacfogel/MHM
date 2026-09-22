@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-21 - Discord thumbs reactions steer scheduled messages **COMPLETED**
+- Thumbs up on a scheduled Discord message adds similar library messages, or steers later personalized messages toward that one.
+- Thumbs down retires that exact message so selection and personalized generation stop using it.
+- Scheduled Discord sends store the Discord message id and offer the two reactions. Check-in questions ignore both reactions.
+
 ### 2026-09-21 - Website first-run helpers follow shared error handling **COMPLETED**
 - Website first-run helpers now use `@handle_errors` with safe defaults so a broken account document cannot crash login routing.
 - Changelog ASCII quotes and the [TODO.md](../TODO.md) instruction link are cleaned up.
@@ -118,12 +123,6 @@ Guidelines:
 - Added separate website workspaces for task CRUD and for notes, journal entries, and lists, including tags and scheduled task-reminder windows. The supplied bot icon now anchors the MHM / Motivational Health Messages branding and the site explains its randomized-message-window approach.
 - The service-owned gateway, Cloudflare Worker routing, logout/session behavior, validation, typed errors, and error-handling boundaries were hardened. Function docs and registries are complete; the full audit reports clean docstrings/error handling, Ruff, Pyright, and Tier 3 tests.
 - Tier 3 now has a 60-minute subprocess window instead of falsely crashing at 22 minutes. Real failures found after the timeout were fixed, stateful storage tests run serially, and newly identified long tests are marked `slow` so normal runs skip them while the existing nightly suite includes them.
-
-### 2026-09-13 - Dev-tools logical split: host backup adapter and host import boundary **COMPLETED**
-- Backup drill/health load `host.backup_manager_module` via `shared/host_hooks.py`; empty module skips. MHM config still points at `core.backup_manager`.
-- Import boundary now forbids all host prefixes from `local_module_prefixes` except `development_tools`.
-- Extraction remaining work (tests, report paths, later sibling repo) is in PLANS.md Section 6.4.
-- Hygiene: Ruff SIM103/B009, ASCII Section replacements, regenerated function registry for `_combined_message`. Host-hook test asserts `list_backups()` so Pyright does not warn on a dummy `marker` attribute.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-21 11:21:50
+> **Last Generated**: 2026-09-21 23:49:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.3% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 280
-- **Functions Found**: 2766
+### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 282
+- **Functions Found**: 2787
 - **Methods Found**: 1424
 - **Classes Found**: 264
-- **Total Items**: 4190
-- **Functions Documented**: 2464
+- **Total Items**: 4211
+- **Functions Documented**: 2485
 - **Methods Documented**: 1279
 - **Classes Documented**: 198
-- **Total Documented**: 3743
+- **Total Documented**: 3764
 - **Template-Generated**: 54
 - **Last Updated**: 2026-09-21
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (538)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (712)
+### **Communication Functions** (713)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -1936,6 +1936,10 @@ Returns:
 #### `communication/communication_channels/discord/events/message_handler.py`
 **Functions:**
 - [MISSING] `_sync_discord_user_id(internal_user_id, discord_user_id)` - No description
+
+#### `communication/communication_channels/discord/events/message_reactions.py`
+**Functions:**
+- [OK] `_reaction_kind(emoji)` - Return up or down for a thumbs emoji, otherwise None.
 
 #### `communication/communication_channels/discord/events/protocol.py`
 **Functions:**
@@ -5529,7 +5533,7 @@ Args:
 
 Returns:
     List[dict]: List of message templates for the category
-- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period)` - Store sent message in chronological order.
+- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period, metadata)` - Store sent message in chronological order.
 
 This function maintains the chronological structure by inserting new messages
 in the correct position based on timestamp.
@@ -5541,6 +5545,7 @@ Args:
     message: The message content
     delivery_status: Delivery status (default: "sent")
     time_period: The time period when the message was sent (e.g., "morning", "evening")
+    metadata: Optional delivery metadata, such as the Discord message id
 
 Returns:
     bool: True if message stored successfully
@@ -5554,6 +5559,29 @@ Args:
 
 Raises:
     ValidationError: If message ID is not found or category is invalid
+- [OK] `update_sent_message_metadata(user_id, delivery_id, updates)` - Merge metadata fields onto one stored delivery.
+
+#### `messages/message_reactions.py`
+**Functions:**
+- [OK] `_add_similar_library_messages(user_id, category, source_text, template_id)` - Create library messages that resemble a thumbs-upped message.
+- [OK] `_clean_draft(text)` - Strip quotes and list numbering from one generated draft.
+- [OK] `_feedback_path(user_id)` - Return the per-user file that stores reaction feedback.
+- [OK] `_find_delivery(user_id, discord_message_id)` - Return the sent message that matches a Discord message id.
+- [OK] `_mark_delivery(user_id, delivery_id, updates)` - Store the latest reaction on the sent-message record.
+- [OK] `_remember_liked(user_id, category, text)` - Keep a liked message as an example for later generation.
+- [OK] `_remove_liked(user_id, category, text)` - Drop a liked example after that same message is thumbs-downed.
+- [OK] `_retire_text(user_id, text)` - Remember an exact message text so it is not sent again.
+- [OK] `_set_template_active(user_id, category, template_id, active)` - Turn a library template on or off. Personalized messages have no template.
+- [OK] `_text_key(text)` - Return a case-insensitive key for comparing message text.
+- [OK] `_unretire_text(user_id, text)` - Allow a previously thumbs-downed text after a later thumbs up.
+- [OK] `apply_message_reaction(user_id, discord_message_id, kind)` - Apply a thumbs-up or thumbs-down to one scheduled library or personalized message.
+- [OK] `exclude_retired_messages(user_id, messages)` - Drop candidate templates whose text was thumbs-downed.
+- [OK] `generate_similar_message_texts(user_id, source_text)` - Ask the assistant model for new messages that resemble a liked one.
+- [OK] `load_message_feedback(user_id)` - Return liked examples and retired message texts for a user.
+- [OK] `parse_similar_messages(raw, source_text, limit)` - Split model output into new messages that are not copies of the source.
+- [OK] `personalized_reaction_instructions(user_id, category)` - Return prompt text that steers a personalized category from reactions.
+- [OK] `save_message_feedback(user_id, feedback)` - Persist liked examples and retired message texts.
+- [OK] `text_is_retired(user_id, text)` - Return True when this exact message text was thumbs-downed.
 
 #### `messages/message_schemas.py`
 **Functions:**

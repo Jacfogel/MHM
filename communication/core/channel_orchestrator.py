@@ -739,7 +739,14 @@ class CommunicationManager:
                 kwargs.get("time_period", "unknown")
                 kwargs.get("user_id", "unknown")
                 kwargs.get("category", "unknown")
-                # Log will be handled by the deduplication logic below
+                outbound_id = getattr(channel, "last_outbound_message_id", None)
+                delivery_meta = kwargs.get("delivery_meta")
+                if (
+                    isinstance(delivery_meta, dict)
+                    and isinstance(outbound_id, str)
+                    and outbound_id
+                ):
+                    delivery_meta["discord_message_id"] = outbound_id
                 return True
             elif success is False or not success:
                 failure_detail = self._channel_send_failure_detail(channel)
@@ -1325,6 +1332,16 @@ class CommunicationManager:
             if source == "google_health":
                 guidance = get_message_guidance(user_id)
                 prefix = build_scheduled_message_context_prefix(guidance) or None
+            from messages.message_reactions import (
+                personalized_reaction_instructions,
+                text_is_retired,
+            )
+
+            reaction_instructions = personalized_reaction_instructions(user_id, category)
+            if reaction_instructions:
+                prefix = (
+                    f"{prefix} {reaction_instructions}" if prefix else reaction_instructions
+                )
             message_to_send = ai_bot.generate_personalized_message(
                 user_id,
                 timeout=AI_PERSONALIZED_MESSAGE_TIMEOUT,
@@ -1332,15 +1349,29 @@ class CommunicationManager:
                 prompt_prefix=prefix,
                 skip_cache=skip_ai_cache,
             )
+            if text_is_retired(user_id, message_to_send):
+                retry_prefix = f"{prefix or ''} Do not repeat a rejected message.".strip()
+                message_to_send = ai_bot.generate_personalized_message(
+                    user_id,
+                    timeout=AI_PERSONALIZED_MESSAGE_TIMEOUT,
+                    source=source,
+                    prompt_prefix=retry_prefix,
+                    skip_cache=True,
+                )
+            if text_is_retired(user_id, message_to_send):
+                message_to_send = "Thinking of you today."
 
             message_id = str(uuid.uuid4())
 
+            delivery_meta: dict[str, str] = {}
             success = self.send_message_sync(
                 messaging_service,
                 recipient,
                 message_to_send,
                 user_id=user_id,
                 category=category,
+                rich_data={"offer_message_reactions": messaging_service == "discord"},
+                delivery_meta=delivery_meta,
             )
             if success:
                 # Get current time period for storage
@@ -1354,6 +1385,7 @@ class CommunicationManager:
                     message_id,
                     message_to_send,
                     time_period=current_time_period,
+                    metadata=delivery_meta,
                 )
                 # Enhanced logging with message content
                 message_preview = (

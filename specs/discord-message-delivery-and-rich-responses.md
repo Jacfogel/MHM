@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord send paths, embeds, views, suggestions, direct messages, and delivery failure handling  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-05-16  
+> **Last Updated**: 2026-09-21  
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/ui/rich_delivery.py`, `communication/communication_channels/discord/api_client.py`, `communication/communication_channels/discord/ui/checkin_view.py`, `communication/communication_channels/discord/ui/task_reminder_view.py`, `communication/communication_channels/base/rich_formatter.py`, `communication/delivery/message_dispatcher.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_discord_api_client.py`, `tests/unit/test_message_formatter.py`, `tests/unit/test_rich_formatter.py`, `tests/communication/test_retry_manager.py`  
@@ -190,6 +190,31 @@ When a caller provides a custom Discord view, the send path SHALL use it instead
 - **THEN** it returns `False`  
 - **AND** does not claim the message was delivered  
 
+### 3.7. Requirement: Scheduled messages can be reacted to
+
+Scheduled Discord sends SHALL remember the Discord message id and offer thumbs-up and thumbs-down reactions. A later thumbs reaction from the linked user SHALL change future messages of that kind.
+
+#### Scenario: Thumbs up on a library message
+
+- **GIVEN** a scheduled library message was sent on Discord  
+- **WHEN** the linked user reacts with thumbs up  
+- **THEN** similar new messages are added to that category  
+- **AND** the user is told more messages like that will be sent  
+
+#### Scenario: Thumbs on a check-in question
+
+- **GIVEN** a check-in question was sent on Discord  
+- **WHEN** the linked user reacts with thumbs up or thumbs down  
+- **THEN** no message is retired or added  
+- **AND** no reply is sent  
+
+#### Scenario: Thumbs down retires one message
+
+- **GIVEN** a scheduled message was sent on Discord  
+- **WHEN** the linked user reacts with thumbs down  
+- **THEN** that exact message is no longer eligible to send  
+- **AND** the user is told it will not be sent again  
+
 ## 4. Out of scope
 
 - Business logic that decides which message should be sent.
@@ -211,6 +236,8 @@ Run after changing Discord delivery or rich response rendering:
 8. [ ] Response with pagination metadata -> "Show More" style button renders and works.
 9. [ ] Custom check-in/task view supplied -> custom view attaches instead of generic suggestions.
 10. [ ] Forbidden/NotFound/HTTP error -> returns `False` and caller can retry or skip state mutation.
+11. [ ] Thumbs up on a scheduled message -> more similar messages are created or later personalized messages follow that one.
+12. [ ] Thumbs down on a scheduled message -> that message is not sent again.
 
 ## 6. Related documentation
 

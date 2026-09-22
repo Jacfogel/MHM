@@ -8,6 +8,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from messages.message_data_manager import get_recent_messages, load_user_messages, store_sent_message
+from messages.message_reactions import exclude_retired_messages
 from messages.message_service import message_schedule_matches_current_window
 from core.schedule_runtime import (
     get_current_day_names,
@@ -121,12 +122,15 @@ class PredefinedMessageDispatcher:
         message_to_send: dict,
         matching_periods: list[str],
     ) -> tuple[bool, str | None]:
+        delivery_meta: dict[str, str] = {}
         success = self._cm.send_message_sync(
             messaging_service,
             recipient,
             str(message_to_send.get("text") or ""),
             user_id=user_id,
             category=category,
+            rich_data={"offer_message_reactions": messaging_service == "discord"},
+            delivery_meta=delivery_meta,
         )
 
         current_time_period = matching_periods[0] if matching_periods else None
@@ -145,6 +149,7 @@ class PredefinedMessageDispatcher:
                 selected_message_id,
                 selected_message_content,
                 time_period=current_time_period,
+                metadata=delivery_meta,
             )
             logger.info(
                 f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
@@ -225,8 +230,11 @@ class PredefinedMessageDispatcher:
                 f"MESSAGE_SELECTION: Total messages in library: {len(data['messages'])}"
             )
 
-            all_messages = self.filter_messages_by_day_and_period(
-                data["messages"], current_days, matching_periods
+            all_messages = exclude_retired_messages(
+                user_id,
+                self.filter_messages_by_day_and_period(
+                    data["messages"], current_days, matching_periods
+                ),
             )
 
             if not all_messages:

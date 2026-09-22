@@ -44,6 +44,7 @@ logger = discord_logger
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
+intents.reactions = True
 
 
 class DiscordBot(
@@ -88,6 +89,7 @@ class DiscordBot(
         self._ngrok_process = None
         self._ngrok_pid = None
         self._on_ready_fired = False
+        self.last_outbound_message_id: str | None = None
         self.logger = discord_logger
 
     @property
@@ -341,6 +343,15 @@ class DiscordBot(
         @handle_errors("handling Discord message", default_return=None)
         async def on_message(message):
             await handle_discord_message(self, message)
+
+        @self.bot.event
+        @handle_errors("handling Discord reaction", default_return=None)
+        async def on_raw_reaction_add(payload):
+            from communication.communication_channels.discord.events.message_reactions import (
+                handle_message_reaction,
+            )
+
+            await handle_message_reaction(self, payload)
 
         @handle_errors(
             "Discord bot on_ready manual handler",

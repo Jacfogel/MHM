@@ -136,13 +136,16 @@ def _message_template_to_runtime(message: dict[str, Any], category: str) -> dict
 @handle_errors("converting v2 message delivery to runtime shape", default_return={})
 def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
     """Return runtime dict for a v2 delivery record."""
+    metadata = delivery.get("metadata")
     return {
+        "id": str(delivery.get("id") or ""),
         "message_template_id": delivery.get("message_template_id"),
         "sent_text": str(delivery.get("sent_text") or ""),
         "category": str(delivery.get("category") or ""),
         "sent_at": str(delivery.get("sent_at") or ""),
         "status": str(delivery.get("status") or ""),
         "time_period": delivery.get("time_period"),
+        "metadata": dict(metadata) if isinstance(metadata, dict) else {},
     }
 
 
@@ -630,6 +633,7 @@ def store_sent_message(
     message: str,
     delivery_status: str = "sent",
     time_period: str | None = None,
+    metadata: dict | None = None,
 ) -> bool:
     """
     Store sent message in chronological order.
@@ -644,6 +648,7 @@ def store_sent_message(
         message: The message content
         delivery_status: Delivery status (default: "sent")
         time_period: The time period when the message was sent (e.g., "morning", "evening")
+        metadata: Optional delivery metadata, such as the Discord message id
 
     Returns:
         bool: True if message stored successfully
@@ -671,7 +676,7 @@ def store_sent_message(
             },
             "sent_at": sent_at,
             "time_period": time_period,
-            "metadata": {},
+            "metadata": dict(metadata or {}),
         }
         deliveries = data.get("deliveries", [])
         deliveries.insert(0, new_delivery)
@@ -687,6 +692,30 @@ def store_sent_message(
     except Exception as e:
         logger.error(f"Error storing sent message for user {user_id}: {e}")
         return False
+
+
+@handle_errors("updating sent message metadata", default_return=False)
+def update_sent_message_metadata(user_id: str, delivery_id: str, updates: dict) -> bool:
+    """Merge metadata fields onto one stored delivery."""
+    if not user_id or not delivery_id or not isinstance(updates, dict):
+        return False
+    file_path = determine_file_path("sent_messages", user_id)
+    data = load_json_data(file_path) or {}
+    deliveries = data.get("deliveries")
+    if not isinstance(deliveries, list):
+        return False
+    for delivery in deliveries:
+        if str(delivery.get("id") or "") != str(delivery_id):
+            continue
+        metadata = delivery.get("metadata")
+        if not isinstance(metadata, dict):
+            metadata = {}
+        metadata.update(updates)
+        delivery["metadata"] = metadata
+        data["updated_at"] = now_timestamp_full()
+        save_json_data(data, file_path)
+        return True
+    return False
 
 
 @handle_errors("archiving old messages", default_return=False)

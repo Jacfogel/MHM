@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-21 11:22:11
+> **Last Generated**: 2026-09-21 23:50:23
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 278
-- **Total Imports**: 2470
-- **Standard Library**: 719 (29.1%)
-- **Third-Party**: 223 (9.0%)
-- **Local Imports**: 1528 (61.9%)
+- **Files Scanned**: 280
+- **Total Imports**: 2489
+- **Standard Library**: 723 (29.0%)
+- **Third-Party**: 224 (9.0%)
+- **Local Imports**: 1542 (62.0%)
 
 ## Dependency Decision Trees
 
@@ -51,7 +51,7 @@ Communication Dependencies:
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
 - Specific Channels
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
-  - communication/communication_channels/discord/bot.py <- standard library (__future__, asyncio, contextlib, gc), third-party (aiohttp, discord, discord.ext), base_channel, connection_health, status, rich_delivery, tunnel (+8 more)
+  - communication/communication_channels/discord/bot.py <- standard library (__future__, asyncio, contextlib, gc), third-party (aiohttp, discord, discord.ext), base_channel, connection_health, status, rich_delivery, tunnel (+9 more)
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
   - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager (+3 more)
@@ -114,8 +114,8 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
+- `communication/core/channel_orchestrator.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (32 import statements; 10 duplicate)
 - `core/web_account_service.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (41 import statements; 19 duplicate)
-- `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (31 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
@@ -123,7 +123,7 @@ External libraries provide channel and UI support.
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (19 modules use this)
+- `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `core/profile_v2_schemas.py` -> pytz (7 modules use this)
 

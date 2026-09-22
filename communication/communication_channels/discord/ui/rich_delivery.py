@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
 import discord
@@ -22,6 +22,7 @@ class DiscordRichDeliveryMixin:
     """Rich delivery surface shared by the thin Discord bot host."""
 
     bot: Any
+    last_outbound_message_id: str | None
     _suggestion_button_payloads: dict[str, Any]
     _suggestion_button_counter: int
 
@@ -77,13 +78,14 @@ class DiscordRichDeliveryMixin:
                 view = self._create_action_row(labels, payloads)
 
         if embed and view:
-            await channel.send(content=message or None, embed=embed, view=view)
+            sent = await channel.send(content=message or None, embed=embed, view=view)
         elif embed:
-            await channel.send(content=message or None, embed=embed)
+            sent = await channel.send(content=message or None, embed=embed)
         elif view:
-            await channel.send(content=message, view=view)
+            sent = await channel.send(content=message, view=view)
         else:
-            await channel.send(content=message)
+            sent = await channel.send(content=message)
+        await self._remember_outbound_message(sent, rich_data)
 
         logger.info(f"Message sent to Discord channel {channel.id}")
         discord_logger.info(
@@ -122,6 +124,7 @@ class DiscordRichDeliveryMixin:
             logger.error(f"Invalid suggestions: {type(suggestions)}")
             return False
 
+        self.last_outbound_message_id = None
         rich_data = rich_data or {}
         suggestions = suggestions or []
         embed = (
@@ -170,7 +173,8 @@ class DiscordRichDeliveryMixin:
                     kwargs["embed"] = embed
                 if view:
                     kwargs["view"] = view
-                await user.send(**kwargs)
+                sent = await user.send(**kwargs)
+                await self._remember_outbound_message(sent, rich_data)
                 logger.info(
                     f'Discord DM sent | {{"user_id": "{discord_user_id}", "message_length": {len(message)}, '
                     f'"has_embed": {bool(embed)}, "has_components": {bool(view)}, '
@@ -197,7 +201,8 @@ class DiscordRichDeliveryMixin:
                     kwargs["embed"] = embed
                 if view:
                     kwargs["view"] = view
-                await user.send(**kwargs)
+                sent = await user.send(**kwargs)
+                await self._remember_outbound_message(sent, rich_data)
                 logger.info(
                     f'Discord DM sent directly | {{"discord_user_id": "{discord_user_id}", '
                     f'"message_length": {len(message)}, "has_embed": {bool(embed)}, '
@@ -220,7 +225,8 @@ class DiscordRichDeliveryMixin:
                     kwargs["view"] = view
                 send_fn = getattr(channel, "send", None)
                 if callable(send_fn):
-                    await cast(Awaitable[Any], send_fn(**kwargs))
+                    sent = await cast(Awaitable[Any], send_fn(**kwargs))
+                    await self._remember_outbound_message(sent, rich_data)
                     logger.info(f"Message sent to Discord channel {recipient}")
                     discord_logger.info(
                         "Discord channel message sent",
@@ -243,6 +249,21 @@ class DiscordRichDeliveryMixin:
             "Discord message send failed - recipient not found", recipient=recipient
         )
         return False
+
+    @handle_errors("remembering outbound Discord message", default_return=None)
+    async def _remember_outbound_message(self, sent: Any, rich_data: dict[str, Any] | None) -> None:
+        """Store the Discord message id and offer thumbs reactions on scheduled messages."""
+        message_id = getattr(sent, "id", None)
+        if isinstance(message_id, int) or (isinstance(message_id, str) and message_id.isdigit()):
+            self.last_outbound_message_id = str(message_id)
+        if not (isinstance(rich_data, dict) and rich_data.get("offer_message_reactions")):
+            return
+        add_reaction = getattr(sent, "add_reaction", None)
+        if not callable(add_reaction):
+            return
+        add_thumbs = cast(Callable[[str], Awaitable[Any]], add_reaction)
+        await add_thumbs("👍")
+        await add_thumbs("👎")
 
     @handle_errors("creating Discord embed", default_return=None)
     def _create_discord_embed(

@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-21 - Discord thumbs reactions steer scheduled messages
+- **Feature**: Scheduled Discord messages now offer thumbs-up and thumbs-down. Thumbs up adds similar messages to that library category, or steers later personalized messages toward the liked one. Thumbs down marks that exact message inactive and blocks its text from being sent again. Delivery records store the Discord message id so a reaction can find the message. See [messages/message_reactions.py](../messages/message_reactions.py) and [communication/communication_channels/discord/events/message_reactions.py](../communication/communication_channels/discord/events/message_reactions.py).
+- **Impact**: A reaction on a scheduled message changes which messages come next, without opening settings. Check-in questions do not.
+
 ### 2026-09-21 - Website first-run helpers follow shared error handling
 - **Fix**: [_account_features](../core/web_account_service.py), [_feature_enabled](../core/web_account_service.py), [_setup_flags](../core/web_account_service.py), and [_signed_in_path](../core/web_account_service.py) now use `@handle_errors` with safe defaults so a malformed account document cannot crash login or first-run routing.
 - **Docs**: Normalized ASCII quotes in the 2026-09-20 Home/setup changelog line and linked [TODO.md](../TODO.md) in this file's update instructions.
