@@ -569,7 +569,7 @@ button[aria-busy="true"] { cursor: wait; }
 .home-cards .button { margin-top: 18px; }
 .home-capture { grid-column: 1 / -1; }
 .home-capture form { margin-top: 8px; }
-.setup-layout { max-width: 720px; }
+.setup-layout { max-width: 920px; }
 .setup-progress { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0 0 28px; }
 .setup-progress li { padding: 8px 12px; border-radius: 999px; background: var(--lavender); color: var(--muted); font-size: .82rem; font-weight: 700; }
 .setup-progress .is-current { background: var(--purple-dark); color: white; }

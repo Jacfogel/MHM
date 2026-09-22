@@ -51,9 +51,11 @@ ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts choose a password and are created **after email verification**, through `create_new_user`.
 They start with messaging, tasks, and check-ins disabled and no categories.
-After sign-in they land on the 3-step first run for preferred name and
-time zone, when to hear from MHM (messages, task reminders, and check-ins with
-gentle default windows), and one optional first task. Accounts that already have
+After sign-in they land on first-run setup for preferred name and time zone,
+then choose messages, task reminders, and/or check-ins. Each feature that stays
+on gets its own steps: message categories and windows, an optional first task
+and task windows, or check-in questions and windows. Window steps can keep the
+gentle defaults. Accounts that already have
 any of those features enabled skip setup. First-run also uses the same enabled
 flags as Account settings, so a user with messages, tasks, and check-ins all off
 still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
@@ -169,7 +171,7 @@ return to login; request failures allow retrying logout.
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
 - `home.html`, `home.js` — signed-in home with the next task, a check-in request, and one-line notebook capture
-- `setup.html`, `setup.js` — 3-step first run for name/time zone, when to hear from MHM, and a first task
+- `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout
 - `tasks.html`, `tasks.js` — signed-in task list first, with optional create fields behind More options
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists

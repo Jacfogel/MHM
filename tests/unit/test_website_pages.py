@@ -200,12 +200,51 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     } <= account.ids
 
 
-def test_first_run_exposes_three_setup_steps():
+def test_first_run_exposes_a_setup_path_for_each_feature():
     setup = parse_page("setup.html")
-    assert {"step-1", "step-2", "step-3", "preferred-name", "timezone", "enable-messages", "enable-tasks", "enable-checkins", "first-task"} <= setup.ids
-    assert "hidden" in setup.controls["step-2"]
-    assert "hidden" in setup.controls["step-3"]
+    assert {
+        "step-1",
+        "step-2",
+        "step-message-categories",
+        "step-message-windows",
+        "step-task-create",
+        "step-task-windows",
+        "step-checkin-questions",
+        "step-checkin-windows",
+        "message-categories",
+        "message-windows",
+        "task-windows",
+        "checkin-questions",
+        "checkin-windows",
+        "preferred-name",
+        "timezone",
+        "enable-messages",
+        "enable-tasks",
+        "enable-checkins",
+        "first-task",
+        "setup-back",
+        "setup-progress",
+    } <= setup.ids
+    for step_id in (
+        "step-2",
+        "step-message-categories",
+        "step-message-windows",
+        "step-task-create",
+        "step-task-windows",
+        "step-checkin-questions",
+        "step-checkin-windows",
+    ):
+        assert "hidden" in setup.controls[step_id]
     assert setup.controls["first-task"]["maxlength"] == "500"
+
+
+def test_setup_requires_one_feature_without_forcing_tasks():
+    source = (WEBSITE / "setup.js").read_text(encoding="utf-8")
+    assert "tasks = true" not in source
+    assert "Pick at least one: supportive messages, task reminders, or check-ins." in source
+    assert "message-categories" in source
+    assert "checkin-questions" in source
+    assert "Keep these windows" in source
 
 
 def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():

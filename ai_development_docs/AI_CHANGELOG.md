@@ -34,6 +34,7 @@ Guidelines:
 - A verified Google email, or a Facebook profile that shares an email, now creates an MHM account when that address is new, then opens first-run setup.
 - An address that already belongs to an active account still signs into that account. Facebook without an email does not create an account.
 - Apple website sign-in, its settings, and its callback are removed. Google and Facebook remain.
+- First-run setup requires one of messages, tasks, or check-ins, and it no longer force-enables task reminders. Each feature left on gets its own category, question, or task step, plus a reminder-window step.
 
 ### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
 - Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.
