@@ -124,9 +124,8 @@ for browser sessions.
 
 Optional social login credentials are `GOOGLE_OAUTH_CLIENT_ID`,
 `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, and the corresponding
-`FACEBOOK_OAUTH_*` and `APPLE_OAUTH_*` values. Blank redirect URIs default to
-`${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`. Apple uses a Services ID
-and a signed, expiring client-secret JWT, and requires a registered HTTPS callback.
+`FACEBOOK_OAUTH_*` values. Blank redirect URIs default to
+`${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`.
 
 ---
 

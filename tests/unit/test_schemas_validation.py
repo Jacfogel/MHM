@@ -51,6 +51,7 @@ def test_validate_account_v2_keeps_bounded_auth_fields(base_account_envelope):
     account["oauth_identities"] = {
         "google": " google-subject ",
         "facebook": "facebook-subject",
+        "apple": "old-subject",
         "unsupported": "must-not-persist",
     }
 

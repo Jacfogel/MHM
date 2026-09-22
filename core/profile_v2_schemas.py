@@ -271,7 +271,7 @@ class AccountV2EnvelopeModel(BaseModel):
         """Persist only supported provider subjects, never OAuth access tokens."""
         if not isinstance(value, dict):
             return {}
-        allowed = {"google", "facebook", "apple"}
+        allowed = {"google", "facebook"}
         return {
             provider: subject.strip()
             for provider, subject in value.items()

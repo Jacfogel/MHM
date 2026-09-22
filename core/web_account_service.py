@@ -46,16 +46,14 @@ SCRYPT_N = 2**14
 SCRYPT_R = 8
 SCRYPT_P = 1
 OAUTH_STATE_TTL = 600
-OAUTH_PROVIDERS = ("google", "facebook", "apple")
+OAUTH_PROVIDERS = ("google", "facebook")
 OAUTH_AUTHORIZE_URLS = {
     "google": "https://accounts.google.com/o/oauth2/v2/auth",
     "facebook": "https://www.facebook.com/dialog/oauth",
-    "apple": "https://appleid.apple.com/auth/authorize",
 }
 OAUTH_TOKEN_URLS = {
     "google": "https://oauth2.googleapis.com/token",
     "facebook": "https://graph.facebook.com/oauth/access_token",
-    "apple": "https://appleid.apple.com/auth/token",
 }
 
 
@@ -382,6 +380,30 @@ def _account_features(account):
     return {}
 
 
+@handle_errors("checking OAuth email confirmation", user_friendly=False, default_return=False)
+def _oauth_email_verified(provider, identity):
+    """Return whether this provider identity includes an email MHM can trust."""
+    if not isinstance(identity, dict):
+        return False
+    if provider == "google":
+        return identity.get("email_verified") in {True, "true"}
+    if provider == "facebook":
+        email = identity.get("email", "")
+        return isinstance(email, str) and bool(email.strip())
+    return False
+
+
+@handle_errors("checking website account email", user_friendly=False, default_return=False)
+def _valid_account_email(email):
+    """Return whether an address can be stored as an MHM account email."""
+    return (
+        isinstance(email, str)
+        and len(email) <= 254
+        and re.fullmatch(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email)
+        is not None
+    )
+
+
 @handle_errors("checking website support feature", user_friendly=False, default_return=False)
 def _feature_enabled(features, key):
     """True when a support feature is stored as enabled."""
@@ -420,91 +442,6 @@ def _signed_in_path(account, *, linking=False):
     return "/setup.html" if _setup_flags(account).get("needs_setup") else "/home.html"
 
 
-# ERROR_HANDLING_EXCLUDE: JWT parser intentionally raises into the OAuth boundary.
-def _jwt_part(value: str) -> dict:
-    """Decode one base64url JSON JWT part after its signature is verified."""
-    decoded = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
-    payload = json.loads(decoded)
-    if not isinstance(payload, dict):
-        raise ValidationError("OAuth identity token was invalid")
-    return payload
-
-
-async def _apple_identity_from_token(token, *, client_id, nonce, session):
-    """Verify Apple's signed identity token and return its stable identity."""
-    # ERROR_HANDLING_EXCLUDE: OAuth boundary normalizes crypto/JWT failures below.
-    try:
-        header_part, payload_part, signature_part = token.split(".")
-        header = _jwt_part(header_part)
-        claims = _jwt_part(payload_part)
-        if header.get("alg") != "RS256" or not isinstance(header.get("kid"), str):
-            raise ValidationError("Apple identity token was invalid")
-        async with session.get("https://appleid.apple.com/auth/keys") as response:
-            if response.status != 200:
-                raise CommunicationError("Apple identity keys could not be read")
-            key_set = await response.json(content_type=None)
-        keys = key_set.get("keys", []) if isinstance(key_set, dict) else []
-        key = next(
-            (
-                item
-                for item in keys
-                if isinstance(item, dict)
-                and item.get("kid") == header["kid"]
-                and item.get("kty") == "RSA"
-            ),
-            None,
-        )
-        if not key:
-            raise ValidationError("Apple identity token key was invalid")
-        from cryptography.hazmat.primitives import hashes
-        from cryptography.hazmat.primitives.asymmetric import padding, rsa
-
-        modulus = int.from_bytes(
-            base64.urlsafe_b64decode(key["n"] + "=" * (-len(key["n"]) % 4)),
-            "big",
-        )
-        exponent = int.from_bytes(
-            base64.urlsafe_b64decode(key["e"] + "=" * (-len(key["e"]) % 4)),
-            "big",
-        )
-        public_key = rsa.RSAPublicNumbers(exponent, modulus).public_key()
-        signature = base64.urlsafe_b64decode(
-            signature_part + "=" * (-len(signature_part) % 4)
-        )
-        public_key.verify(
-            signature,
-            f"{header_part}.{payload_part}".encode(),
-            padding.PKCS1v15(),
-            hashes.SHA256(),
-        )
-        audience = claims.get("aud")
-        audience_ok = audience == client_id or (
-            isinstance(audience, list) and client_id in audience
-        )
-        if (
-            claims.get("iss") != "https://appleid.apple.com"
-            or not audience_ok
-            or not isinstance(claims.get("exp"), (int, float))
-            or claims["exp"] <= time.time()
-            or claims.get("nonce") != nonce
-        ):
-            raise ValidationError("Apple identity token claims were invalid")
-        subject = claims.get("sub")
-        email = claims.get("email", "")
-        verified = claims.get("email_verified") in {True, "true"}
-        if not isinstance(subject, str) or not 1 <= len(subject) <= 255:
-            raise ValidationError("Apple identity was invalid")
-        return OAuthIdentity(
-            subject,
-            email.casefold() if isinstance(email, str) else "",
-            verified,
-        )
-    except (CommunicationError, ValidationError):
-        raise
-    except Exception as exc:
-        raise ValidationError("Apple identity token was invalid") from exc
-
-
 async def _fetch_oauth_identity(
     provider,
     code,
@@ -512,7 +449,6 @@ async def _fetch_oauth_identity(
     client_id,
     client_secret,
     redirect_uri,
-    nonce,
 ):
     """Exchange an authorization code and read a verified provider identity."""
     try:
@@ -535,13 +471,6 @@ async def _fetch_oauth_identity(
                 token = await response.json(content_type=None)
             if not isinstance(token, dict):
                 raise DataError("OAuth token response was invalid")
-            if provider == "apple":
-                id_token = token.get("id_token")
-                if not isinstance(id_token, str) or not id_token:
-                    raise DataError("Apple authorization returned no identity token")
-                return await _apple_identity_from_token(
-                    id_token, client_id=client_id, nonce=nonce, session=session
-                )
             access_token = token.get("access_token")
             if not isinstance(access_token, str) or not access_token:
                 raise DataError("OAuth authorization returned no access token")
@@ -571,10 +500,10 @@ async def _fetch_oauth_identity(
         raise ValidationError("OAuth identity was invalid")
     if not isinstance(email, str):
         email = ""
-    # Google exposes an explicit email_verified claim. Facebook's email field
-    # has no equivalent guarantee here, so first-time Facebook use must be
-    # linked from an already authenticated MHM session.
-    verified = identity.get("email_verified") is True if provider == "google" else False
+    # Google exposes an explicit email_verified claim. Facebook returns email
+    # only after the person grants it and Facebook has a valid primary address,
+    # so a present email is the confirmation MHM can use.
+    verified = _oauth_email_verified(provider, identity)
     display_name = identity.get("name", "")
     return OAuthIdentity(
         subject,
@@ -761,11 +690,7 @@ def create_web_app(
                     request.headers.get("X-MHM-Proxy-Secret", ""), proxy_secret
                 ):
                     raise web.HTTPForbidden(text="This request cannot be accepted.")
-                apple_callback = (
-                    request.method == "POST"
-                    and request.path == "/api/auth/oauth/apple/callback"
-                )
-                if request.method != "GET" and not apple_callback:
+                if request.method != "GET":
                     if request.headers.get("Origin") != origin:
                         raise web.HTTPForbidden(
                             text="Please sign in through the MHM website."
@@ -774,10 +699,6 @@ def create_web_app(
                         raise web.HTTPUnsupportedMediaType(
                             text="A JSON request is required."
                         )
-                if apple_callback and request.content_type != "application/x-www-form-urlencoded":
-                    raise web.HTTPUnsupportedMediaType(
-                        text="Apple returned an unsupported response."
-                    )
                 # Trust the client address only after authenticating the Worker.
                 client = (
                     request.headers.get("X-MHM-Client-IP", "unknown")
@@ -1261,13 +1182,17 @@ def create_web_app(
         active_session = sessions.get(session_key)
         linked_uid = active_session[0] if active_session and active_session[1] > clock() else None
         state = secrets.token_urlsafe(32)
-        nonce = secrets.token_urlsafe(32)
+        timezone = str(request.query.get("timezone", "") or "").strip()
+        try:
+            ZoneInfo(timezone)
+        except (ZoneInfoNotFoundError, ValueError, TypeError):
+            timezone = "America/Regina"
         oauth_states[hashlib.sha256(state.encode()).hexdigest()] = {
             "provider": provider,
             "expires": clock() + OAUTH_STATE_TTL,
-            "nonce": nonce,
             "session_key": session_key if linked_uid else "",
             "linked_uid": linked_uid,
+            "timezone": timezone,
         }
         query = {
             "client_id": provider_config["client_id"],
@@ -1277,17 +1202,8 @@ def create_web_app(
         }
         if provider == "google":
             query.update({"scope": "openid email profile", "prompt": "select_account"})
-        elif provider == "facebook":
-            query.update({"scope": "email"})
         else:
-            query.update(
-                {
-                    "scope": "name email",
-                    "response_type": "code id_token",
-                    "response_mode": "form_post",
-                    "nonce": nonce,
-                }
-            )
+            query.update({"scope": "public_profile,email"})
         return web.json_response(
             {"url": f"{OAUTH_AUTHORIZE_URLS[provider]}?{urlencode(query)}"}
         )
@@ -1296,7 +1212,7 @@ def create_web_app(
     async def oauth_callback(request):
         """Validate a social callback, link its identity, and start a session."""
         provider = request.match_info["provider"]
-        values = await request.post() if request.method == "POST" else request.query
+        values = request.query
         state = values.get("state", "")
         state_key = hashlib.sha256(str(state).encode()).hexdigest()
         pending = oauth_states.pop(state_key, None)
@@ -1320,7 +1236,6 @@ def create_web_app(
                 client_id=provider_config["client_id"],
                 client_secret=provider_config["client_secret"],
                 redirect_uri=provider_config["redirect_uri"],
-                nonce=pending["nonce"],
             )
             if not isinstance(identity, OAuthIdentity):
                 raise ValidationError("OAuth identity was invalid")
@@ -1355,6 +1270,55 @@ def create_web_app(
                 target = linked_match
             elif identity.email and identity.email_verified:
                 target = await asyncio.to_thread(accounts.by_email, identity.email)
+            if (
+                not pending.get("linked_uid")
+                and (not target or target[1].get("account_status") != "active")
+                and provider in {"google", "facebook"}
+                and identity.email_verified
+                and _valid_account_email(identity.email)
+                and not await asyncio.to_thread(accounts.email_exists, identity.email)
+            ):
+                async with oauth_link_lock:
+                    linked_match = await asyncio.to_thread(
+                        accounts.by_oauth, provider, identity.subject
+                    )
+                    if (
+                        linked_match
+                        and linked_match[1].get("account_status") == "active"
+                    ):
+                        target = linked_match
+                    elif not await asyncio.to_thread(
+                        accounts.email_exists, identity.email
+                    ):
+                        uid = await asyncio.to_thread(
+                            accounts.create,
+                            identity.email,
+                            identity.display_name.strip()[:100],
+                            pending.get("timezone") or "America/Regina",
+                            "",
+                        )
+                        if not uid:
+                            raise DataError("OAuth account could not be created")
+                        created_account = await asyncio.to_thread(accounts.get, uid)
+                        result = await asyncio.to_thread(
+                            accounts.link_oauth,
+                            uid,
+                            provider,
+                            identity.subject,
+                        )
+                        if result not in {"linked", "already_linked"}:
+                            raise DataError("OAuth account could not be linked")
+                        target = (uid, created_account)
+                        linked_match = target
+            if (
+                not target
+                and provider == "facebook"
+                and not identity.email
+                and not pending.get("linked_uid")
+            ):
+                return web.HTTPFound(
+                    website_redirect("/login.html", social="no-email")
+                )
             if not target or target[1].get("account_status") != "active":
                 return web.HTTPFound(
                     website_redirect("/login.html", social="not-linked")
@@ -2480,7 +2444,6 @@ def create_web_app(
     app.router.add_get("/api/auth/oauth/providers", oauth_providers)
     app.router.add_get("/api/auth/oauth/{provider}/start", oauth_start)
     app.router.add_get("/api/auth/oauth/{provider}/callback", oauth_callback)
-    app.router.add_post("/api/auth/oauth/{provider}/callback", oauth_callback)
     app.router.add_get("/api/auth/discord/start", discord_start)
     app.router.add_get("/api/auth/discord/callback", discord_callback)
     app.router.add_get("/api/account", account)

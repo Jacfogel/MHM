@@ -598,6 +598,19 @@
       ],
       "replacement": "communication.communication_channels.discord.{events,ui,onboarding,webhooks}.*",
       "note": "Flat discord/*.py helpers moved into events/, ui/, onboarding/, webhooks/ subpackages (2026-08-11 package reorg). Search-and-close: production and test imports updated; no LEGACY COMPATIBILITY re-export stubs. Canonical stables remain discord.bot.DiscordBot and discord.interaction_views."
+    },
+    {
+      "id": "apple_website_oauth",
+      "removed_at": "2026-09-22",
+      "search_terms": [
+        "APPLE_OAUTH_CLIENT_ID",
+        "APPLE_OAUTH_CLIENT_SECRET",
+        "APPLE_OAUTH_REDIRECT_URI",
+        "_apple_identity_from_token",
+        "Continue with Apple"
+      ],
+      "replacement": "Google or Facebook website sign-in",
+      "note": "Removed Apple website sign-in, including config, the login button, the form-post callback, and identity JWT verification. A stored apple key in oauth_identities is dropped the next time that account document is saved."
     }
   ],
   "global_sweep_keywords": [

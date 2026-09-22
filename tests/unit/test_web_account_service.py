@@ -16,6 +16,7 @@ from core.web_account_service import (
     MHMAccounts,
     _account_features,
     _feature_enabled,
+    _oauth_email_verified,
     _setup_flags,
     _signed_in_path,
 )
@@ -715,7 +716,7 @@ async def test_smtp_failure_reports_delivery_problem_without_leaking_details():
         assert "private diagnostic details" not in message
 
 
-@pytest.mark.parametrize("provider", ["google", "facebook", "apple"])
+@pytest.mark.parametrize("provider", ["google", "facebook"])
 async def test_configured_social_provider_links_by_verified_email_and_logs_in(
     gateway, monkeypatch, provider
 ):
@@ -747,19 +748,10 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert start.status == 200
         authorize_url = (await start.json())["url"]
         state = parse_qs(urlsplit(authorize_url).query)["state"][0]
-        if provider == "apple":
-            callback = await client.post(
-                f"/api/auth/oauth/{provider}/callback",
-                data={"code": "oauth-code", "state": state},
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                allow_redirects=False,
-            )
-            assert "response_mode=form_post" in authorize_url
-        else:
-            callback = await client.get(
-                f"/api/auth/oauth/{provider}/callback?code=oauth-code&state={state}",
-                allow_redirects=False,
-            )
+        callback = await client.get(
+            f"/api/auth/oauth/{provider}/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
         assert callback.status == 302
         assert callback.headers["Location"].endswith(
             f"/setup.html?social={provider}-connected"
@@ -799,6 +791,138 @@ async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(
         )
         assert callback.headers["Location"].endswith("/login.html?social=not-linked")
         assert "oauth_identities" not in accounts.users["existing"]
+        assert (await client.get("/api/account")).status == 401
+
+
+async def test_google_sign_in_creates_an_account_when_the_verified_email_is_new(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+
+    async def identity(provider, code, **kwargs):
+        return OAuthIdentity("new-google-subject", "new@example.com", True, "New Person")
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        url = (
+            await (
+                await client.get(
+                    "/api/auth/oauth/google/start?timezone=America/Denver"
+                )
+            ).json()
+        )["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        callback = await client.get(
+            f"/api/auth/oauth/google/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.status == 302
+        assert callback.headers["Location"].endswith("/setup.html?social=google-connected")
+        created = accounts.by_email("new@example.com")
+        assert created is not None
+        assert created[0] != "existing"
+        assert created[1]["timezone"] == "America/Denver"
+        assert created[1]["password_hash"] == ""
+        assert created[1]["oauth_identities"]["google"] == "new-google-subject"
+        assert accounts.contexts[created[0]]["preferred_name"] == "New Person"
+        assert (await client.get("/api/account")).status == 200
+
+
+def test_facebook_email_is_trusted_only_when_facebook_shares_one():
+    assert _oauth_email_verified("facebook", {"email": "person@example.com"}) is True
+    assert _oauth_email_verified("facebook", {"email": "  "}) is False
+    assert _oauth_email_verified("google", {"email": "person@example.com", "email_verified": True}) is True
+    assert _oauth_email_verified("google", {"email": "person@example.com"}) is False
+
+
+async def test_facebook_sign_in_creates_an_account_when_an_email_is_shared(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_REDIRECT_URI", "")
+
+    async def identity(provider, code, **kwargs):
+        return OAuthIdentity("facebook-subject", "new@example.com", True, "New Person")
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        url = (
+            await (
+                await client.get(
+                    "/api/auth/oauth/facebook/start?timezone=America/Denver"
+                )
+            ).json()
+        )["url"]
+        assert "public_profile" in url
+        assert "email" in url
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        callback = await client.get(
+            f"/api/auth/oauth/facebook/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.headers["Location"].endswith(
+            "/setup.html?social=facebook-connected"
+        )
+        created = accounts.by_email("new@example.com")
+        assert created is not None
+        assert created[1]["timezone"] == "America/Denver"
+        assert created[1]["oauth_identities"]["facebook"] == "facebook-subject"
+        assert (await client.get("/api/account")).status == 200
+
+
+async def test_facebook_sign_in_without_an_email_does_not_create_an_account(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "FACEBOOK_OAUTH_REDIRECT_URI", "")
+
+    async def identity(provider, code, **kwargs):
+        return OAuthIdentity("facebook-subject", "", False, "New Person")
+
+    await client.close()
+    app = service.create_web_app(
+        accounts=accounts,
+        mailer=lambda email, code: sent.append((email, code)),
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        url = (await (await client.get("/api/auth/oauth/facebook/start")).json())["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        callback = await client.get(
+            f"/api/auth/oauth/facebook/callback?code=oauth-code&state={state}",
+            allow_redirects=False,
+        )
+        assert callback.headers["Location"].endswith("/login.html?social=no-email")
+        assert accounts.by_email("new@example.com") is None
         assert (await client.get("/api/account")).status == 401
 
 

@@ -19,7 +19,7 @@ if (creating) {
   document.getElementById('confirm-password').required = true;
   password.autocomplete = 'new-password';
   document.getElementById('form-title').textContent = 'Start where you are.';
-  document.getElementById('form-description').textContent = 'Create your MHM account with a password. We’ll verify your email once before getting you started.';
+  document.getElementById('form-description').textContent = 'Create your MHM account with Google or Facebook, or with a password. A password is saved only after your email code succeeds.';
   document.getElementById('email-hint').textContent = 'We’ll send your one-time verification code here.';
   document.getElementById('primary-action').textContent = 'Create my account →';
   document.getElementById('send-code').hidden = true;
@@ -49,6 +49,7 @@ const socialMessages = {
   cancelled: 'Social sign-in was canceled. You can try again whenever you are ready.',
   unavailable: 'That sign-in provider is not available right now.',
   'not-linked': 'No active MHM account matches that social account. Create an account or use your account email first.',
+  'no-email': 'Facebook did not share an email address, so MHM could not start your account. Use Google, or create an account with your email.',
   expired: 'That sign-in attempt expired. Please start again.',
   'in-use': 'That social account is already connected to another MHM account.',
   error: 'Social sign-in could not be completed. Please try again.',
@@ -163,7 +164,9 @@ async function loadSocialProviders() {
       if (button) button.disabled = false;
     }
     document.getElementById('social-hint').textContent = available.length
-      ? 'Use a connected provider, or continue with email.'
+      ? (creating
+        ? 'Google or Facebook can create your account from the email on that profile. Or use a password below.'
+        : 'Use a connected provider, or continue with email.')
       : 'Social sign-in is being set up. Use email for now.';
   } catch (_) {
     document.getElementById('social-hint').textContent = 'Social sign-in is unavailable right now. Use email instead.';
@@ -173,7 +176,10 @@ async function loadSocialProviders() {
 for (const button of document.querySelectorAll('[data-provider]')) {
   button.addEventListener('click', () => submit(button, async () => {
     const provider = button.dataset.provider;
-    const result = await api(`/api/auth/oauth/${provider}/start`);
+    const timezone = encodeURIComponent(
+      Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Regina'
+    );
+    const result = await api(`/api/auth/oauth/${provider}/start?timezone=${timezone}`);
     if (!result.url) throw new Error(`${provider} sign-in is unavailable.`);
     location.assign(result.url);
   }));

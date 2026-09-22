@@ -127,22 +127,20 @@ Cloudflare build, or deploy from `website/` with an authenticated Wrangler CLI.
 
 For social sign-in, configure any of the following credential groups on the gateway.
 Buttons remain disabled until both the client ID and secret are present. A verified
-provider email is linked only when it uniquely matches an active MHM account; after
-that, the stable provider subject is used and OAuth access/refresh tokens are not stored.
+Google or Facebook email creates an account when that address is new, and otherwise
+links the one active account that already uses it. Facebook can only do this when
+it shares an email address. After the first success, the stable
+provider subject is used and OAuth access/refresh tokens are not stored.
 
 - Google: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and optionally
   `GOOGLE_OAUTH_REDIRECT_URI`.
 - Facebook: `FACEBOOK_OAUTH_CLIENT_ID`, `FACEBOOK_OAUTH_CLIENT_SECRET`, and optionally
-  `FACEBOOK_OAUTH_REDIRECT_URI`. Connect Facebook once from the signed-in account
-  page before using it from the login page; the Graph email field is not treated
-  as an independently verified email claim.
-- Apple: `APPLE_OAUTH_CLIENT_ID` (Services ID), `APPLE_OAUTH_CLIENT_SECRET` (the signed
-  client-secret JWT), and `APPLE_OAUTH_REDIRECT_URI`. Apple requires a registered HTTPS
-  domain callback and posts its authorization response to the callback.
+  `FACEBOOK_OAUTH_REDIRECT_URI`. MHM asks for the public profile and email. If
+  Facebook does not return an email, account creation stops.
 
 When a redirect setting is blank it defaults to
 `${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`. Register the exact callback
-with the provider. Apple's signed client-secret JWT expires and must be rotated.
+with the provider.
 
 For Discord connection, create an OAuth2 redirect in the Discord Developer Portal that exactly
 matches `DISCORD_OAUTH_REDIRECT_URI` (or `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when

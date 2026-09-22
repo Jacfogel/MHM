@@ -36,7 +36,7 @@
     <h2>Connected services</h2>
     <ul>
       <li><strong>Discord.</strong> If you connect Discord, MHM stores the Discord user id and username for that account. You can disconnect it from the account page. Delivery then falls back to email when that was your channel.</li>
-      <li><strong>Google, Facebook, or Apple.</strong> If you use one of these to sign in, MHM stores the stable identifier needed to recognize that sign-in. When the provider supplies a verified email, MHM can use it to find your existing account. Sign-in access tokens and refresh tokens from these providers are not stored. Facebook is connected from the account page first, because its email is not treated as verified on its own. You can disconnect an extra sign-in as long as one way to sign in remains.</li>
+      <li><strong>Google or Facebook.</strong> If you use one of these to sign in, MHM stores the stable identifier needed to recognize that sign-in. When Google or Facebook shares an email and no MHM account uses it yet, MHM creates the account. If an account already uses that email, MHM signs you into it. Sign-in access tokens and refresh tokens from these providers are not stored. If Facebook does not share an email, MHM does not create an account from that sign-in. You can disconnect an extra sign-in as long as one way to sign in remains.</li>
       <li><strong>Google Health.</strong> If you connect it, MHM reads sleep, activity, and health measurements you approve. Those readings are stored with your account and used for coarse summaries, such as a rounded sleep length or a heart-rate band. You can pause the connection or delete the saved health data from Insights.</li>
     </ul>
 
@@ -48,7 +48,7 @@
     <ul>
       <li><strong>Email.</strong> Sign-in codes, password recovery, and email reminders go through the mail server configured for MHM.</li>
       <li><strong>Discord.</strong> Messages you ask MHM to deliver on Discord are sent through Discord.</li>
-      <li><strong>Google, Facebook, and Apple.</strong> Only if you start that sign-in or connection. Each provider handles that visit under its own policy.</li>
+      <li><strong>Google and Facebook.</strong> Only if you start that sign-in or connection. Each provider handles that visit under its own policy.</li>
       <li><strong>Google Health.</strong> Only if you connect it. Google handles the consent screen and the health data it shares.</li>
       <li><strong>Cloudflare.</strong> The public website is served through Cloudflare. The gateway may use the connecting IP address to limit repeated sign-in attempts.</li>
       <li><strong>Google Fonts.</strong> Pages load typefaces from Google, so a font request can include your IP address.</li>

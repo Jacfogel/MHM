@@ -39,13 +39,12 @@ export default {
     const taskAction = url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify))?$/);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
     const messageAction = url.pathname.match(/^\/api\/messages\/[^/]+\/[^/]+$/);
-    const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/start$/);
-    const oauthCallback = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook|apple)\/callback$/);
+    const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook)\/start$/);
+    const oauthCallback = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook)\/callback$/);
     const routePath = taskAction || noteAction || messageAction || oauthStart || oauthCallback
       ? taskAction ? '/api/tasks/:task_id' : noteAction ? '/api/notes/:note_id' : messageAction ? '/api/messages/:category/:message_id' : oauthStart ? '/api/auth/oauth/:provider/start' : '/api/auth/oauth/:provider/callback'
       : url.pathname;
-    const methods = oauthStart ? ['GET']
-      : oauthCallback ? (url.pathname.includes('/apple/') ? ['GET', 'POST'] : ['GET'])
+    const methods = oauthStart || oauthCallback ? ['GET']
       : taskAction
       ? (/\/(?:complete|restore|snooze|skip|simplify)$/.test(url.pathname) ? ['POST'] : ['PATCH', 'DELETE'])
       : noteAction
@@ -55,8 +54,7 @@ export default {
     if (!methods) return error('Page not found.', 404);
     const method = request.method;
     if (!(Array.isArray(methods) ? methods : [methods]).includes(method)) return error('This method is not supported.', 405);
-    const appleCallback = url.pathname === '/api/auth/oauth/apple/callback' && method === 'POST';
-    if (method !== 'GET' && !appleCallback && request.headers.get('Origin') !== url.origin) {
+    if (method !== 'GET' && request.headers.get('Origin') !== url.origin) {
       return error('Please sign in through the MHM website.', 403);
     }
     if (!env.MHM_API_ORIGIN || !env.MHM_API_SECRET || env.MHM_API_SECRET.length < 32) {

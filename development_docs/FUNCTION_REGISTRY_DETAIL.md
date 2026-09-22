@@ -5082,11 +5082,12 @@ Returns None if path resolution fails (caller treats as no users dir).
 **Functions:**
 - [OK] `_account_features(account)` - Return the feature-flag map from an account envelope or nested document.
 - [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
-- [OK] `_jwt_part(value)` - Decode one base64url JSON JWT part after its signature is verified.
+- [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
 - [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
 - [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
+- [OK] `_valid_account_email(email)` - Return whether an address can be stored as an MHM account email.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
 - [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
 - [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-22 - Google sign-in creates accounts; Apple sign-in removed **COMPLETED**
+- A verified Google email, or a Facebook profile that shares an email, now creates an MHM account when that address is new, then opens first-run setup.
+- An address that already belongs to an active account still signs into that account. Facebook without an email does not create an account.
+- Apple website sign-in, its settings, and its callback are removed. Google and Facebook remain.
+
 ### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
 - Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.
 - Home, login, and the account card link to them. The gateway and Worker allowlists serve the new files.
@@ -117,10 +122,6 @@ Guidelines:
 - Skip rolls a repeating task to the next occurrence without marking it done; one-off tasks stay due and wait until tomorrow morning.
 - Simplify rewrites the title to a smaller next step and keeps the due date.
 - Hygiene: snooze helper now uses `@handle_errors`; spec ASCII; function registry regenerated.
-
-### 2026-09-14 - Task reminder snooze **COMPLETED**
-- Discord **Remind Me Later** snoozes the ping (1 hour / tonight or tomorrow morning / next week / custom) without changing the due date.
-- Same path from typed `snooze` / `remind me later` commands. Skip and Simplify remain later, separate actions.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
