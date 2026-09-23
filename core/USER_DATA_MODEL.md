@@ -116,6 +116,9 @@ Example (typical user directory):
 - `checkins.json`  
   Check-in history, responses, and state.
 
+- `email_reply_context.json`  
+  Email thread index for two-way mail. Stores recent outbound `Message-ID` values (check-in, task reminder, or general message) and inbound ids that were already answered. It is a channel lookup file, not a profile document.
+
 ### 2.1. Messages subtree
 
 - `messages/motivational.json`  

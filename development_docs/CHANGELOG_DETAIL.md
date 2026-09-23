@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-23 - Two-way email replies
+- **Feature**: Email replies now keep only the new text, stay in the same thread, and are marked read after MHM handles them. A reply to a check-in answers that check-in. A reply to a task reminder can say done, later, skip, or simplify, and that action applies to the task in the email. See [email/inbound_processor.py](../communication/communication_channels/email/inbound_processor.py), [email/bot.py](../communication/communication_channels/email/bot.py), [email_reply_routing.py](../communication/message_processing/email_reply_routing.py), and [specs/email-reply-loop.md](../specs/email-reply-loop.md).
+- **Impact**: Replying to an MHM email continues that conversation instead of sending the quoted original through chat, and a check-in or task reply is tied to the message you answered. Simplify examples name a real smaller step, such as wipe the kitchen counter, because that text becomes the new task title.
+- **Docs**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) now points at the full inbound processor path, and doc-sync reports no missing documentation paths. Regenerated the function registry so the new reply helpers are listed.
+- **Fix**: Pyright is clean on the email reply code. The reply index treats stored lists as lists before slicing them, and marking a message read passes the IMAP id as text.
+
 ### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds
 - **Docs**: [PLANS.md](PLANS.md) Section 7 records three **PLANNED** scaffolds and lists them in the plan index. SMS is a paid text channel beside Discord and email. Apple Health is a phone-pushed daily summary beside Google Health. New accounts get a 30-day trial, then one monthly subscription, with the existing alpha account left comped. Deferred items moved to Section 8; completed plans are Section 9.
 - **Impact**: Future channel, health, and billing work has a starting outline without changing current send, health, or account behavior.

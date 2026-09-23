@@ -1093,7 +1093,9 @@ class TestEmailInboundProcessorHelpers:
             "subject": "Hi",
         }
         processor._run_async_sync.return_value = ["bad", email_msg, email_msg]
-        with patch.object(processor, "process_incoming_email") as mock_process:
+        with patch.object(
+            processor, "process_incoming_email", return_value=True
+        ) as mock_process:
             processor._poll_once(channel)
         mock_process.assert_called_once_with(email_msg)
 
@@ -1106,10 +1108,13 @@ class TestEmailInboundProcessorHelpers:
             "subject": "Hi",
         }
         processor._run_async_sync.return_value = [email_msg]
-        with patch.object(processor, "process_incoming_email") as mock_process:
+        with patch.object(
+            processor, "process_incoming_email", return_value=True
+        ) as mock_process:
             processor._poll_once(channel)
         mock_process.assert_called_once_with(email_msg)
         assert "abc" in processor._processed_email_ids
+        channel.mark_message_seen.assert_called_once_with("abc")
 
     def test_process_incoming_email_skips_missing_fields(self, processor):
         with patch.object(processor, "send_email_response") as mock_send:
@@ -1144,11 +1149,12 @@ class TestEmailInboundProcessorHelpers:
             return_value=mock_response,
         ), patch.object(processor, "send_email_response") as mock_send:
             processor.process_incoming_email(email_msg)
-        mock_send.assert_called_once_with(
+        assert mock_send.call_args.args[:3] == (
             "member@example.com",
             "Here are your tasks.",
             "Re: Tasks",
         )
+        assert mock_send.call_args.kwargs["user_id"] == "user-123"
 
     def test_send_email_response_when_channel_not_ready(self, processor):
         processor._get_email_channel.return_value = None
@@ -1161,6 +1167,7 @@ class TestEmailInboundProcessorHelpers:
     def test_send_email_response_success(self, processor):
         channel = MagicMock()
         channel.is_ready.return_value = True
+        channel.last_outbound_message_id = "<reply@example.com>"
         processor._get_email_channel.return_value = channel
         processor.send_email_response("user@example.com", "Thanks!", "Re: Hi")
         processor._run_async_sync.assert_called_once()

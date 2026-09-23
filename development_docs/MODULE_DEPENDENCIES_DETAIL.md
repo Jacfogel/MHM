@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-21 23:50:01
+> **Last Generated**: 2026-09-23 00:54:04
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 280
-- **Total Imports Found**: 2489
-- **Dependencies Documented**: 280 (100% coverage)
-- **Standard Library Imports**: 723 (29.0%)
-- **Third-Party Imports**: 224 (9.0%)
-- **Local Imports**: 1542 (62.0%)
-- **Last Updated**: 2026-09-21
+- **Files Scanned**: 283
+- **Total Imports Found**: 2516
+- **Dependencies Documented**: 283 (100% coverage)
+- **Standard Library Imports**: 734 (29.2%)
+- **Third-Party Imports**: 222 (8.8%)
+- **Local Imports**: 1560 (62.0%)
+- **Last Updated**: 2026-09-23
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 723 imports (29.0%)
-- **Third-Party**: 224 imports (9.0%)
-- **Local**: 1542 imports (62.0%)
+- **Standard Library**: 734 imports (29.2%)
+- **Third-Party**: 222 imports (8.8%)
+- **Local**: 1560 imports (62.0%)
 
 ## Module Dependencies by Directory
 
@@ -1547,6 +1547,7 @@
   - `communication/message_processing/action_plan_executor.py`
   - `communication/message_processing/action_request_adapter.py`
   - `communication/message_processing/command_parser.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/flows/checkin_flow.py`
   - `communication/message_processing/help_responses.py`
@@ -1610,6 +1611,7 @@
     - `task_analytics_handler (TaskAnalyticsHandler)`
 - **Used by**:
   - `communication/command_handlers/interaction_handlers.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `communication/message_processing/flows/checkin_flow.py`
   - `communication/message_processing/parsing_shortcuts.py`
 
@@ -1956,6 +1958,8 @@
     - `messages.message_reactions (apply_message_reaction)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `collections.abc (Awaitable, Callable)`
+    - `typing (Any, cast)`
   - **Third-party**:
     - `discord`
 - **Used by**:
@@ -2192,7 +2196,7 @@
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
-    - `collections.abc (Awaitable)`
+    - `collections.abc (Awaitable, Callable)`
     - `typing (Any, cast)`
   - **Third-party**:
     - `discord`
@@ -2355,18 +2359,21 @@
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.base.base_channel (BaseChannel, ChannelConfig, ChannelStatus, ChannelType)`
+    - `communication.communication_channels.email.quote_strip (html_to_plain_text)` (NEW)
+    - `communication.communication_channels.email.reply_context (normalize_message_id, record_outbound_email)` (NEW)
     - `core.config (EMAIL_IMAP_SERVER, EMAIL_SMTP_PASSWORD, EMAIL_SMTP_SERVER, EMAIL_SMTP_USERNAME)` (NEW)
     - `core.error_handling (ConfigurationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `asyncio`
+    - `contextlib`
     - `email.header (decode_header)`
     - `email.message (EmailMessage)`
     - `email.mime.text (MIMEText)`
     - `email.parser (BytesParser)`
     - `email.policy (default)`
+    - `email.utils (make_msgid, parseaddr)`
     - `imaplib`
-    - `re`
     - `smtplib`
     - `socket`
     - `time`
@@ -2374,7 +2381,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger
+- Added: communication.communication_channels.email.quote_strip, communication.communication_channels.email.reply_context, core.config, core.error_handling, core.logger
 - Removed: email.header, email.message, email.mime.text, email.parser, email.policy
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2385,8 +2392,12 @@
 - **Purpose**: Communication channel implementation for inbound_processor
 - **Dependencies**:
   - **Local**:
+    - `communication.communication_channels.email.quote_strip (strip_quoted_reply)` (NEW)
+    - `communication.communication_channels.email.reply_context (find_reply_context, inbound_already_handled, mark_inbound_handled)` (NEW)
+    - `communication.message_processing.email_reply_routing (route_checkin_reply, route_task_reply)` (NEW)
     - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
     - `core (get_user_id_by_identifier)` (NEW)
+    - `core.config (EMAIL_SMTP_USERNAME)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -2400,8 +2411,52 @@
   - `communication/core/channel_orchestrator.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.interaction_manager, core, core.error_handling, core.logger
+- Added: communication.communication_channels.email.quote_strip, communication.communication_channels.email.reply_context, communication.message_processing.email_reply_routing, communication.message_processing.interaction_manager, core, core.config, core.error_handling, core.logger
 - Removed: collections.abc, communication/core/channel_orchestrator.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/email/quote_strip.py`
+- **Purpose**: Communication channel implementation for quote_strip
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+- **Used by**:
+  - `communication/communication_channels/email/bot.py`
+  - `communication/communication_channels/email/inbound_processor.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/email/reply_context.py`
+- **Purpose**: Communication channel implementation for reply_context
+- **Dependencies**:
+  - **Local**:
+    - `core.config (get_user_data_dir)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.file_operations (load_json_data, save_json_data)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `pathlib (Path)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `communication/communication_channels/email/bot.py`
+  - `communication/communication_channels/email/inbound_processor.py`
+
+**Dependency Changes**:
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2805,6 +2860,7 @@
   - `communication/command_handlers/notebook_handler.py`
   - `communication/communication_channels/discord/ui/task_list_ui.py`
   - `communication/core/channel_orchestrator.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/interaction_manager.py`
   - `communication/message_processing/parsing_shortcuts.py`
@@ -2815,6 +2871,29 @@
 **Dependency Changes**:
 - Added: ai.chat.chatbot, communication.message_processing.flows.checkin_flow, communication.message_processing.flows.flow_constants, communication.message_processing.flows.note_flow, communication.message_processing.flows.task_flow, core.error_handling, core.logger
 - Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/task_list_ui.py, communication/core/channel_orchestrator.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/prefix_command_processor.py, communication/reminders/checkin_prompt_dispatcher.py, core/service_requests.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/message_processing/email_reply_routing.py`
+- **Purpose**: Communication channel implementation for email_reply_routing
+- **Dependencies**:
+  - **Local**:
+    - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
+    - `communication.command_handlers.task_handler (PENDING_SIMPLIFY, TaskManagementHandler)` (NEW)
+    - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `tasks.task_reminder_snooze (normalize_snooze_option)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+- **Used by**:
+  - `communication/communication_channels/email/inbound_processor.py`
+
+**Dependency Changes**:
+- Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.conversation_flow_manager, core.error_handling, core.logger, tasks.task_reminder_snooze
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3424,6 +3503,8 @@
   - `communication/communication_channels/discord/webhooks/server.py`
   - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
+  - `communication/communication_channels/email/inbound_processor.py`
+  - `communication/communication_channels/email/reply_context.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
   - `communication/core/welcome_manager.py`
@@ -3581,6 +3662,8 @@
   - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
+  - `communication/communication_channels/email/quote_strip.py`
+  - `communication/communication_channels/email/reply_context.py`
   - `communication/communication_channels/interaction_view_factory.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
@@ -3595,6 +3678,7 @@
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/command_registry.py`
   - `communication/message_processing/conversation_flow_manager.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/flows/checkin_flow.py`
   - `communication/message_processing/flows/flow_state.py`
@@ -3810,6 +3894,7 @@
 - **Used by**:
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_dynamic_manager.py`
+  - `communication/communication_channels/email/reply_context.py`
   - `core/admin_account_provisioning.py`
   - `core/response_tracking.py`
   - `core/service.py`
@@ -4039,6 +4124,7 @@
   - `communication/communication_channels/discord/webhooks/tunnel.py`
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
+  - `communication/communication_channels/email/reply_context.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -4049,6 +4135,7 @@
   - `communication/message_processing/action_plan_executor.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/conversation_flow_manager.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `communication/message_processing/flow_message_dispatcher.py`
   - `communication/message_processing/flows/checkin_flow.py`
   - `communication/message_processing/flows/flow_control_mixin.py`
@@ -4629,6 +4716,7 @@
   - `checkins/checkin_service.py`
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`
+  - `communication/communication_channels/email/reply_context.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/retry_manager.py`
   - `communication/core/welcome_manager.py`
@@ -4817,8 +4905,6 @@
     - `zoneinfo (ZoneInfo, ZoneInfoNotFoundError)`
   - **Third-party**:
     - `aiohttp (aiohttp, web)`
-    - `cryptography.hazmat.primitives (hashes)`
-    - `cryptography.hazmat.primitives.asymmetric (padding, rsa)`
 - **Used by**:
   - `core/web_gateway_runtime.py`
   - `run_headless_service.py`
@@ -5289,7 +5375,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/chat/chatbot.py, ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_account_service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_account_service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5316,7 +5402,7 @@
 
 **Dependency Changes**:
 - Added: ai.chat.chatbot, core.config, core.error_handling, core.file_operations, core.logger, messages.message_data_manager
-- Removed: ai/chat/chatbot.py, communication/communication_channels/discord/events/message_reactions.py, communication/delivery/message_dispatcher.py
+- Removed: communication/communication_channels/discord/events/message_reactions.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6281,6 +6367,7 @@
   - `communication/command_handlers/task_handler.py`
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/command_parser.py`
+  - `communication/message_processing/email_reply_routing.py`
   - `core/web_account_service.py`
   - `scheduler/task_reminders.py`
   - `tasks/task_occurrence_skip.py`

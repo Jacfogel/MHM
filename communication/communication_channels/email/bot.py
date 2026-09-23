@@ -4,11 +4,13 @@ import smtplib
 import imaplib
 import asyncio
 import time
+import contextlib
 from email.mime.text import MIMEText
 from email.header import decode_header
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default as email_policy_default
+from email.utils import make_msgid, parseaddr
 from typing import Any
 
 from core.config import (
@@ -24,11 +26,43 @@ from communication.communication_channels.base.base_channel import (
     ChannelStatus,
     ChannelConfig,
 )
+from communication.communication_channels.email.quote_strip import html_to_plain_text
+from communication.communication_channels.email.reply_context import (
+    normalize_message_id,
+    record_outbound_email,
+)
 from core.error_handling import handle_errors, ConfigurationError
 
 # Route module-level logs to email component for consistency
 email_logger = get_component_logger("email")
 logger = email_logger
+
+_REPLY_KINDS = {"checkin", "task_reminder", "message"}
+
+
+@handle_errors("choosing email reply kind", default_return="message")
+def reply_kind_from_send_kwargs(kwargs: dict) -> str:
+    """Choose check-in, task reminder, or general message from send options."""
+    explicit = kwargs.get("reply_kind")
+    if explicit in _REPLY_KINDS:
+        return str(explicit)
+    category = str(kwargs.get("category") or "")
+    if category == "checkin":
+        return "checkin"
+    if category == "task_reminders":
+        return "task_reminder"
+    return "message"
+
+
+@handle_errors("building an outbound email message id", default_return="")
+def build_outbound_message_id(sender: str, requested: str | None = None) -> str:
+    """Return a Message-ID for an outbound email, reusing one when the caller set it."""
+    existing = normalize_message_id(requested)
+    if existing:
+        return existing
+    _name, address = parseaddr(sender or "")
+    domain = address.split("@", 1)[1] if "@" in address else "mhm.local"
+    return make_msgid(domain=domain)
 
 
 class EmailBotError(Exception):
@@ -58,6 +92,7 @@ class EmailBot(BaseChannel):
                 name="email", max_retries=3, retry_delay=1.0, backoff_multiplier=2.0
             )
         super().__init__(config)
+        self.last_outbound_message_id: str | None = None
 
     @property
     # not_duplicate: channel_type_properties
@@ -156,22 +191,45 @@ class EmailBot(BaseChannel):
 
     @handle_errors("sending email synchronously")
     def send_message__send_email_sync(self, recipient: str, message: str, kwargs: dict):
-        """Send email synchronously"""
+        """Send email synchronously and remember its Message-ID for later replies."""
+        self.last_outbound_message_id = None
         config = self._get_email_config()
         if not config:
             return
         smtp_server, _, smtp_user, smtp_password = config
-        subject = kwargs.get("subject", "Personal Assistant Message")
+        subject = str(kwargs.get("subject") or "Personal Assistant Message")
+        in_reply_to = normalize_message_id(kwargs.get("in_reply_to"))
+        if in_reply_to and not subject.lower().startswith("re:"):
+            subject = f"Re: {subject}"
+        message_id = build_outbound_message_id(smtp_user, kwargs.get("message_id"))
 
         msg = MIMEText(message)
         msg["From"] = smtp_user
         msg["To"] = recipient
         msg["Subject"] = subject
+        msg["Message-ID"] = message_id
+        if in_reply_to:
+            references = str(kwargs.get("references") or "").strip()
+            if in_reply_to not in references:
+                references = f"{references} {in_reply_to}".strip()
+            msg["In-Reply-To"] = in_reply_to
+            msg["References"] = references
 
         # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
         with smtplib.SMTP_SSL(smtp_server, 465, timeout=10) as server:
             server.login(smtp_user, smtp_password)
             server.sendmail(smtp_user, recipient, msg.as_string())
+
+        self.last_outbound_message_id = message_id
+        user_id = kwargs.get("user_id")
+        if isinstance(user_id, str) and user_id.strip():
+            record_outbound_email(
+                user_id.strip(),
+                message_id,
+                kind=reply_kind_from_send_kwargs(kwargs),
+                task_id=str(kwargs.get("task_id") or ""),
+                subject=subject,
+            )
 
     # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
     @handle_errors("receiving email messages", default_return=[])
@@ -244,7 +302,7 @@ class EmailBot(BaseChannel):
 
             for email_id in email_ids:
                 try:
-                    status, msg_data = mail.fetch(email_id, "(RFC822)")
+                    status, msg_data = mail.fetch(email_id, "(BODY.PEEK[])")
                     if status != "OK":
                         logger.debug(f"Failed to fetch email {email_id}: {status}")
                         continue
@@ -269,24 +327,23 @@ class EmailBot(BaseChannel):
                                     "body": body_text,
                                     # IMAP message sequence / fetch id (not a user template id)
                                     "imap_email_id": email_id.decode(),
+                                    "message_id": str(msg.get("Message-ID") or ""),
+                                    "in_reply_to": str(msg.get("In-Reply-To") or ""),
+                                    "references": str(msg.get("References") or ""),
                                 }
                             )
-                            # Track this email as successfully processed
+                            # Fetched with BODY.PEEK so the message stays unread
+                            # until inbound handling succeeds.
                             processed_email_ids.append(email_id)
                             break  # Only process first valid response part
                 except Exception as e:
                     logger.warning(f"Error processing email {email_id}: {e}")
                     continue  # Continue with next email even if one fails
 
-            # Mark successfully processed emails as SEEN to avoid re-fetching them
             if processed_email_ids:
-                try:
-                    # Mark all successfully processed email IDs as SEEN
-                    for email_id in processed_email_ids:
-                        mail.store(email_id, "+FLAGS", "\\Seen")
-                    logger.debug(f"Marked {len(processed_email_ids)} emails as SEEN")
-                except Exception as e:
-                    logger.warning(f"Failed to mark emails as SEEN: {e}")
+                logger.debug(
+                    f"Fetched {len(processed_email_ids)} unread emails without marking them seen"
+                )
 
             logger.debug("Email processing completed successfully")
             mail.close()
@@ -317,6 +374,45 @@ class EmailBot(BaseChannel):
             f"Email receive operation completed, returning {len(messages)} messages"
         )
         return messages
+
+    @handle_errors("marking email message seen", default_return=False)
+    async def mark_message_seen(self, imap_email_id: str) -> bool:
+        """Mark one inbox message read after it has been handled."""
+        if not imap_email_id or not self.is_ready():
+            return False
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return bool(
+            await loop.run_in_executor(None, self._mark_message_seen_sync, imap_email_id)
+        )
+
+    @handle_errors("marking email message seen synchronously", default_return=False)
+    def _mark_message_seen_sync(self, imap_email_id: str) -> bool:
+        """Mark one IMAP message \\Seen."""
+        import socket
+
+        config = self._get_email_config()
+        if not config or not imap_email_id:
+            return False
+        _, imap_server, smtp_user, smtp_password = config
+        mail = None
+        try:
+            socket.setdefaulttimeout(8)
+            mail = imaplib.IMAP4_SSL(imap_server, timeout=8)
+            mail.login(smtp_user, smtp_password)
+            mail.select("inbox")
+            mail.store(str(imap_email_id), "+FLAGS", "\\Seen")
+            return True
+        finally:
+            socket.setdefaulttimeout(None)
+            if mail is not None:
+                with contextlib.suppress(Exception):
+                    mail.close()
+                with contextlib.suppress(Exception):
+                    mail.logout()
 
     @handle_errors("loading email configuration", default_return=None)
     def _get_email_config(self) -> tuple[str, str, str, str] | None:
@@ -377,11 +473,7 @@ class EmailBot(BaseChannel):
                                 if isinstance(payload, bytes)
                                 else str(payload)
                             )
-                            # Simple HTML stripping (remove tags)
-                            import re
-
-                            body_text = re.sub(r"<[^>]+>", "", html_text)
-                            body_text = re.sub(r"\s+", " ", body_text).strip()
+                            body_text = html_to_plain_text(html_text)
                     except Exception as e:
                         logger.debug(f"Error decoding HTML part: {e}")
         else:
@@ -398,11 +490,7 @@ class EmailBot(BaseChannel):
                             else str(payload)
                         )
                         if content_type == "text/html":
-                            # Simple HTML stripping
-                            import re
-
-                            body_text = re.sub(r"<[^>]+>", "", body_text)
-                            body_text = re.sub(r"\s+", " ", body_text).strip()
+                            body_text = html_to_plain_text(body_text)
                 except Exception as e:
                     logger.debug(f"Error decoding message body: {e}")
 

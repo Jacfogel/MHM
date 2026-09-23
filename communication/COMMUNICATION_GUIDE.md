@@ -230,7 +230,7 @@ High-level structure (only communication-related parts):
   - `communication_channels/`  
     - `base/` - shared channel abstractions and formatters.  
     - `discord/` - Discord adapter modules (see [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md)).  
-    - `email/` - Email adapter modules (if present).  
+    - `email/` - Email adapter. Inbound replies are polled in `communication/communication_channels/email/inbound_processor.py`. Quoted history is removed before routing, and outbound mail keeps threading headers so a reply stays in the same thread. A reply to a check-in or task reminder is routed back to that check-in or task.  
 
 Use this layout as the template when adding new channels.
 

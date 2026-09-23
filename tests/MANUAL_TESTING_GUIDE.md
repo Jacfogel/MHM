@@ -173,7 +173,17 @@ Checklist:
   - [ ] Subject and body are correct.
   - [ ] Any links or instructions in the email behave as expected.
 
-### 5.2. Error handling
+### 5.2. Reply loop
+
+Checklist:
+
+- [ ] Reply to a check-in email with only the answer, above any quoted text.
+- [ ] Confirm the reply stays in the same email thread.
+- [ ] Confirm MHM treats that text as the check-in answer.
+- [ ] Reply to a task reminder with `done`, `later`, `skip`, or `simplify to wipe the kitchen counter` (use your own smaller step).
+- [ ] Confirm that reply changes that task, and the inbox message stays unread if sending the response fails.
+
+### 5.3. Error handling
 
 Checklist:
 

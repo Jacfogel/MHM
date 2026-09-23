@@ -117,12 +117,14 @@ class EmailInboundProcessor:
                     continue
                 email_id = email_msg.get("imap_email_id")
                 if email_id and email_id not in self._processed_email_ids:
-                    self.process_incoming_email(email_msg)
-                    self._processed_email_ids.add(email_id)
-                    if len(self._processed_email_ids) > 1000:
-                        self._processed_email_ids = set(
-                            list(self._processed_email_ids)[-500:]
-                        )
+                    handled = self.process_incoming_email(email_msg)
+                    if handled is True:
+                        self._mark_handled_email_seen(email_channel, email_id)
+                        self._processed_email_ids.add(email_id)
+                        if len(self._processed_email_ids) > 1000:
+                            self._processed_email_ids = set(
+                                list(self._processed_email_ids)[-500:]
+                            )
         except asyncio.TimeoutError:
             logger.error(
                 "Error polling for emails: Timeout waiting for receive_messages() to complete",
@@ -141,9 +143,21 @@ class EmailInboundProcessor:
                 exc_info=True,
             )
 
-    @handle_errors("processing incoming email", default_return=None)
-    def process_incoming_email(self, email_msg: dict[str, Any]) -> None:
-        """Process an incoming email message and send a response."""
+    @handle_errors("marking a handled email seen", default_return=None)
+    def _mark_handled_email_seen(self, email_channel: Any, imap_email_id: str) -> None:
+        """Mark one inbox message read after handling succeeds."""
+        mark_seen = getattr(email_channel, "mark_message_seen", None)
+        if not callable(mark_seen):
+            logger.warning("Email channel cannot mark messages seen")
+            return
+        self._run_async_sync(mark_seen(imap_email_id))
+
+    @handle_errors("processing incoming email", default_return=False)
+    def process_incoming_email(self, email_msg: dict[str, Any]) -> bool:
+        """Process an incoming email message and send a response.
+
+        Returns True only after the message is handled, so the caller can mark it read.
+        """
         try:
             email_from = email_msg.get("from", "")
             email_body = email_msg.get("body", "")
@@ -151,14 +165,14 @@ class EmailInboundProcessor:
 
             if not email_from or not email_body:
                 logger.debug(f"Skipping email with missing from or body: {email_msg}")
-                return
+                return True
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", email_from)
             if not email_match:
                 logger.warning(
                     f"Could not extract email address from 'from' field: {email_from}"
                 )
-                return
+                return True
 
             sender_email = email_match.group(0)
 
@@ -166,38 +180,135 @@ class EmailInboundProcessor:
                 logger.info(
                     f"Ignoring inbound email from non-user/system sender: {sender_email}"
                 )
-                return
+                return True
 
+            from communication.communication_channels.email.quote_strip import (
+                strip_quoted_reply,
+            )
+            from communication.communication_channels.email.reply_context import (
+                find_reply_context,
+                inbound_already_handled,
+                mark_inbound_handled,
+            )
             from core import get_user_id_by_identifier
 
+            inbound_message_id = str(email_msg.get("message_id") or "")
             user_id = get_user_id_by_identifier(sender_email)
+            if user_id and inbound_already_handled(user_id, inbound_message_id):
+                logger.info(
+                    f"Inbound email {inbound_message_id} was already handled for user {user_id}"
+                )
+                return True
+
+            reply_text = strip_quoted_reply(str(email_body))
+            reply_subject = self._reply_subject(str(email_subject or ""))
+            in_reply_to = str(email_msg.get("message_id") or "")
+            references = str(email_msg.get("references") or "")
+
             if not user_id:
                 logger.info(f"Email from unregistered user: {sender_email}")
-                response_text = (
-                    "I don't recognize you yet! Please register first using the MHM application. "
-                    f"Your email is: {sender_email}"
+                sent = self.send_email_response(
+                    sender_email,
+                    (
+                        "I don't recognize you yet! Please register first using the MHM application. "
+                        f"Your email is: {sender_email}"
+                    ),
+                    reply_subject,
+                    in_reply_to=in_reply_to,
+                    references=references,
                 )
-                self.send_email_response(sender_email, response_text, email_subject)
-                return
+                return sent
 
-            logger.info(
-                f"Processing email from registered user: {sender_email} (user_id: {user_id})"
+            if not reply_text:
+                logger.info(
+                    f"Email from {sender_email} had no new text above the quoted message"
+                )
+                sent = self.send_email_response(
+                    sender_email,
+                    "I didn't see any new text above the quoted message. Reply with just your answer.",
+                    reply_subject,
+                    in_reply_to=in_reply_to,
+                    references=references,
+                    user_id=user_id,
+                )
+                if sent:
+                    mark_inbound_handled(user_id, inbound_message_id)
+                return sent
+
+            context = find_reply_context(
+                user_id,
+                str(email_msg.get("in_reply_to") or ""),
+                references,
             )
-
-            from communication.message_processing.interaction_manager import (
-                handle_user_message,
+            response, reply_kind, task_id = self._route_registered_reply(
+                user_id, reply_text, context
             )
-
-            response = handle_user_message(user_id, email_body, "email")
             if response and response.message:
-                self.send_email_response(
-                    sender_email, response.message, f"Re: {email_subject}"
+                sent = self.send_email_response(
+                    sender_email,
+                    response.message,
+                    reply_subject,
+                    in_reply_to=in_reply_to,
+                    references=references,
+                    user_id=user_id,
+                    reply_kind=reply_kind,
+                    task_id=task_id,
                 )
-            else:
-                logger.warning(f"No response generated for email from user {user_id}")
+                if sent:
+                    mark_inbound_handled(user_id, inbound_message_id)
+                return sent
+
+            logger.warning(f"No response generated for email from user {user_id}")
+            mark_inbound_handled(user_id, inbound_message_id)
+            return True
 
         except Exception as e:
             logger.error(f"Error processing incoming email: {e}", exc_info=True)
+            return False
+
+    @handle_errors("building an email reply subject", default_return="Re: Your Message")
+    def _reply_subject(self, email_subject: str) -> str:
+        """Keep a single Re: prefix on the reply subject."""
+        subject = email_subject.strip()
+        if not subject:
+            return "Re: Your Message"
+        if subject.lower().startswith("re:"):
+            return subject
+        return f"Re: {subject}"
+
+    @handle_errors(
+        "routing a registered email reply",
+        default_return=(None, "message", ""),
+    )
+    def _route_registered_reply(
+        self,
+        user_id: str,
+        reply_text: str,
+        context: dict[str, str] | None,
+    ):
+        """Send a check-in or task reply to that flow, otherwise use normal chat."""
+        from communication.message_processing.email_reply_routing import (
+            route_checkin_reply,
+            route_task_reply,
+        )
+        from communication.message_processing.interaction_manager import (
+            handle_user_message,
+        )
+
+        kind = str((context or {}).get("kind") or "")
+        task_id = str((context or {}).get("task_id") or "")
+        if kind == "checkin":
+            logger.info(f"Routing email reply to the open check-in for user {user_id}")
+            checkin_response = route_checkin_reply(user_id, reply_text)
+            if checkin_response is not None:
+                return checkin_response, "checkin", ""
+        elif kind == "task_reminder" and task_id:
+            logger.info(
+                f"Routing email reply to task {task_id} for user {user_id}"
+            )
+            return route_task_reply(user_id, reply_text, task_id), "task_reminder", task_id
+
+        return handle_user_message(user_id, reply_text, "email"), "message", ""
 
     @handle_errors(
         "checking whether inbound sender should be ignored",
@@ -223,27 +334,55 @@ class EmailInboundProcessor:
             "do-not-reply",
             "bounce",
         )
-        return any(keyword in local_part for keyword in blocked_keywords)
+        if any(keyword in local_part for keyword in blocked_keywords):
+            return True
 
-    @handle_errors("sending email response", default_return=None)
+        from core.config import EMAIL_SMTP_USERNAME
+
+        own_address = str(EMAIL_SMTP_USERNAME or "").strip().lower()
+        return bool(own_address) and normalized == own_address
+
+    @handle_errors("sending email response", default_return=False)
     def send_email_response(
         self,
         recipient_email: str,
         response_text: str,
         subject: str = "Re: Your Message",
-    ) -> None:
-        """Send an email response to a user."""
+        in_reply_to: str = "",
+        references: str = "",
+        user_id: str = "",
+        reply_kind: str = "",
+        task_id: str = "",
+    ) -> bool:
+        """Send a threaded email response to a user."""
         try:
             email_channel = self._get_email_channel()
             if not email_channel or not email_channel.is_ready():
                 logger.error("Email channel not available for sending response")
-                return
+                return False
 
-            self._run_async_sync(
+            send_kwargs: dict[str, str] = {"subject": subject}
+            if in_reply_to:
+                send_kwargs["in_reply_to"] = in_reply_to
+                send_kwargs["references"] = references or in_reply_to
+            if user_id:
+                send_kwargs["user_id"] = user_id
+            if reply_kind:
+                send_kwargs["reply_kind"] = reply_kind
+            if task_id:
+                send_kwargs["task_id"] = task_id
+
+            result = self._run_async_sync(
                 email_channel.send_message(
-                    recipient_email, response_text, subject=subject
+                    recipient_email, response_text, **send_kwargs
                 )
             )
+            outbound_id = getattr(email_channel, "last_outbound_message_id", None)
+            if result is False or not isinstance(outbound_id, str) or not outbound_id.strip():
+                logger.error(f"Email channel declined the response to {recipient_email}")
+                return False
             logger.info(f"Email response sent to {recipient_email}")
+            return True
         except Exception as e:
             logger.error(f"Error sending email response to {recipient_email}: {e}")
+            return False

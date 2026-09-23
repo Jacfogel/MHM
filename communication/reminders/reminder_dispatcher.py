@@ -97,6 +97,18 @@ class TaskReminderDispatcher:
         custom_view = self.create_task_reminder_view(
             user_id, task_identifier, task, messaging_service
         )
+        send_kwargs: dict[str, str] = {}
+        if messaging_service == "email":
+            reminder_message = (
+                f"{reminder_message}\n\n"
+                "Reply with done, later, skip, or simplify to <smaller step>. "
+                "Example: simplify to wipe the kitchen counter."
+            )
+            send_kwargs["subject"] = (
+                f"Task reminder: {task.get('title', 'Untitled Task')}"
+            )
+            send_kwargs["reply_kind"] = "task_reminder"
+            send_kwargs["task_id"] = task_identifier
 
         success = self._cm.send_message_sync(
             messaging_service,
@@ -105,6 +117,7 @@ class TaskReminderDispatcher:
             user_id=user_id,
             category=TASK_REMINDER_CATEGORY,
             view=custom_view,
+            **send_kwargs,
         )
 
         if success:

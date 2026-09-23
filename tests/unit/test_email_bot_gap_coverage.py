@@ -140,7 +140,7 @@ class TestEmailBotGapCoverage:
         assert mailbox.closed is True
         assert mailbox.logged_out is True
 
-    def test_receive_emails_sync_processes_and_marks_seen(self, monkeypatch):
+    def test_receive_emails_sync_leaves_mail_unread(self, monkeypatch):
         bot = EmailBot()
 
         msg = EmailMessage()
@@ -166,7 +166,21 @@ class TestEmailBotGapCoverage:
         assert len(messages) == 1
         assert messages[0]["from"] == "sender@example.com"
         assert messages[0]["subject"] == "Test Subject"
-        assert mailbox.store_calls == [(b"1", "+FLAGS", "\\Seen")]
+        assert mailbox.store_calls == []
+        assert mailbox.closed is True
+        assert mailbox.logged_out is True
+
+    def test_mark_message_seen_sets_seen_flag(self, monkeypatch):
+        bot = EmailBot()
+        mailbox = _FakeImapMailbox()
+        monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass"))
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: mailbox,
+        )
+
+        assert bot._mark_message_seen_sync("1") is True
+        assert mailbox.store_calls == [("1", "+FLAGS", "\\Seen")]
         assert mailbox.closed is True
         assert mailbox.logged_out is True
 

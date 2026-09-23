@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-21 23:50:23
+> **Last Generated**: 2026-09-23 00:54:27
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 280
-- **Total Imports**: 2489
-- **Standard Library**: 723 (29.0%)
-- **Third-Party**: 224 (9.0%)
-- **Local Imports**: 1542 (62.0%)
+- **Files Scanned**: 283
+- **Total Imports**: 2516
+- **Standard Library**: 734 (29.2%)
+- **Third-Party**: 222 (8.8%)
+- **Local Imports**: 1560 (62.0%)
 
 ## Dependency Decision Trees
 
@@ -50,8 +50,8 @@ Communication Dependencies:
   - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
 - Specific Channels
+  - communication/message_processing/email_reply_routing.py <- standard library (__future__, re), shared_types, conversation_flow_manager, error_handling, logger, task_reminder_snooze (+1 more)
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
-  - communication/communication_channels/discord/bot.py <- standard library (__future__, asyncio, contextlib, gc), third-party (aiohttp, discord, discord.ext), base_channel, connection_health, status, rich_delivery, tunnel (+9 more)
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
   - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager (+3 more)

@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Map behavior-spec scenarios to current automated/manual coverage and known gaps  
 > **Style**: Coverage reference for planning and review  
-> **Last Updated**: 2026-09-15 
+> **Last Updated**: 2026-09-23 
 
 This matrix is a lightweight test roadmap for the scenarios in the Discord behavior specs.
 
@@ -163,7 +163,23 @@ Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 | Successful account creation | Automated | [tests/behavior/test_account_handler_behavior.py](../tests/behavior/test_account_handler_behavior.py) |
 | Link by username then confirmation-code instructions | Partial | Account handler confirmation-code behavior is automated; current Discord instruction/follow-up path needs direct coverage. |
 
-## 7. Priority Automation Gaps
+## 7. Email Reply Loop
+
+Spec: [email-reply-loop.md](email-reply-loop.md)
+
+| Scenario | Status | Evidence / next action |
+|---|---|---|
+| User replies above a quoted check-in | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Reply contains no new text | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) `test_quote_only_body_asks_for_the_new_text` |
+| User replies to an MHM email | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Reply is sent | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py), [tests/unit/test_email_bot_gap_coverage.py](../tests/unit/test_email_bot_gap_coverage.py) |
+| Sending the response fails | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Reply to an open check-in | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Reply to a check-in that is no longer active | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Reply to a task reminder | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) |
+| Task reply is not one of those actions | Automated | [tests/unit/test_email_reply_loop.py](../tests/unit/test_email_reply_loop.py) `test_unrelated_reply_is_not_a_task_command` |
+
+## 8. Priority Automation Gaps
 
 Good next tests to add:
 

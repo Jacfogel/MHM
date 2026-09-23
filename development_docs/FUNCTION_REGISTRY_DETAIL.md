@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-21 23:49:58
+> **Last Generated**: 2026-09-23 00:54:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 282
-- **Functions Found**: 2787
-- **Methods Found**: 1424
+### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 285
+- **Functions Found**: 2809
+- **Methods Found**: 1429
 - **Classes Found**: 264
-- **Total Items**: 4211
-- **Functions Documented**: 2485
-- **Methods Documented**: 1279
+- **Total Items**: 4238
+- **Functions Documented**: 2507
+- **Methods Documented**: 1284
 - **Classes Documented**: 198
-- **Total Documented**: 3764
+- **Total Documented**: 3791
 - **Template-Generated**: 54
-- **Last Updated**: 2026-09-21
+- **Last Updated**: 2026-09-23
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (538)
+### **Core System Functions** (539)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (713)
+### **Communication Functions** (734)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2360,15 +2360,18 @@ Args:
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
 - [MISSING] `_get_email_config(self)` - No description
+- [OK] `_mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
 - [OK] `_receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
 - [OK] `_receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
+- [OK] `build_outbound_message_id(sender, requested)` - Return a Message-ID for an outbound email, reusing one when the caller set it.
 - [OK] `channel_type(self)` - Get the channel type for email bot.
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
 - [OK] `initialize__test_imap_connection(self)` - Test IMAP connection synchronously
 - [OK] `initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
-- [OK] `send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously
+- [OK] `reply_kind_from_send_kwargs(kwargs)` - Choose check-in, task reminder, or general message from send options.
+- [OK] `send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
 **Classes:**
 - [MISSING] `EmailBot` - No description
   - [OK] `EmailBot.__init__(self, config)` - Initialize the EmailBot with configuration.
@@ -2378,6 +2381,7 @@ Args:
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
   - [MISSING] `EmailBot._get_email_config(self)` - No description
+  - [OK] `EmailBot._mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
   - [OK] `EmailBot._receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
   - [OK] `EmailBot._receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
   - [OK] `EmailBot.channel_type(self)` - Get the channel type for email bot.
@@ -2386,31 +2390,58 @@ Returns:
     ChannelType.SYNC: Email operations are synchronous
   - [OK] `EmailBot.initialize__test_imap_connection(self)` - Test IMAP connection synchronously
   - [OK] `EmailBot.initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
-  - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously
+  - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
 - [OK] `EmailBotError` - Custom exception for email bot-related errors.
 
 #### `communication/communication_channels/email/inbound_processor.py`
 **Functions:**
 - [OK] `__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
+- [OK] `_mark_handled_email_seen(self, email_channel, imap_email_id)` - Mark one inbox message read after handling succeeds.
 - [OK] `_poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
 - [OK] `_polling_loop(self)` - Background thread that periodically polls for incoming emails.
+- [OK] `_reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
+- [OK] `_route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
 - [OK] `polling_thread(self)` - Return the active polling thread, if one has been started.
 - [OK] `process_incoming_email(self, email_msg)` - Process an incoming email message and send a response.
-- [OK] `send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user.
+
+Returns True only after the message is handled, so the caller can mark it read.
+- [OK] `send_email_response(self, recipient_email, response_text, subject, in_reply_to, references, user_id, reply_kind, task_id)` - Send a threaded email response to a user.
 - [OK] `should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
 - [OK] `start_polling(self)` - Start the email polling thread.
 - [OK] `stop_polling(self)` - Stop the email polling thread.
 **Classes:**
 - [OK] `EmailInboundProcessor` - Polls the email channel, routes inbound messages, and sends replies.
   - [OK] `EmailInboundProcessor.__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
+  - [OK] `EmailInboundProcessor._mark_handled_email_seen(self, email_channel, imap_email_id)` - Mark one inbox message read after handling succeeds.
   - [OK] `EmailInboundProcessor._poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
   - [OK] `EmailInboundProcessor._polling_loop(self)` - Background thread that periodically polls for incoming emails.
+  - [OK] `EmailInboundProcessor._reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
+  - [OK] `EmailInboundProcessor._route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
   - [OK] `EmailInboundProcessor.polling_thread(self)` - Return the active polling thread, if one has been started.
   - [OK] `EmailInboundProcessor.process_incoming_email(self, email_msg)` - Process an incoming email message and send a response.
-  - [OK] `EmailInboundProcessor.send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user.
+
+Returns True only after the message is handled, so the caller can mark it read.
+  - [OK] `EmailInboundProcessor.send_email_response(self, recipient_email, response_text, subject, in_reply_to, references, user_id, reply_kind, task_id)` - Send a threaded email response to a user.
   - [OK] `EmailInboundProcessor.should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
   - [OK] `EmailInboundProcessor.start_polling(self)` - Start the email polling thread.
   - [OK] `EmailInboundProcessor.stop_polling(self)` - Stop the email polling thread.
+
+#### `communication/communication_channels/email/quote_strip.py`
+**Functions:**
+- [OK] `html_to_plain_text(html_text)` - Turn an HTML email part into plain text while keeping line breaks.
+- [OK] `strip_quoted_reply(body)` - Return the new reply text, without the quoted original or a standard signature.
+
+#### `communication/communication_channels/email/reply_context.py`
+**Functions:**
+- [OK] `_context_path(user_id)` - Return the per-user email reply index path.
+- [OK] `_load_context(user_id)` - Load the reply index, or an empty index when the file is missing.
+- [OK] `_save_context(user_id, data)` - Persist the reply index for one user.
+- [OK] `find_reply_context(user_id, in_reply_to, references)` - Return the outbound email this reply is answering, when we sent it.
+- [OK] `inbound_already_handled(user_id, message_id)` - Return True when this inbound Message-ID was already answered.
+- [OK] `mark_inbound_handled(user_id, message_id)` - Remember an inbound Message-ID so a later poll does not answer it twice.
+- [OK] `message_ids_in_header(value)` - Return every Message-ID found in an In-Reply-To or References header.
+- [OK] `normalize_message_id(value)` - Return one Message-ID in angle brackets, or an empty string.
+- [OK] `record_outbound_email(user_id, message_id)` - Store the outbound Message-ID so a later reply can find this email.
 
 #### `communication/communication_channels/interaction_view_factory.py`
 **Functions:**
@@ -2938,6 +2969,7 @@ Returns:
 #### `communication/message_processing/conversation_flow_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
+- [OK] `answer_active_checkin(self, user_id, message_text)` - Answer the open check-in. Return None when no check-in is active.
 - [OK] `clear_all_states(self)` - Clear all user states - primarily for testing.
 - [OK] `handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
@@ -2975,6 +3007,7 @@ Returns:
 **Classes:**
 - [MISSING] `ConversationManager` - No description
   - [OK] `ConversationManager.__init__(self)` - Special Python method
+  - [OK] `ConversationManager.answer_active_checkin(self, user_id, message_text)` - Answer the open check-in. Return None when no check-in is active.
   - [OK] `ConversationManager.clear_all_states(self)` - Clear all user states - primarily for testing.
   - [OK] `ConversationManager.handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
@@ -3009,6 +3042,12 @@ Returns:
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
+
+#### `communication/message_processing/email_reply_routing.py`
+**Functions:**
+- [OK] `build_task_reply_command(text, task_id)` - Map a short email reply onto the task it is answering.
+- [OK] `route_checkin_reply(user_id, text)` - Answer the open check-in. Return None when that check-in is no longer active.
+- [OK] `route_task_reply(user_id, text, task_id)` - Apply a reply to the task reminder it answers, without using another open flow.
 
 #### `communication/message_processing/flow_message_dispatcher.py`
 **Functions:**

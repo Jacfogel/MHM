@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-23 - Two-way email replies **COMPLETED**
+- A reply keeps the new text, stays in the same email thread, and the inbox message is marked read only after MHM handles it.
+- Replying to a check-in answers that check-in. Replying to a task reminder with done, later, skip, or simplify to a real smaller step applies to that task. The words after "to" become the new title.
+- Behavior is specified in [email-reply-loop.md](../specs/email-reply-loop.md).
+- The communication guide path, function registry, and Pyright check for this reply code are clean.
+
 ### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds **COMPLETED**
 - [PLANS.md](../development_docs/PLANS.md) Section 7 records SMS, Apple Health ingest, and a 30-day trial then monthly subscription as **PLANNED**. None of that behavior is implemented.
 - SMS uses a paid provider. Apple Health is a phone push into the existing daily-summary path. The alpha account stays comped when billing exists.
@@ -117,11 +123,6 @@ Guidelines:
 - Suite cache: runner/cache helper edits soft-invalidate (clear full snapshot + re-run `development_tools`); `domain_mapper`/config edits still bust all domains.
 - Hour-long tools pytest root cause fixed: report tests mocked every `Path.exists()` call as true, trapping file rotation in an infinite collision loop that Windows' thread timeout could not terminate. Timeout diagnostics now survive cache merging, interrupted phases stop immediately, and quick audits have a 15-minute phase cap. The full tools phase now passes, and a clean full audit completes in about 7 minutes.
 - Remaining extraction: report paths, optional install extra, then sibling repo.
-
-### 2026-09-15 - Password and social website sign-in **COMPLETED**
-- New accounts choose a 12-128 character password after one-time email verification; existing accounts can set or change one after signing in by code. Salted scrypt hashes are stored in the canonical account document, with rate-limited password login and code fallback.
-- Added configurable Google, Facebook, and Apple sign-in/linking with one-time state, provider subject uniqueness, verified-email matching, no provider token storage, and Apple form-post/JWT verification support through the Worker.
-- Updated the account UI, configuration examples, gateway/Worker routes, account schema, and focused Python/Node coverage.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

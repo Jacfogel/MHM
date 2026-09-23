@@ -152,6 +152,17 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
                 user_id, message_text, timeout=10
             )
             return (reply, True)
+
+    @handle_errors("answering an active check-in", default_return=None)
+    def answer_active_checkin(
+        self, user_id: str, message_text: str
+    ) -> tuple[str, bool] | None:
+        """Answer the open check-in. Return None when no check-in is active."""
+        user_state = self.user_states.get(user_id)
+        if not isinstance(user_state, dict) or user_state.get("flow") != FLOW_CHECKIN:
+            return None
+        return self._handle_checkin(user_id, user_state, message_text)
+
     @handle_errors(
         "starting checkin",
         default_return=(

@@ -746,7 +746,10 @@ class CommunicationManager:
                     and isinstance(outbound_id, str)
                     and outbound_id
                 ):
-                    delivery_meta["discord_message_id"] = outbound_id
+                    if channel_name == "discord":
+                        delivery_meta["discord_message_id"] = outbound_id
+                    elif channel_name == "email":
+                        delivery_meta["email_message_id"] = outbound_id
                 return True
             elif success is False or not success:
                 failure_detail = self._channel_send_failure_detail(channel)

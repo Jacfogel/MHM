@@ -106,6 +106,10 @@ class CheckinPromptDispatcher:
             custom_view = create_interaction_view(
                 messaging_service, "checkin", user_id
             )
+            send_kwargs: dict[str, str] = {}
+            if messaging_service == "email":
+                send_kwargs["subject"] = "Check-in"
+                send_kwargs["reply_kind"] = "checkin"
 
             success = self._cm.send_message_sync(
                 messaging_service,
@@ -114,6 +118,7 @@ class CheckinPromptDispatcher:
                 user_id=user_id,
                 category="checkin",
                 view=custom_view,
+                **send_kwargs,
             )
 
             if success:

@@ -1273,7 +1273,7 @@ class TaskManagementHandler(InteractionHandler):
                 result.message,
                 False,
                 suggestions=[
-                    f"simplify task {short_id} to a 5-minute version",
+                    f"simplify task {short_id} to wipe the kitchen counter",
                     "cancel",
                 ],
                 rich_data={

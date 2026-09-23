@@ -146,7 +146,7 @@ def get_task_reminder_view(
                 f"**To skip this time** (repeating tasks move to the next occurrence):\n"
                 f"* `skip task {short_id}`\n\n"
                 f"**To simplify** (smaller next step, due date stays):\n"
-                f"* `simplify task {short_id} to a 5-minute version`\n\n"
+                f"* `simplify task {short_id} to wipe the kitchen counter`\n\n"
                 f"**Task ID:** `{short_id}`"
             )
             await interaction.response.send_message(more_info, ephemeral=True)
