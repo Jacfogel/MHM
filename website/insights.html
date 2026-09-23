@@ -19,7 +19,7 @@
   <header class="site-header"><div class="container nav-wrap">
     <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="button button-small" href="insights.html" aria-current="page">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="checkin.html">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="button button-small" href="insights.html" aria-current="page">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
@@ -34,7 +34,7 @@
           <article class="card insights-card"><h2>Sleep</h2><div id="sleep-detail"></div></article>
           <article class="card insights-card"><h2>Habits</h2><div id="habit-detail"></div></article>
         </div>
-        <article class="card insights-card insights-history"><div class="settings-heading"><div><h2>Recent check-ins</h2><p>Your latest saved check-ins in this period.</p></div><div class="health-actions"><button id="checkin-request" class="plain-button" type="button">Send me a check-in</button><button id="insights-refresh" class="plain-button" type="button">Refresh</button></div></div><div id="checkin-history"></div></article>
+        <article class="card insights-card insights-history"><div class="settings-heading"><div><h2>Recent check-ins</h2><p>Your latest saved check-ins in this period.</p></div><div class="health-actions"><a class="plain-button" href="checkin.html">Answer here</a><button id="checkin-request" class="plain-button" type="button">Send me a check-in</button><button id="insights-refresh" class="plain-button" type="button">Refresh</button></div></div><div id="checkin-history"></div></article>
       </div>
     </section>
     <section class="settings-area" aria-labelledby="health-heading">

@@ -65,6 +65,7 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "list_recent", list_recent)
     monkeypatch.setattr(manager, "list_pinned", lambda uid, limit=100: [entry for entry in entries if entry.status == "active" and entry.pinned][:limit])
     monkeypatch.setattr(manager, "list_inbox", lambda uid, days=30, limit=100: [entry for entry in entries if entry.status == "active" and not entry.tags][:limit])
+    monkeypatch.setattr(manager, "list_by_group", lambda uid, group, limit=100: [entry for entry in entries if entry.status == "active" and str(entry.group or "").casefold() == str(group).casefold()][:limit])
     monkeypatch.setattr(manager, "search_entries", lambda uid, query, limit=100: [entry for entry in list_recent(uid, 100, True) if query.casefold() in (entry.title or "").casefold()])
     monkeypatch.setattr(manager, "set_entry_body", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "description", text)))
     monkeypatch.setattr(manager, "set_entry_title", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "title", text.strip())))
@@ -90,7 +91,8 @@ async def test_note_create_edit_search_and_archive(notes_gateway):
     client = notes_gateway
     existing = await (await client.get("/api/notes")).json()
     assert {entry["kind"] for entry in existing["notes"]} == {"list", "journal_entry"}
-    assert "groups" not in existing
+    assert existing["groups"] == ["Errands"]
+    assert next(entry["group"] for entry in existing["notes"] if entry["title"] == "Groceries") == "Errands"
     assert existing["tags"] == ["home", "journal", "personal", "work"]
     tagged = await (await client.get("/api/notes?tag=journal")).json()
     assert [entry["title"] for entry in tagged["notes"]] == ["Today"]
@@ -155,7 +157,7 @@ async def test_journal_and_list_create_and_edit(notes_gateway):
         {"kind": "list", "title": "Missing list"},
         {"kind": "list", "title": "Bad state", "items": [{"text": "One", "done": "yes"}]},
         {"kind": "journal_entry", "title": "Bad tags", "description": "Text", "tags": "daily"},
-        {"kind": "note", "title": "Groups are retired", "group": "Personal"},
+        {"kind": "note", "title": "Bad group", "group": "Home/Health"},
         {"kind": "note", "title": "Extra field", "unexpected": True},
     ],
 )
@@ -204,6 +206,9 @@ async def test_notebook_edit_enforces_kind_and_active_state(notes_gateway):
 async def test_notebook_queries_validate_status_and_filter_results(notes_gateway):
     client = notes_gateway
     assert (await client.get("/api/notes?status=unknown")).status == 400
+    assert (await client.get("/api/notes?status=group")).status == 400
+    errands = await (await client.get("/api/notes?status=group&group=Errands")).json()
+    assert [entry["title"] for entry in errands["notes"]] == ["Groceries"]
     result = await (await client.get("/api/notes?q=grocer")).json()
     assert [entry["title"] for entry in result["notes"]] == ["Groceries"]
 
@@ -224,3 +229,25 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     )
     assert archived.status == 200
     assert (await archived.json())["note"]["pinned"] is False
+
+
+async def test_notebook_group_can_be_set_and_cleared(notes_gateway):
+    client = notes_gateway
+    created = await client.post(
+        "/api/notes",
+        json={"title": "Clinic notes", "description": "Questions", "group": "Health"},
+        headers={"Origin": ORIGIN},
+    )
+    assert created.status == 201
+    note = (await created.json())["note"]
+    assert note["group"] == "Health"
+    listed = await (await client.get("/api/notes?status=group&group=Health")).json()
+    assert [entry["title"] for entry in listed["notes"]] == ["Clinic notes"]
+    assert "Health" in listed["groups"]
+    cleared = await client.patch(
+        f"/api/notes/{note['id']}",
+        json={"group": ""},
+        headers={"Origin": ORIGIN},
+    )
+    assert cleared.status == 200
+    assert (await cleared.json())["note"]["group"] is None

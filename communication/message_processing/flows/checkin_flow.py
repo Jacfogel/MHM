@@ -196,6 +196,28 @@ class CheckinFlowMixin(FlowStateMixin):
             return None
         return self._get_question_text(question_order[0], {}, user_id)
 
+    @handle_errors("reading the current check-in prompt", default_return=None)
+    def current_checkin_prompt(self, user_id: str) -> dict | None:
+        """Return the open check-in question, or None when no check-in is active."""
+        user_state = self.user_states.get(user_id)
+        if not isinstance(user_state, dict) or user_state.get("flow") != FLOW_CHECKIN:
+            return None
+        question_order = user_state.get("question_order") or []
+        if not isinstance(question_order, list):
+            return None
+        try:
+            current_index = int(user_state.get("current_question_index") or 0)
+        except (TypeError, ValueError):
+            current_index = 0
+        total = len(question_order)
+        if current_index >= total:
+            return {"message": "", "index": total, "total": total}
+        question_key = question_order[current_index]
+        message = self._get_question_text(
+            question_key, user_state.get("data") or {}, user_id
+        )
+        return {"message": message, "index": current_index + 1, "total": total}
+
     @handle_errors(
         "handling checkin",
         default_return=(

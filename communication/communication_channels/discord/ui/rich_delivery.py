@@ -318,6 +318,7 @@ class DiscordRichDeliveryMixin:
             "user_id",
             "task_list_items",
             "task_list_offset",
+            "offer_message_reactions",
         }
         return any(key not in metadata_only_keys for key in rich_data)
 

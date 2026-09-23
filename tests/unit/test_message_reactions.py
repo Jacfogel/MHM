@@ -209,4 +209,5 @@ async def test_scheduled_discord_send_offers_thumbs_reactions():
     )
 
     assert bot.last_outbound_message_id == "42"
+    user.send.assert_awaited_once_with(content="Keep going.")
     assert [call.args[0] for call in sent.add_reaction.await_args_list] == ["👍", "👎"]

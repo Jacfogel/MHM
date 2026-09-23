@@ -599,6 +599,8 @@ async def test_csrf_validation_rate_limits_and_static_allowlist(gateway):
     assert (await client.get("/tasks.html")).status == 200
     assert (await client.get("/notes.html")).status == 200
     assert (await client.get("/notes.js")).status == 200
+    assert (await client.get("/checkin.html")).status == 200
+    assert (await client.get("/checkin.js")).status == 200
     assert (await client.get("/privacy.html")).status == 200
     assert (await client.get("/terms.html")).status == 200
     assert (await client.get("/data.html")).status == 200

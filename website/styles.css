@@ -466,7 +466,7 @@ button[aria-busy="true"] { cursor: wait; }
 .task-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
 .task-list-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 12px; }
 .task-bulk-actions { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .875rem; }
-.task-tabs { display: flex; gap: 6px; padding: 4px; background: var(--lavender); border-radius: 11px; }
+.task-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; background: var(--lavender); border-radius: 11px; }
 .task-tabs button { border: 0; border-radius: 8px; padding: 9px 15px; background: transparent; color: var(--muted); font-weight: 700; }
 .task-tabs button[aria-selected="true"] { background: white; color: var(--purple-dark); box-shadow: 0 2px 6px rgba(30,36,83,.08); }
 .task-list { display: grid; gap: 12px; }
@@ -548,7 +548,7 @@ button[aria-busy="true"] { cursor: wait; }
   .task-reminder-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .task-reminder-remove { justify-self: start; }
   .task-create-form .button { width: 100%; }
-  .task-tabs { margin-bottom: 12px; width: max-content; }
+  .task-tabs { margin-bottom: 12px; width: 100%; }
   .task-card { display: block; padding: 20px; }
   .task-select { display: block; margin-bottom: 10px; }
   .note-card { display: block; padding: 20px; }

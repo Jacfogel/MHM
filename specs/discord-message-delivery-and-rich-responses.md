@@ -116,10 +116,11 @@ Discord SHALL create embeds for response `rich_data` only when it contains displ
 
 #### Scenario: Rich data contains only button metadata
 
-- **GIVEN** `rich_data` contains only metadata such as `suggestion_payloads` or `pagination_actions`  
+- **GIVEN** `rich_data` contains only metadata such as `suggestion_payloads`, `pagination_actions`, or `offer_message_reactions`  
 - **WHEN** Discord checks whether display rich data exists  
 - **THEN** it does not create an embed only for those metadata keys  
 - **AND** may still create buttons from the metadata  
+- **AND** `offer_message_reactions` still adds thumbs reactions to the plain message  
 
 #### Scenario: Rich data or message validation fails
 

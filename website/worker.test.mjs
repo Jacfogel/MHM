@@ -20,6 +20,8 @@ test('static pages get security headers and internal files stay private', async 
   assert.equal((await worker.fetch(new Request(url + '/tasks.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/notes.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/notes.js'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/checkin.html'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/checkin.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/insights.html'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/insights.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/messages.html'), env)).status, 200);
@@ -204,6 +206,25 @@ test('notes queries survive proxying and unsupported mutations stay blocked', as
     assert.equal((await worker.fetch(new Request(url + '/api/notes/note-1', { method: 'DELETE' }), env)).status, 405);
     assert.equal((await worker.fetch(new Request(url + '/api/notes/note-1/publish', { method: 'POST', headers: { Origin: url } }), env)).status, 404);
     assert.equal(calls.length, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('check-in answers are proxied to the gateway', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push({ href: target.href, method: options.method });
+    return Response.json({ active: true });
+  };
+  try {
+    assert.equal((await worker.fetch(new Request(url + '/api/checkins', { headers: { Cookie: 'mhm_session=owned' } }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/checkins', {
+      method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: '{"action":"start"}',
+    }), env)).status, 200);
+    assert.deepEqual(calls.map(call => [call.href, call.method]), [
+      ['https://gateway.example/api/checkins', 'GET'],
+      ['https://gateway.example/api/checkins', 'POST'],
+    ]);
   } finally { globalThis.fetch = originalFetch; }
 });
 

@@ -282,6 +282,15 @@ const MHMTaskInput = Object.freeze({
         if (window.confirm(`Skip this occurrence of “${task.title}”? It will not be marked complete.`)) runSupportAction(task, 'skip', {}, dialog);
       }),
     );
+    const custom = document.createElement('div'); custom.className = 'settings-field';
+    const customLabel = document.createElement('label'); customLabel.htmlFor = 'snooze-when'; customLabel.textContent = 'Remind me at a specific time';
+    const customWhen = document.createElement('input'); customWhen.id = 'snooze-when'; customWhen.maxLength = 200; customWhen.placeholder = 'Friday 3pm, in 20 minutes, next Tuesday morning';
+    const customButton = button('Use this time', 'plain-button', () => {
+      if (customWhen.value.trim()) runSupportAction(task, 'snooze', { option: 'custom', custom_when: customWhen.value.trim() }, dialog);
+      else { customWhen.setCustomValidity('Enter when to remind you.'); customWhen.reportValidity(); }
+    });
+    customWhen.addEventListener('input', () => customWhen.setCustomValidity(''));
+    custom.append(customLabel, customWhen, customButton);
     const simplify = document.createElement('div'); simplify.className = 'settings-field';
     const label = document.createElement('label'); label.htmlFor = 'simplify-title'; label.textContent = 'A smaller next step';
     const smaller = document.createElement('input'); smaller.id = 'simplify-title'; smaller.maxLength = 500; smaller.placeholder = 'e.g. Put the dishes beside the sink';
@@ -292,7 +301,7 @@ const MHMTaskInput = Object.freeze({
     smaller.addEventListener('input', () => smaller.setCustomValidity(''));
     simplify.append(label, smaller, simplifyButton);
     const close = button('Close', 'plain-button', () => dialog.close());
-    dialog.append(heading, copy, actions, simplify, close); document.body.append(dialog);
+    dialog.append(heading, copy, actions, custom, simplify, close); document.body.append(dialog);
     dialog.addEventListener('close', () => dialog.remove(), { once: true });
     if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }

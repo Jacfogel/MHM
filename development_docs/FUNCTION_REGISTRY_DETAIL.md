@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-23 00:54:01
+> **Last Generated**: 2026-09-23 08:48:02
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 285
-- **Functions Found**: 2809
-- **Methods Found**: 1429
+- **Functions Found**: 2812
+- **Methods Found**: 1430
 - **Classes Found**: 264
-- **Total Items**: 4238
-- **Functions Documented**: 2507
-- **Methods Documented**: 1284
+- **Total Items**: 4242
+- **Functions Documented**: 2510
+- **Methods Documented**: 1285
 - **Classes Documented**: 198
-- **Total Documented**: 3791
+- **Total Documented**: 3795
 - **Template-Generated**: 54
 - **Last Updated**: 2026-09-23
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (539)
+### **Core System Functions** (541)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (734)
+### **Communication Functions** (735)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -3084,6 +3084,7 @@ Returns:
     List of question keys in selected order
 - [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
 - [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+- [OK] `current_checkin_prompt(self, user_id)` - Return the open check-in question, or None when no check-in is active.
 - [OK] `get_first_checkin_question_text(self, user_id)` - Public API: first weighted check-in question text for a user (no active flow).
 **Classes:**
 - [MISSING] `CheckinFlowMixin` - No description
@@ -3108,6 +3109,7 @@ Returns:
     List of question keys in selected order
   - [OK] `CheckinFlowMixin._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
   - [OK] `CheckinFlowMixin._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+  - [OK] `CheckinFlowMixin.current_checkin_prompt(self, user_id)` - Return the open check-in question, or None when no check-in is active.
   - [OK] `CheckinFlowMixin.get_first_checkin_question_text(self, user_id)` - Public API: first weighted check-in question text for a user (no active flow).
 
 #### `communication/message_processing/flows/flow_command_helpers.py`
@@ -5134,6 +5136,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
 - [OK] `clean(data)` - Validate an editable message template payload.
 - [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
+- [OK] `clean_group(value)` - Validate an optional notebook group. Blank clears the group.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
@@ -5165,6 +5168,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `valid_password(value)` - Accept long passphrases without brittle composition requirements.
 - [OK] `view(message)` - Return one browser-safe message template.
+- [OK] `view(message)` - Return the browser check-in state.
 - [OK] `website_redirect(path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description

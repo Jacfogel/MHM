@@ -26,6 +26,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-task-meta', node()],
     ['home-task-off', node()],
     ['home-checkin', node()],
+    ['home-checkin-answer', node()],
     ['home-checkin-on', node()],
     ['home-checkin-off', node()],
     ['home-checkin-status', node()],

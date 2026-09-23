@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Check-in — MHM</title>
+  <link rel="icon" type="image/png" href="mhm-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js?v=nav-1" defer></script>
+  <script src="app.js?v=password-session-2" defer></script>
+  <script src="checkin.js?v=checkin-1" defer></script>
+</head>
+<body class="account-body">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap">
+    <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="button button-small" href="checkin.html" aria-current="page">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+  </div></header>
+  <main id="main" class="container app-layout">
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section class="notes-area" aria-labelledby="checkin-heading">
+      <div class="tasks-heading"><div><span class="eyebrow">A few questions</span><h1 id="checkin-heading">Check-in</h1><p class="hero-lead">Answer here. You can also have MHM send one by email or Discord from Home.</p></div></div>
+      <p id="checkin-status" class="form-status" role="status" aria-live="polite">Loading your check-in…</p>
+      <div id="checkin-panel" class="account-panel" hidden>
+        <p id="checkin-progress" class="field-hint"></p>
+        <p id="checkin-message" class="panel-description"></p>
+        <p id="checkin-off" hidden>Check-ins are off. You can turn them on in <a href="app.html">Account</a>.</p>
+        <button id="checkin-start" class="button" type="button" hidden>Start check-in</button>
+        <form id="checkin-form" hidden>
+          <div class="settings-field">
+            <label for="checkin-answer">Your answer</label>
+            <input id="checkin-answer" name="answer" maxlength="2000" required placeholder="A number, yes or no, or a short note" />
+          </div>
+          <div class="task-dialog-actions">
+            <button class="button" type="submit">Save answer</button>
+            <button id="checkin-skip" class="plain-button" type="button">Skip question</button>
+            <button id="checkin-cancel" class="plain-button" type="button">Cancel check-in</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-23 - Website check-ins, notebook groups, and custom reminder times
+- **Feature**: Notebook groups are tabs again, next to Pinned, Inbox, and Archived. Creating or editing an entry can set or clear a group. The Check-in page starts, answers, skips, and cancels a check-in in the browser through the same flow Discord and email use. Task help can delay a reminder until a typed time. Talk to MHM on the website is planned in [PLANS.md](PLANS.md) Section 7.4 and is not built yet. See [notes.js](../website/notes.js), [checkin.js](../website/checkin.js), [tasks.js](../website/tasks.js), and [web_account_service.py](../core/web_account_service.py).
+- **Impact**: A signed-in person can file notes by group, finish a check-in without waiting for email or Discord, and snooze a task to a time they type.
+- **Fix**: Scheduled Discord messages are sent once. The thumbs-reaction flag no longer builds an embed that repeats the same sentence. The website check-in route reads today's completion time only when that status exists, which clears the two Pyright warnings. See [rich_delivery.py](../communication/communication_channels/discord/ui/rich_delivery.py) and [web_account_service.py](../core/web_account_service.py).
+
 ### 2026-09-23 - Two-way email replies
 - **Feature**: Email replies now keep only the new text, stay in the same thread, and are marked read after MHM handles them. A reply to a check-in answers that check-in. A reply to a task reminder can say done, later, skip, or simplify, and that action applies to the task in the email. See [email/inbound_processor.py](../communication/communication_channels/email/inbound_processor.py), [email/bot.py](../communication/communication_channels/email/bot.py), [email_reply_routing.py](../communication/message_processing/email_reply_routing.py), and [specs/email-reply-loop.md](../specs/email-reply-loop.md).
 - **Impact**: Replying to an MHM email continues that conversation instead of sending the quoted original through chat, and a check-in or task reply is tied to the message you answered. Simplify examples name a real smaller step, such as wipe the kitchen counter, because that text becomes the new task title.

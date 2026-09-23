@@ -75,6 +75,7 @@
       document.getElementById('home-name').textContent = account.preferred_name || 'there';
       document.getElementById('home-task-off').hidden = account.tasks_enabled;
       document.getElementById('home-checkin').hidden = !account.checkins_enabled;
+      document.getElementById('home-checkin-answer').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-on').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;
       const tasks = await api('/api/tasks?status=active');

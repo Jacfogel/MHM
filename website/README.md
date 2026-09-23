@@ -85,7 +85,7 @@ Tasks can be created from built-in templates, edited, linked to web resources,
 completed, restored, deleted, snoozed, skipped, or simplified. The task list is
 shown first; title-only creation is the default, and template, details, due date,
 priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
-pinned and inbox views alongside active and archived entries. The message library
+pinned, inbox, and group views alongside active and archived entries. Each saved group is its own tab. The message library
 supports personal template creation, editing, scheduling, pausing, and deletion.
 Insights show recent check-in patterns and history. A mood trend compares the seven
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
@@ -93,8 +93,10 @@ page shows the average and progress toward a trend instead of labelling sparse d
 as stable. Check-ins without a mood answer do not count toward that total. Google Health can be viewed,
 paused, enabled, synced, or deleted there; initial connection still uses the
 existing callback configured by `GOOGLE_HEALTH_REDIRECT_URI` (the default local
-callback works only when the browser can reach the MHM host). Completing check-ins
-still uses the existing app interface, as intentionally excluded from this work.
+callback works only when the browser can reach the MHM host). Check-ins can be
+answered on the Check-in page. Home can still queue one to email or Discord.
+Task reminders can be delayed with a typed time, such as "Friday 3pm" or
+"in 20 minutes," as well as the one-hour, tonight, and next-week choices.
 
 ## Cloudflare Workers deployment
 
@@ -172,7 +174,8 @@ return to login; request failures allow retrying logout.
 - `script.js` — year stamp and compact navigation menu
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
-- `home.html`, `home.js` — signed-in home with the next task, a check-in request, and one-line notebook capture
+- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, and one-line notebook capture
+- `checkin.html`, `checkin.js` — answer, skip, or cancel the current check-in in the browser
 - `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout
 - `tasks.html`, `tasks.js` — signed-in task list first, with optional create fields behind More options
@@ -188,8 +191,8 @@ return to login; request failures allow retrying logout.
 ## Verification
 
 ```powershell
-python -m pytest tests/unit/test_website_pages.py tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_gateway_runtime.py -q
-node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/script.test.mjs
+python -m pytest tests/unit/test_website_pages.py tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_checkins.py tests/unit/test_web_gateway_runtime.py -q
+node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/notes.test.mjs website/script.test.mjs
 ```
 
 Tests inject isolated account and email adapters; they do not send real email or

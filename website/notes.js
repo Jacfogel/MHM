@@ -16,10 +16,12 @@
   const createHelp = document.getElementById('entry-create-help');
   const search = document.getElementById('note-search');
   const tagFilter = document.getElementById('note-tag-filter');
-  const tabs = [...document.querySelectorAll('[data-note-view]')];
+  const groupInput = document.getElementById('note-group');
   let view = 'active';
+  let groupName = '';
   let notes = [];
   let existingTags = [];
+  let existingGroups = [];
   let searchTimer;
   let itemId = 0;
 
@@ -37,6 +39,42 @@
 
   function populateTagPicker(picker, values) {
     picker.replaceChildren(new Option('Choose a tag…', ''), ...values.map(value => new Option(value, value)));
+  }
+
+  function populateGroupPicker(picker, values) {
+    picker.replaceChildren(new Option('Choose a group…', ''), ...values.map(value => new Option(value, value)));
+  }
+
+  function bindGroupPicker(input, picker) {
+    picker.addEventListener('change', () => {
+      if (!picker.value) return;
+      input.value = picker.value;
+      picker.value = '';
+      input.focus();
+    });
+  }
+
+  function syncTabs() {
+    for (const tab of document.querySelectorAll('[data-note-view]')) {
+      tab.setAttribute('aria-selected', String(view !== 'group' && tab.dataset.noteView === view));
+    }
+    for (const tab of document.querySelectorAll('[data-note-group]')) {
+      tab.setAttribute('aria-selected', String(view === 'group' && tab.dataset.noteGroup === groupName));
+    }
+  }
+
+  function renderGroupTabs(groups) {
+    const tablist = document.getElementById('note-tabs');
+    for (const tab of tablist.querySelectorAll('[data-note-group]')) tab.remove();
+    for (const name of groups) {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.setAttribute('role', 'tab');
+      tab.dataset.noteGroup = name;
+      tab.textContent = name;
+      tablist.append(tab);
+    }
+    syncTabs();
   }
 
   function bindTagPicker(input, picker) {
@@ -148,7 +186,8 @@
 
   function render() {
     list.replaceChildren();
-    count.textContent = `${notes.length} ${view} ${notes.length === 1 ? 'entry' : 'entries'}`;
+    const viewLabel = view === 'group' ? groupName : view;
+    count.textContent = `${notes.length} ${viewLabel} ${notes.length === 1 ? 'entry' : 'entries'}`;
     empty.hidden = notes.length !== 0;
     for (const note of notes) {
       const article = document.createElement('article');
@@ -181,6 +220,11 @@
       }
       const meta = document.createElement('div');
       meta.className = 'task-meta';
+      if (note.group) {
+        const group = document.createElement('span');
+        group.textContent = note.group;
+        meta.append(group);
+      }
       if (note.tags?.length) {
         const tags = document.createElement('span');
         tags.textContent = `Tags: ${note.tags.join(', ')}`;
@@ -201,16 +245,26 @@
     }
   }
 
-  async function load() {
+  async function load(retried = false) {
     try {
       const query = search.value.trim();
       const params = new URLSearchParams({ status: view });
       if (query) params.set('q', query);
       if (tagFilter.value) params.set('tag', tagFilter.value);
+      if (view === 'group' && groupName) params.set('group', groupName);
       const result = await api(`/api/notes?${params}`);
+      existingGroups = result.groups || [];
+      if (view === 'group' && groupName && !existingGroups.some(name => name.toLowerCase() === groupName.toLowerCase()) && !retried) {
+        view = 'active';
+        groupName = '';
+        await load(true);
+        return;
+      }
       notes = result.notes || [];
       existingTags = result.tags || [];
       populateTagPicker(document.getElementById('note-existing-tag'), existingTags);
+      populateGroupPicker(document.getElementById('note-existing-group'), existingGroups);
+      renderGroupTabs(existingGroups);
       const chosenTag = tagFilter.value;
       tagFilter.replaceChildren(new Option('All tags', ''), ...existingTags.map(value => new Option(value, value)));
       tagFilter.value = chosenTag;
@@ -278,6 +332,20 @@
     const tags = input(form, 'Tags', 'text', note.tags?.join(', '), 'edit-note-tags');
     tags.maxLength = 1000;
     tags.placeholder = 'health, ideas, home';
+    const group = input(form, 'Group', 'text', note.group || '', 'edit-note-group');
+    group.maxLength = 50;
+    group.placeholder = 'e.g. Health';
+    const existingGroup = document.createElement('select');
+    existingGroup.id = 'edit-note-existing-group';
+    populateGroupPicker(existingGroup, existingGroups);
+    const groupPickerWrapper = document.createElement('div');
+    groupPickerWrapper.className = 'settings-field';
+    const groupPickerLabel = document.createElement('label');
+    groupPickerLabel.htmlFor = existingGroup.id;
+    groupPickerLabel.textContent = 'Use an existing group';
+    groupPickerWrapper.append(groupPickerLabel, existingGroup);
+    form.append(groupPickerWrapper);
+    bindGroupPicker(group, existingGroup);
     const existingTag = document.createElement('select');
     existingTag.id = 'edit-note-existing-tag';
     populateTagPicker(existingTag, existingTags);
@@ -312,6 +380,7 @@
         const payload = {
           title: title.value.trim(),
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
+          group: group.value.trim(),
           ...(editItems ? { items } : { description: body.value }),
         };
         await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', payload);
@@ -346,6 +415,7 @@
         kind,
         title: String(form.get('title') || '').trim(),
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
+        group: String(form.get('group') || '').trim(),
         ...(kind === 'list' ? { items } : { description: String(form.get('description') || '') }),
       });
       createForm.reset();
@@ -362,9 +432,18 @@
 
   entryKind.addEventListener('change', syncCreateMode);
   document.getElementById('entry-add-item').addEventListener('click', () => addListItem(createItems).focus());
-  for (const tab of tabs) tab.addEventListener('click', () => {
-    view = tab.dataset.noteView;
-    tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+  document.getElementById('note-tabs').addEventListener('click', event => {
+    const tab = event.target.closest('button[data-note-view], button[data-note-group]');
+    if (!tab || !tab.closest('#note-tabs')) return;
+    if (tab.dataset.noteGroup) {
+      view = 'group';
+      groupName = tab.dataset.noteGroup;
+      if (!groupInput.value.trim()) groupInput.value = groupName;
+    } else {
+      view = tab.dataset.noteView;
+      groupName = '';
+    }
+    syncTabs();
     load();
   });
   search.addEventListener('input', () => {
@@ -378,6 +457,7 @@
     if (document.visibilityState === 'visible') load();
   });
   bindTagPicker(document.getElementById('note-tags'), document.getElementById('note-existing-tag'));
+  bindGroupPicker(groupInput, document.getElementById('note-existing-group'));
   syncCreateMode();
   load();
   loadIdentity();

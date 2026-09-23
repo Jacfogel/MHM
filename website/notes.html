@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-1" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-7" defer></script>
+  <script src="notes.js?v=notes-8" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="container nav-wrap">
     <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="button button-small" href="notes.html" aria-current="page">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="checkin.html">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="button button-small" href="notes.html" aria-current="page">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
@@ -37,10 +37,11 @@
             <div id="entry-description-field" class="settings-field"><label id="entry-description-label" for="note-description">Note</label><textarea id="note-description" name="description" rows="5" maxlength="10000" placeholder="Start wherever you are…"></textarea></div>
             <fieldset id="entry-list-field" class="notebook-item-editor" hidden><legend>List items</legend><div id="entry-create-items" class="notebook-item-edit-list"></div><button id="entry-add-item" class="plain-button notebook-add-item" type="button">+ Add item</button></fieldset>
             <div class="task-tag-fields"><div class="settings-field"><label for="note-tags">Tags <span class="optional-label">Optional — type new tags, comma separated</span></label><input id="note-tags" name="tags" maxlength="1000" placeholder="health, ideas, home" /></div><div class="settings-field"><label for="note-existing-tag">Add an existing tag</label><select id="note-existing-tag"><option value="">Choose a tag…</option></select></div></div>
+            <div class="task-tag-fields"><div class="settings-field"><label for="note-group">Group <span class="optional-label">Optional</span></label><input id="note-group" name="group" maxlength="50" placeholder="e.g. Health" /></div><div class="settings-field"><label for="note-existing-group">Use an existing group</label><select id="note-existing-group"><option value="">Choose a group…</option></select></div></div>
           </div>
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
-        <div class="note-list-header"><div class="task-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
+        <div class="note-list-header"><div class="task-tabs" id="note-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
         <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong><span>Capture a note, journal entry, or list you want MHM to remember.</span></div>
       </div>
     </section>

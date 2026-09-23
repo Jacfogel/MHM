@@ -2267,6 +2267,7 @@ def create_web_app(
             "items": items,
             "tags": [str(tag) for tag in (entry.tags or [])],
             "pinned": bool(entry.pinned) if str(entry.status) == "active" else False,
+            "group": str(entry.group).strip() if str(entry.group or "").strip() else None,
             "status": str(entry.status),
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
@@ -2278,6 +2279,7 @@ def create_web_app(
         """Authenticated website facade over the canonical notebook service."""
         uid, _ = await authenticated_account(request)
         from notebook import notebook_data_manager as notes
+        from notebook.notebook_validation import is_valid_entry_group
         from core.tags import normalize_tags
 
         note_id = request.match_info.get("note_id")
@@ -2311,23 +2313,48 @@ def create_web_app(
                 cleaned.append({"text": item["text"].strip(), "done": item["done"]})
             return cleaned
 
+        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+        def clean_group(value):
+            """Validate an optional notebook group. Blank clears the group."""
+            if value is None or (isinstance(value, str) and not value.strip()):
+                return None
+            if not isinstance(value, str) or not is_valid_entry_group(value):
+                raise web.HTTPBadRequest(
+                    text="Group names can use letters, numbers, spaces, hyphens, and underscores."
+                )
+            return value.strip()
+
         if request.method == "GET":
             status = request.query.get("status", "active")
-            if status not in {"active", "pinned", "inbox", "archived", "all"}:
-                raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, or all notes.")
+            if status not in {"active", "pinned", "inbox", "archived", "all", "group"}:
+                raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, a group, or all notes.")
             query = request.query.get("q", "").strip()
             tag_filter = request.query.get("tag", "").strip()
-            if len(query) > 500 or len(tag_filter) > 100:
+            group_name = request.query.get("group", "").strip()
+            if len(query) > 500 or len(tag_filter) > 100 or len(group_name) > 50:
                 raise web.HTTPBadRequest(text="Keep notebook filters brief.")
+            if status == "group" and not is_valid_entry_group(group_name):
+                raise web.HTTPBadRequest(
+                    text="Choose a group name using letters, numbers, spaces, hyphens, or underscores."
+                )
             if query:
                 entries = notes.search_entries(uid, query, limit=100)
             elif status == "pinned":
                 entries = notes.list_pinned(uid, limit=100)
             elif status == "inbox":
                 entries = notes.list_inbox(uid, limit=100)
+            elif status == "group":
+                entries = notes.list_by_group(uid, group_name, limit=100)
             else:
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
-            if status not in {"all", "pinned", "inbox"}:
+            if status == "group":
+                entries = [
+                    entry
+                    for entry in entries
+                    if entry.status == "active"
+                    and str(entry.group or "").casefold() == group_name.casefold()
+                ]
+            elif status not in {"all", "pinned", "inbox"}:
                 entries = [entry for entry in entries if entry.status == status]
             if tag_filter:
                 entries = [
@@ -2350,15 +2377,24 @@ def create_web_app(
                 },
                 key=str.casefold,
             )
+            groups = sorted(
+                {
+                    str(entry.group).strip()
+                    for entry in all_entries
+                    if entry.status == "active" and str(entry.group or "").strip()
+                },
+                key=str.casefold,
+            )
             return web.json_response({
                 "notes": [note_view(entry) for entry in entries],
                 "count": len(entries),
                 "tags": tags,
+                "groups": groups,
             })
 
         if request.method == "POST" and not note_id:
             data = await body(request)
-            allowed = {"kind", "title", "description", "items", "tags"}
+            allowed = {"kind", "title", "description", "items", "tags", "group"}
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported note fields.")
             kind = data.get("kind", "note")
@@ -2376,15 +2412,16 @@ def create_web_app(
             if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             tags = normalize_tags(tags)
+            group = clean_group(data.get("group")) if "group" in data else None
             if kind == "list":
                 items = clean_list_items(data.get("items"))
-                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags)
+                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags, group=group)
                 if entry and any(item["done"] for item in items):
                     entry = await asyncio.to_thread(notes.set_list_items, uid, str(entry.id), items)
             elif kind == "journal_entry":
-                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags)
+                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags, group=group)
             else:
-                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags)
+                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags, group=group)
             if not entry:
                 raise web.HTTPBadRequest(text="MHM could not create that entry.")
             return web.json_response({"note": note_view(entry)}, status=201)
@@ -2398,7 +2435,7 @@ def create_web_app(
             return web.json_response({"note": note_view(find(note_id, include_archived=True))})
         if action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "items", "tags", "pinned"}
+            allowed = {"title", "description", "items", "tags", "pinned", "group"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported note changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip() or len(data["title"].strip()) > 200):
@@ -2431,8 +2468,113 @@ def create_web_app(
                 raise web.HTTPBadRequest(text="Choose whether the entry is pinned.")
             if "pinned" in data and not await asyncio.to_thread(notes.pin_entry, uid, note_id, data["pinned"]):
                 raise web.HTTPNotFound(text="That note could not be updated.")
+            if "group" in data and not await asyncio.to_thread(
+                notes.set_group, uid, note_id, clean_group(data.get("group"))
+            ):
+                raise web.HTTPNotFound(text="That note could not be updated.")
             return web.json_response({"note": note_view(find(note_id, include_archived=False))})
         raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH"})
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def checkins_api(request):
+        """Start or answer the signed-in user's check-in in the browser."""
+        uid, _ = await authenticated_account(request)
+        from checkins.checkin_data_manager import is_user_checkins_enabled
+        from checkins.checkin_service import get_checkin_start_status
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+
+        enabled = bool(await asyncio.to_thread(is_user_checkins_enabled, uid))
+
+        # ERROR_HANDLING_EXCLUDE: Serializer is only used by this guarded route.
+        def view(message, *, active, completed, completed_today, index, total):
+            """Return the browser check-in state."""
+            return {
+                "enabled": enabled,
+                "active": active,
+                "completed": completed,
+                "completed_today": completed_today,
+                "message": message,
+                "index": index,
+                "total": total,
+            }
+
+        snapshot = await asyncio.to_thread(conversation_manager.current_checkin_prompt, uid) or {}
+        status = await asyncio.to_thread(get_checkin_start_status, uid) if enabled else None
+        completed_today = (
+            status is not None and status.already_completed_today and not snapshot
+        )
+        finished_today = (
+            f"You've already completed a check-in today at {status.last_checkin_timestamp}. "
+            "You can start a new check-in tomorrow."
+            if completed_today and status is not None
+            else ""
+        )
+        if request.method == "GET":
+            if snapshot:
+                message = snapshot.get("message") or ""
+            elif not enabled:
+                message = "Check-ins are off. You can turn them on in Account."
+            elif completed_today:
+                message = finished_today
+            else:
+                message = ""
+            return web.json_response(view(
+                message,
+                active=bool(snapshot),
+                completed=False,
+                completed_today=completed_today,
+                index=snapshot.get("index"),
+                total=snapshot.get("total"),
+            ))
+
+        data = await body(request)
+        action = data.get("action")
+        if action == "start" and set(data) == {"action"}:
+            if not enabled:
+                return web.json_response(view(
+                    "Check-ins are off. You can turn them on in Account.",
+                    active=False, completed=True, completed_today=False, index=None, total=None,
+                ))
+            if completed_today:
+                return web.json_response(view(
+                    finished_today,
+                    active=False, completed=True, completed_today=True, index=None, total=None,
+                ))
+            message, completed = await asyncio.to_thread(conversation_manager.start_checkin, uid)
+        elif action == "answer" and set(data) == {"action", "answer"}:
+            answer = data.get("answer")
+            if not isinstance(answer, str) or not answer.strip() or len(answer.strip()) > 2000:
+                raise web.HTTPBadRequest(text="Enter an answer, or skip this question.")
+            result = await asyncio.to_thread(
+                conversation_manager.answer_active_checkin, uid, answer.strip()
+            )
+            if result is None:
+                raise web.HTTPBadRequest(text="Start a check-in first.")
+            message, completed = result
+        elif action in {"skip", "cancel"} and set(data) == {"action"}:
+            command = "skip" if action == "skip" else "/cancel"
+            result = await asyncio.to_thread(
+                conversation_manager.answer_active_checkin, uid, command
+            )
+            if result is None:
+                raise web.HTTPBadRequest(text="Start a check-in first.")
+            message, completed = result
+        else:
+            raise web.HTTPBadRequest(text="Choose start, answer, skip, or cancel.")
+        if not isinstance(message, str):
+            message = "MHM could not continue that check-in. Please try again."
+        latest = await asyncio.to_thread(conversation_manager.current_checkin_prompt, uid) or {}
+        active = bool(latest) and not completed
+        return web.json_response(view(
+            message,
+            active=active,
+            completed=bool(completed),
+            completed_today=False,
+            index=latest.get("index") if active else None,
+            total=latest.get("total") if active else None,
+        ))
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def logout(request):
@@ -2478,6 +2620,8 @@ def create_web_app(
     app.router.add_get("/api/messages", messages_api)
     app.router.add_post("/api/messages", messages_api)
     app.router.add_post("/api/actions", request_action)
+    app.router.add_get("/api/checkins", checkins_api)
+    app.router.add_post("/api/checkins", checkins_api)
     app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_get("/api/notes", notes_api)
@@ -2501,6 +2645,7 @@ def create_web_app(
             "notes.html",
             "insights.html",
             "messages.html",
+            "checkin.html",
             "privacy.html",
             "terms.html",
             "data.html",
@@ -2516,6 +2661,7 @@ def create_web_app(
             "notes.js",
             "insights.js",
             "messages.js",
+            "checkin.js",
         }:
             raise web.HTTPNotFound(text="Page not found.")
         return web.FileResponse(root / name)

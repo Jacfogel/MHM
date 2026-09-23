@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-23 - Website check-ins, groups, and custom snooze **COMPLETED**
+- Notebook groups are tabs again, and entries can be assigned or cleared from those groups.
+- The Check-in page starts, answers, skips, and cancels a check-in in the browser. Task help accepts a typed reminder time.
+- Talk to MHM on the website is planned in [PLANS.md](../development_docs/PLANS.md) Section 7.4 and is not built yet.
+- Scheduled Discord messages no longer repeat themselves in an embed. The reaction flag only adds thumbs. The two check-in Pyright warnings are cleared.
+
 ### 2026-09-23 - Two-way email replies **COMPLETED**
 - A reply keeps the new text, stays in the same email thread, and the inbox message is marked read only after MHM handles it.
 - Replying to a check-in answers that check-in. Replying to a task reminder with done, later, skip, or simplify to a real smaller step applies to that task. The words after "to" become the new title.
@@ -116,13 +122,6 @@ Guidelines:
 - Resolved all six reported website-account error-handling gaps; full-scope coverage is 2,520/2,520.
 - Reproduced Tier 3's timeout: 5,513 tests completed without assertion failures and the remaining 67 passed separately. Full-audit concurrency remained productive past 30 minutes, so Tier 3 keeps a 60-minute phase ceiling plus a five-minute cleanup buffer; stalled Windows cleanup returns structured timeout diagnostics instead of crashing.
 - Regenerated the function/dependency registries with zero missing entries and fixed the sole Pyright error; full Pyright, targeted tests, Ruff, docs checks, and the final Tier 3 full audit pass.
-
-### 2026-09-15 - Dev-tools pytest isolation from host conftest **COMPLETED**
-- Tools tests run with `development_tools/pytest.ini` (`confcutdir` stops `tests/conftest.py`). Host pytest ignores `tests/development_tools/`.
-- Tier 3, coverage, and `run_tests.py --mode development_tools` pass the isolation flags. Host+tools pytest share one timeout budget so a slow host run cannot chain a second hour.
-- Suite cache: runner/cache helper edits soft-invalidate (clear full snapshot + re-run `development_tools`); `domain_mapper`/config edits still bust all domains.
-- Hour-long tools pytest root cause fixed: report tests mocked every `Path.exists()` call as true, trapping file rotation in an infinite collision loop that Windows' thread timeout could not terminate. Timeout diagnostics now survive cache merging, interrupted phases stop immediately, and quick audits have a 15-minute phase cap. The full tools phase now passes, and a clean full audit completes in about 7 minutes.
-- Remaining extraction: report paths, optional install extra, then sibling repo.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

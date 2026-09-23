@@ -55,17 +55,21 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "task-create-form" not in notebook.ids
     assert "home-capture-form" in home.ids
     assert "home-checkin" in home.ids
+    assert "home-checkin-answer" in home.ids
     assert "home-task-off" in home.ids
     assert "task-create-form" not in home.ids
 
-    signed_in_hrefs = {"home.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
+    checkin = parse_page("checkin.html")
+    assert {"checkin-start", "checkin-form", "checkin-answer", "checkin-skip", "checkin-cancel"} <= checkin.ids
+    signed_in_hrefs = {"home.html", "checkin.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
     assert signed_in_hrefs <= home.hrefs
+    assert signed_in_hrefs <= checkin.hrefs
     assert signed_in_hrefs <= account.hrefs
     assert signed_in_hrefs <= tasks.hrefs
     assert signed_in_hrefs <= notebook.hrefs
     assert signed_in_hrefs <= insights.hrefs
     assert signed_in_hrefs <= messages.hrefs
-    assert "logout" in home.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
+    assert "logout" in home.ids & checkin.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
     assert 'aria-current="page">Home</a>' in (WEBSITE / "home.html").read_text(encoding="utf-8")
 
 
@@ -112,7 +116,8 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
     assert notebook.controls["note-description"]["maxlength"] == "10000"
     assert notebook.controls["note-tags"]["maxlength"] == "1000"
     assert "list" not in notebook.controls["note-tags"]
-    assert "note-group" not in notebook.ids
+    assert "note-group" in notebook.ids
+    assert "note-tabs" in notebook.ids
 
 
 def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
@@ -142,7 +147,7 @@ def test_compact_menu_is_available_on_marketing_and_signed_in_pages():
     assert "site-menu" in marketing.ids
     assert "login.html?mode=create" in marketing.hrefs
 
-    for page_name in ("home.html", "setup.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"):
+    for page_name in ("home.html", "setup.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html", "checkin.html"):
         page = parse_page(page_name)
         assert page.controls["nav-toggle"]["aria-controls"] == "site-menu"
         assert "site-menu" in page.ids
@@ -165,6 +170,8 @@ def test_website_scripts_use_only_current_task_and_insights_shapes():
     tasks_source = (WEBSITE / "tasks.js").read_text(encoding="utf-8")
     insights_source = (WEBSITE / "insights.js").read_text(encoding="utf-8")
 
+    assert "custom_when" in tasks_source
+    assert "option: 'custom'" in tasks_source
     assert "task.links" not in tasks_source
     assert "Remind now" not in tasks_source
     assert "requestTaskReminder" not in tasks_source
@@ -287,7 +294,7 @@ def test_policy_pages_are_readable_and_cross_linked(page_name):
         assert "delete-account button" in html
 
 
-@pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html", "privacy.html", "terms.html", "data.html"])
+@pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html", "checkin.html", "privacy.html", "terms.html", "data.html"])
 def test_page_local_scripts_and_assets_exist(page_name):
     page = parse_page(page_name)
     for source in page.scripts:

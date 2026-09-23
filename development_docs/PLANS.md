@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-09-22
+> **Last Updated**: 2026-09-23
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -76,6 +76,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 | Trial and monthly subscription | **PLANNED** | Later | This file Section 7.3 | 30-day trial, then a monthly plan; alpha account stays comped |
+| Talk to MHM on the website | **PLANNED** | Later | This file Section 7.4 | Signed-in conversation page using the same message path as Discord and email |
 
 ---
 
@@ -362,6 +363,25 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 **Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing. The monthly price is not set yet.
 
 **When to start**: after the service is ready for people other than the alpha user. Do not gate the current personal account on this work.
+
+---
+
+### 7.4 Talk to MHM on the website
+
+**Status**: **PLANNED**  
+**Added**: 2026-09-23  
+**Priority**: Later
+
+**Use / fit**: Discord and email already accept a normal message: help, status, "add a task," or an open conversation. The website is forms and buttons. A conversation page lets someone talk to MHM without leaving the site. Check-in answers, tasks, and the notebook stay on their own pages.
+
+**Scaffold** (in order):
+
+1. Add a signed-in conversation page. It shows the reply and any suggestions as buttons that send that suggestion text back.
+2. Send each message through `handle_user_message` with a website channel. Do not label that channel as Discord.
+3. Keep an active check-in or task flow in charge, the same way Discord and email do.
+4. Leave Tasks, Notebook, and Check-in as the places for those jobs. This page is the open conversation, not a second copy of those screens.
+
+**Leave in place for now**: thumbs reactions that change later messages stay on Discord. Account deletion stays a request through Discord or email.
 
 ---
 
