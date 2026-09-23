@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds **COMPLETED**
+- [PLANS.md](../development_docs/PLANS.md) Section 7 records SMS, Apple Health ingest, and a 30-day trial then monthly subscription as **PLANNED**. None of that behavior is implemented.
+- SMS uses a paid provider. Apple Health is a phone push into the existing daily-summary path. The alpha account stays comped when billing exists.
+
 ### 2026-09-22 - Google sign-in creates accounts; Apple sign-in removed **COMPLETED**
 - A verified Google email, or a Facebook profile that shares an email, now creates an MHM account when that address is new, then opens first-run setup.
 - An address that already belongs to an active account still signs into that account. Facebook without an email does not create an account.
@@ -118,12 +122,6 @@ Guidelines:
 - New accounts choose a 12-128 character password after one-time email verification; existing accounts can set or change one after signing in by code. Salted scrypt hashes are stored in the canonical account document, with rate-limited password login and code fallback.
 - Added configurable Google, Facebook, and Apple sign-in/linking with one-time state, provider subject uniqueness, verified-email matching, no provider token storage, and Apple form-post/JWT verification support through the Worker.
 - Updated the account UI, configuration examples, gateway/Worker routes, account schema, and focused Python/Node coverage.
-
-### 2026-09-15 - Task reminder skip and simplify **COMPLETED**
-- Discord reminder **Skip** and **Simplify** are live, separate from snooze.
-- Skip rolls a repeating task to the next occurrence without marking it done; one-off tasks stay due and wait until tomorrow morning.
-- Simplify rewrites the title to a smaller next step and keeps the due date.
-- Hygiene: snooze helper now uses `@handle_errors`; spec ASCII; function registry regenerated.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

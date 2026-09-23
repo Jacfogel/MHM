@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds
+- **Docs**: [PLANS.md](PLANS.md) Section 7 records three **PLANNED** scaffolds and lists them in the plan index. SMS is a paid text channel beside Discord and email. Apple Health is a phone-pushed daily summary beside Google Health. New accounts get a 30-day trial, then one monthly subscription, with the existing alpha account left comped. Deferred items moved to Section 8; completed plans are Section 9.
+- **Impact**: Future channel, health, and billing work has a starting outline without changing current send, health, or account behavior.
+
 ### 2026-09-22 - Google sign-in creates accounts; Apple sign-in removed
 - **Fix**: A verified Google email, or a Facebook profile that shares an email, now creates an MHM account when that address is new, stores the provider subject, and opens first-run setup. The browser time zone is kept with the sign-in attempt. If Facebook shares no email, MHM does not create an account. An email that already belongs to an active account signs into that account instead of making a second one. See [web_account_service.py](../core/web_account_service.py) and [auth.js](../website/auth.js).
 - **Removal**: Apple website sign-in is gone, including the login button, `APPLE_OAUTH_*` settings, the form-post callback, and identity-token verification. Google and Facebook remain. A stored `apple` identity is dropped the next time that account document is saved.

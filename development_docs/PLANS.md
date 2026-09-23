@@ -2,9 +2,9 @@
 
 > **File**: `development_docs/PLANS.md`  
 > **Audience**: Human Developer & AI Collaborators  
-> **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
+> **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-09-15
+> **Last Updated**: 2026-09-22
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -73,6 +73,9 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
 | Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
+| SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
+| Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
+| Trial and monthly subscription | **PLANNED** | Later | This file Section 7.3 | 30-day trial, then a monthly plan; alpha account stays comped |
 
 ---
 
@@ -295,11 +298,78 @@ These plans should not be duplicated in detail here.
 
 ---
 
-## 7. Deferred / Low-Priority Plans
+## 7. Planned scaffolds
+
+Accepted future work. Not the current focus. Active check-in, task, and notebook reliability stay first.
+
+### 7.1 SMS channel
+
+**Status**: **PLANNED**  
+**Added**: 2026-09-22  
+**Priority**: Later
+
+**Use / fit**: SMS is a third messaging channel beside Discord and email, for people who will not use either. Business logic stays in the shared message pipeline. The channel adapter only sends and receives text.
+
+**Scaffold** (in order):
+
+1. Add `communication/communication_channels/sms/` with an `SmsBot` on `BaseChannel`. Register it from `get_available_channels()` and `get_channel_class_mapping()` in `core/config.py`. Tests mock the provider.
+2. Outbound uses the `phone` field already on `AccountV2EnvelopeModel`. Add `RecipientResolver._resolve_sms_recipient`. Inbound maps that number back to the user and calls `handle_user_message(..., "sms")`.
+3. Receive texts through a provider webhook, using the same kind of tunnel as Discord while developing.
+4. Check-ins and task replies get short text answers (`3`, `done`, `snooze`). Discord buttons stay on Discord. Split long messages into SMS segments.
+5. Let the user choose SMS as their messaging service, with connect, status, and pause as text commands.
+
+**Provider**: a paid SMS API such as Twilio. Free cloud SMS and carrier email-to-SMS are out of scope. iMessage is out of scope.
+
+**Order**: build this before Apple Health. The channel seams already exist.
+
+---
+
+### 7.2 Apple Health ingest
+
+**Status**: **PLANNED**  
+**Added**: 2026-09-22  
+**Priority**: Later
+
+**Use / fit**: Apple Health (HealthKit on the iPhone) is a second wellness source beside the Google Health API. Google Health stays a cloud pull. Apple Health has no cloud API, so the phone pushes a daily summary and MHM reuses the existing summary-to-signal path.
+
+**Scaffold** (in order):
+
+1. One active wellness source per user, Google or Apple, so the two writers do not overwrite the same day. Record `source` on the daily summary.
+2. Add `integrations/apple_health/` with an ingest route authenticated by a shared secret, not OAuth. Validate into `DailySummaryModel` and run the existing signal builder. Tests post a fixture payload.
+3. A phone exporter (Health Auto Export or a Shortcut) posts on a schedule through a tunnel. A native iOS app is a later project, not this scaffold.
+4. Keep `health status`, pause, enable, and delete shared. Apple connect means the secret is set and a summary has arrived.
+
+**Leave in place for now**: signal-building code stays under `integrations/google_health/` until both sources write real summaries.
+
+---
+
+### 7.3 Trial and monthly subscription
+
+**Status**: **PLANNED**  
+**Added**: 2026-09-22  
+**Priority**: Later
+
+**Use / fit**: New accounts get 30 days of the full service, then a monthly subscription. Nothing in the repo bills anyone today. The existing alpha account keeps working without a charge.
+
+**Scaffold** (in order):
+
+1. Store billing on the account document (`AccountV2EnvelopeModel`): `trial_ends_at` (`created_at` plus 30 days), `subscription_status` (`trialing`, `active`, `past_due`, `canceled`, `comped`), and the payment-provider customer id. Do not store card numbers. `metadata` can hold the provider id until those fields are first-class.
+2. Use Stripe Checkout for one monthly price, and a webhook for paid, renewal-failed, and canceled events. MHM never sees the card.
+3. During `trialing` or `active` or `comped`, sends work as they do now. After the trial, or after a short grace period when a renewal fails, stop scheduled messages, check-ins, and task reminders. Keep the account and its data. Resume sends when status returns to `active`.
+4. Mark the existing personal alpha account `comped` so daily use does not depend on billing.
+5. The website shows days left in the trial, then a subscribe link. Send one notice before the trial ends and one when sends are paused, on whatever channel that user already uses.
+
+**Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing. The monthly price is not set yet.
+
+**When to start**: after the service is ready for people other than the alpha user. Do not gate the current personal account on this work.
+
+---
+
+## 8. Deferred / Low-Priority Plans
 
 These are real ideas, but they are **not current implementation priorities**.
 
-### 7.1 Discord app/bot capabilities exploration
+### 8.1 Discord app/bot capabilities exploration
 
 **Status**: **DEFERRED**  
 **Priority**: Low
@@ -315,7 +385,7 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ---
 
-### 7.2 Mood-aware support calibration
+### 8.2 Mood-aware support calibration
 
 **Status**: **DEFERRED**  
 **Priority**: High once foundational work is stable
@@ -337,7 +407,7 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ---
 
-### 7.3 Message analytics, deduplication, and proactive intelligence
+### 8.3 Message analytics, deduplication, and proactive intelligence
 
 **Status**: **DEFERRED / MONITORING**  
 **Priority**: Low/Medium
@@ -361,7 +431,7 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ---
 
-### 7.4 UI polish and validation
+### 8.4 UI polish and validation
 
 **Status**: **DEFERRED / OPPORTUNISTIC**  
 **Priority**: Low
@@ -389,7 +459,7 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 
 ---
 
-### 7.5 Cross-channel sync
+### 8.5 Cross-channel sync
 
 **Status**: **DEFERRED**  
 **Priority**: Low
@@ -406,11 +476,12 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 **Keep for later**:
 
 - Synchronize state across Discord, email, and future channels if multi-channel usage grows.
+- SMS as its own channel is Section 7.1. This item is only about keeping state in sync when someone uses more than one channel.
 - Keep Telegram out of scope unless explicitly revived.
 
 ---
 
-### 7.6 Smart home integration
+### 8.6 Smart home integration
 
 **Status**: **ARCHIVED / FUTURE ONLY**  
 **Priority**: None currently
@@ -419,7 +490,7 @@ This remains a long-term idea from the broader project vision, not a current MHM
 
 ---
 
-## 8. Completed / Archived Plans
+## 9. Completed / Archived Plans
 
 Keep details in changelogs, not here.
 
@@ -441,7 +512,7 @@ Keep details in changelogs, not here.
 
 ---
 
-## 9. Plan Maintenance Rules
+## 10. Plan Maintenance Rules
 
 When updating plans:
 
@@ -456,7 +527,7 @@ When updating plans:
 
 ---
 
-## 10. Next Review Checklist
+## 11. Next Review Checklist
 
 Use this checklist during the next planning cleanup:
 
