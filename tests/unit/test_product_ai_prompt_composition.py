@@ -68,7 +68,10 @@ def test_compose_chat_response_prompt_includes_generated_capabilities():
 
     assert template is not None
     assert "[available_actions]" in template.content
-    assert "create_task (tasks; required: title)" in template.content
+    actions = template.content.split("[available_actions]\n", 1)[1].split("\n\n", 1)[0]
+    assert "required:" not in actions
+    assert "create_task" not in actions
+    assert "start_checkin" in actions
 
 
 def test_compose_chat_response_prompt_owns_conversation_and_action_rules():

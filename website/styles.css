@@ -427,7 +427,8 @@ button[aria-busy="true"] { cursor: wait; }
 .notes-area { margin-top: 20px; }
 .notes-area .tasks-heading { margin-bottom: 8px; }
 .page-status-stack { display: grid; justify-items: end; gap: 3px; text-align: right; }
-.note-create-form { display: grid; grid-template-columns: minmax(170px, .7fr) minmax(0, 1.6fr) auto; gap: 22px; align-items: end; padding: 24px; margin: 28px 0; border: 1px solid #d7c9ea; border-radius: 20px; background: linear-gradient(135deg, #f3ecfb, #fbf9f5); }
+.note-create-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: end; padding: 24px; margin: 28px 0; border: 1px solid #d7c9ea; border-radius: 20px; background: linear-gradient(135deg, #f3ecfb, #fbf9f5); }
+.note-create-form .task-create-copy { grid-column: 1 / -1; }
 .note-form-fields { min-width: 0; }
 .note-form-fields > .settings-field { margin-bottom: 12px; }
 .note-form-fields > .settings-field:last-child { margin-bottom: 0; }
@@ -447,7 +448,7 @@ button[aria-busy="true"] { cursor: wait; }
 .entry-pinned { margin-left: 8px; border: 0; cursor: pointer; background: #fff1bd; color: #745814; }
 .notebook-list-items { display: grid; gap: 6px; margin: 10px 0 12px; padding-left: 22px; color: var(--muted); }
 .notebook-list-items .is-done { text-decoration: line-through; opacity: .68; }
-.notebook-kind-row { grid-template-columns: minmax(130px, .45fr) minmax(0, 1.55fr); margin-bottom: 12px; }
+.notebook-kind-row { grid-template-columns: 9.5rem minmax(0, 1fr); margin-bottom: 12px; }
 .notebook-item-editor { min-width: 0; margin: 12px 0; padding: 16px; border: 1px solid var(--border); border-radius: 14px; }
 .notebook-item-editor legend { padding: 0 6px; font-weight: 700; }
 .notebook-item-edit-list { display: grid; gap: 9px; }

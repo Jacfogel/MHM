@@ -174,3 +174,13 @@ def test_action_catalog_planning_prompt_summary_is_compact():
     assert summary.index("create_task") < summary.index("add_list_item")
     assert len(summary) < len(verbose)
     assert len(summary) < 2000
+
+
+def test_chat_prompt_summary_drops_disabled_features_and_field_text():
+    catalog = build_action_catalog()
+    summary = catalog.to_chat_prompt_summary({"task_management"})
+
+    assert "required:" not in summary
+    assert "create_task" not in summary
+    assert "start_checkin" in summary
+    assert "help" in summary

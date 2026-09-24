@@ -642,7 +642,7 @@ def _create_user_files__schedules_file(
 def _create_user_files__log_files(user_id):
     """Initialize empty log files if they don't exist."""
     try:
-        log_types = ["checkins", "chat_interactions"]
+        log_types = ["chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if not os.path.exists(log_file):

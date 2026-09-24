@@ -741,7 +741,7 @@ def create_web_app(
                     if proxy_secret
                     else request.remote
                 )
-                throttle(("ip", client), 60, 600)
+                throttle(("ip", client), 240, 600)
             response = await handler(request)
         except web.HTTPException as exc:
             response = web.json_response({"error": exc.text}, status=exc.status)

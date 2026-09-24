@@ -90,7 +90,7 @@ def _build_v2_checkin_from_response_payload(response_data: dict[str, Any]) -> di
 @handle_errors("loading v2 checkins envelope for append", re_raise=True)
 def _coerce_v2_checkins_envelope_for_store(existing_data: Any) -> dict[str, Any] | None:
     """Return a mutable v2 envelope for appending a new check-in."""
-    if existing_data is None or existing_data == {}:
+    if existing_data is None or existing_data == {} or existing_data == []:
         return {
             "schema_version": SCHEMA_VERSION,
             "updated_at": now_timestamp_full(),

@@ -53,6 +53,23 @@ def test_store_checkin_response_skips_invalid_envelope(tmp_path, monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.checkins
+def test_store_checkin_response_replaces_empty_list_file(tmp_path, monkeypatch):
+    checkins_file = tmp_path / "checkins.json"
+    checkins_file.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(
+        "checkins.checkin_data_manager.get_user_file_path",
+        lambda _user_id, _file_type: str(checkins_file),
+    )
+
+    store_checkin_response("user-1", {"mood": 4, "questions_asked": ["mood"]})
+
+    saved = json.loads(checkins_file.read_text(encoding="utf-8"))
+    assert saved["schema_version"] == 2
+    assert saved["checkins"][0]["responses"]["mood"] == 4
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
 def test_get_checkins_by_days_filters_by_cutoff(tmp_path, monkeypatch):
     from datetime import datetime
 

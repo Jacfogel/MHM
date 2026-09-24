@@ -117,6 +117,37 @@ def _extract_context_prompt_text(context_view: Any) -> str:
     return str(context_view)
 
 
+_FEATURE_SECTION_FLAGS = (
+    ("task_management", "tasks", "enabled"),
+    ("checkins", "checkins", "enabled"),
+    ("automated_messages", "messages", "enabled"),
+)
+
+
+@handle_errors("reading disabled features from AI context", default_return=set())
+def _disabled_features_from_context(context_view: Any) -> set[str]:
+    """Return feature names the user context marks as off."""
+    structured = getattr(context_view, "structured", None)
+    if not isinstance(structured, dict) and isinstance(context_view, dict):
+        structured = context_view.get("structured") or {}
+    if not isinstance(structured, dict):
+        return set()
+
+    disabled: set[str] = set()
+    for feature, section_name, flag in _FEATURE_SECTION_FLAGS:
+        section = structured.get(section_name) or {}
+        if isinstance(section, dict) and section.get(flag) is False:
+            disabled.add(feature)
+
+    account = structured.get("account") or {}
+    features = account.get("features") if isinstance(account, dict) else None
+    if isinstance(features, dict):
+        for name, state in features.items():
+            if state in ("disabled", "paused"):
+                disabled.add(str(name))
+    return disabled
+
+
 @handle_errors("extracting product AI action summary", default_return="")
 def _extract_action_summary(context_view: Any, action_catalog: Any) -> str:
     """Return generated action capability text from a catalog or context view."""
@@ -247,9 +278,19 @@ class PromptManager:
         for category in flow.categories:
             if category in RUNTIME_PROMPT_CATEGORIES:
                 if category == "available_actions":
-                    action_summary = _extract_action_summary(
-                        context_view, action_catalog
-                    )
+                    if flow.name == "chat_response":
+                        from ai.prompts.action_catalog import get_action_catalog
+
+                        action_summary = (
+                            "Actions: "
+                            + get_action_catalog().to_chat_prompt_summary(
+                                _disabled_features_from_context(context_view)
+                            )
+                        )
+                    else:
+                        action_summary = _extract_action_summary(
+                            context_view, action_catalog
+                        )
                     if action_summary:
                         content_sections.append(
                             "[available_actions]\n" + action_summary

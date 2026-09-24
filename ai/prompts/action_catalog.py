@@ -131,6 +131,29 @@ class AIActionCatalog:
         )
         return ", ".join(priority + rest)
 
+    @handle_errors(
+        "building AI action chat prompt summary",
+        default_return="none",
+    )
+    def to_chat_prompt_summary(self, disabled_features: set[str] | None = None) -> str:
+        """Return action names for chat, skipping features that are turned off.
+
+        Names only. Required fields stay on the planning path.
+        """
+        if not self.actions:
+            return "none"
+        disabled = disabled_features or set()
+        allowed = {
+            name
+            for name, action in self.actions.items()
+            if not any(feature in disabled for feature in action.feature_requirements)
+        }
+        if not allowed:
+            return "none"
+        priority = [name for name in _PRIORITY_PLANNING_ACTIONS if name in allowed]
+        rest = sorted(name for name in allowed if name not in _PRIORITY_PLANNING_ACTIONS)
+        return ", ".join(priority + rest)
+
     # not_duplicate: action_catalog_serialization
     @handle_errors("serializing AI action catalog", default_return={})
     def to_dict(self) -> dict[str, Any]:
