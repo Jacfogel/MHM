@@ -36,11 +36,28 @@
     const input = document.createElement('input'); input.type = 'checkbox'; input.value = value; input.checked = checked;
     label.append(input, document.createTextNode(labelText)); parent.append(label); return input;
   }
+  function choiceChecked(selectedValues, value, specificValues) {
+    if (selectedValues.includes('ALL')) return true;
+    if (value === 'ALL') return specificValues.length > 0 && specificValues.every(item => selectedValues.includes(item));
+    return selectedValues.includes(value);
+  }
   function renderChoices(periodNames, selectedDays = ['ALL'], selectedPeriods = ['ALL']) {
     daysBox.replaceChildren(); periodsBox.replaceChildren();
-    for (const [value, label] of dayChoices) checkbox(daysBox, value, label, selectedDays.includes(value));
-    checkbox(periodsBox, 'ALL', 'Any reminder window', selectedPeriods.includes('ALL'));
-    for (const name of periodNames) checkbox(periodsBox, name, name, selectedPeriods.includes(name));
+    const dayValues = dayChoices.slice(1).map(([value]) => value);
+    for (const [value, label] of dayChoices) checkbox(daysBox, value, label, choiceChecked(selectedDays, value, dayValues));
+    checkbox(periodsBox, 'ALL', 'Any reminder window', choiceChecked(selectedPeriods, 'ALL', periodNames));
+    for (const name of periodNames) checkbox(periodsBox, name, name, choiceChecked(selectedPeriods, name, periodNames));
+  }
+  function syncAllChoice(parent, changed) {
+    const boxes = [...parent.querySelectorAll('input')];
+    const all = boxes.find(input => input.value === 'ALL');
+    const rest = boxes.filter(input => input.value !== 'ALL');
+    if (!all || changed.type !== 'checkbox') return;
+    if (changed === all) {
+      for (const box of rest) box.checked = all.checked;
+      return;
+    }
+    all.checked = rest.length > 0 && rest.every(box => box.checked);
   }
   function selected(parent) {
     const values = [...parent.querySelectorAll('input:checked')].map(input => input.value);
@@ -54,16 +71,26 @@
       const item = document.createElement('span'); item.textContent = value; previewMeta.append(item);
     }
   }
+  const extraFields = document.getElementById('message-extra-fields');
+  const moreOptions = document.getElementById('message-more-options');
+  function setExtraOpen(open) {
+    extraFields.hidden = !open;
+    moreOptions.setAttribute('aria-expanded', String(open));
+    moreOptions.textContent = open ? 'Fewer options' : 'More options';
+  }
   function resetForm(periodNames = []) {
     editing = null; form.reset(); active.checked = true;
     document.getElementById('message-form-title').textContent = 'Add a message'; cancel.hidden = true;
     renderChoices(periodNames);
+    setExtraOpen(false);
     updatePreview();
   }
   function edit(message, periodNames) {
     editing = message; text.value = message.text; active.checked = message.active;
     document.getElementById('message-form-title').textContent = 'Edit message'; cancel.hidden = false;
-    renderChoices(periodNames, message.days, message.periods); text.focus();
+    renderChoices(periodNames, message.days, message.periods);
+    setExtraOpen(true);
+    text.focus();
     updatePreview();
   }
   function render(periodNames) {
@@ -108,7 +135,14 @@
   });
   cancel.addEventListener('click', () => resetForm(JSON.parse(form.dataset.periodNames || '[]')));
   form.addEventListener('input', updatePreview);
-  form.addEventListener('change', updatePreview);
+  form.addEventListener('change', event => {
+    if (event.target instanceof HTMLInputElement && event.target.type === 'checkbox') {
+      const parent = event.target.closest('#message-days, #message-periods');
+      if (parent) syncAllChoice(parent, event.target);
+    }
+    updatePreview();
+  });
+  moreOptions.addEventListener('click', () => setExtraOpen(extraFields.hidden));
   document.getElementById('message-test').addEventListener('click', async () => {
     try {
       const result = await api('/api/actions', 'POST', { action: 'test_message', category: category.value });

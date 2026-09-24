@@ -37,6 +37,11 @@ async def run_on_ready_internal(bot: DiscordHandlerHost) -> None:
 
     logger.info(f"Discord Bot logged in as {discord_bot.user}")
     print(f"Discord Bot is online as {discord_bot.user}")
+    from communication.communication_channels.discord.ui.message_feedback_view import (
+        MessageFeedbackView,
+    )
+
+    discord_bot.add_view(MessageFeedbackView())
 
     bot._reconnect_attempts = 0
     bot._set_status(ChannelStatus.READY)

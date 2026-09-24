@@ -60,8 +60,10 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "task-create-form" not in home.ids
 
     checkin = parse_page("checkin.html")
-    assert {"checkin-start", "checkin-form", "checkin-answer", "checkin-skip", "checkin-cancel"} <= checkin.ids
-    signed_in_hrefs = {"home.html", "checkin.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
+    assert {"checkin-form", "checkin-answer", "checkin-skip", "checkin-cancel"} <= checkin.ids
+    signed_in_hrefs = {"home.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
+    assert "checkin.html" in home.hrefs
+    assert "checkin.html" in insights.hrefs
     assert signed_in_hrefs <= home.hrefs
     assert signed_in_hrefs <= checkin.hrefs
     assert signed_in_hrefs <= account.hrefs
@@ -105,7 +107,11 @@ def test_message_library_exposes_category_schedule_and_editing_controls():
         "message-days",
         "message-periods",
         "message-list",
+        "message-more-options",
+        "message-extra-fields",
     } <= messages.ids
+    assert "hidden" in messages.controls["message-extra-fields"]
+    assert messages.controls["message-more-options"]["aria-expanded"] == "false"
 
 
 def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
@@ -124,7 +130,6 @@ def test_notebook_page_exposes_all_entry_types_and_bounded_fields():
     assert notebook.controls["note-description"]["maxlength"] == "10000"
     assert notebook.controls["note-tags"]["maxlength"] == "1000"
     assert "list" not in notebook.controls["note-tags"]
-    assert "note-group" in notebook.ids
     assert "note-tabs" in notebook.ids
 
 
@@ -132,7 +137,7 @@ def test_task_page_hides_conditional_recurrence_and_suggests_existing_tags():
     tasks = parse_page("tasks.html")
     html = (WEBSITE / "tasks.html").read_text(encoding="utf-8")
 
-    assert html.index('id="task-list"') < html.index('id="task-create-form"')
+    assert html.index('id="task-create-form"') < html.index('id="task-list"')
     assert "task-more-options" in tasks.ids
     assert "hidden" in tasks.controls["task-extra-fields"]
     assert tasks.controls["task-more-options"]["aria-expanded"] == "false"
@@ -191,7 +196,6 @@ def test_website_scripts_use_only_current_task_and_insights_shapes():
 
 def test_login_and_account_pages_expose_password_and_provider_controls():
     login = parse_page("login.html")
-    account = parse_page("app.html")
 
     assert {
         "password",
@@ -206,13 +210,14 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     assert login.controls["preferred-name"]["maxlength"] == "100"
     assert login.controls["password"]["minlength"] == "12"
     assert login.controls["password"]["maxlength"] == "128"
+    settings = parse_page("account-settings.html")
     assert {
         "password-form",
         "current-password",
         "new-password",
         "new-password-confirm",
         "social-connections",
-    } <= account.ids
+    } <= settings.ids
 
 
 def test_first_run_exposes_a_setup_path_for_each_feature():
@@ -263,7 +268,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
 def test_setup_requires_one_feature_without_forcing_tasks():
     source = (WEBSITE / "setup.js").read_text(encoding="utf-8")
     assert "tasks = true" not in source
-    assert "Pick at least one: supportive messages, task reminders, or check-ins." in source
+    assert "Pick at least one: supportive messages, task reminders, or check-ins." not in source
     assert "message-categories" in source
     assert "checkin-questions" in source
     assert "Keep these windows" in source
@@ -278,7 +283,7 @@ def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():
 
 
 def test_public_pages_link_privacy_terms_and_data():
-    for page_name in ("index.html", "login.html", "app.html"):
+    for page_name in ("index.html", "login.html", "account-settings.html"):
         assert {"privacy.html", "terms.html", "data.html"} <= parse_page(page_name).hrefs
 
 

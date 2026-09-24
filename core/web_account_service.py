@@ -444,6 +444,7 @@ def _setup_completed(account):
     return isinstance(metadata, dict) and metadata.get("website_setup_completed") is True
 
 
+@handle_errors("remembering website setup completion", user_friendly=False, default_return=None)
 def _remember_setup_complete(account):
     """Mark one in-memory account document as finished with first-run setup."""
     if not isinstance(account, dict):
@@ -455,6 +456,11 @@ def _remember_setup_complete(account):
     metadata["website_setup_completed"] = True
 
 
+@handle_errors(
+    "reading website first-run flags",
+    user_friendly=False,
+    default_return=_DEFAULT_SETUP_FLAGS,
+)
 def _setup_flags(account):
     """Return website first-run flags from one account document."""
     features = _account_features(account)
@@ -2329,7 +2335,7 @@ def create_web_app(
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
             "submitted_at": getattr(entry, "submitted_at", None),
-            "source": str((entry.metadata or {}).get("source") or ""),
+            "source": str((getattr(entry, "metadata", None) or {}).get("source") or ""),
         }
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.

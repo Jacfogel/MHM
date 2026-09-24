@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 00:59:25
+> **Last Generated**: 2026-09-24 02:23:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 289
-- **Functions Found**: 2820
-- **Methods Found**: 1432
-- **Classes Found**: 265
-- **Total Items**: 4252
-- **Functions Documented**: 2517
-- **Methods Documented**: 1286
-- **Classes Documented**: 199
-- **Total Documented**: 3803
-- **Template-Generated**: 56
+### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 290
+- **Functions Found**: 2829
+- **Methods Found**: 1436
+- **Classes Found**: 266
+- **Total Items**: 4265
+- **Functions Documented**: 2526
+- **Methods Documented**: 1290
+- **Classes Documented**: 200
+- **Total Documented**: 3816
+- **Template-Generated**: 58
 - **Last Updated**: 2026-09-24
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (544)
+### **Core System Functions** (548)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (740)
+### **Communication Functions** (742)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -705,6 +705,9 @@ Check-in analytics and envelope summaries are handled before generic keyword sup
 - [OK] `get(self, action_name)` - Return a catalog action by canonical action name.
 - [OK] `get_action_catalog()` - Return a freshly built action catalog from live command infrastructure.
 - [OK] `required_fields(self)` - Return entity field names required before this action can execute.
+- [OK] `to_chat_prompt_summary(self, disabled_features)` - Return action names for chat, skipping features that are turned off.
+
+Names only. Required fields stay on the planning path.
 - [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
 - [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
 - [OK] `to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
@@ -716,6 +719,9 @@ Required-field checks happen in the planner parser.
 **Classes:**
 - [OK] `AIActionCatalog` - Collection of product-AI actions indexed by canonical action name.
   - [OK] `AIActionCatalog.get(self, action_name)` - Return a catalog action by canonical action name.
+  - [OK] `AIActionCatalog.to_chat_prompt_summary(self, disabled_features)` - Return action names for chat, skipping features that are turned off.
+
+Names only. Required fields stay on the planning path.
   - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
   - [OK] `AIActionCatalog.to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
 
@@ -775,6 +781,7 @@ AI modules must call this registry helper instead of importing
 **Functions:**
 - [OK] `__init__(self)` - Initialize the prompt manager
 - [OK] `_action_summary_from_dict(catalog)` - Return compact action capability text from serialized catalog data.
+- [OK] `_disabled_features_from_context(context_view)` - Return feature names the user context marks as off.
 - [OK] `_extract_action_summary(context_view, action_catalog)` - Return generated action capability text from a catalog or context view.
 - [OK] `_extract_context_prompt_text(context_view)` - Return prompt text from an AIContextEnvelope-like object or plain dict.
 - [OK] `_load_assistant_system_prompt_text()` - Load optional custom override prompt or defer to product_ai/persona.txt.
@@ -996,6 +1003,7 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 - [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
 - [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in.
 - [MISSING] `_get_checkin_timestamp_for_sorting(item)` - No description
+- [OK] `_save_text_answers_as_journal(user_id, response_data)` - Save text check-in answers as journal entries marked as check-in notes.
 - [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row.
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
@@ -2184,6 +2192,14 @@ Args:
 - [OK] `internal_user_id(interaction)` - Map a Discord interaction to the internal MHM user id.
 - [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
 
+#### `communication/communication_channels/discord/ui/message_feedback_view.py`
+**Functions:**
+- [OK] `__init__(self)` - Special Python method
+- [OK] `message_feedback_view()` - Return the button row for a scheduled Discord message.
+**Classes:**
+- [OK] `MessageFeedbackView` - Unselected More and Not for me buttons on a scheduled message.
+  - [OK] `MessageFeedbackView.__init__(self)` - Special Python method
+
 #### `communication/communication_channels/discord/ui/rich_delivery.py`
 **Functions:**
 - [MISSING] `_create_action_row(self, suggestions, suggestion_payloads)` - No description
@@ -2196,6 +2212,7 @@ Args:
 - [MISSING] `_pagination_action_button_data(self, action)` - No description
 - [MISSING] `_pagination_action_value(self, action, field, default)` - No description
 - [MISSING] `_resolve_interaction_view_from_rich_data(self, rich_data)` - No description
+- [OK] `_with_message_feedback(self, view, rich_data)` - Attach unselected feedback buttons when a scheduled message has no other controls.
 **Classes:**
 - [OK] `DiscordRichDeliveryMixin` - Rich delivery surface shared by the thin Discord bot host.
   - [MISSING] `DiscordRichDeliveryMixin._create_action_row(self, suggestions, suggestion_payloads)` - No description
@@ -2208,6 +2225,7 @@ Args:
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_button_data(self, action)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_value(self, action, field, default)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._resolve_interaction_view_from_rich_data(self, rich_data)` - No description
+  - [OK] `DiscordRichDeliveryMixin._with_message_feedback(self, view, rich_data)` - Attach unselected feedback buttons when a scheduled message has no other controls.
 
 #### `communication/communication_channels/discord/ui/task_list_ui.py`
 **Functions:**
@@ -2453,7 +2471,6 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Functions:**
 - [OK] `__init__(self, config)` - Special Python method
 - [MISSING] `channel_type(self)` - No description
-- [OK] `messages_for_user(user_id)` - Return the website inbox for a signed-in user.
 **Classes:**
 - [OK] `WebsiteBot` - Always-on channel that keeps a copy of outbound messages for the website.
   - [OK] `WebsiteBot.__init__(self, config)` - Special Python method
@@ -5143,6 +5160,8 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
+- [OK] `_remember_setup_complete(account)` - Mark one in-memory account document as finished with first-run setup.
+- [OK] `_setup_completed(account)` - True after the website first-run has been finished.
 - [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
 - [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
 - [OK] `_valid_account_email(email)` - Return whether an address can be stored as an MHM account email.
@@ -5170,6 +5189,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
+- [OK] `mark_setup_complete(self, uid)` - Remember that this account has finished website first-run setup.
 - [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
 - [OK] `oauth_provider_config(provider)` - Return provider credentials and callback settings from configuration.
 - [OK] `prune()` - Remove expired challenges, sessions, rate limits, and OAuth states.
@@ -5200,6 +5220,7 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.get(self, uid)` - Load one account document by canonical user ID.
   - [OK] `MHMAccounts.link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
   - [OK] `MHMAccounts.link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
+  - [OK] `MHMAccounts.mark_setup_complete(self, uid)` - Remember that this account has finished website first-run setup.
   - [OK] `MHMAccounts.save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
   - [OK] `MHMAccounts.set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
   - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
@@ -5229,6 +5250,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 **Functions:**
 - [OK] `_available_message_categories(options, features)` - Return categories supported by the user's currently enabled data sources.
 - [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
+- [OK] `_legal_question_counts(always, sometimes, total_enabled, minimum, maximum)` - Return question counts that include every Always question and can vary.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
 - [OK] `flag(key)` - Apply a validated website feature flag to the account document.
 - [OK] `periods(category)` - Return editable named periods for one schedule category.

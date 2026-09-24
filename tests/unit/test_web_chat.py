@@ -1,5 +1,7 @@
 """Website chat sends through the shared handler as the website channel."""
 
+from typing import cast
+
 import pytest
 import pytest_asyncio
 from aiohttp import CookieJar
@@ -83,7 +85,7 @@ def test_chat_payload_keeps_plain_text_and_unique_suggestions():
     payload = chat_payload(
         InteractionResponse(
             "Here you go.",
-            suggestions=["yes", "yes", "  ", 4, "not now"],
+            suggestions=cast(list[str], ["yes", "yes", "  ", 4, "not now"]),
             completed=True,
         )
     )

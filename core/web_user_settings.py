@@ -306,6 +306,11 @@ def settings_snapshot(documents, options):
     }
 
 
+@handle_errors(
+    "normalizing check-in question counts",
+    user_friendly=False,
+    default_return=(DEFAULT_MIN_QUESTIONS, DEFAULT_MAX_QUESTIONS),
+)
 def _legal_question_counts(always, sometimes, total_enabled, minimum, maximum):
     """Return question counts that include every Always question and can vary."""
     floor = max(int(always), 1)

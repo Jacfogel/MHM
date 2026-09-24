@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 00:59:55
+> **Last Generated**: 2026-09-24 02:24:08
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 287
-- **Total Imports**: 2542
-- **Standard Library**: 736 (29.0%)
-- **Third-Party**: 222 (8.7%)
-- **Local Imports**: 1584 (62.3%)
+- **Files Scanned**: 288
+- **Total Imports**: 2556
+- **Standard Library**: 739 (28.9%)
+- **Third-Party**: 223 (8.7%)
+- **Local Imports**: 1594 (62.4%)
 
 ## Dependency Decision Trees
 
@@ -114,7 +114,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 29 unique local dependencies (high fan-out; review for inappropriate edges) (49 import statements; 20 duplicate)
+- `core/web_account_service.py` -> 29 unique local dependencies (high fan-out; review for inappropriate edges) (50 import statements; 21 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)
@@ -122,8 +122,8 @@ External libraries provide channel and UI support.
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)
+- `communication/communication_channels/base/command_registry.py` -> discord (21 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `core/profile_v2_schemas.py` -> pytz (7 modules use this)
 

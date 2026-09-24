@@ -194,7 +194,7 @@ async def test_discord_reaction_handler_ignores_the_bot_and_replies_for_the_user
 @pytest.mark.communication
 @pytest.mark.asyncio
 async def test_scheduled_discord_send_offers_thumbs_reactions():
-    sent = SimpleNamespace(id=42, add_reaction=AsyncMock())
+    sent = SimpleNamespace(id=42)
     user = MagicMock()
     user.send = AsyncMock(return_value=sent)
     bot = DiscordBot()
@@ -209,5 +209,7 @@ async def test_scheduled_discord_send_offers_thumbs_reactions():
     )
 
     assert bot.last_outbound_message_id == "42"
-    user.send.assert_awaited_once_with(content="Keep going.")
-    assert [call.args[0] for call in sent.add_reaction.await_args_list] == ["👍", "👎"]
+    sent_kwargs = user.send.await_args.kwargs
+    assert sent_kwargs["content"] == "Keep going."
+    labels = [child.label for child in sent_kwargs["view"].children]
+    assert labels == ["More like this", "Not for me"]

@@ -10,7 +10,6 @@ from communication.communication_channels.base.base_channel import (
 )
 from communication.communication_channels.website.inbox import (
     deliver_to_website,
-    list_website_messages,
 )
 from core.error_handling import handle_errors
 
@@ -49,8 +48,3 @@ class WebsiteBot(BaseChannel):
     @handle_errors("checking website channel health", default_return=False)
     async def health_check(self) -> bool:
         return self.status == ChannelStatus.READY
-
-
-def messages_for_user(user_id: str) -> list[dict]:
-    """Return the website inbox for a signed-in user."""
-    return list_website_messages(user_id)

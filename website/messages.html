@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-social-1" defer></script>
-  <script src="messages.js?v=messages-2" defer></script>
+  <script src="messages.js?v=messages-3" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -31,10 +31,13 @@
           <div class="task-create-copy"><strong id="message-form-title">Add a message</strong><span>Messages are picked from the enabled templates that match the current day and reminder window.</span></div>
           <div class="task-form-fields">
             <div class="settings-field"><label for="message-text">Message</label><textarea id="message-text" rows="4" maxlength="5000" required placeholder="A gentle reminder or encouraging thought"></textarea></div>
+            <button class="plain-button task-more-options" id="message-more-options" type="button" aria-expanded="false" aria-controls="message-extra-fields">More options</button>
+            <div id="message-extra-fields" hidden>
             <label class="message-active"><input id="message-active" type="checkbox" checked /> Enable this message</label>
             <fieldset class="category-picker"><legend>Days</legend><div id="message-days" class="message-choice-grid"></div></fieldset>
             <fieldset class="category-picker"><legend>Reminder windows</legend><div id="message-periods" class="message-choice-grid"></div></fieldset>
             <article class="message-preview" aria-live="polite"><span class="eyebrow">Preview</span><p id="message-preview-text">Your message preview will appear here.</p><div id="message-preview-meta" class="task-meta"></div></article>
+            </div>
           </div>
           <div class="task-dialog-actions"><button id="message-test" class="plain-button" type="button">Send me a test</button><button id="message-cancel" class="plain-button" type="button" hidden>Cancel editing</button><button class="button" type="submit">Save message</button></div>
         </form>

@@ -21,6 +21,7 @@
   }
 
   function number(value, fallback = '—') {
+    if (value == null || value === '') return fallback;
     return Number.isFinite(Number(value)) ? String(value) : fallback;
   }
 
@@ -92,7 +93,18 @@
     const sleep = document.getElementById('sleep-detail');
     sleep.replaceChildren();
     if (!data.sleep?.error) {
-      sleep.append(text('p', `Average sleep: ${number(data.sleep.average_hours)} hours. Average quality: ${number(data.sleep.average_quality)}.`));
+      const hours = data.sleep.average_hours;
+      const quality = data.sleep.average_quality;
+      const hoursKnown = hours != null && hours !== '' && Number.isFinite(Number(hours));
+      const qualityKnown = quality != null && quality !== '' && Number.isFinite(Number(quality));
+      const summary = hoursKnown && qualityKnown
+        ? `Average sleep: ${number(hours)} hours. Average quality: ${number(quality)}.`
+        : qualityKnown
+          ? `Sleep length isn't recorded yet. Average quality: ${number(quality)}.`
+          : hoursKnown
+            ? `Average sleep: ${number(hours)} hours. Sleep quality isn't recorded yet.`
+            : 'Sleep length and quality aren\'t recorded yet.';
+      sleep.append(text('p', summary));
       const sleepStats = document.createElement('ul');
       sleepStats.append(
         text('li', `Good sleep days: ${data.sleep.good_sleep_days || 0}`),

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable
 from typing import Any, cast
 
 import discord
@@ -76,6 +76,7 @@ class DiscordRichDeliveryMixin:
             labels, payloads = self._get_action_row_inputs(suggestions, rich_data)
             if labels:
                 view = self._create_action_row(labels, payloads)
+        view = self._with_message_feedback(view, rich_data)
 
         if embed and view:
             sent = await channel.send(content=message or None, embed=embed, view=view)
@@ -145,6 +146,7 @@ class DiscordRichDeliveryMixin:
             labels, payloads = self._get_action_row_inputs(suggestions, rich_data)
             if labels:
                 view = self._create_action_row(labels, payloads)
+        view = self._with_message_feedback(view, rich_data)
 
         if recipient.startswith("discord_user:"):
             internal_user_id = recipient.split(":", 1)[1]
@@ -250,20 +252,23 @@ class DiscordRichDeliveryMixin:
         )
         return False
 
+    @handle_errors("adding message feedback buttons", default_return=None)
+    def _with_message_feedback(self, view: Any, rich_data: dict[str, Any]) -> Any:
+        """Attach unselected feedback buttons when a scheduled message has no other controls."""
+        if view is not None or not rich_data.get("offer_message_reactions"):
+            return view
+        from communication.communication_channels.discord.ui.message_feedback_view import (
+            message_feedback_view,
+        )
+
+        return message_feedback_view()
+
     @handle_errors("remembering outbound Discord message", default_return=None)
     async def _remember_outbound_message(self, sent: Any, rich_data: dict[str, Any] | None) -> None:
-        """Store the Discord message id and offer thumbs reactions on scheduled messages."""
+        """Store the Discord message id for the message that was just sent."""
         message_id = getattr(sent, "id", None)
         if isinstance(message_id, int) or (isinstance(message_id, str) and message_id.isdigit()):
             self.last_outbound_message_id = str(message_id)
-        if not (isinstance(rich_data, dict) and rich_data.get("offer_message_reactions")):
-            return
-        add_reaction = getattr(sent, "add_reaction", None)
-        if not callable(add_reaction):
-            return
-        add_thumbs = cast(Callable[[str], Awaitable[Any]], add_reaction)
-        await add_thumbs("👍")
-        await add_thumbs("👎")
 
     @handle_errors("creating Discord embed", default_return=None)
     def _create_discord_embed(
