@@ -140,6 +140,7 @@ def create_entry(
         logger.error(f"Invalid entry content: {error_msg}")
         return None
 
+    del group
     normalized_tags = normalize_tags(tags or [])
 
     now_ts = now_timestamp_full()
@@ -150,7 +151,6 @@ def create_entry(
         "title": title,
         "description": description,
         "tags": normalized_tags,
-        "group": group,
         "created_at": now_ts,
         "updated_at": now_ts,
         "metadata": metadata or {},
@@ -469,7 +469,6 @@ def set_group(user_id: str, ref: str, group: str | None) -> Entry | None:
         logger.error(f"Entry not found for ref '{ref}'")
         return None
 
-    entry.group = group.strip() if group and group.strip() else None
     return _save_updated_entry(user_id, entry, entries)
 
 
@@ -661,18 +660,9 @@ def set_list_items(user_id: str, ref: str, items: list[dict[str, Any]]) -> Entry
 # Organization operations
 @handle_errors("listing entries by group", default_return=[])
 def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
-    """Lists entries in a specific group - up to limit (pagination handled in handler)."""
-    entries = load_entries(user_id)
-    matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
-    matching.sort(
-        key=lambda e: (
-            (parse_timestamp_full(e.updated_at) or datetime.min)
-            if isinstance(e.updated_at, str)
-            else datetime.min
-        ),
-        reverse=True,
-    )
-    return matching[:limit]
+    """Groups are not stored on notebook entries."""
+    del user_id, group, limit
+    return []
 
 
 @handle_errors("listing pinned entries", default_return=[])

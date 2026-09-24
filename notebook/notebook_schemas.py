@@ -62,7 +62,6 @@ class Entry(BaseModel):
     status: Literal["active", "archived", "deleted"] = "active"
     items: list[ListItem] | None = None
     tags: list[str] = Field(default_factory=list)
-    group: str | None = None
     pinned: bool = False
     submitted_at: str | None = None
     source: dict | None = None
@@ -73,7 +72,7 @@ class Entry(BaseModel):
     deleted_at: str | None = None
     metadata: dict = Field(default_factory=dict)
 
-    @field_validator("title", "description", "group", mode="before")
+    @field_validator("title", "description", mode="before")
     @classmethod
     def strip_optional_strings(cls, v: str | None) -> str | None:
         if v is not None:

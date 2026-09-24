@@ -166,7 +166,7 @@ Shared v2 item fields:
 - `id`: stable internal identifier, usually a UUID string.
 - `short_id`: mobile-friendly no-dash identifier derived from `id`, with a kind prefix such as `t`, `n`, `l`, `j`, `m`, `d`, or `c`.
 - `kind`: canonical item kind, such as `task`, `note`, `list`, or `journal_entry`.
-- `title`, `description`, `category`, `group`, `tags`, `status`.
+- `title`, `description`, `category`, `tags`, `status`.
 - `source`: object describing best-known origin (`system`, `channel`, `actor`, optional `migration`).
 - `linked_item_ids`: list of related canonical item IDs.
 - `created_at`, `updated_at`, `archived_at`, `deleted_at`: canonical timestamps from `core.time_utilities`; nullable timestamps use `null` when absent.
@@ -178,12 +178,11 @@ For `kind: "task"` records in `tasks/tasks.json`:
 
 - **`priority`**: urgency/importance only. Allowed values are the `VALID_PRIORITIES` set in `tasks/task_schemas.py` (`low`, `medium`, `high`, `urgent`, `critical`). Runtime validation rejects unknown values (defaulting where appropriate).
 - **`category`**: broad semantic domain (examples: `health`, `home`, `family`, `personal`). Free string; avoid storing priority words here. Set `priority` explicitly on new data (older v1 upgrades once mapped priority-like `category` values into `priority` when `priority` was absent).
-- **`group`**: user-facing organizational bucket (free string).
 - **`tags`**: flexible multi-label metadata (`list[str]`).
 - **`links`**: optional web links on the task (`list` of `{url, label}`). `url` must be `http://` or `https://` (a leading `www.` is stored as `https://www....`). `label` is an optional short name. Distinct from `linked_item_ids`, which points at other MHM items. Max 10 links per task.
 - **`reminder_sent`**: true after a task reminder has been handed to delivery. Blocks duplicate reminder sends until a snooze expires.
 - **`reminder_snooze_until`**: optional canonical timestamp. When set to a future time, reminder delivery waits until then without changing `due`. Used by Discord **Remind Me Later** (1 hour, tonight or tomorrow morning, next week, or a custom time) and by **Skip** on one-off tasks (until tomorrow morning). Recurring **Skip** also uses this field until the next occurrence.
-- **Convention**: avoid copying the same token into `category`, `group`, and `tags` unless you mean three different roles; this is a modeling convention, not a runtime constraint.
+- **Convention**: avoid copying the same token into `category` and `tags` unless you mean two different roles; this is a modeling convention, not a runtime constraint.
 
 **Short IDs (no dash)**
 

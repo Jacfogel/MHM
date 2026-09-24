@@ -79,12 +79,14 @@ def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
     return bool(saved)
 
 
+@handle_errors("reading website chat turns", default_return=[])
 def _chat_turns(loaded) -> list:
     """Return the saved website conversation turns from one inbox document."""
     turns = loaded.get("turns") if isinstance(loaded, dict) else None
     return turns if isinstance(turns, list) else []
 
 
+@handle_errors("reading one website chat turn", default_return=None)
 def _visible_turn(item: dict) -> dict | None:
     """Return one stored chat turn the home page can show."""
     text = item.get("text")

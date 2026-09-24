@@ -152,7 +152,9 @@ class TestManualChecklistNotebookGaps:
             f"!group {short_id} work",
         )
         assert grouped.completed
-        assert get_entry(user_id, short_id).group == "work"
+        saved = get_entry(user_id, short_id)
+        assert saved is not None
+        assert not hasattr(saved, "group")
 
         inbox_note = create_note(user_id, title="Loose thought")
         inbox = self._handle(user_id, "list_inbox_entries", {}, "!inbox")

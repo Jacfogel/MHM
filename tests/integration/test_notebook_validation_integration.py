@@ -353,4 +353,4 @@ class TestNotebookValidationEdgeCases:
         assert entry.title == 'Test Title', "Title should be stripped but preserved"
         assert entry.description == 'Test Body', "Description should be stripped but preserved"
         assert len(entry.tags) == 2, "Tags should be preserved"
-        assert entry.group == 'work', "Group should be stripped but preserved"
+        assert not hasattr(entry, "group")

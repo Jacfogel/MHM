@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 02:23:44
+> **Last Generated**: 2026-09-24 14:40:54
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 290
-- **Functions Found**: 2829
+- **Functions Found**: 2833
 - **Methods Found**: 1436
 - **Classes Found**: 266
-- **Total Items**: 4265
-- **Functions Documented**: 2526
+- **Total Items**: 4269
+- **Functions Documented**: 2530
 - **Methods Documented**: 1290
 - **Classes Documented**: 200
-- **Total Documented**: 3816
+- **Total Documented**: 3820
 - **Template-Generated**: 58
 - **Last Updated**: 2026-09-24
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (548)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (742)
+### **Communication Functions** (746)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2478,7 +2478,11 @@ Returns True only after the message is handled, so the caller can mark it read.
 
 #### `communication/communication_channels/website/inbox.py`
 **Functions:**
+- [OK] `_chat_turns(loaded)` - Return the saved website conversation turns from one inbox document.
+- [OK] `_visible_turn(item)` - Return one stored chat turn the home page can show.
+- [OK] `append_website_chat_exchange(user_id, user_message, reply)` - Keep one website message and MHM's reply so the next login can show them.
 - [OK] `deliver_to_website(user_id, message, category)` - Store one outbound message for every user, beside their email or Discord channel.
+- [OK] `list_website_chat_turns(user_id)` - Return the website conversation for one user, oldest first.
 - [OK] `list_website_messages(user_id)` - Return stored website deliveries for one user, oldest first.
 
 #### `communication/core/__init__.py`

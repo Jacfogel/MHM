@@ -54,7 +54,6 @@ class BaseItemModel(BaseModel):
     title: str = ""
     description: str = ""
     category: str = ""
-    group: str = ""
     tags: list[str] = Field(default_factory=list)
     status: str = "active"
     source: SourceModel = Field(default_factory=SourceModel)

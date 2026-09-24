@@ -17,7 +17,6 @@ def _note(
     title: str,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
     is_archived: bool = False,
     pinned: bool = False,
     updated_at: str = "2026-01-01 00:00:00",
@@ -29,7 +28,6 @@ def _note(
         title=title,
         description=description,
         tags=tags or [],
-        group=group,
         status="archived" if is_archived else "active",
         pinned=pinned,
         updated_at=updated_at,
@@ -41,7 +39,6 @@ def _list(
     title: str,
     item_texts: list[str],
     tags: list[str] | None = None,
-    group: str | None = None,
     is_archived: bool = False,
     pinned: bool = False,
     updated_at: str = "2026-01-01 00:00:00",
@@ -54,7 +51,6 @@ def _list(
         title=title,
         items=items,
         tags=tags or [],
-        group=group,
         status="archived" if is_archived else "active",
         pinned=pinned,
         updated_at=updated_at,
@@ -415,11 +411,10 @@ class TestNotebookDataManagerGapCoverage:
 
         grouped = ndm.set_group("user-1", str(first.id), "  work  ")
         assert grouped is not None
-        assert grouped.group == "work"
+        assert not hasattr(grouped, "group")
 
         cleared_group = ndm.set_group("user-1", str(first.id), None)
         assert cleared_group is not None
-        assert cleared_group.group is None
 
     def test_mutation_wrappers_return_none_for_missing_or_invalid_group(self, monkeypatch):
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
@@ -436,7 +431,6 @@ class TestNotebookDataManagerGapCoverage:
             _note(
                 "f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1",
                 "Work one",
-                group="work",
                 tags=[],
                 pinned=True,
                 updated_at="2026-01-31 11:00:00",
@@ -444,7 +438,6 @@ class TestNotebookDataManagerGapCoverage:
             _note(
                 "f2f2f2f2-f2f2-f2f2-f2f2-f2f2f2f2f2f2",
                 "Work archived",
-                group="work",
                 tags=["x"],
                 pinned=True,
                 is_archived=True,
@@ -467,7 +460,7 @@ class TestNotebookDataManagerGapCoverage:
         monkeypatch.setattr(ndm, "now_datetime_full", lambda: recent_now)
 
         by_group = ndm.list_by_group("user-1", "WORK", limit=10)
-        assert len(by_group) == 2
+        assert by_group == []
 
         pinned = ndm.list_pinned("user-1", limit=10)
         assert len(pinned) == 1

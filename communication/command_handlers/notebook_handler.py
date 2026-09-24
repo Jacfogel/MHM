@@ -1250,8 +1250,6 @@ class NotebookHandler(InteractionHandler):
                 response_parts = [f"{kind_icon} **Journal: {title}** ({short_id})"]
         else:
             response_parts = [f"{kind_icon} **{title}** ({short_id})"]
-        if entry.group:
-            response_parts.append(f"Group: {entry.group}")
         if entry.tags:
             response_parts.append(f"Tags: {', '.join(entry.tags)}")
         if entry.pinned:

@@ -2330,7 +2330,6 @@ def create_web_app(
             "items": items,
             "tags": [str(tag) for tag in (entry.tags or [])],
             "pinned": bool(entry.pinned) if str(entry.status) == "active" else False,
-            "group": str(entry.group).strip() if str(entry.group or "").strip() else None,
             "status": str(entry.status),
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
@@ -2408,17 +2407,10 @@ def create_web_app(
             elif status == "inbox":
                 entries = notes.list_inbox(uid, limit=100)
             elif status == "group":
-                entries = notes.list_by_group(uid, group_name, limit=100)
+                entries = []
             else:
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
-            if status == "group":
-                entries = [
-                    entry
-                    for entry in entries
-                    if entry.status == "active"
-                    and str(entry.group or "").casefold() == group_name.casefold()
-                ]
-            elif status not in {"all", "pinned", "inbox"}:
+            if status not in {"all", "pinned", "inbox", "group"}:
                 entries = [entry for entry in entries if entry.status == status]
             if tag_filter:
                 entries = [
@@ -2441,19 +2433,11 @@ def create_web_app(
                 },
                 key=str.casefold,
             )
-            groups = sorted(
-                {
-                    str(entry.group).strip()
-                    for entry in all_entries
-                    if entry.status == "active" and str(entry.group or "").strip()
-                },
-                key=str.casefold,
-            )
             return web.json_response({
                 "notes": [note_view(entry) for entry in entries],
                 "count": len(entries),
                 "tags": tags,
-                "groups": groups,
+                "groups": [],
             })
 
         if request.method == "POST" and not note_id:

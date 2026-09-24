@@ -35,7 +35,6 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "title",
     "description",
     "category",
-    "group",
     "status",
     "due_date",
     "due_time",
