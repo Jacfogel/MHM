@@ -34,6 +34,7 @@ function page() {
         if (id === 'site-menu') return menu;
         return null;
       },
+      querySelectorAll() { return []; },
     },
     window: { addEventListener(type, listener) { windowListeners[type] = listener; } },
   }));
@@ -50,6 +51,28 @@ test('nav toggle opens and closes the compact menu', () => {
   assert.equal(view.toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(view.classNames.has('is-open'), false);
   assert.equal(view.toggle.textContent, 'Menu');
+});
+
+test('feature tabs hide when that feature is off and the open page returns home', async () => {
+  const links = [
+    { dataset: { feature: 'checkins' }, hidden: false, getAttribute() { return null; } },
+    { dataset: { feature: 'messages' }, hidden: false, getAttribute() { return 'page'; } },
+  ];
+  const navigation = [];
+  vm.runInContext(source, vm.createContext({
+    document: {
+      getElementById() { return null; },
+      querySelectorAll() { return links; },
+    },
+    fetch: async () => ({ ok: true, json: async () => ({ messages_enabled: false, tasks_enabled: false, checkins_enabled: true }) }),
+    location: { replace(url) { navigation.push(url); } },
+    window: { addEventListener() {} },
+  }));
+  await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(links[0].hidden, false);
+  assert.equal(links[1].hidden, true);
+  assert.deepEqual(navigation, ['home.html']);
 });
 
 test('escape and choosing a destination close the compact menu', () => {

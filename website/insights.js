@@ -196,6 +196,11 @@
   document.getElementById('health-delete').addEventListener('click', () => {
     if (window.confirm('Delete all locally stored Google Health data and disable the integration? This cannot be undone.')) healthAction('delete');
   });
+  api('/api/account').then(account => {
+    const showCheckins = Boolean(account.checkins_enabled);
+    document.getElementById('insights-checkin-answer').hidden = !showCheckins;
+    document.getElementById('checkin-request').hidden = !showCheckins;
+  }).catch(() => {});
   loadInsights();
   loadHealth();
 })();

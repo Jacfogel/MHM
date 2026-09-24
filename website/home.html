@@ -10,16 +10,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=nav-1" defer></script>
+  <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=home-6" defer></script>
+  <script src="home.js?v=home-8" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="container nav-wrap">
     <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="button button-small" href="home.html" aria-current="page">Home</a><a class="plain-button" href="checkin.html">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="button button-small" href="home.html" aria-current="page">Home</a><a class="plain-button" href="checkin.html" data-feature="checkins">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite">Loading your next steps…</p>
@@ -33,7 +33,7 @@
           <h2 id="home-task-title">No tasks yet.</h2>
           <p id="home-task-meta" class="field-hint"></p>
           <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html">Account</a>.</p>
-          <a class="button" href="tasks.html">Open tasks →</a>
+          <a class="button" id="home-tasks" href="tasks.html">Open tasks →</a>
         </article>
         <article class="card">
           <span class="eyebrow">Check-in</span>

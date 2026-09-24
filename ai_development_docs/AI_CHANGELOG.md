@@ -35,7 +35,7 @@ Guidelines:
 - The Check-in page starts, answers, skips, and cancels a check-in in the browser. Task help accepts a typed reminder time.
 - Talk to MHM on the website is planned in [PLANS.md](../development_docs/PLANS.md) Section 7.4 and is not built yet.
 - Scheduled Discord messages no longer repeat themselves in an embed. The reaction flag only adds thumbs. The two check-in Pyright warnings are cleared.
-- The first question starts on its own line after the opening, and later questions start on their own line after the transition phrase. The website answer box clears for the next question. Scale questions offer 1–5 and yes/no questions offer Yes and No, without a text box. Sleep times use dropdowns. Other typed questions still use the text box. Home shows an open check-in. Logging out drops an in-progress check-in.
+- The first question starts on its own line after the opening, and later questions start on their own line after the transition phrase. The website answer box clears for the next question. Scale questions offer 1–5 and yes/no questions offer Yes and No, without a text box. Sleep times use dropdowns. Other typed questions still use the text box. Home shows an open check-in. Logging out drops an in-progress check-in. An idle check-in expires after the same two hours used by Discord and email. Check-in, Tasks, and Messages tabs show only when that feature is enabled. Tasks stay available, like the notebook. Home and Insights hide check-in actions when check-ins are off, and the Messages tab hides when messages are off.
 
 ### 2026-09-23 - Two-way email replies **COMPLETED**
 - A reply keeps the new text, stays in the same email thread, and the inbox message is marked read only after MHM handles it.

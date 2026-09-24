@@ -18,3 +18,20 @@ if (navToggle && siteMenu) {
     if (event.key === 'Escape') setMenuOpen(false);
   });
 }
+
+const featureLinks = [...document.querySelectorAll('a[data-feature]')];
+if (featureLinks.length) {
+  fetch('/api/account', { credentials: 'same-origin', cache: 'no-store' })
+    .then(response => (response.ok ? response.json() : null))
+    .then(account => {
+      if (!account) return;
+      const enabled = {
+        messages: Boolean(account.messages_enabled),
+        checkins: Boolean(account.checkins_enabled),
+      };
+      for (const link of featureLinks) link.hidden = !enabled[link.dataset.feature];
+      const current = featureLinks.find(link => link.getAttribute('aria-current') === 'page' && link.hidden);
+      if (current) location.replace('home.html');
+    })
+    .catch(() => {});
+}

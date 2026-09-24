@@ -154,6 +154,32 @@ async def test_logout_clears_an_open_website_checkin(checkin_gateway):
         conversation_manager.user_states.pop("existing", None)
 
 
+def test_current_checkin_prompt_drops_an_idle_checkin():
+    from datetime import timedelta
+
+    from communication.message_processing.conversation_flow_manager import conversation_manager
+    from communication.message_processing.flows.flow_constants import CHECKIN_INACTIVITY_MINUTES
+    from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
+
+    user_id = "website-checkin-idle"
+    past = format_timestamp(
+        now_datetime_full() - timedelta(minutes=CHECKIN_INACTIVITY_MINUTES + 1),
+        TIMESTAMP_FULL,
+    )
+    conversation_manager.user_states[user_id] = {
+        "flow": FLOW_CHECKIN,
+        "question_order": ["mood"],
+        "current_question_index": 0,
+        "data": {},
+        "last_activity": past,
+    }
+    try:
+        assert conversation_manager.current_checkin_prompt(user_id) is None
+        assert user_id not in conversation_manager.user_states
+    finally:
+        conversation_manager.user_states.pop(user_id, None)
+
+
 async def test_current_checkin_prompt_reads_the_open_question(monkeypatch):
     from communication.message_processing.conversation_flow_manager import conversation_manager
 

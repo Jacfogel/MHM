@@ -199,6 +199,7 @@ class CheckinFlowMixin(FlowStateMixin):
     @handle_errors("reading the current check-in prompt", default_return=None)
     def current_checkin_prompt(self, user_id: str) -> dict | None:
         """Return the open check-in question, or None when no check-in is active."""
+        self._expire_inactive_checkins(user_id)
         user_state = self.user_states.get(user_id)
         if not isinstance(user_state, dict) or user_state.get("flow") != FLOW_CHECKIN:
             return None

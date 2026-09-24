@@ -25,6 +25,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-task-title', node()],
     ['home-task-meta', node()],
     ['home-task-off', node()],
+    ['home-tasks', node({ hidden: false })],
     ['home-checkin', node()],
     ['home-checkin-answer', node()],
     ['home-checkin-on', node()],
@@ -129,6 +130,9 @@ test('home warns when task reminders are off', async () => {
     account: { preferred_name: 'River', needs_setup: false, tasks_enabled: false, checkins_enabled: true },
   });
   assert.equal(view.nodes.get('home-task-off').hidden, false);
+  assert.equal(view.nodes.get('home-tasks').hidden, false);
+  assert.equal(view.nodes.get('home-task-title').textContent, 'Drink water');
+  assert.equal(view.requests.some(request => request.url === '/api/tasks?status=active'), true);
   assert.equal(view.nodes.get('home-checkin-off').hidden, true);
 });
 
