@@ -123,6 +123,11 @@ class PredefinedMessageDispatcher:
         matching_periods: list[str],
     ) -> tuple[bool, str | None]:
         delivery_meta: dict[str, str] = {}
+        from communication.communication_channels.website.inbox import deliver_to_website
+
+        deliver_to_website(
+            user_id, str(message_to_send.get("text") or ""), category
+        )
         success = self._cm.send_message_sync(
             messaging_service,
             recipient,

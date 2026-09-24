@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-24 - Talk to MHM on the home page
+- **Feature**: The signed-in home page now has a conversation panel. A message is sent through `handle_user_message` as the `website` channel, and the reply plus suggestion buttons come back on the same page. An open check-in or task flow stays in charge because that shared handler already does. The typed transcript stays in the browser for the current visit and is cleared on logout. The website is also an always-on delivery channel beside email or Discord: scheduled messages, check-ins, task reminders, and health notices are stored in the website inbox and shown on Home. See [home.html](../website/home.html), [home.js](../website/home.js), [inbox.py](../communication/communication_channels/website/inbox.py), and [web_account_service.py](../core/web_account_service.py).
+- **Impact**: Someone can talk to MHM on the website, and messages MHM sends still arrive on their usual channel and on Home.
+
 ### 2026-09-23 - Website check-ins, notebook groups, and custom reminder times
 - **Feature**: Notebook groups are tabs again, next to Pinned, Inbox, and Archived. Creating or editing an entry can set or clear a group. The Check-in page starts, answers, skips, and cancels a check-in in the browser through the same flow Discord and email use. Task help can delay a reminder until a typed time. Talk to MHM on the website is planned in [PLANS.md](PLANS.md) Section 7.4 and is not built yet. See [notes.js](../website/notes.js), [checkin.js](../website/checkin.js), [tasks.js](../website/tasks.js), and [web_account_service.py](../core/web_account_service.py).
 - **Impact**: A signed-in person can file notes by group, finish a check-in without waiting for email or Discord, and snooze a task to a time they type.

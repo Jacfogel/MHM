@@ -92,6 +92,7 @@
         const progress = checkinState.index && checkinState.total ? ` Question ${checkinState.index} of ${checkinState.total}.` : '';
         checkinOn.textContent = `A check-in is open.${progress}`;
         answerLink.textContent = 'Continue check-in';
+        if (talkHint) talkHint.textContent = `A check-in is open.${progress} You can answer it here, or on the Check-in page.`;
       } else {
         checkinOn.textContent = 'Answer here, or have MHM send one by email or Discord.';
         answerLink.textContent = 'Answer a check-in';
@@ -153,6 +154,147 @@
       button.disabled = false;
     }
   });
+
+  const talkLog = document.getElementById('talk-log');
+  const talkForm = document.getElementById('talk-form');
+  const talkInput = document.getElementById('talk-input');
+  const talkSend = document.getElementById('talk-send');
+  const talkStatus = document.getElementById('talk-status');
+  const talkSuggestions = document.getElementById('talk-suggestions');
+  const talkHint = document.getElementById('talk-hint');
+  const CHAT_KEY = 'mhm-home-chat';
+  const DELIVERED_KEY = 'mhm-home-delivered';
+
+  function savedTurns() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CHAT_KEY) || '[]');
+      return Array.isArray(saved) ? saved.filter(turn => turn && (turn.role === 'you' || turn.role === 'mhm') && typeof turn.text === 'string') : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function remember(turns) {
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify(turns.slice(-40)));
+  }
+
+  function clearChat() {
+    sessionStorage.removeItem(CHAT_KEY);
+    sessionStorage.removeItem(DELIVERED_KEY);
+  }
+
+  function deliveredIds() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(DELIVERED_KEY) || '[]');
+      return new Set(Array.isArray(saved) ? saved.filter(id => typeof id === 'string') : []);
+    } catch (error) {
+      return new Set();
+    }
+  }
+
+  function showDelivered(messages) {
+    const seen = deliveredIds();
+    (messages || []).forEach(item => {
+      if (!item || typeof item.id !== 'string' || typeof item.text !== 'string' || seen.has(item.id)) return;
+      addBubble('mhm', item.text);
+      seen.add(item.id);
+    });
+    sessionStorage.setItem(DELIVERED_KEY, JSON.stringify([...seen].slice(-80)));
+  }
+
+  async function loadDelivered() {
+    const inbox = await api('/api/chat');
+    showDelivered(inbox.messages);
+  }
+
+  function addBubble(role, text) {
+    const item = document.createElement('article');
+    item.className = role === 'you' ? 'talk-bubble talk-you' : 'talk-bubble talk-mhm';
+    const who = document.createElement('span');
+    who.textContent = role === 'you' ? 'You' : 'MHM';
+    const body = document.createElement('p');
+    body.textContent = text;
+    item.append(who, body);
+    talkLog.append(item);
+    talkLog.scrollTop = talkLog.scrollHeight;
+  }
+
+  function showSuggestions(suggestions) {
+    talkSuggestions.replaceChildren();
+    const usable = (suggestions || []).filter(item => typeof item === 'string' && item.trim());
+    talkSuggestions.hidden = usable.length === 0;
+    usable.forEach(suggestion => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'plain-button talk-suggestion';
+      button.textContent = suggestion;
+      button.addEventListener('click', () => sendMessage(suggestion));
+      talkSuggestions.append(button);
+    });
+  }
+
+  function renderSaved() {
+    talkLog.replaceChildren();
+    const turns = savedTurns();
+    if (!turns.length) {
+      addBubble('mhm', 'Hi. Ask for help, tell me to add a task, or just say what’s on your mind.');
+      return;
+    }
+    turns.forEach(turn => addBubble(turn.role, turn.text));
+    const last = turns[turns.length - 1];
+    if (last && last.role === 'mhm') showSuggestions(last.suggestions);
+  }
+
+  async function sendMessage(text) {
+    const message = text.trim();
+    if (!message || talkSend.disabled) return;
+    const turns = savedTurns();
+    turns.push({ role: 'you', text: message });
+    remember(turns);
+    addBubble('you', message);
+    talkInput.value = '';
+    talkSend.disabled = true;
+    talkSuggestions.hidden = true;
+    talkStatus.textContent = 'MHM is replying…';
+    talkStatus.classList.remove('is-error');
+    try {
+      const result = await api('/api/chat', 'POST', { message });
+      const reply = result.reply || 'MHM could not answer that just now. Please try again.';
+      turns.push({ role: 'mhm', text: reply, suggestions: result.suggestions || [] });
+      remember(turns);
+      addBubble('mhm', reply);
+      showSuggestions(result.suggestions);
+      talkStatus.textContent = '';
+    } catch (error) {
+      talkStatus.textContent = error.message;
+      talkStatus.classList.add('is-error');
+      showSuggestions([]);
+    } finally {
+      talkSend.disabled = false;
+      talkInput.focus();
+    }
+  }
+
+  if (talkForm) {
+    renderSaved();
+    loadDelivered().catch(() => {});
+    window.setInterval(() => {
+      loadDelivered().catch(() => {});
+    }, 20000);
+    talkForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      sendMessage(talkInput.value);
+    });
+    talkInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(talkInput.value);
+      }
+    });
+  }
+
+  window.addEventListener('mhm:before-logout', clearChat);
+  window.addEventListener('mhm:signed-out', clearChat);
 
   if (homeContent) loadHome();
 })();

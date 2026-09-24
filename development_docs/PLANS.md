@@ -368,20 +368,21 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 
 ### 7.4 Talk to MHM on the website
 
-**Status**: **PLANNED**  
+**Status**: **DONE**  
 **Added**: 2026-09-23  
+**Completed**: 2026-09-24  
 **Priority**: Later
 
-**Use / fit**: Discord and email already accept a normal message: help, status, "add a task," or an open conversation. The website is forms and buttons. A conversation page lets someone talk to MHM without leaving the site. Check-in answers, tasks, and the notebook stay on their own pages.
+**Use / fit**: Discord and email already accept a normal message: help, status, "add a task," or an open conversation. The home page now has that same conversation. Check-in answers, tasks, and the notebook stay on their own pages.
 
-**Scaffold** (in order):
+**What shipped**:
 
-1. Add a signed-in conversation page. It shows the reply and any suggestions as buttons that send that suggestion text back.
-2. Send each message through `handle_user_message` with a website channel. Do not label that channel as Discord.
-3. Keep an active check-in or task flow in charge, the same way Discord and email do.
-4. Leave Tasks, Notebook, and Check-in as the places for those jobs. This page is the open conversation, not a second copy of those screens.
+1. The signed-in home page shows the conversation, the reply, and suggestion buttons that send that suggestion text back.
+2. Each message goes through `handle_user_message` with the `website` channel. It is not labeled as Discord. Outbound messages also copy onto that channel for every user, beside email or Discord.
+3. An active check-in or task flow stays in charge, the same way Discord and email do, because the website uses that shared handler.
+4. Tasks, Notebook, and Check-in remain the places for those jobs. Home is the open conversation, not a second copy of those screens.
 
-**Leave in place for now**: thumbs reactions that change later messages stay on Discord. Account deletion stays a request through Discord or email.
+**Leave in place for now**: thumbs reactions that change later messages stay on Discord. Account deletion stays a request through Discord or email. The browser keeps the visible transcript for the current visit only.
 
 ---
 

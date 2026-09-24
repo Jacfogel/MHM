@@ -111,6 +111,9 @@ class CheckinPromptDispatcher:
                 send_kwargs["subject"] = "Check-in"
                 send_kwargs["reply_kind"] = "checkin"
 
+            from communication.communication_channels.website.inbox import deliver_to_website
+
+            deliver_to_website(user_id, reply_text, "checkin")
             success = self._cm.send_message_sync(
                 messaging_service,
                 recipient,

@@ -110,6 +110,9 @@ class TaskReminderDispatcher:
             send_kwargs["reply_kind"] = "task_reminder"
             send_kwargs["task_id"] = task_identifier
 
+        from communication.communication_channels.website.inbox import deliver_to_website
+
+        deliver_to_website(user_id, reminder_message, TASK_REMINDER_CATEGORY)
         success = self._cm.send_message_sync(
             messaging_service,
             recipient,

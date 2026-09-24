@@ -72,6 +72,9 @@ def send_reconnect_notice(user_id: str) -> bool:
         )
         return False
 
+    from communication.communication_channels.website.inbox import deliver_to_website
+
+    deliver_to_website(user_id, RECONNECT_NOTICE_TEXT, "health")
     success = comm_manager.send_message_sync(
         messaging_service,
         recipient,

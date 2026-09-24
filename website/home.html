@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=home-8" defer></script>
+  <script src="home.js?v=talk-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -26,7 +26,22 @@
     <section id="home-content" hidden>
       <span class="eyebrow">Today</span>
       <h1>Welcome back, <span id="home-name"></span>.</h1>
-      <p class="hero-lead">One next step is enough.</p>
+      <p class="hero-lead">One next step is enough. You can also talk to MHM right here.</p>
+      <section class="talk-panel" aria-labelledby="talk-heading">
+        <div class="talk-heading">
+          <span class="eyebrow">Talk to MHM</span>
+          <h2 id="talk-heading">Say it the way you would in Discord.</h2>
+          <p id="talk-hint">Ask for help, add a task, or just talk. Messages MHM sends also show up here, in addition to email or Discord.</p>
+        </div>
+        <div id="talk-log" class="talk-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div id="talk-suggestions" class="talk-suggestions" hidden></div>
+        <form id="talk-form" class="talk-form">
+          <label class="sr-only" for="talk-input">Message</label>
+          <textarea id="talk-input" rows="2" maxlength="2000" required placeholder="Message MHM…"></textarea>
+          <button class="button" id="talk-send" type="submit">Send</button>
+        </form>
+        <p id="talk-status" class="form-status" role="status" aria-live="polite"></p>
+      </section>
       <div class="home-cards">
         <article class="card">
           <span class="eyebrow">Next task</span>

@@ -486,6 +486,14 @@ class CommunicationManager:
                 backoff_multiplier=2.0,
             )
 
+        configs["website"] = ChannelConfig(
+            name="website",
+            enabled=True,
+            max_retries=1,
+            retry_delay=0.5,
+            backoff_multiplier=1.0,
+        )
+
         return configs
 
     @handle_errors("starting all channels", default_return=False)
@@ -1367,6 +1375,9 @@ class CommunicationManager:
             message_id = str(uuid.uuid4())
 
             delivery_meta: dict[str, str] = {}
+            from communication.communication_channels.website.inbox import deliver_to_website
+
+            deliver_to_website(user_id, message_to_send, category)
             success = self.send_message_sync(
                 messaging_service,
                 recipient,

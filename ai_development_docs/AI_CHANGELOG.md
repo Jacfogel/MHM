@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-24 - Talk to MHM on the home page **COMPLETED**
+- The signed-in home page sends a message through `handle_user_message` as the `website` channel and shows the reply plus suggestion buttons.
+- The website is an always-on extra delivery channel. Scheduled messages, check-ins, task reminders, and health notices are copied into the website inbox and shown on Home, while email or Discord delivery stays in place.
+- An open check-in or task flow stays in charge. The typed transcript lasts for the browser visit and clears on logout.
+
 ### 2026-09-23 - Website check-ins, groups, and custom snooze **COMPLETED**
 - Notebook groups are tabs again, and entries can be assigned or cleared from those groups.
 - The Check-in page starts, answers, skips, and cancels a check-in in the browser. Task help accepts a typed reminder time.

@@ -368,6 +368,8 @@ def get_available_channels() -> list[str]:
         if DISCORD_BOT_TOKEN:
             available_channels.append("discord")
 
+        available_channels.append("website")
+
         return available_channels
     except Exception as e:
         logger.error(f"Error getting available channels: {e}")
@@ -386,6 +388,7 @@ def get_channel_class_mapping() -> dict[str, str]:
         return {
             "email": "communication.communication_channels.email.bot.EmailBot",
             "discord": "communication.communication_channels.discord.bot.DiscordBot",
+            "website": "communication.communication_channels.website.bot.WebsiteBot",
         }
     except Exception as e:
         logger.error(f"Error getting channel class mapping: {e}")
@@ -1079,6 +1082,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         "checkins": "checkins.json",
         "chat_interactions": "chat_interactions.json",
         "sent_messages": "messages/sent_messages.json",
+        "website_inbox": "website_inbox.json",
         "conversation_history": "conversation_history.json",
         "tags": "tags.json",
     }

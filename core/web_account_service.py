@@ -2642,8 +2642,36 @@ def create_web_app(
     app.router.add_get("/api/messages", messages_api)
     app.router.add_post("/api/messages", messages_api)
     app.router.add_post("/api/actions", request_action)
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def chat_api(request):
+        """Send one signed-in message through the website conversation channel."""
+        from core.web_chat import website_chat_reply
+
+        uid, _current = await authenticated_account(request)
+        data = await body(request)
+        message = data.get("message")
+        if set(data) != {"message"} or not isinstance(message, str):
+            raise web.HTTPBadRequest(text="Enter a message to send.")
+        message = message.strip()
+        if not message or len(message) > 2000:
+            raise web.HTTPBadRequest(text="Enter a message of up to 2000 characters.")
+        throttle(("chat", uid), 30, 600)
+        result = await asyncio.to_thread(website_chat_reply, uid, message)
+        return web.json_response(result)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def chat_inbox(request):
+        """Return outbound messages stored for the always-on website channel."""
+        from communication.communication_channels.website.inbox import list_website_messages
+
+        uid, _current = await authenticated_account(request)
+        messages = await asyncio.to_thread(list_website_messages, uid)
+        return web.json_response({"messages": messages})
+
     app.router.add_get("/api/checkins", checkins_api)
     app.router.add_post("/api/checkins", checkins_api)
+    app.router.add_get("/api/chat", chat_inbox)
+    app.router.add_post("/api/chat", chat_api)
     app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_get("/api/notes", notes_api)
