@@ -414,12 +414,6 @@ def _build_new_note_modal(
             max_length=1500,
             required=False,
         )
-        group_input = discord.ui.TextInput(
-            label="Group",
-            placeholder="Optional group",
-            max_length=80,
-            required=False,
-        )
         tags_input = discord.ui.TextInput(
             label="Tags",
             placeholder="Comma-separated",
@@ -443,7 +437,6 @@ def _build_new_note_modal(
             entities = entities_from_shared_fields(
                 title=self.title_input.value,
                 description=self.body_input.value,
-                group=self.group_input.value,
                 tags_value=self.tags_input.value,
             )
             response = _run_handler(

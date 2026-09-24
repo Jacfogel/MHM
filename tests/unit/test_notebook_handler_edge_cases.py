@@ -141,7 +141,7 @@ class TestNotebookHandlerPublicFlowStart:
             response = handler._handle_create_note("user-1", {"title": "Hello"})
 
         mock_cm.start_note_body_flow.assert_called_once_with(
-            "user-1", title="Hello", tags=[], group=None
+            "user-1", title="Hello", tags=[]
         )
         mock_cm._save_user_states.assert_not_called()
         assert response.completed is False
@@ -183,13 +183,11 @@ class TestNotebookHandlerPublicFlowStart:
             mock_cm.get_note_body_flow_data.return_value = {
                 "title": "FromFlow",
                 "tags": ["keep"],
-                "group": "Inbox",
             }
             handler._handle_create_note("user-1", {"description": "body text"})
 
         assert captured["title"] == "FromFlow"
         assert captured["tags"] == ["keep"]
-        assert captured["group"] == "Inbox"
         mock_cm.start_note_body_flow.assert_not_called()
 
     def test_create_list_title_only_starts_list_items_flow(self):
@@ -200,7 +198,7 @@ class TestNotebookHandlerPublicFlowStart:
             response = handler._handle_create_list("user-1", {"title": "Groceries"})
 
         mock_cm.start_list_items_flow.assert_called_once_with(
-            "user-1", title="Groceries", tags=[], group=None
+            "user-1", title="Groceries", tags=[]
         )
         mock_cm._save_user_states.assert_not_called()
         assert response.completed is False
@@ -213,7 +211,7 @@ class TestNotebookHandlerPublicFlowStart:
             response = handler._handle_create_journal("user-1", {"title": "Today"})
 
         mock_cm.start_journal_body_flow.assert_called_once_with(
-            "user-1", title="Today", tags=[], group=None
+            "user-1", title="Today", tags=[]
         )
         mock_cm._save_user_states.assert_not_called()
         assert response.completed is False

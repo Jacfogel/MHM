@@ -27,14 +27,13 @@ from core.ids import (
 )
 from core.logger import get_component_logger
 from notebook.notebook_schemas import EntryKind, NotebookCollectionV2Model
-from storage.user_data_validation import is_valid_category_name, is_valid_string_length
+from storage.user_data_validation import is_valid_string_length
 
 logger = get_component_logger("main")
 
 # Validation constants
 MAX_TITLE_LENGTH = 200
 MAX_BODY_LENGTH = 10000
-MAX_GROUP_LENGTH = 50
 
 # Re-export shared short-ID constants for existing imports/tests
 ENTRY_KIND_PREFIXES = NOTEBOOK_KIND_PREFIXES
@@ -44,7 +43,6 @@ PREFIX_TO_KIND = PREFIX_TO_NOTEBOOK_KIND
 __all__ = [
     "MAX_TITLE_LENGTH",
     "MAX_BODY_LENGTH",
-    "MAX_GROUP_LENGTH",
     "MIN_SHORT_ID_LENGTH",
     "MAX_SHORT_ID_LENGTH",
     "ENTRY_KIND_PREFIXES",
@@ -55,7 +53,6 @@ __all__ = [
     "format_short_id",
     "is_valid_entry_title",
     "is_valid_entry_description",
-    "is_valid_entry_group",
     "is_valid_entry_kind",
     "is_valid_list_item_index",
     "normalize_list_item_index",
@@ -67,10 +64,6 @@ __all__ = [
 @handle_errors("detecting structural entry reference", default_return=False)
 def looks_like_structural_entry_ref(ref: str) -> bool:
     """True when ref looks like a UUID or short ID (not a free-text title).
-
-    Used to disambiguate dual-use commands such as `!group <ref> <name>` vs
-    `!group <multi word group name>`. Title-based assignment should use
-    `!setgroup <title> <group>` instead.
 
     Recognizes notebook short IDs (n/l/j), bare hex, UUIDs, and other known
     shared prefixes (e.g. task ``t``) so those tokens are not treated as titles.
@@ -226,24 +219,6 @@ def is_valid_entry_description(description: str | None, kind: EntryKind = "note"
 
     return is_valid_string_length(
         description, MAX_BODY_LENGTH, field_name="Entry description", allow_none=True
-    )
-
-
-@handle_errors("validating entry group", default_return=False)
-def is_valid_entry_group(group: str | None) -> bool:
-    """
-    Validate that a notebook entry group name is valid.
-
-    Uses general category name validation with notebook-specific MAX_GROUP_LENGTH.
-
-    Args:
-        group: Group name to validate (can be None)
-
-    Returns:
-        True if group is valid, False otherwise
-    """
-    return is_valid_category_name(
-        group, max_length=MAX_GROUP_LENGTH, field_name="Entry group", allow_none=True
     )
 
 

@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=talk-time-1" />
+  <link rel="stylesheet" href="styles.css?v=daily-dashboard-1" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=talk-6" defer></script>
+  <script src="home.js?v=daily-dashboard-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -24,51 +24,47 @@
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite">Loading your next steps…</p>
     <section id="home-content" hidden>
-      <span class="eyebrow">Today</span>
+      <span class="eyebrow">Home</span>
       <h1>Welcome back, <span id="home-name"></span>.</h1>
-      <p class="hero-lead">One next step is enough.</p>
-      <section class="talk-panel" aria-labelledby="talk-heading">
-        <div class="talk-heading">
-          <h2 id="talk-heading">Talk to MHM</h2>
-        </div>
-        <div id="talk-log" class="talk-log" role="log" aria-live="polite" aria-relevant="additions"></div>
-        <div id="talk-suggestions" class="talk-suggestions" hidden></div>
-        <form id="talk-form" class="talk-form">
-          <label class="sr-only" for="talk-input">Message</label>
-          <textarea id="talk-input" rows="2" maxlength="2000" required placeholder="Message MHM…"></textarea>
-          <button class="button" id="talk-send" type="submit">Send</button>
-        </form>
-        <p id="talk-status" class="form-status" role="status" aria-live="polite"></p>
-      </section>
-      <div class="home-cards">
-        <article class="card">
-          <span class="eyebrow">Next task</span>
-          <h2 id="home-task-title">No tasks yet.</h2>
-          <p id="home-task-meta" class="field-hint"></p>
-          <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
-          <a class="button" id="home-tasks" href="tasks.html">Open tasks →</a>
-        </article>
-        <article class="card">
-          <span class="eyebrow">Check-in</span>
-          <h2>How are you, briefly?</h2>
-          <p id="home-checkin-on" hidden></p>
-          <p id="home-checkin-off">Check-ins are off. You can turn them on in <a href="app.html#checkins">Account</a>.</p>
-          <a class="button" id="home-checkin-answer" href="checkin.html" hidden>Answer a check-in</a>
-          <button id="home-checkin" class="plain-button" type="button" hidden>Send me a check-in</button>
-          <p id="home-checkin-status" class="form-status" role="status" aria-live="polite"></p>
-        </article>
-        <article class="card home-capture">
-          <span class="eyebrow">Capture</span>
-          <h2>Park a thought.</h2>
-          <form id="home-capture-form">
-            <div class="settings-field">
-              <label for="home-note">Note</label>
-              <textarea id="home-note" name="note" rows="3" maxlength="10000" required placeholder="Write a note…"></textarea>
-            </div>
-            <button class="button" id="home-capture-submit" type="submit">Save to notebook</button>
+      <p class="hero-lead">Talk through what you need, or take one small next step.</p>
+      <div class="home-dashboard">
+        <section class="talk-panel" aria-labelledby="talk-heading">
+          <div class="talk-heading">
+            <span class="eyebrow">Your assistant</span>
+            <h2 id="talk-heading">Talk to MHM</h2>
+            <p>Ask for a reminder, add a task, save a note, start a check-in, or say what’s on your mind.</p>
+          </div>
+          <div id="talk-log" class="talk-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+          <div id="talk-suggestions" class="talk-suggestions" hidden></div>
+          <form id="talk-form" class="talk-form">
+            <label class="sr-only" for="talk-input">Message MHM</label>
+            <textarea id="talk-input" rows="2" maxlength="2000" required placeholder="What can MHM help with?"></textarea>
+            <button class="button" id="talk-send" type="submit">Send</button>
           </form>
-          <p id="home-capture-status" class="form-status" role="status" aria-live="polite"></p>
-        </article>
+          <p id="talk-status" class="form-status" role="status" aria-live="polite"></p>
+        </section>
+        <aside class="today-panel" aria-labelledby="today-heading">
+          <div class="today-heading">
+            <span class="eyebrow">At a glance</span>
+            <h2 id="today-heading">Today</h2>
+          </div>
+          <article class="card today-card">
+            <span class="eyebrow">Next task</span>
+            <h3 id="home-task-title">No tasks yet.</h3>
+            <p id="home-task-meta" class="field-hint"></p>
+            <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
+            <a class="text-link" id="home-tasks" href="tasks.html">See all tasks →</a>
+          </article>
+          <article class="card today-card">
+            <span class="eyebrow">Check-in</span>
+            <h3>How are you, briefly?</h3>
+            <p id="home-checkin-on" hidden></p>
+            <p id="home-checkin-off">Check-ins are off. You can turn them on in <a href="app.html#checkins">Account</a>.</p>
+            <a class="button button-small" id="home-checkin-answer" href="checkin.html" hidden>Start check-in</a>
+            <button id="home-checkin" class="plain-button" type="button" hidden>Send to another channel</button>
+            <p id="home-checkin-status" class="form-status" role="status" aria-live="polite"></p>
+          </article>
+        </aside>
       </div>
     </section>
     <noscript><p>Enable JavaScript to load your home screen.</p></noscript>

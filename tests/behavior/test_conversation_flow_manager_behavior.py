@@ -740,15 +740,12 @@ class TestConversationFlowManagerBehavior:
         """Public note-body start API persists flow data for the next inbound message."""
         manager = ConversationManager()
         user_id = "test_user_start_note_body"
-        manager.start_note_body_flow(
-            user_id, title="Hello", tags=["a"], group="Inbox"
-        )
+        manager.start_note_body_flow(user_id, title="Hello", tags=["a"])
 
         state = manager.user_states[user_id]
         assert state["flow"] == FLOW_NOTE_BODY
         assert state["data"]["title"] == "Hello"
         assert state["data"]["tags"] == ["a"]
-        assert state["data"]["group"] == "Inbox"
         assert "started_at" in state
 
         data = manager.get_note_body_flow_data(user_id)
@@ -769,7 +766,7 @@ class TestConversationFlowManagerBehavior:
         assert journal_state["data"]["title"] == "Today"
         assert manager.get_note_body_flow_data("j-user") is None
 
-        manager.start_list_items_flow("l-user", title="Groceries", group=None)
+        manager.start_list_items_flow("l-user", title="Groceries")
         list_state = manager.user_states["l-user"]
         assert list_state["flow"] == FLOW_LIST_ITEMS
         assert list_state["data"]["items"] == []

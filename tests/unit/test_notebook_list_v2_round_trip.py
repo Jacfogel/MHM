@@ -24,7 +24,6 @@ def test_create_list_then_v2_round_trip_preserves_shared_fields(monkeypatch):
         "user-list-roundtrip-1",
         title="Groceries",
         tags=["food"],
-        group="home",
         items=["Milk", "Eggs"],
     )
     assert entry is not None
@@ -50,3 +49,34 @@ def test_create_list_then_v2_round_trip_preserves_shared_fields(monkeypatch):
     assert restored.items and len(restored.items) == 2
     assert restored.items[0].text == "Milk"
     assert restored.items[1].text == "Eggs"
+
+
+def test_legacy_notebook_group_is_ignored_and_cleared_on_save():
+    """Old v2 group values load safely but do not re-enter the runtime model."""
+    legacy = {
+        "id": "11111111-1111-1111-1111-111111111111",
+        "short_id": "n111111",
+        "kind": "note",
+        "title": "Legacy note",
+        "description": "Body",
+        "category": "",
+        "group": "old-folder",
+        "tags": [],
+        "status": "active",
+        "pinned": False,
+        "submitted_at": None,
+        "items": None,
+        "source": {"system": "mhm", "channel": "", "actor": ""},
+        "linked_item_ids": [],
+        "created_at": "2026-01-01 00:00:00",
+        "updated_at": "2026-01-01 00:00:00",
+        "archived_at": None,
+        "deleted_at": None,
+        "metadata": {},
+    }
+
+    runtime = _entry_v2_to_runtime(legacy)
+    assert "group" not in runtime
+    restored = Entry.model_validate(runtime)
+    assert "group" not in restored.model_dump()
+    assert _entry_runtime_to_v2(restored.model_dump(mode="json"))["group"] == ""

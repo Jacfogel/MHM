@@ -22,7 +22,6 @@ from notebook.notebook_schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
     is_valid_entry_reference,
-    is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_entry_title,
     normalize_list_item_index,
@@ -116,7 +115,6 @@ def create_entry(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
     items: list[dict[str, Any]] | None = None,  # For list items
     metadata: dict[str, Any] | None = None,
 ) -> Entry | None:
@@ -150,7 +148,6 @@ def create_entry(
         "title": title,
         "description": description,
         "tags": normalized_tags,
-        "group": group,
         "created_at": now_ts,
         "updated_at": now_ts,
         "metadata": metadata or {},
@@ -207,12 +204,9 @@ def create_note(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
 ) -> Entry | None:
     """Creates a note entry."""
-    return create_entry(
-        user_id, "note", title=title, description=description, tags=tags, group=group
-    )
+    return create_entry(user_id, "note", title=title, description=description, tags=tags)
 
 
 @handle_errors("creating list")
@@ -220,7 +214,6 @@ def create_list(
     user_id: str,
     title: str,
     tags: list[str] | None = None,
-    group: str | None = None,
     items: list[str] | None = None,
 ) -> Entry | None:
     """Creates a list entry with initial items."""
@@ -237,9 +230,7 @@ def create_list(
     if not list_items:
         list_items.append({"text": "New item", "order": 0})
 
-    return create_entry(
-        user_id, "list", title=title, tags=tags, group=group, items=list_items
-    )
+    return create_entry(user_id, "list", title=title, tags=tags, items=list_items)
 
 
 @handle_errors("creating journal")
@@ -248,7 +239,6 @@ def create_journal(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
 ) -> Entry | None:
     """Creates a journal entry."""
     return create_entry(
@@ -257,7 +247,6 @@ def create_journal(
         title=title,
         description=description,
         tags=tags,
-        group=group,
     )
 
 
@@ -454,25 +443,6 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
     return _save_updated_entry(user_id, entry, entries)
 
 
-@handle_errors("setting entry group")
-def set_group(user_id: str, ref: str, group: str | None) -> Entry | None:
-    """Sets the group for an entry."""
-    # Validate group if provided
-    if group is not None and not is_valid_entry_group(group):
-        logger.error(f"Invalid group name: {group}")
-        return None
-
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    entry.group = group.strip() if group and group.strip() else None
-    return _save_updated_entry(user_id, entry, entries)
-
-
 # Search operations
 @handle_errors("searching entries", default_return=[])
 def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
@@ -659,22 +629,6 @@ def set_list_items(user_id: str, ref: str, items: list[dict[str, Any]]) -> Entry
 
 
 # Organization operations
-@handle_errors("listing entries by group", default_return=[])
-def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
-    """Lists entries in a specific group - up to limit (pagination handled in handler)."""
-    entries = load_entries(user_id)
-    matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
-    matching.sort(
-        key=lambda e: (
-            (parse_timestamp_full(e.updated_at) or datetime.min)
-            if isinstance(e.updated_at, str)
-            else datetime.min
-        ),
-        reverse=True,
-    )
-    return matching[:limit]
-
-
 @handle_errors("listing pinned entries", default_return=[])
 def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists pinned entries (up to limit - pagination handled in handler)."""

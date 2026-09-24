@@ -11,8 +11,14 @@ function node(extras = {}) {
     disabled: false,
     textContent: '',
     value: '',
+    children: [],
     classList: { add() {}, remove() {}, toggle() {} },
     addEventListener(type, listener) { this.listeners = this.listeners || {}; this.listeners[type] = listener; },
+    append(...items) { this.children.push(...items); },
+    appendChild(item) { this.children.push(item); return item; },
+    replaceChildren(...items) { this.children = [...items]; },
+    setAttribute(name, value) { this.attributes = this.attributes || {}; this.attributes[name] = value; },
+    focus() {},
     ...extras,
   };
 }
@@ -31,18 +37,28 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-checkin-on', node()],
     ['home-checkin-off', node()],
     ['home-checkin-status', node()],
-    ['home-capture-form', node()],
-    ['home-note', node({ value: 'A parked thought' })],
-    ['home-capture-submit', node()],
-    ['home-capture-status', node()],
+    ['talk-log', node({ hidden: false, scrollHeight: 0, scrollTop: 0 })],
+    ['talk-form', node({ hidden: false })],
+    ['talk-input', node({ hidden: false })],
+    ['talk-send', node({ hidden: false })],
+    ['talk-status', node({ hidden: false })],
+    ['talk-suggestions', node()],
   ]);
   const requests = [];
   const navigation = [];
+  const stored = new Map();
   const context = vm.createContext({
     document: {
       getElementById(id) { return nodes.get(id); },
+      querySelectorAll() { return []; },
+      createElement(tagName) { return node({ tagName }); },
     },
-    window: { dispatchEvent() {} },
+    window: { dispatchEvent() {}, addEventListener() {}, setInterval() { return 1; } },
+    sessionStorage: {
+      getItem(key) { return stored.get(key) || null; },
+      setItem(key, value) { stored.set(key, value); },
+      removeItem(key) { stored.delete(key); },
+    },
     Event,
     location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: fetchImpl || (async (url, options = {}) => {
@@ -50,7 +66,8 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       if (url === '/api/account') return Response.json(account);
       if (url === '/api/tasks?status=active') return Response.json(tasks);
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
-      if (url === '/api/notes') return Response.json({ ok: true }, { status: 201 });
+      if (url === '/api/chat' && options.method === 'POST') return Response.json({ reply: 'I can help with that.', suggestions: [] });
+      if (url === '/api/chat') return Response.json({ turns: [], messages: [] });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       return Response.json({ error: 'missing' }, { status: 404 });
     }),
@@ -58,8 +75,10 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
   });
   vm.runInContext(source, context);
   for (let i = 0; i < 8; i += 1) await new Promise(resolve => setImmediate(resolve));
-  return { nodes, requests, navigation, async capture() {
-    await nodes.get('home-capture-form').listeners.submit({ preventDefault() {} });
+  return { nodes, requests, navigation, async send(message) {
+    nodes.get('talk-input').value = message;
+    await nodes.get('talk-form').listeners.submit({ preventDefault() {} });
+    for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
   }, async checkin() {
     await nodes.get('home-checkin').listeners.click({ currentTarget: nodes.get('home-checkin') });
   } };
@@ -136,32 +155,46 @@ test('home warns when task reminders are off', async () => {
   assert.equal(view.nodes.get('home-checkin-off').hidden, true);
 });
 
-test('a one-line capture is saved as a notebook note', async () => {
+test('Talk to MHM is the primary capture path on Home', async () => {
   const view = await page();
-  await view.capture();
-  const saved = view.requests.find(request => request.url === '/api/notes');
-  assert.deepEqual(JSON.parse(saved.options.body), {
-    kind: 'note',
-    title: 'A parked thought',
-    description: 'A parked thought',
-  });
-  assert.equal(view.nodes.get('home-note').value, '');
+  await view.send('Save a note that I called the clinic.');
+  const sent = view.requests.find(request => request.url === '/api/chat' && request.options.method === 'POST');
+  assert.deepEqual(JSON.parse(sent.options.body), { message: 'Save a note that I called the clinic.' });
+  assert.equal(view.nodes.get('talk-input').value, '');
 });
 
 test('home.js can load after app.js without a global status clash', async () => {
   const app = await readFile(new URL('./app.js', import.meta.url), 'utf8');
   const home = await readFile(new URL('./home.js', import.meta.url), 'utf8');
   const nodes = new Map([['app-status', node({ hidden: false })], ['home-content', node()], ['logout', node()]]);
+  const stored = new Map();
   const context = vm.createContext({
-    document: { getElementById(id) { return nodes.get(id) || node(); } },
-    window: { addEventListener() {}, dispatchEvent() { return true; } },
+    document: {
+      getElementById(id) {
+        if (!nodes.has(id)) nodes.set(id, node());
+        return nodes.get(id);
+      },
+      querySelectorAll() { return []; },
+      createElement(tagName) { return node({ tagName }); },
+    },
+    window: { addEventListener() {}, dispatchEvent() { return true; }, setInterval() { return 1; } },
+    sessionStorage: {
+      getItem(key) { return stored.get(key) || null; },
+      setItem(key, value) { stored.set(key, value); },
+      removeItem(key) { stored.delete(key); },
+    },
     Event,
     URLSearchParams,
     AbortSignal: { timeout() { return undefined; } },
     location: { search: '', replace() {}, assign() {} },
-    fetch: async (url) => Response.json(url === '/api/account' ? { preferred_name: 'River', needs_setup: false, tasks_enabled: false, checkins_enabled: false } : { tasks: [] }),
+    fetch: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, messages_enabled: true, tasks_enabled: false, checkins_enabled: false });
+      if (url === '/api/chat') return Response.json({ turns: [], messages: [] });
+      return Response.json({ tasks: [] });
+    },
     Response,
   });
   vm.runInContext(app, context);
   vm.runInContext(home, context);
+  for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
 });

@@ -53,7 +53,8 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert "note-create-form" not in tasks.ids
     assert "note-create-form" in notebook.ids
     assert "task-create-form" not in notebook.ids
-    assert "home-capture-form" in home.ids
+    assert "home-capture-form" not in home.ids
+    assert {"talk-form", "talk-input", "talk-send", "today-heading"} <= home.ids
     assert "home-checkin" in home.ids
     assert "home-checkin-answer" in home.ids
     assert "home-task-off" in home.ids
@@ -73,6 +74,15 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert signed_in_hrefs <= messages.hrefs
     assert "logout" in home.ids & checkin.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
     assert 'aria-current="page">Home</a>' in (WEBSITE / "home.html").read_text(encoding="utf-8")
+
+
+def test_marketing_page_leads_with_the_assistant_and_keeps_randomized_timing_prominent():
+    html = (WEBSITE / "index.html").read_text(encoding="utf-8")
+
+    assert "Your personal assistant for real life" in html
+    assert "reminders, tasks, notes, check-ins" in html
+    assert "slightly randomized times within windows you choose" in html
+    assert "browser, by email, or through Discord" in html
 
 
 def test_insights_page_exposes_checkin_history():

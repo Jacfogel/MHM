@@ -14,14 +14,12 @@ from notebook.notebook_validation import (
     format_short_id,
     is_valid_entry_title,
     is_valid_entry_description,
-    is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_list_item_index,
     normalize_list_item_index,
     validate_entry_content,
     MAX_TITLE_LENGTH,
     MAX_BODY_LENGTH,
-    MAX_GROUP_LENGTH,
     MIN_SHORT_ID_LENGTH,
     MAX_SHORT_ID_LENGTH,
     ENTRY_KIND_PREFIXES,
@@ -63,7 +61,7 @@ class TestEntryReferenceValidation:
 
     @pytest.mark.unit
     def test_looks_like_structural_entry_ref_accepts_ids_not_titles(self):
-        """Structural refs are UUID/short-id only; titles fall through to setgroup."""
+        """Structural refs are UUID/short-id only; free-text titles are not."""
         assert looks_like_structural_entry_ref("n3f2a9c") is True
         assert looks_like_structural_entry_ref("3f2a9c") is True
         assert looks_like_structural_entry_ref(str(uuid4())) is True
@@ -319,49 +317,6 @@ class TestEntryBodyValidation:
 
 
 @pytest.mark.notebook
-class TestEntryGroupValidation:
-    """Test entry group validation."""
-    
-    @pytest.mark.unit
-    @pytest.mark.critical
-    @pytest.mark.smoke
-    def test_is_valid_entry_group_with_valid_groups(self):
-        """Test valid entry groups."""
-        valid_groups = [
-            None,  # Optional
-            'work',
-            'home',
-            'health',
-            'Work Group',  # With spaces
-            'work-group',  # With hyphens
-            'work_group',  # With underscores
-            'a' * MAX_GROUP_LENGTH,  # Max length
-        ]
-        
-        for group in valid_groups:
-            result = is_valid_entry_group(group)
-            assert result is True, f"Valid group {group} should be accepted"
-    
-    @pytest.mark.unit
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_is_valid_entry_group_with_invalid_groups(self):
-        """Test invalid entry groups."""
-        invalid_groups = [
-            '',  # Empty string
-            '   ',  # Whitespace only
-            'a' * (MAX_GROUP_LENGTH + 1),  # Too long
-            'group@invalid',  # Invalid characters
-            'group#invalid',  # Invalid characters
-            123,  # Non-string
-        ]
-        
-        for group in invalid_groups:
-            result = is_valid_entry_group(group)
-            assert result is False, f"Invalid group {group} should be rejected"
-
-
-@pytest.mark.notebook
 class TestEntryKindValidation:
     """Test entry kind validation."""
     
@@ -540,7 +495,6 @@ class TestValidationConstants:
         """Test that all validation constants are defined."""
         assert MAX_TITLE_LENGTH > 0
         assert MAX_BODY_LENGTH > 0
-        assert MAX_GROUP_LENGTH > 0
         assert MIN_SHORT_ID_LENGTH > 0
         assert MAX_SHORT_ID_LENGTH >= MIN_SHORT_ID_LENGTH
     

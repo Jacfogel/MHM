@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 02:23:44
+> **Last Generated**: 2026-09-24 15:38:12
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.5% [!] GOOD**
-- **Total Functions**: 2829
-- **Total Methods**: 1436
-- **Documented**: 3816/4265
+- **Total Functions**: 2828
+- **Total Methods**: 1433
+- **Documented**: 3812/4261
 - **Files Scanned**: 290
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chat/chatbot.py` - Main AI implementation (67 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (89 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (87 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
 
@@ -140,8 +140,8 @@ Core System Decision Tree:
 - [OK] `ui/generate_ui_files.py::main()` - Application entry point
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
+- [OK] `run_mhm.py::main()` - Application entry point
 - [OK] `core/config.py::__init__()` - Initialization
-- [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_read.py` - User data operations
@@ -193,7 +193,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 15109
+1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 14820
 2. [OK] `run_tests.py::run_command()` - Complexity: 3215
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 4. [OK] `run_tests.py::main()` - Complexity: 2820
@@ -209,8 +209,8 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 413 functions)
 - `checkins/` -  (7 files, 152 functions)
-- `communication/` - Communication channels and message processing (98 files, 1302 functions)
-- `core/` - System utilities and data management (38 files, 709 functions)
+- `communication/` - Communication channels and message processing (98 files, 1299 functions)
+- `core/` - System utilities and data management (38 files, 708 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 61 functions)
 - `scheduler/` -  (9 files, 110 functions)

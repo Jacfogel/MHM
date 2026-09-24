@@ -85,7 +85,7 @@ Tasks can be created from built-in templates, edited, linked to web resources,
 completed, restored, deleted, snoozed, skipped, or simplified. The task list is
 shown first; title-only creation is the default, and template, details, due date,
 priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
-pinned, inbox, and group views alongside active and archived entries. Each saved group is its own tab. The message library
+pinned and inbox views alongside active and archived entries. The message library
 supports personal template creation, editing, scheduling, pausing, and deletion.
 Insights show recent check-in patterns and history. A mood trend compares the seven
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
@@ -174,7 +174,7 @@ return to login; request failures allow retrying logout.
 - `script.js` — year stamp and compact navigation menu
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
-- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, and one-line notebook capture
+- `home.html`, `home.js` — signed-in daily dashboard centered on browser chat, with a compact next-task and check-in summary
 - `checkin.html`, `checkin.js` — answer, skip, or cancel the current check-in in the browser
 - `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout

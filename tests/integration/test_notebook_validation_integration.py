@@ -15,12 +15,10 @@ from notebook.notebook_data_manager import (
     append_to_entry_body,
     set_entry_body,
     add_list_item,
-    set_group
 )
 from notebook.notebook_validation import (
     MAX_TITLE_LENGTH,
     MAX_BODY_LENGTH,
-    MAX_GROUP_LENGTH,
     validate_entry_content
 )
 from tests.test_helpers.test_utilities import TestUserFactory
@@ -135,31 +133,6 @@ class TestNotebookValidationIntegration:
         # Whitespace-only item should fail
         updated = add_list_item(user_id, short_id, '   ')
         assert updated is None, "Whitespace-only item should fail"
-    
-    @pytest.mark.file_io
-    def test_set_group_validates_group_name(self, test_data_dir):
-        """Test that set_group validates group name."""
-        user_id = "test_user_group_validation"
-        assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
-        
-        # Create a note first
-        entry = create_note(user_id, title='Test Note')
-        assert entry is not None, "Note should be created"
-        # Short ID format is now n123abc (no dash) for easier mobile typing
-        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
-        
-        # Valid group should succeed
-        updated = set_group(user_id, short_id, 'work')
-        assert updated is not None, "Valid group should succeed"
-        
-        # Group that exceeds limit should fail
-        long_group = 'a' * (MAX_GROUP_LENGTH + 1)
-        updated = set_group(user_id, short_id, long_group)
-        assert updated is None, "Group that exceeds limit should fail"
-        
-        # Group with invalid characters should fail
-        updated = set_group(user_id, short_id, 'invalid@group')
-        assert updated is None, "Group with invalid characters should fail"
     
     @pytest.mark.file_io
     def test_validation_errors_logged(self, test_data_dir):
@@ -337,7 +310,6 @@ class TestNotebookValidationEdgeCases:
         original_title = '  Test Title  '  # Has whitespace
         original_body = '  Test Body  '  # Has whitespace
         original_tags = ['#work', '#urgent']
-        original_group = '  work  '  # Has whitespace
         
         entry = create_entry(
             user_id=user_id,
@@ -345,7 +317,6 @@ class TestNotebookValidationEdgeCases:
             title=original_title,
             description=original_body,
             tags=original_tags,
-            group=original_group
         )
         
         assert entry is not None, "Entry should be created"
@@ -353,4 +324,3 @@ class TestNotebookValidationEdgeCases:
         assert entry.title == 'Test Title', "Title should be stripped but preserved"
         assert entry.description == 'Test Body', "Description should be stripped but preserved"
         assert len(entry.tags) == 2, "Tags should be preserved"
-        assert entry.group == 'work', "Group should be stripped but preserved"

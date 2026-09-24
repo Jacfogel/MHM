@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 02:23:44
+> **Last Generated**: 2026-09-24 15:38:12
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 290
-- **Functions Found**: 2829
-- **Methods Found**: 1436
+- **Functions Found**: 2828
+- **Methods Found**: 1433
 - **Classes Found**: 266
-- **Total Items**: 4265
-- **Functions Documented**: 2526
-- **Methods Documented**: 1290
+- **Total Items**: 4261
+- **Functions Documented**: 2525
+- **Methods Documented**: 1287
 - **Classes Documented**: 200
-- **Total Documented**: 3816
+- **Total Documented**: 3812
 - **Template-Generated**: 58
 - **Last Updated**: 2026-09-24
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (548)
+### **Core System Functions** (547)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (742)
@@ -1451,12 +1451,11 @@ Returns:
 #### `communication/command_handlers/notebook_handler.py`
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
-- [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
+- [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
 - [OK] `_format_journal_submitted_date_label(submitted_at)` - Format journal submitted_at for display (month/day, with year when not current).
-- [OK] `_format_no_group_hits_message(group)` - Build the user message when listing by group returns no entries.
 - [OK] `_format_no_search_hits_message(query)` - Build the Discord/user message when search has no matches.
 
 Explains substring search, archived exclusion, and next-step commands.
@@ -1468,10 +1467,9 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
 - [OK] `_handle_create_list(self, user_id, entities)` - Handle list creation.
 - [OK] `_handle_create_note(self, user_id, entities)` - Handle note creation.
-- [OK] `_handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
+- [OK] `_handle_create_quick_note(self, user_id, entities)` - Handle quick note creation without requiring body text.
 - [OK] `_handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
 - [OK] `_handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
-- [OK] `_handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
 - [OK] `_handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
 - [OK] `_handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
 - [OK] `_handle_list_pinned(self, user_id, entities)` - Handle listing pinned entries.
@@ -1481,7 +1479,6 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_remove_tags(self, user_id, entities)` - Handle removing tags from entry.
 - [OK] `_handle_search_entries(self, user_id, entities)` - Handle searching entries.
 - [OK] `_handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
-- [OK] `_handle_set_group(self, user_id, entities)` - Handle setting entry group.
 - [OK] `_handle_show_entry(self, user_id, entities)` - Handle showing an entry.
 - [OK] `_handle_toggle_list_item_done(self, user_id, entities, done)` - Handle toggling list item done status.
 - [OK] `_page_request(entities)` - Build a notebook page request from command entities.
@@ -1493,7 +1490,7 @@ Explains substring search, archived exclusion, and next-step commands.
 **Classes:**
 - [OK] `NotebookHandler` - Handler for notebook management interactions.
   - [OK] `NotebookHandler._apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
-  - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
+  - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for tag-style list handlers.
   - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
   - [OK] `NotebookHandler._format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
   - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
@@ -1504,10 +1501,9 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
   - [OK] `NotebookHandler._handle_create_list(self, user_id, entities)` - Handle list creation.
   - [OK] `NotebookHandler._handle_create_note(self, user_id, entities)` - Handle note creation.
-  - [OK] `NotebookHandler._handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
+  - [OK] `NotebookHandler._handle_create_quick_note(self, user_id, entities)` - Handle quick note creation without requiring body text.
   - [OK] `NotebookHandler._handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
   - [OK] `NotebookHandler._handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
-  - [OK] `NotebookHandler._handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
   - [OK] `NotebookHandler._handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
   - [OK] `NotebookHandler._handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
   - [OK] `NotebookHandler._handle_list_pinned(self, user_id, entities)` - Handle listing pinned entries.
@@ -1517,7 +1513,6 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._handle_remove_tags(self, user_id, entities)` - Handle removing tags from entry.
   - [OK] `NotebookHandler._handle_search_entries(self, user_id, entities)` - Handle searching entries.
   - [OK] `NotebookHandler._handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
-  - [OK] `NotebookHandler._handle_set_group(self, user_id, entities)` - Handle setting entry group.
   - [OK] `NotebookHandler._handle_show_entry(self, user_id, entities)` - Handle showing an entry.
   - [OK] `NotebookHandler._handle_toggle_list_item_done(self, user_id, entities, done)` - Handle toggling list item done status.
   - [OK] `NotebookHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
@@ -2478,7 +2473,11 @@ Returns True only after the message is handled, so the caller can mark it read.
 
 #### `communication/communication_channels/website/inbox.py`
 **Functions:**
+- [OK] `_chat_turns(loaded)` - Return the saved website conversation turns from one inbox document.
+- [OK] `_visible_turn(item)` - Return one stored chat turn the home page can show.
+- [OK] `append_website_chat_exchange(user_id, user_message, reply)` - Keep one website message and MHM's reply so the next login can show them.
 - [OK] `deliver_to_website(user_id, message, category)` - Store one outbound message for every user, beside their email or Discord channel.
+- [OK] `list_website_chat_turns(user_id)` - Return the website conversation for one user, oldest first.
 - [OK] `list_website_messages(user_id)` - Return stored website deliveries for one user, oldest first.
 
 #### `communication/core/__init__.py`
@@ -2862,10 +2861,6 @@ independent of the rule-parser ``enable_ai_enhancement`` flag.
 
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
-- [OK] `_accept_set_entry_group_match(message_for_match, entities)` - Accept set-group only for explicit aliases or structural entry refs.
-
-Bare `group Quick Notes` must list the multi-word group, not set group
-"Notes" on a title-like ref "Quick".
 - [OK] `_ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
 - [OK] `_assign_create_note_title_and_body(self, match, entities)` - Fill title/description from a create_note match (two groups or title:body text).
 - [OK] `_assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
@@ -2926,10 +2921,6 @@ Returns:
 
 Sets up the parser with AI chatbot integration and interaction handlers,
 and initializes rule-based intent patterns for common commands.
-  - [OK] `EnhancedCommandParser._accept_set_entry_group_match(message_for_match, entities)` - Accept set-group only for explicit aliases or structural entry refs.
-
-Bare `group Quick Notes` must list the multi-word group, not set group
-"Notes" on a title-like ref "Quick".
   - [OK] `EnhancedCommandParser._ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
   - [OK] `EnhancedCommandParser._assign_create_note_title_and_body(self, match, entities)` - Fill title/description from a create_note match (two groups or title:body text).
   - [OK] `EnhancedCommandParser._assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
@@ -5172,7 +5163,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
 - [OK] `clean(data)` - Validate an editable message template payload.
 - [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
-- [OK] `clean_group(value)` - Validate an optional notebook group. Blank clears the group.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
@@ -6251,7 +6241,7 @@ Returns:
 - [OK] `is_valid_category_name(name, max_length, field_name, allow_none)` - Validate that a category/group name is valid.
 
 Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
-This is used for grouping/categorizing items (e.g., notebook groups, task categories).
+This is used for grouping/categorizing items (e.g., task groups and categories).
 
 Args:
     name: Category name to validate (can be None if allow_none=True)

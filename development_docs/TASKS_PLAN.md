@@ -172,7 +172,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Status**: Planned  
 **Priority**: Medium
 
-Notebook and tasks both use concepts like tags, groups, short IDs, search/list views, and item mutation. Avoid creating separate incompatible systems.
+Notebook and tasks both use concepts like tags, short IDs, search/list views, and item mutation. Tasks additionally support groups. Avoid creating separate incompatible systems.
 
 **Tasks**:
 - [x] Confirm whether task `group` is fully supported in manager, parser, and display paths (2026-06-24: list-by-group filter, detail/list display, parser patterns; create path already shipped).
