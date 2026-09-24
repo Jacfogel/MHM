@@ -1,16 +1,5 @@
 {
   "templates": {
-    "cpap_used": {
-      "key": "cpap_used",
-      "type": "yes_no",
-      "question_text": "Did you use your CPAP machine last night?",
-      "ui_display_name": "CPAP use",
-      "category": "health",
-      "validation": {
-        "error_message": "Please answer with yes/no, y/n, or similar."
-      },
-      "description": "Track CPAP machine usage for sleep apnea treatment"
-    },
     "therapy_session": {
       "key": "therapy_session",
       "type": "yes_no",

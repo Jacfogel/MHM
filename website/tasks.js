@@ -151,7 +151,7 @@ const MHMTaskInput = Object.freeze({
   function render() {
     list.replaceChildren();
     count.textContent = `${tasks.length} ${view === 'active' ? 'active' : 'completed'} ${tasks.length === 1 ? 'task' : 'tasks'}`;
-    summary.textContent = view === 'active' ? 'Make room for the next small step.' : 'You did these.';
+    summary.textContent = view === 'active' ? '' : 'You did these.';
     dueSoon.textContent = `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
     bulkPrimary.textContent = view === 'active' ? 'Complete selected' : 'Restore selected';
     empty.hidden = tasks.length !== 0;

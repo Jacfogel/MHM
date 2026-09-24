@@ -91,7 +91,7 @@ Insights show recent check-in patterns and history. A mood trend compares the se
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
 page shows the average and progress toward a trend instead of labelling sparse data
 as stable. Check-ins without a mood answer do not count toward that total. Google Health can be viewed,
-paused, enabled, synced, or deleted there; initial connection still uses the
+paused, enabled, synced, or deleted from Integrations in Account settings; initial connection still uses the
 existing callback configured by `GOOGLE_HEALTH_REDIRECT_URI` (the default local
 callback works only when the browser can reach the MHM host). Check-ins can be
 answered on the Check-in page. Home can still queue one to email or Discord.
@@ -181,7 +181,8 @@ return to login; request failures allow retrying logout.
 - `tasks.html`, `tasks.js` — signed-in task list first, with optional create fields behind More options
 - `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
 - `messages.html`, `messages.js` — personal message-template library and schedules
-- `insights.html`, `insights.js` — private check-in analytics and Google Health controls
+- `insights.html`, `insights.js` — private check-in analytics
+- `integrations.html`, `integrations.js` — Google Health controls, linked from Account settings
 - `settings.js` — signed-in user settings forms
 - `worker.mjs` — same-origin API proxy
 - `../core/web_account_service.py` — account API and email verification

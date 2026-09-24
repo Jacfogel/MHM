@@ -118,6 +118,7 @@ def create_entry(
     tags: list[str] | None = None,
     group: str | None = None,
     items: list[dict[str, Any]] | None = None,  # For list items
+    metadata: dict[str, Any] | None = None,
 ) -> Entry | None:
     """
     Creates a new notebook entry of a specified kind.
@@ -152,6 +153,7 @@ def create_entry(
         "group": group,
         "created_at": now_ts,
         "updated_at": now_ts,
+        "metadata": metadata or {},
     }
 
     if kind == "list":

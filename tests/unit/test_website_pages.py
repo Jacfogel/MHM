@@ -73,18 +73,26 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     assert 'aria-current="page">Home</a>' in (WEBSITE / "home.html").read_text(encoding="utf-8")
 
 
-def test_insights_page_exposes_history_and_google_health_controls():
+def test_insights_page_exposes_checkin_history():
     insights = parse_page("insights.html")
     assert {
         "insights-days",
         "insights-summary",
         "checkin-history",
+    } <= insights.ids
+    assert "health-connect" not in insights.ids
+
+
+def test_integrations_page_exposes_google_health_controls():
+    integrations = parse_page("integrations.html")
+    assert {
         "health-connect",
         "health-enable",
         "health-pause",
         "health-sync",
         "health-delete",
-    } <= insights.ids
+    } <= integrations.ids
+    assert "account-settings.html" in integrations.hrefs
 
 
 def test_message_library_exposes_category_schedule_and_editing_controls():

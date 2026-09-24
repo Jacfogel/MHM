@@ -130,6 +130,49 @@ def store_checkin_response(user_id: str, response_data: dict[str, Any]) -> None:
     envelope["updated_at"] = now_timestamp_full()
     save_json_data(envelope, log_file)
     logger.debug(f"Stored v2 checkin response for user {user_id}")
+    _save_text_answers_as_journal(user_id, response_data)
+
+
+@handle_errors("saving check-in notes to the notebook", default_return=None)
+def _save_text_answers_as_journal(user_id: str, response_data: dict[str, Any]) -> None:
+    """Save text check-in answers as journal entries marked as check-in notes."""
+    from checkins.checkin_dynamic_manager import dynamic_checkin_manager
+    from notebook.notebook_data_manager import create_entry
+
+    responses = response_data.get("responses")
+    if not isinstance(responses, dict):
+        skipped = {
+            "timestamp",
+            "submitted_at",
+            "sent_at",
+            "questions_asked",
+            "source",
+            "linked_item_ids",
+            "created_at",
+            "updated_at",
+            "archived_at",
+            "deleted_at",
+            "metadata",
+            "id",
+        }
+        responses = {
+            key: value for key, value in response_data.items() if key not in skipped
+        }
+    for key, value in responses.items():
+        if not isinstance(value, str) or not value.strip():
+            continue
+        definition = dynamic_checkin_manager.get_question_definition(key, user_id)
+        if not isinstance(definition, dict) or definition.get("type") != "optional_text":
+            continue
+        title = str(definition.get("ui_display_name") or "Check-in note").strip()
+        create_entry(
+            user_id,
+            "journal_entry",
+            title=title,
+            description=value.strip(),
+            tags=["check-in"],
+            metadata={"source": "checkin", "question_key": key},
+        )
 
 
 @handle_errors("getting recent checkins", default_return=[])

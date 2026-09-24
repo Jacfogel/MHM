@@ -123,6 +123,7 @@ test('account self-service and insights routes proxy only their supported method
     assert.equal((await worker.fetch(new Request(url + '/api/health', { headers: cookie }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/health', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"action":"sync"}' }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/account/connections', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"provider":"google"}' }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/account/setup-complete', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{}' }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/account/export', { method: 'POST', headers: { Origin: url } }), env)).status, 405);
     assert.deepEqual(calls, [
       ['https://gateway.example/api/account/export', 'GET'],
@@ -130,6 +131,7 @@ test('account self-service and insights routes proxy only their supported method
       ['https://gateway.example/api/health', 'GET'],
       ['https://gateway.example/api/health', 'POST'],
       ['https://gateway.example/api/account/connections', 'POST'],
+      ['https://gateway.example/api/account/setup-complete', 'POST'],
     ]);
   } finally { globalThis.fetch = originalFetch; }
 });
@@ -206,6 +208,25 @@ test('notes queries survive proxying and unsupported mutations stay blocked', as
     assert.equal((await worker.fetch(new Request(url + '/api/notes/note-1', { method: 'DELETE' }), env)).status, 405);
     assert.equal((await worker.fetch(new Request(url + '/api/notes/note-1/publish', { method: 'POST', headers: { Origin: url } }), env)).status, 404);
     assert.equal(calls.length, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('website chat is proxied to the gateway', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push({ href: target.href, method: options.method });
+    return Response.json({ reply: 'Hi' });
+  };
+  try {
+    assert.equal((await worker.fetch(new Request(url + '/api/chat', { headers: { Cookie: 'mhm_session=owned' } }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/chat', {
+      method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: '{"message":"hi"}',
+    }), env)).status, 200);
+    assert.deepEqual(calls.map(call => [call.href, call.method]), [
+      ['https://gateway.example/api/chat', 'GET'],
+      ['https://gateway.example/api/chat', 'POST'],
+    ]);
   } finally { globalThis.fetch = originalFetch; }
 });
 

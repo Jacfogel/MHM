@@ -355,6 +355,13 @@ class DynamicCheckinManager:
             # For optional text, any answer (including empty) is valid
             return True, answer, None
 
+        elif question_type == "time":
+            import re
+
+            if re.fullmatch(r"\d{1,2}(?::\d{2})?\s*(?:[AaPp][Mm])?", answer.strip()):
+                return True, answer.strip(), None
+            return False, None, error_message
+
         elif question_type == "time_pair":
             # Parse single sleep window or interrupted sleep chunks.
             parsed_sleep = self._parse_time_pair_response(answer)

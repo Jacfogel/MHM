@@ -4,7 +4,6 @@
   const list = document.getElementById('note-list');
   const empty = document.getElementById('note-empty');
   const count = document.getElementById('notes-count');
-  const account = document.getElementById('notes-account');
   const createForm = document.getElementById('note-create-form');
   const entryKind = document.getElementById('entry-kind');
   const descriptionField = document.getElementById('entry-description-field');
@@ -16,12 +15,9 @@
   const createHelp = document.getElementById('entry-create-help');
   const search = document.getElementById('note-search');
   const tagFilter = document.getElementById('note-tag-filter');
-  const groupInput = document.getElementById('note-group');
   let view = 'active';
-  let groupName = '';
   let notes = [];
   let existingTags = [];
-  let existingGroups = [];
   let searchTimer;
   let itemId = 0;
 
@@ -41,40 +37,10 @@
     picker.replaceChildren(new Option('Choose a tag…', ''), ...values.map(value => new Option(value, value)));
   }
 
-  function populateGroupPicker(picker, values) {
-    picker.replaceChildren(new Option('Choose a group…', ''), ...values.map(value => new Option(value, value)));
-  }
-
-  function bindGroupPicker(input, picker) {
-    picker.addEventListener('change', () => {
-      if (!picker.value) return;
-      input.value = picker.value;
-      picker.value = '';
-      input.focus();
-    });
-  }
-
   function syncTabs() {
     for (const tab of document.querySelectorAll('[data-note-view]')) {
-      tab.setAttribute('aria-selected', String(view !== 'group' && tab.dataset.noteView === view));
+      tab.setAttribute('aria-selected', String(tab.dataset.noteView === view));
     }
-    for (const tab of document.querySelectorAll('[data-note-group]')) {
-      tab.setAttribute('aria-selected', String(view === 'group' && tab.dataset.noteGroup === groupName));
-    }
-  }
-
-  function renderGroupTabs(groups) {
-    const tablist = document.getElementById('note-tabs');
-    for (const tab of tablist.querySelectorAll('[data-note-group]')) tab.remove();
-    for (const name of groups) {
-      const tab = document.createElement('button');
-      tab.type = 'button';
-      tab.setAttribute('role', 'tab');
-      tab.dataset.noteGroup = name;
-      tab.textContent = name;
-      tablist.append(tab);
-    }
-    syncTabs();
   }
 
   function bindTagPicker(input, picker) {
@@ -174,7 +140,7 @@
     listField.hidden = !isList;
     if (isList && !createItems.children.length) addListItem(createItems);
     const labels = {
-      note: ['Capture something useful', 'Write it down now. You can shape it later.', 'Note', 'Save note'],
+      note: ['Capture a note, journal entry, or list you want MHM to remember.', '', 'Note', 'Save note'],
       journal_entry: ['Add a journal entry', 'Record what happened, how you felt, or what you want to remember.', 'Journal entry', 'Save journal'],
       list: ['Start a useful list', 'Add the items now, then check them off as you go.', '', 'Save list'],
     }[kind];
@@ -182,12 +148,20 @@
     createHelp.textContent = labels[1];
     descriptionLabel.textContent = labels[2];
     createSubmit.firstChild.textContent = `${labels[3]} `;
+    if (isList) {
+      const extra = document.getElementById('note-extra-fields');
+      const more = document.getElementById('note-more-options');
+      if (extra && more) {
+        extra.hidden = false;
+        more.setAttribute('aria-expanded', 'true');
+        more.textContent = 'Fewer options';
+      }
+    }
   }
 
   function render() {
     list.replaceChildren();
-    const viewLabel = view === 'group' ? groupName : view;
-    count.textContent = `${notes.length} ${viewLabel} ${notes.length === 1 ? 'entry' : 'entries'}`;
+    count.textContent = `${notes.length} ${view} ${notes.length === 1 ? 'entry' : 'entries'}`;
     empty.hidden = notes.length !== 0;
     for (const note of notes) {
       const article = document.createElement('article');
@@ -198,6 +172,12 @@
       type.className = `entry-kind entry-kind-${note.kind}`;
       type.textContent = note.kind === 'journal_entry' ? 'Journal' : note.kind === 'list' ? 'List' : 'Note';
       content.append(type);
+      if (note.source === 'checkin') {
+        const mark = document.createElement('span');
+        mark.className = 'entry-kind entry-pinned';
+        mark.textContent = 'Check-in';
+        content.append(mark);
+      }
       if (note.status === 'active' && note.pinned) content.append(button('Pinned', 'entry-kind entry-pinned', () => pin(note, false)));
       const title = document.createElement('h3');
       title.textContent = note.title || 'Untitled entry';
@@ -220,11 +200,6 @@
       }
       const meta = document.createElement('div');
       meta.className = 'task-meta';
-      if (note.group) {
-        const group = document.createElement('span');
-        group.textContent = note.group;
-        meta.append(group);
-      }
       if (note.tags?.length) {
         const tags = document.createElement('span');
         tags.textContent = `Tags: ${note.tags.join(', ')}`;
@@ -245,26 +220,16 @@
     }
   }
 
-  async function load(retried = false) {
+  async function load() {
     try {
       const query = search.value.trim();
       const params = new URLSearchParams({ status: view });
       if (query) params.set('q', query);
       if (tagFilter.value) params.set('tag', tagFilter.value);
-      if (view === 'group' && groupName) params.set('group', groupName);
       const result = await api(`/api/notes?${params}`);
-      existingGroups = result.groups || [];
-      if (view === 'group' && groupName && !existingGroups.some(name => name.toLowerCase() === groupName.toLowerCase()) && !retried) {
-        view = 'active';
-        groupName = '';
-        await load(true);
-        return;
-      }
       notes = result.notes || [];
       existingTags = result.tags || [];
       populateTagPicker(document.getElementById('note-existing-tag'), existingTags);
-      populateGroupPicker(document.getElementById('note-existing-group'), existingGroups);
-      renderGroupTabs(existingGroups);
       const chosenTag = tagFilter.value;
       tagFilter.replaceChildren(new Option('All tags', ''), ...existingTags.map(value => new Option(value, value)));
       tagFilter.value = chosenTag;
@@ -273,15 +238,6 @@
       render();
     } catch (error) {
       workspace.hidden = error.status === 403;
-      showStatus(error.message, true);
-    }
-  }
-
-  async function loadIdentity() {
-    try {
-      const result = await api('/api/account');
-      account.textContent = `Signed in as ${result.preferred_name || result.email}`;
-    } catch (error) {
       showStatus(error.message, true);
     }
   }
@@ -332,20 +288,6 @@
     const tags = input(form, 'Tags', 'text', note.tags?.join(', '), 'edit-note-tags');
     tags.maxLength = 1000;
     tags.placeholder = 'health, ideas, home';
-    const group = input(form, 'Group', 'text', note.group || '', 'edit-note-group');
-    group.maxLength = 50;
-    group.placeholder = 'e.g. Health';
-    const existingGroup = document.createElement('select');
-    existingGroup.id = 'edit-note-existing-group';
-    populateGroupPicker(existingGroup, existingGroups);
-    const groupPickerWrapper = document.createElement('div');
-    groupPickerWrapper.className = 'settings-field';
-    const groupPickerLabel = document.createElement('label');
-    groupPickerLabel.htmlFor = existingGroup.id;
-    groupPickerLabel.textContent = 'Use an existing group';
-    groupPickerWrapper.append(groupPickerLabel, existingGroup);
-    form.append(groupPickerWrapper);
-    bindGroupPicker(group, existingGroup);
     const existingTag = document.createElement('select');
     existingTag.id = 'edit-note-existing-tag';
     populateTagPicker(existingTag, existingTags);
@@ -380,7 +322,6 @@
         const payload = {
           title: title.value.trim(),
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
-          group: group.value.trim(),
           ...(editItems ? { items } : { description: body.value }),
         };
         await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', payload);
@@ -404,6 +345,7 @@
     const kind = String(form.get('kind') || 'note');
     const items = kind === 'list' ? collectListItems(createItems) : null;
     if (kind === 'list' && !items.length) {
+      setNoteExtraOpen(true);
       showStatus('Add at least one list item.', true);
       createItems.querySelector('input[type="text"]')?.focus();
       return;
@@ -415,11 +357,11 @@
         kind,
         title: String(form.get('title') || '').trim(),
         tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
-        group: String(form.get('group') || '').trim(),
         ...(kind === 'list' ? { items } : { description: String(form.get('description') || '') }),
       });
       createForm.reset();
       createItems.replaceChildren();
+      setNoteExtraOpen(false);
       syncCreateMode();
       showStatus('');
       await load();
@@ -433,16 +375,9 @@
   entryKind.addEventListener('change', syncCreateMode);
   document.getElementById('entry-add-item').addEventListener('click', () => addListItem(createItems).focus());
   document.getElementById('note-tabs').addEventListener('click', event => {
-    const tab = event.target.closest('button[data-note-view], button[data-note-group]');
+    const tab = event.target.closest('button[data-note-view]');
     if (!tab || !tab.closest('#note-tabs')) return;
-    if (tab.dataset.noteGroup) {
-      view = 'group';
-      groupName = tab.dataset.noteGroup;
-      if (!groupInput.value.trim()) groupInput.value = groupName;
-    } else {
-      view = tab.dataset.noteView;
-      groupName = '';
-    }
+    view = tab.dataset.noteView;
     syncTabs();
     load();
   });
@@ -457,8 +392,14 @@
     if (document.visibilityState === 'visible') load();
   });
   bindTagPicker(document.getElementById('note-tags'), document.getElementById('note-existing-tag'));
-  bindGroupPicker(groupInput, document.getElementById('note-existing-group'));
+  const noteExtraFields = document.getElementById('note-extra-fields');
+  const noteMoreOptions = document.getElementById('note-more-options');
+  function setNoteExtraOpen(open) {
+    noteExtraFields.hidden = !open;
+    noteMoreOptions.setAttribute('aria-expanded', String(open));
+    noteMoreOptions.textContent = open ? 'Fewer options' : 'More options';
+  }
+  noteMoreOptions.addEventListener('click', () => setNoteExtraOpen(noteExtraFields.hidden));
   syncCreateMode();
   load();
-  loadIdentity();
 })();

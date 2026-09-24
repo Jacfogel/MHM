@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-23 08:48:02
+> **Last Generated**: 2026-09-24 00:59:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 285
-- **Functions Found**: 2812
-- **Methods Found**: 1430
-- **Classes Found**: 264
-- **Total Items**: 4242
-- **Functions Documented**: 2510
-- **Methods Documented**: 1285
-- **Classes Documented**: 198
-- **Total Documented**: 3795
-- **Template-Generated**: 54
-- **Last Updated**: 2026-09-23
+### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 289
+- **Functions Found**: 2820
+- **Methods Found**: 1432
+- **Classes Found**: 265
+- **Total Items**: 4252
+- **Functions Documented**: 2517
+- **Methods Documented**: 1286
+- **Classes Documented**: 199
+- **Total Documented**: 3803
+- **Template-Generated**: 56
+- **Last Updated**: 2026-09-24
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (541)
+### **Core System Functions** (544)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (735)
+### **Communication Functions** (740)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2446,6 +2446,23 @@ Returns True only after the message is handled, so the caller can mark it read.
 #### `communication/communication_channels/interaction_view_factory.py`
 **Functions:**
 - [OK] `create_interaction_view(channel_name, view_type, user_id)` - Create a channel-specific interaction view when the channel supports it.
+
+#### `communication/communication_channels/website/__init__.py`
+
+#### `communication/communication_channels/website/bot.py`
+**Functions:**
+- [OK] `__init__(self, config)` - Special Python method
+- [MISSING] `channel_type(self)` - No description
+- [OK] `messages_for_user(user_id)` - Return the website inbox for a signed-in user.
+**Classes:**
+- [OK] `WebsiteBot` - Always-on channel that keeps a copy of outbound messages for the website.
+  - [OK] `WebsiteBot.__init__(self, config)` - Special Python method
+  - [MISSING] `WebsiteBot.channel_type(self)` - No description
+
+#### `communication/communication_channels/website/inbox.py`
+**Functions:**
+- [OK] `deliver_to_website(user_id, message, category)` - Store one outbound message for every user, beside their email or Discord channel.
+- [OK] `list_website_messages(user_id)` - Return stored website deliveries for one user, oldest first.
 
 #### `communication/core/__init__.py`
 **Functions:**
@@ -5140,6 +5157,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
+- [OK] `clear_open_checkin()` - Drop an in-progress check-in so the next login starts fresh.
 - [OK] `create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
 - [OK] `discord_available()` - Return whether the Discord OAuth credentials are configured.
@@ -5188,6 +5206,11 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
   - [OK] `MHMAccounts.unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
+
+#### `core/web_chat.py`
+**Functions:**
+- [OK] `chat_payload(response)` - Return the plain reply and suggestion buttons a browser can render.
+- [OK] `website_chat_reply(user_id, message)` - Send one website message through the same path as Discord and email.
 
 #### `core/web_gateway_runtime.py`
 **Functions:**

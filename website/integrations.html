@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
-  <title>Your account — MHM</title>
+  <title>Integrations — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=account-settings-1" defer></script>
-  <script src="settings.js?v=custom-question-1" defer></script>
+  <script src="integrations.js?v=integrations-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -22,28 +22,19 @@
     <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html" data-feature="checkins">Insights</a><a class="button button-small" href="app.html" aria-current="page">Account</a><button class="plain-button logout-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
-    <p id="app-status" class="form-status" role="status">Connecting to your account…</p>
-    <section id="account-content" hidden>
-      <span class="eyebrow">Your MHM account</span>
-      <h1>Welcome, <span id="account-name"></span>.</h1>
-      <p class="hero-lead">A little more support starts here.</p>
-      <div class="app-cards">
-        <article class="card"><div class="status-row"><span class="status-dot"></span>Connected to MHM</div><h2>Your account</h2>
-          <dl class="account-details"><dt>Email</dt><dd id="account-email"></dd><dt>Time zone</dt><dd id="account-timezone"></dd><dt>Discord</dt><dd id="account-discord"></dd></dl>
-        </article>
-        <article class="card"><span class="eyebrow">Sign-in</span><h2>Account settings</h2><p>Change your password or download a copy of your data.</p><a class="button" href="account-settings.html">Open account settings</a></article>
-      </div>
-      <section id="settings" class="settings-area" aria-labelledby="settings-heading">
-        <div class="settings-heading"><div><span class="eyebrow">At your own pace</span><h2 id="settings-heading">Your settings</h2></div><p>Small changes. A better fit for your day.</p></div>
-        <p id="settings-status" class="form-status" role="status" aria-live="polite">Loading your settings…</p>
-        <div class="settings-layout" id="settings-layout" hidden>
-          <nav id="settings-nav" class="settings-nav" aria-label="Settings sections"></nav>
-          <div id="settings-panels"></div>
-        </div>
-        <button id="settings-retry" class="plain-button" type="button" hidden>Reload settings</button>
-      </section>
+    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
+    <section class="settings-area" aria-labelledby="integrations-heading">
+      <span class="eyebrow">Account settings</span>
+      <h1 id="integrations-heading">Integrations</h1>
+      <p class="hero-lead"><a href="account-settings.html">Back to account settings</a></p>
+      <div class="settings-heading"><div><h2 id="health-heading">Google Health</h2></div><p>Use recent health signals to make support more relevant.</p></div>
+      <p id="health-status-message" class="form-status" role="status" aria-live="polite">Loading Google Health status…</p>
+      <article id="health-card" class="card health-card" hidden>
+        <dl class="account-details"><dt>Status</dt><dd id="health-feature-state"></dd><dt>Connected</dt><dd id="health-connected"></dd><dt>Last sync</dt><dd id="health-last-sync"></dd></dl>
+        <p id="health-guidance" class="field-hint"></p>
+        <div class="health-actions"><button id="health-connect" class="button" type="button">Connect Google Health</button><button id="health-enable" class="plain-button" type="button">Enable</button><button id="health-pause" class="plain-button" type="button">Pause</button><button id="health-sync" class="plain-button" type="button">Sync now</button><button id="health-delete" class="plain-button danger-button" type="button">Delete health data</button></div>
+      </article>
     </section>
-    <noscript><p>Enable JavaScript to load your account.</p></noscript>
   </main>
 </body>
 </html>

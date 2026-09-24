@@ -3,7 +3,7 @@
     "mood": {
       "type": "scale_1_5",
       "question_text": "How are you feeling today on a scale of 1 to 5? (1=terrible, 5=great)",
-      "ui_display_name": "Mood (1-5 scale)",
+      "ui_display_name": "Mood (1 to 5)",
       "enabled_by_default": true,
       "category": "mood",
       "validation": {
@@ -15,7 +15,7 @@
     "energy": {
       "type": "scale_1_5",
       "question_text": "How is your energy level today on a scale of 1 to 5? (1=exhausted, 5=very energetic)",
-      "ui_display_name": "Energy level (1-5 scale)",
+      "ui_display_name": "Energy level (1 to 5)",
       "enabled_by_default": true,
       "category": "energy",
       "validation": {
@@ -27,7 +27,7 @@
     "stress_level": {
       "type": "scale_1_5",
       "question_text": "How stressed are you feeling today on a scale of 1 to 5? (1=very relaxed, 5=very stressed)",
-      "ui_display_name": "Stress level (1-5 scale)",
+      "ui_display_name": "Stress level (1 to 5)",
       "enabled_by_default": true,
       "category": "mood",
       "validation": {
@@ -39,7 +39,7 @@
     "sleep_quality": {
       "type": "scale_1_5",
       "question_text": "How rested do you feel today on a scale of 1 to 5? (1=not rested at all, 5=very well rested)",
-      "ui_display_name": "Sleep quality / Rest (1-5 scale)",
+      "ui_display_name": "Sleep quality / Rest (1 to 5)",
       "enabled_by_default": true,
       "category": "energy",
       "validation": {
@@ -61,7 +61,7 @@
     "anxiety_level": {
       "type": "scale_1_5",
       "question_text": "How anxious are you feeling today on a scale of 1 to 5? (1=very calm, 5=very anxious)",
-      "ui_display_name": "Anxiety level (1-5 scale)",
+      "ui_display_name": "Anxiety level (1 to 5)",
       "enabled_by_default": false,
       "category": "mood",
       "validation": {
@@ -73,7 +73,7 @@
     "focus_level": {
       "type": "scale_1_5",
       "question_text": "How focused do you feel today on a scale of 1 to 5? (1=very distracted, 5=very focused)",
-      "ui_display_name": "Focus level (1-5 scale)",
+      "ui_display_name": "Focus level (1 to 5)",
       "enabled_by_default": false,
       "category": "activities",
       "validation": {
@@ -144,18 +144,18 @@
     },
     "daily_reflection": {
       "type": "optional_text",
-      "question_text": "Any brief thoughts or reflections about today? (optional - just press enter to skip)",
-      "ui_display_name": "Daily reflection notes (optional)",
+      "question_text": "Any brief thoughts or reflections about today?",
+      "ui_display_name": "Daily reflection notes (text)",
       "enabled_by_default": false,
       "category": "activities",
       "validation": {
-        "error_message": "This is optional - you can just press enter to skip."
+        "error_message": "Write a short note, or leave this blank."
       }
     },
     "hopelessness_level": {
       "type": "scale_1_5",
       "question_text": "How hopeless are you feeling today on a scale of 1 to 5? (1=not hopeless at all, 5=very hopeless)",
-      "ui_display_name": "Hopelessness level (1-5 scale)",
+      "ui_display_name": "Hopelessness level (1 to 5)",
       "enabled_by_default": false,
       "category": "mood",
       "validation": {
@@ -167,7 +167,7 @@
     "irritability_level": {
       "type": "scale_1_5",
       "question_text": "How irritable are you feeling today on a scale of 1 to 5? (1=very calm, 5=very irritable)",
-      "ui_display_name": "Irritability level (1-5 scale)",
+      "ui_display_name": "Irritability level (1 to 5)",
       "enabled_by_default": false,
       "category": "mood",
       "validation": {
@@ -179,7 +179,7 @@
     "motivation_level": {
       "type": "scale_1_5",
       "question_text": "How motivated do you feel to do tasks today on a scale of 1 to 5? (1=not motivated at all, 5=very motivated)",
-      "ui_display_name": "Motivation level (1-5 scale)",
+      "ui_display_name": "Motivation level (1 to 5)",
       "enabled_by_default": false,
       "category": "activities",
       "validation": {

@@ -228,6 +228,22 @@ class MHMAccounts:
 
         return save_settings(uid, updates)
 
+    @handle_errors("recording website setup completion", user_friendly=False, default_return=False)
+    def mark_setup_complete(self, uid):
+        """Remember that this account has finished website first-run setup."""
+        from core import update_user_account
+
+        current = self.get(uid)
+        if not isinstance(current, dict):
+            return False
+        if _setup_completed(current):
+            return True
+        metadata = dict(current.get("metadata") or {})
+        metadata["website_setup_completed"] = True
+        return bool(
+            update_user_account(uid, {"metadata": metadata}, auto_create=False)
+        )
+
     @handle_errors("linking website Discord account", user_friendly=False, default_return="failed")
     def link_discord(self, uid, discord_user_id, discord_username):
         """Link a unique Discord identity to an existing MHM account."""
@@ -420,6 +436,25 @@ def _feature_enabled(features, key):
     user_friendly=False,
     default_return=_DEFAULT_SETUP_FLAGS,
 )
+def _setup_completed(account):
+    """True after the website first-run has been finished."""
+    if not isinstance(account, dict):
+        return False
+    metadata = account.get("metadata")
+    return isinstance(metadata, dict) and metadata.get("website_setup_completed") is True
+
+
+def _remember_setup_complete(account):
+    """Mark one in-memory account document as finished with first-run setup."""
+    if not isinstance(account, dict):
+        return
+    metadata = account.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+        account["metadata"] = metadata
+    metadata["website_setup_completed"] = True
+
+
 def _setup_flags(account):
     """Return website first-run flags from one account document."""
     features = _account_features(account)
@@ -430,7 +465,8 @@ def _setup_flags(account):
         "messages_enabled": messages_enabled,
         "tasks_enabled": tasks_enabled,
         "checkins_enabled": checkins_enabled,
-        "needs_setup": not (messages_enabled or tasks_enabled or checkins_enabled),
+        "needs_setup": not _setup_completed(account)
+        and not (messages_enabled or tasks_enabled or checkins_enabled),
     }
 
 
@@ -1050,6 +1086,16 @@ def create_web_app(
         if not isinstance(account_doc, dict) or not _account_features(account_doc):
             account_doc = current
         flags = _setup_flags(account_doc)
+        if not _setup_completed(account_doc) and (
+            flags["messages_enabled"]
+            or flags["tasks_enabled"]
+            or flags["checkins_enabled"]
+        ):
+            _remember_setup_complete(account_doc)
+            mark = getattr(accounts, "mark_setup_complete", None)
+            if mark is not None:
+                await asyncio.to_thread(mark, uid)
+            flags = _setup_flags(account_doc)
         return web.json_response(
             {
                 "preferred_name": preferred_name,
@@ -1456,8 +1502,12 @@ def create_web_app(
                 return web.json_response(snapshot)
             data = await body(request)
             section = data.get("section")
+            complete_setup = data.get("complete_setup") is True
+            expected = {"section", "values", "revision"}
+            if complete_setup:
+                expected.add("complete_setup")
             if (
-                set(data) != {"section", "values", "revision"}
+                set(data) != expected
                 or not isinstance(section, str)
                 or section not in snapshot["sections"]
             ):
@@ -1476,6 +1526,13 @@ def create_web_app(
                 raise web.HTTPServiceUnavailable(
                     text="MHM could not finish saving. Reload these settings to check their current values before trying again."
                 )
+            if complete_setup and section in {"messages", "tasks", "checkins"}:
+                account_doc = documents.get("account")
+                if isinstance(account_doc, dict):
+                    _remember_setup_complete(account_doc)
+                mark = getattr(accounts, "mark_setup_complete", None)
+                if mark is not None:
+                    await asyncio.to_thread(mark, uid)
             latest = await asyncio.to_thread(accounts.documents, uid)
             return web.json_response(settings_snapshot(latest, options))
 
@@ -2272,6 +2329,7 @@ def create_web_app(
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
             "submitted_at": getattr(entry, "submitted_at", None),
+            "source": str((entry.metadata or {}).get("source") or ""),
         }
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -2608,6 +2666,16 @@ def create_web_app(
         response.del_cookie(COOKIE, path="/api/")
         return response
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def setup_complete(request):
+        """Record that website first-run setup is finished, even with no features on."""
+        uid, _current = await authenticated_account(request)
+        if not await asyncio.to_thread(accounts.mark_setup_complete, uid):
+            raise web.HTTPServiceUnavailable(
+                text="MHM could not save that setup is finished. Please try again."
+            )
+        return web.json_response({"needs_setup": False})
+
     app = web.Application(middlewares=[guard], client_max_size=32768)
     app.router.add_post("/api/auth/password", password_login)
     app.router.add_post("/api/auth/password/setup", password_setup)
@@ -2620,6 +2688,7 @@ def create_web_app(
     app.router.add_get("/api/auth/discord/start", discord_start)
     app.router.add_get("/api/auth/discord/callback", discord_callback)
     app.router.add_get("/api/account", account)
+    app.router.add_post("/api/account/setup-complete", setup_complete)
     app.router.add_post("/api/account/connections", account_connections)
     app.router.add_get("/api/account/export", account_export)
     app.router.add_get("/api/settings", settings)
@@ -2691,6 +2760,8 @@ def create_web_app(
             "home.html",
             "setup.html",
             "app.html",
+            "account-settings.html",
+            "integrations.html",
             "tasks.html",
             "notes.html",
             "insights.html",
@@ -2710,6 +2781,7 @@ def create_web_app(
             "tasks.js",
             "notes.js",
             "insights.js",
+            "integrations.js",
             "messages.js",
             "checkin.js",
         }:

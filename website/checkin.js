@@ -4,7 +4,6 @@
   const progress = document.getElementById('checkin-progress');
   const message = document.getElementById('checkin-message');
   const off = document.getElementById('checkin-off');
-  const start = document.getElementById('checkin-start');
   const form = document.getElementById('checkin-form');
   const choices = document.getElementById('checkin-choices');
   const sleepPanel = document.getElementById('checkin-sleep');
@@ -46,7 +45,6 @@
       : (result.message || (result.active ? '' : 'When you are ready, start a short check-in.'));
     progress.textContent = result.active && result.index && result.total ? `Question ${result.index} of ${result.total}` : '';
     off.hidden = result.enabled !== false;
-    start.hidden = result.active || result.completed_today || result.enabled === false;
     form.hidden = !result.active;
     answer.value = '';
     renderChoices(result);
@@ -153,7 +151,6 @@
     }
   }
 
-  start.addEventListener('click', () => send({ action: 'start' }));
   form.addEventListener('submit', event => {
     event.preventDefault();
     send({ action: 'answer', answer: sleepPanel.hidden ? answer.value.trim() : sleepAnswer() });
@@ -168,7 +165,13 @@
     if (window.confirm('Cancel this check-in? Answers so far will not be saved.')) send({ action: 'cancel' });
   });
 
-  api('/api/checkins').then(show).catch(error => {
+  api('/api/checkins').then(async result => {
+    if (result.enabled !== false && !result.active && !result.completed_today) {
+      showStatus('Starting your check-in…');
+      result = await api('/api/checkins', 'POST', { action: 'start' });
+    }
+    show(result);
+  }).catch(error => {
     panel.hidden = true;
     showStatus(error.message, true);
   });

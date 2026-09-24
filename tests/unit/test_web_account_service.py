@@ -217,6 +217,12 @@ async def test_account_needs_setup_until_a_support_feature_is_enabled(gateway):
     assert account["messages_enabled"] is True
     assert account["tasks_enabled"] is False
     assert account["checkins_enabled"] is False
+    accounts.users["existing"]["features"] = {}
+    account = await (await client.get("/api/account")).json()
+    assert account["needs_setup"] is False
+    assert account["messages_enabled"] is False
+    assert account["tasks_enabled"] is False
+    assert account["checkins_enabled"] is False
 
 
 async def test_setup_helpers_use_safe_defaults_for_malformed_accounts():

@@ -379,8 +379,9 @@
     backButton.hidden = index === 0;
   }
 
-  function advance() {
+  async function advance() {
     if (index >= plan.length - 1) {
+      await api('/api/account/setup-complete', 'POST', {});
       location.assign('home.html');
       return;
     }
@@ -426,9 +427,6 @@
 
   async function saveFeatures() {
     const chosen = selectedSupport();
-    if (!chosen.messages && !chosen.tasks && !chosen.checkins) {
-      throw new Error('Pick at least one: supportive messages, task reminders, or check-ins.');
-    }
     if (chosen.messages && !(settings.options.categories || []).length) {
       throw new Error('Message categories are not available yet. Uncheck supportive messages, or turn them on later in Account.');
     }
@@ -546,18 +544,8 @@
     'checkin-windows': saveCheckinWindows,
   };
 
-  function supportOn(account) {
-    return Boolean(account.messages_enabled || account.tasks_enabled || account.checkins_enabled);
-  }
-
-  function accountNeedsSetup(account, snapshot) {
-    if (account.needs_setup === true) return true;
-    if (supportOn(account)) return false;
-    if ('messages_enabled' in account && 'tasks_enabled' in account && 'checkins_enabled' in account) {
-      return true;
-    }
-    const sections = (snapshot && snapshot.sections) || {};
-    return !sections.messages?.enabled && !sections.tasks?.enabled && !sections.checkins?.enabled;
+  function accountNeedsSetup(account) {
+    return account.needs_setup === true;
   }
 
   function setBusy(busy) {
@@ -573,7 +561,7 @@
     try {
       account = await api('/api/account');
       settings = await api('/api/settings');
-      if (!accountNeedsSetup(account, settings)) {
+      if (!accountNeedsSetup(account)) {
         location.assign('home.html');
         return;
       }
@@ -631,7 +619,7 @@
     showStatus(index === plan.length - 1 ? 'Finishing…' : 'Saving…');
     try {
       await actions[plan[index]]();
-      advance();
+      await advance();
     } catch (error) {
       showStatus(error.message, true);
     } finally {
@@ -647,7 +635,7 @@
         showStatus('Saving…');
         await saveTaskFeature();
       }
-      advance();
+      await advance();
     } catch (error) {
       showStatus(error.message, true);
     } finally {

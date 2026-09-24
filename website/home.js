@@ -45,34 +45,23 @@
     return line.trim().slice(0, 80);
   }
 
-  function supportOn(account) {
-    return Boolean(account.messages_enabled || account.tasks_enabled || account.checkins_enabled);
-  }
-
-  async function accountNeedsSetup(account) {
-    if (account.needs_setup === true) return true;
-    if (supportOn(account)) return false;
-    if ('messages_enabled' in account && 'tasks_enabled' in account && 'checkins_enabled' in account) {
-      return true;
-    }
-    try {
-      const settings = await api('/api/settings');
-      const sections = settings.sections || {};
-      return !sections.messages?.enabled && !sections.tasks?.enabled && !sections.checkins?.enabled;
-    } catch (error) {
-      return account.needs_setup === true;
-    }
+  function accountNeedsSetup(account) {
+    return account.needs_setup === true;
   }
 
   async function loadHome() {
     if (!homeContent) return;
     try {
       const account = await api('/api/account');
-      if (await accountNeedsSetup(account)) {
+      if (accountNeedsSetup(account)) {
         location.replace('setup.html');
         return;
       }
       document.getElementById('home-name').textContent = account.preferred_name || 'there';
+      speakerName = (account.preferred_name || '').trim();
+      document.querySelectorAll('.talk-you span').forEach(label => {
+        label.textContent = speakerName || 'You';
+      });
       document.getElementById('home-task-off').hidden = account.tasks_enabled;
       document.getElementById('home-checkin').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-answer').hidden = !account.checkins_enabled;
@@ -90,11 +79,11 @@
       const answerLink = document.getElementById('home-checkin-answer');
       if (account.checkins_enabled && checkinState.active) {
         const progress = checkinState.index && checkinState.total ? ` Question ${checkinState.index} of ${checkinState.total}.` : '';
+        checkinOn.hidden = false;
         checkinOn.textContent = `A check-in is open.${progress}`;
         answerLink.textContent = 'Continue check-in';
-        if (talkHint) talkHint.textContent = `A check-in is open.${progress} You can answer it here, or on the Check-in page.`;
       } else {
-        checkinOn.textContent = 'Answer here, or have MHM send one by email or Discord.';
+        checkinOn.hidden = true;
         answerLink.textContent = 'Answer a check-in';
       }
       const tasks = await api('/api/tasks?status=active');
@@ -161,7 +150,7 @@
   const talkSend = document.getElementById('talk-send');
   const talkStatus = document.getElementById('talk-status');
   const talkSuggestions = document.getElementById('talk-suggestions');
-  const talkHint = document.getElementById('talk-hint');
+  let speakerName = '';
   const CHAT_KEY = 'mhm-home-chat';
   const DELIVERED_KEY = 'mhm-home-delivered';
 
@@ -211,7 +200,7 @@
     const item = document.createElement('article');
     item.className = role === 'you' ? 'talk-bubble talk-you' : 'talk-bubble talk-mhm';
     const who = document.createElement('span');
-    who.textContent = role === 'you' ? 'You' : 'MHM';
+    who.textContent = role === 'you' ? (speakerName || 'You') : 'MHM';
     const body = document.createElement('p');
     body.textContent = text;
     item.append(who, body);

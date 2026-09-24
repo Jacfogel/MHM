@@ -263,8 +263,9 @@ def test_checkin_rules_and_question_metadata_are_preserved(documents):
     updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
     assert updates["preferences"]["checkin_settings"]["max_questions"] == 3
     draft["min_questions"] = 3
-    with pytest.raises(ValidationError):
-        build_settings_updates(documents, OPTIONS, "checkins", draft)
+    updates = build_settings_updates(documents, OPTIONS, "checkins", draft)
+    assert updates["preferences"]["checkin_settings"]["min_questions"] == 2
+    assert updates["preferences"]["checkin_settings"]["max_questions"] == 3
 
 
 def test_custom_checkin_question_can_be_added_loaded_and_removed(documents):

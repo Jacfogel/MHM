@@ -46,11 +46,11 @@ main section[id] { scroll-margin-top: 110px; }
   border-bottom: 1px solid rgba(230,227,241,.8);
 }
 .nav-wrap { min-height: 90px; padding-top: 14px; padding-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: 'Nunito', sans-serif; font-weight: 800; }
+.brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; font-family: 'Nunito', sans-serif; font-weight: 800; }
 .brand-mark { width: 48px; height: 48px; display: block; border-radius: 13px; flex-shrink: 0; }
 .brand-wordmark { display: grid; gap: 1px; }
 .brand-name { font-size: 1.35rem; letter-spacing: .04em; line-height: 1.15; }
-.brand-description { font-family: 'Inter', system-ui, sans-serif; font-size: .75rem; color: var(--muted); font-weight: 500; }
+.brand-description { font-family: 'Inter', system-ui, sans-serif; font-size: .75rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
 .nav { display: flex; gap: 24px; }
 .nav a { text-decoration: none; font-size: .94rem; color: var(--muted); font-weight: 600; }
 .nav a:hover { color: var(--purple-dark); }
@@ -84,6 +84,7 @@ main section[id] { scroll-margin-top: 110px; }
 .button:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(23,21,43,.18); }
 .button-small { padding: 10px 14px; border-radius: 11px; font-size: .9rem; }
 .text-link { color: var(--purple-dark); font-weight: 700; text-decoration: none; }
+.discord-connect { display: block; margin-top: 8px; padding: 0; border: 0; background: none; color: var(--purple-dark); font-weight: 700; text-align: left; text-decoration: underline; }
 
 .hero { padding: 70px 0 80px; overflow: hidden; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 64px; align-items: center; }
@@ -96,6 +97,7 @@ h1 { font-size: clamp(3rem, 4.8vw, 4.6rem); letter-spacing: -.045em; margin-bott
 h2 { font-size: clamp(2rem, 3.4vw, 3.2rem); letter-spacing: -.035em; margin-bottom: 20px; }
 h3 { font-size: 1.32rem; margin-bottom: 10px; }
 .hero-lead { max-width: 520px; font-size: 1.125rem; color: var(--muted); margin-bottom: 30px; }
+.tasks-heading .hero-lead { max-width: none; }
 .hero-actions { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
 .hero-note { margin-top: 24px; color: var(--muted); font-size: .875rem; }
 
@@ -220,6 +222,14 @@ blockquote { margin: 16px auto 0; font-family: 'Nunito'; font-size: clamp(1.9rem
     width: 100%;
     justify-content: center;
   }
+  .site-menu .nav-actions .logout-button {
+    margin-left: 0;
+    margin-top: 6px;
+    background: var(--ink);
+    color: white;
+    justify-content: center;
+    text-align: center;
+  }
 }
 @media (max-width: 900px) {
   .hero { padding-top: 62px; }
@@ -242,7 +252,7 @@ blockquote { margin: 16px auto 0; font-family: 'Nunito'; font-size: clamp(1.9rem
   .container { width: calc(100% - 36px); }
   .nav-wrap { min-height: 78px; gap: 12px; flex-wrap: wrap; }
   .brand-mark { width: 40px; height: 40px; border-radius: 10px; }
-  .brand-description { max-width: 130px; font-size: .75rem; line-height: 1.4; }
+  .brand-description { max-width: 130px; font-size: .75rem; line-height: 1.4; white-space: normal; }
   .brand-name { font-size: 1.15rem; }
   .section { padding: 78px 0; }
   .hero { padding: 54px 0 62px; }
@@ -270,6 +280,14 @@ button[aria-busy="true"] { cursor: wait; }
 .button { border: 0; }
 :focus-visible { outline: 3px solid var(--purple); outline-offset: 4px; }
 .nav-actions { display: flex; gap: 20px; align-items: center; white-space: nowrap; }
+.nav-actions .logout-button {
+  margin-left: 6px;
+  padding: 8px 14px;
+  border-radius: 11px;
+  background: var(--ink);
+  color: white;
+  font-weight: 700;
+}
 .nav-actions a { text-decoration: none; }
 .account-body { min-height: 100vh; background: var(--soft); }
 .account-logo { display: block; border-radius: 28px; margin-bottom: 24px; }
@@ -581,7 +599,7 @@ button[aria-busy="true"] { cursor: wait; }
 .talk-bubble span { display: block; margin-bottom: 4px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--purple-dark); }
 .talk-bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .talk-you { align-self: flex-end; background: var(--lavender); border-color: #ded0ed; }
-.talk-you span { color: var(--ink); }
+.talk-you span { color: var(--ink); text-transform: none; letter-spacing: 0; }
 .talk-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .talk-suggestion { margin: 0; }
 .talk-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin-top: 14px; }

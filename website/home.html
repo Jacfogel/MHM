@@ -12,26 +12,24 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=talk-2" defer></script>
+  <script src="home.js?v=talk-4" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="container nav-wrap">
     <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="button button-small" href="home.html" aria-current="page">Home</a><a class="plain-button" href="checkin.html" data-feature="checkins">Check-in</a><a class="plain-button" href="app.html">Account</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html">Insights</a><button class="plain-button" id="logout" type="button">Log out</button></div></nav>
+    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="button button-small" href="home.html" aria-current="page">Home</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html" data-feature="checkins">Insights</a><a class="plain-button" href="app.html">Account</a><button class="plain-button logout-button" id="logout" type="button">Log out</button></div></nav>
   </div></header>
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite">Loading your next steps…</p>
     <section id="home-content" hidden>
       <span class="eyebrow">Today</span>
       <h1>Welcome back, <span id="home-name"></span>.</h1>
-      <p class="hero-lead">One next step is enough. You can also talk to MHM right here.</p>
+      <p class="hero-lead">One next step is enough.</p>
       <section class="talk-panel" aria-labelledby="talk-heading">
         <div class="talk-heading">
-          <span class="eyebrow">Talk to MHM</span>
-          <h2 id="talk-heading">Say it the way you would in Discord.</h2>
-          <p id="talk-hint">Ask for help, add a task, or just talk. Messages MHM sends also show up here, in addition to email or Discord.</p>
+          <h2 id="talk-heading">Talk to MHM</h2>
         </div>
         <div id="talk-log" class="talk-log" role="log" aria-live="polite" aria-relevant="additions"></div>
         <div id="talk-suggestions" class="talk-suggestions" hidden></div>
@@ -47,14 +45,14 @@
           <span class="eyebrow">Next task</span>
           <h2 id="home-task-title">No tasks yet.</h2>
           <p id="home-task-meta" class="field-hint"></p>
-          <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html">Account</a>.</p>
+          <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
           <a class="button" id="home-tasks" href="tasks.html">Open tasks →</a>
         </article>
         <article class="card">
           <span class="eyebrow">Check-in</span>
           <h2>How are you, briefly?</h2>
-          <p id="home-checkin-on" hidden>Answer here, or have MHM send one by email or Discord.</p>
-          <p id="home-checkin-off">Check-ins are off. You can turn them on in <a href="app.html">Account</a>.</p>
+          <p id="home-checkin-on" hidden></p>
+          <p id="home-checkin-off">Check-ins are off. You can turn them on in <a href="app.html#checkins">Account</a>.</p>
           <a class="button" id="home-checkin-answer" href="checkin.html" hidden>Answer a check-in</a>
           <button id="home-checkin" class="plain-button" type="button" hidden>Send me a check-in</button>
           <p id="home-checkin-status" class="form-status" role="status" aria-live="polite"></p>
@@ -62,11 +60,10 @@
         <article class="card home-capture">
           <span class="eyebrow">Capture</span>
           <h2>Park a thought.</h2>
-          <p>Save it to your notebook without leaving this page.</p>
           <form id="home-capture-form">
             <div class="settings-field">
               <label for="home-note">Note</label>
-              <textarea id="home-note" name="note" rows="3" maxlength="10000" required placeholder="A reminder, a feeling, anything useful…"></textarea>
+              <textarea id="home-note" name="note" rows="3" maxlength="10000" required placeholder="Write a note…"></textarea>
             </div>
             <button class="button" id="home-capture-submit" type="submit">Save to notebook</button>
           </form>

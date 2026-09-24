@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-23 08:48:29
+> **Last Generated**: 2026-09-24 00:59:59
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000076 5EAC:07BC
+Volume serial number is 000000B8 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -270,6 +270,11 @@ C:.
 |   |   |   |   quote_strip.py
 |   |   |   |   reply_context.py
 |   |   |   |
+|   |   +---website
+|   |   |   |   bot.py
+|   |   |   |   inbox.py
+|   |   |   |   __init__.py
+|   |   |   |
 |   +---core
 |   |   |   channel_monitor.py
 |   |   |   channel_orchestrator.py
@@ -356,6 +361,7 @@ C:.
 |   |   user_lookup.py
 |   |   user_management.py
 |   |   web_account_service.py
+|   |   web_chat.py
 |   |   web_gateway_runtime.py
 |   |   web_user_settings.py
 |   |   __init__.py
@@ -1268,6 +1274,7 @@ C:.
 |   |   |   test_webhook_handler_gap_coverage.py
 |   |   |   test_website_pages.py
 |   |   |   test_web_account_service.py
+|   |   |   test_web_chat.py
 |   |   |   test_web_checkins.py
 |   |   |   test_web_gateway_runtime.py
 |   |   |   test_web_notes.py
@@ -1348,6 +1355,7 @@ C:.
 |   |   auth.test.mjs
 |   |   checkin.html
 |   |   checkin.js
+|   |   checkin.test.mjs
 |   |   data.html
 |   |   home.html
 |   |   home.js

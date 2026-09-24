@@ -161,10 +161,9 @@ const MHMSettingsInput = Object.freeze({
     const categoryChoices = Object.entries(categories).map(([key, value]) => [key, MHMSettingsInput.record(value).name || key.replaceAll('_', ' ')]);
     if (!categoryChoices.length) categoryChoices.push(['mood', 'Mood'], ['energy', 'Energy'], ['health', 'Health'], ['activities', 'Activities']);
     if (!categoryChoices.some(([key]) => key === 'general')) categoryChoices.push(['general', 'General']);
-    const templates = MHMSettingsInput.record(options.question_templates);
     const group = el('fieldset', null, { className: 'custom-question-editor' });
     group.append(el('legend', 'Custom questions'));
-    group.append(el('p', 'Add questions that fit your routines, including numeric and paired-time answers. You can begin with a template or build your own.', { className: 'field-hint' }));
+    group.append(el('p', 'Add a question in your own words and choose how it is answered.', { className: 'field-hint' }));
     const rows = el('div');
     const controls = [];
     const deleted = [];
@@ -172,8 +171,6 @@ const MHMSettingsInput = Object.freeze({
     undo.hidden = true;
     function currentValue(item) {
       const validation = {};
-      if (item.minimum.value !== '') validation.min = Number(item.minimum.value);
-      if (item.maximum.value !== '') validation.max = Number(item.maximum.value);
       if (item.errorMessage.value.trim()) validation.error_message = item.errorMessage.value.trim();
       return {
         definition: {
@@ -189,14 +186,14 @@ const MHMSettingsInput = Object.freeze({
       const row = el('div', null, { className: 'custom-question-row' });
       const text = field(row, 'Question', `${key}-text`, 'text', definition.question_text, { required: '', maxlength: '300' });
       const displayName = field(row, 'Short display name', `${key}-display-name`, 'text', definition.ui_display_name || definition.question_text, { required: '', maxlength: '150' });
-      const type = select(row, 'Answer type', `${key}-type`, [['optional_text', 'Text'], ['yes_no', 'Yes or no'], ['scale_1_5', '1–5 scale'], ['number', 'Number'], ['time_pair', 'Two times']], definition.type || 'optional_text');
+      const answerTypes = [['yes_no', 'yes/no'], ['scale_1_5', '1 to 5'], ['time', 'time'], ['time_pair', 'time pair'], ['optional_text', 'text']];
+      if (definition.type === 'number') answerTypes.push(['number', 'number']);
+      const type = select(row, 'Answer type', `${key}-type`, answerTypes, definition.type || 'optional_text');
       const category = select(row, 'Category', `${key}-category`, categoryChoices, definition.category || categoryChoices[0][0]);
       const frequency = select(row, 'Include', `${key}-frequency`, [['off', 'Off'], ['always', 'Always'], ['sometimes', 'Sometimes']], state);
-      const minimum = field(row, 'Minimum (optional)', `${key}-minimum`, 'number', validation.min, { step: 'any' });
-      const maximum = field(row, 'Maximum (optional)', `${key}-maximum`, 'number', validation.max, { step: 'any' });
       const errorMessage = field(row, 'Validation message (optional)', `${key}-error`, 'text', validation.error_message, { maxlength: '300' });
       const remove = el('button', 'Remove question', { type: 'button', className: 'plain-button danger-button' });
-      const control = { key, row, text, displayName, type, category, frequency, minimum, maximum, errorMessage };
+      const control = { key, row, text, displayName, type, category, frequency, errorMessage };
       remove.addEventListener('click', () => {
         deleted.push({ key, ...currentValue(control) });
         controls.splice(controls.indexOf(control), 1);
@@ -209,15 +206,11 @@ const MHMSettingsInput = Object.freeze({
       rows.append(row);
     }
     for (const [key, definition] of Object.entries(initial)) add(key, definition, states[key] || 'sometimes');
-    const templateChoices = [['', 'Blank question'], ...Object.entries(templates).map(([key, value]) => [key, MHMSettingsInput.record(value).ui_display_name || key.replaceAll('_', ' ')])];
-    const template = select(group, 'Start from', 'custom-question-template', templateChoices, '');
     const button = el('button', '+ Add custom question', { type: 'button', className: 'plain-button' });
     button.addEventListener('click', () => {
       if (controls.length >= 20) return;
       const key = `custom_${crypto.randomUUID().replaceAll('-', '')}`;
-      const chosen = template.value ? MHMSettingsInput.record(templates[template.value]) : null;
-      add(key, chosen || { question_text: '', ui_display_name: '', type: 'optional_text', category: categoryChoices[0][0], validation: {} }, 'off');
-      template.value = '';
+      add(key, { question_text: '', ui_display_name: '', type: 'optional_text', category: categoryChoices[0][0], validation: {} }, 'off');
       parent.dispatchEvent(new Event('input', { bubbles: true }));
       controls.at(-1).text.focus();
     });
@@ -334,7 +327,7 @@ const MHMSettingsInput = Object.freeze({
   async function api(method, payload) {
     const response = await fetch('/api/settings', {
       method, credentials: 'same-origin', cache: 'no-store',
-      ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {}),
+      ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload.section === 'messages' || payload.section === 'tasks' || payload.section === 'checkins' ? { ...payload, complete_setup: true } : payload) } : {}),
     });
     if (response.status === 401) {
       window.dispatchEvent(new Event('mhm:signed-out'));
@@ -375,7 +368,49 @@ const MHMSettingsInput = Object.freeze({
       const timezone = select(form, 'Time zone', 'timezone', MHMSettingsInput.list(data.options.timezones).map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
       timezone.required = true;
       const channel = select(form, 'Deliver reminders through', 'delivery-channel', [['email', 'Email'], ...(data.discord_linked ? [['discord', 'Discord']] : [])], values.channel);
-      form.append(el('p', data.discord_linked ? 'Your verified email and linked Discord account are available for delivery.' : 'Link your account with the MHM Discord bot to enable Discord delivery.', { className: 'field-hint' }));
+      if (data.discord_linked) {
+        const disconnect = el('button', 'Disconnect Discord', { className: 'plain-button', type: 'button' });
+        disconnect.addEventListener('click', async () => {
+          if (disconnect.disabled || !window.confirm('Disconnect Discord from your MHM account?')) return;
+          disconnect.disabled = true;
+          try {
+            const response = await fetch('/api/account/connections', {
+              method: 'POST', credentials: 'same-origin', cache: 'no-store',
+              headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'discord' }),
+            });
+            if (response.status === 401) {
+              window.dispatchEvent(new Event('mhm:signed-out'));
+              location.replace('login.html');
+              return;
+            }
+            if (!response.ok) {
+              const result = await response.json().catch(() => ({}));
+              throw new Error(result.error || 'Discord could not be disconnected.');
+            }
+            location.assign('app.html');
+          } catch (error) {
+            disconnect.disabled = false;
+            window.alert(error.message);
+          }
+        });
+        form.append(el('p', 'Discord is connected. You can use it for delivery.', { className: 'field-hint' }), disconnect);
+      } else {
+        const connect = el('button', 'Link your account with the MHM Discord bot to enable Discord delivery.', { className: 'text-link discord-connect', type: 'button' });
+        connect.addEventListener('click', async () => {
+          if (connect.disabled) return;
+          connect.disabled = true;
+          try {
+            const response = await fetch('/api/auth/discord/start?next=/app.html', { credentials: 'same-origin', cache: 'no-store' });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result.url) throw new Error(result.error || 'Discord connection is unavailable.');
+            location.assign(result.url);
+          } catch (error) {
+            connect.disabled = false;
+            window.alert(error.message);
+          }
+        });
+        form.append(connect);
+      }
       read = () => ({ timezone: timezone.value, channel: channel.value });
     } else if (section === 'phrases') {
       const first = el('div', null, { className: 'settings-two-col' });
@@ -469,8 +504,29 @@ const MHMSettingsInput = Object.freeze({
           const counts = el('div', null, { className: 'settings-two-col' });
           const minimum = field(counts, 'Minimum questions', 'min-questions', 'number', values.min_questions, { min: '1', max: '100', required: '' });
           const maximum = field(counts, 'Maximum questions', 'max-questions', 'number', values.max_questions, { min: '1', max: '100', required: '' });
-          details.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the minimum must leave at least one out so check-ins can vary.', { className: 'field-hint' }));
+          details.append(counts, el('p', 'Include all Always questions. With Sometimes questions, the minimum must leave at least one out so check-ins can vary, and the maximum must be greater than the number of Always questions so a Sometimes question can come through.', { className: 'field-hint' }));
+          function legalQuestionCounts() {
+            const states = { ...Object.fromEntries(Object.entries(questions).map(([key, input]) => [key, input.value])), ...custom.read().states };
+            const chosen = Object.values(states);
+            const always = chosen.filter(state => state === 'always').length;
+            const sometimes = chosen.filter(state => state === 'sometimes').length;
+            const total = always + sometimes;
+            const floor = Math.max(always, 1);
+            const minimumCeiling = Math.max(sometimes && total > 1 ? total - 1 : (total || 100), floor);
+            let nextMinimum = Math.min(Math.max(Number(minimum.value) || floor, floor), minimumCeiling);
+            const maximumFloor = Math.max(sometimes ? always + 1 : floor, nextMinimum);
+            const maximumCeiling = Math.max(total || 100, maximumFloor);
+            let nextMaximum = Math.min(Math.max(Number(maximum.value) || maximumFloor, maximumFloor), maximumCeiling);
+            if (Number(minimum.value) !== nextMinimum) minimum.value = String(nextMinimum);
+            if (Number(maximum.value) !== nextMaximum) maximum.value = String(nextMaximum);
+          }
+          minimum.addEventListener('change', legalQuestionCounts);
+          maximum.addEventListener('change', legalQuestionCounts);
+          details.addEventListener('change', event => {
+            if (event.target && event.target.tagName === 'SELECT') legalQuestionCounts();
+          });
           read = () => {
+            legalQuestionCounts();
             const customValues = custom.read();
             return { enabled: enabled.checked, periods: periods.read(), questions: { ...Object.fromEntries(Object.entries(questions).map(([key, input]) => [key, input.value])), ...customValues.states }, custom_questions: customValues.customQuestions, min_questions: Number(minimum.value), max_questions: Number(maximum.value) };
           };
@@ -553,6 +609,15 @@ const MHMSettingsInput = Object.freeze({
       }
       document.getElementById('settings-layout').hidden = false;
       status.textContent = '';
+      if (new URLSearchParams(location.search).get('discord')) {
+        const delivery = nav.querySelector('[aria-controls="settings-delivery"]');
+        if (delivery) delivery.click();
+      }
+      const sectionHash = location.hash.replace('#', '');
+      if (Object.hasOwn(titles, sectionHash)) {
+        const sectionButton = nav.querySelector(`[aria-controls="settings-${sectionHash}"]`);
+        if (sectionButton) sectionButton.click();
+      }
     } catch (error) { status.textContent = error.message; status.classList.add('is-error'); retry.hidden = false; }
   }
   retry.addEventListener('click', load);

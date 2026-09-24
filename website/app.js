@@ -20,17 +20,36 @@ async function loadAccount() {
     if (!response.ok) throw new Error('Your account could not load. Please refresh to try again.');
     const account = await response.json();
     if (accountSessionEnded) return;
-    document.getElementById('account-name').textContent = account.preferred_name || 'there';
-    document.getElementById('account-email').textContent = account.email;
-    document.getElementById('account-timezone').textContent = account.timezone || 'Not set';
-    document.getElementById('account-discord').textContent = account.discord_linked ? 'Connected' : 'Not connected yet';
-    document.getElementById('password-heading').textContent = account.password_set ? 'Change your password.' : 'Set a password.';
-    document.getElementById('password-guidance').textContent = account.password_set
-      ? 'Your password is set. You can replace it here whenever you need to.'
-      : 'Add a password so your next sign-in does not need an emailed code.';
-    document.getElementById('current-password-field').hidden = !account.password_change_requires_current;
-    document.getElementById('current-password').required = account.password_change_requires_current;
+    const accountName = document.getElementById('account-name');
+    if (accountName) accountName.textContent = account.preferred_name || 'there';
+    const accountEmail = document.getElementById('account-email');
+    if (accountEmail) accountEmail.textContent = account.email;
+    const accountTimezone = document.getElementById('account-timezone');
+    if (accountTimezone) accountTimezone.textContent = account.timezone || 'Not set';
+    const accountDiscord = document.getElementById('account-discord');
+    if (accountDiscord) accountDiscord.textContent = account.discord_linked ? 'Connected' : 'Not connected yet';
+    const passwordHeading = document.getElementById('password-heading');
+    if (passwordHeading) {
+      passwordHeading.textContent = account.password_set ? 'Change your password.' : 'Set a password.';
+      document.getElementById('password-guidance').textContent = account.password_set
+        ? 'Your password is set. You can replace it here whenever you need to.'
+        : 'Add a password so your next sign-in does not need an emailed code.';
+      document.getElementById('current-password-field').hidden = !account.password_change_requires_current;
+      document.getElementById('current-password').required = account.password_change_requires_current;
+    }
+    accountContent.hidden = false;
+    const socialProvider = socialResult && socialResult.endsWith('-connected') ? socialResult.slice(0, -10) : '';
+    status.textContent = socialProvider ? `${socialProvider[0].toUpperCase()}${socialProvider.slice(1)} is connected to your MHM account.`
+      : socialResult === 'in-use' ? 'That social account is already connected to another MHM account.'
+        : socialResult === 'error' ? 'That social account could not be connected. Please try again.'
+          : discordResult === 'connected' ? 'Discord is connected to your MHM account.'
+      : discordResult === 'cancelled' ? 'Discord connection was canceled. You can try again whenever you are ready.'
+      : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
+        : discordResult === 'account-linked' ? 'This MHM account already has a different Discord account connected.'
+          : discordResult === 'unavailable' ? 'Discord connection is not configured right now. Please ask your MHM administrator for help.'
+            : discordResult === 'error' ? 'Discord could not be connected. This can happen when that Discord account is already linked to another MHM account. Disconnect it from the other account first, or try again; if it still fails, ask your MHM administrator for help.' : '';
     const socialConnections = document.getElementById('social-connections');
+    if (!socialConnections) return;
     socialConnections.replaceChildren();
     let socialCount = 0;
     for (const [provider, details] of Object.entries(account.oauth || {})) {
@@ -59,25 +78,6 @@ async function loadAccount() {
       socialConnections.append(row);
     }
     document.getElementById('connected-signins').hidden = socialCount === 0;
-    const connect = document.getElementById('connect-discord');
-    connect.hidden = account.discord_linked || !account.discord_available;
-    document.getElementById('disconnect-discord').hidden = !account.discord_linked;
-    document.getElementById('discord-guidance').textContent = account.discord_linked
-      ? 'Your Discord identity is connected. Manage tasks here, or open MHM in Discord for tasks, check-ins, and support.'
-      : account.discord_available
-        ? 'Manage tasks here, or connect Discord to bring MHM tasks, check-ins, and support there.'
-        : 'Discord connection is not configured yet. Ask your MHM administrator for help.';
-    accountContent.hidden = false;
-    const socialProvider = socialResult && socialResult.endsWith('-connected') ? socialResult.slice(0, -10) : '';
-    status.textContent = socialProvider ? `${socialProvider[0].toUpperCase()}${socialProvider.slice(1)} is connected to your MHM account.`
-      : socialResult === 'in-use' ? 'That social account is already connected to another MHM account.'
-        : socialResult === 'error' ? 'That social account could not be connected. Please try again.'
-          : discordResult === 'connected' ? 'Discord is connected to your MHM account.'
-      : discordResult === 'cancelled' ? 'Discord connection was canceled. You can try again whenever you are ready.'
-      : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
-        : discordResult === 'account-linked' ? 'This MHM account already has a different Discord account connected.'
-          : discordResult === 'unavailable' ? 'Discord connection is not configured right now. Please ask your MHM administrator for help.'
-            : discordResult === 'error' ? 'Discord could not be connected. This can happen when that Discord account is already linked to another MHM account. Disconnect it from the other account first, or try again; if it still fails, ask your MHM administrator for help.' : '';
   } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
 }
 async function disconnectProvider(provider, button) {

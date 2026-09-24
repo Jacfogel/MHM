@@ -37,7 +37,7 @@ PERSONALIZED_CATEGORIES = {
     "personalized_profile": None,
 }
 CUSTOM_QUESTION_TYPES = frozenset(
-    {"optional_text", "yes_no", "scale_1_5", "number", "time_pair"}
+    {"optional_text", "yes_no", "scale_1_5", "number", "time", "time_pair"}
 )
 DEFAULT_QUESTION_CATEGORIES = frozenset(
     {"mood", "energy", "health", "activities", "general"}
@@ -304,6 +304,22 @@ def settings_snapshot(documents, options):
         "available_message_periods": available_message_periods,
         "discord_linked": bool(account.get("discord_user_id")),
     }
+
+
+def _legal_question_counts(always, sometimes, total_enabled, minimum, maximum):
+    """Return question counts that include every Always question and can vary."""
+    floor = max(int(always), 1)
+    if sometimes and total_enabled > 1:
+        minimum_ceiling = total_enabled - 1
+    else:
+        minimum_ceiling = total_enabled or 100
+    minimum_ceiling = max(minimum_ceiling, floor)
+    minimum = min(max(int(minimum), floor), minimum_ceiling)
+    maximum_floor = always + 1 if sometimes else floor
+    maximum_floor = max(maximum_floor, minimum)
+    maximum_ceiling = max(total_enabled or 100, maximum_floor)
+    maximum = min(max(int(maximum), maximum_floor), maximum_ceiling)
+    return minimum, maximum
 
 
 @handle_errors("validating website settings updates", user_friendly=False, re_raise=True)
@@ -641,15 +657,9 @@ def build_settings_updates(documents, options, section, values):
         always = list(states.values()).count("always")
         sometimes = list(states.values()).count("sometimes")
         total_enabled = always + sometimes
-        if values["enabled"] and (
-            minimum < max(always, 1)
-            or (sometimes and minimum > total_enabled - 1)
-            or maximum < max(always + bool(sometimes), 1)
-            or maximum > total_enabled
-        ):
-            raise ValidationError(
-                "Question counts must include all Always questions; when Sometimes questions are enabled, the minimum must leave at least one question out so check-ins can vary."
-            )
+        minimum, maximum = _legal_question_counts(
+            always, sometimes, total_enabled, minimum, maximum
+        )
         flag("checkins")
         save_periods("checkin", values["periods"])
         questions = copy.deepcopy(checkin.get("questions") or {})
