@@ -9,7 +9,6 @@ import pytest
 from communication.command_handlers.notebook_handler import (
     NotebookHandler,
     _format_journal_submitted_date_label,
-    _format_no_group_hits_message,
     _format_no_search_hits_message,
     _format_no_tag_hits_message,
 )
@@ -118,36 +117,6 @@ class TestNotebookHandlerPaginationAndFormatting:
             remaining_count=3,
         )
 
-    def test_group_pagination_infers_show_more_payload(self):
-        handler = NotebookHandler()
-        entries = [_note_entry(f"Group {i}") for i in range(6)]
-
-        with patch(
-            "communication.command_handlers.notebook_handler.list_entries_by_group",
-            return_value=type("Result", (), {"entries": entries})(),
-        ):
-            response = handler._handle_list_by_group(
-                "user-1", {"group": "work", "offset": 0, "limit": 3}
-            )
-
-        _assert_pagination_action(
-            response,
-            action="list_entries_by_group",
-            params={"group": "work"},
-            limit=3,
-            offset=0,
-            next_offset=3,
-            remaining_count=3,
-        )
-
-    def test_list_by_group_requires_group_name(self):
-        handler = NotebookHandler()
-
-        response = handler._handle_list_by_group("user-1", {})
-
-        assert response.completed is False
-        assert "Which group?" in response.message
-
     def test_list_pinned_with_default_entities_supports_pagination(self):
         handler = NotebookHandler()
         entries = [_note_entry(f"Pinned {i}") for i in range(7)]
@@ -199,7 +168,6 @@ class TestNotebookHandlerPaginationAndFormatting:
             id=uuid4(),
             title="Weekend Plan",
             description="Checklist",
-            group="home",
             tags=["work", "urgent"],
             pinned=True,
             status="archived",
@@ -212,7 +180,6 @@ class TestNotebookHandlerPaginationAndFormatting:
         response_text = handler._format_entry_response(entry)
 
         assert "Weekend Plan" in response_text
-        assert "Group: home" in response_text
         assert "Tags: work, urgent" in response_text
         assert "Pinned" in response_text
         assert "Archived" in response_text
@@ -268,10 +235,8 @@ class TestNotebookHandlerPaginationAndFormatting:
 @pytest.mark.unit
 @pytest.mark.communication
 def test_empty_result_hint_messages_are_self_contained():
-    """Sanity-check helper text for group/tag/search (used by Discord responses)."""
+    """Sanity-check helper text for tag/search (used by Discord responses)."""
     s = _format_no_search_hits_message("foo")
     assert "foo" in s and "!inbox" in s
-    g = _format_no_group_hits_message("work")
-    assert "work" in g and "!recent" in g
     t = _format_no_tag_hits_message("#urgent")
     assert "#urgent" in t and "!t" in t

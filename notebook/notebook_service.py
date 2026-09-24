@@ -16,7 +16,6 @@ from core.time_utilities import now_timestamp_full
 from notebook import notebook_data_manager as data_manager
 from notebook.notebook_schemas import Entry
 
-QUICK_NOTES_GROUP = "Quick Notes"
 MAX_NOTEBOOK_QUERY_RESULTS = 100
 
 
@@ -58,7 +57,6 @@ def prepare_note_fields(entities: dict[str, Any]) -> dict[str, Any]:
     title = entities.get("title")
     description = entities.get("description")
     tags = normalize_command_tags(entities.get("tags", []))
-    group = entities.get("group")
 
     if not title and description:
         title = description
@@ -75,7 +73,6 @@ def prepare_note_fields(entities: dict[str, Any]) -> dict[str, Any]:
         "title": title,
         "description": description,
         "tags": tags,
-        "group": group,
     }
 
 
@@ -94,7 +91,6 @@ def prepare_quick_note_fields(entities: dict[str, Any]) -> dict[str, Any]:
         "title": title,
         "description": None,
         "tags": tags,
-        "group": QUICK_NOTES_GROUP,
     }
 
 
@@ -109,7 +105,6 @@ def prepare_list_fields(entities: dict[str, Any]) -> dict[str, Any]:
     return {
         "title": title,
         "tags": tags,
-        "group": entities.get("group"),
         "items": entities.get("items", []),
     }
 
@@ -154,7 +149,6 @@ def create_journal_from_command(
         title=entities.get("title"),
         description=entities.get("description"),
         tags=normalize_command_tags(entities.get("tags", [])),
-        group=entities.get("group"),
     )
     return NotebookEntryResult(entry=entry, success=entry is not None)
 
@@ -181,17 +175,6 @@ def search_entries_for_display(
     """Search notebook entries for command display."""
     entries = data_manager.search_entries(user_id, query, limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), query=query)
-
-
-@handle_errors("listing notebook entries by group", default_return=NotebookListResult([], 0))
-def list_entries_by_group(
-    user_id: str, group: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
-) -> NotebookListResult:
-    """List notebook entries assigned to a group."""
-    entries = data_manager.list_by_group(user_id, group, limit=limit)
-    return NotebookListResult(
-        entries=entries, total=len(entries), filter_name="group", filter_value=group
-    )
 
 
 @handle_errors("listing notebook entries by tag", default_return=NotebookListResult([], 0))
@@ -230,13 +213,6 @@ def list_archived_entries(
     """List archived notebook entries."""
     entries = data_manager.list_archived(user_id, limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), filter_name="archived")
-
-
-@handle_errors("setting notebook entry group", default_return=NotebookEntryResult(None, False))
-def set_entry_group(user_id: str, entry_ref: str, group: str | None) -> NotebookEntryResult:
-    """Assign or clear a notebook entry group."""
-    entry = data_manager.set_group(user_id, entry_ref, group)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
 
 
 @handle_errors("adding notebook entry tags", default_return=NotebookEntryResult(None, False))
@@ -328,8 +304,6 @@ archive_entry = data_manager.archive_entry
 add_list_item = data_manager.add_list_item
 toggle_list_item_done = data_manager.toggle_list_item_done
 remove_list_item = data_manager.remove_list_item
-set_group = data_manager.set_group
-list_by_group = data_manager.list_by_group
 list_pinned = data_manager.list_pinned
 list_inbox = data_manager.list_inbox
 list_by_tag = data_manager.list_by_tag

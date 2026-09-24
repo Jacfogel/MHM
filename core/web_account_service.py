@@ -2330,7 +2330,6 @@ def create_web_app(
             "items": items,
             "tags": [str(tag) for tag in (entry.tags or [])],
             "pinned": bool(entry.pinned) if str(entry.status) == "active" else False,
-            "group": str(entry.group).strip() if str(entry.group or "").strip() else None,
             "status": str(entry.status),
             "created_at": entry.created_at,
             "updated_at": entry.updated_at,
@@ -2343,7 +2342,6 @@ def create_web_app(
         """Authenticated website facade over the canonical notebook service."""
         uid, _ = await authenticated_account(request)
         from notebook import notebook_data_manager as notes
-        from notebook.notebook_validation import is_valid_entry_group
         from core.tags import normalize_tags
 
         note_id = request.match_info.get("note_id")
@@ -2377,48 +2375,23 @@ def create_web_app(
                 cleaned.append({"text": item["text"].strip(), "done": item["done"]})
             return cleaned
 
-        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
-        def clean_group(value):
-            """Validate an optional notebook group. Blank clears the group."""
-            if value is None or (isinstance(value, str) and not value.strip()):
-                return None
-            if not isinstance(value, str) or not is_valid_entry_group(value):
-                raise web.HTTPBadRequest(
-                    text="Group names can use letters, numbers, spaces, hyphens, and underscores."
-                )
-            return value.strip()
-
         if request.method == "GET":
             status = request.query.get("status", "active")
-            if status not in {"active", "pinned", "inbox", "archived", "all", "group"}:
-                raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, a group, or all notes.")
+            if status not in {"active", "pinned", "inbox", "archived", "all"}:
+                raise web.HTTPBadRequest(text="Choose active, pinned, inbox, archived, or all notes.")
             query = request.query.get("q", "").strip()
             tag_filter = request.query.get("tag", "").strip()
-            group_name = request.query.get("group", "").strip()
-            if len(query) > 500 or len(tag_filter) > 100 or len(group_name) > 50:
+            if len(query) > 500 or len(tag_filter) > 100:
                 raise web.HTTPBadRequest(text="Keep notebook filters brief.")
-            if status == "group" and not is_valid_entry_group(group_name):
-                raise web.HTTPBadRequest(
-                    text="Choose a group name using letters, numbers, spaces, hyphens, or underscores."
-                )
             if query:
                 entries = notes.search_entries(uid, query, limit=100)
             elif status == "pinned":
                 entries = notes.list_pinned(uid, limit=100)
             elif status == "inbox":
                 entries = notes.list_inbox(uid, limit=100)
-            elif status == "group":
-                entries = notes.list_by_group(uid, group_name, limit=100)
             else:
                 entries = notes.list_recent(uid, n=100, include_archived=status != "active")
-            if status == "group":
-                entries = [
-                    entry
-                    for entry in entries
-                    if entry.status == "active"
-                    and str(entry.group or "").casefold() == group_name.casefold()
-                ]
-            elif status not in {"all", "pinned", "inbox"}:
+            if status not in {"all", "pinned", "inbox"}:
                 entries = [entry for entry in entries if entry.status == status]
             if tag_filter:
                 entries = [
@@ -2441,24 +2414,15 @@ def create_web_app(
                 },
                 key=str.casefold,
             )
-            groups = sorted(
-                {
-                    str(entry.group).strip()
-                    for entry in all_entries
-                    if entry.status == "active" and str(entry.group or "").strip()
-                },
-                key=str.casefold,
-            )
             return web.json_response({
                 "notes": [note_view(entry) for entry in entries],
                 "count": len(entries),
                 "tags": tags,
-                "groups": groups,
             })
 
         if request.method == "POST" and not note_id:
             data = await body(request)
-            allowed = {"kind", "title", "description", "items", "tags", "group"}
+            allowed = {"kind", "title", "description", "items", "tags"}
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported note fields.")
             kind = data.get("kind", "note")
@@ -2476,16 +2440,15 @@ def create_web_app(
             if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             tags = normalize_tags(tags)
-            group = clean_group(data.get("group")) if "group" in data else None
             if kind == "list":
                 items = clean_list_items(data.get("items"))
-                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_list, uid, title=title.strip(), items=[item["text"] for item in items], tags=tags)
                 if entry and any(item["done"] for item in items):
                     entry = await asyncio.to_thread(notes.set_list_items, uid, str(entry.id), items)
             elif kind == "journal_entry":
-                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_journal, uid, title=title.strip(), description=description, tags=tags)
             else:
-                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags, group=group)
+                entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags)
             if not entry:
                 raise web.HTTPBadRequest(text="MHM could not create that entry.")
             return web.json_response({"note": note_view(entry)}, status=201)
@@ -2499,7 +2462,7 @@ def create_web_app(
             return web.json_response({"note": note_view(find(note_id, include_archived=True))})
         if action is None and request.method == "PATCH":
             data = await body(request)
-            allowed = {"title", "description", "items", "tags", "pinned", "group"}
+            allowed = {"title", "description", "items", "tags", "pinned"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported note changes.")
             if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip() or len(data["title"].strip()) > 200):
@@ -2531,10 +2494,6 @@ def create_web_app(
             if "pinned" in data and type(data["pinned"]) is not bool:
                 raise web.HTTPBadRequest(text="Choose whether the entry is pinned.")
             if "pinned" in data and not await asyncio.to_thread(notes.pin_entry, uid, note_id, data["pinned"]):
-                raise web.HTTPNotFound(text="That note could not be updated.")
-            if "group" in data and not await asyncio.to_thread(
-                notes.set_group, uid, note_id, clean_group(data.get("group"))
-            ):
                 raise web.HTTPNotFound(text="That note could not be updated.")
             return web.json_response({"note": note_view(find(note_id, include_archived=False))})
         raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH"})

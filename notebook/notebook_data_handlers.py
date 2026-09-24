@@ -140,7 +140,6 @@ def _entry_v2_to_runtime(entry: dict) -> dict:
         "status": status,
         "category": entry.get("category") or "",
         "tags": entry.get("tags") or [],
-        "group": entry.get("group") or None,
         "pinned": entry.get("pinned", False),
         "submitted_at": entry.get("submitted_at"),
         "source": entry.get("source"),
@@ -172,7 +171,9 @@ def _entry_runtime_to_v2(entry: dict) -> dict:
         "title": entry.get("title") or "",
         "description": description or "",
         "category": entry.get("category") or "",
-        "group": entry.get("group") or "",
+        # BaseItemModel still carries this shared field for task compatibility.
+        # Notebook groups are unsupported, so old values are cleared on save.
+        "group": "",
         "tags": entry.get("tags") or [],
         "status": status,
         "pinned": bool(entry.get("pinned", False)),

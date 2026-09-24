@@ -140,20 +140,8 @@ class TestManualChecklistNotebookGaps:
         assert get_entry(user_id, short_id).status == "active"
 
     @pytest.mark.file_io
-    def test_set_group_and_list_inbox(self, test_data_dir):
-        user_id = self._user("group_inbox", test_data_dir)
-        entry = create_note(user_id, title="Inbox note")
-        short_id = _short_id(entry)
-
-        grouped = self._handle(
-            user_id,
-            "set_entry_group",
-            {"entry_ref": short_id, "group": "work"},
-            f"!group {short_id} work",
-        )
-        assert grouped.completed
-        assert get_entry(user_id, short_id).group == "work"
-
+    def test_list_inbox(self, test_data_dir):
+        user_id = self._user("inbox", test_data_dir)
         inbox_note = create_note(user_id, title="Loose thought")
         inbox = self._handle(user_id, "list_inbox_entries", {}, "!inbox")
         assert inbox.completed
@@ -214,7 +202,7 @@ class TestManualChecklistNotebookGaps:
         assert "journal_entry" in kinds
 
     @pytest.mark.file_io
-    def test_quick_note_aliases_create_quick_notes_group(self, test_data_dir):
+    def test_quick_note_aliases_create_entries(self, test_data_dir):
         user_id = self._user("qnote", test_data_dir)
         parser = EnhancedCommandParser()
         aliases = [
@@ -232,13 +220,8 @@ class TestManualChecklistNotebookGaps:
             assert response.completed, message
             assert "quick note" in response.message.lower(), response.message
 
-        entries_path = _get_notebook_file_path(user_id)
-        payload = json.loads(entries_path.read_text(encoding="utf-8"))
-        groups = {item.get("group") for item in payload.get("entries", [])}
-        assert "Quick Notes" in groups
-
     @pytest.mark.file_io
-    def test_entries_json_short_ids_groups_and_normalized_tags(self, test_data_dir):
+    def test_entries_json_short_ids_and_normalized_tags(self, test_data_dir):
         user_id = self._user("verify_json", test_data_dir)
         response = self._handle(
             user_id,
@@ -247,7 +230,6 @@ class TestManualChecklistNotebookGaps:
                 "title": "Work task",
                 "description": "Follow up",
                 "tags": ["#Work", "URGENT"],
-                "group": "work",
             },
             "!n Work task #Work #URGENT",
         )
@@ -261,7 +243,6 @@ class TestManualChecklistNotebookGaps:
         short_id = entry.get("short_id") or ""
         assert short_id
         assert "-" not in short_id
-        assert entry.get("group") == "work"
         assert entry.get("tags") == ["work", "urgent"]
 
     @pytest.mark.file_io

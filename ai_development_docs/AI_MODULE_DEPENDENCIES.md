@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 02:24:08
+> **Last Generated**: 2026-09-24 15:38:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 288
-- **Total Imports**: 2556
-- **Standard Library**: 739 (28.9%)
+- **Files Scanned**: 289
+- **Total Imports**: 2562
+- **Standard Library**: 743 (29.0%)
 - **Third-Party**: 223 (8.7%)
-- **Local Imports**: 1594 (62.4%)
+- **Local Imports**: 1596 (62.3%)
 
 ## Dependency Decision Trees
 
@@ -99,6 +99,7 @@ External libraries provide channel and UI support.
 
 ### Entry Points
 - `run_headless_service.py` -> standard library (argparse, sys, typing), third-party (aiohttp), error_handling, headless_service, logger, core, web_account_service (main application entry)
+- `run_mhm.py` -> standard library (os, pathlib, subprocess, sys), error_handling, launch_env, logger (main application entry)
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
@@ -114,7 +115,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 29 unique local dependencies (high fan-out; review for inappropriate edges) (50 import statements; 21 duplicate)
+- `core/web_account_service.py` -> 28 unique local dependencies (high fan-out; review for inappropriate edges) (50 import statements; 22 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (high fan-out; review for inappropriate edges) (18 import statements; 1 duplicate)

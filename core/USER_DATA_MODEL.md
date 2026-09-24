@@ -166,7 +166,9 @@ Shared v2 item fields:
 - `id`: stable internal identifier, usually a UUID string.
 - `short_id`: mobile-friendly no-dash identifier derived from `id`, with a kind prefix such as `t`, `n`, `l`, `j`, `m`, `d`, or `c`.
 - `kind`: canonical item kind, such as `task`, `note`, `list`, or `journal_entry`.
-- `title`, `description`, `category`, `group`, `tags`, `status`.
+- `title`, `description`, `category`, `group`, `tags`, `status`. The shared
+  `group` key is used by tasks; notebook persistence keeps it blank for schema
+  compatibility and the notebook runtime/API do not expose groups.
 - `source`: object describing best-known origin (`system`, `channel`, `actor`, optional `migration`).
 - `linked_item_ids`: list of related canonical item IDs.
 - `created_at`, `updated_at`, `archived_at`, `deleted_at`: canonical timestamps from `core.time_utilities`; nullable timestamps use `null` when absent.

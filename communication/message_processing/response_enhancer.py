@@ -68,8 +68,6 @@ EXCLUDED_ENHANCEMENT_INTENTS = {
     "add_list_item",
     "toggle_list_item_done",
     "remove_list_item",
-    "set_entry_group",
-    "list_entries_by_group",
     "list_pinned_entries",
     "list_inbox_entries",
     "list_entries_by_tag",
