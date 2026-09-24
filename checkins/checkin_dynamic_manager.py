@@ -231,8 +231,8 @@ class DynamicCheckinManager:
 
         transition = self.get_transition_phrase()
         if response_statement:
-            return f"{response_statement}\n\n{transition} {question_text}"
-        return f"{transition} {question_text}"
+            return f"{response_statement}\n\n{transition}\n{question_text}"
+        return f"{transition}\n{question_text}"
 
     @handle_errors("resolving numeric response fallback", default_return=[])
     def _get_numeric_response_fallback(

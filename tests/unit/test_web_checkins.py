@@ -137,6 +137,23 @@ async def test_website_checkin_respects_disabled_and_already_completed(checkin_g
     assert (await client.post("/api/checkins", json={"action": "later"}, headers={"Origin": ORIGIN})).status == 400
 
 
+async def test_logout_clears_an_open_website_checkin(checkin_gateway):
+    from communication.message_processing.conversation_flow_manager import conversation_manager
+
+    client, _state = checkin_gateway
+    conversation_manager.user_states["existing"] = {
+        "flow": FLOW_CHECKIN,
+        "question_order": ["mood"],
+        "current_question_index": 0,
+        "data": {},
+    }
+    try:
+        assert (await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})).status == 200
+        assert "existing" not in conversation_manager.user_states
+    finally:
+        conversation_manager.user_states.pop("existing", None)
+
+
 async def test_current_checkin_prompt_reads_the_open_question(monkeypatch):
     from communication.message_processing.conversation_flow_manager import conversation_manager
 
@@ -157,6 +174,7 @@ async def test_current_checkin_prompt_reads_the_open_question(monkeypatch):
             "message": "How is your mood?",
             "index": 1,
             "total": 1,
+            "question_type": "scale_1_5",
         }
         conversation_manager.user_states.pop(user_id)
         assert conversation_manager.current_checkin_prompt(user_id) is None

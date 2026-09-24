@@ -92,7 +92,7 @@ class CheckinFlowMixin(FlowStateMixin):
         intro = (
             "🌟 Check-in Time! 🌟\n\n"
             "Hi! It's time for your check-in. This helps me understand how you're doing and provide better support.\n\n"
-            f"Let's start: {first_question_text}"
+            f"Let's start:\n{first_question_text}"
         )
 
         # Update state to current question without advancing index
@@ -216,7 +216,16 @@ class CheckinFlowMixin(FlowStateMixin):
         message = self._get_question_text(
             question_key, user_state.get("data") or {}, user_id
         )
-        return {"message": message, "index": current_index + 1, "total": total}
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
+
+        definition = dynamic_checkin_manager.get_question_definition(question_key, user_id) or {}
+        question_type = definition.get("type") if isinstance(definition, dict) else None
+        return {
+            "message": message,
+            "index": current_index + 1,
+            "total": total,
+            "question_type": question_type,
+        }
 
     @handle_errors(
         "handling checkin",

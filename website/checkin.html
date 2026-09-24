@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=checkin-2" />
   <script src="script.js?v=nav-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="checkin.js?v=checkin-1" defer></script>
+  <script src="checkin.js?v=checkin-5" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -32,12 +32,17 @@
         <p id="checkin-off" hidden>Check-ins are off. You can turn them on in <a href="app.html">Account</a>.</p>
         <button id="checkin-start" class="button" type="button" hidden>Start check-in</button>
         <form id="checkin-form" hidden>
-          <div class="settings-field">
+          <div id="checkin-choices" class="checkin-choices" hidden></div>
+          <div id="checkin-sleep" class="checkin-sleep" hidden>
+            <div id="checkin-sleep-chunks"></div>
+            <button id="checkin-sleep-add" class="plain-button" type="button">Add another sleep period</button>
+          </div>
+          <div id="checkin-answer-field" class="settings-field">
             <label for="checkin-answer">Your answer</label>
             <input id="checkin-answer" name="answer" maxlength="2000" required placeholder="A number, yes or no, or a short note" />
           </div>
           <div class="task-dialog-actions">
-            <button class="button" type="submit">Save answer</button>
+            <button id="checkin-save" class="button" type="submit">Save answer</button>
             <button id="checkin-skip" class="plain-button" type="button">Skip question</button>
             <button id="checkin-cancel" class="plain-button" type="button">Cancel check-in</button>
           </div>

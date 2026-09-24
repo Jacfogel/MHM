@@ -48,6 +48,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       requests.push({ url, options });
       if (url === '/api/account') return Response.json(account);
       if (url === '/api/tasks?status=active') return Response.json(tasks);
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/notes') return Response.json({ ok: true }, { status: 201 });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       return Response.json({ error: 'missing' }, { status: 404 });
@@ -107,6 +108,20 @@ test('home shows the next due task and can queue a check-in', async () => {
   await view.checkin();
   assert.ok(view.requests.some(request => request.url === '/api/actions' && JSON.parse(request.options.body).action === 'checkin_prompt'));
   assert.match(view.nodes.get('home-checkin-status').textContent, /queued/);
+});
+
+test('home points back to an open check-in', async () => {
+  const view = await page({
+    fetchImpl: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: true, index: 2, total: 3, question_type: 'yes_no' });
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  assert.match(view.nodes.get('home-checkin-on').textContent, /Question 2 of 3/);
+  assert.equal(view.nodes.get('home-checkin-answer').textContent, 'Continue check-in');
+  assert.equal(view.nodes.get('home-checkin-answer').hidden, false);
 });
 
 test('home warns when task reminders are off', async () => {

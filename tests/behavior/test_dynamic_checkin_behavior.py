@@ -116,8 +116,13 @@ class TestDynamicCheckinManager:
         # Should contain both the response statement and the next question
         assert any(phrase in question_text.lower() for phrase in ['feeling down', 'rough', 'aren\'t great', 'tough'])
         assert 'energy level' in question_text.lower()
-        # Check for newline separation between response and question
+        # The reply stays above a blank line. The transition phrase and question are on their own lines.
         assert '\n\n' in question_text
+        reply, lead_in = question_text.split('\n\n', 1)
+        transition_line, question_line = lead_in.split('\n', 1)
+        assert reply
+        assert transition_line.endswith(':')
+        assert 'energy level' in question_line.lower()
         
         # Test without a previous answer (first question)
         question_text = dynamic_checkin_manager.build_next_question_with_response(

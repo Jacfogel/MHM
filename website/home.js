@@ -78,6 +78,24 @@
       document.getElementById('home-checkin-answer').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-on').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;
+      let checkinState = { active: false };
+      if (account.checkins_enabled) {
+        try {
+          checkinState = await api('/api/checkins');
+        } catch (error) {
+          checkinState = { active: false };
+        }
+      }
+      const checkinOn = document.getElementById('home-checkin-on');
+      const answerLink = document.getElementById('home-checkin-answer');
+      if (account.checkins_enabled && checkinState.active) {
+        const progress = checkinState.index && checkinState.total ? ` Question ${checkinState.index} of ${checkinState.total}.` : '';
+        checkinOn.textContent = `A check-in is open.${progress}`;
+        answerLink.textContent = 'Continue check-in';
+      } else {
+        checkinOn.textContent = 'Answer here, or have MHM send one by email or Discord.';
+        answerLink.textContent = 'Answer a check-in';
+      }
       const tasks = await api('/api/tasks?status=active');
       const task = nextTask(tasks.tasks || []);
       document.getElementById('home-task-title').textContent = task ? task.title : 'No tasks yet.';

@@ -2488,7 +2488,7 @@ def create_web_app(
         enabled = bool(await asyncio.to_thread(is_user_checkins_enabled, uid))
 
         # ERROR_HANDLING_EXCLUDE: Serializer is only used by this guarded route.
-        def view(message, *, active, completed, completed_today, index, total):
+        def view(message, *, active, completed, completed_today, index, total, question_type):
             """Return the browser check-in state."""
             return {
                 "enabled": enabled,
@@ -2498,6 +2498,7 @@ def create_web_app(
                 "message": message,
                 "index": index,
                 "total": total,
+                "question_type": question_type if active else None,
             }
 
         snapshot = await asyncio.to_thread(conversation_manager.current_checkin_prompt, uid) or {}
@@ -2527,6 +2528,7 @@ def create_web_app(
                 completed_today=completed_today,
                 index=snapshot.get("index"),
                 total=snapshot.get("total"),
+                question_type=snapshot.get("question_type"),
             ))
 
         data = await body(request)
@@ -2536,11 +2538,13 @@ def create_web_app(
                 return web.json_response(view(
                     "Check-ins are off. You can turn them on in Account.",
                     active=False, completed=True, completed_today=False, index=None, total=None,
+                    question_type=None,
                 ))
             if completed_today:
                 return web.json_response(view(
                     finished_today,
                     active=False, completed=True, completed_today=True, index=None, total=None,
+                    question_type=None,
                 ))
             message, completed = await asyncio.to_thread(conversation_manager.start_checkin, uid)
         elif action == "answer" and set(data) == {"action", "answer"}:
@@ -2574,14 +2578,32 @@ def create_web_app(
             completed_today=False,
             index=latest.get("index") if active else None,
             total=latest.get("total") if active else None,
+            question_type=latest.get("question_type") if active else None,
         ))
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def logout(request):
         """Revoke the current session cookie and clear it from the browser."""
-        sessions.pop(
-            hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest(), None
-        )
+        key = hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest()
+        session = sessions.pop(key, None)
+        if session:
+            uid = session[0]
+
+            # ERROR_HANDLING_EXCLUDE: Logout cleanup runs inside the gateway route.
+            def clear_open_checkin():
+                """Drop an in-progress check-in so the next login starts fresh."""
+                from communication.message_processing.conversation_flow_manager import (
+                    conversation_manager,
+                )
+                from communication.message_processing.flows.flow_constants import (
+                    FLOW_CHECKIN,
+                )
+
+                state = conversation_manager.user_states.get(uid)
+                if isinstance(state, dict) and state.get("flow") == FLOW_CHECKIN:
+                    conversation_manager._clear_flow_state(uid, mark_completion=False)
+
+            await asyncio.to_thread(clear_open_checkin)
         response = web.json_response({"ok": True})
         response.del_cookie(COOKIE, path="/api/")
         return response

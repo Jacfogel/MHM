@@ -192,7 +192,7 @@ return to login; request failures allow retrying logout.
 
 ```powershell
 python -m pytest tests/unit/test_website_pages.py tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_checkins.py tests/unit/test_web_gateway_runtime.py -q
-node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/notes.test.mjs website/script.test.mjs
+node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/notes.test.mjs website/checkin.test.mjs website/script.test.mjs
 ```
 
 Tests inject isolated account and email adapters; they do not send real email or
