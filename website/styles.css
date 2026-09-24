@@ -590,10 +590,12 @@ button[aria-busy="true"] { cursor: wait; }
   .insights-detail-grid { grid-template-columns: 1fr; }
 }
 
-.talk-panel { margin: 8px 0 36px; padding: 28px; border: 1px solid var(--border); border-radius: 24px; background: white; }
+.home-dashboard { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, .8fr); gap: 24px; align-items: start; }
+.talk-panel { margin: 0; padding: 28px; border: 1px solid var(--border); border-radius: 24px; background: white; box-shadow: var(--shadow); }
+.talk-heading .eyebrow, .today-heading .eyebrow, .today-card .eyebrow { margin-bottom: 8px; }
 .talk-heading h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 8px; }
 .talk-heading p { margin: 0 0 18px; color: var(--muted); }
-.talk-log { display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; padding: 16px; border-radius: 16px; background: var(--soft); }
+.talk-log { display: flex; flex-direction: column; gap: 12px; min-height: 300px; max-height: 520px; overflow-y: auto; padding: 16px; border-radius: 16px; background: var(--soft); }
 .talk-bubble { max-width: min(78%, 640px); padding: 12px 14px; border-radius: 16px; background: white; border: 1px solid var(--border); }
 .talk-bubble span { display: block; margin-bottom: 4px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--purple-dark); }
 .talk-bubble time { display: block; margin: -2px 0 6px; font-size: .75rem; font-weight: 600; color: var(--muted); }
@@ -604,11 +606,12 @@ button[aria-busy="true"] { cursor: wait; }
 .talk-suggestion { margin: 0; }
 .talk-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin-top: 14px; }
 .talk-form textarea { width: 100%; min-height: 72px; resize: vertical; padding: 12px 14px; border: 1px solid #d8d3e7; border-radius: 12px; color: var(--ink); background: #fdfcfe; font: inherit; }
-.home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.home-cards .card { min-height: 0; }
-.home-cards .button { margin-top: 18px; }
-.home-capture { grid-column: 1 / -1; }
-.home-capture form { margin-top: 8px; }
+.today-panel { display: grid; gap: 14px; }
+.today-heading h2 { font-size: clamp(1.7rem, 3vw, 2.3rem); margin-bottom: 4px; }
+.today-card { min-height: 0; padding: 22px; }
+.today-card h3 { margin-bottom: 8px; }
+.today-card p { margin-top: 8px; }
+.today-card .button, .today-card .text-link, .today-card .plain-button { margin-top: 12px; }
 .setup-layout { max-width: 920px; }
 .setup-progress { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0 0 28px; }
 .setup-progress li { padding: 8px 12px; border-radius: 999px; background: var(--lavender); color: var(--muted); font-size: .82rem; font-weight: 700; }
@@ -622,7 +625,16 @@ button[aria-busy="true"] { cursor: wait; }
 .setup-choice span span { color: var(--muted); font-size: .875rem; font-weight: 400; }
 .setup-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 8px; }
 @media (max-width: 760px) {
-  .home-cards { grid-template-columns: 1fr; }
   .talk-form { grid-template-columns: 1fr; }
   .talk-bubble { max-width: 100%; }
+}
+@media (max-width: 920px) {
+  .home-dashboard { grid-template-columns: 1fr; }
+  .today-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .today-heading { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .today-panel { grid-template-columns: 1fr; }
+  .today-heading { grid-column: auto; }
+  .talk-panel { padding: 20px; }
 }

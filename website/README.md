@@ -174,7 +174,7 @@ return to login; request failures allow retrying logout.
 - `script.js` — year stamp and compact navigation menu
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
-- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, and one-line notebook capture
+- `home.html`, `home.js` — signed-in daily dashboard centered on browser chat, with a compact next-task and check-in summary
 - `checkin.html`, `checkin.js` — answer, skip, or cancel the current check-in in the browser
 - `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout

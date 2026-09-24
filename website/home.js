@@ -40,20 +40,26 @@
     return task.due_time ? `Due ${task.due_date} at ${task.due_time}.` : `Due ${task.due_date}.`;
   }
 
-  function noteTitle(text) {
-    const line = text.split(/\r?\n/).find(item => item.trim()) || 'Quick note';
-    return line.trim().slice(0, 80);
-  }
-
-  function accountNeedsSetup(account) {
-    return account.needs_setup === true;
+  async function accountNeedsSetup(account) {
+    if (account.needs_setup === true) return true;
+    const flags = ['messages_enabled', 'tasks_enabled', 'checkins_enabled'];
+    const known = flags.filter(key => typeof account[key] === 'boolean');
+    if (known.some(key => account[key])) return false;
+    if (known.length === flags.length) return true;
+    try {
+      const settings = await api('/api/settings');
+      const sections = settings.sections || {};
+      return ['messages', 'tasks', 'checkins'].every(key => sections[key] && sections[key].enabled === false);
+    } catch (error) {
+      return false;
+    }
   }
 
   async function loadHome() {
     if (!homeContent) return;
     try {
       const account = await api('/api/account');
-      if (accountNeedsSetup(account)) {
+      if (await accountNeedsSetup(account)) {
         location.replace('setup.html');
         return;
       }
@@ -91,7 +97,7 @@
       document.getElementById('home-task-title').textContent = task ? task.title : 'No tasks yet.';
       document.getElementById('home-task-meta').textContent = task
         ? dueLabel(task)
-        : 'Add something small on Tasks, or capture a thought below.';
+        : 'Ask MHM to add something, or open Tasks when you are ready.';
       homeContent.hidden = false;
       status.textContent = '';
     } catch (error) {
@@ -116,29 +122,6 @@
     } catch (error) {
       checkinStatus.textContent = error.message;
       checkinStatus.classList.add('is-error');
-    } finally {
-      button.disabled = false;
-    }
-  });
-
-  const captureForm = document.getElementById('home-capture-form');
-  if (captureForm) captureForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const note = document.getElementById('home-note');
-    const button = document.getElementById('home-capture-submit');
-    const captureStatus = document.getElementById('home-capture-status');
-    const text = note.value.trim();
-    if (!text) return;
-    button.disabled = true;
-    captureStatus.textContent = 'Saving…';
-    captureStatus.classList.remove('is-error');
-    try {
-      await api('/api/notes', 'POST', { kind: 'note', title: noteTitle(text), description: text });
-      note.value = '';
-      captureStatus.textContent = 'Saved to your notebook.';
-    } catch (error) {
-      captureStatus.textContent = error.message;
-      captureStatus.classList.add('is-error');
     } finally {
       button.disabled = false;
     }
