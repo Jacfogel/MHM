@@ -11,15 +11,15 @@ test('notebook create and edit forms provide an existing-tags picker', () => {
   assert.match(source, /bindTagPicker\(tags, existingTag\)/);
 });
 
-test('notebook groups appear as tabs beside pinned and archived', () => {
-  assert.match(html, /id="note-group"/);
+test('notebook exposes active, pinned, inbox, and archived views without groups', () => {
+  assert.doesNotMatch(html, /id="note-group"/);
   assert.match(html, /id="note-tabs"/);
+  assert.match(html, /data-note-view="active"/);
   assert.match(html, /data-note-view="pinned"/);
+  assert.match(html, /data-note-view="inbox"/);
   assert.match(html, /data-note-view="archived"/);
-  assert.match(source, /data-note-group/);
-  assert.match(source, /existingGroups/);
-  assert.match(source, /note\.group/);
   assert.match(source, /status: view/);
+  assert.doesNotMatch(source, /data-note-group/);
 });
 
 test('archived entries do not render a pinned quality', () => {

@@ -85,7 +85,7 @@ Tasks can be created from built-in templates, edited, linked to web resources,
 completed, restored, deleted, snoozed, skipped, or simplified. The task list is
 shown first; title-only creation is the default, and template, details, due date,
 priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
-pinned, inbox, and group views alongside active and archived entries. Each saved group is its own tab. The message library
+pinned and inbox views alongside active and archived entries. The message library
 supports personal template creation, editing, scheduling, pausing, and deletion.
 Insights show recent check-in patterns and history. A mood trend compares the seven
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
