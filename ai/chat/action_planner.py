@@ -96,7 +96,6 @@ _ENTITY_KEY_ALIASES = {
     "NOTE": "note",
     "NOTE_TEXT": "note_text",
     "TAGS": "tags",
-    "GROUP": "group",
     "TEMPLATE_REF": "template_ref",
     "FILTER": "filter",
     "TAG": "tag",

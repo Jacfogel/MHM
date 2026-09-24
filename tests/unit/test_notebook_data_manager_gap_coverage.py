@@ -409,21 +409,12 @@ class TestNotebookDataManagerGapCoverage:
         assert repinned is not None
         assert repinned.pinned is False
 
-        grouped = ndm.set_group("user-1", str(first.id), "  work  ")
-        assert grouped is not None
-        assert not hasattr(grouped, "group")
-
-        cleared_group = ndm.set_group("user-1", str(first.id), None)
-        assert cleared_group is not None
-
-    def test_mutation_wrappers_return_none_for_missing_or_invalid_group(self, monkeypatch):
+    def test_mutation_wrappers_return_none_for_missing_refs(self, monkeypatch):
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
         assert ndm.add_tags("user-1", "missing-ref", ["x"]) is None
         assert ndm.remove_tags("user-1", "missing-ref", ["x"]) is None
         assert ndm.pin_entry("user-1", "missing-ref", pinned=True) is None
         assert ndm.archive_entry("user-1", "missing-ref", archived=True) is None
-        assert ndm.set_group("user-1", "missing-ref", "work") is None
-        assert ndm.set_group("user-1", "missing-ref", "bad@group") is None
 
     def test_organization_listing_paths(self, monkeypatch):
         recent_now = datetime(2026, 1, 31, 12, 0, 0)
@@ -458,9 +449,6 @@ class TestNotebookDataManagerGapCoverage:
         ]
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: entries)
         monkeypatch.setattr(ndm, "now_datetime_full", lambda: recent_now)
-
-        by_group = ndm.list_by_group("user-1", "WORK", limit=10)
-        assert by_group == []
 
         pinned = ndm.list_pinned("user-1", limit=10)
         assert len(pinned) == 1

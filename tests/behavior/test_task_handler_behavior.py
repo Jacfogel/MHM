@@ -83,7 +83,6 @@ class TestTaskHandlerBehavior:
         assert "remind me to" in help_text
         assert "after work" in help_text and "after school" in help_text
         assert "#groceries" in help_text or "#health" in help_text
-        assert "group:" in help_text
         assert "skip" in help_text.lower() and "cancel" in help_text.lower()
         assert "help tasks" in help_text
         assert "add link to task" in help_text

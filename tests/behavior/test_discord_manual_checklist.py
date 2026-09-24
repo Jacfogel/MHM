@@ -145,13 +145,6 @@ class TestManualChecklistNotebookGaps:
         entry = create_note(user_id, title="Inbox note")
         short_id = _short_id(entry)
 
-        grouped = self._handle(
-            user_id,
-            "set_entry_group",
-            {"entry_ref": short_id, "group": "work"},
-            f"!group {short_id} work",
-        )
-        assert grouped.completed
         saved = get_entry(user_id, short_id)
         assert saved is not None
         assert not hasattr(saved, "group")
@@ -216,7 +209,7 @@ class TestManualChecklistNotebookGaps:
         assert "journal_entry" in kinds
 
     @pytest.mark.file_io
-    def test_quick_note_aliases_create_quick_notes_group(self, test_data_dir):
+    def test_quick_note_aliases_save_without_a_group(self, test_data_dir):
         user_id = self._user("qnote", test_data_dir)
         parser = EnhancedCommandParser()
         aliases = [
@@ -236,8 +229,7 @@ class TestManualChecklistNotebookGaps:
 
         entries_path = _get_notebook_file_path(user_id)
         payload = json.loads(entries_path.read_text(encoding="utf-8"))
-        groups = {item.get("group") for item in payload.get("entries", [])}
-        assert "Quick Notes" in groups
+        assert all("group" not in item for item in payload.get("entries", []))
 
     @pytest.mark.file_io
     def test_entries_json_short_ids_groups_and_normalized_tags(self, test_data_dir):
@@ -249,7 +241,6 @@ class TestManualChecklistNotebookGaps:
                 "title": "Work task",
                 "description": "Follow up",
                 "tags": ["#Work", "URGENT"],
-                "group": "work",
             },
             "!n Work task #Work #URGENT",
         )
@@ -263,7 +254,7 @@ class TestManualChecklistNotebookGaps:
         short_id = entry.get("short_id") or ""
         assert short_id
         assert "-" not in short_id
-        assert entry.get("group") == "work"
+        assert "group" not in entry
         assert entry.get("tags") == ["work", "urgent"]
 
     @pytest.mark.file_io

@@ -23,11 +23,9 @@ def test_entities_from_shared_fields_merges_title_tags():
     entities = entities_from_shared_fields(
         title="Call dentist #health",
         description="Insurance follow-up",
-        group="medical",
         due_phrase="tomorrow",
     )
     assert entities["title"] == "Call dentist"
     assert "health" in entities["tags"]
-    assert entities["group"] == "medical"
     assert entities["due_date"] == "tomorrow"
     assert entities["description"] == "Insurance follow-up"

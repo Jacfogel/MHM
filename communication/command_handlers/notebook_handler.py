@@ -35,7 +35,6 @@ from notebook.notebook_service import (
     create_quick_note_from_command,
     delete_list_item,
     list_archived_entries,
-    list_entries_by_group,
     list_entries_by_tag,
     list_inbox_entries,
     list_pinned_entries,
@@ -44,7 +43,6 @@ from notebook.notebook_service import (
     remove_entry_tags,
     replace_entry_body,
     search_entries_for_display,
-    set_entry_group,
     set_list_item_done,
 )
 from notebook.notebook_schemas import Entry
@@ -64,7 +62,7 @@ Capture notes, lists, and journal entries from Discord.
 • `jot down that I talked to the doctor` / `add a note about the meeting`
 • `remember that my favorite tea is chamomile` / `keep in mind that the gate code is 1234`
 • `write this down: wifi is on the fridge`
-• `!qn` or `quick note Grocery idea` — saves to Quick Notes group
+• `!qn` or `quick note Grocery idea`
 • `!j Today I felt...` — journal entry
 • `!l Groceries` / `!l new Groceries Milk, Bread #home`
 
@@ -74,22 +72,20 @@ Capture notes, lists, and journal entries from Discord.
 • `!show n123abc` — by short ID, UUID, or title
 • `!s project` — search titles, bodies, list items (archived excluded)
 • `!inbox` — active untagged entries updated in the last 30 days
-• `!pinned` / `!archived` / `!t work` / `!group Home` / `!group Quick Notes`
+• `!pinned` / `!archived` / `!t work`
 
 **Modify:**
 • `!append EntryRef | more text`
 • `!edit n123abc` or `!edit note Meeting Notes` — next message replaces the body (`cancel` aborts)
 • `!set EntryRef new body` / `!tag EntryRef #idea #work`
 • `!pin` / `!unpin` / `!archive` / `!unarchive`
-• `!setgroup n123abc Home` or `!group n123abc Home` — set group (short ID/UUID); use `!setgroup Title Home` for title refs
-• `!group Home` — list a group (multi-word names stay list, not set)
 
 **Lists:**
 • `!l add Groceries Milk`
 • `!l done Groceries 1` / `!l undo Groceries 1`
 • `!l remove Groceries 2`
 
-**Groups vs tags:** Groups are folder-like names; tags are labels (`#work`). Inbox means untagged active entries from the last 30 days — not "no group".
+**Tags:** Tags are labels (`#work`). Inbox means untagged active entries from the last 30 days.
 
 **More:** `help notebook`, `examples notebook`, or DISCORD_GUIDE.md"""
 
@@ -162,7 +158,7 @@ def _format_no_search_hits_message(query: str) -> str:
         "Archived entries are not included - try !archived if something might be archived.",
         "",
         "Try one distinctive word from the title or body, a shorter keyword, or browse with !recent / !inbox.",
-        "For tags or groups, use !t <tag> or !group <name> instead of search.",
+        "For tags, use !t <tag> instead of search.",
     ]
     return "\n".join(lines)
 
@@ -178,23 +174,6 @@ def _format_journal_submitted_date_label(submitted_at: str | None) -> str | None
     if dt.year != now_datetime_full().year:
         return format_timestamp(dt, f"{DATE_DISPLAY_MONTH_DAY}, %Y")
     return format_timestamp(dt, DATE_DISPLAY_MONTH_DAY)
-
-
-# not_duplicate: notebook_empty_result_messages
-@handle_errors(
-    "formatting empty notebook group message",
-    default_return="No entries in that group. Try !recent or check spelling.",
-    user_friendly=False,
-)
-def _format_no_group_hits_message(group: str) -> str:
-    """Build the user message when listing by group returns no entries."""
-    lines = [
-        f"No entries found in group '{group}'.",
-        "",
-        "Check the spelling. Assign with !setgroup <entry_id_or_title> <groupname>.",
-        "Browse recent entries with !recent to see what you have.",
-    ]
-    return "\n".join(lines)
 
 
 # not_duplicate: notebook_empty_result_messages
@@ -244,8 +223,6 @@ class NotebookHandler(InteractionHandler):
             "toggle_list_item_done",
             "toggle_list_item_undone",
             "remove_list_item",
-            "set_entry_group",
-            "list_entries_by_group",
             "list_pinned_entries",
             "list_inbox_entries",
             "list_entries_by_tag",
@@ -307,10 +284,6 @@ class NotebookHandler(InteractionHandler):
             return self._handle_remove_list_item(user_id, entities)
         elif intent == "list_recent_notes":
             return self._handle_list_recent(user_id, entities, notes_only=True)
-        elif intent == "set_entry_group":
-            return self._handle_set_group(user_id, entities)
-        elif intent == "list_entries_by_group":
-            return self._handle_list_by_group(user_id, entities)
         elif intent == "list_pinned_entries":
             return self._handle_list_pinned(user_id, entities)
         elif intent == "list_inbox_entries":
@@ -341,7 +314,6 @@ class NotebookHandler(InteractionHandler):
         title = entities.get("title")
         description = entities.get("description")
         tags = entities.get("tags", [])
-        group = entities.get("group")
 
         # Check if user is in a note body flow (continuing from previous prompt)
         # This shouldn't happen here since flow is handled in conversation_manager,
@@ -350,7 +322,6 @@ class NotebookHandler(InteractionHandler):
         if flow_data is not None and description:
             title = flow_data.get("title", title)
             tags = flow_data.get("tags", tags)
-            group = flow_data.get("group", group)
 
         # If both title and body are missing, prompt for title
         if not title and not description:
@@ -366,7 +337,7 @@ class NotebookHandler(InteractionHandler):
             tags.extend(parsed_tags)
 
             conversation_manager.start_note_body_flow(
-                user_id, title=title, tags=tags, group=group
+                user_id, title=title, tags=tags
             )
             return InteractionResponse(
                 f"📝 Note title: '{title}'\n\nWhat would you like to add as the body text?",
@@ -380,7 +351,6 @@ class NotebookHandler(InteractionHandler):
                 "title": title,
                 "description": description,
                 "tags": tags,
-                "group": group,
             },
         )
         entry = result.entry if result else None
@@ -402,7 +372,7 @@ class NotebookHandler(InteractionHandler):
     def _handle_create_quick_note(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
-        """Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'."""
+        """Handle quick note creation. No body text is required."""
 
         result = create_quick_note_from_command(user_id, entities)
         entry = result.entry if result else None
@@ -432,7 +402,6 @@ class NotebookHandler(InteractionHandler):
 
         title = entities.get("title")
         tags = entities.get("tags", [])
-        group = entities.get("group")
         items = entities.get("items", [])
 
         if not title:
@@ -447,7 +416,7 @@ class NotebookHandler(InteractionHandler):
             tags.extend(parsed_tags)
 
             conversation_manager.start_list_items_flow(
-                user_id, title=title, tags=tags, group=group
+                user_id, title=title, tags=tags
             )
             return InteractionResponse(
                 f"📋 List: '{title}'\n\nAdd list items (separated by commas, semicolons, or new lines). Type `!end`, `/end`, or 'end' to finish.",
@@ -457,7 +426,7 @@ class NotebookHandler(InteractionHandler):
 
         result = create_list_from_command(
             user_id,
-            {"title": title, "tags": tags, "group": group, "items": items},
+            {"title": title, "tags": tags, "items": items},
         )
         entry = result.entry if result else None
 
@@ -489,7 +458,6 @@ class NotebookHandler(InteractionHandler):
         title = entities.get("title")
         description = entities.get("description")
         tags = entities.get("tags", [])
-        group = entities.get("group")
 
         if not title and not description:
             return InteractionResponse(
@@ -502,7 +470,7 @@ class NotebookHandler(InteractionHandler):
             tags.extend(parsed_tags)
 
             conversation_manager.start_journal_body_flow(
-                user_id, title=title, tags=tags, group=group
+                user_id, title=title, tags=tags
             )
             return InteractionResponse(
                 f"📔 Journal entry: '{title}'\n\nWhat would you like to write?",
@@ -516,7 +484,6 @@ class NotebookHandler(InteractionHandler):
                 "title": title,
                 "description": description,
                 "tags": tags,
-                "group": group,
             },
         )
         entry = result.entry if result else None
@@ -964,42 +931,6 @@ class NotebookHandler(InteractionHandler):
                 "❌ Failed to remove item. List not found or invalid.", True
             )
 
-    # Organization handlers
-    @handle_errors("handling set group")
-    def _handle_set_group(
-        self, user_id: str, entities: dict[str, Any]
-    ) -> InteractionResponse:
-        """Handle setting entry group."""
-        entry_ref = entities.get("entry_ref")
-        group = entities.get("group")
-
-        if not entry_ref:
-            return InteractionResponse(
-                "Which entry? Example: `!setgroup n123abc Home`",
-                False,
-            )
-        if not group:
-            return InteractionResponse(
-                "What group name? Example: `!setgroup n123abc Home`",
-                False,
-            )
-
-        result = set_entry_group(user_id, entry_ref, group)
-        entry = result.entry if result else None
-
-        if entry:
-            short_id = self._format_entry_id(entry)
-            return InteractionResponse(
-                f"✅ Set group '{group}' for '{entry.title or 'Untitled'}' ({short_id})",
-                True,
-            )
-        return InteractionResponse(
-            "❌ Failed to set group. Entry not found. "
-            "Use `!setgroup <short_id_or_title> <group>` "
-            "(bare `!group Name With Spaces` lists a group).",
-            True,
-        )
-
     @handle_errors(
         "building paginated list response",
         default_return=InteractionResponse("Error building list.", True),
@@ -1014,7 +945,7 @@ class NotebookHandler(InteractionHandler):
         show_more_intent: str | None = None,
         show_more_entities: dict[str, Any] | None = None,
     ) -> InteractionResponse:
-        """Build a paginated list response for group/tag-style list handlers."""
+        """Build a paginated list response for tag-style list handlers."""
         page = paginate_items(entries, PageRequest(limit=limit, offset=offset))
 
         response_parts = [header]
@@ -1029,11 +960,7 @@ class NotebookHandler(InteractionHandler):
         if page.has_more:
             remaining = page.remaining_count
             if show_more_intent is None:
-                if "Group '" in header:
-                    group = header.split("Group '", 1)[1].split("'", 1)[0]
-                    show_more_intent = "list_entries_by_group"
-                    show_more_entities = {"group": group}
-                elif "Tag '" in header:
+                if "Tag '" in header:
                     tag = header.split("Tag '", 1)[1].split("'", 1)[0]
                     show_more_intent = "list_entries_by_tag"
                     show_more_entities = {"tag": tag}
@@ -1046,31 +973,6 @@ class NotebookHandler(InteractionHandler):
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-        )
-
-    # not_duplicate: handle_list_by_group_tag
-    @handle_errors("handling list by group")
-    def _handle_list_by_group(
-        self, user_id: str, entities: dict[str, Any]
-    ) -> InteractionResponse:
-        """Handle listing entries by group."""
-        group = entities.get("group")
-        page_request = _page_request(entities)
-
-        if not group:
-            return InteractionResponse("Which group?", False)
-
-        result = list_entries_by_group(user_id, group, limit=100)
-        entries = result.entries
-
-        if not entries:
-            return InteractionResponse(_format_no_group_hits_message(group), True)
-
-        return self._build_paginated_list_response(
-            entries,
-            f"📁 Group '{group}' ({len(entries)} entries):",
-            page_request.offset,
-            page_request.limit,
         )
 
     @handle_errors("handling list pinned")
@@ -1297,6 +1199,4 @@ class NotebookHandler(InteractionHandler):
             "!l done Groceries 1",
             "!pinned",
             "!inbox",
-            "!group Home",
-            "!setgroup n123abc Home",
         ]

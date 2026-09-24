@@ -32,7 +32,6 @@ CREATE_HUB_MODAL_TASK_PREFIX = "create_hub_modal_task:"
 CREATE_HUB_FIELD_TITLE = "create_hub_f_title"
 CREATE_HUB_FIELD_DETAILS = "create_hub_f_details"
 CREATE_HUB_FIELD_DUE = "create_hub_f_due"
-CREATE_HUB_FIELD_GROUP = "create_hub_f_group"
 CREATE_HUB_FIELD_TAGS = "create_hub_f_tags"
 CREATE_HUB_TIMEOUT_SECONDS = 600
 
@@ -55,7 +54,6 @@ def entities_from_shared_fields(
     *,
     title: str | None = None,
     description: str | None = None,
-    group: str | None = None,
     tags_value: str | None = None,
     due_phrase: str | None = None,
     priority: str | None = None,
@@ -66,8 +64,6 @@ def entities_from_shared_fields(
         entities["title"] = title.strip()
     if description and description.strip():
         entities["description"] = description.strip()
-    if group and group.strip():
-        entities["group"] = group.strip()
 
     tags = parse_modal_tags(tags_value)
     if tags:
@@ -177,7 +173,6 @@ async def handle_create_hub_modal_submit(
     entities = entities_from_shared_fields(
         title=values.get(CREATE_HUB_FIELD_TITLE),
         description=values.get(CREATE_HUB_FIELD_DETAILS),
-        group=values.get(CREATE_HUB_FIELD_GROUP),
         tags_value=values.get(CREATE_HUB_FIELD_TAGS),
         due_phrase=values.get(CREATE_HUB_FIELD_DUE),
     )
@@ -226,7 +221,6 @@ def _build_task_modal(
     title_default: str = "",
     details_default: str = "",
     due_default: str = "",
-    group_default: str = "",
     tags_default: str = "",
     intent: str = "create_task",
     original_message: str = "create task from modal",
@@ -265,14 +259,6 @@ def _build_task_modal(
             max_length=80,
             required=False,
         )
-        group_input = discord.ui.TextInput(
-            label="Group",
-            custom_id=CREATE_HUB_FIELD_GROUP,
-            placeholder="e.g. health, work",
-            default=group_default[:80] or None,
-            max_length=80,
-            required=False,
-        )
         tags_input = discord.ui.TextInput(
             label="Tags",
             custom_id=CREATE_HUB_FIELD_TAGS,
@@ -297,7 +283,6 @@ def _build_task_modal(
             entities = entities_from_shared_fields(
                 title=self.title_input.value,
                 description=self.details_input.value,
-                group=self.group_input.value,
                 tags_value=self.tags_input.value,
                 due_phrase=self.due_input.value,
             )
@@ -340,7 +325,6 @@ def _build_template_task_modal(
         title_default=defaults["title"],
         details_default=defaults["description"],
         due_default=defaults["due"],
-        group_default=defaults["group"],
         tags_default=defaults["tags"],
         intent="create_task_from_template",
         original_message=f"task template {resolved_id}",
@@ -414,12 +398,6 @@ def _build_new_note_modal(
             max_length=1500,
             required=False,
         )
-        group_input = discord.ui.TextInput(
-            label="Group",
-            placeholder="Optional group",
-            max_length=80,
-            required=False,
-        )
         tags_input = discord.ui.TextInput(
             label="Tags",
             placeholder="Comma-separated",
@@ -443,7 +421,6 @@ def _build_new_note_modal(
             entities = entities_from_shared_fields(
                 title=self.title_input.value,
                 description=self.body_input.value,
-                group=self.group_input.value,
                 tags_value=self.tags_input.value,
             )
             response = _run_handler(

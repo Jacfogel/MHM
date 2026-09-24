@@ -29,13 +29,12 @@ def test_create_note_from_command_normalizes_title_body_and_tags():
         title="Body text",
         description=None,
         tags=["idea"],
-        group=None,
     )
 
 
 @pytest.mark.unit
 @pytest.mark.notebook
-def test_create_quick_note_from_command_assigns_quick_notes_group():
+def test_create_quick_note_from_command_saves_title_and_tags():
     entry = Entry(kind="note", id=uuid4(), title="Quick")
 
     with patch(
@@ -50,26 +49,7 @@ def test_create_quick_note_from_command_assigns_quick_notes_group():
         title="Quick",
         description=None,
         tags=["tag"],
-        group="Quick Notes",
     )
-
-
-@pytest.mark.unit
-@pytest.mark.notebook
-def test_list_entries_by_group_returns_structured_result():
-    entries = [Entry(kind="note", id=uuid4(), title="Grouped")]
-
-    with patch(
-        "notebook.notebook_service.data_manager.list_by_group",
-        return_value=entries,
-    ) as list_by_group:
-        result = ns.list_entries_by_group("user-1", "work", limit=10)
-
-    assert result.entries == entries
-    assert result.total == 1
-    assert result.filter_name == "group"
-    assert result.filter_value == "work"
-    list_by_group.assert_called_once_with("user-1", "work", limit=10)
 
 
 @pytest.mark.unit

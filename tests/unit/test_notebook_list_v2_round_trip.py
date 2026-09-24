@@ -24,7 +24,6 @@ def test_create_list_then_v2_round_trip_preserves_shared_fields(monkeypatch):
         "user-list-roundtrip-1",
         title="Groceries",
         tags=["food"],
-        group="home",
         items=["Milk", "Eggs"],
     )
     assert entry is not None

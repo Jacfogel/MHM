@@ -200,22 +200,6 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.intent == "list_tasks"
 
     @pytest.mark.parametrize(
-        "message, expected_group",
-        [
-            ("show tasks in group work", "work"),
-            ("list tasks group:medical", "medical"),
-            ("tasks in group chores", "chores"),
-        ],
-    )
-    def test_list_tasks_group_filter_patterns(
-        self, command_parser, message, expected_group
-    ):
-        result = _rule_parse(command_parser, message)
-
-        assert result.parsed_command.intent == "list_tasks"
-        assert result.parsed_command.entities.get("group") == expected_group
-
-    @pytest.mark.parametrize(
         "message, expected_filter",
         [
             ("show overdue tasks", "overdue"),
@@ -1027,12 +1011,6 @@ class TestCommandParserNotebookPatterns:
             ("newlist Errands", "create_list"),
             ("l new Projects", "create_list"),
             ("new list Tasks", "create_list"),
-            ("group n123abc work", "set_entry_group"),
-            ("group n123abc personal", "set_entry_group"),
-            ("setgroup GroceryList home", "set_entry_group"),
-            ("set group GroceryList home", "set_entry_group"),
-            ("group work", "list_entries_by_group"),
-            ("group Quick Notes", "list_entries_by_group"),
             ("tag urgent", "list_entries_by_tag"),
         ],
     )
@@ -1040,42 +1018,3 @@ class TestCommandParserNotebookPatterns:
         result = _rule_parse(command_parser, message)
 
         assert result.parsed_command.intent == expected_intent
-
-    @pytest.mark.parametrize(
-        "message, expected_intent, expected_entities",
-        [
-            (
-                "group n123abc home",
-                "set_entry_group",
-                {"entry_ref": "n123abc", "group": "home"},
-            ),
-            (
-                "setgroup MeetingNotes work",
-                "set_entry_group",
-                {"entry_ref": "meetingnotes", "group": "work"},
-            ),
-            (
-                "group Quick Notes",
-                "list_entries_by_group",
-                {"group": "quick notes"},
-            ),
-            (
-                "group GroceryList home",
-                "list_entries_by_group",
-                {"group": "grocerylist home"},
-            ),
-            (
-                "group home",
-                "list_entries_by_group",
-                {"group": "home"},
-            ),
-        ],
-    )
-    def test_notebook_group_command_disambiguation(
-        self, command_parser, message, expected_intent, expected_entities
-    ):
-        """Bare multi-word !group lists; set requires short-id/UUID or setgroup."""
-        result = _rule_parse(command_parser, message)
-        assert result.parsed_command.intent == expected_intent
-        for key, value in expected_entities.items():
-            assert result.parsed_command.entities.get(key) == value

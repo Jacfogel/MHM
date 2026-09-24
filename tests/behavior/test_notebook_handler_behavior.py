@@ -48,7 +48,6 @@ class TestNotebookHandlerBehavior:
         count: int = 6,
         title_prefix: str = "Page Note",
         description: str = "pagination needle",
-        group: str | None = None,
         tags: list[str] | None = None,
         pinned: bool = False,
         archived: bool = False,
@@ -61,7 +60,6 @@ class TestNotebookHandlerBehavior:
                 user_id,
                 title=f"{title_prefix} {index}",
                 description=description,
-                group=group,
                 tags=tags or [],
             )
             assert entry is not None, "Expected test note creation to succeed"
@@ -126,8 +124,6 @@ class TestNotebookHandlerBehavior:
             "toggle_list_item_done",
             "toggle_list_item_undone",
             "remove_list_item",
-            "set_entry_group",
-            "list_entries_by_group",
             "list_pinned_entries",
             "list_inbox_entries",
             "list_entries_by_tag",
@@ -154,7 +150,7 @@ class TestNotebookHandlerBehavior:
         assert "**Notebook Help:**" in help_text
         assert "Show More" in help_text
         assert "inbox" in help_text.lower()
-        assert "groups vs tags" in help_text.lower()
+        assert "**tags:**" in help_text.lower()
         assert "!recent" in help_text or "`!recent`" in help_text
 
     def test_notebook_handler_get_examples(self):
@@ -686,12 +682,6 @@ class TestNotebookHandlerBehavior:
             ("list_inbox_entries", {"limit": 2}, {}, {}),
             ("list_pinned_entries", {"limit": 2}, {}, {"pinned": True}),
             (
-                "list_entries_by_group",
-                {"group": "alpha", "limit": 2},
-                {"group": "alpha"},
-                {"group": "alpha"},
-            ),
-            (
                 "list_entries_by_tag",
                 {"tag": "alpha", "limit": 2},
                 {"tag": "alpha"},
@@ -778,7 +768,6 @@ class TestNotebookHandlerBehavior:
         assert "!recent" in message
         assert "!archived" in message
         assert "!t <tag>" in message
-        assert "!group <name>" in message
 
     # ===== FLOW STATE TESTS =====
 

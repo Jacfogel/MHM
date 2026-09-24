@@ -364,7 +364,6 @@ def prepare_create_task_data(
     priority_was_provided = raw_priority in VALID_PRIORITIES
     priority = raw_priority or "medium"
     tags = sanitize_task_tags(entities.get("tags", []))
-    group = entities.get("group", "")
     links = sanitize_task_links(entities.get("links"))
     recurrence_pattern = entities.get("recurrence_pattern")
     recurrence_interval = entities.get("recurrence_interval", 1)
@@ -423,7 +422,6 @@ def prepare_create_task_data(
         "due_time": valid_due_time if valid_due_date else None,
         "priority": priority,
         "tags": tags,
-        "group": str(group or ""),
     }
     if links:
         task_data["links"] = links
@@ -570,7 +568,6 @@ def filter_tasks(
     filter_type: str | None,
     priority_filter: str | None,
     tag_filter: str | None,
-    group_filter: str | None = None,
     now_dt: datetime | None = None,
 ) -> list[dict[str, Any]]:
     """Apply command task-list filters."""
@@ -602,14 +599,6 @@ def filter_tasks(
                 if normalized_filter
                 in {normalize_task_tag_filter(tag) for tag in task.get("tags", [])}
             ]
-
-    if group_filter:
-        group_key = group_filter.strip().lower()
-        filtered_tasks = [
-            task
-            for task in filtered_tasks
-            if str(task.get("group") or "").strip().lower() == group_key
-        ]
 
     return filtered_tasks
 
@@ -697,10 +686,6 @@ def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = N
     tags = task.get("tags") or []
     if tags:
         lines.append(f"**Tags:** {', '.join(str(t) for t in tags)}")
-
-    group = str(task.get("group") or "").strip()
-    if group:
-        lines.append(f"**Group:** {group}")
 
     links_block = format_task_links_display(task.get("links"))
     if links_block:
@@ -799,7 +784,6 @@ def build_task_data_from_template(
     due_time: str | None = None,
     priority: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
     now_dt: datetime | None = None,
 ) -> dict[str, Any] | None:
     """Merge template defaults with optional overrides into create_task kwargs."""
@@ -816,8 +800,6 @@ def build_task_data_from_template(
         task_data["description"] = description
     if priority and priority in VALID_PRIORITIES:
         task_data["priority"] = priority
-    if group is not None:
-        task_data["group"] = group
     if tags:
         merged = sanitize_task_tags(
             list(dict.fromkeys([*(task_data.get("tags") or []), *tags]))

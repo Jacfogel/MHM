@@ -81,10 +81,9 @@ class TestNaturalLanguageCommandDetection:
         cases = {
             "append note to task 1 Phone number is 555-1234": "command",
             "add link to task 1 https://example.com/form": "command",
-            "show tasks in group work": "command",
+            "show overdue tasks": "command_with_clarification",
             "search for meeting notes": "command",
             "show inbox": "command_with_clarification",
-            "show group work": "command_with_clarification",
             "make that due tomorrow": "command",
             "that's urgent": "command_with_clarification",
             "mark that done": "command_with_clarification",

@@ -142,7 +142,7 @@ class TestCommandDiscoveryHelp:
         assert "update task" in message.lower()
         assert "task stats" in message.lower()
         assert "after work" in message and "after school" in message
-        assert "group:" in message
+        assert "#health" in message or "tag" in message.lower()
 
     def test_category_specific_help_notebook(self, test_data_dir):
         """Test category-specific help for notebook."""
@@ -167,7 +167,7 @@ class TestCommandDiscoveryHelp:
         assert "**Notebook Help:**" in message
         assert "Show More" in message
         assert "inbox" in message.lower()
-        assert "groups vs tags" in message.lower()
+        assert "**tags:**" in message.lower()
         assert "!s project" in message or "`!s project`" in message
 
     def test_examples_by_category_notebook(self, test_data_dir):

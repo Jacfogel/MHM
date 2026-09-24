@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 14:40:59
+> **Last Generated**: 2026-09-24 17:31:34
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 288
-- **Total Imports Found**: 2557
+- **Total Imports Found**: 2555
 - **Dependencies Documented**: 288 (100% coverage)
 - **Standard Library Imports**: 739 (28.9%)
 - **Third-Party Imports**: 223 (8.7%)
-- **Local Imports**: 1595 (62.4%)
+- **Local Imports**: 1593 (62.3%)
 - **Last Updated**: 2026-09-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 739 imports (28.9%)
 - **Third-Party**: 223 imports (8.7%)
-- **Local**: 1595 imports (62.4%)
+- **Local**: 1593 imports (62.3%)
 
 ## Module Dependencies by Directory
 
@@ -1465,7 +1465,7 @@
     - `core.time_format_constants (DATE_DISPLAY_MONTH_DAY)` (NEW)
     - `core.time_utilities (format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
-    - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_group, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_entry_group, set_list_item_done)` (NEW)
+    - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_list_item_done)` (NEW)
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `typing (Any)`
@@ -2888,7 +2888,6 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
     - `core.tags (normalize_tags, parse_tags_from_text)` (NEW)
-    - `notebook.notebook_validation (looks_like_structural_entry_ref)` (NEW)
     - `tasks.task_link_helpers (extract_urls_from_text, parse_link_remainder, restore_url_case)` (NEW)
     - `tasks.task_reference (is_pronoun_task_identifier)` (NEW)
     - `tasks.task_reminder_snooze (normalize_snooze_option)` (NEW)
@@ -2907,7 +2906,7 @@
   - `communication/message_processing/structured_command_dispatcher.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, notebook.notebook_validation, tasks.task_link_helpers, tasks.task_reference, tasks.task_reminder_snooze
+- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, tasks.task_link_helpers, tasks.task_reference, tasks.task_reminder_snooze
 - Removed: ai/prompts/command_registry.py, communication/message_processing/action_request_adapter.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/structured_command_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4994,7 +4993,6 @@
     - `messages.message_data_manager (add_message, delete_message, edit_message, is_ai_generated_message_category, load_user_messages)` (NEW)
     - `notebook (notebook_data_manager)` (NEW)
     - `notebook.notebook_data_manager (list_recent)` (NEW)
-    - `notebook.notebook_validation (is_valid_entry_group)` (NEW)
     - `storage.service_flag_storage (write_service_flag_json)` (NEW)
     - `storage.user_data_operations (export_user_data)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
@@ -5026,7 +5024,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, notebook.notebook_validation, storage.service_flag_storage, storage.user_data_operations, tasks.task_data_manager, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
+- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_operations, tasks.task_data_manager, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
 - Removed: core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->

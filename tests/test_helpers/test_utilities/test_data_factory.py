@@ -125,7 +125,6 @@ class TestDataFactory:
                 "title": f"Test Task {i + 1}",
                 "description": f"Description for test task {i + 1}",
                 "category": "",
-                "group": "",
                 "priority": "medium",
                 "status": "active",
                 "due": {

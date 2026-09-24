@@ -34,16 +34,6 @@ def test_format_task_detail_display_includes_due_time_and_reminders():
 
 @pytest.mark.unit
 @pytest.mark.tasks
-def test_format_task_detail_display_includes_group():
-    task = {
-        "title": "Call dentist",
-        "group": "medical",
-        "short_id": "tgrp001",
-    }
-    text = task_service.format_task_detail_display(task)
-    assert "**Group:** medical" in text
-
-
 @pytest.mark.unit
 @pytest.mark.tasks
 def test_format_task_detail_display_includes_links():

@@ -37,7 +37,7 @@ async def notes_gateway(monkeypatch):
     def make(kind="note", **values):
         prefix = {"note": "n", "journal_entry": "j", "list": "l"}[kind]
         items = [SimpleNamespace(id=uuid4(), text=text, done=False, order=index) for index, text in enumerate(values.get("items", []))]
-        return SimpleNamespace(id=uuid4(), short_id=f"{prefix}{uuid4().hex[:5]}", kind=kind, title=values["title"], description=values.get("description"), items=items, tags=values.get("tags", []), group=values.get("group"), pinned=False, status="active", submitted_at=None, created_at="2026-09-20 09:00:00", updated_at="2026-09-20 09:00:00")
+        return SimpleNamespace(id=uuid4(), short_id=f"{prefix}{uuid4().hex[:5]}", kind=kind, title=values["title"], description=values.get("description"), items=items, tags=values.get("tags", []), pinned=False, status="active", submitted_at=None, created_at="2026-09-20 09:00:00", updated_at="2026-09-20 09:00:00")
 
     def list_recent(uid, n=5, include_archived=False):
         return [entry for entry in entries if include_archived or entry.status == "active"][:n]
@@ -65,20 +65,18 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "list_recent", list_recent)
     monkeypatch.setattr(manager, "list_pinned", lambda uid, limit=100: [entry for entry in entries if entry.status == "active" and entry.pinned][:limit])
     monkeypatch.setattr(manager, "list_inbox", lambda uid, days=30, limit=100: [entry for entry in entries if entry.status == "active" and not entry.tags][:limit])
-    monkeypatch.setattr(manager, "list_by_group", lambda uid, group, limit=100: [entry for entry in entries if entry.status == "active" and str(entry.group or "").casefold() == str(group).casefold()][:limit])
     monkeypatch.setattr(manager, "search_entries", lambda uid, query, limit=100: [entry for entry in list_recent(uid, 100, True) if query.casefold() in (entry.title or "").casefold()])
     monkeypatch.setattr(manager, "set_entry_body", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "description", text)))
     monkeypatch.setattr(manager, "set_entry_title", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "title", text.strip())))
     monkeypatch.setattr(manager, "set_list_items", lambda uid, ref, items: update(uid, ref, lambda entry: setattr(entry, "items", [SimpleNamespace(id=uuid4(), text=item["text"], done=item["done"], order=index) for index, item in enumerate(items)])))
     monkeypatch.setattr(manager, "remove_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", [tag for tag in entry.tags if tag not in tags])))
     monkeypatch.setattr(manager, "add_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", list(dict.fromkeys([*entry.tags, *tags])))))
-    monkeypatch.setattr(manager, "set_group", lambda uid, ref, group: update(uid, ref, lambda entry: setattr(entry, "group", group)))
     monkeypatch.setattr(manager, "pin_entry", lambda uid, ref, pinned: update(uid, ref, lambda entry: setattr(entry, "pinned", pinned)))
     monkeypatch.setattr(manager, "archive_entry", archive)
     monkeypatch.setattr(shared_tags, "get_user_tags", lambda uid: ["work", "personal"])
     entries.extend([
-        SimpleNamespace(id=uuid4(), short_id="labc12", kind="list", title="Groceries", description=None, items=[SimpleNamespace(id=uuid4(), text="Oats", done=False, order=0)], tags=["home"], group="Errands", pinned=False, status="active", submitted_at=None, created_at="2026-09-19 09:00:00", updated_at="2026-09-19 09:00:00"),
-        SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], group=None, pinned=False, status="active", submitted_at="2026-09-18 09:00:00", created_at="2026-09-18 09:00:00", updated_at="2026-09-18 09:00:00"),
+        SimpleNamespace(id=uuid4(), short_id="labc12", kind="list", title="Groceries", description=None, items=[SimpleNamespace(id=uuid4(), text="Oats", done=False, order=0)], tags=["home"], pinned=False, status="active", submitted_at=None, created_at="2026-09-19 09:00:00", updated_at="2026-09-19 09:00:00"),
+        SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], pinned=False, status="active", submitted_at="2026-09-18 09:00:00", created_at="2026-09-18 09:00:00", updated_at="2026-09-18 09:00:00"),
     ])
 
     async with web_client(create_web_app(accounts=Accounts(), mailer=lambda email, code: sent.append(code), origin=ORIGIN, proxy_secret=""), cookie_jar=CookieJar(unsafe=True)) as client:
@@ -91,8 +89,8 @@ async def test_note_create_edit_search_and_archive(notes_gateway):
     client = notes_gateway
     existing = await (await client.get("/api/notes")).json()
     assert {entry["kind"] for entry in existing["notes"]} == {"list", "journal_entry"}
-    assert existing["groups"] == ["Errands"]
-    assert next(entry["group"] for entry in existing["notes"] if entry["title"] == "Groceries") == "Errands"
+    assert "groups" not in existing
+    assert "group" not in next(entry for entry in existing["notes"] if entry["title"] == "Groceries")
     assert existing["tags"] == ["home", "journal", "personal", "work"]
     tagged = await (await client.get("/api/notes?tag=journal")).json()
     assert [entry["title"] for entry in tagged["notes"]] == ["Today"]
@@ -157,7 +155,7 @@ async def test_journal_and_list_create_and_edit(notes_gateway):
         {"kind": "list", "title": "Missing list"},
         {"kind": "list", "title": "Bad state", "items": [{"text": "One", "done": "yes"}]},
         {"kind": "journal_entry", "title": "Bad tags", "description": "Text", "tags": "daily"},
-        {"kind": "note", "title": "Bad group", "group": "Home/Health"},
+        {"kind": "note", "title": "Unsupported group", "group": "Home"},
         {"kind": "note", "title": "Extra field", "unexpected": True},
     ],
 )
@@ -207,8 +205,6 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     client = notes_gateway
     assert (await client.get("/api/notes?status=unknown")).status == 400
     assert (await client.get("/api/notes?status=group")).status == 400
-    errands = await (await client.get("/api/notes?status=group&group=Errands")).json()
-    assert [entry["title"] for entry in errands["notes"]] == ["Groceries"]
     result = await (await client.get("/api/notes?q=grocer")).json()
     assert [entry["title"] for entry in result["notes"]] == ["Groceries"]
 
@@ -231,23 +227,25 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     assert (await archived.json())["note"]["pinned"] is False
 
 
-async def test_notebook_group_can_be_set_and_cleared(notes_gateway):
+async def test_notebook_rejects_group_on_create_and_edit(notes_gateway):
     client = notes_gateway
     created = await client.post(
         "/api/notes",
         json={"title": "Clinic notes", "description": "Questions", "group": "Health"},
         headers={"Origin": ORIGIN},
     )
-    assert created.status == 201
-    note = (await created.json())["note"]
-    assert note["group"] == "Health"
-    listed = await (await client.get("/api/notes?status=group&group=Health")).json()
-    assert [entry["title"] for entry in listed["notes"]] == ["Clinic notes"]
-    assert "Health" in listed["groups"]
+    assert created.status == 400
+    note = await client.post(
+        "/api/notes",
+        json={"title": "Clinic notes", "description": "Questions"},
+        headers={"Origin": ORIGIN},
+    )
+    assert note.status == 201
+    saved = (await note.json())["note"]
+    assert "group" not in saved
     cleared = await client.patch(
-        f"/api/notes/{note['id']}",
+        f"/api/notes/{saved['id']}",
         json={"group": ""},
         headers={"Origin": ORIGIN},
     )
-    assert cleared.status == 200
-    assert (await cleared.json())["note"]["group"] is None
+    assert cleared.status == 400

@@ -19,7 +19,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - `tasks/` package with `task_data_handlers.py`, `task_data_manager.py`, `task_schemas.py`, `task_service.py`, and `task_validation.py`.
 - V2 task schema with `status`, `priority`, `due`, `reminders`, `recurrence`, and `completion` sections.
 - Valid priorities: `low`, `medium`, `high`, `urgent`, `critical`.
-- Task updates support fields including `title`, `description`, `category`, `group`, `status`, due fields, reminders, priority, tags, and recurrence fields.
+- Task updates support fields including `title`, `description`, `category`, `status`, due fields, reminders, priority, tags, and recurrence fields. Tasks do not have a group field.
 - Task IDs and short IDs are supported for lookup/display.
 - Recurring tasks are implemented and documented for Discord discoverability.
 - Discord task creation can trigger follow-up flows for due date/time, priority, and reminders.
@@ -67,7 +67,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Improve non-recurring due-date parsing, especially phrases like `this week`, `before Friday`, `after work` / `after school`, and `tonight` (2026-05-22: `command_parser._extract_task_entities`, `task_service.parse_relative_date`).
 - [x] Improve title extraction so due dates, recurrence, priority, and tags are not accidentally included in task titles (2026-05-22: metadata stripped into `clean_title`).
 - [x] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent` (2026-05-22; `urgent` maps to priority `urgent`, not `high`).
-- [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
+- [x] Support tag extraction without making command parsing brittle (`#tag` and `key:value` via `parse_tags_from_text`). Task and notebook groups were removed 2026-09-24.
 - [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
 - [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`. Follow-up: `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, `i'm done with X`.
 - [x] Pronoun follow-ups for the task you just mentioned or created (2026-08-28): `make that due tomorrow`, `that's urgent`, `mark that done`, `add a note to that: ...`. Ambiguous "that" asks which task instead of matching stray letters in other titles. Completing a task does not make "that" jump to a leftover task. After the which-task prompt, a number (`1.`) or the task name applies the remembered update.
@@ -82,7 +82,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Priority**: High
 
 **Delivered**:
-- [x] Expanded `TaskManagementHandler.get_help()` (`TASK_HELP_TEXT`) — create, list, complete/update, shortcuts, tags/groups, due phrases, follow-up note.
+- [x] Expanded `TaskManagementHandler.get_help()` (`TASK_HELP_TEXT`) — create, list, complete/update, shortcuts, tags, due phrases, follow-up note.
 - [x] Expanded `get_examples()` with natural-language samples aligned with §2 parser.
 - [x] `help tasks` / `examples tasks` route through the task handler (single source in `HelpHandler`).
 - [x] Tests: `test_task_handler_behavior.py`, `test_command_discovery_help.py`.
@@ -107,14 +107,14 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Shipped (2026-05-27)**:
 - [x] Template model in `tasks/task_templates.py` (`TaskTemplate`, aliases, five built-ins).
 - [x] Built-in templates: medication, appointment, phone_call, cleaning, paperwork.
-- [x] Prefill title, description, priority, due/time defaults, tags, group, recurrence (medication daily).
+- [x] Prefill title, description, priority, due/time defaults, tags, recurrence (medication daily).
 - [x] Service helpers: `build_task_data_from_template`, `create_task_from_template`, `list_task_templates`.
 - [x] Commands: `task template <name>`, `create task from template <name>`, `list task templates`; help text updated.
 - [x] Tests: `tests/unit/test_task_templates.py`, behavior tests in `test_task_handler_behavior.py`.
 - [x] Create hub buttons in `create_item_ui.py` (immediate create).
 
 **Shipped (2026-08-26)**:
-- [x] Template buttons open a prefilled Discord modal (title, details, due, group, tags). Submit uses `create_task_from_template` so recurrence/priority defaults stay.
+- [x] Template buttons open a prefilled Discord modal (title, details, due, tags). Submit uses `create_task_from_template` so recurrence/priority defaults stay.
 - [x] `list task templates` attaches the same create-hub buttons as `create` / `new` / `add`.
 - [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
 
@@ -172,10 +172,10 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Status**: Planned  
 **Priority**: Medium
 
-Notebook and tasks both use concepts like tags, groups, short IDs, search/list views, and item mutation. Avoid creating separate incompatible systems.
+Notebook and tasks both use concepts like tags, short IDs, search/list views, and item mutation. Avoid creating separate incompatible systems. Groups were removed from both on 2026-09-24.
 
 **Tasks**:
-- [x] Confirm whether task `group` is fully supported in manager, parser, and display paths (2026-06-24: list-by-group filter, detail/list display, parser patterns; create path already shipped).
+- [x] Task and notebook groups were removed 2026-09-24. Tags remain the labels.
 - [x] Reuse or align with `core/tags.py` for tag normalization (2026-06-24: `sanitize_task_tags` on create/update, case-insensitive tag filter, schema validator, parser tag text).
 - [ ] Consider a shared ID helper if short-ID behavior diverges between tasks and notebook.
 - [ ] Avoid moving task behaviour into notebook-specific modules.
@@ -224,7 +224,7 @@ Notebook and tasks both use concepts like tags, groups, short IDs, search/list v
 **Implement later if task usage grows**:
 - [ ] Batch complete/delete/archive.
 - [ ] Bulk priority changes.
-- [ ] Bulk tag/group assignment.
+- [ ] Bulk tag assignment.
 - [ ] Clear confirmation UX for destructive operations.
 
 ---

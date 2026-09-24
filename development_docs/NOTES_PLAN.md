@@ -20,7 +20,7 @@ Current priority is no longer basic implementation. The core feature exists. The
 1. Pagination / Show More behavior is covered by pytest (`test_paginated_notebook_views_include_pagination_action`, `test_recent_pagination_exhausts_without_stale_show_more`). Optional live Discord is visual only.
 2. Polish command discovery (help text shipped 2026-06-22; `|` separators aligned 2026-07-29; live help spot-check remains).
 3. Phone-friendly `!edit` sessions shipped 2026-07-29 (replace flow + cancel/timeout).
-4. Group-command ambiguity resolved 2026-07-29 (`!setgroup` + structural-ID `!group`); journal visuals shipped 2026-06-26.
+4. Notebook groups were removed 2026-09-24. Tags remain. Journal visuals shipped 2026-06-26.
 5. Defer AI extraction, slash-command expansion, and database/FTS work until command parsing or storage architecture is ready. Notebook already enters AI context (recent entries); remaining AI work is privacy/opt-in scoping, not first-time inclusion.
 
 ---
@@ -70,7 +70,6 @@ Current important fields:
 - `status` (`active`, `archived`, `deleted`)
 - `items`
 - `tags`
-- `group`
 - `pinned`
 - `submitted_at`
 - `source`
@@ -86,13 +85,11 @@ Notes:
 - Use `description`, not `body`, when referring to the current schema.
 - Use `journal_entry`, not `journal`, when referring to the current schema value.
 - Archived/deleted state is represented by `status` plus timestamps, not by an `archived: bool` field.
-- `group` exists on notebook entries and also exists in the task update field set, so future shared organization work should not assume tasks lack groups.
+- Notes and tasks do not have a group field. Tags are the labels.
 
 ### Current Inbox Semantics
 
 Current implementation: inbox means **active, untagged notebook entries updated within the last 30 days**.
-
-It is **not** currently based on missing group. It is **not** currently “no group and no tags.”
 
 Keep this behavior unless there is a deliberate product decision to change it.
 
@@ -110,7 +107,7 @@ Search no-result feedback now exists and explains:
 
 - search is substring-based
 - archived entries are excluded
-- try `!archived`, `!recent`, `!inbox`, shorter keywords, `!t <tag>`, or `!group <name>` as appropriate
+- try `!archived`, `!recent`, `!inbox`, shorter keywords, or `!t <tag>` as appropriate
 
 The old “search feedback not implemented” task is complete. Remaining search work is polish, not core implementation.
 
@@ -136,7 +133,6 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - Create quick notes.
 - Create titled notes.
 - Create notes with title and description split by supported separators.
-- Create quick notes in the `Quick Notes` group.
 - Create lists.
 - Create journal entries.
 
@@ -150,7 +146,6 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - List inbox entries.
 - List archived entries.
 - List by tag.
-- List by group.
 
 ### Modify
 
@@ -158,7 +153,6 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - Replace/set entry description.
 - Add tags.
 - Remove tags.
-- Set group.
 - Pin/unpin.
 - Archive/unarchive.
 
@@ -182,7 +176,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 **Tasks**:
 
-- [x] `Show More` preserves intent/filter for `!s`, `!recent`, `!pinned`, `!inbox`, `!archived`, `!t <tag>`, `!group <group>` (`test_paginated_notebook_views_include_pagination_action`)
+- [x] `Show More` preserves intent/filter for `!s`, `!recent`, `!pinned`, `!inbox`, `!archived`, and `!t <tag>` (`test_paginated_notebook_views_include_pagination_action`). Group filters were removed 2026-09-24.
 - [x] Second page preserves query/filter/limit/offset (same test)
 - [x] Repeated Show More until exhausted drops the stale button (`test_recent_pagination_exhausts_without_stale_show_more`)
 - [ ] Optional: glance at the real Discord client if button styling or expired-button UX changes
@@ -207,7 +201,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - [x] Group commands by capture, retrieve, modify, lists, and organization.
 - [x] Include examples for the commands most useful on a phone.
 - [x] Mention current inbox semantics in help text.
-- [x] Mention group vs tag distinction briefly.
+- [x] Mention that tags are labels. Groups were removed 2026-09-24.
 - [x] Add tests for the help/discovery output.
 - [x] Align help/examples with real separators: parser accepts newline, `|`, and `:` for title/body; append strips optional leading `|` (2026-07-29).
 - [x] Everyday capture phrasing (2026-08-26): `jot down...`, `write down...`, `make a note of...`, `note to self...`, `remember that...`, `add a note about...`, `keep in mind that...`, `write this down...`, `put this in my notes...`, `don't let me forget that...` save the thought immediately instead of prompting for a body. `show my notes` lists notes.
@@ -252,7 +246,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 4.4 Resolve group command ambiguity
 
-**Status**: Completed (2026-07-29)  
+**Status**: Removed (2026-09-24). Tasks and notes use tags. The earlier `!group` / `!setgroup` commands are gone.  
 **Priority**: Medium
 
 **Problem**: Group commands could mean either list or set. Multi-word names like `!group Quick Notes` were incorrectly treated as set (`entry_ref=Quick`, `group=Notes`). An unanchored `quick note` pattern also stole that command into `create_quick_note`.
@@ -308,7 +302,6 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - bulk tag
 - bulk untag
 - bulk archive
-- bulk group assignment
 
 **Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth. Group ambiguity, edit sessions, and Show More behavior are covered in code/tests; optional live Discord is visual only.
 
@@ -424,7 +417,7 @@ Future options:
 
 - Add `Entry(kind="event")` only if events are simple and notebook-like.
 - Create a separate `events/` feature if events grow into scheduling, reminders, recurrence, attendees, or calendar sync.
-- Reuse tags, groups, search, and pagination where practical.
+- Reuse tags, search, and pagination where practical.
 
 ---
 
@@ -464,12 +457,12 @@ The following are no longer active roadmap tasks because the codebase now contai
 - Add shared tag normalization in `core/tags.py`.
 - Add shared pagination helpers in `core/pagination.py`.
 - Implement notes, lists, and journal entries.
-- Implement recent/search/show/append/set/tag/untag/pin/archive/group/inbox/tag/group/archive views.
+- Implement recent/search/show/append/set/tag/untag/pin/archive/inbox views. Groups were removed 2026-09-24.
 - Implement list item add/done/undo/remove operations.
 - Add search no-result feedback.
 - Add channel-neutral pagination metadata and Discord Show More payload rendering.
 - Align title/body `|` separators with help text.
-- Resolve `!group` list-vs-set ambiguity (`!setgroup` + structural-ID gate).
+- Notebook groups, including `!group` and `!setgroup`, were removed 2026-09-24. Tags remain.
 - Phone-friendly `!edit` replace sessions (`FLOW_ENTRY_EDIT`).
 
 Historical details belong in `CHANGELOG_DETAIL.md` / `AI_CHANGELOG.md`, not in this active roadmap.

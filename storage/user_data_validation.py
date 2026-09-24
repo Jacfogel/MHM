@@ -193,10 +193,10 @@ def is_valid_category_name(
     allow_none: bool = True,
 ) -> bool:
     """
-    Validate that a category/group name is valid.
+    Validate that a category name is valid.
 
     Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
-    This is used for grouping/categorizing items (e.g., notebook groups, task categories).
+    This is used for message and check-in categories.
 
     Args:
         name: Category name to validate (can be None if allow_none=True)

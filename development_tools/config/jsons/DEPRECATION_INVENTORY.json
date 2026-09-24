@@ -611,6 +611,22 @@
       ],
       "replacement": "Google or Facebook website sign-in",
       "note": "Removed Apple website sign-in, including config, the login button, the form-post callback, and identity JWT verification. A stored apple key in oauth_identities is dropped the next time that account document is saved."
+    },
+    {
+      "id": "task_notebook_group_field",
+      "removed_at": "2026-09-24",
+      "search_terms": [
+        "set_entry_group",
+        "list_entries_by_group",
+        "set_group",
+        "list_by_group",
+        "is_valid_entry_group",
+        "QUICK_NOTES_GROUP",
+        "!setgroup",
+        "!group"
+      ],
+      "replacement": "tags",
+      "note": "Removed the task and notebook group field from saved data, commands, AI actions, Discord create forms, quick notes, and the website notes API. Tags remain the way to label an item."
     }
   ],
   "global_sweep_keywords": [

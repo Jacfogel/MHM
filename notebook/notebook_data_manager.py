@@ -22,7 +22,6 @@ from notebook.notebook_schemas import Entry, ListItem, EntryKind
 from notebook.notebook_data_handlers import load_entries, save_entries
 from notebook.notebook_validation import (
     is_valid_entry_reference,
-    is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_entry_title,
     normalize_list_item_index,
@@ -116,7 +115,6 @@ def create_entry(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
     items: list[dict[str, Any]] | None = None,  # For list items
     metadata: dict[str, Any] | None = None,
 ) -> Entry | None:
@@ -140,7 +138,6 @@ def create_entry(
         logger.error(f"Invalid entry content: {error_msg}")
         return None
 
-    del group
     normalized_tags = normalize_tags(tags or [])
 
     now_ts = now_timestamp_full()
@@ -207,11 +204,10 @@ def create_note(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
 ) -> Entry | None:
     """Creates a note entry."""
     return create_entry(
-        user_id, "note", title=title, description=description, tags=tags, group=group
+        user_id, "note", title=title, description=description, tags=tags
     )
 
 
@@ -220,7 +216,6 @@ def create_list(
     user_id: str,
     title: str,
     tags: list[str] | None = None,
-    group: str | None = None,
     items: list[str] | None = None,
 ) -> Entry | None:
     """Creates a list entry with initial items."""
@@ -238,7 +233,7 @@ def create_list(
         list_items.append({"text": "New item", "order": 0})
 
     return create_entry(
-        user_id, "list", title=title, tags=tags, group=group, items=list_items
+        user_id, "list", title=title, tags=tags, items=list_items
     )
 
 
@@ -248,7 +243,6 @@ def create_journal(
     title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
-    group: str | None = None,
 ) -> Entry | None:
     """Creates a journal entry."""
     return create_entry(
@@ -257,7 +251,6 @@ def create_journal(
         title=title,
         description=description,
         tags=tags,
-        group=group,
     )
 
 
@@ -454,24 +447,6 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
     return _save_updated_entry(user_id, entry, entries)
 
 
-@handle_errors("setting entry group")
-def set_group(user_id: str, ref: str, group: str | None) -> Entry | None:
-    """Sets the group for an entry."""
-    # Validate group if provided
-    if group is not None and not is_valid_entry_group(group):
-        logger.error(f"Invalid group name: {group}")
-        return None
-
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    return _save_updated_entry(user_id, entry, entries)
-
-
 # Search operations
 @handle_errors("searching entries", default_return=[])
 def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
@@ -658,13 +633,6 @@ def set_list_items(user_id: str, ref: str, items: list[dict[str, Any]]) -> Entry
 
 
 # Organization operations
-@handle_errors("listing entries by group", default_return=[])
-def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
-    """Groups are not stored on notebook entries."""
-    del user_id, group, limit
-    return []
-
-
 @handle_errors("listing pinned entries", default_return=[])
 def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists pinned entries (up to limit - pagination handled in handler)."""

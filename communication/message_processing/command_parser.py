@@ -61,8 +61,8 @@ def is_soft_create_task_message(text: str | None) -> bool:
     """Return True when the message is thinking out loud, not an explicit create."""
     return bool(_SOFT_CREATE_TASK_RE.match(str(text or "").strip()))
 
-# Notebook intents whose entities are regex groups copied onto keys.
-_NOTEBOOK_GROUP_ENTITY_MAP: dict[str, tuple[tuple[str, int], ...]] = {
+# Notebook intents whose captured pattern pieces are copied onto entity keys.
+_NOTEBOOK_CAPTURE_ENTITY_MAP: dict[str, tuple[tuple[str, int], ...]] = {
     "show_entry": (("entry_ref", 1),),
     "edit_entry": (("entry_ref", 1),),
     "search_entries": (("query", 1),),
@@ -71,8 +71,6 @@ _NOTEBOOK_GROUP_ENTITY_MAP: dict[str, tuple[tuple[str, int], ...]] = {
     "archive_entry": (("entry_ref", 1),),
     "unarchive_entry": (("entry_ref", 1),),
     "add_list_item": (("entry_ref", 1), ("item_text", 2)),
-    "set_entry_group": (("entry_ref", 1), ("group", 2)),
-    "list_entries_by_group": (("group", 1),),
     "list_entries_by_tag": (("tag", 1),),
 }
 
@@ -231,8 +229,6 @@ _PARSE_COMMAND_KEYWORDS: tuple[str, ...] = (
     "untag",
     "label",
     "labels",
-    "group",
-    "groups",
     "categorize",
     "category",
     "pin",
@@ -525,8 +521,6 @@ class EnhancedCommandParser:
                 r"^show\s+my\s+tasks?$",  # Match "show my tasks" first (more specific)
                 r"^show\s+(?:my\s+|the\s+)?task\s+lists?$",
                 r"^show\s+tasks?$",  # Then match "show tasks"
-                r"^(?:show|list)\s+(?:my\s+)?tasks?\s+(?:in\s+group\s+|group:)(.+)$",
-                r"^(?:my\s+)?tasks?\s+in\s+group\s+(.+)$",
                 r"^list\s+my\s+tasks?$",
                 r"^list\s+tasks?$",
                 r"^what\s+are\s+my\s+tasks?$",
@@ -892,8 +886,7 @@ class EnhancedCommandParser:
                 r"^quickn\s*(.*)$",  # Match "quickn" or "quickn <title>"
                 r"^quicknote\s*(.*)$",  # Match "quicknote" or "quicknote <title>"
                 r"^q\s+note\s*(.*)$",  # Match "q note" or "q note <title>"
-                # Must be anchored: unanchored search matched "Quick Notes" inside
-                # `group Quick Notes` and stole list-by-group.
+                # Anchored so "quick note" is only recognized at the start of the message.
                 r"^quick\s+notes?\s*(.*)$",
             ],
             "create_journal": [
@@ -1024,17 +1017,6 @@ class EnhancedCommandParser:
             "remove_list_item": [
                 r"^l\s+remove\s+(\S+)\s+(\d+)$",
                 r"^l\s+remove\s+(\S+)\s+(\d+)$",
-            ],
-            "set_entry_group": [
-                r"^setgroup\s+(\S+)\s+(.+)$",
-                r"^set\s+group\s+(\S+)\s+(.+)$",
-                r"^assign\s+group\s+(\S+)\s+(.+)$",
-                # Bare `group <ref> <name>` is accepted only when <ref> looks like
-                # a short ID / UUID (see `_accept_set_entry_group_match`).
-                r"^group\s+(\S+)\s+(.+)$",
-            ],
-            "list_entries_by_group": [
-                r"^group\s+(.+)$",
             ],
             "list_pinned_entries": [
                 r"^pinned$",
@@ -1169,8 +1151,6 @@ class EnhancedCommandParser:
                 ("task_analytics", False),
                 ("edit_schedule_period", False),
                 ("create_quick_note", False),
-                # Before generic `set <ref> <text>` (set_entry_body).
-                ("set_entry_group", False),
                 # Before update_task's `edit <id> <rest>` patterns.
                 ("edit_entry", False),
                 ("list_recent_entries", False),
@@ -1213,24 +1193,6 @@ class EnhancedCommandParser:
             ParsedCommand("unknown", {}, 0.0, message), 0.0, "rule_based"
         )
 
-    @staticmethod
-    @handle_errors("accepting set_entry_group match", default_return=False)
-    def _accept_set_entry_group_match(
-        message_for_match: str, entities: dict[str, Any]
-    ) -> bool:
-        """Accept set-group only for explicit aliases or structural entry refs.
-
-        Bare `group Quick Notes` must list the multi-word group, not set group
-        "Notes" on a title-like ref "Quick".
-        """
-        from notebook.notebook_validation import looks_like_structural_entry_ref
-
-        msg = (message_for_match or "").strip().lower()
-        if msg.startswith(("setgroup ", "set group ", "assign group ")):
-            return True
-        entry_ref = str(entities.get("entry_ref") or "").strip()
-        return looks_like_structural_entry_ref(entry_ref)
-
     @handle_errors("building rule-based result from pattern", default_return=None)
     def _build_rule_based_result_from_pattern(
         self,
@@ -1253,10 +1215,6 @@ class EnhancedCommandParser:
         entities = self._extract_entities_rule_based(
             intent, match, message_for_match, user_id=user_id, original_message=original_message
         )
-        if intent == "set_entry_group" and not self._accept_set_entry_group_match(
-            message_for_match, entities
-        ):
-            return None
         confidence = self._calculate_confidence(intent, match, message_for_match)
         return ParsingResult(
             ParsedCommand(intent, entities, confidence, original_message),
@@ -1578,8 +1536,6 @@ class EnhancedCommandParser:
                 r"(?:what(?:'?s|\s+is)|what\s+do\s+i\s+have)\s+due\b", lowered
             ):
                 entities["filter"] = "due_soon"
-            if match.groups() and match.group(1):
-                entities["group"] = match.group(1).strip()
             return True
 
         return False
@@ -2091,7 +2047,7 @@ class EnhancedCommandParser:
                 entities["done"] = False
             return True
 
-        mapped_fields = _NOTEBOOK_GROUP_ENTITY_MAP.get(intent)
+        mapped_fields = _NOTEBOOK_CAPTURE_ENTITY_MAP.get(intent)
         if mapped_fields is not None:
             self._assign_match_groups(match, entities, mapped_fields)
             return True
@@ -2291,15 +2247,6 @@ class EnhancedCommandParser:
                         break
                 if "priority" in entities:
                     break
-
-            group_match = re.search(
-                r"\b(?:group|in\s+group)\s*:\s*(\w+)\b",
-                clean_title,
-                re.IGNORECASE,
-            )
-            if group_match:
-                entities["group"] = group_match.group(1)
-                clean_title = self._remove_task_phrase(clean_title, group_match.group(0))
 
             from core.tags import parse_tags_from_text
 

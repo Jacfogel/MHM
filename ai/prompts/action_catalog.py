@@ -174,7 +174,6 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("due_time", False, "Optional due time."),
         AIActionField("priority", False, "low, medium, or high."),
         AIActionField("tags", False, "Optional task tags."),
-        AIActionField("group", False, "Optional task group."),
         AIActionField("links", False, "Optional web links found in the create message."),
     ],
     "create_task_from_template": [
@@ -186,7 +185,6 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("filter", False, "Optional list filter."),
         AIActionField("priority", False, "Optional priority filter."),
         AIActionField("tag", False, "Optional tag filter."),
-        AIActionField("group", False, "Optional group filter."),
     ],
     "complete_task": [
         AIActionField("task_identifier", False, "Task number, id, short id, or title.")
@@ -319,18 +317,15 @@ _NOTEBOOK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("title", False, "Note title."),
         AIActionField("description", False, "Note body text."),
         AIActionField("tags", False, "Optional tags."),
-        AIActionField("group", False, "Optional notebook group."),
     ],
     "create_quick_note": [
         AIActionField("title", False, "Quick note title."),
         AIActionField("tags", False, "Optional tags."),
-        AIActionField("group", False, "Optional notebook group."),
     ],
     "create_journal": [
         AIActionField("title", False, "Journal entry title."),
         AIActionField("description", False, "Journal entry body."),
         AIActionField("tags", False, "Optional tags."),
-        AIActionField("group", False, "Optional notebook group."),
     ],
     "create_list": [
         AIActionField("title", True, "List title."),
@@ -401,13 +396,6 @@ _NOTEBOOK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
     "remove_list_item": [
         AIActionField("entry_ref", True, "List id, short id, title, or name."),
         AIActionField("item_index", True, "One-based list item index."),
-    ],
-    "set_entry_group": [
-        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
-        AIActionField("group", True, "Target notebook group."),
-    ],
-    "list_entries_by_group": [
-        AIActionField("group", True, "Notebook group name."),
     ],
     "list_entries_by_tag": [
         AIActionField("tag", True, "Tag name."),

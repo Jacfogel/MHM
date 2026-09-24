@@ -22,7 +22,6 @@ class TaskTemplate:
     description: str = ""
     priority: str = "medium"
     category: str = ""
-    group: str = ""
     tags: tuple[str, ...] = ()
     default_due_phrase: str | None = None
     default_due_time: str | None = None
@@ -38,7 +37,6 @@ class TaskTemplate:
             "description": self.description,
             "priority": self.priority,
             "category": self.category,
-            "group": self.group,
             "tags": list(self.tags),
         }
         if self.recurrence_pattern:
@@ -55,7 +53,6 @@ _BUILTIN_TEMPLATES: dict[str, TaskTemplate] = {
         description="Remember to take prescribed medication.",
         priority="high",
         category="health",
-        group="health",
         tags=("health", "medication"),
         default_due_phrase="today",
         default_due_time="08:00",
@@ -69,7 +66,6 @@ _BUILTIN_TEMPLATES: dict[str, TaskTemplate] = {
         description="Schedule or attend an appointment.",
         priority="high",
         category="health",
-        group="appointments",
         tags=("appointment", "health"),
         default_due_phrase="this week",
         aliases=("appt", "doctor", "dentist"),
@@ -81,7 +77,6 @@ _BUILTIN_TEMPLATES: dict[str, TaskTemplate] = {
         description="Call someone back or make a scheduled call.",
         priority="medium",
         category="communication",
-        group="calls",
         tags=("phone", "call"),
         default_due_phrase="this week",
         aliases=("call", "phone"),
@@ -93,7 +88,6 @@ _BUILTIN_TEMPLATES: dict[str, TaskTemplate] = {
         description="Household cleaning or chore task.",
         priority="medium",
         category="home",
-        group="chores",
         tags=("chores", "home"),
         default_due_phrase="this week",
         aliases=("chore", "chores", "housework", "clean"),
@@ -105,7 +99,6 @@ _BUILTIN_TEMPLATES: dict[str, TaskTemplate] = {
         description="Forms, paperwork, or administrative task.",
         priority="medium",
         category="admin",
-        group="paperwork",
         tags=("paperwork", "forms", "admin"),
         default_due_phrase="this week",
         aliases=("forms", "admin", "documents"),
@@ -162,7 +155,6 @@ def template_form_defaults(template_id: str) -> dict[str, str] | None:
         "title": template.title,
         "description": template.description,
         "due": template.default_due_phrase or "",
-        "group": template.group or "",
         "tags": ", ".join(template.tags),
     }
 

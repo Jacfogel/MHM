@@ -102,7 +102,7 @@ create note titled "Meeting notes" with body "Discussed project timeline"
 
 ---
 
-**Quick notes (no body, auto-grouped as "Quick Notes"):**
+**Quick notes (no body required):**
 
 ```
 !qn
@@ -210,14 +210,6 @@ quick note Important reminder
 
 ```
 !unarchive nxxxxxx
-```
-
-```
-!group nxxxxxx work
-```
-
-```
-!group Quick Notes
 ```
 
 ```
@@ -351,7 +343,7 @@ Run `pytest tests/behavior/test_discord_manual_checklist.py` plus the files name
 |---|---|
 | Basic note creation (bang, slash, natural language) | `test_note_creation_command_variations_end_to_end`; `test_command_parser_recognizes_note_commands` |
 | Note with title and body (colon, newline, natural language) | `test_create_note_with_title_and_body`; `test_extract_title_and_body_*` |
-| Quick notes (qn, qnote, quickn, quicknote, q note, quick note) | `test_quick_note_aliases_create_quick_notes_group` |
+| Quick notes (qn, qnote, quickn, quicknote, q note, quick note) | `test_quick_note_aliases_save_without_a_group` |
 | Notes with tags (`#hash` and `key:value`) | `test_create_note_with_tags`; `test_extract_tags_from_note_command` |
 | View recent entries | `test_list_recent_entries`; `test_recent_command_variations` |
 | Show entry by ID | `test_show_entry` |
@@ -360,8 +352,7 @@ Run `pytest tests/behavior/test_discord_manual_checklist.py` plus the files name
 | Add/remove tags | `test_add_tags_to_entry`; `test_remove_tags_from_entry` |
 | Pin/unpin | `test_pin_entry`; `test_unpin_and_archive_unarchive` |
 | Archive/unarchive | `test_unpin_and_archive_unarchive` |
-| Set group | `test_set_group_and_list_inbox` |
-| View by group/inbox/pinned/archived | `test_paginated_notebook_views_include_pagination_action`; `test_list_pinned_entries` |
+| View inbox/pinned/archived | `test_paginated_notebook_views_include_pagination_action`; `test_list_pinned_entries` |
 
 ### 4.3. Notebook - Lists
 
@@ -384,8 +375,7 @@ Run `pytest tests/behavior/test_discord_manual_checklist.py` plus the files name
 | Checklist item | Automated test |
 |---|---|
 | Search entries | `test_search_entries` |
-| Group management | `test_set_group_and_list_inbox` |
-| Organization views (inbox, pinned, archived, by group) | `test_paginated_notebook_views_include_pagination_action` |
+| Organization views (inbox, pinned, archived) | `test_paginated_notebook_views_include_pagination_action` |
 
 ### 4.6. Notebook - Edge Cases
 
@@ -404,7 +394,7 @@ Run `pytest tests/behavior/test_discord_manual_checklist.py` plus the files name
 |---|---|
 | entries.json structure | `test_entries_json_short_ids_groups_and_normalized_tags` |
 | Short IDs have no dashes | same |
-| Groups are set correctly | same; `test_set_group_and_list_inbox` |
+| Saved entries do not store a group | same; `test_set_group_and_list_inbox` |
 | Tags are normalized | same (`#Work` / `URGENT` -> `work`, `urgent`) |
 
 ---
@@ -471,7 +461,6 @@ Behavior is automated. Grey vs blue button **styles** are asserted in `test_disc
 | `!pinned` filter preserved | same (`list_pinned_entries`) |
 | `!archived` filter preserved | same (`list_archived_entries`) |
 | `!t <tag>` filter preserved | same (`list_entries_by_tag`) |
-| `!group <group>` filter preserved | same (`list_entries_by_group`) |
 | Page 2 is different; last page has no Show More | `test_recent_pagination_exhausts_without_stale_show_more` |
 
 ### 6.3. Create hub and task templates

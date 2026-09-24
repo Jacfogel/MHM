@@ -109,7 +109,6 @@ def mock_task_data():
         "title": "Test Task",
         "description": "This is a test task",
         "category": "",
-        "group": "",
         "status": "active",
         "priority": "medium",
         "due": {"date": "2025-01-15", "time": None},

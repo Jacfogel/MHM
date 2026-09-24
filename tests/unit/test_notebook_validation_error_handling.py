@@ -15,7 +15,6 @@ from notebook.notebook_validation import (
     format_short_id,
     is_valid_entry_title,
     is_valid_entry_description,
-    is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_list_item_index,
     normalize_list_item_index,
@@ -46,7 +45,6 @@ class TestValidationErrorHandling:
         assert format_short_id("not-a-uuid", "note") is None
         assert is_valid_entry_title(123) is False
         assert is_valid_entry_description(123) is False
-        assert is_valid_entry_group(123) is False
         assert is_valid_entry_kind(123) is False
         assert is_valid_list_item_index("not-int", 5) is False
         assert normalize_list_item_index("not-int", 5) is None
@@ -83,7 +81,6 @@ class TestValidationErrorHandling:
             (is_valid_entry_reference, [None, 123, ""]),
             (is_valid_entry_title, [123, []]),
             (is_valid_entry_description, [123, []]),
-            (is_valid_entry_group, [123, []]),
             (is_valid_entry_kind, [None, 123, []]),
             (is_valid_list_item_index, [None, "not-int", -1]),
         ]
@@ -300,8 +297,6 @@ class TestValidationTypeSafety:
             (is_valid_entry_title, [[], {}, 123]),
             # Wrong types for description
             (is_valid_entry_description, [[], {}, 123]),
-            # Wrong types for group
-            (is_valid_entry_group, [[], {}, 123]),
             # Wrong types for kind
             (is_valid_entry_kind, [None, 123, [], {}]),
             # Wrong types for index

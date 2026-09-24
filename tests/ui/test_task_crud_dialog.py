@@ -54,7 +54,6 @@ def _v2_runtime_task(
         "title": title,
         "description": description,
         "category": category,
-        "group": "",
         "status": status,
         "priority": priority.lower(),
         "due": {"date": due_date, "time": due_time},

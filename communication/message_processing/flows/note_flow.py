@@ -63,13 +63,12 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        group = flow_data.get("group")
         self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_note
 
         entry = create_note(
-            user_id, title=title, description=None, tags=tags, group=group
+            user_id, title=title, description=None, tags=tags
         )
         if entry:
             short_id = self._entry_short_id(entry)
@@ -84,13 +83,12 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        group = flow_data.get("group")
         self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_journal
 
         entry = create_journal(
-            user_id, title=title, description=None, tags=tags, group=group
+            user_id, title=title, description=None, tags=tags
         )
         if entry:
             short_id = self._entry_short_id(entry)
@@ -109,7 +107,6 @@ class NoteFlowMixin(FlowControlMixin):
         title = flow_data.get("title", "")
         items = flow_data.get("items", [])
         tags = flow_data.get("tags", [])
-        group = flow_data.get("group")
         self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_list
@@ -118,7 +115,7 @@ class NoteFlowMixin(FlowControlMixin):
         if not item_strings:
             item_strings = ["New item"]
         entry = create_list(
-            user_id, title=title, tags=tags, group=group, items=item_strings
+            user_id, title=title, tags=tags, items=item_strings
         )
         if entry:
             short_id = self._entry_short_id(entry)
@@ -245,7 +242,6 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        group = flow_data.get("group")
         body = message_text
         self._clear_flow_state(user_id, mark_completion=True)
 
@@ -257,7 +253,7 @@ class NoteFlowMixin(FlowControlMixin):
             tags.extend(parsed_tags)
 
         entry = create_note(
-            user_id, title=title, description=body, tags=tags, group=group
+            user_id, title=title, description=body, tags=tags
         )
 
         if entry:
@@ -312,7 +308,6 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        group = flow_data.get("group")
         body = message_text
         self._clear_flow_state(user_id, mark_completion=True)
 
@@ -324,7 +319,7 @@ class NoteFlowMixin(FlowControlMixin):
             tags.extend(parsed_tags)
 
         entry = create_journal(
-            user_id, title=title, description=body, tags=tags, group=group
+            user_id, title=title, description=body, tags=tags
         )
 
         if entry:
@@ -500,13 +495,12 @@ class NoteFlowMixin(FlowControlMixin):
         *,
         title: str,
         tags: list[str] | None = None,
-        group: str | None = None,
     ) -> None:
         """Start a note-body prompt flow. Called after a title-only create-note command."""
         self._start_notebook_flow(
             user_id,
             FLOW_NOTE_BODY,
-            {"title": title, "tags": list(tags or []), "group": group},
+            {"title": title, "tags": list(tags or [])},
             "note body flow",
         )
 
@@ -517,13 +511,12 @@ class NoteFlowMixin(FlowControlMixin):
         *,
         title: str,
         tags: list[str] | None = None,
-        group: str | None = None,
     ) -> None:
         """Start a journal-body prompt flow. Called after a title-only create-journal command."""
         self._start_notebook_flow(
             user_id,
             FLOW_JOURNAL_BODY,
-            {"title": title, "tags": list(tags or []), "group": group},
+            {"title": title, "tags": list(tags or [])},
             "journal body flow",
         )
 
@@ -534,7 +527,6 @@ class NoteFlowMixin(FlowControlMixin):
         *,
         title: str,
         tags: list[str] | None = None,
-        group: str | None = None,
     ) -> None:
         """Start a list-item collection flow. Called after a title-only create-list command."""
         self._start_notebook_flow(
@@ -543,7 +535,6 @@ class NoteFlowMixin(FlowControlMixin):
             {
                 "title": title,
                 "tags": list(tags or []),
-                "group": group,
                 "items": [],
                 "item_batches": [],
             },

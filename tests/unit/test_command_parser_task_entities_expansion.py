@@ -181,15 +181,15 @@ class TestCommandParserTaskEntityExtraction:
         assert command_parser._clean_task_identifier(raw) == expected
 
     @pytest.mark.parametrize(
-        "title, expected_tags, expected_group",
+        "title, expected_tags",
         [
-            ("Buy milk #groceries", ["groceries"], None),
-            ("Call dentist tomorrow #health group:medical", ["health"], "medical"),
-            ("Plan trip in group:travel", None, "travel"),
+            ("Buy milk #groceries", ["groceries"]),
+            ("Call dentist tomorrow #health group:medical", ["health", "group:medical"]),
+            ("Plan trip in group:travel", ["group:travel"]),
         ],
     )
-    def test_extract_task_entities_tags_and_group(
-        self, command_parser, title, expected_tags, expected_group
+    def test_extract_task_entities_tags(
+        self, command_parser, title, expected_tags
     ):
         entities = command_parser._extract_task_entities(title)
 
@@ -197,10 +197,7 @@ class TestCommandParserTaskEntityExtraction:
             assert "tags" not in entities
         else:
             assert entities.get("tags") == expected_tags
-        if expected_group is None:
-            assert "group" not in entities
-        else:
-            assert entities.get("group") == expected_group
+        assert "group" not in entities
 
 
 @pytest.mark.unit

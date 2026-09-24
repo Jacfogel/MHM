@@ -116,7 +116,6 @@ def create_task(
     recurrence_interval: int = 1,
     repeat_after_completion: bool = True,
     category: str = "",
-    group: str = "",
     links: list | None = None,
 ) -> str | None:
     """Create a new task for a user."""
@@ -174,7 +173,6 @@ def create_task(
         "title": title,
         "description": description or "",
         "category": str(category or ""),
-        "group": str(group or ""),
         "tags": sanitized_tags,
         "links": sanitized_links,
         "status": "active",
@@ -618,7 +616,6 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
         "title": completed_task.get("title"),
         "description": completed_task.get("description", ""),
         "category": completed_task.get("category", ""),
-        "group": completed_task.get("group", ""),
         "status": "active",
         "due": {"date": next_due_date_str, "time": _task_due_time(completed_task)},
         "created_at": now_timestamp_full(),
