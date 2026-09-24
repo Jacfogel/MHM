@@ -97,6 +97,17 @@ def test_integrations_page_exposes_google_health_controls():
         "settings-integrations",
     } <= account.ids
     assert "app.html#integrations" in parse_page("integrations.html").hrefs
+    html = (WEBSITE / "app.html").read_text(encoding="utf-8")
+    account_panel = html.split('id="settings-account"', 1)[1].split('id="settings-integrations"', 1)[0]
+    integrations_panel = html.split('id="settings-integrations"', 1)[1]
+    assert "social-connections" not in account_panel
+    assert "connected-signins" not in account_panel
+    assert "social-connections" in integrations_panel
+    assert "Google Health" in integrations_panel
+    assert "account-email" in account_panel
+    assert "Your account" not in html.split("<main", 1)[1]
+    assert "account-timezone" not in html
+    assert "account-discord" not in html
 
 
 def test_message_library_exposes_category_schedule_and_editing_controls():

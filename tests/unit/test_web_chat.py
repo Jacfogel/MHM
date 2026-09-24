@@ -132,6 +132,9 @@ async def test_signed_in_chat_returns_the_reply_and_suggestions(chat_gateway):
     assert captured["channel_type"] == "website"
     assert captured["user_id"] == "existing"
     assert captured["message"] == "help me add a task"
+    inbox = await (await client.get("/api/chat")).json()
+    assert [turn["text"] for turn in inbox["turns"]] == ["help me add a task", "I can help with that."]
+    assert [turn["role"] for turn in inbox["turns"]] == ["you", "mhm"]
 
 
 def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_path, monkeypatch):
@@ -148,6 +151,12 @@ def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_p
     assert messages[0]["text"] == "Good morning."
     assert messages[0]["category"] == "motivational"
     assert messages[0]["id"]
+    assert inbox.append_website_chat_exchange("existing", "  I need a reminder  ", "Noted.") is True
+    turns = inbox.list_website_chat_turns("existing")
+    assert [turn["role"] for turn in turns] == ["you", "mhm"]
+    assert turns[0]["text"] == "I need a reminder"
+    assert turns[1]["text"] == "Noted."
+    assert inbox.list_website_messages("existing")[0]["text"] == "Good morning."
 
 
 def test_predefined_send_also_keeps_a_website_copy(monkeypatch):

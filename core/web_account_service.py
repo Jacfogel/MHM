@@ -2732,16 +2732,27 @@ def create_web_app(
             raise web.HTTPBadRequest(text="Enter a message of up to 2000 characters.")
         throttle(("chat", uid), 30, 600)
         result = await asyncio.to_thread(website_chat_reply, uid, message)
+        from communication.communication_channels.website.inbox import (
+            append_website_chat_exchange,
+        )
+
+        await asyncio.to_thread(
+            append_website_chat_exchange, uid, message, result.get("reply", "")
+        )
         return web.json_response(result)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def chat_inbox(request):
         """Return outbound messages stored for the always-on website channel."""
-        from communication.communication_channels.website.inbox import list_website_messages
+        from communication.communication_channels.website.inbox import (
+            list_website_chat_turns,
+            list_website_messages,
+        )
 
         uid, _current = await authenticated_account(request)
         messages = await asyncio.to_thread(list_website_messages, uid)
-        return web.json_response({"messages": messages})
+        turns = await asyncio.to_thread(list_website_chat_turns, uid)
+        return web.json_response({"messages": messages, "turns": turns})
 
     app.router.add_get("/api/checkins", checkins_api)
     app.router.add_post("/api/checkins", checkins_api)

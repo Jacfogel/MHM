@@ -583,7 +583,6 @@ const MHMSettingsInput = Object.freeze({
         revision = latest.revisions[section];
         form.dataset.dirty = 'false';
         feedback.textContent = 'Changes saved';
-        if (section === 'delivery') document.getElementById('account-timezone').textContent = latest.sections.delivery.timezone;
         if (section === 'checkins' && forms.messages?.dataset.dirty === 'false') {
           const currentMessages = forms.messages;
           const replacement = renderSection('messages', latest);

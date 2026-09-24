@@ -24,10 +24,6 @@ async function loadAccount() {
     if (accountName) accountName.textContent = account.preferred_name || 'there';
     const accountEmail = document.getElementById('account-email');
     if (accountEmail) accountEmail.textContent = account.email;
-    const accountTimezone = document.getElementById('account-timezone');
-    if (accountTimezone) accountTimezone.textContent = account.timezone || 'Not set';
-    const accountDiscord = document.getElementById('account-discord');
-    if (accountDiscord) accountDiscord.textContent = account.discord_linked ? 'Connected' : 'Not connected yet';
     const passwordHeading = document.getElementById('password-heading');
     if (passwordHeading) {
       passwordHeading.textContent = account.password_set ? 'Change your password.' : 'Set a password.';

@@ -11,8 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js?v=nav-3" defer></script>
-  <script src="app.js?v=account-settings-1" defer></script>
-  <script src="settings.js?v=account-side-1" defer></script>
+  <script src="app.js?v=account-email-1" defer></script>
+  <script src="settings.js?v=account-email-1" defer></script>
   <script src="integrations.js?v=integrations-1" defer></script>
 </head>
 <body class="account-body">
@@ -28,11 +28,6 @@
       <span class="eyebrow">Your MHM account</span>
       <h1>Welcome, <span id="account-name"></span>.</h1>
       <p class="hero-lead">A little more support starts here.</p>
-      <div class="app-cards">
-        <article class="card"><div class="status-row"><span class="status-dot"></span>Connected to MHM</div><h2>Your account</h2>
-          <dl class="account-details"><dt>Email</dt><dd id="account-email"></dd><dt>Time zone</dt><dd id="account-timezone"></dd><dt>Discord</dt><dd id="account-discord"></dd></dl>
-        </article>
-      </div>
       <section id="settings" class="settings-area" aria-labelledby="settings-heading">
         <div class="settings-heading"><div><span class="eyebrow">At your own pace</span><h2 id="settings-heading">Your settings</h2></div><p>Small changes. A better fit for your day.</p></div>
         <p id="settings-status" class="form-status" role="status" aria-live="polite">Loading your settings…</p>
@@ -44,7 +39,8 @@
           <div id="settings-panels">
             <section id="settings-account" class="settings-panel" data-settings-static hidden>
               <h3>Account</h3>
-              <p class="panel-description">Change your password, connected sign-ins, or download a copy of your data.</p>
+              <dl class="account-details"><dt>Email</dt><dd id="account-email"></dd></dl>
+              <p class="panel-description">Change your password or download a copy of your data.</p>
               <h4 id="password-heading">Set a password.</h4>
               <p id="password-guidance">Add a password so your next sign-in does not need an emailed code.</p>
               <form id="password-form">
@@ -59,17 +55,17 @@
                 <button class="button" id="save-password" type="submit">Save password</button>
               </form>
               <p id="password-status" class="form-status" role="status" aria-live="polite"></p>
-              <div class="connected-signins" id="connected-signins" hidden>
-                <h4>Connected sign-ins</h4>
-                <div id="social-connections"></div>
-              </div>
               <p>Download a JSON copy of the profile, preferences, schedules, messages, history, tasks, and notebook entries stored for your account.</p>
               <a class="button" href="/api/account/export" download>Download my data</a>
               <nav class="policy-links" aria-label="Policies"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="data.html">Your data</a></nav>
             </section>
             <section id="settings-integrations" class="settings-panel" data-settings-static hidden>
               <h3 id="health-heading">Integrations</h3>
-              <p class="panel-description">Connect optional services, including Google Health.</p>
+              <p class="panel-description">Connect optional sign-ins and services, including Google Health.</p>
+              <div class="connected-signins" id="connected-signins" hidden>
+                <h4>Connected sign-ins</h4>
+                <div id="social-connections"></div>
+              </div>
               <p id="health-status-message" class="form-status" role="status" aria-live="polite">Loading Google Health status…</p>
               <article id="health-card" class="card health-card" hidden>
                 <dl class="account-details"><dt>Status</dt><dd id="health-feature-state"></dd><dt>Connected</dt><dd id="health-connected"></dd><dt>Last sync</dt><dd id="health-last-sync"></dd></dl>

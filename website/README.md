@@ -90,8 +90,8 @@ supports personal template creation, editing, scheduling, pausing, and deletion.
 Insights show recent check-in patterns and history. A mood trend compares the seven
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
 page shows the average and progress toward a trend instead of labelling sparse data
-as stable. Check-ins without a mood answer do not count toward that total. Google Health can be viewed,
-paused, enabled, synced, or deleted from Integrations in Account settings; initial connection still uses the
+as stable. Check-ins without a mood answer do not count toward that total. Optional Google and Facebook sign-ins are connected or disconnected from Integrations. Google Health can be viewed,
+paused, enabled, synced, or deleted from that same page; initial connection still uses the
 existing callback configured by `GOOGLE_HEALTH_REDIRECT_URI` (the default local
 callback works only when the browser can reach the MHM host). Check-ins can be
 answered on the Check-in page. Home can still queue one to email or Discord.

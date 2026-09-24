@@ -151,24 +151,14 @@
   const talkStatus = document.getElementById('talk-status');
   const talkSuggestions = document.getElementById('talk-suggestions');
   let speakerName = '';
-  const CHAT_KEY = 'mhm-home-chat';
   const DELIVERED_KEY = 'mhm-home-delivered';
+  let turns = [];
 
   function savedTurns() {
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(CHAT_KEY) || '[]');
-      return Array.isArray(saved) ? saved.filter(turn => turn && (turn.role === 'you' || turn.role === 'mhm') && typeof turn.text === 'string') : [];
-    } catch (error) {
-      return [];
-    }
+    return turns;
   }
 
-  function remember(turns) {
-    sessionStorage.setItem(CHAT_KEY, JSON.stringify(turns.slice(-40)));
-  }
-
-  function clearChat() {
-    sessionStorage.removeItem(CHAT_KEY);
+  function clearDelivered() {
     sessionStorage.removeItem(DELIVERED_KEY);
   }
 
@@ -194,12 +184,21 @@
       seen.add(item.id);
       changed = true;
     });
-    if (changed) remember(turns);
-    sessionStorage.setItem(DELIVERED_KEY, JSON.stringify([...seen].slice(-80)));
+    if (changed) sessionStorage.setItem(DELIVERED_KEY, JSON.stringify([...seen].slice(-80)));
   }
 
-  async function loadDelivered() {
+  function applyTurns(saved) {
+    turns = (saved || []).filter(turn => turn && (turn.role === 'you' || turn.role === 'mhm') && typeof turn.text === 'string').slice(-80).map(turn => ({
+      role: turn.role,
+      text: turn.text,
+      at: typeof turn.created_at === 'string' ? turn.created_at : '',
+    }));
+  }
+
+  async function loadConversation() {
     const inbox = await api('/api/chat');
+    applyTurns(inbox.turns);
+    renderSaved();
     showDelivered(inbox.messages);
   }
 
@@ -259,10 +258,8 @@
   async function sendMessage(text) {
     const message = text.trim();
     if (!message || talkSend.disabled) return;
-    const turns = savedTurns();
     const sentAt = new Date().toISOString();
     turns.push({ role: 'you', text: message, at: sentAt });
-    remember(turns);
     addBubble('you', message, sentAt);
     talkInput.value = '';
     talkSend.disabled = true;
@@ -274,7 +271,6 @@
       const reply = result.reply || 'MHM could not answer that just now. Please try again.';
       const repliedAt = new Date().toISOString();
       turns.push({ role: 'mhm', text: reply, at: repliedAt, suggestions: result.suggestions || [] });
-      remember(turns);
       addBubble('mhm', reply, repliedAt);
       showSuggestions(result.suggestions);
       talkStatus.textContent = '';
@@ -289,10 +285,9 @@
   }
 
   if (talkForm) {
-    renderSaved();
-    loadDelivered().catch(() => {});
+    loadConversation().catch(() => renderSaved());
     window.setInterval(() => {
-      loadDelivered().catch(() => {});
+      api('/api/chat').then(inbox => showDelivered(inbox.messages)).catch(() => {});
     }, 20000);
     talkForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -306,8 +301,8 @@
     });
   }
 
-  window.addEventListener('mhm:before-logout', clearChat);
-  window.addEventListener('mhm:signed-out', clearChat);
+  window.addEventListener('mhm:before-logout', clearDelivered);
+  window.addEventListener('mhm:signed-out', clearDelivered);
 
   if (homeContent) loadHome();
 })();

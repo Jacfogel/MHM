@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=notes-title-1" />
+  <link rel="stylesheet" href="styles.css?v=notes-layout-1" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-11" defer></script>
+  <script src="notes.js?v=notes-12" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -24,11 +24,11 @@
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
     <section class="notes-area" aria-labelledby="notes-heading">
-      <div class="tasks-heading"><div><span class="eyebrow">Keep the useful bits</span><h1 id="notes-heading">Your notebook</h1><p class="hero-lead">Notes, journal entries, and lists in one place.</p></div><div class="page-status-stack"><p id="notes-count" class="tasks-count"></p><button id="notes-refresh" class="plain-button" type="button">Refresh notebook</button></div></div>
+      <div class="tasks-heading"><div><span class="eyebrow">Keep the useful bits</span><h1 id="notes-heading">Your notebook</h1><p class="hero-lead">Notes, journal entries, and lists in one place.</p></div><p id="notes-count" class="tasks-count"></p></div>
       <p id="notes-status" class="form-status" role="status" aria-live="polite">Loading your notes…</p>
       <div id="notes-workspace" hidden>
         <form id="note-create-form" class="note-create-form">
-          <div class="task-create-copy"><strong id="entry-create-heading">Capture a note, journal entry, or list you want MHM to remember.</strong><span id="entry-create-help"></span></div>
+          <div class="task-create-copy"><strong id="entry-create-heading">What do you want to keep?</strong><span id="entry-create-help">A note, journal entry, or list MHM can remember.</span></div>
           <div class="note-form-fields">
             <div class="task-form-row notebook-kind-row">
               <div class="settings-field"><label for="entry-kind">Entry type</label><select id="entry-kind" name="kind"><option value="note">Note</option><option value="journal_entry">Journal</option><option value="list">List</option></select></div>
@@ -43,7 +43,7 @@
           </div>
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
-        <div class="note-list-header"><div class="task-tabs" id="note-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
+        <div class="note-list-header"><div class="task-tabs" id="note-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><button id="notes-refresh" class="plain-button" type="button">Refresh notebook</button><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
         <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong></div>
       </div>
     </section>

@@ -140,7 +140,7 @@
     listField.hidden = !isList;
     if (isList && !createItems.children.length) addListItem(createItems);
     const labels = {
-      note: ['Capture a note, journal entry, or list you want MHM to remember.', '', 'Note', 'Save note'],
+      note: ['What do you want to keep?', 'A note, journal entry, or list MHM can remember.', 'Note', 'Save note'],
       journal_entry: ['Add a journal entry', 'Record what happened, how you felt, or what you want to remember.', 'Journal entry', 'Save journal'],
       list: ['Start a useful list', 'Add the items now, then check them off as you go.', '', 'Save list'],
     }[kind];

@@ -344,7 +344,7 @@ button[aria-busy="true"] { cursor: wait; }
 .app-layout h1 { font-size: clamp(2.3rem, 5vw, 4rem); overflow-wrap: anywhere; }
 .app-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .app-cards .button { margin-top: 22px; }
-.account-details { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
+.account-details { display: grid; grid-template-columns: 90px 1fr; gap: 12px; margin: 0 0 18px; }
 .account-details dt { color: var(--muted); }
 .account-details dd { margin: 0; overflow-wrap: anywhere; }
 .account-security-card form { display: grid; gap: 8px; }
@@ -424,11 +424,9 @@ button[aria-busy="true"] { cursor: wait; }
 .profile-person-row .settings-field { margin: 0; }
 
 .tasks-area { margin-top: 76px; padding-top: 52px; border-top: 1px solid var(--border); }
-.notes-area { margin-top: 20px; }
-.notes-area .tasks-heading { margin-bottom: 8px; }
-.page-status-stack { display: grid; justify-items: end; gap: 3px; text-align: right; }
-.note-create-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: end; padding: 24px; margin: 28px 0; border: 1px solid #d7c9ea; border-radius: 20px; background: linear-gradient(135deg, #f3ecfb, #fbf9f5); }
-.note-create-form .task-create-copy { grid-column: 1 / -1; }
+.notes-area { margin-top: 76px; padding-top: 52px; border-top: 1px solid var(--border); }
+.note-create-form { display: grid; grid-template-columns: minmax(170px, .7fr) minmax(0, 1.6fr) auto; gap: 22px; align-items: end; padding: 24px; margin: 36px 0 8px; border: 1px solid #d7c9ea; border-radius: 20px; background: linear-gradient(135deg, #f3ecfb, #fbf9f5); }
+.note-create-form .button { white-space: nowrap; }
 .note-form-fields { min-width: 0; }
 .note-form-fields > .settings-field { margin-bottom: 12px; }
 .note-form-fields > .settings-field:last-child { margin-bottom: 0; }
@@ -562,7 +560,7 @@ button[aria-busy="true"] { cursor: wait; }
   .custom-question-row { grid-template-columns: 1fr; }
   .profile-person-row { grid-template-columns: 1fr; }
   .tasks-area { margin-top: 48px; padding-top: 38px; }
-  .notes-area { margin-top: 0; }
+  .notes-area { margin-top: 48px; padding-top: 38px; }
   .tasks-heading, .task-list-header { display: block; }
   .tasks-count, .task-list-summary { display: block; margin-top: 8px; }
   .task-create-form { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
@@ -575,7 +573,7 @@ button[aria-busy="true"] { cursor: wait; }
   .notebook-kind-row { grid-template-columns: 1fr; }
   .task-reminder-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .task-reminder-remove { justify-self: start; }
-  .task-create-form .button { width: 100%; }
+  .task-create-form .button, .note-create-form .button { width: 100%; }
   .task-tabs { margin-bottom: 12px; width: 100%; }
   .task-card { display: block; padding: 20px; }
   .task-select { display: block; margin-bottom: 10px; }
