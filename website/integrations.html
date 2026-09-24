@@ -2,39 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>Integrations — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=nav-3" defer></script>
-  <script src="app.js?v=account-settings-1" defer></script>
-  <script src="integrations.js?v=integrations-1" defer></script>
+  <script>
+    const target = new URL('app.html', location.href);
+    target.search = location.search;
+    target.hash = 'integrations';
+    location.replace(target);
+  </script>
 </head>
-<body class="account-body">
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header"><div class="container nav-wrap">
-    <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
-    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html" data-feature="checkins">Insights</a><a class="button button-small" href="app.html" aria-current="page">Account</a><button class="plain-button logout-button" id="logout" type="button">Log out</button></div></nav>
-  </div></header>
-  <main id="main" class="container app-layout">
-    <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
-    <section class="settings-area" aria-labelledby="integrations-heading">
-      <span class="eyebrow">Account settings</span>
-      <h1 id="integrations-heading">Integrations</h1>
-      <p class="hero-lead"><a href="account-settings.html">Back to account settings</a></p>
-      <div class="settings-heading"><div><h2 id="health-heading">Google Health</h2></div><p>Use recent health signals to make support more relevant.</p></div>
-      <p id="health-status-message" class="form-status" role="status" aria-live="polite">Loading Google Health status…</p>
-      <article id="health-card" class="card health-card" hidden>
-        <dl class="account-details"><dt>Status</dt><dd id="health-feature-state"></dd><dt>Connected</dt><dd id="health-connected"></dd><dt>Last sync</dt><dd id="health-last-sync"></dd></dl>
-        <p id="health-guidance" class="field-hint"></p>
-        <div class="health-actions"><button id="health-connect" class="button" type="button">Connect Google Health</button><button id="health-enable" class="plain-button" type="button">Enable</button><button id="health-pause" class="plain-button" type="button">Pause</button><button id="health-sync" class="plain-button" type="button">Sync now</button><button id="health-delete" class="plain-button danger-button" type="button">Delete health data</button></div>
-      </article>
-    </section>
-  </main>
+<body>
+  <p><a href="app.html#integrations">Integrations</a></p>
 </body>
 </html>

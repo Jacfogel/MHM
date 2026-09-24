@@ -280,6 +280,24 @@ class TestChannelOrchestratorHelpers:
         result = self.manager.get_recipient_for_service("user", "discord", None)
         assert result is None, "Should return None for None preferences"
 
+    def test_send_checkin_prompt_leaves_an_open_checkin_in_place(self):
+        """A later scheduled prompt must not replace the question already emailed."""
+        with (
+            patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager.current_checkin_prompt",
+                return_value={"message": "How hopeless are you feeling today?", "index": 1, "total": 3},
+            ),
+            patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager._start_dynamic_checkin",
+            ) as start_checkin,
+        ):
+            sent = self.manager.checkin_dispatcher.send_checkin_prompt(
+                "user-1", "email", "person@example.com"
+            )
+
+        assert sent is False
+        start_checkin.assert_not_called()
+
     def test_should_send_checkin_prompt_frequency_none(self):
         """Test _should_send_checkin_prompt with frequency 'none'."""
         user_id = "test_user"

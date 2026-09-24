@@ -86,15 +86,17 @@ def test_insights_page_exposes_checkin_history():
 
 
 def test_integrations_page_exposes_google_health_controls():
-    integrations = parse_page("integrations.html")
+    account = parse_page("app.html")
     assert {
         "health-connect",
         "health-enable",
         "health-pause",
         "health-sync",
         "health-delete",
-    } <= integrations.ids
-    assert "account-settings.html" in integrations.hrefs
+        "settings-account",
+        "settings-integrations",
+    } <= account.ids
+    assert "app.html#integrations" in parse_page("integrations.html").hrefs
 
 
 def test_message_library_exposes_category_schedule_and_editing_controls():
@@ -210,7 +212,7 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
     assert login.controls["preferred-name"]["maxlength"] == "100"
     assert login.controls["password"]["minlength"] == "12"
     assert login.controls["password"]["maxlength"] == "128"
-    settings = parse_page("account-settings.html")
+    settings = parse_page("app.html")
     assert {
         "password-form",
         "current-password",
@@ -283,7 +285,7 @@ def test_home_and_setup_scripts_stay_scoped_so_they_can_load_with_app_js():
 
 
 def test_public_pages_link_privacy_terms_and_data():
-    for page_name in ("index.html", "login.html", "account-settings.html"):
+    for page_name in ("index.html", "login.html", "app.html"):
         assert {"privacy.html", "terms.html", "data.html"} <= parse_page(page_name).hrefs
 
 

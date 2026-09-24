@@ -97,6 +97,13 @@ class CheckinPromptDispatcher:
                 conversation_manager,
             )
 
+            existing = conversation_manager.current_checkin_prompt(user_id)
+            if existing and existing.get("message"):
+                logger.info(
+                    f"Check-in already open for user {user_id}; not starting another"
+                )
+                return False
+
             reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
 
             from communication.communication_channels.interaction_view_factory import (

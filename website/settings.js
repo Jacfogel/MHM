@@ -60,6 +60,24 @@ const MHMSettingsInput = Object.freeze({
   const status = document.getElementById('settings-status');
   const retry = document.getElementById('settings-retry');
   const forms = {};
+
+  function selectPanel(section, scroll) {
+    const nav = document.getElementById('settings-nav');
+    const panels = document.getElementById('settings-panels');
+    for (const panel of panels.children) panel.hidden = panel.id !== `settings-${section}`;
+    for (const other of nav.children) other.removeAttribute('aria-current');
+    const button = nav.querySelector(`[aria-controls="settings-${section}"], [data-settings-panel="${section}"]`);
+    if (button) button.setAttribute('aria-current', 'page');
+    if (!scroll) return;
+    const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    MHMSettingsInput.scrollToSection(document.getElementById('settings'), reducedMotion);
+  }
+  document.getElementById('settings-nav').addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button || !document.getElementById('settings-nav').contains(button)) return;
+    const section = button.getAttribute('data-settings-panel') || (button.getAttribute('aria-controls') || '').replace('settings-', '');
+    if (section) selectPanel(section, true);
+  });
   let saving = false;
   let sessionEnded = false;
 
@@ -592,32 +610,27 @@ const MHMSettingsInput = Object.freeze({
       const data = await api('GET');
       const nav = document.getElementById('settings-nav');
       const panels = document.getElementById('settings-panels');
-      nav.replaceChildren(); panels.replaceChildren();
+      const accountButton = nav.querySelector('[data-settings-panel="account"]');
+      const integrationsButton = nav.querySelector('[data-settings-panel="integrations"]');
+      const staticPanels = [...panels.querySelectorAll('[data-settings-static]')];
+      nav.replaceChildren();
+      panels.replaceChildren();
+      if (accountButton) nav.append(accountButton);
       for (const [section, title] of Object.entries(titles)) {
         const button = el('button', title, { type: 'button', 'aria-controls': `settings-${section}` });
-        if (section === 'profile') button.setAttribute('aria-current', 'page');
-        button.addEventListener('click', () => {
-          for (const [key, form] of Object.entries(forms)) form.hidden = key !== section;
-          for (const other of nav.children) other.removeAttribute('aria-current');
-          button.setAttribute('aria-current', 'page');
-          const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          MHMSettingsInput.scrollToSection(document.getElementById('settings'), reducedMotion);
-        });
         nav.append(button);
         forms[section] = renderSection(section, data);
         panels.append(forms[section]);
       }
-      document.getElementById('settings-layout').hidden = false;
+      if (integrationsButton) nav.append(integrationsButton);
+      for (const panel of staticPanels) panels.append(panel);
       status.textContent = '';
-      if (new URLSearchParams(location.search).get('discord')) {
-        const delivery = nav.querySelector('[aria-controls="settings-delivery"]');
-        if (delivery) delivery.click();
-      }
       const sectionHash = location.hash.replace('#', '');
-      if (Object.hasOwn(titles, sectionHash)) {
-        const sectionButton = nav.querySelector(`[aria-controls="settings-${sectionHash}"]`);
-        if (sectionButton) sectionButton.click();
-      }
+      const discordReturn = new URLSearchParams(location.search).get('discord');
+      if (sectionHash === 'account' || sectionHash === 'integrations') selectPanel(sectionHash);
+      else if (discordReturn) selectPanel('delivery');
+      else if (Object.hasOwn(titles, sectionHash)) selectPanel(sectionHash);
+      else selectPanel('profile');
     } catch (error) { status.textContent = error.message; status.classList.add('is-error'); retry.hidden = false; }
   }
   retry.addEventListener('click', load);

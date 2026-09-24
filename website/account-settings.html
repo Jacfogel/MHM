@@ -2,55 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>Account settings — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=nav-3" defer></script>
-  <script src="app.js?v=account-settings-1" defer></script>
+  <script>
+    const target = new URL('app.html', location.href);
+    target.search = location.search;
+    target.hash = 'account';
+    location.replace(target);
+  </script>
 </head>
-<body class="account-body">
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header"><div class="container nav-wrap">
-    <a class="brand" href="home.html" aria-label="MHM home"><img class="brand-mark" src="mhm-logo.png" alt="" width="48" height="48" /><span class="brand-wordmark"><span class="brand-name">MHM</span><span class="brand-description">Motivational Health Messages</span></span></a>
-    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
-    <nav id="site-menu" class="site-menu" aria-label="Account pages"><div class="nav-actions"><a class="plain-button" href="home.html">Home</a><a class="plain-button" href="tasks.html">Tasks</a><a class="plain-button" href="notes.html">Notebook</a><a class="plain-button" href="messages.html" data-feature="messages">Messages</a><a class="plain-button" href="insights.html" data-feature="checkins">Insights</a><a class="button button-small" href="app.html" aria-current="page">Account</a><button class="plain-button logout-button" id="logout" type="button">Log out</button></div></nav>
-  </div></header>
-  <main id="main" class="container app-layout">
-    <p id="app-status" class="form-status" role="status">Connecting to your account…</p>
-    <section id="account-content" hidden>
-      <span class="eyebrow">Account</span>
-      <h1>Account settings</h1>
-      <p class="hero-lead"><a href="app.html">Back to account</a></p>
-      <div class="app-cards">
-        <article class="card account-security-card"><span class="eyebrow">Sign-in &amp; security</span><h2 id="password-heading">Set a password.</h2>
-          <p id="password-guidance">Add a password so your next sign-in does not need an emailed code.</p>
-          <form id="password-form">
-            <div id="current-password-field" hidden>
-              <label for="current-password">Current password</label>
-              <input id="current-password" type="password" autocomplete="current-password" minlength="12" maxlength="128" placeholder="Your current password" />
-            </div>
-            <label for="new-password">New password</label>
-            <input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required placeholder="At least 12 characters" />
-            <label for="new-password-confirm">Confirm password</label>
-            <input id="new-password-confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required placeholder="Type it again" />
-            <button class="button" id="save-password" type="submit">Save password</button>
-          </form>
-          <p id="password-status" class="form-status" role="status" aria-live="polite"></p>
-          <div class="connected-signins" id="connected-signins" hidden>
-            <h3>Connected sign-ins</h3>
-            <div id="social-connections"></div>
-          </div>
-        </article>
-        <article class="card"><span class="eyebrow">Your data</span><h2>Keep a copy.</h2><p>Download a JSON copy of the profile, preferences, schedules, messages, history, tasks, and notebook entries stored for your account.</p><a class="button" href="/api/account/export" download>Download my data</a><nav class="policy-links" aria-label="Policies"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="data.html">Your data</a></nav></article>
-        <article class="card"><span class="eyebrow">Connections</span><h2>Integrations.</h2><p>Connect optional services, including Google Health.</p><a class="button" href="integrations.html">Open integrations</a></article>
-      </div>
-    </section>
-    <noscript><p>Enable JavaScript to load your account settings.</p></noscript>
-  </main>
+<body>
+  <p><a href="app.html#account">Account</a></p>
 </body>
 </html>

@@ -183,11 +183,18 @@
 
   function showDelivered(messages) {
     const seen = deliveredIds();
+    const turns = savedTurns();
+    const savedTexts = new Set(turns.map(turn => turn.text));
+    let changed = false;
     (messages || []).forEach(item => {
-      if (!item || typeof item.id !== 'string' || typeof item.text !== 'string' || seen.has(item.id)) return;
-      addBubble('mhm', item.text);
+      if (!item || typeof item.id !== 'string' || typeof item.text !== 'string') return;
+      if (seen.has(item.id) && savedTexts.has(item.text)) return;
+      turns.push({ role: 'mhm', text: item.text, at: typeof item.created_at === 'string' ? item.created_at : '' });
+      addBubble('mhm', item.text, item.created_at);
       seen.add(item.id);
+      changed = true;
     });
+    if (changed) remember(turns);
     sessionStorage.setItem(DELIVERED_KEY, JSON.stringify([...seen].slice(-80)));
   }
 
@@ -196,14 +203,29 @@
     showDelivered(inbox.messages);
   }
 
-  function addBubble(role, text) {
+  function chatStamp(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    const parsed = new Date(value.includes('T') ? value : value.replace(' ', 'T'));
+    if (Number.isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  function addBubble(role, text, at) {
     const item = document.createElement('article');
     item.className = role === 'you' ? 'talk-bubble talk-you' : 'talk-bubble talk-mhm';
     const who = document.createElement('span');
     who.textContent = role === 'you' ? (speakerName || 'You') : 'MHM';
+    item.append(who);
+    const stamp = chatStamp(at);
+    if (stamp) {
+      const when = document.createElement('time');
+      when.dateTime = at.includes('T') ? at : at.replace(' ', 'T');
+      when.textContent = stamp;
+      item.append(when);
+    }
     const body = document.createElement('p');
     body.textContent = text;
-    item.append(who, body);
+    item.append(body);
     talkLog.append(item);
     talkLog.scrollTop = talkLog.scrollHeight;
   }
@@ -229,7 +251,7 @@
       addBubble('mhm', 'Hi. Ask for help, tell me to add a task, or just say what’s on your mind.');
       return;
     }
-    turns.forEach(turn => addBubble(turn.role, turn.text));
+    turns.forEach(turn => addBubble(turn.role, turn.text, turn.at));
     const last = turns[turns.length - 1];
     if (last && last.role === 'mhm') showSuggestions(last.suggestions);
   }
@@ -238,9 +260,10 @@
     const message = text.trim();
     if (!message || talkSend.disabled) return;
     const turns = savedTurns();
-    turns.push({ role: 'you', text: message });
+    const sentAt = new Date().toISOString();
+    turns.push({ role: 'you', text: message, at: sentAt });
     remember(turns);
-    addBubble('you', message);
+    addBubble('you', message, sentAt);
     talkInput.value = '';
     talkSend.disabled = true;
     talkSuggestions.hidden = true;
@@ -249,9 +272,10 @@
     try {
       const result = await api('/api/chat', 'POST', { message });
       const reply = result.reply || 'MHM could not answer that just now. Please try again.';
-      turns.push({ role: 'mhm', text: reply, suggestions: result.suggestions || [] });
+      const repliedAt = new Date().toISOString();
+      turns.push({ role: 'mhm', text: reply, at: repliedAt, suggestions: result.suggestions || [] });
       remember(turns);
-      addBubble('mhm', reply);
+      addBubble('mhm', reply, repliedAt);
       showSuggestions(result.suggestions);
       talkStatus.textContent = '';
     } catch (error) {
