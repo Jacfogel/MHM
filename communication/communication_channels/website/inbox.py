@@ -124,6 +124,133 @@ def list_website_chat_turns(user_id: str) -> list[dict]:
     return visible
 
 
+def _turn_sort_key(item: dict, index: int) -> tuple[float, int, int]:
+    """Oldest first. A person speaks before MHM when both share a timestamp."""
+    from core.time_utilities import timestamp_sort_key_from_dict
+
+    role_order = 0 if item.get("role") == "you" else 1
+    return (timestamp_sort_key_from_dict(item, "created_at"), role_order, index)
+
+
+def _pair_counts(turns: list[dict]) -> dict[tuple[str, str], int]:
+    """Count website user-then-MHM pairs already stored as chat turns."""
+    counts: dict[tuple[str, str], int] = {}
+    index = 0
+    while index < len(turns) - 1:
+        current = turns[index]
+        following = turns[index + 1]
+        if current.get("role") == "you" and following.get("role") == "mhm":
+            key = (current.get("text", ""), following.get("text", ""))
+            counts[key] = counts.get(key, 0) + 1
+            index += 2
+            continue
+        index += 1
+    return counts
+
+
+@handle_errors("loading cross-channel chat", default_return=[])
+def _chat_interaction_turns(user_id: str, existing: list[dict]) -> list[dict]:
+    """Add Discord and email exchanges that are not already website turns."""
+    from core.response_tracking import get_recent_chat_interactions
+
+    remaining = _pair_counts(existing)
+    added = []
+    interactions = get_recent_chat_interactions(user_id, limit=MAX_CHAT_TURNS)
+    for item in reversed(interactions):
+        if not isinstance(item, dict):
+            continue
+        user_text = item.get("user_message")
+        reply_text = item.get("ai_response")
+        if not isinstance(user_text, str) or not user_text.strip():
+            continue
+        if not isinstance(reply_text, str) or not reply_text.strip():
+            continue
+        pair = (user_text.strip(), reply_text.strip())
+        if remaining.get(pair, 0) > 0:
+            remaining[pair] -= 1
+            continue
+        created_at = item.get("timestamp") if isinstance(item.get("timestamp"), str) else ""
+        added.append(
+            {
+                "id": f"chat-you-{len(added)}",
+                "role": "you",
+                "text": pair[0],
+                "created_at": created_at,
+            }
+        )
+        added.append(
+            {
+                "id": f"chat-mhm-{len(added)}",
+                "role": "mhm",
+                "text": pair[1],
+                "created_at": created_at,
+            }
+        )
+    return added
+
+
+@handle_errors("loading outbound conversation copies", default_return=[])
+def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
+    """Add MHM messages sent on any channel that are not already in the transcript."""
+    from messages.message_data_manager import get_recent_messages
+
+    seen = {
+        (item.get("text", ""), item.get("created_at", ""))
+        for item in existing
+        if item.get("role") == "mhm"
+    }
+    added = []
+    copied = set()
+    for item in list_website_messages(user_id):
+        text = item.get("text", "")
+        created_at = item.get("created_at") or ""
+        if (text, created_at) in seen:
+            continue
+        seen.add((text, created_at))
+        copied.add(text)
+        added.append(
+            {
+                "id": item.get("id") or "",
+                "role": "mhm",
+                "text": text,
+                "created_at": created_at,
+            }
+        )
+    for item in get_recent_messages(user_id, limit=MAX_INBOX_MESSAGES):
+        text = item.get("sent_text")
+        created_at = str(item.get("sent_at") or "")
+        if not isinstance(text, str) or not text.strip():
+            continue
+        text = text.strip()
+        if text in copied or (text, created_at) in seen:
+            continue
+        seen.add((text, created_at))
+        added.append(
+            {
+                "id": str(item.get("id") or ""),
+                "role": "mhm",
+                "text": text,
+                "created_at": created_at,
+            }
+        )
+    return added
+
+
+@handle_errors("loading home conversation", default_return=[])
+def list_home_conversation(user_id: str) -> list[dict]:
+    """Return one timeline of website, Discord, and email messages, oldest first."""
+    if not isinstance(user_id, str) or not user_id.strip():
+        return []
+    turns = list_website_chat_turns(user_id)
+    turns.extend(_chat_interaction_turns(user_id, turns))
+    turns.extend(_outbound_turns(user_id, turns))
+    ordered = sorted(
+        enumerate(turns),
+        key=lambda pair: _turn_sort_key(pair[1], pair[0]),
+    )
+    return [item for _index, item in ordered][-MAX_CHAT_TURNS:]
+
+
 @handle_errors("storing website chat", default_return=False)
 def append_website_chat_exchange(user_id: str, user_message: str, reply: str) -> bool:
     """Keep one website message and MHM's reply so the next login can show them."""

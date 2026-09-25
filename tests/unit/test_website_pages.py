@@ -306,7 +306,10 @@ def test_policy_pages_are_readable_and_cross_linked(page_name):
     html = (WEBSITE / page_name).read_text(encoding="utf-8")
     assert {"index.html", "privacy.html", "terms.html", "data.html"} <= page.hrefs
     assert "<h1>" in html
-    assert "Last updated September 22, 2026." in html
+    if page_name == "terms.html":
+        assert "Last updated September 22, 2026." in html
+    else:
+        assert "Last updated September 24, 2026." in html
     assert any(source.startswith("script.js") for source in page.scripts)
     if page_name == "privacy.html":
         assert "mhm_session" in html
@@ -317,7 +320,7 @@ def test_policy_pages_are_readable_and_cross_linked(page_name):
         assert "988" in html
     if page_name == "data.html":
         assert "Download my data" in html
-        assert "delete-account button" in html
+        assert "Type DELETE" in html
 
 
 @pytest.mark.parametrize("page_name", ["index.html", "login.html", "home.html", "setup.html", "app.html", "tasks.html", "notes.html", "insights.html", "messages.html", "checkin.html", "privacy.html", "terms.html", "data.html"])

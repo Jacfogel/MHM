@@ -159,6 +159,81 @@ def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_p
     assert inbox.list_website_messages("existing")[0]["text"] == "Good morning."
 
 
+def test_home_conversation_orders_website_discord_and_email_together(monkeypatch):
+    from communication.communication_channels.website import inbox
+
+    monkeypatch.setattr(
+        inbox,
+        "list_website_chat_turns",
+        lambda user_id: [
+            {
+                "id": "1",
+                "role": "you",
+                "text": "hi",
+                "created_at": "2026-09-24 17:44:30",
+            },
+            {
+                "id": "2",
+                "role": "mhm",
+                "text": "Hello from the website.",
+                "created_at": "2026-09-24 17:44:30",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        inbox,
+        "list_website_messages",
+        lambda user_id: [
+            {
+                "id": "d1",
+                "text": "Morning reminder",
+                "category": "tasks",
+                "created_at": "2026-09-24 08:00:00",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "core.response_tracking.get_recent_chat_interactions",
+        lambda user_id, limit=80: [
+            {
+                "user_message": "hi",
+                "ai_response": "Hello from the website.",
+                "timestamp": "2026-09-24 17:44:10",
+            },
+            {
+                "user_message": "from discord",
+                "ai_response": "I hear you.",
+                "timestamp": "2026-09-24 12:00:00",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "messages.message_data_manager.get_recent_messages",
+        lambda user_id, category=None, limit=40, days_back=None: [
+            {"id": "s1", "sent_text": "Email check-in", "sent_at": "2026-09-24 09:00:00"},
+            {"id": "s2", "sent_text": "Morning reminder", "sent_at": "2026-09-24 08:00:05"},
+        ],
+    )
+
+    texts = [item["text"] for item in inbox.list_home_conversation("existing")]
+    assert texts == [
+        "Morning reminder",
+        "Email check-in",
+        "from discord",
+        "I hear you.",
+        "hi",
+        "Hello from the website.",
+    ]
+    assert [item["role"] for item in inbox.list_home_conversation("existing")] == [
+        "mhm",
+        "mhm",
+        "you",
+        "mhm",
+        "you",
+        "mhm",
+    ]
+
+
 def test_predefined_send_also_keeps_a_website_copy(monkeypatch):
     from communication.delivery.message_dispatcher import PredefinedMessageDispatcher
 

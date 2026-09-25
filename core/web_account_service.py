@@ -760,7 +760,7 @@ def create_web_app(
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+            "default-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         )
         if request.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
@@ -1205,6 +1205,32 @@ def create_web_app(
             content_type="application/json",
             headers={"Content-Disposition": 'attachment; filename="mhm-data.json"'},
         )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def account_delete(request):
+        """Permanently delete the signed-in account after an explicit confirmation."""
+        uid, _current = await authenticated_account(request)
+        data = await body(request)
+        if set(data) != {"confirmation"} or data.get("confirmation") != "DELETE":
+            raise web.HTTPBadRequest(
+                text="Type DELETE to permanently delete your account."
+            )
+        from storage.user_data_backup import delete_user_completely
+
+        deleted = await asyncio.to_thread(
+            delete_user_completely, uid, create_backup=False
+        )
+        if not deleted:
+            raise web.HTTPServiceUnavailable(
+                text="Your account could not be deleted. Please try again."
+            )
+        for key, session in list(sessions.items()):
+            if session and session[0] == uid:
+                sessions.pop(key, None)
+        response = web.json_response({"ok": True})
+        response.del_cookie(COOKIE, path="/api/")
+        return response
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def oauth_providers(request):
         """Report which optional social sign-in providers are configured."""
@@ -2656,6 +2682,7 @@ def create_web_app(
     app.router.add_post("/api/account/setup-complete", setup_complete)
     app.router.add_post("/api/account/connections", account_connections)
     app.router.add_get("/api/account/export", account_export)
+    app.router.add_post("/api/account/delete", account_delete)
     app.router.add_get("/api/settings", settings)
     app.router.add_post("/api/settings", settings)
     app.router.add_get("/api/insights", insights)
@@ -2704,13 +2731,13 @@ def create_web_app(
     async def chat_inbox(request):
         """Return outbound messages stored for the always-on website channel."""
         from communication.communication_channels.website.inbox import (
-            list_website_chat_turns,
+            list_home_conversation,
             list_website_messages,
         )
 
         uid, _current = await authenticated_account(request)
         messages = await asyncio.to_thread(list_website_messages, uid)
-        turns = await asyncio.to_thread(list_website_chat_turns, uid)
+        turns = await asyncio.to_thread(list_home_conversation, uid)
         return web.json_response({"messages": messages, "turns": turns})
 
     app.router.add_get("/api/checkins", checkins_api)

@@ -178,4 +178,36 @@ if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
     passwordStatus.classList.add('is-error');
   } finally { button.disabled = false; }
 });
+const deleteForm = document.getElementById('delete-account-form');
+const deleteConfirm = document.getElementById('delete-confirm');
+const deleteButton = document.getElementById('delete-account');
+const deleteStatus = document.getElementById('delete-status');
+if (deleteConfirm && deleteButton) {
+  deleteConfirm.addEventListener('input', () => {
+    deleteButton.disabled = deleteConfirm.value !== 'DELETE';
+  });
+}
+if (deleteForm) deleteForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!deleteButton || deleteButton.disabled || deleteConfirm.value !== 'DELETE') return;
+  deleteButton.disabled = true;
+  deleteStatus.textContent = 'Deleting your account…';
+  deleteStatus.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/account/delete', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirmation: 'DELETE' }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.status === 401) { returnToLogin(); return; }
+    if (!response.ok) throw new Error(result.error || 'Your account could not be deleted.');
+    window.dispatchEvent(new Event('mhm:signed-out'));
+    location.replace('login.html');
+  } catch (error) {
+    deleteStatus.textContent = error.message;
+    deleteStatus.classList.add('is-error');
+    deleteButton.disabled = deleteConfirm.value !== 'DELETE';
+  }
+});
 if (accountContent) loadAccount();

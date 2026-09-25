@@ -318,6 +318,39 @@ async def test_account_export_strips_authentication_secrets(gateway, monkeypatch
     assert exported["notebook"] == []
 
 
+async def test_account_delete_requires_delete_and_removes_the_account(gateway, monkeypatch):
+    client, _, sent, _ = gateway
+    deleted = {}
+
+    def remove(user_id, create_backup=True):
+        deleted["user_id"] = user_id
+        deleted["create_backup"] = create_backup
+        return True
+
+    monkeypatch.setattr(
+        "storage.user_data_backup.delete_user_completely",
+        remove,
+    )
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    rejected = await client.post(
+        "/api/account/delete",
+        json={"confirmation": "delete"},
+        headers={"Origin": ORIGIN},
+    )
+    assert rejected.status == 400
+    assert deleted == {}
+    response = await client.post(
+        "/api/account/delete",
+        json={"confirmation": "DELETE"},
+        headers={"Origin": ORIGIN},
+    )
+    assert response.status == 200
+    assert await response.json() == {"ok": True}
+    assert deleted == {"user_id": "existing", "create_backup": False}
+    assert (await client.get("/api/account")).status == 401
+
+
 async def test_insights_are_authenticated_bounded_and_json_safe(gateway, monkeypatch):
     from checkins.checkin_analytics import CheckinAnalytics
 

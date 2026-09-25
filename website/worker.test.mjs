@@ -124,6 +124,7 @@ test('account self-service and insights routes proxy only their supported method
     assert.equal((await worker.fetch(new Request(url + '/api/health', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"action":"sync"}' }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/account/connections', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"provider":"google"}' }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/account/setup-complete', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{}' }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/account/delete', { method: 'POST', headers: { ...cookie, Origin: url, 'Content-Type': 'application/json' }, body: '{"confirmation":"DELETE"}' }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/account/export', { method: 'POST', headers: { Origin: url } }), env)).status, 405);
     assert.deepEqual(calls, [
       ['https://gateway.example/api/account/export', 'GET'],
@@ -132,6 +133,7 @@ test('account self-service and insights routes proxy only their supported method
       ['https://gateway.example/api/health', 'POST'],
       ['https://gateway.example/api/account/connections', 'POST'],
       ['https://gateway.example/api/account/setup-complete', 'POST'],
+      ['https://gateway.example/api/account/delete', 'POST'],
     ]);
   } finally { globalThis.fetch = originalFetch; }
 });

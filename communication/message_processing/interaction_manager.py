@@ -359,4 +359,13 @@ def get_interaction_manager() -> InteractionManager:
 def handle_user_message(
     user_id: str, message: str, channel_type: str = "discord"
 ) -> InteractionResponse:
-    return get_interaction_manager().handle_message(user_id, message, channel_type)
+    response = get_interaction_manager().handle_message(user_id, message, channel_type)
+    if channel_type != "website":
+        from communication.communication_channels.website.inbox import (
+            append_website_chat_exchange,
+        )
+
+        append_website_chat_exchange(
+            user_id, message, getattr(response, "message", "") or ""
+        )
+    return response

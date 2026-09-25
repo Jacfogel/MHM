@@ -63,9 +63,6 @@
         label.textContent = speakerName || 'You';
       });
       document.getElementById('home-task-off').hidden = account.tasks_enabled;
-      document.getElementById('home-checkin').hidden = !account.checkins_enabled;
-      document.getElementById('home-checkin-answer').hidden = !account.checkins_enabled;
-      document.getElementById('home-checkin-on').hidden = !account.checkins_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;
       let checkinState = { active: false };
       if (account.checkins_enabled) {
@@ -77,14 +74,21 @@
       }
       const checkinOn = document.getElementById('home-checkin-on');
       const answerLink = document.getElementById('home-checkin-answer');
+      const checkedIn = document.getElementById('home-checkin');
+      checkinOn.hidden = true;
+      answerLink.hidden = true;
+      checkedIn.hidden = true;
       if (account.checkins_enabled && checkinState.active) {
         const progress = checkinState.index && checkinState.total ? ` Question ${checkinState.index} of ${checkinState.total}.` : '';
         checkinOn.hidden = false;
         checkinOn.textContent = `A check-in is open.${progress}`;
+        answerLink.hidden = false;
         answerLink.textContent = 'Continue check-in';
-      } else {
-        checkinOn.hidden = true;
-        answerLink.textContent = 'Answer a check-in';
+      } else if (account.checkins_enabled && checkinState.completed_today) {
+        checkedIn.hidden = false;
+      } else if (account.checkins_enabled) {
+        answerLink.hidden = false;
+        answerLink.textContent = 'Start check-in';
       }
       const tasks = await api('/api/tasks?status=active');
       const task = nextTask(tasks.tasks || []);
@@ -101,25 +105,6 @@
       }
     }
   }
-
-  const checkin = document.getElementById('home-checkin');
-  if (checkin) checkin.addEventListener('click', async (event) => {
-    const button = event.currentTarget;
-    const checkinStatus = document.getElementById('home-checkin-status');
-    if (button.disabled) return;
-    button.disabled = true;
-    checkinStatus.textContent = 'Queuing your check-in…';
-    checkinStatus.classList.remove('is-error');
-    try {
-      const result = await api('/api/actions', 'POST', { action: 'checkin_prompt' });
-      checkinStatus.textContent = result.message || 'Your check-in was queued for delivery.';
-    } catch (error) {
-      checkinStatus.textContent = error.message;
-      checkinStatus.classList.add('is-error');
-    } finally {
-      button.disabled = false;
-    }
-  });
 
   const captureForm = document.getElementById('home-capture-form');
   if (captureForm) captureForm.addEventListener('submit', async (event) => {
@@ -151,40 +136,10 @@
   const talkStatus = document.getElementById('talk-status');
   const talkSuggestions = document.getElementById('talk-suggestions');
   let speakerName = '';
-  const DELIVERED_KEY = 'mhm-home-delivered';
   let turns = [];
 
   function savedTurns() {
     return turns;
-  }
-
-  function clearDelivered() {
-    sessionStorage.removeItem(DELIVERED_KEY);
-  }
-
-  function deliveredIds() {
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(DELIVERED_KEY) || '[]');
-      return new Set(Array.isArray(saved) ? saved.filter(id => typeof id === 'string') : []);
-    } catch (error) {
-      return new Set();
-    }
-  }
-
-  function showDelivered(messages) {
-    const seen = deliveredIds();
-    const turns = savedTurns();
-    const savedTexts = new Set(turns.map(turn => turn.text));
-    let changed = false;
-    (messages || []).forEach(item => {
-      if (!item || typeof item.id !== 'string' || typeof item.text !== 'string') return;
-      if (seen.has(item.id) && savedTexts.has(item.text)) return;
-      turns.push({ role: 'mhm', text: item.text, at: typeof item.created_at === 'string' ? item.created_at : '' });
-      addBubble('mhm', item.text, item.created_at);
-      seen.add(item.id);
-      changed = true;
-    });
-    if (changed) sessionStorage.setItem(DELIVERED_KEY, JSON.stringify([...seen].slice(-80)));
   }
 
   function applyTurns(saved) {
@@ -196,10 +151,10 @@
   }
 
   async function loadConversation() {
+    if (talkSend.disabled) return;
     const inbox = await api('/api/chat');
     applyTurns(inbox.turns);
     renderSaved();
-    showDelivered(inbox.messages);
   }
 
   function chatStamp(value) {
@@ -287,7 +242,7 @@
   if (talkForm) {
     loadConversation().catch(() => renderSaved());
     window.setInterval(() => {
-      api('/api/chat').then(inbox => showDelivered(inbox.messages)).catch(() => {});
+      loadConversation().catch(() => {});
     }, 20000);
     talkForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -301,8 +256,6 @@
     });
   }
 
-  window.addEventListener('mhm:before-logout', clearDelivered);
-  window.addEventListener('mhm:signed-out', clearDelivered);
 
   if (homeContent) loadHome();
 })();
