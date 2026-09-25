@@ -649,6 +649,8 @@ button[aria-busy="true"] { cursor: wait; }
 .home-focus-break .button { margin-top: 0; }
 .home-capture { grid-column: 1 / -1; }
 .home-capture form { margin-top: 8px; }
+.home-recent-notes { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.home-recent-notes a { color: inherit; text-decoration: none; }
 .setup-layout { max-width: 920px; }
 .setup-progress { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0 0 28px; }
 .setup-progress li { padding: 8px 12px; border-radius: 999px; background: var(--lavender); color: var(--muted); font-size: .82rem; font-weight: 700; }

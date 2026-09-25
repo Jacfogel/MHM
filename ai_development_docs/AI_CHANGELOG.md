@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-25 - Smaller notebook slice for the model **COMPLETED**
+- The model now gets recent note titles, pinned entries, and a short summary when a note has no title. Full note text stays out of that slice.
+- Home shows a few recent titles under the capture box.
+- The notebook plan now records groups as removed and the website notebook as a current surface.
+- The notebook slice for the model should be recent titles, pinned entries, and a short summary when there is no title, so the prompt stays small. The code still sends the last 10 full entries.
+
 ### 2026-09-24 - Talk to MHM on the home page **COMPLETED**
 - Home suggests what to focus on with a weighted roll. The model estimates minutes, and shorter tasks are more likely. Done, Later, and Break it down act on that task. Today's energy is not ranked yet. The effort cache key uses the shared error handler, and the function registry includes those functions.
 - Home chat shows website, Discord, and email messages in one timeline, oldest first, opens at the newest message, and starts with the last 48 hours. More loads the previous 48 hours. Personalized messages are check-ins, Google Health, and profile.
@@ -105,25 +111,6 @@ Guidelines:
 - Function-registry still inventories excluded root key files (`run_mhm.py`, `run_tests.py`). Check-in start tests pin always-include questions so the leave-one-out min/max rule is deterministic.
 - The shared-scan wrapper test patches `_module_import_analyzer_class` on the running wrapper's globals so xdist cannot miss a second `analyze_module_imports` copy.
 - The hostile analyzer in that regression test no longer iterates an optional `parsed_modules` value, clearing the remaining Pyright error.
-
-### 2026-09-19 - Website, task, check-in, and notebook consistency fixes **COMPLETED**
-- Automated messages now stay disabled when category preferences are saved. Check-ins default to 2-3 questions, apply the variability constraint to Minimum instead of Maximum, and select a count within that range at runtime across the website and desktop app.
-- Default task tags now populate creation/editing, notebook forms have working existing-tag selectors, notebook groups are retired from the website/API, and archived notebook entries cannot retain or display a pinned state.
-- Custom task reminders accept a single date/time with an optional window end; relative reminders require a due date during creation and editing.
-- Added the missing `get_default_tags` error boundary and registry entry. Focused Python/Node tests, Ruff, compilation, docs regeneration, and the error-handling analyzer pass; two stale Tier 3 expectations were corrected and their parallel/no-parallel suites pass.
-- Removed `confcutdir` from `development_tools/pytest.ini`; pytest only accepts `--confcutdir` and `--strict-config` treated the INI key as unknown, so CI Tooling Policy Consistency ran zero tests.
-- Isolation tests now require the CLI flag and forbid the INI assignment.
-- Suite-cache helper edits always rerun the `development_tools` domain, even when a worker's domain map omitted that key.
-
-### 2026-09-17 - Website account and settings corrections **COMPLETED**
-- Account navigation no longer signs users out; profile lists accept lines, commas, or semicolons; clicking anywhere in date/time inputs opens the native picker; and disabled feature details are visibly unavailable.
-- Personalized messages are split into check-in, Google Health, and profile sources, with source-dependent availability. Check-ins support custom questions, group standard questions by category with compact inline frequency controls, and default new check-in/task windows to 9:30-11:30 AM and 3:00-5:00 PM.
-- Newly created accounts immediately require the current password for later changes. Discord connection failures now explain likely duplicate-account links, and account creation no longer silently starts Discord linking.
-- Website settings now require the complete current response schema, and saved custom questions require the current full definition instead of being repaired from older partial shapes. Related legacy facades were removed, and focused Python/Node coverage rejects obsolete payloads.
-- Website parity now includes the complete custom-question editor and structured important-people profiles; task completion details, recurrence intervals, relative reminders, bulk actions, and due-soon counts; fuller wellness analytics; notebook group/tag browsing; live message previews; and manual test-message and check-in requests. The task-level Remind now action was removed.
-- Task recurrence now hides irrelevant controls for one-time tasks and uses clear presets plus a custom number/unit editor. Suggested and date-specific task reminders share one editor, choosing the blank template clears populated task fields, and task creation/editing provide an explicit existing-tag selector while still accepting new tags. Notebook tag and group fields continue suggesting existing values. Structured task links were removed from the website API; ordinary URLs belong in task Details.
-- A Tier 3 timeout at 99% with no named failures no longer wipes the suite cache or forces a 348-file rerun; interrupted pytest keeps prior per-file results and useful worker-crash diagnostics. Website tests now cap aiohttp server shutdown at 1 second so leftover connections cannot stall workers for a minute each.
-- The web-client shutdown test no longer triggers a Pyright optional-member warning on `runner._shutdown_timeout`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -590,12 +590,13 @@ Returns:
 - [OK] `_build_conversation_context(user_id, include_conversation_history)` - Build recent conversation context when enabled.
 - [OK] `_build_health_context(user_id)` - Build safe AI-facing health guidance context.
 - [OK] `_build_message_context(user_id, preferences)` - Build structured message context through message data APIs.
-- [OK] `_build_notebook_context(user_id)` - Build structured notebook context through notebook service APIs.
+- [OK] `_build_notebook_context(user_id)` - Build a small notebook slice of recent titles, pinned entries, and short summaries.
 - [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
 - [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
 - [OK] `_build_temporal_context(user_id)` - Build structured current date/time context for the user's timezone.
 - [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
-- [OK] `_entry_to_dict(entry)` - Convert notebook entries or dict-like values to plain dictionaries.
+- [OK] `_notebook_context_item(entry)` - Keep a title or short summary, and leave the full entry text out.
+- [OK] `_notebook_summary(entry)` - Return a short label for an entry that has no title.
 - [OK] `_format_account(account)` - Format account fields into compact prompt text.
 - [OK] `_format_personal_context(personal_context)` - Format personal context fields into compact prompt text.
 - [OK] `_format_preferences(preferences)` - Format preference fields into compact prompt text.

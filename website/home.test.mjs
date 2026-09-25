@@ -12,7 +12,10 @@ function node(extras = {}) {
     textContent: '',
     value: '',
     classList: { add() {}, remove() {}, toggle() {} },
+    childNodes: [],
     addEventListener(type, listener) { this.listeners = this.listeners || {}; this.listeners[type] = listener; },
+    append(...children) { this.childNodes.push(...children); },
+    replaceChildren(...children) { this.childNodes = children; },
     focus() {},
     ...extras,
   };
@@ -45,6 +48,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-note', node({ value: 'A parked thought' })],
     ['home-capture-submit', node()],
     ['home-capture-status', node()],
+    ['home-recent-notes', node()],
   ]);
   const requests = [];
   const navigation = [];
@@ -52,6 +56,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     document: {
       getElementById(id) { return nodes.get(id); },
       querySelectorAll() { return []; },
+      createElement() { return node(); },
     },
     window: { dispatchEvent() {}, requestAnimationFrame() {}, mhmRandom: random },
     Event,
@@ -62,6 +67,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       if (url === '/api/tasks?status=active') return Response.json(tasks);
       if (url === '/api/tasks/effort') return Response.json(efforts);
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/notes?status=active') return Response.json({ notes: [] });
       if (url === '/api/notes') return Response.json({ ok: true }, { status: 201 });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       return Response.json({ error: 'missing' }, { status: 404 });
@@ -83,31 +89,27 @@ test('new accounts are sent through first-run setup before home loads', async ()
   assert.equal(view.nodes.get('home-content').hidden, true);
 });
 
-test('accounts with every support feature off are sent through setup even without needs_setup', async () => {
+test('accounts with every support feature off stay on home', async () => {
   const view = await page({
     account: { preferred_name: 'Brook', messages_enabled: false, tasks_enabled: false, checkins_enabled: false },
   });
-  assert.deepEqual(view.navigation, ['setup.html']);
+  assert.deepEqual(view.navigation, []);
+  assert.equal(view.nodes.get('home-content').hidden, false);
 });
 
-test('home uses saved settings when the account summary omits setup flags', async () => {
+test('home stays put when the account summary omits setup flags', async () => {
   const view = await page({
     account: { preferred_name: 'Brook' },
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'Brook' });
-      if (url === '/api/settings') {
-        return Response.json({
-          sections: {
-            messages: { enabled: false },
-            tasks: { enabled: false },
-            checkins: { enabled: false },
-          },
-        });
-      }
+      if (url === '/api/notes?status=active') return Response.json({ notes: [] });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
       return Response.json({ tasks: [] });
     },
   });
-  assert.deepEqual(view.navigation, ['setup.html']);
+  assert.deepEqual(view.navigation, []);
+  assert.equal(view.nodes.get('home-content').hidden, false);
 });
 
 test('home suggests the overdue task and explains why', async () => {
@@ -218,6 +220,29 @@ test('a one-line capture is saved as a notebook note', async () => {
   assert.equal(view.nodes.get('home-note').value, '');
 });
 
+test('home lists recent note titles under the capture box', async () => {
+  const view = await page({
+    fetchImpl: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/notes?status=active') {
+        return Response.json({
+          notes: [
+            { title: 'Pharmacy call' },
+            { title: '', description: 'The gate code is on the fridge' },
+          ],
+        });
+      }
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  const labels = view.nodes.get('home-recent-notes').childNodes.map(item => item.childNodes[0].textContent);
+  assert.deepEqual(labels, ['Pharmacy call', 'The gate code is on the fridge']);
+  assert.equal(view.nodes.get('home-recent-notes').childNodes[0].childNodes[0].href, 'notes.html');
+});
+
 test('home.js can load after app.js without a global status clash', async () => {
   const app = await readFile(new URL('./app.js', import.meta.url), 'utf8');
   const home = await readFile(new URL('./home.js', import.meta.url), 'utf8');
@@ -226,8 +251,9 @@ test('home.js can load after app.js without a global status clash', async () => 
     document: {
       getElementById(id) { return nodes.get(id) || node(); },
       querySelectorAll() { return []; },
+      createElement() { return node(); },
     },
-    window: { addEventListener() {}, dispatchEvent() { return true; } },
+    window: { addEventListener() {}, dispatchEvent() { return true; }, setInterval() {}, requestAnimationFrame() {} },
     Event,
     URLSearchParams,
     AbortSignal: { timeout() { return undefined; } },

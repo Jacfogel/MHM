@@ -4,8 +4,8 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for the notebook feature  
 > **Style**: Actionable, checklist-focused, concise  
-> **Last Updated**: 2026-08-26  
-> **Current Evidence**: Validated against live codebase 2026-07-29 (modules, handlers, AI context, tests); prior snapshot `code_snapshot_project_root_2026-05-16_17-49-25.md`  
+> **Last Updated**: 2026-09-24  
+> **Current Evidence**: Validated against live codebase 2026-09-24 (notebook package, Discord handler, website notes page, AI context)  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -13,15 +13,15 @@
 
 ## 1. Current Use / Fit
 
-Notebook is intended to become a primary daily-capture tool in MHM, especially from Discord on a phone.
+Notebook is a daily-capture tool on Discord and on the website notebook page.
 
-Current priority is no longer basic implementation. The core feature exists. The current priority is making it easier and more reliable to use day-to-day:
+The core feature exists. The model notebook slice is titles of recent entries, pinned entries, and a short summary when an entry has no title. Home shows a few of those titles under the capture box.
 
 1. Pagination / Show More behavior is covered by pytest (`test_paginated_notebook_views_include_pagination_action`, `test_recent_pagination_exhausts_without_stale_show_more`). Optional live Discord is visual only.
-2. Polish command discovery (help text shipped 2026-06-22; `|` separators aligned 2026-07-29; live help spot-check remains).
+2. Command discovery help text shipped 2026-06-22; `|` separators aligned 2026-07-29. A live Discord spot-check is optional.
 3. Phone-friendly `!edit` sessions shipped 2026-07-29 (replace flow + cancel/timeout).
 4. Notebook groups were removed 2026-09-24. Tags remain. Journal visuals shipped 2026-06-26.
-5. Defer AI extraction, slash-command expansion, and database/FTS work until command parsing or storage architecture is ready. Notebook already enters AI context (recent entries); remaining AI work is privacy/opt-in scoping, not first-time inclusion.
+5. Defer bulk organization, database/FTS search, and event entries.
 
 ---
 
@@ -48,6 +48,8 @@ Current shared support:
 - `communication/command_handlers/notebook_handler.py` handles notebook interactions and calls `notebook/notebook_service.py` rather than doing all business operations directly. Multi-step create/edit prompts start through public `ConversationManager` APIs (`start_note_body_flow`, `start_list_items_flow`, `start_journal_body_flow`, `start_entry_edit_flow`); the handler does not write private flow state.
 
 The old plan sections that said to create these modules have been removed because they are completed.
+
+The website notebook is a second current surface: `website/notes.html`, `website/notes.js`, and `GET`/`POST`/`PATCH /api/notes` in `core/web_account_service.py`. It creates notes, journal entries, and lists; searches; filters by tag; and offers Active, Pinned, Inbox, and Archived views. Edit covers title, description, list items, tags, pin, and archive. It does not use groups.
 
 ### Current Entry Model
 
@@ -244,32 +246,12 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ---
 
-### 4.4 Resolve group command ambiguity
+### 4.4 Group commands
 
-**Status**: Removed (2026-09-24). Tasks and notes use tags. The earlier `!group` / `!setgroup` commands are gone.  
-**Priority**: Medium
+**Status**: Removed (2026-09-24)  
+**Priority**: Done
 
-**Problem**: Group commands could mean either list or set. Multi-word names like `!group Quick Notes` were incorrectly treated as set (`entry_ref=Quick`, `group=Notes`). An unanchored `quick note` pattern also stole that command into `create_quick_note`.
-
-**Decision (shipped)**:
-
-- Keep dual-use `!group` for short-ID/UUID set: `!group n123abc Home`.
-- Add clear aliases: `!setgroup`, `!set group`, `!assign group` (any single-token entry ref, including titles).
-- Bare `!group <words...>` lists the full group name when the first token is not a structural ID.
-- Title-based assignment must use `!setgroup Title Home`.
-
-**Tasks**:
-
-- [x] Review parser behavior for `!group home`, `!group n123abc home`, and title-based references.
-- [x] Introduce `!setgroup` / `!set group` / `!assign group`; tighten bare `!group` set to structural IDs only.
-- [x] Add ambiguity tests (including `!group Quick Notes` list path).
-- [x] Improve help / empty-group / set-failure text for the new rules.
-- [x] Anchor `quick note(s)` create pattern so it cannot match inside other commands.
-
-**Acceptance**:
-
-- Listing a group and setting an entry group are both predictable.
-- Ambiguous input does not silently do the wrong thing.
+Tasks and notes use tags. `!group` and `!setgroup` are gone from the parser, handler, stored entries, AI actions, and the website notes API. Do not restore them. Detail stays in Section 8.
 
 ---
 
@@ -303,7 +285,7 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - bulk untag
 - bulk archive
 
-**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth. Group ambiguity, edit sessions, and Show More behavior are covered in code/tests; optional live Discord is visual only.
+**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth. Edit sessions and Show More behavior are covered in code and tests. Optional live Discord is visual only. Groups are not part of this work.
 
 ---
 
@@ -369,25 +351,24 @@ Current reusable helpers already in place:
 
 ---
 
-### 5.4 Scope notebook content in AI context (privacy / opt-in)
+### 5.4 Fit notebook content in the model context
 
-**Status**: Planned  
+**Status**: Completed (2026-09-25)  
 **Priority**: Medium
 
-**Current state (shipped)**: Recent notebook entries already enter AI context. `ai/context/service.py` builds a `notebooks` section via `_build_notebook_context`, using `notebook_service.list_recent_entries(..., limit=10)` and full entry dumps.
+This is a context-size limit, the same kind of constraint as listing action names only so a 2048-token model can hold the prompt. It is not a privacy setting, and it does not add an opt-in toggle.
 
-**Remaining concern**:
+**Decision (2026-09-24)**: The notebook slice sent to the model is titles of recent entries and pinned entries. An entry with no title contributes a short summary instead of a title. Full descriptions, list items, and metadata stay out so the slice stays small.
 
-- Notebook entries can contain sensitive personal content.
-- Inclusion should be deliberate, scoped, and user-controlled rather than always-on full recent dumps.
+**Current code**: `ai/context/service.py` `_build_notebook_context` sends up to 10 recent entries and up to 10 pinned entries. Each item is a title, or an 80-character summary when the title is missing. The prompt line lists those labels. Full descriptions stay out. Home shows up to five of those titles under the capture box.
 
 **Tasks**:
 
-- [x] Include a bounded recent-notebook slice in AI context (current: last 10 entries).
-- [ ] Decide what notebook content should remain in AI context by default.
-- [ ] Add opt-in or clear config for notebook context inclusion.
-- [ ] Prefer small summaries or recent pinned entries over full entry dumps when privacy matters.
-- [ ] Add tests for privacy boundaries and context size.
+- [x] Include a bounded recent-notebook slice in AI context.
+- [x] Decide the default: recent titles, pinned entries, and a short summary when the title is missing.
+- [x] Replace the full-entry dump with that smaller slice (2026-09-25).
+- [x] Add tests that the model slice includes those titles, pinned entries, and untitled summaries, and that full descriptions stay out.
+- [x] Show a few recent titles on Home after capture.
 
 ---
 
@@ -462,7 +443,8 @@ The following are no longer active roadmap tasks because the codebase now contai
 - Add search no-result feedback.
 - Add channel-neutral pagination metadata and Discord Show More payload rendering.
 - Align title/body `|` separators with help text.
-- Notebook groups, including `!group` and `!setgroup`, were removed 2026-09-24. Tags remain.
+- Notebook groups, including `!group` and `!setgroup`, were removed 2026-09-24 from storage, Discord commands, AI actions, and the website notes API. Tags remain.
+- Website notebook page: create, search, tag filter, pin, archive, and list-item editing.
 - Phone-friendly `!edit` replace sessions (`FLOW_ENTRY_EDIT`).
 
 Historical details belong in `CHANGELOG_DETAIL.md` / `AI_CHANGELOG.md`, not in this active roadmap.

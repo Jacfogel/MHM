@@ -356,15 +356,51 @@ def _build_message_context(user_id: str, preferences: dict[str, Any]) -> dict[st
     }
 
 
+NOTEBOOK_CONTEXT_LIMIT = 10
+NOTEBOOK_SUMMARY_LENGTH = 80
+
+
+@handle_errors("summarizing an untitled notebook entry", default_return="Untitled entry")
+def _notebook_summary(entry: Any) -> str:
+    """Return a short label for an entry that has no title."""
+    description = str(getattr(entry, "description", None) or "").strip()
+    if not description:
+        items = getattr(entry, "items", None) or []
+        if items:
+            description = str(getattr(items[0], "text", "") or "").strip()
+    line = next((part.strip() for part in description.splitlines() if part.strip()), "")
+    if not line:
+        return "Untitled entry"
+    if len(line) <= NOTEBOOK_SUMMARY_LENGTH:
+        return line
+    return line[: NOTEBOOK_SUMMARY_LENGTH - 1].rstrip() + "…"
+
+
+@handle_errors("building a compact notebook context item", default_return={})
+def _notebook_context_item(entry: Any) -> dict[str, Any]:
+    """Keep a title or short summary, and leave the full entry text out."""
+    title = str(getattr(entry, "title", None) or "").strip()
+    item = {
+        "kind": str(getattr(entry, "kind", "") or ""),
+        "pinned": bool(getattr(entry, "pinned", False)),
+    }
+    if title:
+        item["title"] = title
+    else:
+        item["summary"] = _notebook_summary(entry)
+    return item
+
+
 @handle_errors("building notebook context", default_return={})
 def _build_notebook_context(user_id: str) -> dict[str, Any]:
-    """Build structured notebook context through notebook service APIs."""
+    """Build a small notebook slice for the model context window."""
     from notebook import notebook_service
 
-    recent = notebook_service.list_recent_entries(user_id, limit=10)
+    recent = notebook_service.list_recent_entries(user_id, limit=NOTEBOOK_CONTEXT_LIMIT)
+    pinned = notebook_service.list_pinned_entries(user_id, limit=NOTEBOOK_CONTEXT_LIMIT)
     return {
-        "recent": [_entry_to_dict(entry) for entry in recent.entries],
-        "total_recent": recent.total,
+        "recent": [_notebook_context_item(entry) for entry in recent.entries],
+        "pinned": [_notebook_context_item(entry) for entry in pinned.entries],
     }
 
 
@@ -414,14 +450,6 @@ def _build_action_catalog_context() -> dict[str, Any]:
     return {**catalog.to_dict(), "summary": catalog.to_prompt_summary()}
 
 
-@handle_errors("converting notebook entry to dict", default_return={})
-def _entry_to_dict(entry: Any) -> dict[str, Any]:
-    """Convert notebook entries or dict-like values to plain dictionaries."""
-    if hasattr(entry, "model_dump"):
-        return entry.model_dump(mode="json")
-    return dict(entry) if isinstance(entry, dict) else {"value": str(entry)}
-
-
 @handle_errors("building default prompt section text", default_return="")
 def _default_prompt_text(name: str, data: Any) -> str:
     """Build compact prompt text for a context section."""
@@ -441,7 +469,16 @@ def _default_prompt_text(name: str, data: Any) -> str:
         recent = (data or {}).get("recent_sent") or []
         return f"Messages: categories {', '.join(categories) if categories else 'none'}; {len(recent)} recent sent."
     if name == "notebooks":
-        return f"Notebooks: {(data or {}).get('total_recent', 0)} recent entries."
+        notebook = data or {}
+        recent_labels = ", ".join(
+            str(item.get("title") or item.get("summary") or "Untitled entry")
+            for item in notebook.get("recent") or []
+        ) or "none"
+        pinned_labels = ", ".join(
+            str(item.get("title") or item.get("summary") or "Untitled entry")
+            for item in notebook.get("pinned") or []
+        ) or "none"
+        return f"Notebooks: recent {recent_labels}. Pinned: {pinned_labels}."
     if name == "health":
         patterns = (data or {}).get("recent_patterns") or ""
         summary = (data or {}).get("guidance_summary") or ""

@@ -82,6 +82,8 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert structured["messages"]["recent_sent"][0]["sent_text"] == "Keep going."
     assert structured["messages"]["templates_by_category"]["motivational"][0]["text"] == "Keep going."
     assert structured["notebooks"]["recent"][0]["title"] == "Refill notes"
+    assert "description" not in structured["notebooks"]["recent"][0]
+    assert "Refill notes" in envelope.sections["notebooks"].prompt_text
     assert "guidance_summary" in structured["health"]
     assert "recent_patterns" in structured["health"]
     assert structured["analytics"]["recent_checkin_count"] == 1
@@ -90,6 +92,49 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert "recent_chat_interactions" in structured["conversation"]
     assert "create_task" in structured["action_catalog"]["available"]
     assert structured["action_catalog"]["actions"]["create_task"]["domain"] == "tasks"
+
+
+def test_notebook_context_uses_titles_pinned_entries_and_short_summaries(test_data_dir):
+    user_id = "ai-context-notebook-slice-user"
+    assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
+
+    from core import get_user_id_by_identifier
+    from notebook import notebook_data_manager as notes
+
+    actual_user_id = get_user_id_by_identifier(user_id) or user_id
+    long_body = "The gate code is 1234 and the spare key is under the mat by the side door after dark."
+    assert notes.create_note(
+        actual_user_id,
+        title="Refill notes",
+        description="Call pharmacy before Friday and ask about the prior authorization.",
+    )
+    assert notes.create_note(actual_user_id, description=long_body)
+    pinned = notes.create_note(
+        actual_user_id,
+        title="Doctor questions",
+        description="Ask about the new dose and whether mornings are better.",
+    )
+    assert pinned is not None
+    assert notes.pin_entry(actual_user_id, str(pinned.id), True)
+
+    envelope = build_ai_context_envelope(
+        actual_user_id,
+        prompt_request="What is in my notebook?",
+    )
+
+    assert envelope is not None
+    notebooks = envelope.structured["notebooks"]
+    recent = notebooks["recent"]
+    untitled = next(item for item in recent if "summary" in item)
+    assert untitled["summary"].startswith("The gate code is 1234")
+    assert len(untitled["summary"]) <= 80
+    assert "spare key is under the mat by the side door after dark" not in untitled["summary"]
+    assert "description" not in untitled
+    assert any(item.get("title") == "Doctor questions" for item in notebooks["pinned"])
+    prompt = envelope.sections["notebooks"].prompt_text
+    assert "Refill notes" in prompt
+    assert "Doctor questions" in prompt
+    assert "Call pharmacy before Friday and ask about the prior authorization." not in prompt
 
 
 def test_ai_context_prompt_selection_records_included_sections(test_data_dir):

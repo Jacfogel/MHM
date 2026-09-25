@@ -64,7 +64,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 |------|--------|----------|--------------------|---------------|
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
-| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Everyday capture phrasing shipped 2026-08-26; live Discord Show More/help spot-check; bulk later |
+| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Model slice is recent titles, pinned entries, and a short summary when untitled; Home shows recent titles |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Everyday phrasing shipped 2026-08-26; Discord template prefills shipped; structured task links shipped 2026-08-27; pronoun follow-ups (`make that due tomorrow`) shipped 2026-08-28; attachments remaining |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
@@ -232,11 +232,10 @@ These plans should not be duplicated in detail here.
 
 **Current focus**:
 
-- Live Discord validation of Show More / pagination (code + automated tests exist).
-- Everyday capture phrasing shipped 2026-08-26 (`jot down`, `remember that`, `keep in mind that`, `write this down`).
-- Help live spot-check (`|` separators, group ambiguity, and `!edit` shipped 2026-07-29).
-- AI notebook context privacy/opt-in scoping (recent entries already included).
-- Bulk organization commands only after live notebook use feels reliable.
+- The model notebook slice is titles of recent entries, pinned entries, and a short summary when an entry has no title. Home shows a few recent titles under capture.
+- Groups were removed 2026-09-24. Tags remain. Discord and the website notebook page are both current surfaces.
+- Everyday capture phrasing, `!edit`, Show More, and help text are shipped. Optional live Discord checks are visual only.
+- Bulk organization, database search, and event entries stay deferred.
 
 ---
 

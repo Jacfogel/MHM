@@ -226,6 +226,7 @@
         taskStatus.textContent = '';
         taskStatus.classList.remove('is-error');
       }
+      await loadRecentNotes();
       homeContent.hidden = false;
       pinTalkToLatest();
       window.requestAnimationFrame(pinTalkToLatest);
@@ -311,6 +312,7 @@
       await api('/api/notes', 'POST', { kind: 'note', title: noteTitle(text), description: text });
       note.value = '';
       captureStatus.textContent = 'Saved to your notebook.';
+      await loadRecentNotes();
     } catch (error) {
       captureStatus.textContent = error.message;
       captureStatus.classList.add('is-error');
@@ -318,6 +320,37 @@
       button.disabled = false;
     }
   });
+
+  function recentNoteLabel(note) {
+    const title = String(note.title || '').trim();
+    if (title) return title;
+    const description = String(note.description || '').trim();
+    const line = description.split(/\r?\n/).find(item => item.trim()) || 'Untitled note';
+    return line.trim().slice(0, 80);
+  }
+
+  function showRecentNotes(notes) {
+    const list = document.getElementById('home-recent-notes');
+    if (!list) return;
+    const items = (notes || []).slice(0, 5).map(note => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = 'notes.html';
+      link.textContent = recentNoteLabel(note);
+      item.append(link);
+      return item;
+    });
+    list.replaceChildren(...items);
+  }
+
+  async function loadRecentNotes() {
+    try {
+      const payload = await api('/api/notes?status=active');
+      showRecentNotes(payload.notes);
+    } catch (error) {
+      showRecentNotes([]);
+    }
+  }
 
   const talkLog = document.getElementById('talk-log');
   const talkForm = document.getElementById('talk-form');
