@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 17:31:34
+> **Last Generated**: 2026-09-24 19:01:20
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 288
-- **Total Imports Found**: 2555
+- **Total Imports Found**: 2560
 - **Dependencies Documented**: 288 (100% coverage)
 - **Standard Library Imports**: 739 (28.9%)
 - **Third-Party Imports**: 223 (8.7%)
-- **Local Imports**: 1593 (62.3%)
+- **Local Imports**: 1598 (62.4%)
 - **Last Updated**: 2026-09-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 739 imports (28.9%)
 - **Third-Party**: 223 imports (8.7%)
-- **Local**: 1593 imports (62.3%)
+- **Local**: 1598 imports (62.4%)
 
 ## Module Dependencies by Directory
 
@@ -2556,20 +2556,23 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.response_tracking (get_recent_chat_interactions)` (NEW)
+    - `core.time_utilities (now_timestamp_full, timestamp_sort_key_from_dict)` (NEW)
+    - `messages.message_data_manager (get_recent_messages)` (NEW)
   - **Standard Library**:
     - `secrets`
 - **Used by**:
   - `communication/communication_channels/website/bot.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/message_dispatcher.py`
+  - `communication/message_processing/interaction_manager.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
   - `core/web_account_service.py`
   - `integrations/google_health/notifications.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.response_tracking, core.time_utilities, messages.message_data_manager
 - Removed: communication/communication_channels/website/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/web_account_service.py, integrations/google_health/notifications.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3266,6 +3269,7 @@
     - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
     - `communication.command_handlers.interaction_handlers (get_all_handlers)`
     - `communication.command_handlers.shared_types (InteractionResponse)`
+    - `communication.communication_channels.website.inbox (append_website_chat_exchange)` (NEW)
     - `communication.message_processing.action_plan_executor (handle_message_with_action_planner)` (NEW)
     - `communication.message_processing.command_parser (get_enhanced_command_parser)`
     - `communication.message_processing.command_registry (CommandDefinition, build_command_definitions, build_slash_command_map, command_definitions_as_dicts)` (NEW)
@@ -3292,7 +3296,7 @@
   - `core/web_chat.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, communication.message_processing.action_plan_executor, communication.message_processing.command_registry, communication.message_processing.flow_message_dispatcher, communication.message_processing.help_responses, communication.message_processing.parsing_shortcuts, communication.message_processing.prefix_command_processor, communication.message_processing.structured_command_dispatcher, communication.message_processing.user_suggestions, core.config, core.error_handling, core.logger
+- Added: ai.chat.chatbot, communication.communication_channels.website.inbox, communication.message_processing.action_plan_executor, communication.message_processing.command_registry, communication.message_processing.flow_message_dispatcher, communication.message_processing.help_responses, communication.message_processing.parsing_shortcuts, communication.message_processing.prefix_command_processor, communication.message_processing.structured_command_dispatcher, communication.message_processing.user_suggestions, core.config, core.error_handling, core.logger
 - Removed: communication/communication_channels/discord/events/command_registration.py, communication/communication_channels/discord/events/interaction_router.py, communication/communication_channels/discord/events/message_handler.py, communication/communication_channels/discord/ui/checkin_view.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/communication_channels/email/inbound_processor.py, core/web_chat.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4523,6 +4527,7 @@
   - `ai/chat/chatbot.py`
   - `ai/context/service.py`
   - `ai/fallback/data_access.py`
+  - `communication/communication_channels/website/inbox.py`
   - `storage/user_data_summaries.py`
   - `tasks/task_reference.py`
 
@@ -4977,7 +4982,7 @@
     - `checkins.checkin_analytics (CheckinAnalytics)` (NEW)
     - `checkins.checkin_data_manager (is_user_checkins_enabled)` (NEW)
     - `checkins.checkin_service (get_checkin_start_status)` (NEW)
-    - `communication.communication_channels.website.inbox (append_website_chat_exchange, list_website_chat_turns, list_website_messages)` (NEW)
+    - `communication.communication_channels.website.inbox (append_website_chat_exchange, list_home_conversation, list_website_messages)` (NEW)
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
     - `communication.message_processing.flows.flow_constants (FLOW_CHECKIN)` (NEW)
     - `core (config, create_new_user, get_all_user_ids, get_user_data, save_user_data_transaction, update_user_account)` (NEW)
@@ -4994,6 +4999,7 @@
     - `notebook (notebook_data_manager)` (NEW)
     - `notebook.notebook_data_manager (list_recent)` (NEW)
     - `storage.service_flag_storage (write_service_flag_json)` (NEW)
+    - `storage.user_data_backup (delete_user_completely)` (NEW)
     - `storage.user_data_operations (export_user_data)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
     - `tasks.task_occurrence_skip (skip_task_occurrence)` (NEW)
@@ -5024,7 +5030,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_operations, tasks.task_data_manager, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
+- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_data_manager, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
 - Removed: core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5488,6 +5494,7 @@
 - **Used by**:
   - `ai/context/phraser.py`
   - `ai/context/service.py`
+  - `communication/communication_channels/website/inbox.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/message_dispatcher.py`
   - `core/auto_cleanup.py`
@@ -5919,6 +5926,7 @@
     - `typing (Any)`
     - `zipfile`
 - **Used by**:
+  - `core/web_account_service.py`
   - `storage/user_data_operations.py`
 
 **Dependency Changes**:

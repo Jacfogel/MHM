@@ -1,3 +1,35 @@
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 :root {
   --ink: #1e2453;
   --muted: #64647a;
@@ -9,7 +41,8 @@
   --white: #ffffff;
   --border: #e4deed;
   --shadow: 0 20px 50px rgba(30, 36, 83, 0.1);
-  --font-text: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-text: "Inter", system-ui, sans-serif;
+  --font-display: "Nunito", "Inter", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -47,7 +80,7 @@ main section[id] { scroll-margin-top: 110px; }
   border-bottom: 1px solid rgba(230,227,241,.8);
 }
 .nav-wrap { min-height: 90px; padding-top: 14px; padding-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; font-family: var(--font-text); font-weight: 800; }
+.brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; font-family: var(--font-display); font-weight: 800; }
 .brand-mark { width: 48px; height: 48px; display: block; border-radius: 13px; flex-shrink: 0; }
 .brand-wordmark { display: grid; gap: 1px; }
 .brand-name { font-size: 1.35rem; letter-spacing: .04em; line-height: 1.15; }
@@ -92,7 +125,7 @@ main section[id] { scroll-margin-top: 110px; }
 .hero-copy { padding: 12px 0; }
 .eyebrow { display: inline-block; text-transform: uppercase; letter-spacing: .12em; font-size: .875rem; font-weight: 700; color: var(--purple-dark); margin-bottom: 18px; }
 .hero-eyebrow { border: 1px solid #d9cbea; border-radius: 30px; padding: 7px 13px; letter-spacing: .05em; font-size: .75rem; }
-h1,h2,h3 { font-family: var(--font-text); line-height: 1.1; margin-top: 0; }
+h1,h2,h3 { font-family: var(--font-display); line-height: 1.1; margin-top: 0; }
 h1 { font-size: clamp(3rem, 4.8vw, 4.6rem); letter-spacing: -.045em; margin-bottom: 26px; }
 .hero h1 span { color: var(--purple); }
 h2 { font-size: clamp(2rem, 3.4vw, 3.2rem); letter-spacing: -.035em; margin-bottom: 20px; }
@@ -107,7 +140,7 @@ h3 { font-size: 1.32rem; margin-bottom: 10px; }
 .bot-introduction > div, .conversation-header > div { min-width: 0; }
 .hero-logo { display: block; width: 144px; height: 144px; border-radius: 24px; flex-shrink: 0; }
 .showcase-kicker { font-size: .75rem; color: #eee4ff; }
-.bot-introduction p { font-family: var(--font-text); font-weight: 800; font-size: 1.6rem; line-height: 1.25; margin: 8px 0 0; }
+.bot-introduction p { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; line-height: 1.25; margin: 8px 0 0; }
 .hero-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: 0 15px 35px rgba(30,36,83,.2); }
 .conversation-header { display: flex; align-items: center; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
 .conversation-header img { border-radius: 11px; flex-shrink: 0; }
@@ -144,7 +177,7 @@ h3 { font-size: 1.32rem; margin-bottom: 10px; }
 .featured-card { background: var(--ink); color: white; border-color: transparent; box-shadow: var(--shadow); }
 .card.featured-card p { color: #dedff0; }
 .featured-card .card-number { color: #c6a7f3; }
-.card-number { font-family: var(--font-text); font-weight: 800; color: var(--purple); margin-bottom: 42px; }
+.card-number { font-family: var(--font-display); font-weight: 800; color: var(--purple); margin-bottom: 42px; }
 .card p { color: var(--muted); margin-bottom: 0; }
 
 .feature-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 80px; align-items: start; }
@@ -158,12 +191,12 @@ h3 { font-size: 1.32rem; margin-bottom: 10px; }
 .philosophy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 90px; }
 .philosophy-section .eyebrow { color: #baaef5; }
 .philosophy-copy p { color: #c9c5db; font-size: 1.05rem; }
-.philosophy-copy .large-copy { color: white; font-family: var(--font-text); font-size: 2rem; font-weight: 800; line-height: 1.2; }
+.philosophy-copy .large-copy { color: white; font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1.2; }
 
 .quote-section { padding-top: 78px; padding-bottom: 78px; }
 .quote-card { text-align: center; max-width: 900px; }
 .quote-mark { font-family: Georgia, serif; font-size: 6rem; line-height: .7; color: var(--purple); }
-blockquote { margin: 16px auto 0; font-family: var(--font-text); font-size: clamp(1.9rem, 4vw, 3.1rem); line-height: 1.25; font-weight: 800; letter-spacing: -.025em; }
+blockquote { margin: 16px auto 0; font-family: var(--font-display); font-size: clamp(1.9rem, 4vw, 3.1rem); line-height: 1.25; font-weight: 800; letter-spacing: -.025em; }
 
 .cta-section { padding-top: 30px; }
 .cta-card { display: flex; justify-content: space-between; align-items: center; gap: 40px; padding: 52px; border-radius: 28px; color: white; background: var(--purple-dark); box-shadow: var(--shadow); }
@@ -464,7 +497,7 @@ button[aria-busy="true"] { cursor: wait; }
 #task-extra-fields { margin-top: 12px; }
 .task-create-copy { align-self: center; }
 .task-create-copy strong, .task-create-copy span { display: block; }
-.task-create-copy strong { font-family: var(--font-text); font-size: 1.25rem; }
+.task-create-copy strong { font-family: var(--font-display); font-size: 1.25rem; }
 .task-create-copy span { color: var(--muted); font-size: .875rem; line-height: 1.4; margin-top: 5px; }
 .task-form-fields { min-width: 0; }
 .task-form-fields > .settings-field { margin-bottom: 12px; }
@@ -513,7 +546,7 @@ button[aria-busy="true"] { cursor: wait; }
 .task-action-primary { padding: 10px 13px; font-size: .875rem; }
 .task-delete { color: #a24848; }
 .task-empty { display: grid; gap: 5px; padding: 38px 20px; text-align: center; color: var(--muted); border: 1px dashed #cfc3df; border-radius: 16px; }
-.task-empty strong { color: var(--ink); font-family: var(--font-text); font-size: 1.15rem; }
+.task-empty strong { color: var(--ink); font-family: var(--font-display); font-size: 1.15rem; }
 .task-dialog { width: min(560px, calc(100% - 32px)); padding: 28px; border: 1px solid var(--border); border-radius: 20px; background: var(--cream); color: var(--ink); box-shadow: var(--shadow); }
 .task-dialog::backdrop { background: rgba(30,36,83,.34); }
 .task-dialog h2 { font-size: 2rem; margin-bottom: 24px; }
@@ -524,7 +557,7 @@ button[aria-busy="true"] { cursor: wait; }
 .insights-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 26px 0; }
 .insight-metric { min-height: 0; padding: 22px; }
 .insight-metric .eyebrow { margin-bottom: 8px; }
-.insight-metric strong { display: block; font-family: var(--font-text); font-size: 1.75rem; }
+.insight-metric strong { display: block; font-family: var(--font-display); font-size: 1.75rem; }
 .insight-metric p { margin-top: 6px; font-size: .84rem; }
 .insights-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .insights-card { min-height: 0; }

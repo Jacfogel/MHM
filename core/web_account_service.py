@@ -2791,6 +2791,20 @@ def create_web_app(
             raise web.HTTPNotFound(text="Page not found.")
         return web.FileResponse(root / name)
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def font_asset(request):
+        """Serve one self-hosted typeface file."""
+        name = request.match_info.get("name", "")
+        if name not in {
+            "inter-latin.woff2",
+            "inter-latin-ext.woff2",
+            "nunito-latin.woff2",
+            "nunito-latin-ext.woff2",
+        }:
+            raise web.HTTPNotFound(text="Page not found.")
+        return web.FileResponse(root / "fonts" / name)
+
     app.router.add_get("/", asset)
+    app.router.add_get("/fonts/{name}", font_asset)
     app.router.add_get("/{name}", asset)
     return app

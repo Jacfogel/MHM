@@ -16,9 +16,12 @@ def create_interaction_view(
     **kwargs: Any,
 ) -> Any | None:
     """Create a channel-specific interaction view when the channel supports it."""
-    module = importlib.import_module(
-        f"communication.communication_channels.{channel_name}.interaction_views"
-    )
+    try:
+        module = importlib.import_module(
+            f"communication.communication_channels.{channel_name}.interaction_views"
+        )
+    except ModuleNotFoundError:
+        return None
     factory = getattr(module, f"create_{view_type}_view", None)
     if not callable(factory):
         return None

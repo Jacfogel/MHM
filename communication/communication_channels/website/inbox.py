@@ -124,6 +124,7 @@ def list_website_chat_turns(user_id: str) -> list[dict]:
     return visible
 
 
+@handle_errors("sorting a conversation turn", default_return=(0.0, 1, 0))
 def _turn_sort_key(item: dict, index: int) -> tuple[float, int, int]:
     """Oldest first. A person speaks before MHM when both share a timestamp."""
     from core.time_utilities import timestamp_sort_key_from_dict
@@ -132,6 +133,7 @@ def _turn_sort_key(item: dict, index: int) -> tuple[float, int, int]:
     return (timestamp_sort_key_from_dict(item, "created_at"), role_order, index)
 
 
+@handle_errors("counting stored conversation pairs", default_return={})
 def _pair_counts(turns: list[dict]) -> dict[tuple[str, str], int]:
     """Count website user-then-MHM pairs already stored as chat turns."""
     counts: dict[tuple[str, str], int] = {}

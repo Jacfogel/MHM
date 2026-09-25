@@ -97,6 +97,8 @@
         ? dueLabel(task)
         : 'Add something small on Tasks, or capture a thought below.';
       homeContent.hidden = false;
+      pinTalkToLatest();
+      window.requestAnimationFrame(pinTalkToLatest);
       status.textContent = '';
     } catch (error) {
       if (status) {
@@ -181,6 +183,11 @@
     body.textContent = text;
     item.append(body);
     talkLog.append(item);
+    pinTalkToLatest();
+  }
+
+  function pinTalkToLatest() {
+    if (!talkLog) return;
     talkLog.scrollTop = talkLog.scrollHeight;
   }
 

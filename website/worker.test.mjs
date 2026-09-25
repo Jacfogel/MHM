@@ -15,6 +15,8 @@ test('static pages get security headers and internal files stay private', async 
   assert.equal((await worker.fetch(new Request(url + '/worker.mjs'), env)).status, 404);
   const logo = await worker.fetch(new Request(url + '/mhm-logo.png'), env);
   assert.equal(logo.status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/fonts/inter-latin.woff2'), env)).status, 200);
+  assert.equal((await worker.fetch(new Request(url + '/fonts/nunito-latin.woff2'), env)).status, 200);
   assert.equal(await logo.text(), 'asset');
   assert.equal((await worker.fetch(new Request(url + '/tasks.js'), env)).status, 200);
   assert.equal((await worker.fetch(new Request(url + '/tasks.html'), env)).status, 200);

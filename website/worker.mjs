@@ -18,7 +18,7 @@ const routes = new Map([
   ['/api/messages', ['GET', 'POST']],
   ['/api/notes', ['GET', 'POST']],
 ]);
-const assets = new Set(['/', '/index.html', '/login', '/login.html', '/home', '/home.html', '/setup', '/setup.html', '/app', '/app.html', '/account-settings', '/account-settings.html', '/integrations', '/integrations.html', '/tasks', '/tasks.html', '/notes', '/notes.html', '/insights', '/insights.html', '/messages', '/messages.html', '/checkin', '/checkin.html', '/privacy', '/privacy.html', '/terms', '/terms.html', '/data', '/data.html', '/styles.css', '/script.js', '/auth.js', '/app.js', '/home.js', '/setup.js', '/settings.js', '/tasks.js', '/notes.js', '/insights.js', '/integrations.js', '/messages.js', '/checkin.js', '/mhm-logo.png']);
+const assets = new Set(['/', '/index.html', '/login', '/login.html', '/home', '/home.html', '/setup', '/setup.html', '/app', '/app.html', '/account-settings', '/account-settings.html', '/integrations', '/integrations.html', '/tasks', '/tasks.html', '/notes', '/notes.html', '/insights', '/insights.html', '/messages', '/messages.html', '/checkin', '/checkin.html', '/privacy', '/privacy.html', '/terms', '/terms.html', '/data', '/data.html', '/styles.css', '/fonts/inter-latin.woff2', '/fonts/inter-latin-ext.woff2', '/fonts/nunito-latin.woff2', '/fonts/nunito-latin-ext.woff2', '/script.js', '/auth.js', '/app.js', '/home.js', '/setup.js', '/settings.js', '/tasks.js', '/notes.js', '/insights.js', '/integrations.js', '/messages.js', '/checkin.js', '/mhm-logo.png']);
 const csp = "default-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 function secured(response, api = false) {
