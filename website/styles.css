@@ -632,6 +632,7 @@ button[aria-busy="true"] { cursor: wait; }
 .talk-bubble span { display: block; margin-bottom: 4px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--purple-dark); }
 .talk-bubble time { display: block; margin: -2px 0 6px; font-size: .75rem; font-weight: 600; color: var(--muted); }
 .talk-bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.talk-more { align-self: center; margin: 0; }
 .talk-you { align-self: flex-end; background: var(--lavender); border-color: #ded0ed; }
 .talk-you span { color: var(--ink); text-transform: none; letter-spacing: 0; }
 .talk-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
@@ -641,6 +642,11 @@ button[aria-busy="true"] { cursor: wait; }
 .home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .home-cards .card { min-height: 0; }
 .home-cards .button { margin-top: 18px; }
+.home-focus-why { margin-top: 8px; }
+.home-focus-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; }
+.home-focus-actions .button { margin-top: 0; }
+.home-focus-break { margin-top: 12px; }
+.home-focus-break .button { margin-top: 0; }
 .home-capture { grid-column: 1 / -1; }
 .home-capture form { margin-top: 8px; }
 .setup-layout { max-width: 920px; }

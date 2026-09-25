@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 19:01:14
+> **Last Generated**: 2026-09-24 20:58:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.5% [!] GOOD**
-- **Total Functions**: 2833
+- **Total Functions**: 2836
 - **Total Methods**: 1433
-- **Documented**: 3817/4266
-- **Files Scanned**: 290
+- **Documented**: 3820/4269
+- **Files Scanned**: 291
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -193,7 +193,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 14979
+1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 15119
 2. [OK] `run_tests.py::run_command()` - Complexity: 3215
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 4. [OK] `run_tests.py::main()` - Complexity: 2820
@@ -215,7 +215,7 @@ Most complex functions (may need refactoring):
 - `messages/` -  (6 files, 61 functions)
 - `scheduler/` -  (9 files, 110 functions)
 - `storage/` -  (16 files, 144 functions)
-- `tasks/` - Task management system (14 files, 163 functions)
+- `tasks/` - Task management system (15 files, 166 functions)
 - `ui/` - User interface components (43 files, 988 functions)
 - `user/` - User context and preferences (5 files, 56 functions)
 

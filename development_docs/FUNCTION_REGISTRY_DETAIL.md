@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 19:01:14
+> **Last Generated**: 2026-09-24 20:58:51
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 290
-- **Functions Found**: 2833
+- **Files Scanned**: 291
+- **Functions Found**: 2836
 - **Methods Found**: 1433
 - **Classes Found**: 266
-- **Total Items**: 4266
-- **Functions Documented**: 2530
+- **Total Items**: 4269
+- **Functions Documented**: 2533
 - **Methods Documented**: 1287
 - **Classes Documented**: 200
-- **Total Documented**: 3817
+- **Total Documented**: 3820
 - **Template-Generated**: 58
 - **Last Updated**: 2026-09-24
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (152)
+### **Task Management Functions** (155)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -6426,6 +6426,12 @@ Returns:
 - [OK] `schedule_task_reminders(user_id, task_id, reminder_periods)` - Schedule reminders for a specific task based on its reminder periods.
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
+
+#### `tasks/task_effort.py`
+**Functions:**
+- [OK] `_cache_key(task)` - Build a cache key from the task title and description.
+- [OK] `estimate_task_efforts(tasks)` - Return minute estimates for active tasks. Missing estimates are omitted.
+- [OK] `parse_task_effort_lines(text, allowed_ids)` - Read `id minutes` lines and keep only ids from this request.
 
 #### `tasks/task_link_helpers.py`
 **Functions:**

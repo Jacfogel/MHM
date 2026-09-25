@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 19:01:39
+> **Last Generated**: 2026-09-24 20:59:16
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 288
-- **Total Imports**: 2560
-- **Standard Library**: 739 (28.9%)
+- **Files Scanned**: 289
+- **Total Imports**: 2570
+- **Standard Library**: 742 (28.9%)
 - **Third-Party**: 223 (8.7%)
-- **Local Imports**: 1598 (62.4%)
+- **Local Imports**: 1605 (62.5%)
 
 ## Dependency Decision Trees
 
@@ -114,7 +114,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 29 unique local dependencies (high fan-out; review for inappropriate edges) (51 import statements; 22 duplicate)
+- `core/web_account_service.py` -> 30 unique local dependencies (high fan-out; review for inappropriate edges) (53 import statements; 23 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 18 unique local dependencies (high fan-out; review for inappropriate edges) (19 import statements; 1 duplicate)

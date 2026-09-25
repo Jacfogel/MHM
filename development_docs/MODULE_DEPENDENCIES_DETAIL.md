@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 19:01:20
+> **Last Generated**: 2026-09-24 20:58:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 288
-- **Total Imports Found**: 2560
-- **Dependencies Documented**: 288 (100% coverage)
-- **Standard Library Imports**: 739 (28.9%)
+- **Files Scanned**: 289
+- **Total Imports Found**: 2570
+- **Dependencies Documented**: 289 (100% coverage)
+- **Standard Library Imports**: 742 (28.9%)
 - **Third-Party Imports**: 223 (8.7%)
-- **Local Imports**: 1598 (62.4%)
+- **Local Imports**: 1605 (62.5%)
 - **Last Updated**: 2026-09-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 739 imports (28.9%)
+- **Standard Library**: 742 imports (28.9%)
 - **Third-Party**: 223 imports (8.7%)
-- **Local**: 1598 imports (62.4%)
+- **Local**: 1605 imports (62.5%)
 
 ## Module Dependencies by Directory
 
@@ -180,6 +180,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
   - `messages/message_reactions.py`
+  - `tasks/task_effort.py`
 
 **Dependency Changes**:
 - Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.context.service, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
@@ -346,6 +347,7 @@
   - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
   - `ai/client/__init__.py`
+  - `tasks/task_effort.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger
@@ -2573,7 +2575,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.response_tracking, core.time_utilities, messages.message_data_manager
-- Removed: communication/communication_channels/website/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/web_account_service.py, integrations/google_health/notifications.py
+- Removed: communication/communication_channels/website/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/web_account_service.py, integrations/google_health/notifications.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3643,6 +3645,7 @@
   - `storage/user_data_validation.py`
   - `storage/user_data_write.py`
   - `storage/user_item_storage.py`
+  - `tasks/task_effort.py`
   - `ui/dialogs/schedule_editor_dialog.py`
   - `ui/request_actions.py`
 
@@ -3874,6 +3877,7 @@
   - `storage/user_item_storage.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
+  - `tasks/task_effort.py`
   - `tasks/task_link_helpers.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
@@ -4317,6 +4321,7 @@
   - `storage/user_item_storage.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
+  - `tasks/task_effort.py`
   - `tasks/task_link_helpers.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
@@ -4533,7 +4538,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
-- Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/context/service.py, ai/fallback/data_access.py, storage/user_data_summaries.py, tasks/task_reference.py
+- Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/context/service.py, ai/fallback/data_access.py, communication/communication_channels/website/inbox.py, storage/user_data_summaries.py, tasks/task_reference.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Tracks user responses and interactions
@@ -5002,6 +5007,7 @@
     - `storage.user_data_backup (delete_user_completely)` (NEW)
     - `storage.user_data_operations (export_user_data)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
+    - `tasks.task_effort (estimate_task_efforts)` (NEW)
     - `tasks.task_occurrence_skip (skip_task_occurrence)` (NEW)
     - `tasks.task_reminder_snooze (snooze_task_reminder)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
@@ -5030,7 +5036,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_data_manager, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
+- Added: checkins.checkin_analytics, checkins.checkin_data_manager, checkins.checkin_service, communication.communication_channels.website.inbox, communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.profile_v2_io, core.service_utilities, core.tags, core.time_utilities, core.web_chat, core.web_user_settings, integrations.google_health.user_settings, messages.message_data_manager, notebook, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_data_manager, tasks.task_effort, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
 - Removed: core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5514,7 +5520,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_account_service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_account_service.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5931,7 +5937,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, storage.user_data_index, storage.user_data_user_info
-- Removed: storage/user_data_operations.py
+- Removed: core/web_account_service.py, storage/user_data_operations.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6396,6 +6402,29 @@
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone, tasks.task_link_helpers, tasks.task_tag_helpers
 - Removed: core/web_account_service.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_simplify.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tasks/task_effort.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**:
+  - **Local**:
+    - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
+    - `ai.client.lm_studio_client (call_lm_studio_api)` (NEW)
+    - `core.config (AI_COMMAND_PARSING_TIMEOUT)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `core/web_account_service.py`
+
+**Dependency Changes**:
+- Added: ai.chat.chatbot, ai.client.lm_studio_client, core.config, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -1746,6 +1746,7 @@ def create_web_app(
                 "notes": str(completion.get("notes") or ""),
             },
             "tags": task.get("tags") if isinstance(task.get("tags"), list) else [],
+            "reminder_snooze_until": task.get("reminder_snooze_until") or None,
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
@@ -2688,6 +2689,18 @@ def create_web_app(
     app.router.add_get("/api/insights", insights)
     app.router.add_get("/api/health", health_settings)
     app.router.add_post("/api/health", health_settings)
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def task_effort_api(request):
+        """Estimate how many minutes each active task is likely to take."""
+        uid, _current = await authenticated_account(request)
+        from tasks.task_effort import estimate_task_efforts
+        from tasks.task_service import load_active_tasks
+
+        active = await asyncio.to_thread(load_active_tasks, uid)
+        estimates = await asyncio.to_thread(estimate_task_efforts, active)
+        return web.json_response({"tasks": estimates})
+
+    app.router.add_get("/api/tasks/effort", task_effort_api)
     app.router.add_get("/api/tasks", tasks_api)
     app.router.add_post("/api/tasks", tasks_api)
     app.router.add_get("/api/task-templates", task_templates)

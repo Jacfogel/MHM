@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Home — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=fonts-1" />
+  <link rel="stylesheet" href="styles.css?v=focus-1" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=talk-9" defer></script>
+  <script src="home.js?v=focus-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -39,9 +39,23 @@
       </section>
       <div class="home-cards">
         <article class="card">
-          <span class="eyebrow">Next task</span>
+          <span class="eyebrow">What to focus on</span>
           <h2 id="home-task-title">No tasks yet.</h2>
           <p id="home-task-meta" class="field-hint"></p>
+          <p id="home-task-why" class="home-focus-why"></p>
+          <div id="home-task-actions" class="home-focus-actions" hidden>
+            <button class="button button-small" id="home-task-done" type="button">Done</button>
+            <button class="plain-button" id="home-task-later" type="button">Later</button>
+            <button class="plain-button" id="home-task-break" type="button">Break it down</button>
+          </div>
+          <form id="home-task-break-form" class="home-focus-break" hidden>
+            <div class="settings-field">
+              <label for="home-task-smaller">A smaller next step</label>
+              <input id="home-task-smaller" type="text" maxlength="500" placeholder="e.g. Call and ask if the refill is ready" />
+            </div>
+            <button class="button button-small" id="home-task-break-save" type="submit">Save smaller step</button>
+          </form>
+          <p id="home-task-status" class="form-status" role="status" aria-live="polite"></p>
           <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
           <a class="button" id="home-tasks" href="tasks.html">Open tasks →</a>
         </article>
