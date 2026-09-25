@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-25 - File locks time out instead of hanging nightly tests **COMPLETED**
+- Linux file-lock waits use a monotonic clock and re-enter when the same thread already holds the sidecar lock.
+- A lock timeout no longer starts a network probe, so one stuck user-index write cannot run until the 300s test limit.
+
 ### 2026-09-25 - Smaller notebook slice for the model **COMPLETED**
 - The model now gets recent note titles, pinned entries, and a short summary when a note has no title. Full note text stays out of that slice.
 - Home shows a few recent titles under the capture box.
@@ -102,15 +106,6 @@ Guidelines:
 - Desktop tasks preserve urgent priority and can explicitly clear recurrence; message templates preserve custom/ALL schedules and active state.
 - Message delivery matches website day codes case-insensitively and excludes paused templates. General and future custom check-in categories remain visible.
 - Structured important-person profiles round-trip without flattening or dropping metadata. Focused validation passed 81 tests plus Ruff and compilation; 19 check-in UI tests are platform-skipped on Windows.
-
-### 2026-09-19 - Domain cache invalidation no longer fans out from core **COMPLETED**
-- Test-file cache lookups now use forward-slash paths, so Windows no longer treats cached unit tests as new whenever core changes. Keyword fallback uses the project-relative path so parent folders cannot steal extra domains.
-- Core maps to `tests/core/` and `@pytest.mark.core` only; `domain_dependencies` no longer expands a core edit across the product.
-- Targeted coverage-cache and suite-cache tests cover the new selection rules.
-- Tier 2 error-handling, function-registry, package-exports, and module-imports now reuse the shared function-scan AST in-process instead of re-parsing (or spawning a subprocess) after `analyze_functions`.
-- Function-registry still inventories excluded root key files (`run_mhm.py`, `run_tests.py`). Check-in start tests pin always-include questions so the leave-one-out min/max rule is deterministic.
-- The shared-scan wrapper test patches `_module_import_analyzer_class` on the running wrapper's globals so xdist cannot miss a second `analyze_module_imports` copy.
-- The hostile analyzer in that regression test no longer iterates an optional `parsed_modules` value, clearing the remaining Pyright error.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

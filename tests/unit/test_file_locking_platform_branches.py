@@ -80,6 +80,56 @@ class TestFileLockingPlatformBranches:
             ):
                 pass
 
+    @pytest.mark.timeout(5)
+    def test_unix_file_lock_timeout_ignores_frozen_time_time(
+        self, unix_file_locking_module, test_data_dir
+    ):
+        """A patched time.time must not keep a busy flock retrying until pytest-timeout."""
+        import time
+
+        target = Path(test_data_dir) / "unix_frozen_time.json"
+
+        def _flock_raises(fd, flags):
+            if flags & unix_file_locking_module.fcntl.LOCK_UN:
+                return None
+            raise OSError("busy")
+
+        unix_file_locking_module.fcntl.flock = _flock_raises
+        started = time.monotonic()
+        with patch.object(unix_file_locking_module.time, "time", return_value=1000.0):
+            with pytest.raises(TimeoutError, match="Could not acquire lock"):
+                with unix_file_locking_module.file_lock(
+                    str(target), timeout=0.2, retry_interval=0.05
+                ):
+                    pass
+        assert time.monotonic() - started < 2.0
+
+    def test_unix_file_lock_reenters_same_thread(
+        self, unix_file_locking_module, test_data_dir
+    ):
+        """Same-thread nested locks must not flock a second fd (Linux deadlock)."""
+        target = Path(test_data_dir) / "unix_reentry.json"
+        holders: set[int] = set()
+
+        def _flock(fd, flags):
+            if flags & unix_file_locking_module.fcntl.LOCK_UN:
+                holders.discard(fd)
+                return None
+            if holders and fd not in holders:
+                raise OSError("busy")
+            holders.add(fd)
+            return None
+
+        unix_file_locking_module.fcntl.flock = _flock
+        with unix_file_locking_module.file_lock(str(target), timeout=0.5, retry_interval=0.01) as outer:
+            assert outer is not None
+            with unix_file_locking_module.file_lock(
+                str(target), timeout=0.5, retry_interval=0.01
+            ) as inner:
+                inner.seek(0)
+                inner.write(b"{}")
+                assert inner.tell() == 2
+
     def test_unix_file_lock_timeout_in_outer_open_loop(self, unix_file_locking_module, test_data_dir):
         target = Path(test_data_dir) / "unix_open_timeout.json"
 

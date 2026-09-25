@@ -327,7 +327,7 @@ class TestServiceUtilitiesBehavior:
             assert (
                 network_available is True
             ), "Should return True when network is available"
-            mock_socket.assert_called_once_with(("8.8.8.8", 53))
+            mock_socket.assert_called_once_with(("8.8.8.8", 53), timeout=5)
 
     @pytest.mark.slow
     def test_wait_for_network_returns_false_when_network_unavailable(

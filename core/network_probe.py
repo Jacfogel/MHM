@@ -18,7 +18,9 @@ def wait_for_network(timeout: float | int = 60) -> bool:
     while time.time() - start_time < timeout:
         connection = None
         try:
-            connection = socket.create_connection(("8.8.8.8", 53))
+            # Bound each attempt. The default socket timeout can block for minutes
+            # on a blackholed route, past the wait_for_network deadline.
+            connection = socket.create_connection(("8.8.8.8", 53), timeout=5)
             _probe_log.debug("Network is available.")
             return True
         except OSError:

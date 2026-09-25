@@ -310,7 +310,11 @@ class NetworkRecovery(ErrorRecoveryStrategy):
         Returns:
             True if this strategy can handle network-related errors
         """
-        # Be very specific - only handle actual network errors
+        # Be very specific - only handle actual network errors.
+        # File-lock timeouts are also TimeoutError; probing the network for those
+        # turns a 10s lock wait into minutes and trips pytest-timeout.
+        if isinstance(error, TimeoutError) and "acquire lock" in str(error).lower():
+            return False
         if isinstance(error, (ConnectionError, TimeoutError)):
             return True
         return isinstance(error, CommunicationError) and "network" in str(error).lower()

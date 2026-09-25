@@ -16,6 +16,7 @@ from io import BytesIO
 from unittest.mock import patch, mock_open, MagicMock
 
 from core.file_locking import file_lock, safe_json_read, safe_json_write
+from core.error_handling import NetworkRecovery
 import contextlib
 
 
@@ -147,6 +148,21 @@ class TestFileLocking:
         with file_lock(test_file, timeout=5.0):
             lock_file = test_file + ".lock"
             assert os.path.exists(lock_file), "Windows should create separate lock file"
+
+    @pytest.mark.timeout(5)
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows lock-file timeout loop")
+    def test_file_lock_timeout_ignores_frozen_time_time(self, test_data_dir):
+        """A patched time.time must not stretch a busy lock wait to pytest-timeout."""
+        test_file = os.path.join(test_data_dir, f"frozen_time_{uuid.uuid4().hex}.json")
+        lock_file = test_file + ".lock"
+        with open(lock_file, "w", encoding="utf-8") as handle:
+            handle.write("")
+        started = time.monotonic()
+        with patch("core.file_locking.time.time", return_value=1000.0):
+            with pytest.raises(TimeoutError, match="Could not acquire lock"):
+                with file_lock(test_file, timeout=0.25, retry_interval=0.05):
+                    pass
+        assert time.monotonic() - started < 2.0
 
 
 @pytest.mark.unit
@@ -375,6 +391,29 @@ class TestSafeJsonWrite:
             
             # Verify file_lock was called
             mock_lock.assert_called_once()
+
+    def test_safe_json_write_lock_timeout_does_not_probe_network(self, test_data_dir):
+        """Lock timeouts must fail the write, not wait on a network probe."""
+        test_file = os.path.join(test_data_dir, "lock_timeout_write.json")
+        lock = MagicMock()
+        lock.__enter__.side_effect = TimeoutError(
+            "Could not acquire lock on index within 10.0 seconds"
+        )
+        lock.__exit__.return_value = False
+
+        with patch("core.file_locking.file_lock", return_value=lock), patch(
+            "core.error_handling.wait_for_network"
+        ) as probe:
+            assert safe_json_write(test_file, {"a": 1}) is False
+        probe.assert_not_called()
+
+    def test_network_recovery_ignores_file_lock_timeout(self):
+        """File-lock TimeoutError is not a dropped network connection."""
+        recovery = NetworkRecovery()
+        assert recovery.can_handle(
+            TimeoutError("Could not acquire lock on user_index.json within 10.0 seconds")
+        ) is False
+        assert recovery.can_handle(TimeoutError("socket timed out")) is True
 
 
 @pytest.mark.unit

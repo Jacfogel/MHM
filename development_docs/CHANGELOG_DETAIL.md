@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-25 - File locks give up on time instead of hanging the nightly suite
+- **Fix**: Linux nightly `test_schedule_survives_cache_clear_and_reload` and `test_preferences_channel_survives_new_loader` sat in `file_lock` until pytest's 300s timeout. The retry loop used `time.time()`, so a frozen clock never reached the 10s lock limit, and a same-thread second `flock` on the sidecar waits forever on Linux. Lock waits now use `time.monotonic()`. The in-process lock is an `RLock` keyed by the sidecar, and a nested lock on that sidecar re-enters instead of locking a second descriptor. `safe_json_write` returns false on lock timeout. Network recovery ignores "acquire lock" timeouts, and each network probe uses a 5s socket timeout. See [file_locking.py](../core/file_locking.py), [error_handling.py](../core/error_handling.py), and [network_probe.py](../core/network_probe.py).
+- **Tests**: Frozen-clock lock timeout, same-thread Unix re-entry, and lock-timeout writes that must not call `wait_for_network`. [`test_wait_for_network_returns_true_when_network_available`](../tests/behavior/test_service_utilities_behavior.py) expects the 5-second socket timeout on the probe.
+- **Impact**: A stuck user-index write fails the lock within its own timeout instead of holding the nightly worker until pytest kills it.
+
 ### 2026-09-25 - Smaller notebook slice for the model
 - **Feature**: The model notebook context is now up to 10 recent titles, up to 10 pinned entries, and an 80-character summary when an entry has no title. Full descriptions stay out of that slice and out of the prompt line. The prompt line builds those labels inline, so there is no separate `_label` helper. Home lists up to five recent titles under the capture box, and each title opens the notebook. See [service.py](../ai/context/service.py), [home.js](../website/home.js), and [home.html](../website/home.html).
 - **Impact**: Chat can mention recent and pinned notes without sending whole entries, and a saved thought stays visible on Home.

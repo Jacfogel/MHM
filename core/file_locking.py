@@ -17,20 +17,23 @@ from core.error_handling import handle_errors
 
 logger = get_component_logger(__name__)
 
-# In-process locks per target path (fcntl.flock does not sync threads that open separately).
-_path_thread_locks: dict[str, threading.Lock] = {}
+# In-process locks per sidecar path. RLock so the same thread can re-enter
+# file_lock; flock() on a second fd in that thread would otherwise wait forever.
+_path_thread_locks: dict[str, threading.RLock] = {}
 _path_thread_locks_guard = threading.Lock()
-_fallback_thread_lock = threading.Lock()
+_fallback_thread_lock = threading.RLock()
+# How many active file_lock bodies this process holds per sidecar, while the RLock is held.
+_sidecar_hold_depth: dict[str, int] = {}
 
 
 @handle_errors("resolving thread lock for file path", user_friendly=False, default_return=_fallback_thread_lock)
-def _thread_lock_for(path: str) -> threading.Lock:
+def _thread_lock_for(path: str) -> threading.RLock:
     """Return a process-local mutex for *path* (normalized absolute path)."""
     normalized = str(Path(path).resolve())
     with _path_thread_locks_guard:
         lock = _path_thread_locks.get(normalized)
         if lock is None:
-            lock = threading.Lock()
+            lock = threading.RLock()
             _path_thread_locks[normalized] = lock
         return lock
 
@@ -65,7 +68,9 @@ if sys.platform == "win32":
         lock_file = Path(str(file_path) + ".lock")
         lock_file.parent.mkdir(parents=True, exist_ok=True)
 
-        start_time = time.time()
+        # monotonic, not time.time: tests patch time.time, and a frozen clock
+        # would retry until pytest-timeout (300s) instead of this timeout.
+        deadline = time.monotonic() + max(0.0, float(timeout))
         lock_acquired = False
 
         try:
@@ -80,26 +85,20 @@ if sys.platform == "win32":
                     break
                 except FileExistsError:
                     # Lock file exists - another process has the lock
-                    # Check timeout
-                    elapsed = time.time() - start_time
-                    if elapsed >= timeout:
+                    if time.monotonic() >= deadline:
                         raise TimeoutError(
                             f"Could not acquire lock on {file_path} within {timeout} seconds"
                         ) from None
-
-                    # Wait before retrying
-                    time.sleep(retry_interval)
+                    remaining = deadline - time.monotonic()
+                    time.sleep(min(max(0.0, retry_interval), max(0.0, remaining)))
                     continue
                 except OSError as e:
-                    # Other errors - check timeout
-                    elapsed = time.time() - start_time
-                    if elapsed >= timeout:
+                    if time.monotonic() >= deadline:
                         raise TimeoutError(
                             f"Could not acquire lock on {file_path} within {timeout} seconds: {e}"
                         ) from e
-
-                    # Wait before retrying
-                    time.sleep(retry_interval)
+                    remaining = deadline - time.monotonic()
+                    time.sleep(min(max(0.0, retry_interval), max(0.0, remaining)))
                     continue
 
             lock_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -149,15 +148,34 @@ else:
         lock_sidecar.parent.mkdir(parents=True, exist_ok=True)
         lock_sidecar.touch(exist_ok=True)
 
-        thread_lock = _thread_lock_for(str(data_path.resolve()))
-        if not thread_lock.acquire(timeout=timeout):
+        # Key the in-process lock on the sidecar. Two data paths that flock the
+        # same sidecar must share one mutex, or the second fd spins on EAGAIN
+        # while this thread already holds the first fd's lock.
+        sidecar_key = str(lock_sidecar.resolve())
+        thread_lock = _thread_lock_for(sidecar_key)
+        deadline = time.monotonic() + max(0.0, float(timeout))
+        remaining = max(0.0, deadline - time.monotonic())
+        if not thread_lock.acquire(timeout=remaining):
             raise TimeoutError(
                 f"Could not acquire in-process lock on {file_path} within {timeout} seconds"
             )
 
-        start_time = time.time()
-
         try:
+            hold_depth = _sidecar_hold_depth.get(sidecar_key, 0)
+            if hold_depth > 0:
+                # This thread already holds the sidecar flock. A second flock on
+                # a new fd deadlocks on Linux (LOCK_NB fails until the first fd closes).
+                _sidecar_hold_depth[sidecar_key] = hold_depth + 1
+                try:
+                    if not data_path.exists():
+                        data_path.touch()
+                    with open(data_path, "r+b") as file_handle:
+                        yield file_handle
+                finally:
+                    _sidecar_hold_depth[sidecar_key] = hold_depth
+                return
+
+            yielded = False
             while True:
                 try:
                     with open(lock_sidecar, "r+b") as lock_fd:
@@ -167,32 +185,46 @@ else:
                                     lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
                                 )
                                 break
-                            except OSError as e:
-                                elapsed = time.time() - start_time
-                                if elapsed >= timeout:
+                            except OSError as exc:
+                                if time.monotonic() >= deadline:
                                     raise TimeoutError(
                                         f"Could not acquire lock on {file_path} within {timeout} seconds"
-                                    ) from e
-                                time.sleep(retry_interval)
-                                continue
-
+                                    ) from exc
+                                wait_for = deadline - time.monotonic()
+                                if wait_for <= 0:
+                                    raise TimeoutError(
+                                        f"Could not acquire lock on {file_path} within {timeout} seconds"
+                                    ) from exc
+                                time.sleep(min(max(0.0, retry_interval), wait_for))
+                        _sidecar_hold_depth[sidecar_key] = 1
                         try:
                             if not data_path.exists():
                                 data_path.touch()
                             with open(data_path, "r+b") as file_handle:
+                                yielded = True
                                 yield file_handle
                         finally:
+                            _sidecar_hold_depth.pop(sidecar_key, None)
                             with suppress(OSError):
                                 fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
                     return
-                except OSError as e:
-                    elapsed = time.time() - start_time
-                    if elapsed >= timeout:
+                except TimeoutError:
+                    raise
+                except OSError as exc:
+                    # Retry only while still acquiring the sidecar. An OSError
+                    # from the write itself must not start another lock attempt.
+                    if yielded or time.monotonic() >= deadline:
+                        if yielded:
+                            raise
                         raise TimeoutError(
-                            f"Could not acquire lock on {file_path} within {timeout} seconds: {e}"
-                        ) from e
-                    time.sleep(retry_interval)
-                    continue
+                            f"Could not acquire lock on {file_path} within {timeout} seconds"
+                        ) from exc
+                    wait_for = deadline - time.monotonic()
+                    if wait_for <= 0:
+                        raise TimeoutError(
+                            f"Could not acquire lock on {file_path} within {timeout} seconds"
+                        ) from exc
+                    time.sleep(min(max(0.0, retry_interval), wait_for))
         finally:
             thread_lock.release()
 
@@ -281,11 +313,17 @@ def safe_json_write(file_path: str, data: dict, indent: int = 2) -> bool:
         with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=indent, ensure_ascii=False)
 
-        # Acquire lock and perform atomic rename
-        with file_lock(file_path, timeout=10.0):
-            # Rename temp file to target (atomic on Windows)
-            shutil.move(temp_file, file_path)
-            temp_file = None  # Prevent cleanup
+        # Acquire lock and perform atomic rename.
+        # Catch lock timeouts here so @handle_errors does not treat them as
+        # network loss and block on a multi-minute connectivity probe.
+        try:
+            with file_lock(file_path, timeout=10.0):
+                # Rename temp file to target (atomic on Windows)
+                shutil.move(temp_file, file_path)
+                temp_file = None  # Prevent cleanup
+        except TimeoutError:
+            logger.warning(f"Timed out acquiring lock to write JSON file {file_path}")
+            return False
 
         return True
     finally:
