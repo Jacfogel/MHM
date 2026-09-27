@@ -189,15 +189,25 @@ class TestTaskHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    def test_simplify_task_rewrites_title(self, test_data_dir):
-        """Simplify shrinks the title and keeps the due date."""
-        from tasks import create_task, get_task_by_id
+    def test_simplify_task_adds_subtasks_and_keeps_the_title(self, test_data_dir, monkeypatch):
+        """Simplify suggests steps or saves one step under the original task."""
+        from tasks import create_task, get_task_by_id, load_active_tasks
+        from tasks.task_breakdown import TaskBreakdownResult
         from tasks.task_data_handlers import runtime_task_due_date
+        from communication.command_handlers.task_handler import handle_pending_simplify
 
         user_id = "handler_simplify"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir)
         task_id = create_task(
             user_id, title="Clean the whole house", due_date="2026-09-20"
+        )
+        monkeypatch.setattr(
+            "tasks.task_breakdown.suggest_breakdown",
+            lambda user_id, task_id: TaskBreakdownResult(
+                True,
+                "Here are a few smaller steps.",
+                steps=["Wipe the counter", "Take out the trash"],
+            ),
         )
         handler = TaskManagementHandler()
         ask = handler.handle(
@@ -206,6 +216,22 @@ class TestTaskHandlerBehavior:
         )
         assert ask.completed is False
         assert ask.rich_data["interaction_view"] == "task_simplify"
+        assert ask.rich_data["steps"] == ["Wipe the counter", "Take out the trash"]
+        assert "original task stays" in ask.message
+        added = handle_pending_simplify(user_id, "all")
+        assert added is not None and added.completed is True
+        parent = get_task_by_id(user_id, task_id)
+        assert parent.get("title") == "Clean the whole house"
+        assert runtime_task_due_date(parent) == "2026-09-20"
+        children = [
+            task
+            for task in load_active_tasks(user_id)
+            if task.get("parent_id") == parent.get("id")
+        ]
+        assert [task.get("title") for task in children] == [
+            "Wipe the counter",
+            "Take out the trash",
+        ]
         response = handler.handle(
             user_id,
             ParsedCommand(
@@ -216,9 +242,14 @@ class TestTaskHandlerBehavior:
             ),
         )
         assert response.completed is True
-        task = get_task_by_id(user_id, task_id)
-        assert task.get("title") == "Wipe the kitchen"
-        assert runtime_task_due_date(task) == "2026-09-20"
+        parent = get_task_by_id(user_id, task_id)
+        assert parent.get("title") == "Clean the whole house"
+        titles = [
+            task.get("title")
+            for task in load_active_tasks(user_id)
+            if task.get("parent_id") == parent.get("id")
+        ]
+        assert "Wipe the kitchen" in titles
 
     @pytest.mark.behavior
     @pytest.mark.communication

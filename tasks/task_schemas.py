@@ -151,6 +151,18 @@ class TaskV2Model(BaseItemModel):
     reminder_sent: bool = False
     reminder_snooze_until: str | None = None
     links: list[TaskLinkModel] = Field(default_factory=list)
+    parent_id: str | None = None
+
+    @field_validator("parent_id")
+    @classmethod
+    def validate_parent_id(cls, value: str | None) -> str | None:
+        """Keep a parent task id, or clear an empty one."""
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise v2_schema_validation_error("parent_id must be a task id")
+        cleaned = value.strip()
+        return cleaned or None
 
     @field_validator("reminder_snooze_until")
     @classmethod

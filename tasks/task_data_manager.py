@@ -117,6 +117,7 @@ def create_task(
     repeat_after_completion: bool = True,
     category: str = "",
     links: list | None = None,
+    parent_id: str | None = None,
 ) -> str | None:
     """Create a new task for a user."""
     if not user_id or not isinstance(user_id, str):
@@ -149,6 +150,10 @@ def create_task(
     if quick_reminders and not due_date:
         logger.error("Relative task reminders require a due date")
         return None
+    if parent_id is not None and not isinstance(parent_id, str):
+        logger.error(f"Invalid parent_id type: {type(parent_id)}")
+        return None
+    cleaned_parent_id = str(parent_id or "").strip() or None
 
     from core.tags import ensure_tags_initialized
     from tasks.task_tag_helpers import sanitize_task_tags
@@ -181,6 +186,7 @@ def create_task(
         "updated_at": now_timestamp_full(),
         "priority": priority,
         "completion": {"completed": False, "completed_at": None, "notes": ""},
+        "parent_id": cleaned_parent_id,
     }
     if reminders:
         task["reminders"] = reminders

@@ -313,6 +313,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "reminder_sent": bool(task.get("reminder_sent")),
         "reminder_snooze_until": task.get("reminder_snooze_until") or None,
         "links": task.get("links") or [],
+        "parent_id": str(task.get("parent_id") or "").strip() or None,
     }
     return TaskV2Model.model_validate(v2_task).model_dump(mode="json")
 
@@ -347,6 +348,7 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "reminder_sent": bool(task.get("reminder_sent")),
         "reminder_snooze_until": task.get("reminder_snooze_until") or None,
         "links": task.get("links") or [],
+        "parent_id": task.get("parent_id") or None,
     }
     return runtime
 

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-24 20:58:51
+> **Last Generated**: 2026-09-26 21:58:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 291
-- **Functions Found**: 2836
-- **Methods Found**: 1433
-- **Classes Found**: 266
-- **Total Items**: 4269
-- **Functions Documented**: 2533
-- **Methods Documented**: 1287
+- **Files Scanned**: 292
+- **Functions Found**: 2844
+- **Methods Found**: 1434
+- **Classes Found**: 267
+- **Total Items**: 4278
+- **Functions Documented**: 2541
+- **Methods Documented**: 1288
 - **Classes Documented**: 200
-- **Total Documented**: 3820
+- **Total Documented**: 3829
 - **Template-Generated**: 58
-- **Last Updated**: 2026-09-24
+- **Last Updated**: 2026-09-26
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (155)
+### **Task Management Functions** (162)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -590,16 +590,16 @@ Returns:
 - [OK] `_build_conversation_context(user_id, include_conversation_history)` - Build recent conversation context when enabled.
 - [OK] `_build_health_context(user_id)` - Build safe AI-facing health guidance context.
 - [OK] `_build_message_context(user_id, preferences)` - Build structured message context through message data APIs.
-- [OK] `_build_notebook_context(user_id)` - Build a small notebook slice of recent titles, pinned entries, and short summaries.
+- [OK] `_build_notebook_context(user_id)` - Build a small notebook slice for the model context window.
 - [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
 - [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
 - [OK] `_build_temporal_context(user_id)` - Build structured current date/time context for the user's timezone.
 - [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
-- [OK] `_notebook_context_item(entry)` - Keep a title or short summary, and leave the full entry text out.
-- [OK] `_notebook_summary(entry)` - Return a short label for an entry that has no title.
 - [OK] `_format_account(account)` - Format account fields into compact prompt text.
 - [OK] `_format_personal_context(personal_context)` - Format personal context fields into compact prompt text.
 - [OK] `_format_preferences(preferences)` - Format preference fields into compact prompt text.
+- [OK] `_notebook_context_item(entry)` - Keep a title or short summary, and leave the full entry text out.
+- [OK] `_notebook_summary(entry)` - Return a short label for an entry that has no title.
 - [OK] `_replace_included(section, included)` - Return a copy of a context section with a new inclusion flag.
 - [OK] `_section(name, data, prompt_text)` - Create a normalized context section with optional prompt text.
 - [OK] `_select_prompt_sections(prompt_request, sections)` - Select prompt sections relevant to the current user request.
@@ -1664,7 +1664,7 @@ Returns:
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
-- [OK] `_handle_simplify_task(self, user_id, entities)` - Shrink a task to a smaller next step without changing the due date.
+- [OK] `_handle_simplify_task(self, user_id, entities)` - Suggest smaller steps, or save one typed step under the original task.
 - [OK] `_handle_skip_task_occurrence(self, user_id, entities)` - Skip this occurrence without marking the work done.
 - [OK] `_handle_snooze_task_reminder(self, user_id, entities)` - Snooze a task reminder without changing the due date.
 - [OK] `_handle_snooze_task_reminder__ask_when(self, user_id, task, tonight_label)` - Ask when to ping again and attach Discord snooze choices.
@@ -1687,7 +1687,7 @@ Returns:
 - [OK] `get_help(self)` - Get help text for task management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
-- [OK] `handle_pending_simplify(user_id, message)` - Use the next free-text reply as the smaller task title.
+- [OK] `handle_pending_simplify(user_id, message)` - Add suggested steps, or one typed step, under the task from the last prompt.
 - [OK] `handle_pending_task_action(user_id, message)` - Apply a remembered task action when the user answers with a number or name.
 - [OK] `handle_pending_task_offer(user_id, message)` - Create or decline a pending offered task when the user answers yes/no.
 **Classes:**
@@ -1725,7 +1725,7 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_remove_link_from_task(self, user_id, entities)` - Remove a saved web link from an existing task.
-  - [OK] `TaskManagementHandler._handle_simplify_task(self, user_id, entities)` - Shrink a task to a smaller next step without changing the due date.
+  - [OK] `TaskManagementHandler._handle_simplify_task(self, user_id, entities)` - Suggest smaller steps, or save one typed step under the original task.
   - [OK] `TaskManagementHandler._handle_skip_task_occurrence(self, user_id, entities)` - Skip this occurrence without marking the work done.
   - [OK] `TaskManagementHandler._handle_snooze_task_reminder(self, user_id, entities)` - Snooze a task reminder without changing the due date.
   - [OK] `TaskManagementHandler._handle_snooze_task_reminder__ask_when(self, user_id, task, tonight_label)` - Ask when to ping again and attach Discord snooze choices.
@@ -2241,7 +2241,6 @@ Args:
 #### `communication/communication_channels/discord/ui/task_reminder_view.py`
 **Functions:**
 - [OK] `__init__(self, user_id, task_id, task_title)` - Store the task this custom snooze applies to.
-- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task this simplify applies to.
 - [OK] `__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
 Args:
@@ -2249,7 +2248,8 @@ Args:
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
 - [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
-- [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to simplify.
+- [OK] `__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
+- [OK] `__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
 - [OK] `get_task_reminder_view(user_id, task_id, task_title)` - Create a Discord View with buttons for task reminder actions.
 
 Args:
@@ -2259,9 +2259,11 @@ Args:
 
 Returns:
     discord.ui.View with buttons for task reminder actions
-- [OK] `get_task_simplify_view(user_id, task_id, task_title)` - Create a button that opens the simplify modal after a typed simplify command.
+- [OK] `get_task_simplify_view(user_id, task_id, task_title, steps)` - Create buttons that save suggested steps under the original task.
 - [OK] `get_task_snooze_choice_view(user_id, task_id, task_title)` - Create buttons for 1 hour, tonight/tomorrow morning, next week, and custom snooze.
 **Classes:**
+- [MISSING] `TaskBreakdownView` - No description
+  - [OK] `TaskBreakdownView.__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
 - [MISSING] `TaskReminderView` - No description
   - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
@@ -2269,12 +2271,10 @@ Args:
     user_id: The user's internal user ID
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
-- [MISSING] `TaskSimplifyView` - No description
-  - [OK] `TaskSimplifyView.__init__(self, user_id, task_id, task_title)` - Store the task to simplify.
 - [MISSING] `TaskSnoozeChoiceView` - No description
   - [OK] `TaskSnoozeChoiceView.__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
-- [OK] `_TaskSimplifyModal` - Collect a smaller next-step title without changing the due date.
-  - [OK] `_TaskSimplifyModal.__init__(self, user_id, task_id, task_title)` - Store the task this simplify applies to.
+- [MISSING] `_StepSelect` - No description
+  - [OK] `_StepSelect.__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
 - [OK] `_TaskSnoozeCustomModal` - Collect a custom snooze time without changing the task due date.
   - [OK] `_TaskSnoozeCustomModal.__init__(self, user_id, task_id, task_title)` - Store the task this custom snooze applies to.
 
@@ -6366,6 +6366,17 @@ Returns:
 
 #### `tasks/__init__.py`
 
+#### `tasks/task_breakdown.py`
+**Functions:**
+- [OK] `_open_children(tasks, parent_id)` - Return active tasks saved under this parent.
+- [OK] `_parent_id(task)` - Return the parent task id, or an empty string when this task is top-level.
+- [OK] `_task_id(task)` - Return the task id, or an empty string when it is missing.
+- [OK] `add_task_subtasks(user_id, task_id, titles)` - Save chosen steps as tasks under the original task. The original title stays.
+- [OK] `parse_task_step_lines(text)` - Keep short, unique task titles from a model reply.
+- [OK] `suggest_breakdown(user_id, task_id)` - Ask the model for a few concrete steps under this task.
+**Classes:**
+- [OK] `TaskBreakdownResult` - Suggested steps, or the subtasks that were saved.
+
 #### `tasks/task_data_handlers.py`
 **Functions:**
 - [OK] `_canonical_timestamp(value)` - Return a valid full timestamp string or a current-time fallback.
@@ -6417,7 +6428,7 @@ Returns:
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_identifier)` - Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id).
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
-- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, links)` - Create a new task for a user.
+- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, links, parent_id)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it from active or completed lists).
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
@@ -6506,6 +6517,7 @@ completion. Returns None when the reference is ambiguous.
 - [MISSING] `validate_date(cls, value)` - No description
 - [OK] `validate_label(cls, value)` - Normalize an optional short display label for a task link.
 - [MISSING] `validate_next_due_date(cls, value)` - No description
+- [OK] `validate_parent_id(cls, value)` - Keep a parent task id, or clear an empty one.
 - [OK] `validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 - [MISSING] `validate_time(cls, value)` - No description
 - [OK] `validate_url(cls, value)` - Require an http:// or https:// task link URL.
@@ -6526,6 +6538,7 @@ completion. Returns None when the reference is ambiguous.
   - [OK] `TaskV2Model.sanitize_links(cls, value)` - Normalize link payloads before model construction.
   - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
+  - [OK] `TaskV2Model.validate_parent_id(cls, value)` - Keep a parent task id, or clear an empty one.
   - [OK] `TaskV2Model.validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 
 #### `tasks/task_service.py`

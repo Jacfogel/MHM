@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Home — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=dashboard-1" />
+  <link rel="stylesheet" href="styles.css?v=dashboard-2" />
   <script src="script.js?v=nav-3" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="home.js?v=dashboard-1" defer></script>
+  <script src="home.js?v=dashboard-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -54,13 +54,11 @@
               <button class="plain-button" id="home-task-later" type="button">Later</button>
               <button class="plain-button" id="home-task-break" type="button">Break it down</button>
             </div>
-            <form id="home-task-break-form" class="home-focus-break" hidden>
-              <div class="settings-field">
-                <label for="home-task-smaller">A smaller next step</label>
-                <input id="home-task-smaller" type="text" maxlength="500" placeholder="e.g. Call and ask if the refill is ready" />
-              </div>
-              <button class="button button-small" id="home-task-break-save" type="submit">Save smaller step</button>
-            </form>
+            <div id="home-task-break-form" class="home-focus-break" hidden>
+              <p class="field-hint">The original task stays. Add the steps you want under it.</p>
+              <ul id="home-task-steps" class="home-task-steps"></ul>
+              <button class="button button-small" id="home-task-break-save" type="button" hidden>Add these steps</button>
+            </div>
             <p id="home-task-status" class="form-status" role="status" aria-live="polite"></p>
             <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
             <a class="button" id="home-tasks" href="tasks.html">Open tasks →</a>

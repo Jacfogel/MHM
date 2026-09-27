@@ -155,14 +155,29 @@ const MHMTaskInput = Object.freeze({
     dueSoon.textContent = `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
     bulkPrimary.textContent = view === 'active' ? 'Complete selected' : 'Restore selected';
     empty.hidden = tasks.length !== 0;
+    const byId = new Map(tasks.map(task => [task.id, task]));
+    const children = new Map();
+    const tops = [];
     for (const task of tasks) {
+      if (task.parent_id && byId.has(task.parent_id)) {
+        const group = children.get(task.parent_id) || [];
+        group.push(task);
+        children.set(task.parent_id, group);
+      } else tops.push(task);
+    }
+    const ordered = tops.flatMap(task => [task, ...(children.get(task.id) || [])]);
+    for (const task of ordered) {
+      const parent = task.parent_id ? byId.get(task.parent_id) : null;
       const article = document.createElement('article');
-      article.className = `task-card${view === 'completed' ? ' is-completed' : ''}`;
+      article.className = `task-card${view === 'completed' ? ' is-completed' : ''}${parent ? ' is-subtask' : ''}`;
       const chooser = document.createElement('label'); chooser.className = 'task-select';
       const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = selected.has(task.id); checkbox.setAttribute('aria-label', `Select ${task.title}`);
       checkbox.addEventListener('change', () => { checkbox.checked ? selected.add(task.id) : selected.delete(task.id); updateBulkActions(); });
       chooser.append(checkbox);
       const content = document.createElement('div'); content.className = 'task-card-content';
+      if (parent) {
+        const part = document.createElement('p'); part.className = 'task-part-of'; part.textContent = `Part of ${parent.title}`; content.append(part);
+      }
       const title = document.createElement('h3'); title.textContent = task.title; content.append(title);
       if (task.description) { const description = document.createElement('p'); description.textContent = task.description; content.append(description); }
       const meta = document.createElement('div'); meta.className = 'task-meta';
@@ -272,7 +287,9 @@ const MHMTaskInput = Object.freeze({
   function openSupportActions(task) {
     const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
     const heading = document.createElement('h2'); heading.textContent = `Help with “${task.title}”`;
-    const copy = document.createElement('p'); copy.textContent = 'Delay the reminder without moving the due date, skip this occurrence, or turn it into a smaller next step.';
+    const copy = document.createElement('p'); copy.textContent = task.parent_id
+      ? 'Delay the reminder without moving the due date, or skip this occurrence.'
+      : 'Delay the reminder without moving the due date, skip this occurrence, or ask MHM for smaller steps. The original task stays.';
     const actions = document.createElement('div'); actions.className = 'task-support-actions';
     actions.append(
       button('Remind me in 1 hour', 'plain-button', () => runSupportAction(task, 'snooze', { option: '1_hour' }, dialog)),
@@ -291,17 +308,35 @@ const MHMTaskInput = Object.freeze({
     });
     customWhen.addEventListener('input', () => customWhen.setCustomValidity(''));
     custom.append(customLabel, customWhen, customButton);
-    const simplify = document.createElement('div'); simplify.className = 'settings-field';
-    const label = document.createElement('label'); label.htmlFor = 'simplify-title'; label.textContent = 'A smaller next step';
-    const smaller = document.createElement('input'); smaller.id = 'simplify-title'; smaller.maxLength = 500; smaller.placeholder = 'e.g. Put the dishes beside the sink';
-    const simplifyButton = button('Simplify task', 'button', () => {
-      if (smaller.value.trim()) runSupportAction(task, 'simplify', { new_title: smaller.value.trim() }, dialog);
-      else { smaller.setCustomValidity('Enter a smaller next step.'); smaller.reportValidity(); }
-    });
-    smaller.addEventListener('input', () => smaller.setCustomValidity(''));
-    simplify.append(label, smaller, simplifyButton);
+    const breakdown = document.createElement('div'); breakdown.className = 'settings-field';
+    if (!task.parent_id) {
+      const suggest = button('Suggest smaller steps', 'button', async () => {
+        suggest.disabled = true;
+        try {
+          const result = await api(`/api/tasks/${encodeURIComponent(task.id)}/breakdown`, 'POST', {});
+          const steps = (result.steps || []).filter(step => typeof step === 'string' && step.trim());
+          if (!steps.length) throw new Error('MHM could not find smaller steps for this.');
+          const chosen = new Set(steps);
+          const choices = document.createElement('div'); choices.className = 'task-breakdown-steps';
+          for (const step of steps) {
+            const label = document.createElement('label');
+            const box = document.createElement('input'); box.type = 'checkbox'; box.checked = true;
+            box.addEventListener('change', () => { box.checked ? chosen.add(step) : chosen.delete(step); });
+            const text = document.createElement('span'); text.textContent = step;
+            label.append(box, text); choices.append(label);
+          }
+          const add = button('Add these steps', 'button', () => {
+            const titles = steps.filter(step => chosen.has(step));
+            if (!titles.length) { showStatus('Choose at least one step.', true); return; }
+            runSupportAction(task, 'subtasks', { titles }, dialog);
+          });
+          breakdown.replaceChildren(choices, add);
+        } catch (error) { showStatus(error.message, true); suggest.disabled = false; }
+      });
+      breakdown.append(suggest);
+    }
     const close = button('Close', 'plain-button', () => dialog.close());
-    dialog.append(heading, copy, actions, custom, simplify, close); document.body.append(dialog);
+    dialog.append(heading, copy, actions, custom, breakdown, close); document.body.append(dialog);
     dialog.addEventListener('close', () => dialog.remove(), { once: true });
     if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }

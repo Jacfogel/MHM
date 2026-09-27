@@ -134,7 +134,7 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | More button | Partial | Help text includes skip/simplify examples; add a dedicated More-button callback test if that text becomes high-risk. |
 | Skip this occurrence (recurring) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py), [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
 | Skip this occurrence (one-off) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py) |
-| Simplify the task | Automated | [tests/unit/test_task_simplify.py](../tests/unit/test_task_simplify.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py) |
+| Break the task into smaller steps | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py) |
 | Complete by task ID from reminder | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
 | Complete by typed title after reminder | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Recurring task is completed from Discord reminder | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |

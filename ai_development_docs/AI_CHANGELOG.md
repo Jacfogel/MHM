@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-26 - Home Today panel sits under chat **COMPLETED**
+- The home page stacks Talk to MHM above Today. Next task and Check-in sit side by side under the chat, and stack on a narrow screen.
+- Break it down asks for smaller steps and saves the ones you keep as subtasks. The original task title stays. Home then focuses on an open subtask.
+- Discord Break it down, and simplify in Discord or email, adds those steps under the task instead of replacing the title. The breakdown helpers use the shared error handler, and the task-load tests store a valid task record.
+
 ### 2026-09-25 - File locks time out instead of hanging nightly tests **COMPLETED**
 - Linux file-lock waits use a monotonic clock and re-enter when the same thread already holds the sidecar lock.
 - A lock timeout no longer starts a network probe, so one stuck user-index write cannot run until the 300s test limit.

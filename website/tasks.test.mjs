@@ -8,6 +8,13 @@ const helperSource = `${source.slice(0, source.indexOf('(() =>'))}\nthis.helpers
 const context = vm.createContext({});
 vm.runInContext(helperSource, context);
 
+test('task help asks for smaller steps instead of replacing the title', () => {
+  assert.match(source, /Suggest smaller steps/);
+  assert.match(source, /\/breakdown/);
+  assert.match(source, /'subtasks'/);
+  assert.doesNotMatch(source, /simplify-title/);
+});
+
 test('existing task tags append without duplicates', () => {
   assert.equal(context.helpers.withTag('health, home', 'work'), 'health, home, work');
   assert.equal(context.helpers.withTag('health, home', 'HEALTH'), 'health, home');

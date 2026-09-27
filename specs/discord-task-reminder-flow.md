@@ -12,7 +12,7 @@
 
 ## 1. Purpose
 
-Discord task reminders notify linked Discord users about active tasks and provide quick actions to complete the task, snooze the reminder, skip this occurrence, simplify the task, or get help. Discord-specific code SHALL adapt the reminder into Discord UI but SHALL route actual task completion, reminder snooze, skip, and simplify through channel-agnostic task handling. Reminder snooze SHALL NOT change the task due date. Skip on a one-off task SHALL NOT change the due date. Simplify SHALL NOT change the due date.
+Discord task reminders notify linked Discord users about active tasks and provide quick actions to complete the task, snooze the reminder, skip this occurrence, break the task into smaller steps, or get help. Discord-specific code SHALL adapt the reminder into Discord UI but SHALL route actual task completion, reminder snooze, skip, and breakdown through channel-agnostic task handling. Reminder snooze SHALL NOT change the task due date. Skip on a one-off task SHALL NOT change the due date. Breaking a task down SHALL NOT change the original title or the due date.
 
 ## 2. Requirements
 
@@ -58,7 +58,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 ### 2.2. Requirement: Task reminder view provides persistent action buttons
 
-`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Complete Task, Remind Me Later, More, Skip, and Simplify buttons.
+`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Complete Task, Remind Me Later, More, Skip, and Break it down buttons.
 
 #### Scenario: Task reminder view creation
 
@@ -160,13 +160,15 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **AND** the due date is unchanged  
 - **AND** MHM does not ping again until tomorrow morning  
 
-#### Scenario: Simplify the task
+#### Scenario: Break the task into smaller steps
 
-- **GIVEN** a Discord reminder includes a `Simplify` button  
-- **WHEN** the linked user clicks it and types a smaller version, or types `simplify that to ...`  
-- **THEN** the task title is replaced with that smaller version  
-- **AND** the previous title is kept in the task notes  
+- **GIVEN** a Discord reminder includes a `Break it down` button  
+- **WHEN** the linked user clicks it, or types `simplify that`  
+- **THEN** MHM suggests a few smaller steps  
+- **AND** the original task title stays  
 - **AND** the due date is unchanged  
+- **WHEN** the user adds those steps, or types `simplify that to ...`  
+- **THEN** the chosen steps are saved as subtasks under the original task  
 
 ## 3. 2.3. Requirement: Task completion follow-up uses normal task command behavior
 
@@ -229,7 +231,7 @@ Run after changing Discord task reminder behavior:
 11. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
 12. [ ] Click `Skip` on a repeating task -> task stays active, due date moves to the next occurrence, no shame-y completed copy.
 13. [ ] Click `Skip` on a one-off task -> due date unchanged; no ping until tomorrow morning.
-14. [ ] Click `Simplify` and type a smaller version -> title shrinks, due date unchanged, old title is in notes.
+14. [ ] Click `Break it down` -> suggested steps appear; adding them keeps the original title and due date.
 
 ## 6. Related documentation
 

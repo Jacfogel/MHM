@@ -1747,6 +1747,7 @@ def create_web_app(
             },
             "tags": task.get("tags") if isinstance(task.get("tags"), list) else [],
             "reminder_snooze_until": task.get("reminder_snooze_until") or None,
+            "parent_id": task.get("parent_id") or None,
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
@@ -1995,6 +1996,44 @@ def create_web_app(
             if not result or not result.success:
                 raise web.HTTPBadRequest(
                     text=(result.message if result else "That task occurrence could not be skipped.")
+                )
+            action_message = result.message
+        elif action == "breakdown" and request.method == "POST":
+            if await body(request):
+                raise web.HTTPBadRequest(text="Breaking a task down does not need any other details.")
+            from tasks.task_breakdown import suggest_breakdown
+
+            result = await asyncio.to_thread(suggest_breakdown, uid, task_id)
+            if not result or result.unavailable:
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        result.message
+                        if result
+                        else "MHM could not suggest smaller steps just now. Please try again."
+                    )
+                )
+            if not result.success:
+                raise web.HTTPBadRequest(text=result.message)
+            return web.json_response({"steps": result.steps})
+        elif action == "subtasks" and request.method == "POST":
+            data = await body(request)
+            titles = data.get("titles")
+            if (
+                set(data) != {"titles"}
+                or not isinstance(titles, list)
+                or not 1 <= len(titles) <= 5
+                or any(
+                    not isinstance(title, str) or not title.strip() or len(title.strip()) > 120
+                    for title in titles
+                )
+            ):
+                raise web.HTTPBadRequest(text="Choose between 1 and 5 smaller steps.")
+            from tasks.task_breakdown import add_task_subtasks
+
+            result = await asyncio.to_thread(add_task_subtasks, uid, task_id, titles)
+            if not result or not result.success:
+                raise web.HTTPBadRequest(
+                    text=(result.message if result else "Those steps could not be added.")
                 )
             action_message = result.message
         elif action == "simplify" and request.method == "POST":
@@ -2710,7 +2749,7 @@ def create_web_app(
     app.router.add_route("PATCH", "/api/tasks/{task_id}", tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", tasks_api)
     app.router.add_post(
-        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify}",
+        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks}",
         tasks_api,
     )
     app.router.add_get("/api/messages", messages_api)

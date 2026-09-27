@@ -18,6 +18,25 @@ from datetime import datetime, timedelta
 import storage.user_item_storage as user_item_storage
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
+def _stored_task(task_id, title, *, status="active"):
+    """Return a v2 task record load_active_tasks will accept."""
+    completed = status == "completed"
+    return {
+        "id": task_id,
+        "short_id": f"t{task_id}",
+        "kind": "task",
+        "title": title,
+        "status": status,
+        "created_at": "2026-04-26 09:15:00",
+        "updated_at": "2026-04-26 09:15:00",
+        "completion": {
+            "completed": completed,
+            "completed_at": "2026-04-26 09:15:00" if completed else None,
+            "notes": "",
+        },
+    }
+
+
 # Do not modify sys.path; rely on package imports
 
 # Import the actual functions from tasks package
@@ -92,8 +111,8 @@ class TestTaskManagement:
         test_tasks = {
             "schema_version": 2,
             "tasks": [
-                {"id": "1", "title": "Test Task 1", "status": "active"},
-                {"id": "2", "title": "Test Task 2", "status": "active"},
+                _stored_task("1", "Test Task 1"),
+                _stored_task("2", "Test Task 2"),
             ],
         }
         with open(os.path.join(task_dir, "tasks.json"), "w") as f:

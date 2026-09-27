@@ -42,7 +42,7 @@ class TestTaskReminderView:
             "Remind Me Later",
             "More",
             "Skip",
-            "Simplify",
+            "Break it down",
         ]
 
     @pytest.mark.asyncio
@@ -149,9 +149,32 @@ class TestTaskReminderView:
         handle_message.assert_called_once_with("user-1", "skip task task-1", "discord")
 
     @pytest.mark.asyncio
-    async def test_simplify_button_opens_modal(self, mock_interaction_factory):
+    async def test_break_down_button_suggests_steps(self, mock_interaction_factory):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Simplify")
+        button = next(child for child in view.children if child.label == "Break it down")
         interaction = mock_interaction_factory()
-        await button.callback(interaction)
-        interaction.response.send_modal.assert_called_once()
+        fake_response = type(
+            "Resp",
+            (),
+            {
+                "message": "Here are smaller steps.",
+                "completed": False,
+                "rich_data": {"steps": ["Find the number"]},
+            },
+        )()
+        with (
+            patch("core.get_user_id_by_identifier", return_value="user-1"),
+            patch(
+                "communication.message_processing.interaction_manager.handle_user_message",
+                return_value=fake_response,
+            ) as handle_message,
+            patch(
+                "communication.communication_channels.discord.ui.task_reminder_view.get_task_simplify_view",
+                return_value="breakdown-view",
+            ),
+        ):
+            await button.callback(interaction)
+        handle_message.assert_called_once_with("user-1", "simplify task task-1", "discord")
+        kwargs = interaction.followup.send.call_args.kwargs
+        assert kwargs["view"] == "breakdown-view"
+        assert kwargs["ephemeral"] is True

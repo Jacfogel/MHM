@@ -103,7 +103,11 @@
   }
 
   function chooseFocus(tasks, now = new Date(), random = Math.random) {
-    const ranked = (tasks || []).map(task => scoreFocus(task, now)).filter(Boolean);
+    const list = tasks || [];
+    const parentsWithSteps = new Set(list.map(task => task && task.parent_id).filter(Boolean));
+    const smallerSteps = list.filter(task => task && !parentsWithSteps.has(task.id));
+    let ranked = smallerSteps.map(task => scoreFocus(task, now)).filter(Boolean);
+    if (!ranked.length) ranked = list.map(task => scoreFocus(task, now)).filter(Boolean);
     if (!ranked.length) return null;
     ranked.sort((left, right) => right.score - left.score || String(left.task.title).localeCompare(String(right.task.title)));
     const roll = typeof random === 'function' ? random() : Math.random();
@@ -209,13 +213,20 @@
       focusedTask = pick ? pick.task : null;
       const actions = document.getElementById('home-task-actions');
       const breakForm = document.getElementById('home-task-break-form');
+      const breakButton = document.getElementById('home-task-break');
       document.getElementById('home-task-title').textContent = focusedTask ? focusedTask.title : 'No tasks yet.';
       document.getElementById('home-task-meta').textContent = pick
         ? focusMeta(pick)
         : 'Add something small on Tasks, or tell MHM what you need.';
-      document.getElementById('home-task-why').textContent = pick ? focusReason(pick) : '';
+      const parent = focusedTask && focusedTask.parent_id
+        ? withEffort.find(task => task.id === focusedTask.parent_id)
+        : null;
+      const why = pick ? focusReason(pick) : '';
+      document.getElementById('home-task-why').textContent = parent ? `${why} Part of ${parent.title}.` : why;
       if (actions) actions.hidden = !focusedTask;
+      if (breakButton) breakButton.hidden = !focusedTask || Boolean(focusedTask.parent_id);
       if (breakForm) breakForm.hidden = true;
+      suggestedSteps = [];
       const taskStatus = document.getElementById('home-task-status');
       if (taskStatus) {
         taskStatus.textContent = '';
@@ -234,6 +245,7 @@
   }
 
   let focusedTask = null;
+  let suggestedSteps = [];
 
   function localStamp(now = new Date()) {
     const pad = value => String(value).padStart(2, '0');
@@ -274,21 +286,64 @@
   if (laterButton) laterButton.addEventListener('click', () => {
     return runFocusAction('snooze', { option: '1_hour' }, 'Setting this aside…');
   });
+  function renderSuggestedSteps(steps) {
+    suggestedSteps = steps.slice();
+    const list = document.getElementById('home-task-steps');
+    if (!list) return;
+    list.replaceChildren();
+    for (const step of steps) {
+      const item = document.createElement('li');
+      const label = document.createElement('label');
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = true;
+      box.addEventListener('change', () => {
+        suggestedSteps = box.checked
+          ? [...suggestedSteps, step]
+          : suggestedSteps.filter(item => item !== step);
+      });
+      const text = document.createElement('span');
+      text.textContent = step;
+      label.append(box, text);
+      item.append(label);
+      list.append(item);
+    }
+  }
+
   const breakButton = document.getElementById('home-task-break');
   const breakForm = document.getElementById('home-task-break-form');
-  if (breakButton && breakForm) breakButton.addEventListener('click', () => {
+  const breakSave = document.getElementById('home-task-break-save');
+  if (breakButton && breakForm) breakButton.addEventListener('click', async () => {
+    if (!focusedTask) return;
     breakForm.hidden = false;
-    const smaller = document.getElementById('home-task-smaller');
-    if (smaller) smaller.focus();
+    suggestedSteps = [];
+    renderSuggestedSteps([]);
+    if (breakSave) breakSave.hidden = true;
+    breakButton.disabled = true;
+    const taskStatus = document.getElementById('home-task-status');
+    if (taskStatus) {
+      taskStatus.textContent = 'Looking for smaller steps…';
+      taskStatus.classList.remove('is-error');
+    }
+    try {
+      const result = await api(`/api/tasks/${encodeURIComponent(focusedTask.id)}/breakdown`, 'POST', {});
+      const steps = (result.steps || []).filter(step => typeof step === 'string' && step.trim());
+      if (!steps.length) throw new Error('MHM could not find smaller steps for this.');
+      renderSuggestedSteps(steps);
+      if (breakSave) breakSave.hidden = false;
+      if (taskStatus) taskStatus.textContent = 'Choose the steps to add. The original task stays.';
+    } catch (error) {
+      if (taskStatus) {
+        taskStatus.textContent = error.message;
+        taskStatus.classList.add('is-error');
+      }
+    } finally {
+      breakButton.disabled = false;
+    }
   });
-  if (breakForm) breakForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const smaller = document.getElementById('home-task-smaller');
-    const title = smaller ? smaller.value.trim() : '';
-    if (!title) return undefined;
-    return runFocusAction('simplify', { new_title: title }, 'Saving the smaller step…').then(() => {
-      if (smaller) smaller.value = '';
-    });
+  if (breakSave) breakSave.addEventListener('click', () => {
+    if (!suggestedSteps.length) return undefined;
+    return runFocusAction('subtasks', { titles: suggestedSteps }, 'Adding these steps…');
   });
 
   const talkLog = document.getElementById('talk-log');

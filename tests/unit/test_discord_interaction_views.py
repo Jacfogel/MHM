@@ -147,12 +147,13 @@ class TestInteractionViewFactories:
     def test_create_task_simplify_view_passes_task_metadata(self, monkeypatch):
         captured = {}
 
-        def fake_get_task_simplify_view(user_id, task_identifier, task_title):
+        def fake_get_task_simplify_view(user_id, task_identifier, task_title, steps=None):
             captured.update(
                 {
                     "user_id": user_id,
                     "task_identifier": task_identifier,
                     "task_title": task_title,
+                    "steps": steps,
                 }
             )
             return "simplify-view"
@@ -163,7 +164,10 @@ class TestInteractionViewFactories:
         )
 
         result = views.create_task_simplify_view(
-            "user-1", task_identifier="task-9", task_title="Take meds"
+            "user-1",
+            task_identifier="task-9",
+            task_title="Take meds",
+            steps=["Find the number"],
         )
         view = result() if callable(result) else result
 
@@ -172,4 +176,5 @@ class TestInteractionViewFactories:
             "user_id": "user-1",
             "task_identifier": "task-9",
             "task_title": "Take meds",
+            "steps": ["Find the number"],
         }

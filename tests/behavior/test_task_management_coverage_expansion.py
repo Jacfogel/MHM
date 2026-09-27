@@ -22,6 +22,25 @@ from unittest.mock import Mock, patch
 from datetime import timedelta
 from pathlib import Path
 
+def _stored_task(task_id, title, *, status="active"):
+    """Return a v2 task record the task loader will accept."""
+    completed = status == "completed"
+    return {
+        "id": task_id,
+        "short_id": f"t{task_id}",
+        "kind": "task",
+        "title": title,
+        "status": status,
+        "created_at": "2026-04-26 09:15:00",
+        "updated_at": "2026-04-26 09:15:00",
+        "completion": {
+            "completed": completed,
+            "completed_at": "2026-04-26 09:15:00" if completed else None,
+            "notes": "",
+        },
+    }
+
+
 # Import task management functions
 from core import get_user_data
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
@@ -172,8 +191,8 @@ class TestTaskManagementCoverageExpansion:
         task_dir.mkdir(parents=True, exist_ok=True)
 
         test_tasks = [
-            {"id": "1", "title": "Task 1", "status": "active"},
-            {"id": "2", "title": "Task 2", "status": "active"},
+            _stored_task("1", "Task 1"),
+            _stored_task("2", "Task 2"),
         ]
 
         task_file = task_dir / "tasks.json"
@@ -250,8 +269,8 @@ class TestTaskManagementCoverageExpansion:
         task_dir.mkdir(parents=True, exist_ok=True)
 
         test_tasks = [
-            {"id": "1", "title": "Completed Task 1", "status": "completed"},
-            {"id": "2", "title": "Completed Task 2", "status": "completed"},
+            _stored_task("1", "Completed Task 1", status="completed"),
+            _stored_task("2", "Completed Task 2", status="completed"),
         ]
 
         task_file = task_dir / "tasks.json"

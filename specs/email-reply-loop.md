@@ -85,6 +85,7 @@ MHM SHALL remember the outbound `Message-ID` for check-ins and task reminders. A
 - **GIVEN** MHM sent a task reminder email for one task  
 - **WHEN** the user replies `done`, `later`, `skip`, `simplify to ...`, `1 hour`, `tonight`, `next week`, or `until <when>`  
 - **THEN** that action is applied to that task  
+- **AND** `simplify to ...` adds that step under the task and leaves the original title  
 - **AND** an open check-in does not consume the reply  
 
 #### Scenario: Task reply is not one of those actions

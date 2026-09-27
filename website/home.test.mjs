@@ -34,7 +34,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-task-later', node()],
     ['home-task-break', node()],
     ['home-task-break-form', node()],
-    ['home-task-smaller', node({ value: '' })],
+    ['home-task-steps', node()],
     ['home-task-break-save', node()],
     ['home-task-status', node()],
     ['home-task-off', node()],
@@ -63,6 +63,8 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       if (url === '/api/tasks/effort') return Response.json(efforts);
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
+      if (String(url).endsWith('/breakdown')) return Response.json({ steps: ['Ask if the refill is ready'] });
+      if (String(url).endsWith('/subtasks')) return Response.json({ message: 'Added 1 smaller step. The original task stays.' });
       return Response.json({ error: 'missing' }, { status: 404 });
     }),
     Response,
@@ -167,10 +169,46 @@ test('done, later, and break it down call the task actions', async () => {
   assert.deepEqual(JSON.parse(later.options.body), { option: '1_hour' });
   await view.nodes.get('home-task-break').listeners.click();
   assert.equal(view.nodes.get('home-task-break-form').hidden, false);
-  view.nodes.get('home-task-smaller').value = 'Ask if the refill is ready';
-  await view.nodes.get('home-task-break-form').listeners.submit({ preventDefault() {} });
-  const smaller = view.requests.find(request => request.url === '/api/tasks/pharmacy/simplify');
-  assert.deepEqual(JSON.parse(smaller.options.body), { new_title: 'Ask if the refill is ready' });
+  const breakdown = view.requests.find(request => request.url === '/api/tasks/pharmacy/breakdown');
+  assert.deepEqual(JSON.parse(breakdown.options.body), {});
+  await view.nodes.get('home-task-break-save').listeners.click();
+  const added = view.requests.find(request => request.url === '/api/tasks/pharmacy/subtasks');
+  assert.deepEqual(JSON.parse(added.options.body), { titles: ['Ask if the refill is ready'] });
+});
+
+test('home picks an open subtask and keeps the bigger task', async () => {
+  const today = new Date();
+  const pad = value => String(value).padStart(2, '0');
+  const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  const view = await page({
+    tasks: {
+      tasks: [
+        { id: 'dentist', title: 'Call the dentist', due_date: todayKey, priority: 'high' },
+        { id: 'phone', title: 'Find the phone number', due_date: todayKey, priority: 'low', parent_id: 'dentist' },
+      ],
+    },
+  });
+  assert.equal(view.nodes.get('home-task-title').textContent, 'Find the phone number');
+  assert.match(view.nodes.get('home-task-why').textContent, /Part of Call the dentist/);
+  assert.equal(view.nodes.get('home-task-break').hidden, true);
+});
+
+test('home returns to the bigger task when its smaller step is set aside', async () => {
+  const later = new Date(Date.now() + 2 * 60 * 60 * 1000);
+  const pad = value => String(value).padStart(2, '0');
+  const snoozedUntil = `${later.getFullYear()}-${pad(later.getMonth() + 1)}-${pad(later.getDate())} ${pad(later.getHours())}:${pad(later.getMinutes())}:00`;
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  const view = await page({
+    tasks: {
+      tasks: [
+        { id: 'dentist', title: 'Call the dentist', due_date: todayKey, priority: 'high' },
+        { id: 'phone', title: 'Find the phone number', due_date: todayKey, priority: 'low', parent_id: 'dentist', reminder_snooze_until: snoozedUntil },
+      ],
+    },
+  });
+  assert.equal(view.nodes.get('home-task-title').textContent, 'Call the dentist');
+  assert.equal(view.nodes.get('home-task-break').hidden, false);
 });
 
 test('home points back to an open check-in', async () => {

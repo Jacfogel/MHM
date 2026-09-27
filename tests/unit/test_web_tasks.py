@@ -53,7 +53,7 @@ async def task_gateway(monkeypatch):
 
     def create(user_id, **values):
         task_number = len(active) + len(completed) + 1
-        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
+        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "parent_id": values.get("parent_id"), "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
         active.append(task)
         return task["id"]
 
@@ -263,3 +263,56 @@ async def test_task_bulk_actions(task_gateway):
         headers={"Origin": ORIGIN},
     )
     assert deleted.status == 200
+
+
+async def test_breakdown_adds_subtasks_and_keeps_the_original_title(task_gateway, monkeypatch):
+    import tasks.task_breakdown as breakdown
+    from tasks.task_breakdown import TaskBreakdownResult
+
+    monkeypatch.setattr(
+        breakdown,
+        "suggest_breakdown",
+        lambda user_id, task_id: TaskBreakdownResult(
+            True,
+            "Here are a few smaller steps.",
+            steps=["Find the phone number", "Ask for the next opening"],
+        ),
+    )
+    client, _active, _completed = task_gateway
+    created = await client.post(
+        "/api/tasks",
+        json={"title": "Call the dentist", "due_date": "2026-09-20"},
+        headers={"Origin": ORIGIN},
+    )
+    task = (await created.json())["task"]
+    suggested = await client.post(
+        f"/api/tasks/{task['id']}/breakdown",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert suggested.status == 200
+    assert (await suggested.json())["steps"] == [
+        "Find the phone number",
+        "Ask for the next opening",
+    ]
+    added = await client.post(
+        f"/api/tasks/{task['id']}/subtasks",
+        json={"titles": ["Find the phone number", "Ask for the next opening"]},
+        headers={"Origin": ORIGIN},
+    )
+    assert added.status == 200
+    body = await added.json()
+    assert body["task"]["title"] == "Call the dentist"
+    assert "original task stays" in body["message"]
+    listed = await (await client.get("/api/tasks")).json()
+    children = [item for item in listed["tasks"] if item.get("parent_id") == task["id"]]
+    assert [item["title"] for item in children] == [
+        "Find the phone number",
+        "Ask for the next opening",
+    ]
+    nested = await client.post(
+        f"/api/tasks/{children[0]['id']}/subtasks",
+        json={"titles": ["Look up the number"]},
+        headers={"Origin": ORIGIN},
+    )
+    assert nested.status == 400

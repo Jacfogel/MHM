@@ -31,7 +31,8 @@ _SNOOZE_BARE = {"later", "not now", "remind me later", "snooze", "remind me"}
 _SKIP = {"skip", "skip this", "skip this time", "not this time", "skip it"}
 _TASK_HELP = (
     "Reply with done, later, skip, or simplify to <smaller step>. "
-    "Example: simplify to wipe the kitchen counter. "
+    "Example: simplify to wipe the kitchen counter. That step is added under the task, and the original title stays. "
+    "Reply simplify by itself for a few suggested steps. "
     "For later, you can also say 1 hour, tonight, next week, or until Friday 3pm."
 )
 

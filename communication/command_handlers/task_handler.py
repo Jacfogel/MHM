@@ -88,11 +88,11 @@ Manage tasks with natural language or short commands.
 • `snooze task 1 for 1 hour` / `snooze that until tonight` / `snooze dentist until next week`
 • `snooze dentist until Friday 3pm` / `remind me later`
 
-**Skip this time / Simplify** (not the same as snooze):
+**Skip this time / Break it down** (not the same as snooze):
 • Discord **Skip**: repeating tasks move to the next occurrence; one-off tasks stay due and wait until tomorrow morning
-• Discord **Simplify**: shrink the task to a smaller next step
+• Discord **Break it down**: suggest smaller steps and save the ones you want under the task
 • `skip that` / `skip task 1` / `skip this occurrence`
-• `simplify that to wipe the kitchen counter` / `make that simpler`
+• `simplify that` / `simplify that to wipe the kitchen counter`
 
 **Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
 
@@ -221,7 +221,7 @@ def _valid_pending_simplify(user_id: str) -> dict[str, Any] | None:
 def handle_pending_simplify(
     user_id: str, message: str
 ) -> InteractionResponse | None:
-    """Use the next free-text reply as the smaller task title."""
+    """Add suggested steps, or one typed step, under the task from the last prompt."""
     pending = _valid_pending_simplify(user_id)
     if not pending:
         return None
@@ -235,6 +235,15 @@ def handle_pending_simplify(
         stripped
     ):
         return None
+    steps = pending.get("steps") if isinstance(pending.get("steps"), list) else []
+    if stripped.casefold() in {"all", "add all", "add them", "add these"}:
+        PENDING_SIMPLIFY.pop(user_id, None)
+        from tasks.task_breakdown import add_task_subtasks
+
+        result = add_task_subtasks(user_id, str(pending.get("task_id") or ""), steps)
+        if not result:
+            return InteractionResponse("Those steps could not be added.", False)
+        return InteractionResponse(result.message, result.success)
     PENDING_SIMPLIFY.pop(user_id, None)
     return TaskManagementHandler()._handle_simplify_task(
         user_id,
@@ -1215,8 +1224,8 @@ class TaskManagementHandler(InteractionHandler):
     def _handle_simplify_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
-        """Shrink a task to a smaller next step without changing the due date."""
-        from tasks.task_simplify import simplify_task
+        """Suggest smaller steps, or save one typed step under the original task."""
+        from tasks.task_breakdown import add_task_subtasks, suggest_breakdown
 
         task_identifier = entities.get("task_identifier")
         task_identifier, pronoun_error = _resolve_pronoun_task_identifier(
@@ -1235,38 +1244,48 @@ class TaskManagementHandler(InteractionHandler):
                 "Which task should I simplify? Reply with the number or name, "
                 "or say show my task list."
             ),
-            multi_suffix="Reply with `simplify task <number> to <smaller version>`.",
+            multi_suffix="Reply with `simplify task <number>`, or `simplify task <number> to <smaller step>`.",
             not_found_message="I could not find that task, so I did not change it.",
         )
         if isinstance(task, InteractionResponse):
             return task
-        result = simplify_task(
-            user_id,
-            _task_identifier(task),
-            entities.get("simplified_title"),
-        )
-        if result.needs_title:
-            PENDING_SIMPLIFY[user_id] = {
-                "task_id": _task_identifier(task),
-                "asked_at": now_timestamp_full(),
-            }
-            short_id = _task_short_identifier(task) or _task_identifier(task)
+        task_id = _task_identifier(task)
+        parent_title = str(task.get("title") or "this task")
+        typed_step = str(entities.get("simplified_title") or "").strip()
+        if typed_step:
+            result = add_task_subtasks(user_id, task_id, [typed_step])
+            PENDING_SIMPLIFY.pop(user_id, None)
+            if not result:
+                return InteractionResponse("That step could not be added.", False)
+            return InteractionResponse(result.message, result.success)
+        result = suggest_breakdown(user_id, task_id)
+        if not result or not result.success or not result.steps:
             return InteractionResponse(
-                result.message,
+                result.message if result else "MHM could not suggest smaller steps just now. Please try again.",
                 False,
-                suggestions=[
-                    f"simplify task {short_id} to wipe the kitchen counter",
-                    "cancel",
-                ],
-                rich_data={
-                    "interaction_view": "task_simplify",
-                    "user_id": user_id,
-                    "task_identifier": _task_identifier(task),
-                    "task_title": str(task.get("title") or "this task"),
-                },
             )
-        PENDING_SIMPLIFY.pop(user_id, None)
-        return InteractionResponse(result.message, result.success)
+        PENDING_SIMPLIFY[user_id] = {
+            "task_id": task_id,
+            "steps": list(result.steps),
+            "asked_at": now_timestamp_full(),
+        }
+        lines = "\n".join(
+            f"{index}. {step}" for index, step in enumerate(result.steps, start=1)
+        )
+        return InteractionResponse(
+            f"Here are smaller steps for **{parent_title}**. The original task stays.\n"
+            f"{lines}\n"
+            "Reply `all` to add them, or reply with one step.",
+            False,
+            suggestions=["all", "cancel"],
+            rich_data={
+                "interaction_view": "task_simplify",
+                "user_id": user_id,
+                "task_identifier": task_id,
+                "task_title": parent_title,
+                "steps": list(result.steps),
+            },
+        )
 
     @handle_errors("handling task completion")
     def _handle_complete_task(

@@ -77,8 +77,9 @@ def create_task_simplify_view(user_id: str, **kwargs: Any) -> Any | None:
 
     task_identifier = kwargs.get("task_identifier")
     task_title = kwargs.get("task_title", "Untitled Task")
+    steps = kwargs.get("steps") or []
     return _defer_if_no_running_loop(
-        get_task_simplify_view, user_id, task_identifier, task_title
+        get_task_simplify_view, user_id, task_identifier, task_title, steps
     )
 
 

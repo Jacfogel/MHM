@@ -165,6 +165,25 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ---
 
+### 4.2 Smaller steps as subtasks
+
+**Status**: Shipped on the website (2026-09-26)  
+**Priority**: High  
+**Why it matters**: A hard task is easier to start when the bigger title stays and the next actions are visible.
+
+**Shipped**:
+- [x] Break it down asks the model for a few concrete steps.
+- [x] The steps you keep are saved as subtasks. The original title stays.
+- [x] Home focuses on an open subtask when the bigger task has one.
+- [x] Subtasks are one level deep. The parent stays open until you mark it done.
+- [x] Discord Break it down, and `simplify` in Discord or email, save steps under the original task.
+
+**Acceptance**:
+- Suggesting steps does not rename the original task.
+- A subtask cannot contain its own subtasks.
+
+---
+
 ## Technical Backlog
 
 ### 5. Shared item organization with Notebook
@@ -250,7 +269,7 @@ Future ideas:
 
 Future ideas:
 - suggested tasks based on patterns
-- breaking down complex tasks into subtasks
+- breaking a task into subtasks from chat when the model is asked in a normal sentence, outside the simplify command
 - task ordering suggestions
 - conflict detection
 

@@ -145,7 +145,8 @@ def get_task_reminder_view(
                 f"* `snooze task {short_id} until Friday 3pm`\n\n"
                 f"**To skip this time** (repeating tasks move to the next occurrence):\n"
                 f"* `skip task {short_id}`\n\n"
-                f"**To simplify** (smaller next step, due date stays):\n"
+                f"**To break it down** (smaller steps under this task):\n"
+                f"* `simplify task {short_id}`\n"
                 f"* `simplify task {short_id} to wipe the kitchen counter`\n\n"
                 f"**Task ID:** `{short_id}`"
             )
@@ -180,19 +181,45 @@ def get_task_reminder_view(
             await interaction.followup.send(response.message, ephemeral=True)
 
         @discord.ui.button(
-            label="Simplify",
+            label="Break it down",
             style=discord.ButtonStyle.secondary,
             custom_id=f"task_simplify_{user_id}_{task_id}",
             row=1,
         )
-        @handle_errors("opening task simplify modal", context={"component": "discord"})
+        @handle_errors("suggesting smaller task steps", context={"component": "discord"})
         async def simplify_button(
             self, interaction: discord.Interaction, button: discord.ui.Button
         ):
-            """Ask for a smaller version of the task."""
-            await interaction.response.send_modal(
-                _TaskSimplifyModal(self.user_id, self.task_id, self.task_title)
+            """Suggest smaller steps and let the user save them as subtasks."""
+            await interaction.response.defer(ephemeral=True)
+            from communication.message_processing.interaction_manager import (
+                handle_user_message,
             )
+            from core import get_user_id_by_identifier
+
+            internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
+            if not internal_user_id:
+                await interaction.followup.send(
+                    "❌ Could not find your account. Please try again.", ephemeral=True
+                )
+                return
+            response = handle_user_message(
+                internal_user_id, f"simplify task {self.task_id}", "discord"
+            )
+            steps = []
+            rich_data = response.rich_data if isinstance(response.rich_data, dict) else {}
+            raw_steps = rich_data.get("steps")
+            if isinstance(raw_steps, list):
+                steps = [str(step).strip() for step in raw_steps if str(step).strip()]
+            view = get_task_simplify_view(
+                internal_user_id, self.task_id, self.task_title, steps
+            ) if steps else None
+            if view is not None:
+                await interaction.followup.send(
+                    response.message, view=view, ephemeral=True
+                )
+            else:
+                await interaction.followup.send(response.message, ephemeral=True)
 
     return TaskReminderView(user_id, task_id, task_title)
 
@@ -329,71 +356,86 @@ class _TaskSnoozeCustomModal(discord.ui.Modal, title="Remind me when?"):
         await interaction.followup.send(response.message, ephemeral=True)
 
 
-class _TaskSimplifyModal(discord.ui.Modal, title="Smaller version?"):
-    """Collect a smaller next-step title without changing the due date."""
-
-    title_input = discord.ui.TextInput(
-        label="Smaller version",
-        placeholder="Wipe the kitchen counter",
-        max_length=80,
-        required=True,
-    )
-
-    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
-    def __init__(self, user_id: str, task_id: str, task_title: str):
-        """Store the task this simplify applies to."""
-        super().__init__(timeout=300)
-        self.user_id = user_id
-        self.task_id = task_id
-        self.task_title = task_title
-
-    @handle_errors("submitting simplified task title", context={"component": "discord"})
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        """Rewrite the task to the typed smaller version."""
-        await interaction.response.defer(ephemeral=True)
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
-        )
-        from core import get_user_id_by_identifier
-
-        internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
-        if not internal_user_id:
-            await interaction.followup.send(
-                "❌ Could not find your account. Please try again.", ephemeral=True
-            )
-            return
-        new_title = str(self.title_input.value or "").strip()
-        response = handle_user_message(
-            internal_user_id,
-            f"simplify task {self.task_id} to {new_title}",
-            "discord",
-        )
-        await interaction.followup.send(response.message, ephemeral=True)
-
-
-@handle_errors("creating task simplify view", default_return=None)
+@handle_errors("creating task breakdown view", default_return=None)
 def get_task_simplify_view(
-    user_id: str, task_id: str, task_title: str
+    user_id: str,
+    task_id: str,
+    task_title: str,
+    steps: list[str] | None = None,
 ) -> Optional["discord.ui.View"]:
-    """Create a button that opens the simplify modal after a typed simplify command."""
+    """Create buttons that save suggested steps under the original task."""
+    cleaned = [str(step).strip() for step in steps or [] if str(step).strip()][:5]
+    if not cleaned:
+        return None
 
-    class TaskSimplifyView(discord.ui.View):
+    class TaskBreakdownView(discord.ui.View):
         # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
-        def __init__(self, user_id: str, task_id: str, task_title: str):
-            """Store the task to simplify."""
+        def __init__(self, user_id: str, task_id: str, task_title: str, steps: list[str]):
+            """Store the suggested steps for this task."""
             super().__init__(timeout=300)
             self.user_id = user_id
             self.task_id = task_id
             self.task_title = task_title
+            self.steps = steps
+            self.add_item(_StepSelect(self))
 
-        @discord.ui.button(label="Type smaller version", style=discord.ButtonStyle.primary)
-        @handle_errors("opening typed-command simplify modal", context={"component": "discord"})
-        async def open_simplify_modal(
+        @handle_errors("adding chosen task steps", context={"component": "discord"})
+        async def add_steps(
+            self, interaction: discord.Interaction, titles: list[str]
+        ) -> None:
+            """Save the chosen steps under the original task."""
+            await interaction.response.defer(ephemeral=True)
+            from core import get_user_id_by_identifier
+            from tasks.task_breakdown import add_task_subtasks
+
+            internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
+            if not internal_user_id:
+                await interaction.followup.send(
+                    "❌ Could not find your account. Please try again.", ephemeral=True
+                )
+                return
+            result = add_task_subtasks(internal_user_id, self.task_id, titles)
+            message = result.message if result else "Those steps could not be added."
+            if result and result.success:
+                for child in self.children:
+                    if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+                        child.disabled = True
+                await interaction.edit_original_response(view=self)
+            await interaction.followup.send(message, ephemeral=True)
+
+        @discord.ui.button(label="Add all", style=discord.ButtonStyle.primary, row=1)
+        @handle_errors("adding all suggested task steps", context={"component": "discord"})
+        async def add_all(
             self, interaction: discord.Interaction, button: discord.ui.Button
         ):
-            """Open the smaller-version modal."""
-            await interaction.response.send_modal(
-                _TaskSimplifyModal(self.user_id, self.task_id, self.task_title)
-            )
+            """Save every suggested step."""
+            await self.add_steps(interaction, list(self.steps))
 
-    return TaskSimplifyView(user_id, task_id, task_title)
+    class _StepSelect(discord.ui.Select):
+        # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
+        def __init__(self, parent_view: TaskBreakdownView):
+            """Offer the suggested steps, with all of them selected."""
+            options = [
+                discord.SelectOption(label=step[:100], value=str(index), default=True)
+                for index, step in enumerate(parent_view.steps)
+            ]
+            super().__init__(
+                placeholder="Or choose some steps",
+                min_values=1,
+                max_values=len(options),
+                options=options,
+                row=0,
+            )
+            self.parent_view = parent_view
+
+        @handle_errors("adding selected task steps", context={"component": "discord"})
+        async def callback(self, interaction: discord.Interaction) -> None:
+            """Save the steps the user left selected."""
+            titles = [
+                self.parent_view.steps[int(value)]
+                for value in self.values
+                if str(value).isdigit() and int(value) < len(self.parent_view.steps)
+            ]
+            await self.parent_view.add_steps(interaction, titles)
+
+    return TaskBreakdownView(user_id, task_id, task_title, cleaned)
