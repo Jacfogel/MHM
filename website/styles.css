@@ -639,18 +639,18 @@ button[aria-busy="true"] { cursor: wait; }
 .talk-suggestion { margin: 0; }
 .talk-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; margin-top: 14px; }
 .talk-form textarea { width: 100%; min-height: 72px; resize: vertical; padding: 12px 14px; border: 1px solid #d8d3e7; border-radius: 12px; color: var(--ink); background: #fdfcfe; font: inherit; }
-.home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.home-cards .card { min-height: 0; }
-.home-cards .button { margin-top: 18px; }
+.home-dashboard { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, .65fr); gap: 24px; align-items: start; }
+.home-dashboard .talk-panel { min-width: 0; margin: 0; }
+.today-panel { display: grid; gap: 16px; }
+.today-heading h2 { margin: 4px 0 0; font-size: 1.4rem; }
+.today-card { min-height: 0; padding: 22px; }
+.today-card h3 { margin-bottom: 8px; }
+.today-card .button { margin-top: 14px; }
 .home-focus-why { margin-top: 8px; }
 .home-focus-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; }
 .home-focus-actions .button { margin-top: 0; }
 .home-focus-break { margin-top: 12px; }
 .home-focus-break .button { margin-top: 0; }
-.home-capture { grid-column: 1 / -1; }
-.home-capture form { margin-top: 8px; }
-.home-recent-notes { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
-.home-recent-notes a { color: inherit; text-decoration: none; }
 .setup-layout { max-width: 920px; }
 .setup-progress { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0 0 28px; }
 .setup-progress li { padding: 8px 12px; border-radius: 999px; background: var(--lavender); color: var(--muted); font-size: .82rem; font-weight: 700; }
@@ -663,8 +663,14 @@ button[aria-busy="true"] { cursor: wait; }
 .setup-choice strong { font-size: 1rem; }
 .setup-choice span span { color: var(--muted); font-size: .875rem; font-weight: 400; }
 .setup-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 8px; }
+@media (max-width: 900px) {
+  .home-dashboard { grid-template-columns: 1fr; }
+  .today-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .today-heading { grid-column: 1 / -1; }
+}
 @media (max-width: 760px) {
-  .home-cards { grid-template-columns: 1fr; }
+  .today-panel { grid-template-columns: 1fr; }
+  .today-heading { grid-column: auto; }
   .talk-form { grid-template-columns: 1fr; }
   .talk-bubble { max-width: 100%; }
 }

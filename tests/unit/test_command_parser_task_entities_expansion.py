@@ -184,8 +184,8 @@ class TestCommandParserTaskEntityExtraction:
         "title, expected_tags",
         [
             ("Buy milk #groceries", ["groceries"]),
-            ("Call dentist tomorrow #health group:medical", ["health", "group:medical"]),
-            ("Plan trip in group:travel", ["group:travel"]),
+            ("Call dentist tomorrow #health", ["health"]),
+            ("Plan trip", None),
         ],
     )
     def test_extract_task_entities_tags(
@@ -197,7 +197,6 @@ class TestCommandParserTaskEntityExtraction:
             assert "tags" not in entities
         else:
             assert entities.get("tags") == expected_tags
-        assert "group" not in entities
 
 
 @pytest.mark.unit

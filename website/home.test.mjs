@@ -44,11 +44,6 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-checkin-on', node()],
     ['home-checkin-off', node()],
     ['home-checkin-status', node()],
-    ['home-capture-form', node()],
-    ['home-note', node({ value: 'A parked thought' })],
-    ['home-capture-submit', node()],
-    ['home-capture-status', node()],
-    ['home-recent-notes', node()],
   ]);
   const requests = [];
   const navigation = [];
@@ -67,8 +62,6 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       if (url === '/api/tasks?status=active') return Response.json(tasks);
       if (url === '/api/tasks/effort') return Response.json(efforts);
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
-      if (url === '/api/notes?status=active') return Response.json({ notes: [] });
-      if (url === '/api/notes') return Response.json({ ok: true }, { status: 201 });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       return Response.json({ error: 'missing' }, { status: 404 });
     }),
@@ -76,9 +69,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
   });
   vm.runInContext(source, context);
   for (let i = 0; i < 8; i += 1) await new Promise(resolve => setImmediate(resolve));
-  return { nodes, requests, navigation, async capture() {
-    await nodes.get('home-capture-form').listeners.submit({ preventDefault() {} });
-  }, async checkin() {
+  return { nodes, requests, navigation, async checkin() {
     await nodes.get('home-checkin').listeners.click({ currentTarget: nodes.get('home-checkin') });
   } };
 }
@@ -102,7 +93,6 @@ test('home stays put when the account summary omits setup flags', async () => {
     account: { preferred_name: 'Brook' },
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'Brook' });
-      if (url === '/api/notes?status=active') return Response.json({ notes: [] });
       if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
       if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
       return Response.json({ tasks: [] });
@@ -206,41 +196,6 @@ test('home warns when task reminders are off', async () => {
   assert.equal(view.nodes.get('home-task-title').textContent, 'Drink water');
   assert.equal(view.requests.some(request => request.url === '/api/tasks?status=active'), true);
   assert.equal(view.nodes.get('home-checkin-off').hidden, true);
-});
-
-test('a one-line capture is saved as a notebook note', async () => {
-  const view = await page();
-  await view.capture();
-  const saved = view.requests.find(request => request.url === '/api/notes');
-  assert.deepEqual(JSON.parse(saved.options.body), {
-    kind: 'note',
-    title: 'A parked thought',
-    description: 'A parked thought',
-  });
-  assert.equal(view.nodes.get('home-note').value, '');
-});
-
-test('home lists recent note titles under the capture box', async () => {
-  const view = await page({
-    fetchImpl: async (url) => {
-      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
-      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
-      if (url === '/api/notes?status=active') {
-        return Response.json({
-          notes: [
-            { title: 'Pharmacy call' },
-            { title: '', description: 'The gate code is on the fridge' },
-          ],
-        });
-      }
-      return Response.json({ error: 'missing' }, { status: 404 });
-    },
-  });
-  const labels = view.nodes.get('home-recent-notes').childNodes.map(item => item.childNodes[0].textContent);
-  assert.deepEqual(labels, ['Pharmacy call', 'The gate code is on the fridge']);
-  assert.equal(view.nodes.get('home-recent-notes').childNodes[0].childNodes[0].href, 'notes.html');
 });
 
 test('home.js can load after app.js without a global status clash', async () => {

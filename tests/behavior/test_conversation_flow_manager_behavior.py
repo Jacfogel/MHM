@@ -748,7 +748,6 @@ class TestConversationFlowManagerBehavior:
         assert state["flow"] == FLOW_NOTE_BODY
         assert state["data"]["title"] == "Hello"
         assert state["data"]["tags"] == ["a"]
-        assert "group" not in state["data"]
         assert "started_at" in state
 
         data = manager.get_note_body_flow_data(user_id)

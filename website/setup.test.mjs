@@ -14,12 +14,14 @@ function node(extras = {}) {
     checked: false,
     selected: false,
     required: false,
+    dataset: {},
     children: [],
     classList: { add() {}, remove() {}, toggle() {} },
-    setAttribute() {},
-    removeAttribute() {},
+    setAttribute(name, value) { this[name] = value; },
+    removeAttribute(name) { delete this[name]; },
     replaceChildren(...children) { this.children = children; },
-    append(child) { this.children.push(child); },
+    append(...children) { this.children.push(...children); },
+    querySelectorAll() { return []; },
     addEventListener(type, listener) { this.listeners = this.listeners || {}; this.listeners[type] = listener; },
     ...extras,
   };
@@ -46,18 +48,30 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
     ['setup-content', node()],
     ['setup-continue', node({ textContent: 'Continue →' })],
     ['setup-skip', node()],
+    ['setup-back', node()],
+    ['setup-progress', node()],
     ['step-1', node({ hidden: false })],
+    ['step-discord', node()],
     ['step-2', node()],
-    ['step-3', node()],
-    ['progress-1', node()],
-    ['progress-2', node()],
-    ['progress-3', node()],
+    ['step-message-categories', node()],
+    ['step-message-windows', node()],
+    ['step-task-create', node()],
+    ['step-task-windows', node()],
+    ['step-checkin-questions', node()],
+    ['step-checkin-windows', node()],
     ['preferred-name', node({ value: '' })],
     ['timezone', node({ value: '' })],
-    ['enable-messages', node({ checked: true })],
+    ['enable-messages', node({ checked: false })],
     ['enable-tasks', node({ checked: true })],
-    ['enable-checkins', node({ checked: true })],
+    ['enable-checkins', node({ checked: false })],
     ['first-task', node({ value: 'Drink water' })],
+    ['setup-connect-discord', node()],
+    ['discord-setup-state', node()],
+    ['message-categories', node()],
+    ['message-windows', node()],
+    ['task-windows', node()],
+    ['checkin-questions', node()],
+    ['checkin-windows', node()],
     ['setup-form', node()],
   ]);
   const requests = [];
@@ -67,11 +81,15 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
     document: {
       getElementById(id) { return nodes.get(id); },
       createElement() { return node(); },
+      querySelectorAll() { return []; },
     },
     window: { dispatchEvent() {} },
     Event,
+    URLSearchParams,
+    crypto: { randomUUID() { return String(Math.random()); } },
+    history: { replaceState() {} },
     Intl: { DateTimeFormat() { return { resolvedOptions() { return { timeZone: 'America/Regina' }; } }; } },
-    location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
+    location: { search: '', pathname: '/setup.html', replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: async (url, options = {}) => {
       requests.push({ url, method: options.method || 'GET', body: options.body });
       if (url === '/api/account') return Response.json(account);
@@ -86,6 +104,7 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
         return Response.json(current);
       }
       if (url === '/api/tasks') return Response.json({ ok: true }, { status: 201 });
+      if (url === '/api/account/setup-complete') return Response.json({ ok: true });
       return Response.json({ error: 'missing' }, { status: 404 });
     },
     Response,
@@ -94,31 +113,36 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
   for (let i = 0; i < 8; i += 1) await new Promise(resolve => setImmediate(resolve));
   return { nodes, requests, navigation, async continue() {
     await nodes.get('setup-form').listeners.submit({ preventDefault() {} });
-    await new Promise(resolve => setImmediate(resolve));
+    for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
+  }, async skip() {
+    await nodes.get('setup-skip').listeners.click();
+    for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
   } };
 }
 
-test('first-run walks name, support choices, and a first task', async () => {
+test('first-run walks name, delivery, support choices, and a first task', async () => {
   const view = await page();
   assert.equal(view.nodes.get('setup-content').hidden, false);
   assert.equal(view.nodes.get('preferred-name').value, 'Brook');
   view.nodes.get('preferred-name').value = 'River';
   await view.continue();
+  assert.equal(view.nodes.get('step-discord').hidden, false);
+  await view.continue();
   assert.equal(view.nodes.get('step-2').hidden, false);
+  view.nodes.get('enable-messages').checked = false;
+  view.nodes.get('enable-checkins').checked = false;
+  view.nodes.get('enable-tasks').checked = true;
   await view.continue();
-  assert.equal(view.nodes.get('step-3').hidden, false);
+  assert.equal(view.nodes.get('step-task-create').hidden, false);
   await view.continue();
+  assert.equal(view.nodes.get('step-task-windows').hidden, false);
+  await view.skip();
   const settingsPosts = view.requests.filter(request => request.url === '/api/settings' && request.method === 'POST').map(request => JSON.parse(request.body));
-  assert.equal(settingsPosts[0].section, 'profile');
-  assert.equal(settingsPosts[0].values.preferred_name, 'River');
-  assert.equal(settingsPosts[1].section, 'delivery');
-  assert.equal(settingsPosts[2].section, 'messages');
-  assert.equal(settingsPosts[2].values.enabled, true);
-  assert.deepEqual(settingsPosts[2].values.categories, ['motivational']);
-  assert.equal(settingsPosts[3].section, 'tasks');
-  assert.equal(settingsPosts[3].values.enabled, true);
-  assert.equal(settingsPosts[4].section, 'checkins');
-  assert.equal(settingsPosts[4].values.enabled, true);
+  assert.equal(settingsPosts.find(post => post.section === 'profile').values.preferred_name, 'River');
+  assert.equal(settingsPosts.filter(post => post.section === 'delivery').length, 2);
+  assert.equal(settingsPosts.find(post => post.section === 'messages').values.enabled, false);
+  assert.equal(settingsPosts.find(post => post.section === 'tasks').values.enabled, true);
+  assert.equal(settingsPosts.find(post => post.section === 'checkins').values.enabled, false);
   const task = view.requests.find(request => request.url === '/api/tasks');
   assert.deepEqual(JSON.parse(task.body), { title: 'Drink water' });
   assert.deepEqual(view.navigation, ['home.html']);

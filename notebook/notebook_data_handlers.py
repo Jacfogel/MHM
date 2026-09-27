@@ -79,15 +79,20 @@ def load_entries(user_id: str) -> list[Entry]:
         return []
 
     entries_data = raw_data.get("entries", [])
-    entries_data = [_entry_v2_to_runtime(entry) for entry in entries_data if isinstance(entry, dict)]
     loaded_entries: list[Entry] = []
-    for entry_data in entries_data:
+    for persisted_entry in entries_data:
+        if not isinstance(persisted_entry, dict):
+            continue
         try:
+            validated = NotebookV2Model.model_validate(persisted_entry).model_dump(
+                mode="json"
+            )
+            entry_data = _entry_v2_to_runtime(validated)
             entry = Entry.model_validate(entry_data)
             loaded_entries.append(entry)
         except Exception as e:
             logger.error(
-                f"Failed to validate notebook entry for user {user_id}: {e} - Data: {entry_data}"
+                f"Failed to validate notebook entry for user {user_id}: {e} - Data: {persisted_entry}"
             )
 
     logger.debug(f"Loaded {len(loaded_entries)} notebook entries for user {user_id}.")
