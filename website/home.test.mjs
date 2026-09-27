@@ -33,9 +33,12 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-task-done', node()],
     ['home-task-later', node()],
     ['home-task-break', node()],
+    ['home-task-own', node()],
     ['home-task-break-form', node()],
     ['home-task-steps', node()],
     ['home-task-break-save', node()],
+    ['home-task-step-title', node({ value: '' })],
+    ['home-task-step-add', node()],
     ['home-task-status', node()],
     ['home-task-off', node()],
     ['home-tasks', node({ hidden: false })],
@@ -191,6 +194,23 @@ test('home picks an open subtask and keeps the bigger task', async () => {
   assert.equal(view.nodes.get('home-task-title').textContent, 'Find the phone number');
   assert.match(view.nodes.get('home-task-why').textContent, /Part of Call the dentist/);
   assert.equal(view.nodes.get('home-task-break').hidden, true);
+  assert.equal(view.nodes.get('home-task-own').hidden, false);
+  await view.nodes.get('home-task-own').listeners.click();
+  const detached = view.requests.find(request => request.url === '/api/tasks/phone/detach');
+  assert.deepEqual(JSON.parse(detached.options.body), {});
+});
+
+test('home can add a step you type', async () => {
+  const today = new Date();
+  const pad = value => String(value).padStart(2, '0');
+  const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  const view = await page({
+    tasks: { tasks: [{ id: 'kitchen', title: 'Clean the kitchen', due_date: todayKey, priority: 'medium' }] },
+  });
+  view.nodes.get('home-task-step-title').value = 'Wipe the counter';
+  await view.nodes.get('home-task-step-add').listeners.click();
+  const added = view.requests.find(request => request.url === '/api/tasks/kitchen/subtasks');
+  assert.deepEqual(JSON.parse(added.options.body), { titles: ['Wipe the counter'] });
 });
 
 test('home returns to the bigger task when its smaller step is set aside', async () => {

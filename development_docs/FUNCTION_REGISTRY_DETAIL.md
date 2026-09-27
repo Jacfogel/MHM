@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-26 21:58:14
+> **Last Generated**: 2026-09-27 11:08:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 292
-- **Functions Found**: 2844
+- **Functions Found**: 2852
 - **Methods Found**: 1434
 - **Classes Found**: 267
-- **Total Items**: 4278
-- **Functions Documented**: 2541
+- **Total Items**: 4286
+- **Functions Documented**: 2549
 - **Methods Documented**: 1288
 - **Classes Documented**: 200
-- **Total Documented**: 3829
+- **Total Documented**: 3837
 - **Template-Generated**: 58
-- **Last Updated**: 2026-09-26
+- **Last Updated**: 2026-09-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (547)
+### **Core System Functions** (548)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (747)
+### **Communication Functions** (749)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (162)
+### **Task Management Functions** (167)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1679,6 +1679,7 @@ Returns:
 - [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
 - [OK] `_task_service()` - Return the cached ``tasks.task_service`` module (lazy import for circular-import safety).
 - [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
+- [OK] `_valid_pending_restore(user_id)` - Return a non-expired pending restore choice, or None.
 - [OK] `_valid_pending_simplify(user_id)` - Return a non-expired pending simplify prompt, or None.
 - [OK] `_valid_pending_task_action(user_id)` - Return a non-expired pending update/complete/note action, or None.
 - [OK] `_valid_pending_task_offer(user_id)` - Return a non-expired pending create offer, or None.
@@ -1687,6 +1688,7 @@ Returns:
 - [OK] `get_help(self)` - Get help text for task management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
+- [OK] `handle_pending_restore(user_id, message)` - Restore the last task with its steps, or the task alone.
 - [OK] `handle_pending_simplify(user_id, message)` - Add suggested steps, or one typed step, under the task from the last prompt.
 - [OK] `handle_pending_task_action(user_id, message)` - Apply a remembered task action when the user answers with a number or name.
 - [OK] `handle_pending_task_offer(user_id, message)` - Create or decline a pending offered task when the user answers yes/no.
@@ -3517,8 +3519,8 @@ Returns an early InteractionResponse or a converted message for continued parsin
 #### `communication/reminders/reminder_dispatcher.py`
 **Functions:**
 - [OK] `__init__(self, communication_manager)` - Special Python method
-- [OK] `create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-- [OK] `create_task_reminder_view(self, user_id, task_identifier, task, messaging_service)` - Create a channel-specific interactive reminder view when supported.
+- [OK] `create_task_reminder_message(self, task, focus_step)` - Create a formatted task reminder message.
+- [OK] `create_task_reminder_view(self, user_id, task_identifier, task, messaging_service, task_title)` - Create a channel-specific interactive reminder view when supported.
 - [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
 
 ``task_identifier`` matches the task record's canonical ``id`` or another
@@ -3526,8 +3528,8 @@ value ``get_task_by_id`` accepts.
 **Classes:**
 - [OK] `TaskReminderDispatcher` - Loads task reminder context, formats the reminder, and sends it.
   - [OK] `TaskReminderDispatcher.__init__(self, communication_manager)` - Special Python method
-  - [OK] `TaskReminderDispatcher.create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-  - [OK] `TaskReminderDispatcher.create_task_reminder_view(self, user_id, task_identifier, task, messaging_service)` - Create a channel-specific interactive reminder view when supported.
+  - [OK] `TaskReminderDispatcher.create_task_reminder_message(self, task, focus_step)` - Create a formatted task reminder message.
+  - [OK] `TaskReminderDispatcher.create_task_reminder_view(self, user_id, task_identifier, task, messaging_service, task_title)` - Create a channel-specific interactive reminder view when supported.
   - [OK] `TaskReminderDispatcher.handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
 
 ``task_identifier`` matches the task record's canonical ``id`` or another
@@ -5179,6 +5181,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `discord_redirect_uri()` - Return the configured Discord callback URI or the website default.
 - [OK] `documents(self, uid)` - Load the account documents exposed through self-service settings.
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
+- [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
 - [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
@@ -6372,6 +6375,9 @@ Returns:
 - [OK] `_parent_id(task)` - Return the parent task id, or an empty string when this task is top-level.
 - [OK] `_task_id(task)` - Return the task id, or an empty string when it is missing.
 - [OK] `add_task_subtasks(user_id, task_id, titles)` - Save chosen steps as tasks under the original task. The original title stays.
+- [OK] `detach_task_step(user_id, task_id)` - Clear parent_id so this step stands on its own.
+- [OK] `next_open_step(user_id, task)` - Return the oldest open step under this task, if it has one.
+- [OK] `next_open_step_id(user_id, task_id)` - Return the id of the oldest open step under this task, or an empty string.
 - [OK] `parse_task_step_lines(text)` - Keep short, unique task titles from a model reply.
 - [OK] `suggest_breakdown(user_id, task_id)` - Ask the model for a few concrete steps under this task.
 **Classes:**
@@ -6415,8 +6421,10 @@ Returns:
 #### `tasks/task_data_manager.py`
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
+- [OK] `_completion_fields(completion_data)` - Return the completion record stored on a finished task.
+- [OK] `_copy_subtasks_to_next_occurrence(user_id, old_parent_id, new_parent_id, due_date, due_time)` - Save the finished occurrence's steps as open steps on the next one.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
-- [OK] `_remove_matching_task(tasks, task_id)` - Return remaining tasks and the first matching task, if any.
+- [OK] `_is_task_or_direct_child(task, found, parent_key)` - Return True for the task itself or a step saved directly under it.
 - [OK] `_task_due_date(task)` - Return canonical due date.
 - [OK] `_task_due_time(task)` - Return canonical due time.
 - [OK] `_task_id(task)` - Return canonical task ID.
@@ -6427,14 +6435,16 @@ Returns:
 - [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's tag list (shared tag system).
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_identifier)` - Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id).
-- [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
+- [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed, and finish its open steps with it.
 - [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, links, parent_id)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it from active or completed lists).
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
 - [OK] `get_user_task_stats(user_id)` - Get task statistics for a user.
 - [OK] `remove_user_task_tag(user_id, tag)` - Remove a tag from the user's tag list (shared tag system).
-- [OK] `restore_task(user_id, task_id)` - Restore a completed task to active status.
+- [OK] `restore_task(user_id, task_id, restore_steps)` - Restore a completed task to active status.
+
+When restore_steps is true, finished steps of a top-level task come back with it.
 - [OK] `schedule_task_reminders(user_id, task_id, reminder_periods)` - Schedule reminders for a specific task based on its reminder periods.
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
@@ -6573,7 +6583,7 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `parse_time_string(time_str)` - Parse user-facing time text into HH:MM format.
 - [OK] `prepare_create_task_data(user_id, entities, now_dt)` - Normalize ParsedCommand entities into task creation fields.
 - [OK] `remove_task_link(user_id, task_id, matcher)` - Remove a task link by URL or label. Returns removed, missing, or not_found.
-- [MISSING] `restore_task(user_id, task_id)` - No description
+- [MISSING] `restore_task(user_id, task_id, restore_steps)` - No description
 - [OK] `sort_tasks_by_priority_and_due_date(tasks)` - Sort active tasks by priority, then due date.
 - [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.
 - [OK] `task_short_identifier(task)` - Return canonical task short_id (``t...``) for matching and display.

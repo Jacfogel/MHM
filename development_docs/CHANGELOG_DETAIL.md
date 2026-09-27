@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-27 - Task steps stay with the parent
+- **Feature**: Completing a task also completes its open steps, and deleting a task deletes those steps too. Restoring that task asks whether to bring the finished steps back. A repeating task keeps the same step titles on the next occurrence. A reminder for a task that has an open step names that step and says which task it belongs to. Done finishes the step. Later and Skip still apply to the parent reminder. Sentences such as `break that into steps` and `break it down` start the same breakdown as `simplify`. Home and the Tasks page can add a step you type, and a step can become its own task. See [task_data_manager.py](../tasks/task_data_manager.py), [task_breakdown.py](../tasks/task_breakdown.py), [reminder_dispatcher.py](../communication/reminders/reminder_dispatcher.py), [command_parser.py](../communication/message_processing/command_parser.py), [home.js](../website/home.js), and [tasks.js](../website/tasks.js).
+- **Impact**: Smaller steps no longer get stuck after the bigger task is finished or deleted, a restore can bring them back, a weekly task does not lose its steps, and the reminder tells you the step you can start. You can type a step on Home or Tasks, or separate a step from its parent.
+- **Fix**: Bulk complete and delete rank each step with the shared error handler. If that rank fails, the task is still updated with the rest of the selection. See [web_account_service.py](../core/web_account_service.py).
+
 ### 2026-09-26 - Home Today panel sits under chat
 - **Feature**: The signed-in home page no longer places Today beside Talk to MHM. The chat uses the full content width, and A quick look sits underneath. Next task and Check-in share that row until the screen is narrow, then they stack. See [styles.css](../website/styles.css) and [home.html](../website/home.html).
 - **Impact**: The conversation is the main surface, and today's task and check-in stay visible below it.

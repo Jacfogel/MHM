@@ -70,6 +70,39 @@ def _open_children(tasks: list[dict[str, Any]], parent_id: str) -> list[dict[str
     ]
 
 
+@handle_errors("choosing the open step for a reminder", default_return=None)
+def next_open_step(user_id: str, task: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Return the oldest open step under this task, if it has one."""
+    if not user_id or not isinstance(task, dict) or _parent_id(task):
+        return None
+    parent_id = _task_id(task)
+    if not parent_id:
+        return None
+    from tasks.task_service import load_active_tasks
+
+    children = _open_children(load_active_tasks(user_id) or [], parent_id)
+    if not children:
+        return None
+    return sorted(
+        children,
+        key=lambda child: (
+            str(child.get("created_at") or ""),
+            str(child.get("title") or ""),
+        ),
+    )[0]
+
+
+@handle_errors("choosing the open step id for a reminder", default_return="")
+def next_open_step_id(user_id: str, task_id: str) -> str:
+    """Return the id of the oldest open step under this task, or an empty string."""
+    if not user_id or not task_id:
+        return ""
+    from tasks.task_data_manager import get_task_by_id
+
+    step = next_open_step(user_id, get_task_by_id(user_id, task_id))
+    return _task_id(step) if isinstance(step, dict) else ""
+
+
 @handle_errors("suggesting smaller task steps", default_return=None)
 def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
     """Ask the model for a few concrete steps under this task."""
@@ -228,3 +261,38 @@ def add_task_subtasks(
         f"Added {saved} smaller {step_word} under {parent_title}. The original task stays.",
         steps=chosen[:saved],
     )
+
+
+@handle_errors("detaching a task step", default_return=None)
+def detach_task_step(user_id: str, task_id: str) -> TaskBreakdownResult | None:
+    """Clear parent_id so this step stands on its own."""
+    if not user_id or not task_id:
+        return TaskBreakdownResult(False, "I need a step to separate.")
+    from core.time_utilities import now_timestamp_full
+    from tasks.task_data_handlers import load_active_tasks, save_active_tasks
+    from tasks.task_data_manager import get_task_by_id
+
+    task = get_task_by_id(user_id, task_id)
+    if not task:
+        return TaskBreakdownResult(False, "I could not find that task.")
+    if str(task.get("status") or "") == "completed":
+        return TaskBreakdownResult(
+            False, "Restore that step before making it its own task."
+        )
+    if not _parent_id(task):
+        return TaskBreakdownResult(False, "That task is already on its own.")
+    target_id = _task_id(task)
+    tasks = load_active_tasks(user_id) or []
+    for item in tasks:
+        if _task_id(item) != target_id:
+            continue
+        item["parent_id"] = None
+        item["updated_at"] = now_timestamp_full()
+        if not save_active_tasks(user_id, tasks):
+            return TaskBreakdownResult(
+                False, "I could not separate that step. Please try again."
+            )
+        title = str(task.get("title") or "That step")
+        logger.info(f"Detached step {target_id} for user {user_id}")
+        return TaskBreakdownResult(True, f"{title} is its own task now.")
+    return TaskBreakdownResult(False, "I could not find that task.")

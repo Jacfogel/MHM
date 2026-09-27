@@ -93,9 +93,19 @@ class TaskReminderDispatcher:
             )
             return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
-        reminder_message = self.create_task_reminder_message(task)
+        from tasks.task_breakdown import next_open_step
+
+        focus_step = next_open_step(user_id, task)
+        reminder_message = self.create_task_reminder_message(task, focus_step=focus_step)
+        display_title = str(
+            (focus_step or task).get("title") or task.get("title") or "Untitled Task"
+        )
         custom_view = self.create_task_reminder_view(
-            user_id, task_identifier, task, messaging_service
+            user_id,
+            task_identifier,
+            task,
+            messaging_service,
+            task_title=display_title,
         )
         send_kwargs: dict[str, str] = {}
         if messaging_service == "email":
@@ -104,9 +114,7 @@ class TaskReminderDispatcher:
                 "Reply with done, later, skip, or simplify to <smaller step>. "
                 "Example: simplify to wipe the kitchen counter."
             )
-            send_kwargs["subject"] = (
-                f"Task reminder: {task.get('title', 'Untitled Task')}"
-            )
+            send_kwargs["subject"] = f"Task reminder: {display_title}"
             send_kwargs["reply_kind"] = "task_reminder"
             send_kwargs["task_id"] = task_identifier
 
@@ -144,6 +152,7 @@ class TaskReminderDispatcher:
         task_identifier: str,
         task: dict,
         messaging_service: str,
+        task_title: str | None = None,
     ):
         """Create a channel-specific interactive reminder view when supported."""
         from communication.communication_channels.interaction_view_factory import (
@@ -155,11 +164,13 @@ class TaskReminderDispatcher:
             "task_reminder",
             user_id,
             task_identifier=task_identifier,
-            task_title=task.get("title", "Untitled Task"),
+            task_title=task_title or task.get("title", "Untitled Task"),
         )
 
     @handle_errors("creating task reminder message", default_return="Task reminder")
-    def create_task_reminder_message(self, task: dict) -> str:
+    def create_task_reminder_message(
+        self, task: dict, focus_step: dict | None = None
+    ) -> str:
         """Create a formatted task reminder message."""
         if not task or not isinstance(task, dict):
             logger.error(f"Invalid task: {task}")
@@ -167,10 +178,11 @@ class TaskReminderDispatcher:
 
         from tasks.task_data_handlers import runtime_task_due_date
 
-        title = task.get("title", "Untitled Task")
-        description = task.get("description", "")
-        due_date = runtime_task_due_date(task) or ""
-        priority = task.get("priority", "medium")
+        shown = focus_step if isinstance(focus_step, dict) else task
+        title = shown.get("title", "Untitled Task")
+        description = shown.get("description", "")
+        due_date = runtime_task_due_date(shown) or runtime_task_due_date(task) or ""
+        priority = shown.get("priority") or task.get("priority", "medium")
 
         priority_emoji = {
             "low": "🟢",
@@ -181,6 +193,10 @@ class TaskReminderDispatcher:
 
         message = f"💡 **Task Reminder:** {priority_emoji}\n\n"
         message += f"**{title}**\n"
+        if isinstance(focus_step, dict):
+            parent_title = str(task.get("title") or "").strip()
+            if parent_title:
+                message += f"Part of {parent_title}\n"
 
         if description:
             message += f"{description}\n\n"

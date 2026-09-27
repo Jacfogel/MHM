@@ -71,7 +71,10 @@ def get_task_reminder_view(
             internal_user_id = get_user_id_by_identifier(discord_user_id)
 
             if internal_user_id:
-                message = f"complete task {self.task_id}"
+                from tasks.task_breakdown import next_open_step_id
+
+                target_id = next_open_step_id(internal_user_id, self.task_id) or self.task_id
+                message = f"complete task {target_id}"
                 response = handle_user_message(internal_user_id, message, "discord")
                 await interaction.followup.send(response.message, ephemeral=True)
             else:

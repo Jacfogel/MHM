@@ -12,6 +12,9 @@ test('task help asks for smaller steps instead of replacing the title', () => {
   assert.match(source, /Suggest smaller steps/);
   assert.match(source, /\/breakdown/);
   assert.match(source, /'subtasks'/);
+  assert.match(source, /task-step-title/);
+  assert.match(source, /Make this its own task/);
+  assert.match(source, /restore_steps/);
   assert.doesNotMatch(source, /simplify-title/);
 });
 

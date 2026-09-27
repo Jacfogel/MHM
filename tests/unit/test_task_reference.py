@@ -45,6 +45,9 @@ def test_is_pronoun_task_identifier(identifier, expected):
     "text, expected",
     [
         ("make that due tomorrow", True),
+        ("break that into steps", True),
+        ("break it down", True),
+        ("break down that", True),
         ("that's urgent", True),
         ("mark that done", True),
         ("add a note to that: bring the card", True),

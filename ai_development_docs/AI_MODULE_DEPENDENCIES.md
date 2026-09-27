@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-26 21:58:40
+> **Last Generated**: 2026-09-27 11:09:11
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 290
-- **Total Imports**: 2589
-- **Standard Library**: 746 (28.8%)
+- **Total Imports**: 2601
+- **Standard Library**: 747 (28.7%)
 - **Third-Party**: 223 (8.6%)
-- **Local Imports**: 1620 (62.6%)
+- **Local Imports**: 1631 (62.7%)
 
 ## Dependency Decision Trees
 
@@ -50,7 +50,7 @@ Communication Dependencies:
   - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
 - Specific Channels
-  - communication/message_processing/email_reply_routing.py <- standard library (__future__, re), shared_types, conversation_flow_manager, error_handling, logger, task_reminder_snooze (+1 more)
+  - communication/message_processing/email_reply_routing.py <- standard library (__future__, re), shared_types, conversation_flow_manager, error_handling, logger, task_reminder_snooze (+2 more)
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
@@ -114,7 +114,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 31 unique local dependencies (high fan-out; review for inappropriate edges) (55 import statements; 24 duplicate)
+- `core/web_account_service.py` -> 32 unique local dependencies (high fan-out; review for inappropriate edges) (57 import statements; 25 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 18 unique local dependencies (high fan-out; review for inappropriate edges) (19 import statements; 1 duplicate)

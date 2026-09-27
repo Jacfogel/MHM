@@ -93,6 +93,7 @@ Manage tasks with natural language or short commands.
 • Discord **Break it down**: suggest smaller steps and save the ones you want under the task
 • `skip that` / `skip task 1` / `skip this occurrence`
 • `simplify that` / `simplify that to wipe the kitchen counter`
+• `break that into steps` / `break it down`
 
 **Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
 
@@ -123,6 +124,7 @@ PENDING_DELETIONS: dict[str, str] = {}
 PENDING_TASK_OFFERS: dict[str, dict[str, Any]] = {}
 PENDING_TASK_ACTIONS: dict[str, dict[str, Any]] = {}
 PENDING_SIMPLIFY: dict[str, dict[str, Any]] = {}
+PENDING_RESTORE: dict[str, dict[str, Any]] = {}
 
 _CONFIRM_TASK_OFFER_RE = re.compile(
     r"(?i)^(yes,?\s+add it|yes please|yes|yeah|yep|sure|add it|please do)$"
@@ -141,6 +143,12 @@ _KEEP_PENDING_LIST_RE = re.compile(
     r"show my (?:task )?list|show my tasks|list(?: my)? tasks|show tasks|"
     r"what(?:'?s| is) on my (?:task )?list"
     r")$"
+)
+_RESTORE_WITH_STEPS_RE = re.compile(
+    r"(?i)^(yes|yeah|yep|with the steps|bring the steps back|bring them back)$"
+)
+_RESTORE_TASK_ONLY_RE = re.compile(
+    r"(?i)^(no|just the task|task only|without the steps)$"
 )
 _COMMANDISH_SIMPLIFY_REPLY_RE = re.compile(
     r"(?i)^(show|list|complete|delete|snooze|skip|simplify|update|help|cancel|"
@@ -252,6 +260,56 @@ def handle_pending_simplify(
             "simplified_title": stripped,
         },
     )
+
+
+@handle_errors("loading pending task restore", default_return=None)
+def _valid_pending_restore(user_id: str) -> dict[str, Any] | None:
+    """Return a non-expired pending restore choice, or None."""
+    pending = PENDING_RESTORE.get(user_id)
+    if not pending:
+        return None
+    asked_at = parse_timestamp_full(str(pending.get("asked_at") or ""))
+    if asked_at is None:
+        PENDING_RESTORE.pop(user_id, None)
+        return None
+    age_seconds = (now_datetime_full() - asked_at).total_seconds()
+    if age_seconds < 0 or age_seconds > _TASK_OFFER_TTL_MINUTES * 60:
+        PENDING_RESTORE.pop(user_id, None)
+        return None
+    if not pending.get("task_id"):
+        PENDING_RESTORE.pop(user_id, None)
+        return None
+    return pending
+
+
+@handle_errors("handling pending task restore choice", default_return=None)
+def handle_pending_restore(
+    user_id: str, message: str
+) -> InteractionResponse | None:
+    """Restore the last task with its steps, or the task alone."""
+    pending = _valid_pending_restore(user_id)
+    if not pending:
+        return None
+    stripped = str(message or "").strip()
+    if not stripped:
+        return None
+    if _CANCEL_PENDING_ACTION_RE.match(stripped):
+        PENDING_RESTORE.pop(user_id, None)
+        return InteractionResponse("Okay, I left that task completed.", True)
+    with_steps = _RESTORE_WITH_STEPS_RE.match(stripped)
+    task_only = _RESTORE_TASK_ONLY_RE.match(stripped)
+    if not with_steps and not task_only:
+        PENDING_RESTORE.pop(user_id, None)
+        return None
+    PENDING_RESTORE.pop(user_id, None)
+    task_id = str(pending.get("task_id") or "")
+    if _task_service().restore_task(user_id, task_id, restore_steps=bool(with_steps)):
+        if with_steps:
+            return InteractionResponse(
+                "Restored that task and its smaller steps.", True
+            )
+        return InteractionResponse("Restored that task. Its steps stay finished.", True)
+    return InteractionResponse("That task could not be restored. Please try again.", True)
 
 
 @handle_errors("loading sorted active tasks for which-task replies", default_return=[])
@@ -1397,6 +1455,25 @@ class TaskManagementHandler(InteractionHandler):
                 True,
             )
         task_id = _task_identifier(task)
+        parent_key = str(task.get("id") or "").strip()
+        steps = [
+            item
+            for item in (completed_tasks or [])
+            if parent_key and str(item.get("parent_id") or "").strip() == parent_key
+        ]
+        if steps and not str(task.get("parent_id") or "").strip():
+            PENDING_RESTORE[user_id] = {
+                "task_id": task_id,
+                "asked_at": now_timestamp_full(),
+            }
+            count = len(steps)
+            word = "step" if count == 1 else "steps"
+            title = task.get("title", "Task")
+            return InteractionResponse(
+                f"Restore **{title}** with its {count} smaller {word}, or just the task?",
+                False,
+                suggestions=["With the steps", "Just the task"],
+            )
         if _task_service().restore_task(user_id, task_id):
             return InteractionResponse(
                 f"✅ Restored to active: {task.get('title', 'Task')}", True

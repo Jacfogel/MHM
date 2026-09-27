@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-27 - Task steps stay with the parent **COMPLETED**
+- Completing or deleting a task now completes or deletes its steps. Restoring that task can bring the finished steps back. A repeating task copies those step titles onto the next occurrence.
+- Reminders name the oldest open step and say which task it is part of. Done finishes that step. Later and Skip still apply to the parent reminder.
+- Home and the Tasks page can add a step you type. A step can become its own task.
+- `break that into steps` and `break it down` start the same breakdown as `simplify`.
+- Bulk task ranking uses the shared error handler, so a bad rank cannot stop the rest of the selection.
+
 ### 2026-09-26 - Home Today panel sits under chat **COMPLETED**
 - The home page stacks Talk to MHM above Today. Next task and Check-in sit side by side under the chat, and stack on a narrow screen.
 - Break it down asks for smaller steps and saves the ones you keep as subtasks. The original task title stays. Home then focuses on an open subtask.
@@ -106,11 +113,6 @@ Guidelines:
 - Added a forgot-password flow that verifies the account by emailed code, replaces the password, revokes older sessions, and signs the recovered account in without revealing whether unknown emails exist.
 - Website mood insights now explain that the trend compares the latest seven mood ratings with the previous seven, show progress until 14 ratings exist, and distinguish missing mood answers from missing check-ins.
 - Focused Python and browser/Worker coverage validates recovery, safe unknown-account behavior, trend readiness, and the updated login controls.
-
-### 2026-09-19 - Desktop and website data-safety parity **COMPLETED**
-- Desktop tasks preserve urgent priority and can explicitly clear recurrence; message templates preserve custom/ALL schedules and active state.
-- Message delivery matches website day codes case-insensitively and excludes paused templates. General and future custom check-in categories remain visible.
-- Structured important-person profiles round-trip without flattening or dropping metadata. Focused validation passed 81 tests plus Ruff and compilation; 19 check-in UI tests are platform-skipped on Windows.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

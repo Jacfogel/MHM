@@ -41,6 +41,7 @@ def try_parsing_shortcuts(
 
     try:
         from communication.command_handlers.task_handler import (
+            handle_pending_restore,
             handle_pending_simplify,
             handle_pending_task_action,
             handle_pending_task_offer,
@@ -50,6 +51,12 @@ def try_parsing_shortcuts(
         )
 
         if not conversation_manager.has_active_flow(user_id):
+            restore_response = handle_pending_restore(user_id, message)
+            if restore_response is not None:
+                return augment_suggestions(
+                    ParsedCommand("uncomplete_task", {}, 1.0, message),
+                    restore_response,
+                )
             offer_response = handle_pending_task_offer(user_id, message)
             if offer_response is not None:
                 return augment_suggestions(

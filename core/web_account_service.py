@@ -1955,7 +1955,16 @@ def create_web_app(
             ):
                 raise web.HTTPNotFound(text="That active task could not be completed.")
         elif action == "restore" and request.method == "POST":
-            if not await asyncio.to_thread(restore_task, uid, task_id):
+            data = await body(request)
+            if set(data) - {"restore_steps"} or (
+                "restore_steps" in data and type(data["restore_steps"]) is not bool
+            ):
+                raise web.HTTPBadRequest(
+                    text="Choose whether to bring the smaller steps back."
+                )
+            if not await asyncio.to_thread(
+                restore_task, uid, task_id, data.get("restore_steps") is True
+            ):
                 raise web.HTTPNotFound(text="That completed task could not be restored.")
         elif action == "snooze" and request.method == "POST":
             data = await body(request)
@@ -2034,6 +2043,19 @@ def create_web_app(
             if not result or not result.success:
                 raise web.HTTPBadRequest(
                     text=(result.message if result else "Those steps could not be added.")
+                )
+            action_message = result.message
+        elif action == "detach" and request.method == "POST":
+            if await body(request):
+                raise web.HTTPBadRequest(
+                    text="Making a step its own task does not need any other details."
+                )
+            from tasks.task_breakdown import detach_task_step
+
+            result = await asyncio.to_thread(detach_task_step, uid, task_id)
+            if not result or not result.success:
+                raise web.HTTPBadRequest(
+                    text=(result.message if result else "That step could not be separated.")
                 )
             action_message = result.message
         elif action == "simplify" and request.method == "POST":
@@ -2119,10 +2141,17 @@ def create_web_app(
         """Apply one task action to an explicit set of the signed-in user's tasks."""
         uid, _ = await authenticated_account(request)
         data = await body(request)
+        action = request.match_info["action"]
         task_ids = data.get("task_ids")
+        extra = set(data) - {"task_ids"}
+        if extra and not (
+            action == "restore"
+            and extra == {"restore_steps"}
+            and type(data.get("restore_steps")) is bool
+        ):
+            raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
         if (
-            set(data) != {"task_ids"}
-            or not isinstance(task_ids, list)
+            not isinstance(task_ids, list)
             or not 1 <= len(task_ids) <= 100
             or len(set(task_ids)) != len(task_ids)
             or any(
@@ -2131,12 +2160,14 @@ def create_web_app(
             )
         ):
             raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
-        action = request.match_info["action"]
+        from functools import partial
+
         from tasks.task_service import complete_task, delete_task, restore_task
 
+        restore_steps = data.get("restore_steps") is True
         operation = {
             "complete": complete_task,
-            "restore": restore_task,
+            "restore": partial(restore_task, restore_steps=restore_steps),
             "delete": delete_task,
         }[action]
 
@@ -2147,7 +2178,28 @@ def create_web_app(
         )
         def apply_actions():
             """Return the requested task identifiers successfully changed in bulk."""
-            return [task_id for task_id in task_ids if operation(uid, task_id)]
+            from tasks.task_data_handlers import load_active_tasks, load_completed_tasks
+
+            known = {}
+            for task in (load_active_tasks(uid) or []) + (load_completed_tasks(uid) or []):
+                task_key = str(task.get("id") or "")
+                if task_key:
+                    known[task_key] = task
+            selected = set(task_ids)
+
+            @handle_errors(
+                "ranking a bulk task before its parent",
+                user_friendly=False,
+                default_return=1,
+            )
+            def family_rank(task_id: str) -> int:
+                """Finish steps before the task they belong to."""
+                task = known.get(task_id)
+                parent_id = str((task or {}).get("parent_id") or "")
+                return 0 if parent_id and parent_id in selected else 1
+
+            ordered = sorted(task_ids, key=family_rank)
+            return [task_id for task_id in ordered if operation(uid, task_id)]
 
         throttle(("tasks-bulk", uid), 20, 60)
         changed = await asyncio.to_thread(apply_actions)
@@ -2749,7 +2801,7 @@ def create_web_app(
     app.router.add_route("PATCH", "/api/tasks/{task_id}", tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", tasks_api)
     app.router.add_post(
-        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks}",
+        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach}",
         tasks_api,
     )
     app.router.add_get("/api/messages", messages_api)

@@ -88,8 +88,8 @@ def complete_task(
 
 
 @handle_errors("task service: restore_task", user_friendly=False, re_raise=True)
-def restore_task(user_id: str, task_id: str) -> bool:
-    return _tasks().restore_task(user_id, task_id)
+def restore_task(user_id: str, task_id: str, restore_steps: bool = False) -> bool:
+    return _tasks().restore_task(user_id, task_id, restore_steps=restore_steps)
 
 
 @handle_errors("task service: delete_task", user_friendly=False, re_raise=True)

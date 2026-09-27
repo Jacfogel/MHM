@@ -53,6 +53,7 @@ Rules: ACTION must be unknown or one of: {actions}
 Copy field values from Current or Recent user said only. Do not invent dates, locations, or titles.
 If Current refers to that/it/this, copy TITLE from Recent user said.
 If Current updates/completes that/it/this, set TASK_IDENTIFIER: that.
+If Current asks to break a task into steps or break it down, ACTION: simplify_task. Set TASK_IDENTIFIER to the task name, or that.
 """
 
 _PLANNING_MAX_TOKENS = 60

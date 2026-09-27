@@ -131,6 +131,9 @@ _COMMAND_PHRASE_HINTS = (
     "simplify that",
     "simplify task",
     "make that simpler",
+    "break that into steps",
+    "break it down",
+    "break that down",
     "update task",
     "update profile",
     "update schedule",
@@ -347,6 +350,9 @@ class CommandInterpreter:
             "simplify that",
             "simplify it",
             "simplify this",
+            "break it down",
+            "break that down",
+            "break that into steps",
         }
         if stripped_prompt in known_complete_commands:
             return False

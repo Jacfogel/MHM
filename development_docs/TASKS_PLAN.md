@@ -167,7 +167,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ### 4.2 Smaller steps as subtasks
 
-**Status**: Shipped on the website (2026-09-26)  
+**Status**: Shipped (2026-09-27)  
 **Priority**: High  
 **Why it matters**: A hard task is easier to start when the bigger title stays and the next actions are visible.
 
@@ -177,10 +177,19 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Home focuses on an open subtask when the bigger task has one.
 - [x] Subtasks are one level deep. The parent stays open until you mark it done.
 - [x] Discord Break it down, and `simplify` in Discord or email, save steps under the original task.
+- [x] Completing or deleting the parent completes or deletes its steps (2026-09-27).
+- [x] A repeating task keeps those step titles on the next occurrence (2026-09-27).
+- [x] A reminder for a task with an open step names that step and says which task it is part of. Done finishes the step. Later and Skip still apply to the parent reminder (2026-09-27).
+- [x] A normal sentence such as `break that into steps` or `break it down` starts the same breakdown as `simplify` (2026-09-27).
+- [x] Restoring a finished task can bring its finished steps back. The choice is on the website, the desktop restore dialog, and Discord or email (2026-09-27).
+- [x] Home and the Tasks page can add a step you type. A step can become its own task (2026-09-27).
 
 **Acceptance**:
 - Suggesting steps does not rename the original task.
 - A subtask cannot contain its own subtasks.
+- Finishing or deleting the bigger task finishes or deletes its steps.
+- Restoring the bigger task leaves its steps finished unless you ask to bring them back.
+- The next occurrence of a repeating task still has those steps.
 
 ---
 
@@ -269,7 +278,6 @@ Future ideas:
 
 Future ideas:
 - suggested tasks based on patterns
-- breaking a task into subtasks from chat when the model is asked in a normal sentence, outside the simplify command
 - task ordering suggestions
 - conflict detection
 

@@ -91,7 +91,7 @@ async def task_gateway(monkeypatch):
         completed.append(task)
         return True
 
-    def restore(user_id, task_id):
+    def restore(user_id, task_id, restore_steps=False):
         task = find(user_id, task_id)
         if not task or task not in completed:
             return False

@@ -525,6 +525,7 @@ class TaskCrudDialog(QDialog):
             return
 
         from tasks import restore_task
+        from tasks.task_data_handlers import load_completed_tasks
 
         count = len(pairs)
         if count == 1:
@@ -536,9 +537,22 @@ class TaskCrudDialog(QDialog):
         if not self._confirm_yes_no("Restore Task", prompt):
             return
 
+        completed = load_completed_tasks(self.user_id) or []
+        selected_ids = {task_id for task_id, _title in pairs}
+        has_steps = any(
+            str(task.get("parent_id") or "").strip() in selected_ids
+            for task in completed
+        )
+        restore_steps = bool(
+            has_steps
+            and self._confirm_yes_no(
+                "Restore steps", "Bring the smaller steps back too?"
+            )
+        )
+
         failed = []
         for task_id, title in pairs:
-            if not restore_task(self.user_id, task_id):
+            if not restore_task(self.user_id, task_id, restore_steps=restore_steps):
                 failed.append(title)
         self._report_batch_result(
             failed,

@@ -199,7 +199,7 @@ const MHMTaskInput = Object.freeze({
         actions.append(button('More', 'plain-button', () => openSupportActions(task)));
         actions.append(button('Complete', 'button task-action-primary', () => openCompletionDialog(task)));
       } else {
-        actions.append(button('Restore', 'plain-button', () => changeTask(task, 'restore')));
+        actions.append(button('Restore', 'plain-button', () => restoreTask(task)));
       }
       actions.append(button('Delete', 'plain-button task-delete', () => removeTask(task)));
       article.append(chooser, content, actions); list.append(article);
@@ -222,9 +222,30 @@ const MHMTaskInput = Object.freeze({
     }
   }
 
-  async function changeTask(task, action) {
-    try { await api(`/api/tasks/${encodeURIComponent(task.id)}/${action}`, 'POST', {}); await load(); }
+  async function changeTask(task, action, payload = {}) {
+    try { await api(`/api/tasks/${encodeURIComponent(task.id)}/${action}`, 'POST', payload); await load(); }
     catch (error) { showStatus(error.message, true); }
+  }
+
+  function restoreTask(task) {
+    const steps = tasks.filter(item => item.parent_id === task.id);
+    if (!steps.length) {
+      changeTask(task, 'restore', {});
+      return;
+    }
+    const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
+    const heading = document.createElement('h2'); heading.textContent = `Restore “${task.title}”`;
+    const copy = document.createElement('p');
+    const word = steps.length === 1 ? 'step' : 'steps';
+    copy.textContent = `This also finished ${steps.length} smaller ${word}. Bring ${steps.length === 1 ? 'it' : 'them'} back too?`;
+    const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
+    actions.append(
+      button('Just this task', 'plain-button', () => { dialog.close(); changeTask(task, 'restore', {}); }),
+      button('Bring the steps back', 'button', () => { dialog.close(); changeTask(task, 'restore', { restore_steps: true }); }),
+    );
+    dialog.append(heading, copy, actions); document.body.append(dialog);
+    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }
 
   function updateBulkActions() {
@@ -237,8 +258,12 @@ const MHMTaskInput = Object.freeze({
     if (!selected.size) return;
     const label = action === 'delete' ? 'delete' : action;
     if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${selected.size} selected ${selected.size === 1 ? 'task' : 'tasks'}?`)) return;
+    const payload = { task_ids: [...selected] };
+    if (action === 'restore' && [...selected].some(id => tasks.some(task => task.parent_id === id))) {
+      if (window.confirm('Bring the smaller steps back too?')) payload.restore_steps = true;
+    }
     try {
-      const result = await api(`/api/tasks/bulk/${action}`, 'POST', { task_ids: [...selected] });
+      const result = await api(`/api/tasks/bulk/${action}`, 'POST', payload);
       await load();
       showStatus(result.failed && result.failed.length ? `${result.changed.length} updated; ${result.failed.length} could not be changed.` : `${result.changed.length} ${result.changed.length === 1 ? 'task' : 'tasks'} updated.`);
     } catch (error) { showStatus(error.message, true); }
@@ -288,8 +313,8 @@ const MHMTaskInput = Object.freeze({
     const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
     const heading = document.createElement('h2'); heading.textContent = `Help with “${task.title}”`;
     const copy = document.createElement('p'); copy.textContent = task.parent_id
-      ? 'Delay the reminder without moving the due date, or skip this occurrence.'
-      : 'Delay the reminder without moving the due date, skip this occurrence, or ask MHM for smaller steps. The original task stays.';
+      ? 'Delay the reminder without moving the due date, skip this occurrence, or make this step its own task.'
+      : 'Delay the reminder without moving the due date, skip this occurrence, or add a smaller step. The original task stays.';
     const actions = document.createElement('div'); actions.className = 'task-support-actions';
     actions.append(
       button('Remind me in 1 hour', 'plain-button', () => runSupportAction(task, 'snooze', { option: '1_hour' }, dialog)),
@@ -330,10 +355,21 @@ const MHMTaskInput = Object.freeze({
             if (!titles.length) { showStatus('Choose at least one step.', true); return; }
             runSupportAction(task, 'subtasks', { titles }, dialog);
           });
-          breakdown.replaceChildren(choices, add);
+          breakdown.replaceChildren(choices, add, typed);
         } catch (error) { showStatus(error.message, true); suggest.disabled = false; }
       });
-      breakdown.append(suggest);
+      const typed = document.createElement('div'); typed.className = 'settings-field';
+      const typedLabel = document.createElement('label'); typedLabel.htmlFor = 'task-step-title'; typedLabel.textContent = 'Or type a step';
+      const typedTitle = document.createElement('input'); typedTitle.id = 'task-step-title'; typedTitle.maxLength = 120; typedTitle.placeholder = 'Wipe the counter';
+      const addTyped = button('Add this step', 'plain-button', () => {
+        const title = typedTitle.value.trim();
+        if (!title) { showStatus('Type a step first.', true); return; }
+        runSupportAction(task, 'subtasks', { titles: [title] }, dialog);
+      });
+      typed.append(typedLabel, typedTitle, addTyped);
+      breakdown.append(suggest, typed);
+    } else {
+      breakdown.append(button('Make this its own task', 'button', () => runSupportAction(task, 'detach', {}, dialog)));
     }
     const close = button('Close', 'plain-button', () => dialog.close());
     dialog.append(heading, copy, actions, custom, breakdown, close); document.body.append(dialog);

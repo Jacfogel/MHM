@@ -24,7 +24,6 @@ from tasks.task_data_handlers import (
     load_active_tasks,
     save_active_tasks,
     load_completed_tasks,
-    save_completed_tasks,
     save_task_lists,
 )
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
@@ -291,110 +290,159 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     return False
 
 
+@handle_errors("building task completion fields", default_return={"completed": True, "completed_at": "", "notes": ""})
+def _completion_fields(completion_data: dict[str, Any] | None) -> dict[str, Any]:
+    """Return the completion record stored on a finished task."""
+    if completion_data:
+        completion_date = completion_data.get("completion_date")
+        completion_time = completion_data.get("completion_time")
+        completion_notes = completion_data.get("completion_notes", "")
+        if completion_date and completion_time:
+            return {
+                "completed": True,
+                "completed_at": f"{completion_date} {completion_time}:00",
+                "notes": completion_notes or "",
+            }
+        return {
+            "completed": True,
+            "completed_at": now_timestamp_full(),
+            "notes": completion_notes or "",
+        }
+    return {
+        "completed": True,
+        "completed_at": now_timestamp_full(),
+        "notes": "",
+    }
+
+
+@handle_errors("checking task family membership", default_return=False)
+def _is_task_or_direct_child(
+    task: dict[str, Any], found: dict[str, Any], parent_key: str
+) -> bool:
+    """Return True for the task itself or a step saved directly under it."""
+    if task is found:
+        return True
+    if not parent_key:
+        return False
+    if _task_id(task).strip() == parent_key:
+        return True
+    return str(task.get("parent_id") or "").strip() == parent_key
+
+
 @handle_errors("completing task", default_return=False)
 def complete_task(
     user_id: str, task_id: str, completion_data: dict[str, Any] | None = None
 ) -> bool:
-    """Mark a task as completed."""
+    """Mark a task as completed, and finish its open steps with it."""
     if not user_id or not task_id:
         logger.error("User ID and task ID are required for task completion")
         return False
     active_tasks = load_active_tasks(user_id)
     task_to_complete = None
-    updated_active_tasks = []
     for task in active_tasks:
         if _task_matches_identifier(task, task_id):
-            task_to_complete = task.copy()
-            task_to_complete["status"] = "completed"
-            if completion_data:
-                completion_date = completion_data.get("completion_date")
-                completion_time = completion_data.get("completion_time")
-                completion_notes = completion_data.get("completion_notes", "")
-                if completion_date and completion_time:
-                    task_to_complete["completion"] = {
-                        "completed": True,
-                        "completed_at": f"{completion_date} {completion_time}:00",
-                        "notes": completion_notes or "",
-                    }
-                else:
-                    task_to_complete["completion"] = {
-                        "completed": True,
-                        "completed_at": now_timestamp_full(),
-                        "notes": completion_notes or "",
-                    }
-            else:
-                task_to_complete["completion"] = {
-                    "completed": True,
-                    "completed_at": now_timestamp_full(),
-                    "notes": "",
-                }
-        else:
-            updated_active_tasks.append(task)
-
-    if not task_to_complete:
+            task_to_complete = task
+            break
+    if task_to_complete is None:
         logger.warning(f"Task {task_id} not found for user {user_id}")
         return False
 
+    parent_key = _task_id(task_to_complete).strip()
+    completion = _completion_fields(completion_data)
+    updated_active_tasks = []
+    newly_completed = []
+    for task in active_tasks:
+        if not _is_task_or_direct_child(task, task_to_complete, parent_key):
+            updated_active_tasks.append(task)
+            continue
+        finished = task.copy()
+        finished["status"] = "completed"
+        finished["completion"] = completion
+        newly_completed.append(finished)
+
     completed_tasks = load_completed_tasks(user_id)
-    completed_tasks.append(task_to_complete)
+    completed_tasks.extend(newly_completed)
     if not save_task_lists(user_id, updated_active_tasks, completed_tasks):
         logger.error(f"Failed to save task completion for user {user_id}")
         return False
 
-    task_title = task_to_complete.get("title", "Unknown")
-    completion_time_str = (task_to_complete.get("completion") or {}).get("completed_at", "Unknown")
-    logger.info(f"Completed task '{task_title}' (ID: {task_id}) for user {user_id} at {completion_time_str}")
-    cleanup_task_reminders(user_id, task_id)
-    if _task_recurrence(task_to_complete).get("pattern"):
-        if _create_next_recurring_task_instance(user_id, task_to_complete):
-            logger.info(f"Created next recurring task instance for task '{task_title}' (ID: {task_id})")
+    finished_target = newly_completed[0]
+    for finished in newly_completed:
+        finished_title = finished.get("title", "Unknown")
+        finished_id = _task_id(finished).strip() or task_id
+        completion_time_str = (finished.get("completion") or {}).get("completed_at", "Unknown")
+        logger.info(
+            f"Completed task '{finished_title}' (ID: {finished_id}) for user {user_id} at {completion_time_str}"
+        )
+        cleanup_task_reminders(user_id, finished_id)
+        if _task_id(finished).strip() == parent_key:
+            finished_target = finished
+    task_title = finished_target.get("title", "Unknown")
+    if _task_recurrence(finished_target).get("pattern"):
+        if _create_next_recurring_task_instance(user_id, finished_target):
+            logger.info(
+                f"Created next recurring task instance for task '{task_title}' (ID: {task_id})"
+            )
     return True
 
 
 @handle_errors("restoring task", default_return=False)
-def restore_task(user_id: str, task_id: str) -> bool:
-    """Restore a completed task to active status."""
+def restore_task(user_id: str, task_id: str, restore_steps: bool = False) -> bool:
+    """Restore a completed task to active status.
+
+    When restore_steps is true, finished steps of a top-level task come back with it.
+    """
     if not user_id or not task_id:
         logger.error("User ID and task ID are required for task restoration")
         return False
     completed_tasks = load_completed_tasks(user_id)
-    task_to_restore = None
-    updated_completed_tasks = []
-    for task in completed_tasks:
-        if _task_matches_identifier(task, task_id):
-            task_to_restore = task.copy()
-            task_to_restore["status"] = "active"
-            task_to_restore["completion"] = {"completed": False, "completed_at": None, "notes": ""}
-        else:
-            updated_completed_tasks.append(task)
-    if not task_to_restore:
+    matched = [
+        task for task in completed_tasks if _task_matches_identifier(task, task_id)
+    ]
+    if not matched:
         logger.warning(f"Completed task {task_id} not found for user {user_id}")
         return False
+    task_to_restore = matched[-1]
+    parent_key = _task_id(task_to_restore).strip()
+    restoring = [task_to_restore]
+    if (
+        restore_steps
+        and parent_key
+        and not str(task_to_restore.get("parent_id") or "").strip()
+    ):
+        matched_ids = {id(task) for task in matched}
+        for task in completed_tasks:
+            if id(task) in matched_ids:
+                continue
+            if str(task.get("parent_id") or "").strip() == parent_key:
+                restoring.append(task)
+    drop_ids = {id(task) for task in matched}
+    drop_ids.update(id(task) for task in restoring)
+    updated_completed_tasks = [
+        task for task in completed_tasks if id(task) not in drop_ids
+    ]
+    prepared = []
+    for task in restoring:
+        copy = task.copy()
+        copy["status"] = "active"
+        copy["completion"] = {"completed": False, "completed_at": None, "notes": ""}
+        prepared.append(copy)
     active_tasks = load_active_tasks(user_id)
-    active_tasks.append(task_to_restore)
+    active_tasks.extend(prepared)
     if not save_task_lists(user_id, active_tasks, updated_completed_tasks):
         logger.error(f"Failed to save task restoration for user {user_id}")
         return False
-    logger.info(f"Restored task {task_id} for user {user_id}")
-    reminder_periods = _task_reminder_periods(task_to_restore)
-    if reminder_periods:
-        schedule_task_reminders(user_id, task_id, reminder_periods)
-    return True
-
-
-@handle_errors("removing matching task from list", default_return=([], None))
-def _remove_matching_task(
-    tasks: list[dict[str, Any]], task_id: str
-) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
-    """Return remaining tasks and the first matching task, if any."""
-    remaining: list[dict[str, Any]] = []
-    removed: dict[str, Any] | None = None
-    for task in tasks:
-        if removed is None and _task_matches_identifier(task, task_id):
-            removed = task
+    for original, copy in zip(restoring, prepared, strict=True):
+        restored_id = _task_id(copy).strip() or task_id
+        logger.info(f"Restored task {restored_id} for user {user_id}")
+        reminder_periods = _task_reminder_periods(copy)
+        if not reminder_periods:
             continue
-        remaining.append(task)
-    return remaining, removed
+        schedule_id = (
+            task_id if original is task_to_restore else restored_id
+        )
+        schedule_task_reminders(user_id, schedule_id, reminder_periods)
+    return True
 
 
 @handle_errors("deleting task", default_return=False)
@@ -404,32 +452,40 @@ def delete_task(user_id: str, task_id: str) -> bool:
         logger.error("User ID and task ID are required for task deletion")
         return False
 
-    remaining_active, removed = _remove_matching_task(load_active_tasks(user_id), task_id)
-    if removed is not None:
-        if not save_active_tasks(user_id, remaining_active):
-            logger.error(f"Failed to save task deletion for user {user_id}")
-            return False
-        task_title = removed.get("title", "Unknown")
-        logger.info(f"Deleted task '{task_title}' (ID: {task_id}) for user {user_id}")
-        cleanup_task_reminders(user_id, task_id)
-        return True
+    active_tasks = load_active_tasks(user_id)
+    completed_tasks = load_completed_tasks(user_id)
+    removed = None
+    for task in active_tasks + completed_tasks:
+        if _task_matches_identifier(task, task_id):
+            removed = task
+            break
+    if removed is None:
+        logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
+        return False
 
-    remaining_completed, removed = _remove_matching_task(
-        load_completed_tasks(user_id), task_id
-    )
-    if removed is not None:
-        if not save_completed_tasks(user_id, remaining_completed):
-            logger.error(f"Failed to save completed task deletion for user {user_id}")
-            return False
-        task_title = removed.get("title", "Unknown")
-        logger.info(
-            f"Deleted completed task '{task_title}' (ID: {task_id}) for user {user_id}"
-        )
-        cleanup_task_reminders(user_id, task_id)
-        return True
-
-    logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
-    return False
+    parent_key = _task_id(removed).strip()
+    remaining_active = [
+        task for task in active_tasks if not _is_task_or_direct_child(task, removed, parent_key)
+    ]
+    remaining_completed = [
+        task
+        for task in completed_tasks
+        if not _is_task_or_direct_child(task, removed, parent_key)
+    ]
+    deleted = [
+        task
+        for task in active_tasks + completed_tasks
+        if _is_task_or_direct_child(task, removed, parent_key)
+    ]
+    if not save_task_lists(user_id, remaining_active, remaining_completed):
+        logger.error(f"Failed to save task deletion for user {user_id}")
+        return False
+    for task in deleted:
+        task_title = task.get("title", "Unknown")
+        deleted_id = _task_id(task).strip() or task_id
+        logger.info(f"Deleted task '{task_title}' (ID: {deleted_id}) for user {user_id}")
+        cleanup_task_reminders(user_id, deleted_id)
+    return True
 
 
 @handle_errors("getting task by ID", default_return=None)
@@ -584,6 +640,53 @@ def get_user_task_stats(user_id: str) -> dict[str, int]:
     return stats
 
 
+@handle_errors("copying subtasks onto the next occurrence", default_return=0)
+def _copy_subtasks_to_next_occurrence(
+    user_id: str,
+    old_parent_id: str,
+    new_parent_id: str,
+    due_date: str | None,
+    due_time: str | None,
+) -> int:
+    """Save the finished occurrence's steps as open steps on the next one."""
+    old_id = str(old_parent_id or "").strip()
+    new_id = str(new_parent_id or "").strip()
+    if not user_id or not old_id or not new_id:
+        return 0
+    pool = (load_completed_tasks(user_id) or []) + (load_active_tasks(user_id) or [])
+    seen: set[str] = set()
+    templates: list[dict[str, Any]] = []
+    for task in pool:
+        if str(task.get("parent_id") or "").strip() != old_id:
+            continue
+        title = str(task.get("title") or "").strip()
+        key = title.casefold()
+        if not title or key in seen:
+            continue
+        seen.add(key)
+        templates.append(task)
+    templates.sort(key=lambda task: str(task.get("created_at") or ""))
+    saved = 0
+    for task in templates:
+        tags = task.get("tags") if isinstance(task.get("tags"), list) else []
+        created_id = create_task(
+            user_id,
+            title=str(task.get("title") or ""),
+            due_date=due_date,
+            due_time=due_time,
+            priority=str(task.get("priority") or "medium"),
+            tags=tags,
+            parent_id=new_id,
+        )
+        if created_id:
+            saved += 1
+    if saved:
+        logger.info(
+            f"Copied {saved} subtask(s) from {old_id} onto next occurrence {new_id}"
+        )
+    return saved
+
+
 @handle_errors("creating next recurring task instance", default_return=False)
 def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str, Any]) -> bool:
     """Create the next instance of a recurring task when the current one is completed."""
@@ -649,6 +752,13 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
         logger.error(f"Failed to save next recurring task instance for user {user_id}")
         return False
     logger.info(f"Created next recurring task instance for task {_task_id(completed_task)} with due date {next_due_date_str}")
+    _copy_subtasks_to_next_occurrence(
+        user_id,
+        _task_id(completed_task),
+        next_task_id,
+        next_due_date_str,
+        _task_due_time(completed_task),
+    )
     if next_task.get("reminders"):
         reminder_periods = [r.get("period") for r in next_task["reminders"] if isinstance(r, dict) and r.get("period")]
         if reminder_periods:

@@ -135,6 +135,14 @@ def route_task_reply(user_id: str, text: str, task_id: str) -> InteractionRespon
     )
 
     command = build_task_reply_command(text, task_id)
+    if command is not None and command.intent == "complete_task":
+        from tasks.task_breakdown import next_open_step_id
+
+        step_id = next_open_step_id(user_id, task_id)
+        if step_id:
+            command = ParsedCommand(
+                "complete_task", {"task_identifier": step_id}, 1.0, text.strip()
+            )
     if command is None and user_id in PENDING_SIMPLIFY and text.strip():
         command = ParsedCommand(
             "simplify_task",

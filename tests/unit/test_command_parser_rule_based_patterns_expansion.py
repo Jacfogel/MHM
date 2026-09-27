@@ -302,6 +302,11 @@ class TestCommandParserTaskPatterns:
             ("simplify task 1 to wipe the kitchen", "1", "wipe the kitchen"),
             ("make that simpler", "that", None),
             ("simplify dentist to call the office", "dentist", "call the office"),
+            ("break that into steps", "that", None),
+            ("can you break calling the dentist into smaller steps", "calling the dentist", None),
+            ("break it down", "it", None),
+            ("break down the dentist task", "dentist", None),
+            ("please split the kitchen into a few steps", "kitchen", None),
         ],
     )
     def test_simplify_task_patterns(

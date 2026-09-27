@@ -156,6 +156,32 @@ class TestEmailReplyRouting:
         assert command.entities["task_identifier"] == "task-9"
         assert response.message == "Marked done."
 
+    def test_done_finishes_the_open_step_when_one_exists(self):
+        with (
+            patch(
+                "tasks.task_breakdown.next_open_step_id",
+                return_value="step-1",
+            ),
+            patch(
+                "communication.command_handlers.task_handler.TaskManagementHandler.handle",
+                return_value=InteractionResponse("Marked done.", True),
+            ) as handle,
+        ):
+            route_task_reply("user-1", "done", "task-9")
+        command = handle.call_args.args[1]
+        assert command.intent == "complete_task"
+        assert command.entities["task_identifier"] == "step-1"
+
+    def test_later_still_snoozes_the_parent_reminder(self):
+        with patch(
+            "communication.command_handlers.task_handler.TaskManagementHandler.handle",
+            return_value=InteractionResponse("Snoozed.", True),
+        ) as handle:
+            route_task_reply("user-1", "later", "task-9")
+        command = handle.call_args.args[1]
+        assert command.intent == "snooze_task_reminder"
+        assert command.entities["task_identifier"] == "task-9"
+
 
 @pytest.mark.unit
 @pytest.mark.communication

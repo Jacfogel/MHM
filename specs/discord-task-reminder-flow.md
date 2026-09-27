@@ -170,6 +170,15 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** the user adds those steps, or types `simplify that to ...`  
 - **THEN** the chosen steps are saved as subtasks under the original task  
 
+#### Scenario: Reminder names the open step
+
+- **GIVEN** the reminded task has an open step  
+- **WHEN** the reminder is sent  
+- **THEN** the message names that step and says which task it is part of  
+- **AND** Complete finishes that step  
+- **AND** the original task stays open  
+- **AND** Later and Skip still apply to the original task's reminder  
+
 ## 3. 2.3. Requirement: Task completion follow-up uses normal task command behavior
 
 Completing a task from Discord SHALL go through the same command flow as typed task completion.

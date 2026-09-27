@@ -27,7 +27,8 @@ PRONOUN_TASK_IDENTIFIERS = frozenset(
 
 _PRONOUN_FOLLOW_UP_RE = re.compile(
     r"(?i)(?:"
-    r"\b(?:make|set|change|update|mark|cross|check|skip|snooze|simplify)\s+(?:that|it|this)\b"
+    r"\b(?:make|set|change|update|mark|cross|check|skip|snooze|simplify|break|split)\s+(?:that|it|this)\b"
+    r"|\bbreak\s+down\s+(?:that|it|this)\b"
     r"|(?:that|it|this)(?:'s|\s+is)\s+(?:due|urgent|critical|high|medium|low)"
     r"|\b(?:done|complete(?:d)?)\s+with\s+(?:that|it|this)\b"
     r"|\bnote\s+to\s+(?:that|it|this)\b"
@@ -45,6 +46,7 @@ _PRONOUN_RESOLVABLE_ACTIONS = frozenset(
         "complete_task",
         "append_note_to_task",
         "add_link_to_task",
+        "simplify_task",
     }
 )
 

@@ -214,6 +214,8 @@
       const actions = document.getElementById('home-task-actions');
       const breakForm = document.getElementById('home-task-break-form');
       const breakButton = document.getElementById('home-task-break');
+      const ownButton = document.getElementById('home-task-own');
+      const stepTitle = document.getElementById('home-task-step-title');
       document.getElementById('home-task-title').textContent = focusedTask ? focusedTask.title : 'No tasks yet.';
       document.getElementById('home-task-meta').textContent = pick
         ? focusMeta(pick)
@@ -225,6 +227,8 @@
       document.getElementById('home-task-why').textContent = parent ? `${why} Part of ${parent.title}.` : why;
       if (actions) actions.hidden = !focusedTask;
       if (breakButton) breakButton.hidden = !focusedTask || Boolean(focusedTask.parent_id);
+      if (ownButton) ownButton.hidden = !focusedTask || !focusedTask.parent_id;
+      if (stepTitle) stepTitle.value = '';
       if (breakForm) breakForm.hidden = true;
       suggestedSteps = [];
       const taskStatus = document.getElementById('home-task-status');
@@ -258,7 +262,7 @@
   async function runFocusAction(path, payload, pending) {
     if (!focusedTask) return;
     const taskStatus = document.getElementById('home-task-status');
-    const buttons = document.querySelectorAll('#home-task-actions button, #home-task-break-save');
+    const buttons = document.querySelectorAll('#home-task-actions button, #home-task-break-save, #home-task-step-add');
     buttons.forEach(button => { button.disabled = true; });
     if (taskStatus) {
       taskStatus.textContent = pending;
@@ -344,6 +348,17 @@
   if (breakSave) breakSave.addEventListener('click', () => {
     if (!suggestedSteps.length) return undefined;
     return runFocusAction('subtasks', { titles: suggestedSteps }, 'Adding these steps…');
+  });
+  const stepAdd = document.getElementById('home-task-step-add');
+  if (stepAdd) stepAdd.addEventListener('click', () => {
+    const field = document.getElementById('home-task-step-title');
+    const title = field ? field.value.trim() : '';
+    if (!title) return undefined;
+    return runFocusAction('subtasks', { titles: [title] }, 'Adding this step…');
+  });
+  const ownButton = document.getElementById('home-task-own');
+  if (ownButton) ownButton.addEventListener('click', () => {
+    return runFocusAction('detach', {}, 'Making this its own task…');
   });
 
   const talkLog = document.getElementById('talk-log');

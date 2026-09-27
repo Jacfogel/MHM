@@ -53,11 +53,17 @@
               <button class="button button-small" id="home-task-done" type="button">Done</button>
               <button class="plain-button" id="home-task-later" type="button">Later</button>
               <button class="plain-button" id="home-task-break" type="button">Break it down</button>
+              <button class="plain-button" id="home-task-own" type="button" hidden>Make this its own task</button>
             </div>
             <div id="home-task-break-form" class="home-focus-break" hidden>
               <p class="field-hint">The original task stays. Add the steps you want under it.</p>
               <ul id="home-task-steps" class="home-task-steps"></ul>
               <button class="button button-small" id="home-task-break-save" type="button" hidden>Add these steps</button>
+              <div class="settings-field">
+                <label for="home-task-step-title">Or type a step</label>
+                <input id="home-task-step-title" maxlength="120" placeholder="Wipe the counter">
+              </div>
+              <button class="plain-button" id="home-task-step-add" type="button">Add this step</button>
             </div>
             <p id="home-task-status" class="form-status" role="status" aria-live="polite"></p>
             <p id="home-task-off">Task reminders are off. You can turn them on in <a href="app.html#tasks">Account</a>.</p>
