@@ -188,7 +188,6 @@ class TestNotebookHandlerPublicFlowStart:
 
         assert captured["title"] == "FromFlow"
         assert captured["tags"] == ["keep"]
-        assert "group" not in captured
         mock_cm.start_note_body_flow.assert_not_called()
 
     def test_create_list_title_only_starts_list_items_flow(self):

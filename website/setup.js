@@ -544,8 +544,14 @@
     'checkin-windows': saveCheckinWindows,
   };
 
-  function accountNeedsSetup(account) {
-    return account.needs_setup === true;
+  function accountNeedsSetup(account, currentSettings) {
+    if (account.needs_setup === true) return true;
+    const flags = ['messages_enabled', 'tasks_enabled', 'checkins_enabled'];
+    const known = flags.filter(key => typeof account[key] === 'boolean');
+    if (known.some(key => account[key])) return false;
+    if (known.length === flags.length) return true;
+    const sections = currentSettings.sections || {};
+    return ['messages', 'tasks', 'checkins'].every(key => sections[key] && sections[key].enabled === false);
   }
 
   function setBusy(busy) {
@@ -561,7 +567,7 @@
     try {
       account = await api('/api/account');
       settings = await api('/api/settings');
-      if (!accountNeedsSetup(account)) {
+      if (!accountNeedsSetup(account, settings)) {
         location.assign('home.html');
         return;
       }

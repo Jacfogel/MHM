@@ -7,7 +7,10 @@ import pytest
 from messages.message_data_manager import get_recent_messages, load_user_messages, store_sent_message
 from checkins.checkin_data_manager import get_recent_checkins, store_checkin_response
 from notebook.notebook_data_handlers import load_entries, save_entries
+from notebook.notebook_schemas import NotebookV2Model
+from tasks import task_data_handlers
 from tasks.task_data_handlers import load_active_tasks, load_completed_tasks, save_active_tasks
+from tasks.task_schemas import TaskV2Model
 
 pytestmark = [pytest.mark.unit]
 
@@ -16,6 +19,18 @@ TIMESTAMP = "2026-04-26 09:15:00"
 _LEGACY_TASK_ID_KEY = "".join(("task", "_", "id"))
 _LEGACY_ACTIVE_TASKS_FILE = "".join(("active", "_tasks", ".json"))
 _LEGACY_COMPLETED_TASKS_FILE = "".join(("completed", "_tasks", ".json"))
+_UNKNOWN_ITEM_KEY = "unexpected"
+
+
+def _base_v2_item(item_id: str, short_id: str, kind: str) -> dict:
+    return {
+        "id": item_id,
+        "short_id": short_id,
+        "kind": kind,
+        "title": "Strict record",
+        "created_at": TIMESTAMP,
+        "updated_at": TIMESTAMP,
+    }
 
 
 @pytest.mark.unit
@@ -261,6 +276,28 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
 
 
 @pytest.mark.unit
+@pytest.mark.tasks
+def test_runtime_task_loader_rejects_unknown_item_keys(tmp_path, monkeypatch):
+    (tmp_path / "tasks.json").write_text("{}", encoding="utf-8")
+    record = TaskV2Model.model_validate(
+        _base_v2_item("task-invalid", "tinvalid", "task")
+    ).model_dump(mode="json")
+    record[_UNKNOWN_ITEM_KEY] = "not in the schema"
+    monkeypatch.setattr(task_data_handlers, "get_user_subdir_path", lambda *_args: tmp_path)
+    monkeypatch.setattr(
+        task_data_handlers,
+        "load_user_json_file",
+        lambda *_args: {
+            "schema_version": 2,
+            "updated_at": TIMESTAMP,
+            "tasks": [record],
+        },
+    )
+
+    assert task_data_handlers._load_v2_tasks("user-1") == []
+
+
+@pytest.mark.unit
 @pytest.mark.notebook
 def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeypatch):
     user_root = tmp_path / "user-1"
@@ -313,3 +350,30 @@ def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeyp
     assert data["entries"][0]["kind"] == "journal_entry"
     assert data["entries"][0]["description"] == "Today was okay."
     assert "body" not in data["entries"][0]
+
+
+@pytest.mark.unit
+@pytest.mark.notebook
+def test_runtime_notebook_loader_rejects_unknown_item_keys(tmp_path, monkeypatch):
+    user_root = tmp_path / "user-1"
+    notebook_dir = user_root / "notebook"
+    notebook_dir.mkdir(parents=True)
+    record = NotebookV2Model.model_validate(
+        _base_v2_item(
+            "77777777-7777-4777-8777-777777777777", "n777777", "note"
+        )
+    ).model_dump(mode="json")
+    record[_UNKNOWN_ITEM_KEY] = "not in the schema"
+    (notebook_dir / "entries.json").write_text(
+        json.dumps(
+            {"schema_version": 2, "updated_at": TIMESTAMP, "entries": [record]}
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "notebook.notebook_data_handlers.get_user_data_dir",
+        lambda _user_id: str(user_root),
+    )
+    monkeypatch.setattr("core.tags.ensure_tags_initialized", lambda _user_id: None)
+
+    assert load_entries("user-1") == []
