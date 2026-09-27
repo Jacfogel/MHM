@@ -136,7 +136,19 @@ def _load_v2_tasks(user_id: str) -> list[dict[str, Any]]:
     if isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION:
         tasks = data.get("tasks", [])
         if isinstance(tasks, list):
-            return [task for task in tasks if isinstance(task, dict)]
+            validated: list[dict[str, Any]] = []
+            for task in tasks:
+                if not isinstance(task, dict):
+                    continue
+                try:
+                    validated.append(
+                        TaskV2Model.model_validate(task).model_dump(mode="json")
+                    )
+                except Exception as exc:
+                    logger.error(
+                        f"Invalid v2 task record for user {user_id}: {exc}"
+                    )
+            return validated
     return []
 
 

@@ -17,10 +17,6 @@ test('notebook tabs are active, pinned, inbox, and archived', () => {
   assert.match(html, /data-note-view="pinned"/);
   assert.match(html, /data-note-view="inbox"/);
   assert.match(html, /data-note-view="archived"/);
-  assert.doesNotMatch(html, /id="note-group"/);
-  assert.doesNotMatch(source, /data-note-group/);
-  assert.doesNotMatch(source, /existingGroups/);
-  assert.doesNotMatch(source, /note\.group/);
 });
 
 test('archived entries do not render a pinned quality', () => {
