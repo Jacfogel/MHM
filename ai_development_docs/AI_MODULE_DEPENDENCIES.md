@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-27 11:09:11
+> **Last Generated**: 2026-09-27 19:47:09
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 290
-- **Total Imports**: 2601
-- **Standard Library**: 747 (28.7%)
-- **Third-Party**: 223 (8.6%)
-- **Local Imports**: 1631 (62.7%)
+- **Files Scanned**: 289
+- **Total Imports**: 2592
+- **Standard Library**: 745 (28.7%)
+- **Third-Party**: 222 (8.6%)
+- **Local Imports**: 1625 (62.7%)
 
 ## Dependency Decision Trees
 
@@ -122,8 +122,8 @@ External libraries provide channel and UI support.
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (21 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
+- `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `core/profile_v2_schemas.py` -> pytz (7 modules use this)
 

@@ -116,11 +116,10 @@ Discord SHALL create embeds for response `rich_data` only when it contains displ
 
 #### Scenario: Rich data contains only button metadata
 
-- **GIVEN** `rich_data` contains only metadata such as `suggestion_payloads`, `pagination_actions`, or `offer_message_reactions`  
+- **GIVEN** `rich_data` contains only metadata such as `suggestion_payloads` or `pagination_actions`  
 - **WHEN** Discord checks whether display rich data exists  
 - **THEN** it does not create an embed only for those metadata keys  
 - **AND** may still create buttons from the metadata  
-- **AND** `offer_message_reactions` still adds thumbs reactions to the plain message  
 
 #### Scenario: Rich data or message validation fails
 
@@ -193,28 +192,34 @@ When a caller provides a custom Discord view, the send path SHALL use it instead
 
 ### 3.7. Requirement: Scheduled messages can be reacted to
 
-Scheduled Discord sends SHALL remember the Discord message id and offer thumbs-up and thumbs-down reactions. A later thumbs reaction from the linked user SHALL change future messages of that kind.
+Scheduled Discord sends SHALL remember the Discord message id and SHALL NOT attach feedback buttons. A later positive or negative reaction from the linked user SHALL change future messages of that kind. Positive reactions include thumbs up, smiles, hearts, laughter, and celebration. Negative reactions include thumbs down, frowns, anger, sadness, and rejection. Ambiguous emoji are ignored.
 
-#### Scenario: Thumbs up on a library message
+#### Scenario: Positive reaction on a library message
 
 - **GIVEN** a scheduled library message was sent on Discord  
-- **WHEN** the linked user reacts with thumbs up  
+- **WHEN** the linked user reacts with a clearly positive emoji, such as thumbs up, a smile, a heart, or celebration  
 - **THEN** similar new messages are added to that category  
 - **AND** the user is told more messages like that will be sent  
 
-#### Scenario: Thumbs on a check-in question
+#### Scenario: Reaction on a check-in question
 
 - **GIVEN** a check-in question was sent on Discord  
-- **WHEN** the linked user reacts with thumbs up or thumbs down  
+- **WHEN** the linked user reacts with a positive or negative emoji  
 - **THEN** no message is retired or added  
 - **AND** no reply is sent  
 
-#### Scenario: Thumbs down retires one message
+#### Scenario: Negative reaction retires one message
 
 - **GIVEN** a scheduled message was sent on Discord  
-- **WHEN** the linked user reacts with thumbs down  
+- **WHEN** the linked user reacts with a clearly negative emoji, such as thumbs down, a frown, anger, or a broken heart  
 - **THEN** that exact message is no longer eligible to send  
 - **AND** the user is told it will not be sent again  
+
+#### Scenario: Scheduled message has no feedback buttons
+
+- **GIVEN** a scheduled message is sent on Discord  
+- **WHEN** the message is delivered  
+- **THEN** it has no More like this or Not for me buttons  
 
 ## 4. Out of scope
 
@@ -237,8 +242,9 @@ Run after changing Discord delivery or rich response rendering:
 8. [ ] Response with pagination metadata -> "Show More" style button renders and works.
 9. [ ] Custom check-in/task view supplied -> custom view attaches instead of generic suggestions.
 10. [ ] Forbidden/NotFound/HTTP error -> returns `False` and caller can retry or skip state mutation.
-11. [ ] Thumbs up on a scheduled message -> more similar messages are created or later personalized messages follow that one.
-12. [ ] Thumbs down on a scheduled message -> that message is not sent again.
+11. [ ] A clearly positive reaction, such as thumbs up, a smile, a heart, or celebration, on a scheduled message -> more similar messages are created or later personalized messages follow that one.
+12. [ ] A clearly negative reaction, such as thumbs down, a frown, anger, or a broken heart, on a scheduled message -> that message is not sent again.
+13. [ ] A scheduled message arrives with no More like this or Not for me buttons.
 
 ## 6. Related documentation
 

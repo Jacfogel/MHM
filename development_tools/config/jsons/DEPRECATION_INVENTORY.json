@@ -627,6 +627,19 @@
       ],
       "replacement": "tags",
       "note": "Removed the task and notebook group field from saved data, commands, AI actions, Discord create forms, quick notes, and the website notes API. Tags remain the way to label an item."
+    },
+    {
+      "id": "discord_message_feedback_buttons",
+      "removed_at": "2026-09-27",
+      "search_terms": [
+        "MessageFeedbackView",
+        "message_feedback_view",
+        "mhm:message-feedback",
+        "offer_message_reactions",
+        "_with_message_feedback"
+      ],
+      "replacement": "Discord emoji reactions in events/message_reactions.py",
+      "note": "Removed More like this and Not for me buttons from scheduled Discord messages. Thumbs and smile or frown reactions still steer later messages."
     }
   ],
   "global_sweep_keywords": [

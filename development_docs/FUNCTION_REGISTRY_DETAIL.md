@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-27 11:08:46
+> **Last Generated**: 2026-09-27 19:46:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,16 +15,16 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 292
-- **Functions Found**: 2852
-- **Methods Found**: 1434
-- **Classes Found**: 267
-- **Total Items**: 4286
-- **Functions Documented**: 2549
-- **Methods Documented**: 1288
-- **Classes Documented**: 200
-- **Total Documented**: 3837
-- **Template-Generated**: 58
+- **Files Scanned**: 291
+- **Functions Found**: 2849
+- **Methods Found**: 1432
+- **Classes Found**: 266
+- **Total Items**: 4281
+- **Functions Documented**: 2546
+- **Methods Documented**: 1286
+- **Classes Documented**: 199
+- **Total Documented**: 3832
+- **Template-Generated**: 56
 - **Last Updated**: 2026-09-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (548)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (749)
+### **Communication Functions** (746)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -1945,7 +1945,7 @@ Returns:
 
 #### `communication/communication_channels/discord/events/message_reactions.py`
 **Functions:**
-- [OK] `_reaction_kind(emoji)` - Return up or down for a thumbs emoji, otherwise None.
+- [OK] `_reaction_kind(emoji)` - Return up or down for a clearly positive or negative emoji, otherwise None.
 
 #### `communication/communication_channels/discord/events/protocol.py`
 **Functions:**
@@ -2190,14 +2190,6 @@ Args:
 - [OK] `internal_user_id(interaction)` - Map a Discord interaction to the internal MHM user id.
 - [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
 
-#### `communication/communication_channels/discord/ui/message_feedback_view.py`
-**Functions:**
-- [OK] `__init__(self)` - Special Python method
-- [OK] `message_feedback_view()` - Return the button row for a scheduled Discord message.
-**Classes:**
-- [OK] `MessageFeedbackView` - Unselected More and Not for me buttons on a scheduled message.
-  - [OK] `MessageFeedbackView.__init__(self)` - Special Python method
-
 #### `communication/communication_channels/discord/ui/rich_delivery.py`
 **Functions:**
 - [MISSING] `_create_action_row(self, suggestions, suggestion_payloads)` - No description
@@ -2210,7 +2202,6 @@ Args:
 - [MISSING] `_pagination_action_button_data(self, action)` - No description
 - [MISSING] `_pagination_action_value(self, action, field, default)` - No description
 - [MISSING] `_resolve_interaction_view_from_rich_data(self, rich_data)` - No description
-- [OK] `_with_message_feedback(self, view, rich_data)` - Attach unselected feedback buttons when a scheduled message has no other controls.
 **Classes:**
 - [OK] `DiscordRichDeliveryMixin` - Rich delivery surface shared by the thin Discord bot host.
   - [MISSING] `DiscordRichDeliveryMixin._create_action_row(self, suggestions, suggestion_payloads)` - No description
@@ -2223,7 +2214,6 @@ Args:
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_button_data(self, action)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_value(self, action, field, default)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._resolve_interaction_view_from_rich_data(self, rich_data)` - No description
-  - [OK] `DiscordRichDeliveryMixin._with_message_feedback(self, view, rich_data)` - Attach unselected feedback buttons when a scheduled message has no other controls.
 
 #### `communication/communication_channels/discord/ui/task_list_ui.py`
 **Functions:**

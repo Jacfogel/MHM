@@ -101,7 +101,7 @@ Discord messages are handled by `handle_discord_message` in `events/message_hand
 
 ### 4.2. Reactions and Membership Events
 
-Scheduled Discord messages offer thumbs-up and thumbs-down reactions. `events/message_reactions.py` ignores the bot's own reactions, then `messages/message_reactions.py` records the tap. Thumbs up adds similar library messages, or steers later personalized messages toward that one. Thumbs down retires that exact message so it is not sent again. Check-in questions are left alone: a thumbs reaction on one does not change future messages.
+Scheduled Discord messages do not include feedback buttons. If the linked user reacts with a clearly positive emoji, such as thumbs up, a smile, a heart, laughter, or celebration, `events/message_reactions.py` ignores the bot's own reactions, then `messages/message_reactions.py` adds similar library messages or steers later personalized messages toward that one. A clearly negative emoji, such as thumbs down, a frown, anger, sadness, or rejection, retires that exact message so it is not sent again. Check-in questions are left alone: a reaction on one does not change future messages. Ambiguous emoji, such as fire, a skull, or a thinking face, are ignored.
 
 Guild and interaction events are handled in `events/lifecycle.py` (`handle_guild_join`) and `events/interaction_router.py` (minimal logging plus channel-agnostic integration where applicable).
 

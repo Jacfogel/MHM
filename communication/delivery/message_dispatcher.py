@@ -134,7 +134,6 @@ class PredefinedMessageDispatcher:
             str(message_to_send.get("text") or ""),
             user_id=user_id,
             category=category,
-            rich_data={"offer_message_reactions": messaging_service == "discord"},
             delivery_meta=delivery_meta,
         )
 

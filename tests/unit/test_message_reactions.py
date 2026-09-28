@@ -8,6 +8,7 @@ import pytest
 
 from communication.communication_channels.discord.bot import DiscordBot
 from communication.communication_channels.discord.events.message_reactions import (
+    _reaction_kind,
     handle_message_reaction,
 )
 from messages.message_data_manager import add_message, get_recent_messages, load_user_messages, store_sent_message
@@ -191,9 +192,39 @@ async def test_discord_reaction_handler_ignores_the_bot_and_replies_for_the_user
     channel.send.assert_awaited_once_with("I won't send that message again.")
 
 
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("👍", "up"),
+        ("thumbsup", "up"),
+        ("😄", "up"),
+        ("smile", "up"),
+        ("🙂", "up"),
+        ("❤️", "up"),
+        ("heart", "up"),
+        ("🎉", "up"),
+        ("tada", "up"),
+        ("💯", "up"),
+        ("👎", "down"),
+        ("☹️", "down"),
+        ("🙁", "down"),
+        ("frowning", "down"),
+        ("😡", "down"),
+        ("rage", "down"),
+        ("💔", "down"),
+        ("broken_heart", "down"),
+        ("🤔", None),
+        ("🔥", None),
+        ("💀", None),
+    ],
+)
+def test_reaction_kind_accepts_clear_positive_and_negative_emoji(name, expected):
+    assert _reaction_kind(SimpleNamespace(name=name)) == expected
+
+
 @pytest.mark.communication
 @pytest.mark.asyncio
-async def test_scheduled_discord_send_offers_thumbs_reactions():
+async def test_scheduled_discord_send_has_no_feedback_buttons():
     sent = SimpleNamespace(id=42)
     user = MagicMock()
     user.send = AsyncMock(return_value=sent)
@@ -202,14 +233,7 @@ async def test_scheduled_discord_send_offers_thumbs_reactions():
     discord_bot.get_user.return_value = user
     bot.bot = discord_bot
 
-    assert await bot._send_message_internal(
-        "discord_direct:8",
-        "Keep going.",
-        rich_data={"offer_message_reactions": True},
-    )
+    assert await bot._send_message_internal("discord_direct:8", "Keep going.")
 
     assert bot.last_outbound_message_id == "42"
-    sent_kwargs = user.send.await_args.kwargs
-    assert sent_kwargs["content"] == "Keep going."
-    labels = [child.label for child in sent_kwargs["view"].children]
-    assert labels == ["More like this", "Not for me"]
+    assert user.send.await_args.kwargs == {"content": "Keep going."}

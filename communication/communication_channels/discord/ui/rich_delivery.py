@@ -76,7 +76,6 @@ class DiscordRichDeliveryMixin:
             labels, payloads = self._get_action_row_inputs(suggestions, rich_data)
             if labels:
                 view = self._create_action_row(labels, payloads)
-        view = self._with_message_feedback(view, rich_data)
 
         if embed and view:
             sent = await channel.send(content=message or None, embed=embed, view=view)
@@ -146,7 +145,6 @@ class DiscordRichDeliveryMixin:
             labels, payloads = self._get_action_row_inputs(suggestions, rich_data)
             if labels:
                 view = self._create_action_row(labels, payloads)
-        view = self._with_message_feedback(view, rich_data)
 
         if recipient.startswith("discord_user:"):
             internal_user_id = recipient.split(":", 1)[1]
@@ -252,17 +250,6 @@ class DiscordRichDeliveryMixin:
         )
         return False
 
-    @handle_errors("adding message feedback buttons", default_return=None)
-    def _with_message_feedback(self, view: Any, rich_data: dict[str, Any]) -> Any:
-        """Attach unselected feedback buttons when a scheduled message has no other controls."""
-        if view is not None or not rich_data.get("offer_message_reactions"):
-            return view
-        from communication.communication_channels.discord.ui.message_feedback_view import (
-            message_feedback_view,
-        )
-
-        return message_feedback_view()
-
     @handle_errors("remembering outbound Discord message", default_return=None)
     async def _remember_outbound_message(self, sent: Any, rich_data: dict[str, Any] | None) -> None:
         """Store the Discord message id for the message that was just sent."""
@@ -323,7 +310,6 @@ class DiscordRichDeliveryMixin:
             "user_id",
             "task_list_items",
             "task_list_offset",
-            "offer_message_reactions",
         }
         return any(key not in metadata_only_keys for key in rich_data)
 

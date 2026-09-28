@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-27 - Discord reactions replace message buttons **COMPLETED**
+- Scheduled Discord messages no longer include More like this and Not for me buttons.
+- A clearly positive reaction, such as a smile, heart, or celebration, still requests more messages like that one. A clearly negative reaction, such as a frown, anger, or a broken heart, still turns that message off. Ambiguous emoji are ignored.
+
 ### 2026-09-27 - Task steps stay with the parent **COMPLETED**
 - Completing or deleting a task now completes or deletes its steps. Restoring that task can bring the finished steps back. A repeating task copies those step titles onto the next occurrence.
 - Reminders name the oldest open step and say which task it is part of. Done finishes that step. Later and Skip still apply to the parent reminder.
@@ -108,11 +112,6 @@ Guidelines:
 - CommunicationManager now stops tracked event-loop threads on shutdown, including loops abandoned when tests clear the singleton.
 - Linux pytest-timeout uses `signal` so hung tests abort at 300s; nightly output keeps the timeout-dump start so the hung thread is visible.
 - The GitHub summary script indent is restored, and the serial check-in UI test expects Minimum to clamp to 1 for one Always plus one Sometimes question.
-
-### 2026-09-20 - Verified password recovery and transparent mood trends **COMPLETED**
-- Added a forgot-password flow that verifies the account by emailed code, replaces the password, revokes older sessions, and signs the recovered account in without revealing whether unknown emails exist.
-- Website mood insights now explain that the trend compares the latest seven mood ratings with the previous seven, show progress until 14 ratings exist, and distinguish missing mood answers from missing check-ins.
-- Focused Python and browser/Worker coverage validates recovery, safe unknown-account behavior, trend readiness, and the updated login controls.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
