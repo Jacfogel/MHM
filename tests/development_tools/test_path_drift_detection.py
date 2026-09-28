@@ -101,6 +101,27 @@ This file references an existing file: `core/existing_module.py`
             assert 'existing_module.py' not in issue_text, \
                 f"Existing file should not be flagged: {issues}"
     
+    def test_path_drift_accepts_an_existing_website_test_link(self, tmp_path):
+        """A markdown link to an existing non-Python file is not an outdated module."""
+        project_dir = tmp_path / "test_project"
+        website_dir = project_dir / "website"
+        specs_dir = project_dir / "specs"
+        website_dir.mkdir(parents=True)
+        specs_dir.mkdir()
+        (website_dir / "home.test.mjs").write_text("// test\n", encoding="utf-8")
+        doc_file = specs_dir / "SPEC_COVERAGE_MATRIX.md"
+        doc_file.write_text(
+            "See [website/home.test.mjs](../website/home.test.mjs).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_path_drift()
+
+        doc_key = str(doc_file.relative_to(project_dir))
+        issues = results.get(doc_key, []) + results.get(doc_key.replace("\\", "/"), [])
+        assert not any("home.test.mjs" in issue for issue in issues), issues
+
     def test_path_drift_with_reference_report(self, tmp_path):
         """Test that path drift detection skips compatibility reference docs."""
         project_dir = tmp_path / "test_project"

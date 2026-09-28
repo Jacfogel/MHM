@@ -30,6 +30,22 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Registry and doc-path checks match the website chat **COMPLETED**
+- The function registry includes the two website inbox helpers that mark a scheduled message as reactable.
+- A documentation link to an existing website test is no longer reported as a missing Python module.
+- The reaction lookup reads message details once, which clears the inbox type warning.
+
+### 2026-09-27 - Talk to MHM can react to a scheduled message **COMPLETED**
+- A scheduled message in the home chat has More like this and Not for me. Those choices do the same work as a positive or negative Discord reaction.
+- A conversation reply and a check-in do not offer that choice.
+
+### 2026-09-27 - Website can ask for smaller task steps **COMPLETED**
+- Suggest smaller steps, adding those steps, and separating a step now pass through the public site proxy. The same proxy also forwards task effort estimates and bulk delete.
+- Before this, Suggest smaller steps stopped at the proxy and the tasks page showed "Page not found."
+
+### 2026-09-27 - Clicking outside a dialog closes it **COMPLETED**
+- A click on the dimmed area around a task or notebook dialog closes that dialog. A click inside the box, or a drag that starts inside it, leaves it open.
+
 ### 2026-09-27 - Discord reactions replace message buttons **COMPLETED**
 - Scheduled Discord messages no longer include More like this and Not for me buttons.
 - A clearly positive reaction, such as a smile, heart, or celebration, still requests more messages like that one. A clearly negative reaction, such as a frown, anger, or a broken heart, still turns that message off. Ambiguous emoji are ignored.
@@ -92,26 +108,6 @@ Guidelines:
 ### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
 - Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.
 - Home, login, and the account card link to them. The gateway and Worker allowlists serve the new files.
-
-### 2026-09-21 - Discord thumbs reactions steer scheduled messages **COMPLETED**
-- Thumbs up on a scheduled Discord message adds similar library messages, or steers later personalized messages toward that one.
-- Thumbs down retires that exact message so selection and personalized generation stop using it.
-- Scheduled Discord sends store the Discord message id and offer the two reactions. Check-in questions ignore both reactions.
-
-### 2026-09-21 - Website first-run helpers follow shared error handling **COMPLETED**
-- Website first-run helpers now use `@handle_errors` with safe defaults so a broken account document cannot crash login routing.
-- Changelog ASCII quotes and the [TODO.md](../TODO.md) instruction link are cleaned up.
-
-### 2026-09-20 - Compact website navigation and simpler task creation **COMPLETED**
-- After login, the website lands on Home (next task, check-in request, notebook capture). Home warns when task reminders or check-ins are off. New accounts, and any account with messages, tasks, and check-ins all off, get a 3-step first run even if `needs_setup` is missing from the account summary. Home/setup scripts are page-scoped so they load with `app.js`.
-- Signed-in and marketing pages now use a Menu control below 1080px so destinations stay reachable, including Create account on small phones.
-- The task list is shown first; extra create fields stay behind More options unless a template fills them.
-- Notebook search labels use a real `.sr-only` style, and disabled buttons no longer look like they are loading.
-
-### 2026-09-20 - Nightly suite workers no longer leak communication event loops **COMPLETED**
-- CommunicationManager now stops tracked event-loop threads on shutdown, including loops abandoned when tests clear the singleton.
-- Linux pytest-timeout uses `signal` so hung tests abort at 300s; nightly output keeps the timeout-dump start so the hung thread is visible.
-- The GitHub summary script indent is restored, and the serial check-in UI test expects Minimum to clamp to 1 for one Always plus one Sometimes question.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

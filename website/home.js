@@ -382,6 +382,8 @@
       role: turn.role,
       text: turn.text,
       at: typeof turn.created_at === 'string' ? turn.created_at : '',
+      deliveryId: typeof turn.delivery_id === 'string' ? turn.delivery_id : '',
+      reaction: turn.reaction === 'up' || turn.reaction === 'down' ? turn.reaction : '',
     }));
   }
 
@@ -423,7 +425,7 @@
     return parsed.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
   }
 
-  function addBubble(role, text, at) {
+  function addBubble(role, text, at, turn) {
     const item = document.createElement('article');
     item.className = role === 'you' ? 'talk-bubble talk-you' : 'talk-bubble talk-mhm';
     const who = document.createElement('span');
@@ -439,7 +441,48 @@
     const body = document.createElement('p');
     body.textContent = text;
     item.append(body);
+    if (turn && turn.deliveryId) item.append(reactionChoices(turn));
     talkLog.append(item);
+  }
+
+  function reactionChoices(turn) {
+    const choices = document.createElement('div');
+    choices.className = 'talk-reactions';
+    const more = reactionButton('More like this', 'up', turn);
+    const less = reactionButton('Not for me', 'down', turn);
+    more.addEventListener('click', () => reactToMessage(turn, 'up', more, less));
+    less.addEventListener('click', () => reactToMessage(turn, 'down', less, more));
+    choices.append(more, less);
+    return choices;
+  }
+
+  function reactionButton(label, kind, turn) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'plain-button talk-reaction';
+    button.textContent = label;
+    button.setAttribute('aria-pressed', turn.reaction === kind ? 'true' : 'false');
+    return button;
+  }
+
+  async function reactToMessage(turn, kind, chosen, other) {
+    if (talkSend.disabled) return;
+    chosen.disabled = true;
+    other.disabled = true;
+    talkStatus.classList.remove('is-error');
+    try {
+      const result = await api('/api/chat/reactions', 'POST', { delivery_id: turn.deliveryId, kind });
+      turn.reaction = kind;
+      chosen.setAttribute('aria-pressed', 'true');
+      other.setAttribute('aria-pressed', 'false');
+      talkStatus.textContent = result.reply || '';
+    } catch (error) {
+      talkStatus.textContent = error.message;
+      talkStatus.classList.add('is-error');
+    } finally {
+      chosen.disabled = false;
+      other.disabled = false;
+    }
   }
 
   function pinTalkToLatest() {
@@ -481,7 +524,7 @@
     if (!shown.length && !savedTurns().length) {
       addBubble('mhm', 'Hi. Ask for help, tell me to add a task, or just say what’s on your mind.');
     } else {
-      shown.forEach(turn => addBubble(turn.role, turn.text, turn.at));
+      shown.forEach(turn => addBubble(turn.role, turn.text, turn.at, turn));
     }
     const last = shown[shown.length - 1];
     if (last && last.role === 'mhm') showSuggestions(last.suggestions);

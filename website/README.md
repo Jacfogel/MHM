@@ -82,7 +82,8 @@ internal account identifiers, suspension, and other administrator controls still
 cannot be changed here.
 
 Tasks can be created from built-in templates, edited, linked to web resources,
-completed, restored, deleted, snoozed, skipped, or simplified. The task list is
+completed, restored, deleted, snoozed, skipped, simplified, or broken into smaller
+steps. The task list is
 shown first; title-only creation is the default, and template, details, due date,
 priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
 pinned, inbox, and group views alongside active and archived entries. Each saved group is its own tab. The message library
@@ -174,7 +175,7 @@ return to login; request failures allow retrying logout.
 - `script.js` — year stamp and compact navigation menu
 - `wrangler.jsonc` — Cloudflare Workers configuration
 - `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
-- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, and one-line notebook capture
+- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, one-line notebook capture, and More like this or Not for me on a scheduled message in the chat
 - `checkin.html`, `checkin.js` — answer, skip, or cancel the current check-in in the browser
 - `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
 - `app.html`, `app.js` — connected account details, password/provider setup, and logout

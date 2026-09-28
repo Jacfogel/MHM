@@ -192,7 +192,7 @@ When a caller provides a custom Discord view, the send path SHALL use it instead
 
 ### 3.7. Requirement: Scheduled messages can be reacted to
 
-Scheduled Discord sends SHALL remember the Discord message id and SHALL NOT attach feedback buttons. A later positive or negative reaction from the linked user SHALL change future messages of that kind. Positive reactions include thumbs up, smiles, hearts, laughter, and celebration. Negative reactions include thumbs down, frowns, anger, sadness, and rejection. Ambiguous emoji are ignored.
+Scheduled Discord sends SHALL remember the Discord message id and SHALL NOT attach feedback buttons. A later positive or negative reaction from the linked user SHALL change future messages of that kind. Positive reactions include thumbs up, smiles, hearts, laughter, and celebration. Negative reactions include thumbs down, frowns, anger, sadness, and rejection. Ambiguous emoji are ignored. The website chat SHALL offer the same choice on a scheduled message shown there, as More like this or Not for me.
 
 #### Scenario: Positive reaction on a library message
 
@@ -214,6 +214,13 @@ Scheduled Discord sends SHALL remember the Discord message id and SHALL NOT atta
 - **WHEN** the linked user reacts with a clearly negative emoji, such as thumbs down, a frown, anger, or a broken heart  
 - **THEN** that exact message is no longer eligible to send  
 - **AND** the user is told it will not be sent again  
+
+#### Scenario: Website chat reaction on a scheduled message
+
+- **GIVEN** a scheduled message is shown in the website Talk to MHM chat  
+- **WHEN** the signed-in user chooses More like this or Not for me  
+- **THEN** MHM applies the same positive or negative reaction as a Discord reaction on that delivery  
+- **AND** the chat shows the same reply  
 
 #### Scenario: Scheduled message has no feedback buttons
 

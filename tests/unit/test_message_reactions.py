@@ -119,6 +119,27 @@ def test_thumbs_up_adds_similar_library_messages_once(monkeypatch, tmp_path):
     assert stored[0]["metadata"]["similar_generated"] is True
 
 
+def test_website_reaction_finds_the_delivery_without_a_discord_id(monkeypatch, tmp_path):
+    _isolate_user(monkeypatch, tmp_path)
+    add_message(
+        "user-1",
+        "motivational",
+        {
+            "id": "template-1",
+            "text": "Keep going.",
+            "category": "motivational",
+            "schedule": {"days": ["ALL"], "periods": ["ALL"]},
+        },
+    )
+    assert store_sent_message("user-1", "motivational", "template-1", "Keep going.")
+    delivery_id = get_recent_messages("user-1", limit=1)[0]["id"]
+
+    result = apply_message_reaction("user-1", "", "down", delivery_id=delivery_id)
+
+    assert result["status"] == "retired"
+    assert result["reply"] == "I won't send that message again."
+
+
 def test_thumbs_on_checkin_question_do_nothing(monkeypatch, tmp_path):
     _isolate_user(monkeypatch, tmp_path)
     store_sent_message(

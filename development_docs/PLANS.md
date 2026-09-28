@@ -381,7 +381,7 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 3. An active check-in or task flow stays in charge, the same way Discord and email do, because the website uses that shared handler.
 4. Tasks, Notebook, and Check-in remain the places for those jobs. Home is the open conversation, not a second copy of those screens.
 
-**Leave in place for now**: thumbs reactions that change later messages stay on Discord. Account deletion stays a request through Discord or email. The browser keeps the visible transcript for the current visit only.
+**Leave in place for now**: Account deletion stays a request through Discord or email. The browser keeps the visible transcript for the current visit only. Scheduled messages in Talk to MHM can be marked More like this or Not for me, the same as a Discord reaction.
 
 ---
 

@@ -35,6 +35,7 @@ function page() {
         return null;
       },
       querySelectorAll() { return []; },
+      addEventListener() {},
     },
     window: { addEventListener(type, listener) { windowListeners[type] = listener; } },
   }));
@@ -63,6 +64,7 @@ test('feature tabs hide when that feature is off and the open page returns home'
     document: {
       getElementById() { return null; },
       querySelectorAll() { return links; },
+      addEventListener() {},
     },
     fetch: async () => ({ ok: true, json: async () => ({ messages_enabled: false, tasks_enabled: false, checkins_enabled: true }) }),
     location: { replace(url) { navigation.push(url); } },
@@ -73,6 +75,46 @@ test('feature tabs hide when that feature is off and the open page returns home'
   assert.equal(links[0].hidden, false);
   assert.equal(links[1].hidden, true);
   assert.deepEqual(navigation, ['home.html']);
+});
+
+test('a click outside an open dialog closes it', () => {
+  const listeners = {};
+  const dialog = {
+    open: true,
+    closed: false,
+    close() { this.closed = true; this.open = false; },
+    getBoundingClientRect() { return { left: 100, top: 100, right: 300, bottom: 400 }; },
+  };
+  vm.runInContext(source, vm.createContext({
+    document: {
+      getElementById() { return null; },
+      querySelectorAll(selector) { return selector === 'dialog' ? [dialog] : []; },
+      addEventListener(type, listener, capture) { listeners[`${type}:${Boolean(capture)}`] = listener; },
+    },
+    window: { addEventListener() {} },
+    WeakMap,
+  }));
+  const outside = { clientX: 10, clientY: 10 };
+  const inside = { clientX: 150, clientY: 150 };
+  listeners['pointerdown:true'](outside);
+  listeners['click:false'](outside);
+  assert.equal(dialog.closed, true);
+
+  dialog.open = true;
+  dialog.closed = false;
+  listeners['pointerdown:true'](inside);
+  listeners['click:false'](outside);
+  assert.equal(dialog.closed, false);
+
+  listeners['pointerdown:true'](inside);
+  listeners['click:false'](inside);
+  assert.equal(dialog.closed, false);
+
+  dialog.open = false;
+  listeners['pointerdown:true'](outside);
+  dialog.open = true;
+  listeners['click:false'](outside);
+  assert.equal(dialog.closed, false);
 });
 
 test('escape and choosing a destination close the compact menu', () => {

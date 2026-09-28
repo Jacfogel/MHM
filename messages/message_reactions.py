@@ -143,11 +143,17 @@ def generate_similar_message_texts(user_id: str, source_text: str) -> list[str]:
     "applying message reaction",
     default_return={"status": "failed", "reply": ""},
 )
-def apply_message_reaction(user_id: str, discord_message_id: str, kind: str) -> dict[str, str]:
+def apply_message_reaction(
+    user_id: str,
+    discord_message_id: str,
+    kind: str,
+    *,
+    delivery_id: str = "",
+) -> dict[str, str]:
     """Apply a thumbs-up or thumbs-down to one scheduled library or personalized message."""
     if kind not in {"up", "down"}:
         return {"status": "ignored", "reply": ""}
-    delivery = _find_delivery(user_id, discord_message_id)
+    delivery = _find_delivery(user_id, discord_message_id, delivery_id)
     if not delivery:
         return {"status": "ignored", "reply": ""}
 
@@ -218,14 +224,19 @@ def _clean_draft(text: str) -> str:
 
 
 @handle_errors("finding delivery for Discord reaction", default_return=None)
-def _find_delivery(user_id: str, discord_message_id: str) -> dict[str, Any] | None:
-    """Return the sent message that matches a Discord message id."""
-    target = str(discord_message_id or "").strip()
-    if not target:
+def _find_delivery(
+    user_id: str, discord_message_id: str, delivery_id: str = ""
+) -> dict[str, Any] | None:
+    """Return the sent message that matches a delivery id or a Discord message id."""
+    target_delivery = str(delivery_id or "").strip()
+    target_discord = str(discord_message_id or "").strip()
+    if not target_delivery and not target_discord:
         return None
     for delivery in get_recent_messages(user_id, limit=1000):
+        if target_delivery and str(delivery.get("id") or "") == target_delivery:
+            return delivery
         metadata = delivery.get("metadata") if isinstance(delivery.get("metadata"), dict) else {}
-        if str(metadata.get("discord_message_id") or "") == target:
+        if target_discord and str(metadata.get("discord_message_id") or "") == target_discord:
             return delivery
     return None
 

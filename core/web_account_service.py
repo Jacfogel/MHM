@@ -2844,10 +2844,41 @@ def create_web_app(
         turns = await asyncio.to_thread(list_home_conversation, uid)
         return web.json_response({"messages": messages, "turns": turns})
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def chat_reaction(request):
+        """Apply More like this or Not for me to one scheduled message from the website chat."""
+        from messages.message_reactions import apply_message_reaction
+
+        uid, _current = await authenticated_account(request)
+        data = await body(request)
+        kind = data.get("kind")
+        delivery_id = data.get("delivery_id")
+        if (
+            set(data) != {"kind", "delivery_id"}
+            or kind not in {"up", "down"}
+            or not isinstance(delivery_id, str)
+            or not delivery_id.strip()
+            or len(delivery_id.strip()) > 80
+        ):
+            raise web.HTTPBadRequest(text="Choose more like this or not for me.")
+        throttle(("reaction", uid), 30, 600)
+        result = await asyncio.to_thread(
+            apply_message_reaction,
+            uid,
+            "",
+            kind,
+            delivery_id=delivery_id.strip(),
+        )
+        status = str(result.get("status") or "")
+        if status == "ignored":
+            raise web.HTTPNotFound(text="That message cannot change later messages.")
+        return web.json_response({"status": status, "reply": str(result.get("reply") or "")})
+
     app.router.add_get("/api/checkins", checkins_api)
     app.router.add_post("/api/checkins", checkins_api)
     app.router.add_get("/api/chat", chat_inbox)
     app.router.add_post("/api/chat", chat_api)
+    app.router.add_post("/api/chat/reactions", chat_reaction)
     app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
     app.router.add_get("/api/notes", notes_api)

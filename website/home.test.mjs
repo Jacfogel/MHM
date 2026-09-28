@@ -13,6 +13,9 @@ function node(extras = {}) {
     value: '',
     classList: { add() {}, remove() {}, toggle() {} },
     childNodes: [],
+    attributes: {},
+    setAttribute(name, value) { this.attributes[name] = value; },
+    getAttribute(name) { return this.attributes[name]; },
     addEventListener(type, listener) { this.listeners = this.listeners || {}; this.listeners[type] = listener; },
     append(...children) { this.childNodes.push(...children); },
     replaceChildren(...children) { this.childNodes = children; },
@@ -21,7 +24,7 @@ function node(extras = {}) {
   };
 }
 
-async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, fetchImpl, random = () => 0 } = {}) {
+async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, fetchImpl, random = () => 0, chat = false } = {}) {
   const nodes = new Map([
     ['app-status', node({ hidden: false })],
     ['home-content', node()],
@@ -48,6 +51,9 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
     ['home-checkin-off', node()],
     ['home-checkin-status', node()],
   ]);
+  if (chat) {
+    for (const id of ['talk-log', 'talk-form', 'talk-input', 'talk-send', 'talk-status', 'talk-suggestions']) nodes.set(id, node());
+  }
   const requests = [];
   const navigation = [];
   const context = vm.createContext({
@@ -56,7 +62,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       querySelectorAll() { return []; },
       createElement() { return node(); },
     },
-    window: { dispatchEvent() {}, requestAnimationFrame() {}, mhmRandom: random },
+    window: { dispatchEvent() {}, requestAnimationFrame() {}, setInterval() {}, mhmRandom: random },
     Event,
     location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: fetchImpl || (async (url, options = {}) => {
@@ -254,6 +260,45 @@ test('home warns when task reminders are off', async () => {
   assert.equal(view.nodes.get('home-task-title').textContent, 'Drink water');
   assert.equal(view.requests.some(request => request.url === '/api/tasks?status=active'), true);
   assert.equal(view.nodes.get('home-checkin-off').hidden, true);
+});
+
+test('a scheduled message in the chat can ask for more like it', async () => {
+  const reactions = [];
+  const view = await page({
+    chat: true,
+    fetchImpl: async (url, options = {}) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/chat/reactions') {
+        reactions.push(JSON.parse(options.body));
+        return Response.json({ status: 'liked', reply: "I'll send more messages like that." });
+      }
+      if (url === '/api/chat') {
+        const recent = new Date().toISOString();
+        return Response.json({
+          turns: [
+            { role: 'you', text: 'hi', created_at: recent },
+            { role: 'mhm', text: 'Hello from the website.', created_at: recent },
+            { role: 'mhm', text: 'Keep going.', created_at: recent, delivery_id: 'delivery-1', reaction: '' },
+          ],
+        });
+      }
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  const bubbles = view.nodes.get('talk-log').childNodes.filter(item => String(item.className || '').includes('talk-bubble'));
+  const reactable = bubbles.filter(item => item.childNodes.some(child => child.className === 'talk-reactions'));
+  assert.equal(reactable.length, 1);
+  assert.match(reactable[0].childNodes.find(child => child.tagName === 'P' || child.textContent === 'Keep going.').textContent, /Keep going/);
+  const choices = reactable[0].childNodes.find(child => child.className === 'talk-reactions');
+  const more = choices.childNodes.find(child => child.textContent === 'More like this');
+  assert.equal(more.getAttribute('aria-pressed'), 'false');
+  await more.listeners.click();
+  assert.deepEqual(reactions, [{ delivery_id: 'delivery-1', kind: 'up' }]);
+  assert.equal(more.getAttribute('aria-pressed'), 'true');
+  assert.equal(view.nodes.get('talk-status').textContent, "I'll send more messages like that.");
 });
 
 test('home.js can load after app.js without a global status clash', async () => {

@@ -826,13 +826,14 @@ class PathDriftAnalyzer:
                     else:
                         drift_issues[doc_file].append(f"Missing file: {path}")
                 else:
-                    # Check if it's a Python module reference
+                    # A link to an existing file, including website tests, is not a module path.
+                    if self._is_valid_file_reference(path, source_dir):
+                        continue
                     if self._is_valid_module_reference(path, code_paths):
                         continue
-                    else:
-                        drift_issues[doc_file].append(
-                            f"Potentially outdated module: {path}"
-                        )
+                    drift_issues[doc_file].append(
+                        f"Potentially outdated module: {path}"
+                    )
 
         return drift_issues
 

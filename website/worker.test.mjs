@@ -169,6 +169,43 @@ test('task CRUD routes forward dynamic IDs and mutating methods safely', async (
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test('smaller-step and effort routes reach the gateway', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push([target.href, options.method]);
+    return Response.json({ steps: ['Wipe the counter'] });
+  };
+  try {
+    const headers = { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' };
+    for (const action of ['breakdown', 'subtasks', 'detach']) {
+      assert.equal((await worker.fetch(new Request(url + `/api/tasks/task-1/${action}`, {
+        method: 'POST', headers, body: action === 'subtasks' ? '{"titles":["Wipe the counter"]}' : '{}',
+      }), env)).status, 200);
+    }
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/bulk/delete', {
+      method: 'POST', headers, body: '{"task_ids":["task-1"]}',
+    }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/effort', {
+      headers: { Cookie: 'mhm_session=owned' },
+    }), env)).status, 200);
+    assert.deepEqual(calls, [
+      ['https://gateway.example/api/tasks/task-1/breakdown', 'POST'],
+      ['https://gateway.example/api/tasks/task-1/subtasks', 'POST'],
+      ['https://gateway.example/api/tasks/task-1/detach', 'POST'],
+      ['https://gateway.example/api/tasks/bulk/delete', 'POST'],
+      ['https://gateway.example/api/tasks/effort', 'GET'],
+    ]);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/breakdown', { method: 'GET' }), env)).status, 405);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/publish', {
+      method: 'POST', headers, body: '{}',
+    }), env)).status, 404);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/effort', {
+      method: 'POST', headers, body: '{}',
+    }), env)).status, 405);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('notes routes forward dynamic IDs and archive actions', async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
@@ -227,9 +264,14 @@ test('website chat is proxied to the gateway', async () => {
     assert.equal((await worker.fetch(new Request(url + '/api/chat', {
       method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: '{"message":"hi"}',
     }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/chat/reactions', {
+      method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: '{"delivery_id":"delivery-1","kind":"up"}',
+    }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/chat/reactions'), env)).status, 405);
     assert.deepEqual(calls.map(call => [call.href, call.method]), [
       ['https://gateway.example/api/chat', 'GET'],
       ['https://gateway.example/api/chat', 'POST'],
+      ['https://gateway.example/api/chat/reactions', 'POST'],
     ]);
   } finally { globalThis.fetch = originalFetch; }
 });

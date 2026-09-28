@@ -191,11 +191,45 @@ def _chat_interaction_turns(user_id: str, existing: list[dict]) -> list[dict]:
     return added
 
 
+@handle_errors("finding scheduled messages that can be reacted to", default_return={})
+def _reactable_by_text(recent: list[dict]) -> dict[str, dict]:
+    """Map sent text to the newest delivery a website reaction can change."""
+    found: dict[str, dict] = {}
+    for item in recent:
+        text = str(item.get("sent_text") or "").strip()
+        delivery_id = str(item.get("id") or "")
+        if not text or not delivery_id or str(item.get("category") or "") == "checkin":
+            continue
+        if text in found:
+            continue
+        raw_metadata = item.get("metadata")
+        metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
+        reaction = str(metadata.get("reaction") or "")
+        found[text] = {
+            "delivery_id": delivery_id,
+            "reaction": reaction if reaction in {"up", "down"} else "",
+        }
+    return found
+
+
+@handle_errors("marking one conversation turn as reactable", default_return=None)
+def _with_reaction(turn: dict, reactable: dict[str, dict]) -> dict:
+    """Attach the scheduled delivery when this MHM message can take a reaction."""
+    match = reactable.get(str(turn.get("text") or ""))
+    if not match:
+        return turn
+    turn["delivery_id"] = match["delivery_id"]
+    turn["reaction"] = match["reaction"]
+    return turn
+
+
 @handle_errors("loading outbound conversation copies", default_return=[])
 def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
     """Add MHM messages sent on any channel that are not already in the transcript."""
     from messages.message_data_manager import get_recent_messages
 
+    recent = get_recent_messages(user_id, limit=MAX_INBOX_MESSAGES)
+    reactable = _reactable_by_text(recent)
     seen = {
         (item.get("text", ""), item.get("created_at", ""))
         for item in existing
@@ -211,14 +245,17 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
         seen.add((text, created_at))
         copied.add(text)
         added.append(
-            {
-                "id": item.get("id") or "",
-                "role": "mhm",
-                "text": text,
-                "created_at": created_at,
-            }
+            _with_reaction(
+                {
+                    "id": item.get("id") or "",
+                    "role": "mhm",
+                    "text": text,
+                    "created_at": created_at,
+                },
+                reactable,
+            )
         )
-    for item in get_recent_messages(user_id, limit=MAX_INBOX_MESSAGES):
+    for item in recent:
         text = item.get("sent_text")
         created_at = str(item.get("sent_at") or "")
         if not isinstance(text, str) or not text.strip():
@@ -228,12 +265,15 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
             continue
         seen.add((text, created_at))
         added.append(
-            {
-                "id": str(item.get("id") or ""),
-                "role": "mhm",
-                "text": text,
-                "created_at": created_at,
-            }
+            _with_reaction(
+                {
+                    "id": str(item.get("id") or ""),
+                    "role": "mhm",
+                    "text": text,
+                    "created_at": created_at,
+                },
+                reactable,
+            )
         )
     return added
 

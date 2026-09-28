@@ -159,6 +159,46 @@ def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_p
     assert inbox.list_website_messages("existing")[0]["text"] == "Good morning."
 
 
+def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):
+    from communication.communication_channels.website import inbox
+
+    monkeypatch.setattr(
+        "core.response_tracking.get_recent_chat_interactions",
+        lambda user_id, limit=80: [],
+    )
+    monkeypatch.setattr(inbox, "list_website_chat_turns", lambda user_id: [
+        {"id": "chat-1", "role": "mhm", "text": "Hello from the website.", "created_at": "2026-09-24 17:44:30"},
+    ])
+    monkeypatch.setattr(inbox, "list_website_messages", lambda user_id: [
+        {"id": "site-1", "text": "Keep going.", "category": "motivational", "created_at": "2026-09-24 08:00:00"},
+    ])
+    monkeypatch.setattr(
+        "messages.message_data_manager.get_recent_messages",
+        lambda user_id, category=None, limit=40, days_back=None: [
+            {
+                "id": "delivery-1",
+                "sent_text": "Keep going.",
+                "sent_at": "2026-09-24 08:00:05",
+                "category": "motivational",
+                "metadata": {"reaction": "up"},
+            },
+            {
+                "id": "delivery-2",
+                "sent_text": "How is your mood?",
+                "sent_at": "2026-09-24 09:00:00",
+                "category": "checkin",
+                "metadata": {},
+            },
+        ],
+    )
+
+    turns = {item["text"]: item for item in inbox.list_home_conversation("existing")}
+    assert turns["Keep going."]["delivery_id"] == "delivery-1"
+    assert turns["Keep going."]["reaction"] == "up"
+    assert "delivery_id" not in turns["How is your mood?"]
+    assert "delivery_id" not in turns["Hello from the website."]
+
+
 def test_home_conversation_orders_website_discord_and_email_together(monkeypatch):
     from communication.communication_channels.website import inbox
 
@@ -280,6 +320,39 @@ async def test_chat_inbox_returns_website_deliveries(chat_gateway, monkeypatch):
     )
     body = await (await client.get("/api/chat")).json()
     assert body["messages"][0]["text"] == "A reminder"
+
+
+async def test_chat_reaction_uses_the_scheduled_delivery(chat_gateway, monkeypatch):
+    client, _captured = chat_gateway
+    seen = {}
+
+    def remember(user_id, discord_message_id, kind, delivery_id=""):
+        seen.update(user=user_id, discord_message_id=discord_message_id, kind=kind, delivery_id=delivery_id)
+        return {"status": "retired", "reply": "I won't send that message again."}
+
+    monkeypatch.setattr("messages.message_reactions.apply_message_reaction", remember)
+    response = await client.post(
+        "/api/chat/reactions",
+        json={"delivery_id": "delivery-1", "kind": "down"},
+        headers={"Origin": ORIGIN},
+    )
+    assert response.status == 200
+    assert await response.json() == {
+        "status": "retired",
+        "reply": "I won't send that message again.",
+    }
+    assert seen == {
+        "user": "existing",
+        "discord_message_id": "",
+        "kind": "down",
+        "delivery_id": "delivery-1",
+    }
+    rejected = await client.post(
+        "/api/chat/reactions",
+        json={"delivery_id": "delivery-1", "kind": "sideways"},
+        headers={"Origin": ORIGIN},
+    )
+    assert rejected.status == 400
 
 
 async def test_chat_rejects_empty_extra_fields_and_signed_out_requests(chat_gateway):

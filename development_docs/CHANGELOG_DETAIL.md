@@ -32,6 +32,22 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Registry and doc-path checks match the website chat
+- **Fix**: [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md) lists `_reactable_by_text` and `_with_reaction`. Path drift treats a link to an existing file, such as `website/home.test.mjs`, as a file instead of a missing module. See [analyze_path_drift.py](../development_tools/docs/analyze_path_drift.py). The website inbox reads reaction metadata once so Pyright no longer warns that it might be missing. See [inbox.py](../communication/communication_channels/website/inbox.py).
+- **Impact**: The documentation path check, the function registry, and the inbox type check agree with the website chat reaction work.
+
+### 2026-09-27 - Talk to MHM can react to a scheduled message
+- **Feature**: A scheduled message shown in Talk to MHM can be marked More like this or Not for me. That uses the same reaction as a positive or negative Discord reaction on that delivery, and the chat shows MHM's reply. A conversation reply and a check-in do not offer the choice. See [home.js](../website/home.js), [inbox.py](../communication/communication_channels/website/inbox.py), and [message_reactions.py](../messages/message_reactions.py).
+- **Impact**: You can steer later scheduled messages from the website chat, including when Discord is not connected.
+
+### 2026-09-27 - Website can ask for smaller task steps
+- **Fix**: The public site proxy now forwards suggest-steps, add-steps, and separate-step requests, plus task effort estimates and bulk delete. See [worker.mjs](../website/worker.mjs).
+- **Impact**: Suggest smaller steps on the tasks page and home page reaches MHM. Before this, the proxy answered "Page not found." and that text appeared on the page behind the help dialog.
+
+### 2026-09-27 - Clicking outside a dialog closes it
+- **Feature**: A click on the area around an open dialog closes it. The click has to start and end outside the box, so choosing text inside the dialog does not dismiss it, and the click that opens the dialog does not close it again. See [script.js](../website/script.js).
+- **Impact**: Task help, task editing, and notebook editing can be dismissed by clicking the dimmed page around the box.
+
 ### 2026-09-27 - Discord reactions replace message buttons
 - **Feature**: Scheduled Discord messages no longer show More like this and Not for me. A clearly positive reaction, such as thumbs up, a smile, a heart, laughter, or celebration, still asks for more messages like that one. A clearly negative reaction, such as thumbs down, a frown, anger, sadness, or rejection, still turns that message off. Ambiguous emoji are ignored. See [message_reactions.py](../communication/communication_channels/discord/events/message_reactions.py).
 - **Impact**: Everyday messages stay plain, and a reaction you add yourself still steers later messages.

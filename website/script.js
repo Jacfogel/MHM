@@ -1,6 +1,24 @@
 const year = document.getElementById('year');
 if (year) year.textContent = new Date().getFullYear();
 
+const dialogPress = new WeakMap();
+function pointerInside(dialog, event) {
+  const rect = dialog.getBoundingClientRect();
+  return event.clientX >= rect.left && event.clientX <= rect.right
+    && event.clientY >= rect.top && event.clientY <= rect.bottom;
+}
+document.addEventListener('pointerdown', event => {
+  for (const dialog of document.querySelectorAll('dialog')) {
+    if (dialog.open) dialogPress.set(dialog, pointerInside(dialog, event));
+  }
+}, true);
+document.addEventListener('click', event => {
+  for (const dialog of document.querySelectorAll('dialog')) {
+    if (!dialog.open || dialogPress.get(dialog) !== false || pointerInside(dialog, event)) continue;
+    if (typeof dialog.close === 'function') dialog.close();
+  }
+});
+
 const navToggle = document.getElementById('nav-toggle');
 const siteMenu = document.getElementById('site-menu');
 if (navToggle && siteMenu) {
