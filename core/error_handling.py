@@ -692,6 +692,8 @@ def _recovery_default_document_for_path(
         return _default_new_checkins_file_payload()
     if "chat_interactions" in file_path:
         return []
+    if "website_inbox" in file_path:
+        return {"messages": [], "turns": []}
     if file_path.endswith(".json"):
         return {
             "data": {},

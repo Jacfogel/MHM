@@ -6,6 +6,10 @@ from unittest.mock import patch
 import pytest
 
 from core.health_context_builder import (
+    _format_rounded_active_minutes,
+    _format_rounded_sleep_hours,
+    _format_rounded_steps,
+    _round_sleep_hours,
     build_recent_health_patterns,
     build_safe_health_guidance_summary,
     format_health_guidance_for_user_reply,
@@ -25,6 +29,18 @@ def test_format_health_guidance_for_user_reply_strips_prompt_framing():
     assert "Health personalization" not in text
     assert "Never diagnose" not in text
     assert "gentler day" in text.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_wellness_counts_round_halves_away_from_zero():
+    assert _round_sleep_hours(7.25) == 7.5
+    assert _round_sleep_hours(7.75) == 8.0
+    assert _format_rounded_sleep_hours(7.25) == "~7.5 hours of sleep"
+    assert _format_rounded_steps(50) == "~100 steps"
+    assert _format_rounded_steps(250) == "~300 steps"
+    assert _format_rounded_active_minutes(2.5) == "~5 active minutes"
+    assert _format_rounded_active_minutes(12.5) == "~15 active minutes"
 
 
 @pytest.mark.unit
@@ -243,6 +259,77 @@ def test_recent_patterns_include_multi_day_streaks(test_data_dir):
 
     assert "shorter sleep for 3 days in a row" in patterns
     assert "lighter activity for 3 days in a row" in patterns
+
+
+@pytest.mark.unit
+@pytest.mark.user
+def test_user_facing_snippet_keeps_multi_day_streaks(test_data_dir):
+    from core import update_user_account
+    from core.health_context_builder import build_user_facing_signal_wellness_snippet
+    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
+
+    user_id = "health-streak-snippet-user"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    update_user_account(user_id, {"features": {"google_health": "enabled"}})
+    ensure_health_directory(user_id)
+    save_health_signals(
+        user_id,
+        {
+            "schema_version": 2,
+            "updated_at": "2026-06-27 12:00:00",
+            "signals": [
+                {
+                    "date": "2026-06-25",
+                    "sleep_recovery": "low",
+                    "sleep_hours": 5.0,
+                    "steps": 2000,
+                    "sleep_vs_baseline": "below",
+                    "activity_level": "low",
+                    "active_intensity": "low",
+                    "confidence": "medium",
+                    "message_guidance": ["use_gentle_tone"],
+                    "baseline_days_used": 10,
+                    "computed_at": "2026-06-25 12:00:00",
+                },
+                {
+                    "date": "2026-06-26",
+                    "sleep_recovery": "low",
+                    "sleep_hours": 4.5,
+                    "steps": 1800,
+                    "sleep_vs_baseline": "below",
+                    "activity_level": "low",
+                    "active_intensity": "normal",
+                    "confidence": "medium",
+                    "message_guidance": ["use_gentle_tone"],
+                    "baseline_days_used": 10,
+                    "computed_at": "2026-06-26 12:00:00",
+                },
+                {
+                    "date": "2026-06-27",
+                    "sleep_recovery": "low",
+                    "sleep_hours": 5.2,
+                    "steps": 2200,
+                    "sleep_vs_baseline": "below",
+                    "activity_level": "low",
+                    "active_intensity": "low",
+                    "confidence": "medium",
+                    "message_guidance": ["use_gentle_tone"],
+                    "baseline_days_used": 10,
+                    "computed_at": "2026-06-27 12:00:00",
+                },
+            ],
+        },
+    )
+
+    fixed_now = datetime.strptime("2026-06-27 08:00:00", "%Y-%m-%d %H:%M:%S")
+    with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
+        snippet = build_user_facing_signal_wellness_snippet(user_id)
+
+    assert "shorter sleep for 3 days in a row" in snippet.lower()
+    assert "about ~5 hours of sleep recently" in snippet.lower()
+    assert "lighter activity for 3 days in a row" in snippet.lower()
+    assert "about ~2,200 steps recently" in snippet.lower()
+    assert "lighter night" not in snippet.lower()
 
 
 @pytest.mark.unit

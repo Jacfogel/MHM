@@ -2471,6 +2471,7 @@ Returns True only after the message is handled, so the caller can mark it read.
 - [OK] `_outbound_turns(user_id, existing)` - Add MHM messages sent on any channel that are not already in the transcript.
 - [OK] `_pair_counts(turns)` - Count website user-then-MHM pairs already stored as chat turns.
 - [OK] `_reactable_by_text(recent)` - Map sent text to the newest delivery a website reaction can change.
+- [OK] `_read_website_inbox(path)` - Return the saved inbox, or an empty one when the file is not there yet.
 - [OK] `_turn_sort_key(item, index)` - Oldest first. A person speaks before MHM when both share a timestamp.
 - [OK] `_visible_turn(item)` - Return one stored chat turn the home page can show.
 - [OK] `_with_reaction(turn, reactable)` - Attach the scheduled delivery when this MHM message can take a reaction.
@@ -4138,9 +4139,12 @@ Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
 choose how many notes to keep.
 - [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
 - [OK] `_join_wellness_phrases(phrases)` - Join one, two, or three wellness phrases into a single sentence.
-- [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour.
+- [OK] `_round_half_away_from_zero(value)` - Round a .5 tie away from zero so 0.5 becomes 1 and 2.5 becomes 3.
+- [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour, with ties away from zero.
+- [OK] `_rounded_bucket_metric(signal, bucket)` - Return rounded sleep hours, or steps before active minutes.
 - [OK] `_select_one_note_per_bucket(notes)` - Keep the first sleep note, the first movement note, and the first readiness note.
 - [OK] `_signal_band(value)` - Normalize a coarse signal label such as high, low, or unknown.
+- [OK] `_streak_reply_phrase(streak, signal, bucket)` - Keep the streak, and the rounded count beside it when one exists.
 - [OK] `build_personalized_checkin_context(user_id)` - Build scheduled-message context from recent check-ins only.
 - [OK] `build_personalized_google_health_context(user_id)` - Build scheduled-message context from Google Health signals only.
 - [OK] `build_personalized_profile_context(user_id)` - Build scheduled-message context from non-medical profile preferences.
@@ -4155,9 +4159,9 @@ Tone tokens only — never includes sleep hours, steps, HR, HRV, or device names
 
 Used when message_guidance is empty or confidence is low but recent wearable
 data still supports an honest wellness reply. Keeps one sleep note, one
-movement note, and one readiness note. May include rounded sleep hours,
-step counts, active minutes, and a streak when that bucket has no clearer
-note. Never includes HR/HRV numbers.
+movement note, and one readiness note. A multi-day streak is that bucket's
+note, with rounded sleep hours, steps, or active minutes beside it.
+Never includes HR/HRV numbers.
 - [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
 - [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
 - [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.

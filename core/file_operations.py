@@ -159,7 +159,11 @@ def load_json_data(file_path):
         # NOTE: Don't auto-create message files - let add_message handle that
         # Only auto-create core user files (account, preferences, etc.)
         # Detect user files by path
-        if "users" in file_path and "messages" not in file_path:
+        if (
+            "users" in file_path
+            and "messages" not in file_path
+            and "website_inbox" not in file_path
+        ):
             # Try to extract user_id from the path
             import re
 

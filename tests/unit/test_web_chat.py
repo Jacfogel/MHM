@@ -159,6 +159,27 @@ def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_p
     assert inbox.list_website_messages("existing")[0]["text"] == "Good morning."
 
 
+def test_missing_website_inbox_stays_missing(tmp_path, monkeypatch):
+    from communication.communication_channels.website import inbox
+
+    path = tmp_path / "website_inbox.json"
+    monkeypatch.setattr(inbox, "get_user_file_path", lambda user_id, file_type: str(path))
+
+    def fail_load(_path):
+        raise AssertionError("a missing inbox should not be loaded")
+
+    monkeypatch.setattr(inbox, "load_json_data", fail_load)
+    assert inbox.list_website_messages("existing") == []
+    assert inbox.list_website_chat_turns("existing") == []
+    assert path.exists() is False
+
+    monkeypatch.setattr(inbox, "ensure_user_directory", lambda user_id: True)
+    assert inbox.deliver_to_website("existing", "Good morning.", "motivational") is True
+    stored = path.read_text(encoding="utf-8")
+    assert "Good morning." in stored
+    assert '"turns": []' in stored or '"turns":[]' in stored
+
+
 def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):
     from communication.communication_channels.website import inbox
 

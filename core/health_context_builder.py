@@ -8,6 +8,7 @@ phrases (no HR/HRV numbers).
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -36,10 +37,18 @@ STREAK_LOOKBACK_DAYS = 7
 MIN_STREAK_DAYS = 2
 
 
+@handle_errors("rounding a half away from zero", default_return=0)
+def _round_half_away_from_zero(value: float) -> int:
+    """Round a .5 tie away from zero so 0.5 becomes 1 and 2.5 becomes 3."""
+    if value >= 0:
+        return int(math.floor(value + 0.5))
+    return int(math.ceil(value - 0.5))
+
+
 @handle_errors("rounding sleep hours for prompt", default_return=None)
 def _round_sleep_hours(hours: float) -> float:
-    """Round sleep hours to the nearest half hour."""
-    return round(float(hours) * 2.0) / 2.0
+    """Round sleep hours to the nearest half hour, with ties away from zero."""
+    return _round_half_away_from_zero(float(hours) * 2.0) / 2.0
 
 
 @handle_errors("formatting rounded sleep hours", default_return="")
@@ -57,7 +66,7 @@ def _format_rounded_steps(steps: Any) -> str:
     """Return '~2,400 steps' or empty when unavailable."""
     if not isinstance(steps, (int, float)):
         return ""
-    rounded = int(round(float(steps) / 100.0) * 100)
+    rounded = _round_half_away_from_zero(float(steps) / 100.0) * 100
     return f"~{rounded:,} steps"
 
 
@@ -66,7 +75,7 @@ def _format_rounded_active_minutes(active_minutes: Any) -> str:
     """Return '~45 active minutes' or empty when unavailable."""
     if not isinstance(active_minutes, (int, float)):
         return ""
-    rounded = int(round(float(active_minutes) / 5.0) * 5)
+    rounded = _round_half_away_from_zero(float(active_minutes) / 5.0) * 5
     return f"~{rounded} active minutes"
 
 
@@ -436,6 +445,27 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
     return notes
 
 
+@handle_errors("formatting a rounded wellness metric", default_return="")
+def _rounded_bucket_metric(signal: dict, bucket: str) -> str:
+    """Return rounded sleep hours, or steps before active minutes."""
+    if bucket == "sleep":
+        return _format_rounded_sleep_hours(signal.get("sleep_hours"))
+    if bucket == "movement":
+        return _format_rounded_steps(signal.get("steps")) or _format_rounded_active_minutes(
+            signal.get("active_minutes")
+        )
+    return ""
+
+
+@handle_errors("preferring a multi-day streak in a wellness reply", default_return="")
+def _streak_reply_phrase(streak: str, signal: dict, bucket: str) -> str:
+    """Keep the streak, and the rounded count beside it when one exists."""
+    metric = _rounded_bucket_metric(signal, bucket)
+    if metric:
+        return f"{streak}, about {metric} recently"
+    return streak
+
+
 @handle_errors("selecting one wellness note per bucket", default_return=[])
 def _select_one_note_per_bucket(notes: list[tuple[str, str]]) -> list[str]:
     """Keep the first sleep note, the first movement note, and the first readiness note."""
@@ -469,9 +499,9 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
 
     Used when message_guidance is empty or confidence is low but recent wearable
     data still supports an honest wellness reply. Keeps one sleep note, one
-    movement note, and one readiness note. May include rounded sleep hours,
-    step counts, active minutes, and a streak when that bucket has no clearer
-    note. Never includes HR/HRV numbers.
+    movement note, and one readiness note. A multi-day streak is that bucket's
+    note, with rounded sleep hours, steps, or active minutes beside it.
+    Never includes HR/HRV numbers.
     """
     if not is_personalization_active(user_id):
         return ""
@@ -481,23 +511,25 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
         return ""
 
     notes = _health_signal_notes(signal, voice="you")
-    sleep_inserted = False
+    streaks = [
+        ("sleep" if "sleep" in phrase else "movement", phrase)
+        for phrase in _format_health_streak_phrases(user_id, signal)
+    ]
+    streak_by_bucket = dict(streaks)
+    used_streaks: set[str] = set()
     merged: list[tuple[str, str]] = []
-    sleep_streaks: list[tuple[str, str]] = []
-    movement_streaks: list[tuple[str, str]] = []
-    for phrase in _format_health_streak_phrases(user_id, signal):
-        if "sleep" in phrase:
-            sleep_streaks.append(("sleep", phrase))
-        else:
-            movement_streaks.append(("movement", phrase))
     for bucket, text in notes:
+        if bucket in streak_by_bucket and bucket not in used_streaks:
+            merged.append(
+                (bucket, _streak_reply_phrase(streak_by_bucket[bucket], signal, bucket))
+            )
+            used_streaks.add(bucket)
+            continue
         merged.append((bucket, text))
-        if bucket == "sleep" and not sleep_inserted:
-            merged.extend(sleep_streaks)
-            sleep_inserted = True
-    if not sleep_inserted:
-        merged = sleep_streaks + merged
-    merged.extend(movement_streaks)
+    for bucket, phrase in streaks:
+        if bucket not in used_streaks:
+            merged.append((bucket, _streak_reply_phrase(phrase, signal, bucket)))
+            used_streaks.add(bucket)
     return _join_wellness_phrases(_select_one_note_per_bucket(merged))
 
 

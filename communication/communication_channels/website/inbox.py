@@ -1,5 +1,6 @@
 """Persist outbound messages for the always-on website channel."""
 
+import os
 import secrets
 
 from core.config import ensure_user_directory, get_user_file_path
@@ -13,6 +14,17 @@ MAX_INBOX_MESSAGES = 40
 MAX_CHAT_TURNS = 80
 
 
+@handle_errors("reading website inbox", default_return=None)
+def _read_website_inbox(path: str) -> dict:
+    """Return the saved inbox, or an empty one when the file is not there yet."""
+    if not isinstance(path, str) or not path.strip() or not os.path.isfile(path):
+        return {"messages": [], "turns": []}
+    loaded = load_json_data(path)
+    if not isinstance(loaded, dict):
+        return {"messages": [], "turns": []}
+    return loaded
+
+
 @handle_errors("loading website inbox", default_return=[])
 def list_website_messages(user_id: str) -> list[dict]:
     """Return stored website deliveries for one user, oldest first."""
@@ -21,7 +33,7 @@ def list_website_messages(user_id: str) -> list[dict]:
     path = get_user_file_path(user_id, "website_inbox")
     if not path:
         return []
-    loaded = load_json_data(path)
+    loaded = _read_website_inbox(path)
     messages = loaded.get("messages") if isinstance(loaded, dict) else None
     if not isinstance(messages, list):
         return []
@@ -58,7 +70,7 @@ def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
     path = get_user_file_path(user_id, "website_inbox")
     if not path:
         return False
-    loaded = load_json_data(path)
+    loaded = _read_website_inbox(path)
     messages = loaded.get("messages") if isinstance(loaded, dict) else None
     if not isinstance(messages, list):
         messages = []
@@ -115,7 +127,7 @@ def list_website_chat_turns(user_id: str) -> list[dict]:
     if not path:
         return []
     visible = []
-    for item in _chat_turns(load_json_data(path)):
+    for item in _chat_turns(_read_website_inbox(path)):
         if not isinstance(item, dict):
             continue
         turn = _visible_turn(item)
@@ -307,7 +319,7 @@ def append_website_chat_exchange(user_id: str, user_message: str, reply: str) ->
     path = get_user_file_path(user_id, "website_inbox")
     if not path:
         return False
-    loaded = load_json_data(path)
+    loaded = _read_website_inbox(path)
     messages = loaded.get("messages") if isinstance(loaded, dict) else None
     if not isinstance(messages, list):
         messages = []

@@ -59,6 +59,17 @@ class TestFileOperations:
         assert 'data' in data
         assert 'created' in data
         assert 'file_type' in data
+
+    @pytest.mark.unit
+    @pytest.mark.file_io
+    def test_website_inbox_recovery_uses_inbox_shape(self):
+        """A missing website inbox recovers as messages and turns, not a generic document."""
+        from core.error_handling import _recovery_default_document_for_path
+
+        document = _recovery_default_document_for_path(
+            r"data\users\abc\website_inbox.json", {}
+        )
+        assert document == {"messages": [], "turns": []}
     
     @pytest.mark.unit
     @pytest.mark.file_io
