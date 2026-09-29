@@ -13,6 +13,7 @@ import secrets
 import smtplib
 import ssl
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from email.message import EmailMessage
 from pathlib import Path
@@ -604,71 +605,80 @@ async def _fetch_discord_identity(code, *, client_id, client_secret, redirect_ur
     return discord_user_id, username[:100]
 
 
-def create_web_app(
-    *,
-    accounts=None,
-    mailer=None,
-    origin=None,
-    proxy_secret=None,
-    clock=time.monotonic,
-    discord_identity=None,
-    oauth_identity=None,
-):
-    """Construct an injectable gateway; tests use isolated account and email adapters."""
-    accounts = accounts or MHMAccounts()
-    test_mailer = mailer is not None
-    mailer = mailer or send_code
-    origin = origin or config.WEB_PUBLIC_ORIGIN
-    proxy_secret = config.WEB_PROXY_SECRET if proxy_secret is None else proxy_secret
-    try:
-        parsed = urlsplit(origin)
-    except (TypeError, ValueError) as exc:
-        raise ConfigurationError("WEB_PUBLIC_ORIGIN must be a valid URL origin") from exc
-    local = parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1"}
-    if (
-        parsed.path
-        or parsed.query
-        or parsed.fragment
-        or not parsed.netloc
-        or parsed.username
-        or parsed.password
+
+class WebGateway:
+    """Website routes for one gateway process.
+
+    Session, challenge, and rate-limit state live here and are discarded when
+    the process stops. ``create_web_app`` builds this object and registers
+    its methods as routes.
+    """
+
+    # ERROR_HANDLING_EXCLUDE: Stores gateway state; route methods own request errors.
+    def __init__(
+        self,
+        accounts,
+        test_mailer,
+        mailer: Callable[[str, str], None],
+        origin,
+        proxy_secret,
+        clock,
+        local,
+        challenges,
+        sessions,
+        limits,
+        verification_lock,
+        settings_lock,
+        health_lock,
+        discord_link_lock,
+        oauth_link_lock,
+        discord_states,
+        oauth_states,
+        health_connecting,
+        discord_identity,
+        oauth_identity,
     ):
-        raise ConfigurationError(
-            "WEB_PUBLIC_ORIGIN must be an exact origin without a path"
-        )
-    if not local and (parsed.scheme != "https" or len(proxy_secret) < 32):
-        raise ConfigurationError(
-            "Production web access requires HTTPS and a WEB_PROXY_SECRET of at least 32 characters"
-        )
-    challenges = {}
-    sessions = {}
-    limits = {}
-    verification_lock = asyncio.Lock()
-    settings_lock = asyncio.Lock()
-    health_lock = asyncio.Lock()
-    discord_link_lock = asyncio.Lock()
-    oauth_link_lock = asyncio.Lock()
-    discord_states = {}
-    oauth_states = {}
-    health_connecting = set()
-    discord_identity = discord_identity or _fetch_discord_identity
-    oauth_identity = oauth_identity or _fetch_oauth_identity
+        """Remember the account store and in-memory session state for this process."""
+        self.accounts = accounts
+        self.test_mailer = test_mailer
+        self.mailer = mailer
+        self.origin = origin
+        self.proxy_secret = proxy_secret
+        self.clock = clock
+        self.local = local
+        self.challenges = challenges
+        self.sessions = sessions
+        self.limits = limits
+        self.verification_lock = verification_lock
+        self.settings_lock = settings_lock
+        self.health_lock = health_lock
+        self.discord_link_lock = discord_link_lock
+        self.oauth_link_lock = oauth_link_lock
+        self.discord_states = discord_states
+        self.oauth_states = oauth_states
+        self.health_connecting = health_connecting
+        self.discord_identity = discord_identity
+        self.oauth_identity = oauth_identity
+        self.root = Path(__file__).resolve().parent.parent / "website"
+
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
-    def discord_redirect_uri():
+    def discord_redirect_uri(self):
         """Return the configured Discord callback URI or the website default."""
         configured = str(
             getattr(config, "DISCORD_OAUTH_REDIRECT_URI", "") or ""
         ).strip()
-        return configured or f"{origin}/api/auth/discord/callback"
+        return configured or f"{self.origin}/api/auth/discord/callback"
+
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
-    def discord_available():
+    def discord_available(self):
         """Return whether the Discord OAuth credentials are configured."""
         return bool(config.DISCORD_APPLICATION_ID and config.DISCORD_CLIENT_SECRET)
 
+
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
-    def oauth_provider_config(provider):
+    def oauth_provider_config(self, provider):
         """Return provider credentials and callback settings from configuration."""
         if provider not in OAUTH_PROVIDERS:
             return None
@@ -679,7 +689,7 @@ def create_web_app(
         ).strip()
         redirect_uri = str(
             getattr(config, f"{prefix}_OAUTH_REDIRECT_URI", "") or ""
-        ).strip() or f"{origin}/api/auth/oauth/{provider}/callback"
+        ).strip() or f"{self.origin}/api/auth/oauth/{provider}/callback"
         if not client_id or not client_secret:
             return None
         return {
@@ -688,52 +698,56 @@ def create_web_app(
             "redirect_uri": redirect_uri,
         }
 
+
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
-    def website_redirect(path, **params):
+    def website_redirect(self, path, **params):
         """Build a same-origin website redirect with encoded query parameters."""
         query = urlencode(params)
-        return f"{origin}{path}{('?' + query) if query else ''}"
+        return f"{self.origin}{path}{('?' + query) if query else ''}"
+
 
     # ERROR_HANDLING_EXCLUDE: In-memory cleanup runs inside the gateway middleware.
-    def prune():
+    def prune(self):
         """Remove expired challenges, sessions, rate limits, and OAuth states."""
-        now = clock()
-        for key in [key for key, value in challenges.items() if value.expires <= now]:
-            del challenges[key]
-        for key in [key for key, value in sessions.items() if value[1] <= now]:
-            del sessions[key]
-        for key in [key for key, value in limits.items() if value[1] <= now]:
-            del limits[key]
-        for key in [key for key, value in discord_states.items() if value[1] <= now]:
-            del discord_states[key]
-        for key in [key for key, value in oauth_states.items() if value["expires"] <= now]:
-            del oauth_states[key]
+        now = self.clock()
+        for key in [key for key, value in self.challenges.items() if value.expires <= now]:
+            del self.challenges[key]
+        for key in [key for key, value in self.sessions.items() if value[1] <= now]:
+            del self.sessions[key]
+        for key in [key for key, value in self.limits.items() if value[1] <= now]:
+            del self.limits[key]
+        for key in [key for key, value in self.discord_states.items() if value[1] <= now]:
+            del self.discord_states[key]
+        for key in [key for key, value in self.oauth_states.items() if value["expires"] <= now]:
+            del self.oauth_states[key]
+
 
     # ERROR_HANDLING_EXCLUDE: Validation helper raises HTTP errors for the middleware.
-    def throttle(key, maximum, window):
+    def throttle(self, key, maximum, window):
         """Count a rate-limit key and reject requests beyond its active window."""
-        count, expires = limits.get(key, (0, clock() + window))
+        count, expires = self.limits.get(key, (0, self.clock() + window))
         if count >= maximum:
             raise web.HTTPTooManyRequests(
                 text="Too many attempts. Please wait before trying again."
             )
-        if len(limits) >= 10000 and key not in limits:
+        if len(self.limits) >= 10000 and key not in self.limits:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
-        limits[key] = (count + 1, expires)
+        self.limits[key] = (count + 1, expires)
+
 
     # ERROR_HANDLING_EXCLUDE: This is the central request error boundary by design.
     @web.middleware
-    async def guard(request, handler):
+    async def guard(self, request, handler):
         """Enforce proxy, origin, JSON, security-header, and safe-error policies."""
         try:
             if request.path.startswith("/api/"):
-                prune()
-                if proxy_secret and not secrets.compare_digest(
-                    request.headers.get("X-MHM-Proxy-Secret", ""), proxy_secret
+                self.prune()
+                if self.proxy_secret and not secrets.compare_digest(
+                    request.headers.get("X-MHM-Proxy-Secret", ""), self.proxy_secret
                 ):
                     raise web.HTTPForbidden(text="This request cannot be accepted.")
                 if request.method != "GET":
-                    if request.headers.get("Origin") != origin:
+                    if request.headers.get("Origin") != self.origin:
                         raise web.HTTPForbidden(
                             text="Please sign in through the MHM website."
                         )
@@ -744,10 +758,10 @@ def create_web_app(
                 # Trust the client address only after authenticating the Worker.
                 client = (
                     request.headers.get("X-MHM-Client-IP", "unknown")
-                    if proxy_secret
+                    if self.proxy_secret
                     else request.remote
                 )
-                throttle(("ip", client), 240, 600)
+                self.throttle(("ip", client), 240, 600)
             response = await handler(request)
         except web.HTTPException as exc:
             response = web.json_response({"error": exc.text}, status=exc.status)
@@ -766,8 +780,9 @@ def create_web_app(
             response.headers["Cache-Control"] = "no-store"
         return response
 
+
     # ERROR_HANDLING_EXCLUDE: Request parsing is protected by the gateway middleware.
-    async def body(request):
+    async def body(self, request):
         """Parse a request body as a JSON object or return a safe HTTP error."""
         try:
             data = await request.json()
@@ -779,25 +794,27 @@ def create_web_app(
             raise web.HTTPBadRequest(text="Please check the form and try again.")
         return data
 
+
     # ERROR_HANDLING_EXCLUDE: Pure validation helper used inside guarded routes.
-    def valid_password(value):
+    def valid_password(self, value):
         """Accept long passphrases without brittle composition requirements."""
         return (
             isinstance(value, str)
             and PASSWORD_MIN_LENGTH <= len(value) <= PASSWORD_MAX_LENGTH
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Session creation runs inside guarded routes.
-    def start_session(uid, email, response, *, auth_method):
+    def start_session(self, uid, email, response, *, auth_method):
         """Attach a new opaque browser session to a response."""
-        if len(sessions) >= 10000:
+        if len(self.sessions) >= 10000:
             raise web.HTTPServiceUnavailable(
                 text="MHM is busy. Please try again later."
             )
         session = secrets.token_urlsafe(32)
-        sessions[hashlib.sha256(session.encode()).hexdigest()] = (
+        self.sessions[hashlib.sha256(session.encode()).hexdigest()] = (
             uid,
-            clock() + SESSION_TTL,
+            self.clock() + SESSION_TTL,
             email.casefold(),
             auth_method,
         )
@@ -805,30 +822,31 @@ def create_web_app(
             COOKIE,
             session,
             httponly=True,
-            secure=not local,
+            secure=not self.local,
             samesite="Lax",
             max_age=SESSION_TTL,
             path="/api/",
         )
         return response
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def password_login(request):
+    async def password_login(self, request):
         """Authenticate an active account with its saved password."""
-        data = await body(request)
+        data = await self.body(request)
         email, password = data.get("email"), data.get("password")
         if (
             not isinstance(email, str)
             or len(email) > 254
             or not isinstance(password, str)
-            or not valid_password(password)
+            or not self.valid_password(password)
         ):
             raise web.HTTPBadRequest(
                 text=f"Enter your email and a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
             )
         email = email.strip().casefold()
-        throttle(("password", email), 8, 600)
-        existing = await asyncio.to_thread(accounts.by_email, email)
+        self.throttle(("password", email), 8, 600)
+        existing = await asyncio.to_thread(self.accounts.by_email, email)
         saved_hash = (
             existing[1].get("password_hash", "")
             if existing and existing[1].get("account_status") == "active"
@@ -842,15 +860,16 @@ def create_web_app(
                 text="That email or password did not work. You can use an emailed code instead."
             )
         response = web.json_response({"ok": True})
-        return start_session(existing[0], email, response, auth_method="password")
+        return self.start_session(existing[0], email, response, auth_method="password")
+
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def password_setup(request):
+    async def password_setup(self, request):
         """Set or replace the password for the signed-in account."""
-        uid, current = await authenticated_account(request)
-        data = await body(request)
+        uid, current = await self.authenticated_account(request)
+        data = await self.body(request)
         password = data.get("password")
-        if not isinstance(password, str) or not valid_password(password):
+        if not isinstance(password, str) or not self.valid_password(password):
             raise web.HTTPBadRequest(
                 text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
             )
@@ -858,7 +877,7 @@ def create_web_app(
         current_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
-        current_session = sessions.get(current_key)
+        current_session = self.sessions.get(current_key)
         code_reauthenticated = bool(
             current_session
             and len(current_session) > 3
@@ -866,24 +885,24 @@ def create_web_app(
         )
         if saved_hash and not code_reauthenticated:
             current_password = data.get("current_password")
-            throttle(("password-change", current.get("email", "").casefold()), 8, 600)
+            self.throttle(("password-change", current.get("email", "").casefold()), 8, 600)
             if not isinstance(current_password, str) or not await asyncio.to_thread(
                 _password_matches, current_password, saved_hash
             ):
                 raise web.HTTPUnauthorized(text="Your current password did not work.")
         encoded = await asyncio.to_thread(_password_hash, password)
-        if not await asyncio.to_thread(accounts.set_password, uid, encoded):
+        if not await asyncio.to_thread(self.accounts.set_password, uid, encoded):
             raise web.HTTPServiceUnavailable(
                 text="Your password could not be saved. Please try again."
             )
         for key in [
             key
-            for key, session in sessions.items()
+            for key, session in self.sessions.items()
             if session[0] == uid and key != current_key
         ]:
-            sessions.pop(key, None)
+            self.sessions.pop(key, None)
         if current_session:
-            sessions[current_key] = (
+            self.sessions[current_key] = (
                 current_session[0],
                 current_session[1],
                 current_session[2],
@@ -893,10 +912,11 @@ def create_web_app(
             {"ok": True, "email": current.get("email", "")}
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def request_code(request):
+    async def request_code(self, request):
         """Validate a login or signup request and send an eligible email code."""
-        data = await body(request)
+        data = await self.body(request)
         email = data.get("email")
         mode = data.get("mode")
         if (
@@ -928,10 +948,10 @@ def create_web_app(
                 ) from None
         else:
             preferred_name, timezone = "", "America/Regina"
-        throttle(("email", email), 3, 600)
-        if len(challenges) >= 10000:
+        self.throttle(("email", email), 3, 600)
+        if len(self.challenges) >= 10000:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
-        if not test_mailer and not all(
+        if not self.test_mailer and not all(
             [
                 config.EMAIL_SMTP_SERVER,
                 config.EMAIL_SMTP_USERNAME,
@@ -941,17 +961,17 @@ def create_web_app(
             raise web.HTTPServiceUnavailable(
                 text="Email sign-in is not available yet. Please try again later."
             )
-        existing = await asyncio.to_thread(accounts.by_email, email)
+        existing = await asyncio.to_thread(self.accounts.by_email, email)
         eligible = (
             bool(existing and existing[1].get("account_status") == "active")
             if mode in {"login", "reset"}
-            else not await asyncio.to_thread(accounts.email_exists, email)
+            else not await asyncio.to_thread(self.accounts.email_exists, email)
         )
         code = f"{secrets.randbelow(1000000):06d}"
         token = secrets.token_urlsafe(32)
         if eligible:
             try:
-                await asyncio.to_thread(mailer, email, code)
+                await asyncio.to_thread(self.mailer, email, code)
             except (CommunicationError, smtplib.SMTPException, OSError) as exc:
                 logger.error(f"Website verification email failed: {type(exc).__name__}")
                 raise web.HTTPServiceUnavailable(
@@ -962,9 +982,9 @@ def create_web_app(
             logger.info(
                 "Website account verification email skipped: no unique active account matched"
             )
-        challenges[token] = Challenge(
+        self.challenges[token] = Challenge(
             hashlib.sha256(code.encode()).hexdigest(),
-            clock() + CODE_TTL,
+            self.clock() + CODE_TTL,
             email,
             mode,
             preferred_name,
@@ -974,10 +994,11 @@ def create_web_app(
         )
         return web.json_response({"challenge": token})
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def verify(request):
+    async def verify(self, request):
         """Verify a one-time code, create accounts when requested, and start a session."""
-        data = await body(request)
+        data = await self.body(request)
         token, code = data.get("challenge"), data.get("code")
         if (
             not isinstance(token, str)
@@ -985,10 +1006,10 @@ def create_web_app(
             or not re.fullmatch(r"\d{6}", code)
         ):
             raise web.HTTPBadRequest(text="Enter the 6-digit code from your email.")
-        async with verification_lock:
-            challenge = challenges.get(token)
-            if not challenge or challenge.expires <= clock() or challenge.attempts >= 5:
-                challenges.pop(token, None)
+        async with self.verification_lock:
+            challenge = self.challenges.get(token)
+            if not challenge or challenge.expires <= self.clock() or challenge.attempts >= 5:
+                self.challenges.pop(token, None)
                 raise web.HTTPUnauthorized(
                     text="This code has expired. Please request a new one."
                 )
@@ -1002,18 +1023,18 @@ def create_web_app(
             uid = challenge.user_id
             if challenge.mode == "create":
                 password = data.get("password")
-                if not isinstance(password, str) or not valid_password(password):
+                if not isinstance(password, str) or not self.valid_password(password):
                     raise web.HTTPBadRequest(
                         text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
                     )
-                if await asyncio.to_thread(accounts.email_exists, challenge.email):
-                    del challenges[token]
+                if await asyncio.to_thread(self.accounts.email_exists, challenge.email):
+                    del self.challenges[token]
                     raise web.HTTPConflict(
                         text="An account already uses this email. Please log in."
                     )
                 encoded = await asyncio.to_thread(_password_hash, password)
                 uid = await asyncio.to_thread(
-                    accounts.create,
+                    self.accounts.create,
                     challenge.email,
                     challenge.preferred_name,
                     challenge.timezone,
@@ -1023,65 +1044,67 @@ def create_web_app(
                     raise web.HTTPServiceUnavailable(
                         text="Your account could not be created. Please try again."
                     )
-            account = await asyncio.to_thread(accounts.get, uid)
+            account = await asyncio.to_thread(self.accounts.get, uid)
             if (
                 account.get("account_status") != "active"
                 or account.get("email", "").casefold() != challenge.email
             ):
-                del challenges[token]
+                del self.challenges[token]
                 raise web.HTTPUnauthorized(
                     text="This account cannot sign in. Please contact your MHM administrator."
                 )
             if challenge.mode == "reset":
                 password = data.get("password")
-                if not isinstance(password, str) or not valid_password(password):
+                if not isinstance(password, str) or not self.valid_password(password):
                     raise web.HTTPBadRequest(
                         text=f"Use a password of {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters."
                     )
                 encoded = await asyncio.to_thread(_password_hash, password)
-                if not await asyncio.to_thread(accounts.set_password, uid, encoded):
+                if not await asyncio.to_thread(self.accounts.set_password, uid, encoded):
                     raise web.HTTPServiceUnavailable(
                         text="Your password could not be saved. Please try again."
                     )
                 for key in [
-                    key for key, session in sessions.items() if session[0] == uid
+                    key for key, session in self.sessions.items() if session[0] == uid
                 ]:
-                    sessions.pop(key, None)
-            del challenges[token]
+                    self.sessions.pop(key, None)
+            del self.challenges[token]
         response = web.json_response({"ok": True})
         auth_method = (
             "password" if challenge.mode in {"create", "reset"} else "email_code"
         )
-        return start_session(uid, challenge.email, response, auth_method=auth_method)
+        return self.start_session(uid, challenge.email, response, auth_method=auth_method)
+
 
     # ERROR_HANDLING_EXCLUDE: Authentication failures are HTTP responses by design.
-    async def authenticated_account(request):
+    async def authenticated_account(self, request):
         """Resolve an active account from the request session cookie."""
         key = hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest()
-        session = sessions.get(key)
-        if not session or session[1] <= clock():
+        session = self.sessions.get(key)
+        if not session or session[1] <= self.clock():
             raise web.HTTPUnauthorized(text="Please log in to continue.")
-        current = await asyncio.to_thread(accounts.get, session[0])
+        current = await asyncio.to_thread(self.accounts.get, session[0])
         if (
             current.get("account_status") != "active"
             or current.get("email", "").casefold() != session[2]
         ):
-            sessions.pop(key, None)
+            self.sessions.pop(key, None)
             raise web.HTTPUnauthorized(text="Please log in to continue.")
         return session[0], current
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def account(request):
+    async def account(self, request):
         """Return the signed-in account summary used by website pages."""
-        uid, current = await authenticated_account(request)
-        documents = await asyncio.to_thread(accounts.documents, uid)
+        uid, current = await self.authenticated_account(request)
+        documents = await asyncio.to_thread(self.accounts.documents, uid)
         preferred_name = str(
             (documents.get("context") or {}).get("preferred_name", "")
         ).strip()
         session_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
-        current_session = sessions.get(session_key)
+        current_session = self.sessions.get(session_key)
         code_reauthenticated = bool(
             current_session
             and len(current_session) > 3
@@ -1098,7 +1121,7 @@ def create_web_app(
             or flags["checkins_enabled"]
         ):
             _remember_setup_complete(account_doc)
-            mark = getattr(accounts, "mark_setup_complete", None)
+            mark = getattr(self.accounts, "mark_setup_complete", None)
             if mark is not None:
                 await asyncio.to_thread(mark, uid)
             flags = _setup_flags(account_doc)
@@ -1108,7 +1131,7 @@ def create_web_app(
                 "email": current.get("email", ""),
                 "timezone": current.get("timezone", ""),
                 "discord_linked": bool(current.get("discord_user_id")),
-                "discord_available": discord_available(),
+                "discord_available": self.discord_available(),
                 "password_set": bool(current.get("password_hash")),
                 "password_change_requires_current": bool(current.get("password_hash"))
                 and not code_reauthenticated,
@@ -1118,7 +1141,7 @@ def create_web_app(
                 "checkins_enabled": flags["checkins_enabled"],
                 "oauth": {
                     provider: {
-                        "available": oauth_provider_config(provider) is not None,
+                        "available": self.oauth_provider_config(provider) is not None,
                         "linked": bool(
                             (current.get("oauth_identities") or {}).get(provider)
                         ),
@@ -1131,11 +1154,12 @@ def create_web_app(
             }
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def account_connections(request):
+    async def account_connections(self, request):
         """Disconnect one optional sign-in or communication provider."""
-        uid, current = await authenticated_account(request)
-        data = await body(request)
+        uid, current = await self.authenticated_account(request)
+        data = await self.body(request)
         provider = data.get("provider")
         if set(data) != {"provider"} or provider not in {
             "discord",
@@ -1152,17 +1176,18 @@ def create_web_app(
                 text="Set a password before disconnecting your only social sign-in."
             )
         if provider == "discord":
-            ok = await asyncio.to_thread(accounts.unlink_discord, uid)
+            ok = await asyncio.to_thread(self.accounts.unlink_discord, uid)
         else:
-            ok = await asyncio.to_thread(accounts.unlink_oauth, uid, provider)
+            ok = await asyncio.to_thread(self.accounts.unlink_oauth, uid, provider)
         if not ok:
             raise web.HTTPServiceUnavailable(text="That account could not be disconnected.")
         return web.json_response({"ok": True, "provider": provider})
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def account_export(request):
+    async def account_export(self, request):
         """Download a JSON copy of the signed-in user's stored MHM data."""
-        uid, current = await authenticated_account(request)
+        uid, current = await self.authenticated_account(request)
         from storage.user_data_operations import export_user_data
 
         exported = await asyncio.to_thread(export_user_data, uid, "json")
@@ -1177,10 +1202,10 @@ def create_web_app(
             asyncio.to_thread(list_recent, uid, n=10000, include_archived=True),
         )
         exported["tasks"] = {
-            "active": [task_view(task) for task in active_tasks],
-            "completed": [task_view(task) for task in completed_tasks],
+            "active": [self.task_view(task) for task in active_tasks],
+            "completed": [self.task_view(task) for task in completed_tasks],
         }
-        exported["notebook"] = [note_view(entry) for entry in notebook_entries]
+        exported["notebook"] = [self.note_view(entry) for entry in notebook_entries]
 
         @handle_errors(
             "removing secrets from website export",
@@ -1206,11 +1231,12 @@ def create_web_app(
             headers={"Content-Disposition": 'attachment; filename="mhm-data.json"'},
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def account_delete(request):
+    async def account_delete(self, request):
         """Permanently delete the signed-in account after an explicit confirmation."""
-        uid, _current = await authenticated_account(request)
-        data = await body(request)
+        uid, _current = await self.authenticated_account(request)
+        data = await self.body(request)
         if set(data) != {"confirmation"} or data.get("confirmation") != "DELETE":
             raise web.HTTPBadRequest(
                 text="Type DELETE to permanently delete your account."
@@ -1224,50 +1250,52 @@ def create_web_app(
             raise web.HTTPServiceUnavailable(
                 text="Your account could not be deleted. Please try again."
             )
-        for key, session in list(sessions.items()):
+        for key, session in list(self.sessions.items()):
             if session and session[0] == uid:
-                sessions.pop(key, None)
+                self.sessions.pop(key, None)
         response = web.json_response({"ok": True})
         response.del_cookie(COOKIE, path="/api/")
         return response
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def oauth_providers(request):
+    async def oauth_providers(self, request):
         """Report which optional social sign-in providers are configured."""
         return web.json_response(
             {
                 "providers": {
-                    provider: oauth_provider_config(provider) is not None
+                    provider: self.oauth_provider_config(provider) is not None
                     for provider in OAUTH_PROVIDERS
                 }
             }
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def oauth_start(request):
+    async def oauth_start(self, request):
         """Create one-time state and return a provider authorization URL."""
         provider = request.match_info["provider"]
-        provider_config = oauth_provider_config(provider)
+        provider_config = self.oauth_provider_config(provider)
         if not provider_config:
             raise web.HTTPServiceUnavailable(
                 text=f"{provider.title()} sign-in is not configured yet."
             )
-        if len(oauth_states) >= 10000:
+        if len(self.oauth_states) >= 10000:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
         session_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
-        active_session = sessions.get(session_key)
-        linked_uid = active_session[0] if active_session and active_session[1] > clock() else None
+        active_session = self.sessions.get(session_key)
+        linked_uid = active_session[0] if active_session and active_session[1] > self.clock() else None
         state = secrets.token_urlsafe(32)
         timezone = str(request.query.get("timezone", "") or "").strip()
         try:
             ZoneInfo(timezone)
         except (ZoneInfoNotFoundError, ValueError, TypeError):
             timezone = "America/Regina"
-        oauth_states[hashlib.sha256(state.encode()).hexdigest()] = {
+        self.oauth_states[hashlib.sha256(state.encode()).hexdigest()] = {
             "provider": provider,
-            "expires": clock() + OAUTH_STATE_TTL,
+            "expires": self.clock() + OAUTH_STATE_TTL,
             "session_key": session_key if linked_uid else "",
             "linked_uid": linked_uid,
             "timezone": timezone,
@@ -1286,29 +1314,30 @@ def create_web_app(
             {"url": f"{OAUTH_AUTHORIZE_URLS[provider]}?{urlencode(query)}"}
         )
 
+
     # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
-    async def oauth_callback(request):
+    async def oauth_callback(self, request):
         """Validate a social callback, link its identity, and start a session."""
         provider = request.match_info["provider"]
         values = request.query
         state = values.get("state", "")
         state_key = hashlib.sha256(str(state).encode()).hexdigest()
-        pending = oauth_states.pop(state_key, None)
+        pending = self.oauth_states.pop(state_key, None)
         return_path = "/app.html" if pending and pending.get("linked_uid") else "/login.html"
         if (
             provider not in OAUTH_PROVIDERS
             or values.get("error")
             or not pending
             or pending["provider"] != provider
-            or pending["expires"] <= clock()
+            or pending["expires"] <= self.clock()
         ):
-            return web.HTTPFound(website_redirect(return_path, social="cancelled"))
-        provider_config = oauth_provider_config(provider)
+            return web.HTTPFound(self.website_redirect(return_path, social="cancelled"))
+        provider_config = self.oauth_provider_config(provider)
         code = values.get("code", "")
         if not provider_config or not isinstance(code, str) or not 1 <= len(code) <= 2048:
-            return web.HTTPFound(website_redirect(return_path, social="unavailable"))
+            return web.HTTPFound(self.website_redirect(return_path, social="unavailable"))
         try:
-            identity = await oauth_identity(
+            identity = await self.oauth_identity(
                 provider,
                 code,
                 client_id=provider_config["client_id"],
@@ -1318,47 +1347,47 @@ def create_web_app(
             if not isinstance(identity, OAuthIdentity):
                 raise ValidationError("OAuth identity was invalid")
             linked_match = await asyncio.to_thread(
-                accounts.by_oauth, provider, identity.subject
+                self.accounts.by_oauth, provider, identity.subject
             )
             target = None
             if pending.get("linked_uid"):
-                saved_session = sessions.get(pending["session_key"])
+                saved_session = self.sessions.get(pending["session_key"])
                 if (
                     not saved_session
-                    or saved_session[1] <= clock()
+                    or saved_session[1] <= self.clock()
                     or saved_session[0] != pending["linked_uid"]
                 ):
                     return web.HTTPFound(
-                        website_redirect("/login.html", social="expired")
+                        self.website_redirect("/login.html", social="expired")
                     )
-                current = await asyncio.to_thread(accounts.get, saved_session[0])
+                current = await asyncio.to_thread(self.accounts.get, saved_session[0])
                 if (
                     current.get("account_status") != "active"
                     or current.get("email", "").casefold() != saved_session[2]
                 ):
                     return web.HTTPFound(
-                        website_redirect("/login.html", social="expired")
+                        self.website_redirect("/login.html", social="expired")
                     )
                 target = (saved_session[0], current)
                 if linked_match and linked_match[0] != target[0]:
                     return web.HTTPFound(
-                        website_redirect("/app.html", social="in-use")
+                        self.website_redirect("/app.html", social="in-use")
                     )
             elif linked_match:
                 target = linked_match
             elif identity.email and identity.email_verified:
-                target = await asyncio.to_thread(accounts.by_email, identity.email)
+                target = await asyncio.to_thread(self.accounts.by_email, identity.email)
             if (
                 not pending.get("linked_uid")
                 and (not target or target[1].get("account_status") != "active")
                 and provider in {"google", "facebook"}
                 and identity.email_verified
                 and _valid_account_email(identity.email)
-                and not await asyncio.to_thread(accounts.email_exists, identity.email)
+                and not await asyncio.to_thread(self.accounts.email_exists, identity.email)
             ):
-                async with oauth_link_lock:
+                async with self.oauth_link_lock:
                     linked_match = await asyncio.to_thread(
-                        accounts.by_oauth, provider, identity.subject
+                        self.accounts.by_oauth, provider, identity.subject
                     )
                     if (
                         linked_match
@@ -1366,10 +1395,10 @@ def create_web_app(
                     ):
                         target = linked_match
                     elif not await asyncio.to_thread(
-                        accounts.email_exists, identity.email
+                        self.accounts.email_exists, identity.email
                     ):
                         uid = await asyncio.to_thread(
-                            accounts.create,
+                            self.accounts.create,
                             identity.email,
                             identity.display_name.strip()[:100],
                             pending.get("timezone") or "America/Regina",
@@ -1377,9 +1406,9 @@ def create_web_app(
                         )
                         if not uid:
                             raise DataError("OAuth account could not be created")
-                        created_account = await asyncio.to_thread(accounts.get, uid)
+                        created_account = await asyncio.to_thread(self.accounts.get, uid)
                         result = await asyncio.to_thread(
-                            accounts.link_oauth,
+                            self.accounts.link_oauth,
                             uid,
                             provider,
                             identity.subject,
@@ -1395,24 +1424,24 @@ def create_web_app(
                 and not pending.get("linked_uid")
             ):
                 return web.HTTPFound(
-                    website_redirect("/login.html", social="no-email")
+                    self.website_redirect("/login.html", social="no-email")
                 )
             if not target or target[1].get("account_status") != "active":
                 return web.HTTPFound(
-                    website_redirect("/login.html", social="not-linked")
+                    self.website_redirect("/login.html", social="not-linked")
                 )
             if not linked_match:
-                async with oauth_link_lock:
+                async with self.oauth_link_lock:
                     # Recheck uniqueness after provider I/O and before the write.
                     linked_match = await asyncio.to_thread(
-                        accounts.by_oauth, provider, identity.subject
+                        self.accounts.by_oauth, provider, identity.subject
                     )
                     if linked_match and linked_match[0] != target[0]:
                         return web.HTTPFound(
-                            website_redirect(return_path, social="in-use")
+                            self.website_redirect(return_path, social="in-use")
                         )
                     result = await asyncio.to_thread(
-                        accounts.link_oauth,
+                        self.accounts.link_oauth,
                         target[0],
                         provider,
                         identity.subject,
@@ -1423,9 +1452,9 @@ def create_web_app(
                 target[1], linking=bool(pending.get("linked_uid"))
             )
             response = web.HTTPFound(
-                website_redirect(landing, social=f"{provider}-connected")
+                self.website_redirect(landing, social=f"{provider}-connected")
             )
-            return start_session(
+            return self.start_session(
                 target[0],
                 target[1].get("email", ""),
                 response,
@@ -1433,32 +1462,33 @@ def create_web_app(
             )
         except Exception:
             logger.error(f"Website {provider} sign-in failed")
-            return web.HTTPFound(website_redirect(return_path, social="error"))
+            return web.HTTPFound(self.website_redirect(return_path, social="error"))
+
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def discord_start(request):
+    async def discord_start(self, request):
         """Create a short-lived Discord OAuth state and authorization URL."""
-        await authenticated_account(request)
-        if not discord_available():
+        await self.authenticated_account(request)
+        if not self.discord_available():
             raise web.HTTPServiceUnavailable(
                 text="Discord connection is not configured yet. Please ask your MHM administrator."
             )
-        if len(discord_states) >= 10000:
+        if len(self.discord_states) >= 10000:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
         next_path = request.query.get("next", "/app.html")
         if next_path not in {"/app.html", "/setup.html"}:
             raise web.HTTPBadRequest(text="Choose a valid return page.")
         state = secrets.token_urlsafe(32)
-        discord_states[hashlib.sha256(state.encode()).hexdigest()] = (
+        self.discord_states[hashlib.sha256(state.encode()).hexdigest()] = (
             hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest(),
-            clock() + DISCORD_STATE_TTL,
+            self.clock() + DISCORD_STATE_TTL,
             next_path,
         )
         query = urlencode(
             {
                 "client_id": str(config.DISCORD_APPLICATION_ID),
                 "response_type": "code",
-                "redirect_uri": discord_redirect_uri(),
+                "redirect_uri": self.discord_redirect_uri(),
                 "scope": "identify",
                 "state": state,
                 "prompt": "consent",
@@ -1466,73 +1496,75 @@ def create_web_app(
         )
         return web.json_response({"url": f"{DISCORD_AUTHORIZE_URL}?{query}"})
 
+
     # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
-    async def discord_callback(request):
+    async def discord_callback(self, request):
         """Validate the Discord callback and link the identity to the active account."""
         error = request.query.get("error")
         state = request.query.get("state", "")
         state_key = hashlib.sha256(state.encode()).hexdigest()
-        pending = discord_states.pop(state_key, None)
+        pending = self.discord_states.pop(state_key, None)
         return_path = (
             pending[2]
             if pending and len(pending) > 2 and pending[2] in {"/app.html", "/setup.html"}
             else "/app.html"
         )
-        if error or not pending or pending[1] <= clock():
-            return web.HTTPFound(website_redirect(return_path, discord="cancelled"))
-        if not discord_available():
-            return web.HTTPFound(website_redirect(return_path, discord="unavailable"))
+        if error or not pending or pending[1] <= self.clock():
+            return web.HTTPFound(self.website_redirect(return_path, discord="cancelled"))
+        if not self.discord_available():
+            return web.HTTPFound(self.website_redirect(return_path, discord="unavailable"))
         code = request.query.get("code", "")
         if not code or len(code) > 2048:
-            return web.HTTPFound(website_redirect(return_path, discord="error"))
+            return web.HTTPFound(self.website_redirect(return_path, discord="error"))
         try:
-            uid, _ = await authenticated_account(request)
+            uid, _ = await self.authenticated_account(request)
             session_key = hashlib.sha256(
                 request.cookies.get(COOKIE, "").encode()
             ).hexdigest()
             if not secrets.compare_digest(session_key, pending[0]):
                 raise web.HTTPUnauthorized(text="Please log in to continue.")
-            discord_user_id, discord_username = await discord_identity(
+            discord_user_id, discord_username = await self.discord_identity(
                 code,
                 client_id=config.DISCORD_APPLICATION_ID,
                 client_secret=config.DISCORD_CLIENT_SECRET,
-                redirect_uri=discord_redirect_uri(),
+                redirect_uri=self.discord_redirect_uri(),
             )
-            async with discord_link_lock:
+            async with self.discord_link_lock:
                 # Logout, expiry, or suspension during Discord's network request
                 # must prevent the subsequent account write.
-                await authenticated_account(request)
+                await self.authenticated_account(request)
                 result = await asyncio.to_thread(
-                    accounts.link_discord, uid, discord_user_id, discord_username
+                    self.accounts.link_discord, uid, discord_user_id, discord_username
                 )
             if result == "already_linked":
-                return web.HTTPFound(website_redirect(return_path, discord="in-use"))
+                return web.HTTPFound(self.website_redirect(return_path, discord="in-use"))
             if result == "different_linked":
                 return web.HTTPFound(
-                    website_redirect(return_path, discord="account-linked")
+                    self.website_redirect(return_path, discord="account-linked")
                 )
             if result != "linked":
                 raise DataError("Discord account could not be linked")
         except web.HTTPUnauthorized:
-            return web.HTTPFound(website_redirect("/login.html", discord="expired"))
+            return web.HTTPFound(self.website_redirect("/login.html", discord="expired"))
         except Exception:
             logger.error("Website Discord connection failed", exc_info=True)
-            return web.HTTPFound(website_redirect(return_path, discord="error"))
-        return web.HTTPFound(website_redirect(return_path, discord="connected"))
+            return web.HTTPFound(self.website_redirect(return_path, discord="error"))
+        return web.HTTPFound(self.website_redirect(return_path, discord="connected"))
+
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def settings(request):
+    async def settings(self, request):
         """Read or atomically save one allowlisted self-service settings section."""
         from core.web_user_settings import settings_snapshot, build_settings_updates
 
-        uid, _ = await authenticated_account(request)
-        async with settings_lock:
-            documents = await asyncio.to_thread(accounts.documents, uid)
-            options = await asyncio.to_thread(accounts.settings_options, uid)
+        uid, _ = await self.authenticated_account(request)
+        async with self.settings_lock:
+            documents = await asyncio.to_thread(self.accounts.documents, uid)
+            options = await asyncio.to_thread(self.accounts.settings_options, uid)
             snapshot = settings_snapshot(documents, options)
             if request.method == "GET":
                 return web.json_response(snapshot)
-            data = await body(request)
+            data = await self.body(request)
             section = data.get("section")
             complete_setup = data.get("complete_setup") is True
             expected = {"section", "values", "revision"}
@@ -1554,7 +1586,7 @@ def create_web_app(
                 )
             except ValidationError as exc:
                 raise web.HTTPBadRequest(text=str(exc)) from None
-            if not await asyncio.to_thread(accounts.save_settings, uid, updates):
+            if not await asyncio.to_thread(self.accounts.save_settings, uid, updates):
                 raise web.HTTPServiceUnavailable(
                     text="MHM could not finish saving. Reload these settings to check their current values before trying again."
                 )
@@ -1562,16 +1594,17 @@ def create_web_app(
                 account_doc = documents.get("account")
                 if isinstance(account_doc, dict):
                     _remember_setup_complete(account_doc)
-                mark = getattr(accounts, "mark_setup_complete", None)
+                mark = getattr(self.accounts, "mark_setup_complete", None)
                 if mark is not None:
                     await asyncio.to_thread(mark, uid)
-            latest = await asyncio.to_thread(accounts.documents, uid)
+            latest = await asyncio.to_thread(self.accounts.documents, uid)
             return web.json_response(settings_snapshot(latest, options))
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def insights(request):
+    async def insights(self, request):
         """Return authenticated wellness, habit, and check-in analytics."""
-        uid, _ = await authenticated_account(request)
+        uid, _ = await self.authenticated_account(request)
         try:
             days = int(request.query.get("days", "30"))
         except ValueError:
@@ -1605,10 +1638,11 @@ def create_web_app(
 
         return web.json_response(await asyncio.to_thread(build_insights))
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def health_settings(request):
+    async def health_settings(self, request):
         """Read or change the signed-in user's Google Health integration."""
-        uid, _ = await authenticated_account(request)
+        uid, _ = await self.authenticated_account(request)
         from integrations.google_health.user_settings import (
             delete_health_integration,
             enable_health_integration,
@@ -1636,12 +1670,12 @@ def create_web_app(
                 "has_recent_error": bool(status and status.has_recent_error),
                 "connect_available": ready,
                 "connect_error": readiness_error,
-                "connecting": uid in health_connecting,
+                "connecting": uid in self.health_connecting,
             }
 
         if request.method == "GET":
             return web.json_response(await asyncio.to_thread(snapshot))
-        data = await body(request)
+        data = await self.body(request)
         if set(data) != {"action"} or data.get("action") not in {
             "connect",
             "pause",
@@ -1651,19 +1685,19 @@ def create_web_app(
         }:
             raise web.HTTPBadRequest(text="Choose a valid Google Health action.")
         action = data["action"]
-        throttle(("health", uid), 12, 600)
-        async with health_lock:
-            await authenticated_account(request)
+        self.throttle(("health", uid), 12, 600)
+        async with self.health_lock:
+            await self.authenticated_account(request)
             if action == "connect":
                 ready, error = await asyncio.to_thread(get_connect_readiness)
                 if not ready:
                     raise web.HTTPServiceUnavailable(text=error)
-                if uid in health_connecting:
+                if uid in self.health_connecting:
                     raise web.HTTPConflict(text="Google Health connection is already in progress.")
                 url = await asyncio.to_thread(get_connect_authorization_url, uid)
                 if not url:
                     raise web.HTTPServiceUnavailable(text="Google Health could not start connecting.")
-                health_connecting.add(uid)
+                self.health_connecting.add(uid)
 
                 @handle_errors(
                     "finishing Google Health website connection",
@@ -1672,7 +1706,7 @@ def create_web_app(
                 )
                 def finished(_success, _error):
                     """Release the single in-progress connect slot for this user."""
-                    health_connecting.discard(uid)
+                    self.health_connecting.discard(uid)
 
                 run_connect_flow_async(uid, finished)
                 return web.json_response({"ok": True, "url": url, **snapshot()})
@@ -1694,8 +1728,9 @@ def create_web_app(
                 raise web.HTTPServiceUnavailable(text="Google Health could not complete that action.")
             return web.json_response({"ok": True, "message": message, **snapshot()})
 
+
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by the guarded task route.
-    def task_view(task):
+    def task_view(self, task):
         """Return the stable, browser-safe task shape used by the website."""
         due = task.get("due") if isinstance(task.get("due"), dict) else {}
         recurrence = task.get("recurrence") if isinstance(task.get("recurrence"), dict) else {}
@@ -1752,10 +1787,11 @@ def create_web_app(
             "updated_at": task.get("updated_at"),
         }
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def tasks_api(request):
-        """Authenticated website CRUD facade over the canonical MHM task service."""
-        uid, _ = await authenticated_account(request)
+    async def tasks_api(self, request):
+        """Handle authenticated website task routes through the task service."""
+        uid, _ = await self.authenticated_account(request)
         from core.time_utilities import parse_date_only, parse_time_only_minute
         from tasks.task_service import (
             complete_task,
@@ -1877,7 +1913,7 @@ def create_web_app(
                 key=str.casefold,
             )
             return web.json_response({
-                "tasks": [task_view(task) for task in selected],
+                "tasks": [self.task_view(task) for task in selected],
                 "active_count": len(active),
                 "completed_count": len(completed),
                 "due_soon_count": len(due_soon),
@@ -1885,7 +1921,7 @@ def create_web_app(
             })
 
         if request.method == "POST" and not task_id:
-            data = await body(request)
+            data = await self.body(request)
             allowed = {
                 "title", "description", "due_date", "due_time", "priority",
                 "recurrence_pattern", "recurrence_interval", "repeat_after_completion",
@@ -1943,19 +1979,19 @@ def create_web_app(
             )
             if not created_id:
                 raise web.HTTPServiceUnavailable(text="MHM could not create that task. Please try again.")
-            return web.json_response({"task": task_view(find(created_id))}, status=201)
+            return web.json_response({"task": self.task_view(find(created_id))}, status=201)
 
         if not task_id:
             raise web.HTTPBadRequest(text="A task ID is required.")
         action_message = ""
         if action == "complete" and request.method == "POST":
-            completion_data = clean_completion(await body(request))
+            completion_data = clean_completion(await self.body(request))
             if not await asyncio.to_thread(
                 complete_task, uid, task_id, completion_data
             ):
                 raise web.HTTPNotFound(text="That active task could not be completed.")
         elif action == "restore" and request.method == "POST":
-            data = await body(request)
+            data = await self.body(request)
             if set(data) - {"restore_steps"} or (
                 "restore_steps" in data and type(data["restore_steps"]) is not bool
             ):
@@ -1967,7 +2003,7 @@ def create_web_app(
             ):
                 raise web.HTTPNotFound(text="That completed task could not be restored.")
         elif action == "snooze" and request.method == "POST":
-            data = await body(request)
+            data = await self.body(request)
             option = data.get("option")
             custom_when = data.get("custom_when")
             if (
@@ -1997,7 +2033,7 @@ def create_web_app(
                 )
             action_message = result.message
         elif action == "skip" and request.method == "POST":
-            if await body(request):
+            if await self.body(request):
                 raise web.HTTPBadRequest(text="Skipping this occurrence does not need any other details.")
             from tasks.task_occurrence_skip import skip_task_occurrence
 
@@ -2008,7 +2044,7 @@ def create_web_app(
                 )
             action_message = result.message
         elif action == "breakdown" and request.method == "POST":
-            if await body(request):
+            if await self.body(request):
                 raise web.HTTPBadRequest(text="Breaking a task down does not need any other details.")
             from tasks.task_breakdown import suggest_breakdown
 
@@ -2025,7 +2061,7 @@ def create_web_app(
                 raise web.HTTPBadRequest(text=result.message)
             return web.json_response({"steps": result.steps})
         elif action == "subtasks" and request.method == "POST":
-            data = await body(request)
+            data = await self.body(request)
             titles = data.get("titles")
             if (
                 set(data) != {"titles"}
@@ -2046,7 +2082,7 @@ def create_web_app(
                 )
             action_message = result.message
         elif action == "detach" and request.method == "POST":
-            if await body(request):
+            if await self.body(request):
                 raise web.HTTPBadRequest(
                     text="Making a step its own task does not need any other details."
                 )
@@ -2059,7 +2095,7 @@ def create_web_app(
                 )
             action_message = result.message
         elif action == "simplify" and request.method == "POST":
-            data = await body(request)
+            data = await self.body(request)
             new_title = data.get("new_title")
             if (
                 set(data) != {"new_title"}
@@ -2079,7 +2115,7 @@ def create_web_app(
                 )
             action_message = result.message
         elif action is None and request.method == "PATCH":
-            data = await body(request)
+            data = await self.body(request)
             allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "quick_reminders"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported task changes.")
@@ -2133,14 +2169,15 @@ def create_web_app(
         else:
             raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
         return web.json_response(
-            {"task": task_view(find(task_id)), **({"message": action_message} if action_message else {})}
+            {"task": self.task_view(find(task_id)), **({"message": action_message} if action_message else {})}
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def tasks_bulk(request):
+    async def tasks_bulk(self, request):
         """Apply one task action to an explicit set of the signed-in user's tasks."""
-        uid, _ = await authenticated_account(request)
-        data = await body(request)
+        uid, _ = await self.authenticated_account(request)
+        data = await self.body(request)
         action = request.match_info["action"]
         task_ids = data.get("task_ids")
         extra = set(data) - {"task_ids"}
@@ -2201,7 +2238,7 @@ def create_web_app(
             ordered = sorted(task_ids, key=family_rank)
             return [task_id for task_id in ordered if operation(uid, task_id)]
 
-        throttle(("tasks-bulk", uid), 20, 60)
+        self.throttle(("tasks-bulk", uid), 20, 60)
         changed = await asyncio.to_thread(apply_actions)
         if not changed:
             raise web.HTTPNotFound(text="None of those tasks could be updated.")
@@ -2213,10 +2250,11 @@ def create_web_app(
             }
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def task_templates(request):
+    async def task_templates(self, request):
         """Return safe built-in task templates for quick website creation."""
-        await authenticated_account(request)
+        await self.authenticated_account(request)
         from tasks.task_service import list_task_templates
 
         templates = await asyncio.to_thread(list_task_templates)
@@ -2239,10 +2277,11 @@ def create_web_app(
             }
         )
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def messages_api(request):
+    async def messages_api(self, request):
         """Manage the signed-in user's reusable message templates."""
-        uid, _ = await authenticated_account(request)
+        uid, _ = await self.authenticated_account(request)
         from messages.message_data_manager import (
             add_message,
             delete_message,
@@ -2251,7 +2290,7 @@ def create_web_app(
             load_user_messages,
         )
 
-        options = await asyncio.to_thread(accounts.settings_options, uid)
+        options = await asyncio.to_thread(self.accounts.settings_options, uid)
         categories = [
             category
             for category in options.get("categories", [])
@@ -2264,7 +2303,7 @@ def create_web_app(
         if category not in categories:
             raise web.HTTPBadRequest(text="Choose an available message category.")
 
-        documents = await asyncio.to_thread(accounts.documents, uid)
+        documents = await asyncio.to_thread(self.accounts.documents, uid)
         from core.profile_v2_io import schedule_categories
 
         schedule = schedule_categories(documents.get("schedules") or {})
@@ -2341,7 +2380,7 @@ def create_web_app(
                 }
             )
         if request.method == "POST" and not request.match_info.get("message_id"):
-            values = clean(await body(request))
+            values = clean(await self.body(request))
             message_id = secrets.token_urlsafe(18)
             await asyncio.to_thread(
                 add_message, uid, category, {"id": message_id, **values}
@@ -2354,10 +2393,10 @@ def create_web_app(
             if not any(str(message.get("id")) == message_id for message in existing):
                 raise web.HTTPNotFound(text="That message could not be found.")
             if request.method == "PATCH":
-                values = clean(await body(request))
+                values = clean(await self.body(request))
                 await asyncio.to_thread(edit_message, uid, category, message_id, values)
             elif request.method == "DELETE":
-                if await body(request):
+                if await self.body(request):
                     raise web.HTTPBadRequest(text="Deleting a message does not need a request body.")
                 await asyncio.to_thread(delete_message, uid, category, message_id)
                 return web.json_response({"ok": True})
@@ -2369,11 +2408,12 @@ def create_web_app(
             raise web.HTTPServiceUnavailable(text="MHM could not finish saving that message.")
         return web.json_response({"message": view(message)}, status=201 if request.method == "POST" else 200)
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def request_action(request):
+    async def request_action(self, request):
         """Queue an authenticated one-off delivery request for the MHM service."""
-        uid, _ = await authenticated_account(request)
-        data = await body(request)
+        uid, _ = await self.authenticated_account(request)
+        data = await self.body(request)
         action = data.get("action")
         allowed_fields = {
             "test_message": {"action", "category"},
@@ -2381,7 +2421,7 @@ def create_web_app(
         }
         if action not in allowed_fields or set(data) != allowed_fields[action]:
             raise web.HTTPBadRequest(text="Choose a valid request action.")
-        documents = await asyncio.to_thread(accounts.documents, uid)
+        documents = await asyncio.to_thread(self.accounts.documents, uid)
         account_data = documents.get("account") or {}
         features = account_data.get("features") or {}
         preferences = documents.get("preferences") or {}
@@ -2395,7 +2435,7 @@ def create_web_app(
 
         if action == "test_message":
             category = data["category"]
-            options = await asyncio.to_thread(accounts.settings_options, uid)
+            options = await asyncio.to_thread(self.accounts.settings_options, uid)
             if not isinstance(category, str) or category not in options.get("categories", []):
                 raise web.HTTPBadRequest(text="Choose an available message category.")
             filename = f"test_message_request_{uid}_{category}.flag"
@@ -2416,7 +2456,7 @@ def create_web_app(
                 "source": "website",
             }
             message = "Your check-in was queued for delivery."
-        throttle(("request-action", uid), 10, 60)
+        self.throttle(("request-action", uid), 10, 60)
         request_file = Path(get_flags_dir()) / filename
         if not await asyncio.to_thread(
             write_service_flag_json,
@@ -2428,8 +2468,9 @@ def create_web_app(
             raise web.HTTPServiceUnavailable(text="MHM could not queue that request.")
         return web.json_response({"ok": True, "message": message})
 
+
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by the guarded notebook route.
-    def note_view(entry):
+    def note_view(self, entry):
         """Return the stable, browser-safe representation of a notebook entry."""
         items = []
         for item in getattr(entry, "items", None) or []:
@@ -2455,10 +2496,11 @@ def create_web_app(
             "source": str((getattr(entry, "metadata", None) or {}).get("source") or ""),
         }
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def notes_api(request):
-        """Authenticated website facade over the canonical notebook service."""
-        uid, _ = await authenticated_account(request)
+    async def notes_api(self, request):
+        """Handle authenticated website note routes through the notebook service."""
+        uid, _ = await self.authenticated_account(request)
         from notebook import notebook_data_manager as notes
         from core.tags import normalize_tags
 
@@ -2533,13 +2575,13 @@ def create_web_app(
                 key=str.casefold,
             )
             return web.json_response({
-                "notes": [note_view(entry) for entry in entries],
+                "notes": [self.note_view(entry) for entry in entries],
                 "count": len(entries),
                 "tags": tags,
             })
 
         if request.method == "POST" and not note_id:
-            data = await body(request)
+            data = await self.body(request)
             allowed = {"kind", "title", "description", "items", "tags"}
             if set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit only supported note fields.")
@@ -2569,7 +2611,7 @@ def create_web_app(
                 entry = await asyncio.to_thread(notes.create_note, uid, title=title.strip(), description=description, tags=tags)
             if not entry:
                 raise web.HTTPBadRequest(text="MHM could not create that entry.")
-            return web.json_response({"note": note_view(entry)}, status=201)
+            return web.json_response({"note": self.note_view(entry)}, status=201)
 
         if not note_id:
             raise web.HTTPBadRequest(text="A note ID is required.")
@@ -2577,9 +2619,9 @@ def create_web_app(
             entry = find(note_id, include_archived=True)
             if not await asyncio.to_thread(notes.archive_entry, uid, note_id, action == "archive"):
                 raise web.HTTPNotFound(text="That note could not be updated.")
-            return web.json_response({"note": note_view(find(note_id, include_archived=True))})
+            return web.json_response({"note": self.note_view(find(note_id, include_archived=True))})
         if action is None and request.method == "PATCH":
-            data = await body(request)
+            data = await self.body(request)
             allowed = {"title", "description", "items", "tags", "pinned"}
             if not data or set(data) - allowed:
                 raise web.HTTPBadRequest(text="Please submit supported note changes.")
@@ -2613,13 +2655,14 @@ def create_web_app(
                 raise web.HTTPBadRequest(text="Choose whether the entry is pinned.")
             if "pinned" in data and not await asyncio.to_thread(notes.pin_entry, uid, note_id, data["pinned"]):
                 raise web.HTTPNotFound(text="That note could not be updated.")
-            return web.json_response({"note": note_view(find(note_id, include_archived=False))})
+            return web.json_response({"note": self.note_view(find(note_id, include_archived=False))})
         raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH"})
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def checkins_api(request):
+    async def checkins_api(self, request):
         """Start or answer the signed-in user's check-in in the browser."""
-        uid, _ = await authenticated_account(request)
+        uid, _ = await self.authenticated_account(request)
         from checkins.checkin_data_manager import is_user_checkins_enabled
         from checkins.checkin_service import get_checkin_start_status, today_checkin_energy
         from communication.message_processing.conversation_flow_manager import (
@@ -2676,7 +2719,7 @@ def create_web_app(
                 question_type=snapshot.get("question_type"),
             ))
 
-        data = await body(request)
+        data = await self.body(request)
         action = data.get("action")
         if action == "start" and set(data) == {"action"}:
             if not enabled:
@@ -2726,11 +2769,12 @@ def create_web_app(
             question_type=latest.get("question_type") if active else None,
         ))
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def logout(request):
+    async def logout(self, request):
         """Revoke the current session cookie and clear it from the browser."""
         key = hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest()
-        session = sessions.pop(key, None)
+        session = self.sessions.pop(key, None)
         if session:
             uid = session[0]
 
@@ -2753,41 +2797,21 @@ def create_web_app(
         response.del_cookie(COOKIE, path="/api/")
         return response
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def setup_complete(request):
+    async def setup_complete(self, request):
         """Record that website first-run setup is finished, even with no features on."""
-        uid, _current = await authenticated_account(request)
-        if not await asyncio.to_thread(accounts.mark_setup_complete, uid):
+        uid, _current = await self.authenticated_account(request)
+        if not await asyncio.to_thread(self.accounts.mark_setup_complete, uid):
             raise web.HTTPServiceUnavailable(
                 text="MHM could not save that setup is finished. Please try again."
             )
         return web.json_response({"needs_setup": False})
 
-    app = web.Application(middlewares=[guard], client_max_size=32768)
-    app.router.add_post("/api/auth/password", password_login)
-    app.router.add_post("/api/auth/password/setup", password_setup)
-    app.router.add_post("/api/auth/request-code", request_code)
-    app.router.add_post("/api/auth/verify", verify)
-    app.router.add_post("/api/auth/logout", logout)
-    app.router.add_get("/api/auth/oauth/providers", oauth_providers)
-    app.router.add_get("/api/auth/oauth/{provider}/start", oauth_start)
-    app.router.add_get("/api/auth/oauth/{provider}/callback", oauth_callback)
-    app.router.add_get("/api/auth/discord/start", discord_start)
-    app.router.add_get("/api/auth/discord/callback", discord_callback)
-    app.router.add_get("/api/account", account)
-    app.router.add_post("/api/account/setup-complete", setup_complete)
-    app.router.add_post("/api/account/connections", account_connections)
-    app.router.add_get("/api/account/export", account_export)
-    app.router.add_post("/api/account/delete", account_delete)
-    app.router.add_get("/api/settings", settings)
-    app.router.add_post("/api/settings", settings)
-    app.router.add_get("/api/insights", insights)
-    app.router.add_get("/api/health", health_settings)
-    app.router.add_post("/api/health", health_settings)
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def task_effort_api(request):
+    async def task_effort_api(self, request):
         """Estimate how many minutes each active task is likely to take."""
-        uid, _current = await authenticated_account(request)
+        uid, _current = await self.authenticated_account(request)
         from tasks.task_effort import estimate_task_efforts
         from tasks.task_service import load_active_tasks
 
@@ -2795,36 +2819,20 @@ def create_web_app(
         estimates = await asyncio.to_thread(estimate_task_efforts, active)
         return web.json_response({"tasks": estimates})
 
-    app.router.add_get("/api/tasks/effort", task_effort_api)
-    app.router.add_get("/api/tasks", tasks_api)
-    app.router.add_post("/api/tasks", tasks_api)
-    app.router.add_get("/api/task-templates", task_templates)
-    app.router.add_post(
-        "/api/tasks/bulk/{action:complete|restore|delete}", tasks_bulk
-    )
-    app.router.add_route("PATCH", "/api/tasks/{task_id}", tasks_api)
-    app.router.add_route("DELETE", "/api/tasks/{task_id}", tasks_api)
-    app.router.add_post(
-        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach}",
-        tasks_api,
-    )
-    app.router.add_get("/api/messages", messages_api)
-    app.router.add_post("/api/messages", messages_api)
-    app.router.add_post("/api/actions", request_action)
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_api(request):
+    async def chat_api(self, request):
         """Send one signed-in message through the website conversation channel."""
         from core.web_chat import website_chat_reply
 
-        uid, _current = await authenticated_account(request)
-        data = await body(request)
+        uid, _current = await self.authenticated_account(request)
+        data = await self.body(request)
         message = data.get("message")
         if set(data) != {"message"} or not isinstance(message, str):
             raise web.HTTPBadRequest(text="Enter a message to send.")
         message = message.strip()
         if not message or len(message) > 2000:
             raise web.HTTPBadRequest(text="Enter a message of up to 2000 characters.")
-        throttle(("chat", uid), 30, 600)
+        self.throttle(("chat", uid), 30, 600)
         result = await asyncio.to_thread(website_chat_reply, uid, message)
         from communication.communication_channels.website.inbox import (
             append_website_chat_exchange,
@@ -2835,26 +2843,28 @@ def create_web_app(
         )
         return web.json_response(result)
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_inbox(request):
+    async def chat_inbox(self, request):
         """Return outbound messages stored for the always-on website channel."""
         from communication.communication_channels.website.inbox import (
             list_home_conversation,
             list_website_messages,
         )
 
-        uid, _current = await authenticated_account(request)
+        uid, _current = await self.authenticated_account(request)
         messages = await asyncio.to_thread(list_website_messages, uid)
         turns = await asyncio.to_thread(list_home_conversation, uid)
         return web.json_response({"messages": messages, "turns": turns})
 
+
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_reaction(request):
+    async def chat_reaction(self, request):
         """Apply More like this or Not for me to one scheduled message from the website chat."""
         from messages.message_reactions import apply_message_reaction
 
-        uid, _current = await authenticated_account(request)
-        data = await body(request)
+        uid, _current = await self.authenticated_account(request)
+        data = await self.body(request)
         kind = data.get("kind")
         delivery_id = data.get("delivery_id")
         if (
@@ -2865,7 +2875,7 @@ def create_web_app(
             or len(delivery_id.strip()) > 80
         ):
             raise web.HTTPBadRequest(text="Choose more like this or not for me.")
-        throttle(("reaction", uid), 30, 600)
+        self.throttle(("reaction", uid), 30, 600)
         result = await asyncio.to_thread(
             apply_message_reaction,
             uid,
@@ -2878,22 +2888,10 @@ def create_web_app(
             raise web.HTTPNotFound(text="That message cannot change later messages.")
         return web.json_response({"status": status, "reply": str(result.get("reply") or "")})
 
-    app.router.add_get("/api/checkins", checkins_api)
-    app.router.add_post("/api/checkins", checkins_api)
-    app.router.add_get("/api/chat", chat_inbox)
-    app.router.add_post("/api/chat", chat_api)
-    app.router.add_post("/api/chat/reactions", chat_reaction)
-    app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", messages_api)
-    app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", messages_api)
-    app.router.add_get("/api/notes", notes_api)
-    app.router.add_post("/api/notes", notes_api)
-    app.router.add_route("PATCH", "/api/notes/{note_id}", notes_api)
-    app.router.add_post("/api/notes/{note_id}/{action:archive|restore}", notes_api)
-    root = Path(__file__).resolve().parent.parent / "website"
 
     # Explicit allowlist keeps configs, Worker source, and docs off the local server.
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def asset(request):
+    async def asset(self, request):
         """Serve one explicitly allowlisted website asset from the local gateway."""
         name = request.match_info.get("name", "index.html")
         if name not in {
@@ -2928,10 +2926,11 @@ def create_web_app(
             "checkin.js",
         }:
             raise web.HTTPNotFound(text="Page not found.")
-        return web.FileResponse(root / name)
+        return web.FileResponse(self.root / name)
+
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def font_asset(request):
+    async def font_asset(self, request):
         """Serve one self-hosted typeface file."""
         name = request.match_info.get("name", "")
         if name not in {
@@ -2941,9 +2940,133 @@ def create_web_app(
             "nunito-latin-ext.woff2",
         }:
             raise web.HTTPNotFound(text="Page not found.")
-        return web.FileResponse(root / "fonts" / name)
+        return web.FileResponse(self.root / "fonts" / name)
 
-    app.router.add_get("/", asset)
-    app.router.add_get("/fonts/{name}", font_asset)
-    app.router.add_get("/{name}", asset)
+
+def create_web_app(
+    *,
+    accounts=None,
+    mailer=None,
+    origin=None,
+    proxy_secret=None,
+    clock=time.monotonic,
+    discord_identity=None,
+    oauth_identity=None,
+):
+    """Construct an injectable gateway; tests use isolated account and email adapters."""
+    accounts = accounts or MHMAccounts()
+    test_mailer = mailer is not None
+    mailer = mailer or send_code
+    origin = origin or config.WEB_PUBLIC_ORIGIN
+    proxy_secret = config.WEB_PROXY_SECRET if proxy_secret is None else proxy_secret
+    try:
+        parsed = urlsplit(origin)
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError("WEB_PUBLIC_ORIGIN must be a valid URL origin") from exc
+    local = parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1"}
+    if (
+        parsed.path
+        or parsed.query
+        or parsed.fragment
+        or not parsed.netloc
+        or parsed.username
+        or parsed.password
+    ):
+        raise ConfigurationError(
+            "WEB_PUBLIC_ORIGIN must be an exact origin without a path"
+        )
+    if not local and (parsed.scheme != "https" or len(proxy_secret) < 32):
+        raise ConfigurationError(
+            "Production web access requires HTTPS and a WEB_PROXY_SECRET of at least 32 characters"
+        )
+    challenges = {}
+    sessions = {}
+    limits = {}
+    verification_lock = asyncio.Lock()
+    settings_lock = asyncio.Lock()
+    health_lock = asyncio.Lock()
+    discord_link_lock = asyncio.Lock()
+    oauth_link_lock = asyncio.Lock()
+    discord_states = {}
+    oauth_states = {}
+    health_connecting = set()
+    discord_identity = discord_identity or _fetch_discord_identity
+    oauth_identity = oauth_identity or _fetch_oauth_identity
+
+    gateway = WebGateway(
+        accounts=accounts,
+        test_mailer=test_mailer,
+        mailer=mailer,
+        origin=origin,
+        proxy_secret=proxy_secret,
+        clock=clock,
+        local=local,
+        challenges=challenges,
+        sessions=sessions,
+        limits=limits,
+        verification_lock=verification_lock,
+        settings_lock=settings_lock,
+        health_lock=health_lock,
+        discord_link_lock=discord_link_lock,
+        oauth_link_lock=oauth_link_lock,
+        discord_states=discord_states,
+        oauth_states=oauth_states,
+        health_connecting=health_connecting,
+        discord_identity=discord_identity,
+        oauth_identity=oauth_identity,
+    )
+    app = web.Application(middlewares=[gateway.guard], client_max_size=32768)
+    app.router.add_post("/api/auth/password", gateway.password_login)
+    app.router.add_post("/api/auth/password/setup", gateway.password_setup)
+    app.router.add_post("/api/auth/request-code", gateway.request_code)
+    app.router.add_post("/api/auth/verify", gateway.verify)
+    app.router.add_post("/api/auth/logout", gateway.logout)
+    app.router.add_get("/api/auth/oauth/providers", gateway.oauth_providers)
+    app.router.add_get("/api/auth/oauth/{provider}/start", gateway.oauth_start)
+    app.router.add_get("/api/auth/oauth/{provider}/callback", gateway.oauth_callback)
+    app.router.add_get("/api/auth/discord/start", gateway.discord_start)
+    app.router.add_get("/api/auth/discord/callback", gateway.discord_callback)
+    app.router.add_get("/api/account", gateway.account)
+    app.router.add_post("/api/account/setup-complete", gateway.setup_complete)
+    app.router.add_post("/api/account/connections", gateway.account_connections)
+    app.router.add_get("/api/account/export", gateway.account_export)
+    app.router.add_post("/api/account/delete", gateway.account_delete)
+    app.router.add_get("/api/settings", gateway.settings)
+    app.router.add_post("/api/settings", gateway.settings)
+    app.router.add_get("/api/insights", gateway.insights)
+    app.router.add_get("/api/health", gateway.health_settings)
+    app.router.add_post("/api/health", gateway.health_settings)
+
+    app.router.add_get("/api/tasks/effort", gateway.task_effort_api)
+    app.router.add_get("/api/tasks", gateway.tasks_api)
+    app.router.add_post("/api/tasks", gateway.tasks_api)
+    app.router.add_get("/api/task-templates", gateway.task_templates)
+    app.router.add_post(
+        "/api/tasks/bulk/{action:complete|restore|delete}", gateway.tasks_bulk
+    )
+    app.router.add_route("PATCH", "/api/tasks/{task_id}", gateway.tasks_api)
+    app.router.add_route("DELETE", "/api/tasks/{task_id}", gateway.tasks_api)
+    app.router.add_post(
+        "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach}",
+        gateway.tasks_api,
+    )
+    app.router.add_get("/api/messages", gateway.messages_api)
+    app.router.add_post("/api/messages", gateway.messages_api)
+    app.router.add_post("/api/actions", gateway.request_action)
+
+    app.router.add_get("/api/checkins", gateway.checkins_api)
+    app.router.add_post("/api/checkins", gateway.checkins_api)
+    app.router.add_get("/api/chat", gateway.chat_inbox)
+    app.router.add_post("/api/chat", gateway.chat_api)
+    app.router.add_post("/api/chat/reactions", gateway.chat_reaction)
+    app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", gateway.messages_api)
+    app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", gateway.messages_api)
+    app.router.add_get("/api/notes", gateway.notes_api)
+    app.router.add_post("/api/notes", gateway.notes_api)
+    app.router.add_route("PATCH", "/api/notes/{note_id}", gateway.notes_api)
+    app.router.add_post("/api/notes/{note_id}/{action:archive|restore}", gateway.notes_api)
+
+    app.router.add_get("/", gateway.asset)
+    app.router.add_get("/fonts/{name}", gateway.font_asset)
+    app.router.add_get("/{name}", gateway.asset)
     return app

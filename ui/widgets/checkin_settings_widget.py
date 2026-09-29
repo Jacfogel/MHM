@@ -708,6 +708,7 @@ class CheckinSettingsWidget(QWidget):
 
         # duplicate_functions_exclude: thin wrapper; delegates to shared helper
         def number_from_widget(w):
+            """Return the check-in reminder number encoded in this widget's period name."""
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_data().get("name", "")
             return _number_after_prefix(name, "Check-in Reminder ")

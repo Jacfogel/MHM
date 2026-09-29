@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 22:59:28
+> **Last Generated**: 2026-09-28 23:50:22
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 291
-- **Functions Found**: 2867
-- **Methods Found**: 1434
-- **Classes Found**: 266
-- **Total Items**: 4301
-- **Functions Documented**: 2564
-- **Methods Documented**: 1288
-- **Classes Documented**: 199
-- **Total Documented**: 3852
+- **Functions Found**: 3034
+- **Methods Found**: 1571
+- **Classes Found**: 267
+- **Total Items**: 4605
+- **Functions Documented**: 2678
+- **Methods Documented**: 1392
+- **Classes Documented**: 200
+- **Total Documented**: 4070
 - **Template-Generated**: 56
 - **Last Updated**: 2026-09-28
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (559)
+### **Core System Functions** (598)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (752)
+### **Communication Functions** (879)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -139,6 +139,7 @@ Returns:
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
 - [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
 - [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
 - [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
 - [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
@@ -185,6 +186,7 @@ Returns:
   - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
   - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
   - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+  - [OK] `AIChatBotSingleton.async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
   - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
   - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
@@ -1762,7 +1764,12 @@ Returns:
 - [OK] `channel_type(self)` - Return whether this channel is sync or async
 - [OK] `get_error(self)` - Get last error message
 - [OK] `get_status(self)` - Get current channel status
+- [OK] `health_check(self)` - Perform a health check. Returns True if healthy.
+- [OK] `initialize(self)` - Initialize the channel. Returns True if successful.
 - [OK] `is_ready(self)` - Check if channel is ready to send/receive messages
+- [OK] `receive_messages(self)` - Receive messages. Returns list of message dictionaries.
+- [OK] `send_message(self, recipient, message)` - Send a message. Returns True if successful.
+- [OK] `shutdown(self)` - Shutdown the channel. Returns True if successful.
 **Classes:**
 - [OK] `BaseChannel` - Abstract base class for all communication channels
   - [OK] `BaseChannel.__init__(self, config)` - Initialize the object.
@@ -1770,7 +1777,12 @@ Returns:
   - [OK] `BaseChannel.channel_type(self)` - Return whether this channel is sync or async
   - [OK] `BaseChannel.get_error(self)` - Get last error message
   - [OK] `BaseChannel.get_status(self)` - Get current channel status
+  - [OK] `BaseChannel.health_check(self)` - Perform a health check. Returns True if healthy.
+  - [OK] `BaseChannel.initialize(self)` - Initialize the channel. Returns True if successful.
   - [OK] `BaseChannel.is_ready(self)` - Check if channel is ready to send/receive messages
+  - [OK] `BaseChannel.receive_messages(self)` - Receive messages. Returns list of message dictionaries.
+  - [OK] `BaseChannel.send_message(self, recipient, message)` - Send a message. Returns True if successful.
+  - [OK] `BaseChannel.shutdown(self)` - Shutdown the channel. Returns True if successful.
 - [OK] `ChannelConfig` - Configuration for communication channels
   - [OK] `ChannelConfig.__post_init__(self)` - Post-initialization setup.
 - [MISSING] `ChannelStatus` - No description
@@ -1781,6 +1793,7 @@ Returns:
 - [OK] `__init__(self)` - Initialize the command registry
 - [OK] `__init__(self, bot)` - Initialize Discord command registry
 - [OK] `__post_init__(self)` - Post-initialization setup
+- [MISSING] `discord_command_callback(interaction)` - No description
 - [OK] `get_all_commands(self)` - Get all registered commands
 - [OK] `get_command(self, command_name)` - Get a command by name or alias
 - [OK] `get_command_registry(channel_type, platform_instance)` - Get the appropriate command registry for a channel type
@@ -1872,38 +1885,120 @@ Returns:
 #### `communication/communication_channels/discord/api_client.py`
 **Functions:**
 - [OK] `__init__(self, bot)` - Initialize the Discord API client
+- [OK] `_get_channel_or_user(self, recipient)` - Get a Discord channel or user by ID
+- [OK] `_rate_limit_check(self)` - Check and enforce rate limits
+- [OK] `check_permissions(self, channel_id, permissions)` - Check bot permissions in a channel
+- [OK] `get_channels(self, guild_id)` - Get text channels from a guild or all guilds
 - [OK] `get_connection_latency(self)` - Get the bot's connection latency
 - [OK] `get_discord_api_client(bot)` - Get a Discord API client instance
+- [OK] `get_guilds(self)` - Get all guilds the bot is in
+- [OK] `get_users(self, guild_id)` - Get users from a guild or all guilds
 - [OK] `is_connected(self)` - Check if the bot is connected to Discord
+- [OK] `send_dm(self, user_id, message, options)` - Send a direct message to a Discord user
+
+Args:
+    user_id: Discord user ID
+    message: Message content
+    options: Additional send options
+
+Returns:
+    True if DM was sent successfully
+- [OK] `send_message(self, recipient, message, options)` - Send a message to a Discord channel or user
+
+Args:
+    recipient: Channel ID or user ID
+    message: Message content
+    options: Additional send options
+
+Returns:
+    True if message was sent successfully
 **Classes:**
 - [OK] `DiscordAPIClient` - Discord API client for handling Discord-specific operations
   - [OK] `DiscordAPIClient.__init__(self, bot)` - Initialize the Discord API client
+  - [OK] `DiscordAPIClient._get_channel_or_user(self, recipient)` - Get a Discord channel or user by ID
+  - [OK] `DiscordAPIClient._rate_limit_check(self)` - Check and enforce rate limits
+  - [OK] `DiscordAPIClient.check_permissions(self, channel_id, permissions)` - Check bot permissions in a channel
+  - [OK] `DiscordAPIClient.get_channels(self, guild_id)` - Get text channels from a guild or all guilds
   - [OK] `DiscordAPIClient.get_connection_latency(self)` - Get the bot's connection latency
+  - [OK] `DiscordAPIClient.get_guilds(self)` - Get all guilds the bot is in
+  - [OK] `DiscordAPIClient.get_users(self, guild_id)` - Get users from a guild or all guilds
   - [OK] `DiscordAPIClient.is_connected(self)` - Check if the bot is connected to Discord
+  - [OK] `DiscordAPIClient.send_dm(self, user_id, message, options)` - Send a direct message to a Discord user
+
+Args:
+    user_id: Discord user ID
+    message: Message content
+    options: Additional send options
+
+Returns:
+    True if DM was sent successfully
+  - [OK] `DiscordAPIClient.send_message(self, recipient, message, options)` - Send a message to a Discord channel or user
+
+Args:
+    recipient: Channel ID or user ID
+    message: Message content
+    options: Additional send options
+
+Returns:
+    True if message was sent successfully
 - [OK] `MessageData` - Data structure for Discord messages
 - [OK] `SendMessageOptions` - Options for sending messages
 
 #### `communication/communication_channels/discord/bot.py`
 **Functions:**
 - [OK] `__init__(self, config)` - Special Python method
+- [MISSING] `_check_new_authorized_users()` - No description
+- [MISSING] `_cleanup_aiohttp_sessions(self)` - No description
+- [MISSING] `_cleanup_event_loop_safely(self, loop)` - No description
+- [MISSING] `_cleanup_session_with_timeout(self, session)` - No description
+- [MISSING] `_on_ready_handler()` - No description
 - [MISSING] `_schedule_ready_tasks(self, bot)` - No description
+- [MISSING] `_sync_app_cmds()` - No description
 - [MISSING] `channel_type(self)` - No description
+- [MISSING] `initialize(self)` - No description
+- [MISSING] `initialize__bot_main_loop(self)` - No description
+- [MISSING] `initialize__process_command_queue(self)` - No description
 - [MISSING] `initialize__register_commands(self)` - No description
 - [MISSING] `initialize__register_events(self)` - No description
 - [MISSING] `initialize__run_bot_in_thread(self)` - No description
+- [MISSING] `on_disconnect()` - No description
+- [MISSING] `on_error(event)` - No description
+- [MISSING] `on_guild_join(guild)` - No description
+- [MISSING] `on_interaction(interaction)` - No description
+- [MISSING] `on_message(message)` - No description
+- [MISSING] `on_raw_reaction_add(payload)` - No description
+- [MISSING] `on_ready()` - No description
+- [MISSING] `receive_messages(self)` - No description
+- [MISSING] `send_dm(self, user_id, message)` - No description
+- [MISSING] `send_message(self, recipient, message)` - No description
+- [MISSING] `shutdown(self)` - No description
+- [MISSING] `shutdown__session_cleanup_context(self)` - No description
 **Classes:**
 - [OK] `DiscordBot` - Discord channel host; feature behavior lives in focused submodules.
   - [OK] `DiscordBot.__init__(self, config)` - Special Python method
+  - [MISSING] `DiscordBot._cleanup_aiohttp_sessions(self)` - No description
+  - [MISSING] `DiscordBot._cleanup_event_loop_safely(self, loop)` - No description
+  - [MISSING] `DiscordBot._cleanup_session_with_timeout(self, session)` - No description
   - [MISSING] `DiscordBot._schedule_ready_tasks(self, bot)` - No description
   - [MISSING] `DiscordBot.channel_type(self)` - No description
+  - [MISSING] `DiscordBot.initialize(self)` - No description
+  - [MISSING] `DiscordBot.initialize__bot_main_loop(self)` - No description
+  - [MISSING] `DiscordBot.initialize__process_command_queue(self)` - No description
   - [MISSING] `DiscordBot.initialize__register_commands(self)` - No description
   - [MISSING] `DiscordBot.initialize__register_events(self)` - No description
   - [MISSING] `DiscordBot.initialize__run_bot_in_thread(self)` - No description
+  - [MISSING] `DiscordBot.receive_messages(self)` - No description
+  - [MISSING] `DiscordBot.send_dm(self, user_id, message)` - No description
+  - [MISSING] `DiscordBot.send_message(self, recipient, message)` - No description
+  - [MISSING] `DiscordBot.shutdown(self)` - No description
+  - [MISSING] `DiscordBot.shutdown__session_cleanup_context(self)` - No description
 
 #### `communication/communication_channels/discord/events/__init__.py`
 
 #### `communication/communication_channels/discord/events/command_registration.py`
 **Functions:**
+- [MISSING] `_app_cb(interaction, _mapped, _name)` - No description
+- [MISSING] `_dynamic(ctx, _mapped, _name)` - No description
 - [OK] `register_discord_commands(host)` - Register dynamic slash and prefix commands on the host's Discord client.
 
 #### `communication/communication_channels/discord/events/connection_health.py`
@@ -1918,7 +2013,9 @@ Returns:
 - [MISSING] `can_send_messages(self)` - No description
 - [MISSING] `get_connection_status_summary(self)` - No description
 - [MISSING] `get_health_status(self)` - No description
+- [MISSING] `health_check(self)` - No description
 - [MISSING] `is_actually_connected(self)` - No description
+- [MISSING] `manual_reconnect(self)` - No description
 **Classes:**
 - [OK] `DiscordConnectionHealthMixin` - Connection-health surface for the Discord bot host.
   - [MISSING] `DiscordConnectionHealthMixin._check_dns_resolution(self, hostname)` - No description
@@ -1931,22 +2028,41 @@ Returns:
   - [MISSING] `DiscordConnectionHealthMixin.can_send_messages(self)` - No description
   - [MISSING] `DiscordConnectionHealthMixin.get_connection_status_summary(self)` - No description
   - [MISSING] `DiscordConnectionHealthMixin.get_health_status(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.health_check(self)` - No description
   - [MISSING] `DiscordConnectionHealthMixin.is_actually_connected(self)` - No description
+  - [MISSING] `DiscordConnectionHealthMixin.manual_reconnect(self)` - No description
 
 #### `communication/communication_channels/discord/events/interaction_router.py`
 **Functions:**
 - [MISSING] `_build_suggestion_button_response(bot, custom_id, button_label, internal_user_id)` - No description
 - [MISSING] `_extract_suggestion_button_label(interaction, custom_id)` - No description
+- [MISSING] `_handle_application_command_interaction(bot, interaction)` - No description
+- [MISSING] `_handle_component_interaction(bot, interaction)` - No description
+- [OK] `_handle_modal_submit_interaction(bot, interaction)` - Route a Discord modal submit to the create-hub handler when it matches.
+- [MISSING] `_handle_start_command_welcome(interaction, discord_user_id)` - No description
+- [MISSING] `_handle_suggestion_button(bot, interaction, custom_id)` - No description
+- [MISSING] `_handle_welcome_button(bot, interaction, custom_id)` - No description
+- [MISSING] `_send_suggestion_followup(bot, interaction, response)` - No description
+- [OK] `handle_discord_interaction(bot, interaction)` - Handle Discord interactions (slash commands, buttons, etc.).
 
 #### `communication/communication_channels/discord/events/lifecycle.py`
+**Functions:**
+- [OK] `handle_disconnect(bot)` - Handle Discord disconnect events.
+- [OK] `handle_error(bot, event)` - Handle Discord error events.
+- [OK] `handle_guild_join(guild)` - Handle when the bot is added to a new Discord server.
+- [OK] `run_on_ready_internal(bot)` - Run post-ready startup tasks once per connection.
 
 #### `communication/communication_channels/discord/events/message_handler.py`
 **Functions:**
+- [MISSING] `_handle_unrecognized_user_message(message, discord_user_id)` - No description
+- [MISSING] `_process_identified_user_message(bot, message, internal_user_id, discord_user_id)` - No description
 - [MISSING] `_sync_discord_user_id(internal_user_id, discord_user_id)` - No description
+- [OK] `handle_discord_message(bot, message)` - Process inbound Discord messages through the interaction manager.
 
 #### `communication/communication_channels/discord/events/message_reactions.py`
 **Functions:**
 - [OK] `_reaction_kind(emoji)` - Return up or down for a clearly positive or negative emoji, otherwise None.
+- [OK] `handle_message_reaction(bot, payload)` - Turn a positive or negative reaction into more similar messages, or retire that one.
 
 #### `communication/communication_channels/discord/events/protocol.py`
 **Functions:**
@@ -1958,6 +2074,7 @@ Returns:
 - [OK] `_has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
 - [OK] `_resolve_interaction_view_from_rich_data(self, rich_data)` - Resolve a requested channel-specific interaction view.
 - [OK] `_schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+- [OK] `_send_to_channel(self, channel, message, rich_data, suggestions)` - Send a message (with optional embed, rich data, and buttons) to a channel.
 - [OK] `_set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
 - [OK] `_shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
 - [OK] `_start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
@@ -1972,6 +2089,7 @@ Returns:
   - [OK] `DiscordHandlerHost._has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
   - [OK] `DiscordHandlerHost._resolve_interaction_view_from_rich_data(self, rich_data)` - Resolve a requested channel-specific interaction view.
   - [OK] `DiscordHandlerHost._schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+  - [OK] `DiscordHandlerHost._send_to_channel(self, channel, message, rich_data, suggestions)` - Send a message (with optional embed, rich data, and buttons) to a channel.
   - [OK] `DiscordHandlerHost._set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
   - [OK] `DiscordHandlerHost._shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
   - [OK] `DiscordHandlerHost._start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
@@ -2040,6 +2158,26 @@ selected features when clicked.
 
 Args:
     parent_view: The parent FeatureSelectionView containing the selected features
+- [MISSING] `callback(self, interaction)` - No description
+- [MISSING] `callback(self, interaction)` - No description
+- [MISSING] `callback(self, interaction)` - No description
+- [MISSING] `callback(self, interaction)` - No description
+- [OK] `callback(self, interaction)` - Create the account with selected features.
+- [MISSING] `on_submit(self, modal_interaction)` - No description
+- [MISSING] `on_submit(self, modal_interaction)` - No description
+- [MISSING] `on_submit(self, confirm_interaction)` - No description
+- [OK] `on_timeout(self)` - Handle view timeout.
+- [OK] `start_account_creation_flow(interaction, discord_user_id, discord_username)` - Start the account creation flow via Discord modal.
+
+Args:
+    interaction: The Discord interaction (button click)
+    discord_user_id: The user's Discord ID
+    discord_username: Optional Discord username to prefill
+- [OK] `start_account_linking_flow(interaction, discord_user_id)` - Start the account linking flow with confirmation code.
+
+Args:
+    interaction: The Discord interaction (button click)
+    discord_user_id: The user's Discord ID
 **Classes:**
 - [OK] `CheckinFeatureSelect` - Select menu for check-in feature.
   - [OK] `CheckinFeatureSelect.__init__(self, parent_view)` - Initialize the check-in feature select menu.
@@ -2049,7 +2187,9 @@ features during account creation.
 
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
+  - [MISSING] `CheckinFeatureSelect.callback(self, interaction)` - No description
 - [MISSING] `ConfirmLinkModal` - No description
+  - [MISSING] `ConfirmLinkModal.on_submit(self, confirm_interaction)` - No description
 - [OK] `CreateAccountButton` - Button to finalize account creation.
   - [OK] `CreateAccountButton.__init__(self, parent_view)` - Initialize the account creation button.
 
@@ -2058,7 +2198,9 @@ selected features when clicked.
 
 Args:
     parent_view: The parent FeatureSelectionView containing the selected features
+  - [OK] `CreateAccountButton.callback(self, interaction)` - Create the account with selected features.
 - [MISSING] `CreateAccountModal` - No description
+  - [MISSING] `CreateAccountModal.on_submit(self, modal_interaction)` - No description
 - [OK] `FeatureSelectionView` - View for selecting account features during creation.
   - [OK] `FeatureSelectionView.__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
 
@@ -2069,7 +2211,9 @@ Args:
     username: The username for the account being created
     discord_user_id: The Discord user ID of the account creator
     timeout: View timeout in seconds (default: 300.0)
+  - [OK] `FeatureSelectionView.on_timeout(self)` - Handle view timeout.
 - [MISSING] `LinkAccountModal` - No description
+  - [MISSING] `LinkAccountModal.on_submit(self, modal_interaction)` - No description
 - [OK] `MessageFeatureSelect` - Select menu for automated messages feature.
   - [OK] `MessageFeatureSelect.__init__(self, parent_view)` - Initialize the automated messages feature select menu.
 
@@ -2078,6 +2222,7 @@ messages features during account creation.
 
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
+  - [MISSING] `MessageFeatureSelect.callback(self, interaction)` - No description
 - [OK] `TaskFeatureSelect` - Select menu for task management feature.
   - [OK] `TaskFeatureSelect.__init__(self, parent_view)` - Initialize the task management feature select menu.
 
@@ -2086,6 +2231,7 @@ features during account creation.
 
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
+  - [MISSING] `TaskFeatureSelect.callback(self, interaction)` - No description
 - [OK] `TimezoneSelect` - Select menu for timezone selection.
   - [OK] `TimezoneSelect.__init__(self, parent_view)` - Initialize the timezone selection menu.
 
@@ -2094,6 +2240,7 @@ account creation. Limited to 25 options (Discord's maximum).
 
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
+  - [MISSING] `TimezoneSelect.callback(self, interaction)` - No description
 
 #### `communication/communication_channels/discord/onboarding/welcome_handler.py`
 **Functions:**
@@ -2105,6 +2252,7 @@ or linking to an existing account. Buttons persist without timeout.
 Args:
     discord_user_id: The Discord user ID for the welcome session
 - [OK] `clear_welcomed_status(discord_user_id)` - Clear the welcomed status for a Discord user (e.g., when they deauthorize).
+- [OK] `create_account_button(self, interaction, button)` - Handle Create Account button click
 - [OK] `get_welcome_message(discord_user_id, discord_username, is_authorization)` - Get a welcome message for a new Discord user.
 
 Args:
@@ -2122,6 +2270,7 @@ Args:
 Returns:
     discord.ui.View with buttons for account actions
 - [OK] `has_been_welcomed(discord_user_id)` - Check if a Discord user has already been sent a welcome message.
+- [OK] `link_account_button(self, interaction, button)` - Handle Link Account button click
 - [OK] `mark_as_welcomed(discord_user_id)` - Mark a Discord user as having been welcomed.
 **Classes:**
 - [MISSING] `WelcomeView` - No description
@@ -2132,6 +2281,8 @@ or linking to an existing account. Buttons persist without timeout.
 
 Args:
     discord_user_id: The Discord user ID for the welcome session
+  - [OK] `WelcomeView.create_account_button(self, interaction, button)` - Handle Create Account button click
+  - [OK] `WelcomeView.link_account_button(self, interaction, button)` - Handle Link Account button click
 
 #### `communication/communication_channels/discord/ui/__init__.py`
 
@@ -2144,6 +2295,7 @@ skipping questions, and accessing help during the check-in flow.
 
 Args:
     user_id: The internal user ID for the check-in session
+- [OK] `cancel_checkin_button(self, interaction, button)` - Handle Cancel Check-in button click
 - [OK] `get_checkin_view(user_id)` - Create a Discord View with buttons for check-in flow.
 
 Args:
@@ -2151,6 +2303,8 @@ Args:
 
 Returns:
     discord.ui.View with buttons for check-in actions
+- [OK] `more_button(self, interaction, button)` - Handle More button click - show additional information
+- [OK] `skip_question_button(self, interaction, button)` - Handle Skip Question button click
 **Classes:**
 - [MISSING] `CheckinView` - No description
   - [OK] `CheckinView.__init__(self, user_id)` - Initialize the check-in view with action buttons.
@@ -2160,6 +2314,9 @@ skipping questions, and accessing help during the check-in flow.
 
 Args:
     user_id: The internal user ID for the check-in session
+  - [OK] `CheckinView.cancel_checkin_button(self, interaction, button)` - Handle Cancel Check-in button click
+  - [OK] `CheckinView.more_button(self, interaction, button)` - Handle More button click - show additional information
+  - [OK] `CheckinView.skip_question_button(self, interaction, button)` - Handle Skip Question button click
 
 #### `communication/communication_channels/discord/ui/create_item_ui.py`
 **Functions:**
@@ -2174,20 +2331,32 @@ Args:
 - [OK] `_build_template_task_modal(user_id, discord_bot, template_id)` - Return a task modal prefilled from a built-in template.
 - [OK] `_modal_field_values(interaction)` - Read text-input values from a modal-submit interaction payload.
 - [OK] `_run_handler(user_id, intent, entities, original_message)` - Run a create-hub command handler intent and return its response.
+- [OK] `_submit_task_form(modal_interaction, discord_bot)` - Defer and run a create-task intent after a modal submit.
+- [MISSING] `callback(interaction)` - No description
 - [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
 - [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
 - [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
+- [OK] `handle_create_hub_modal_submit(interaction, discord_bot)` - Handle a create-hub task modal submit, including after a bot restart.
+
+Returns True when this interaction was a create-hub task modal.
+- [MISSING] `on_submit(self, modal_interaction)` - No description
+- [MISSING] `on_submit(self, modal_interaction)` - No description
+- [MISSING] `on_submit(self, modal_interaction)` - No description
 - [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
 **Classes:**
 - [MISSING] `NewNoteModal` - No description
   - [OK] `NewNoteModal.__init__(self)` - Special Python method
+  - [MISSING] `NewNoteModal.on_submit(self, modal_interaction)` - No description
 - [MISSING] `QuickNoteModal` - No description
   - [OK] `QuickNoteModal.__init__(self)` - Special Python method
+  - [MISSING] `QuickNoteModal.on_submit(self, modal_interaction)` - No description
 - [MISSING] `TaskFormModal` - No description
   - [OK] `TaskFormModal.__init__(self)` - Special Python method
+  - [MISSING] `TaskFormModal.on_submit(self, modal_interaction)` - No description
 
 #### `communication/communication_channels/discord/ui/helpers.py`
 **Functions:**
+- [OK] `deliver_handler_response(interaction, response, discord_bot)` - Send a handler response via interaction followup (call after defer).
 - [OK] `internal_user_id(interaction)` - Map a Discord interaction to the internal MHM user id.
 - [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
 
@@ -2202,7 +2371,11 @@ Args:
 - [MISSING] `_has_display_rich_data(self, rich_data)` - No description
 - [MISSING] `_pagination_action_button_data(self, action)` - No description
 - [MISSING] `_pagination_action_value(self, action, field, default)` - No description
+- [OK] `_remember_outbound_message(self, sent, rich_data)` - Store the Discord message id for the message that was just sent.
 - [MISSING] `_resolve_interaction_view_from_rich_data(self, rich_data)` - No description
+- [OK] `_send_message_internal(self, recipient, message, rich_data, suggestions, custom_view)` - Send a Discord message inside the bot event loop.
+- [OK] `_send_to_channel(self, channel, message, rich_data, suggestions)` - Send a message directly to a Discord channel.
+- [OK] `_validate_discord_user_accessibility(self, user_id)` - Validate if a Discord user ID is still accessible.
 **Classes:**
 - [OK] `DiscordRichDeliveryMixin` - Rich delivery surface shared by the thin Discord bot host.
   - [MISSING] `DiscordRichDeliveryMixin._create_action_row(self, suggestions, suggestion_payloads)` - No description
@@ -2214,7 +2387,11 @@ Args:
   - [MISSING] `DiscordRichDeliveryMixin._has_display_rich_data(self, rich_data)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_button_data(self, action)` - No description
   - [MISSING] `DiscordRichDeliveryMixin._pagination_action_value(self, action, field, default)` - No description
+  - [OK] `DiscordRichDeliveryMixin._remember_outbound_message(self, sent, rich_data)` - Store the Discord message id for the message that was just sent.
   - [MISSING] `DiscordRichDeliveryMixin._resolve_interaction_view_from_rich_data(self, rich_data)` - No description
+  - [OK] `DiscordRichDeliveryMixin._send_message_internal(self, recipient, message, rich_data, suggestions, custom_view)` - Send a Discord message inside the bot event loop.
+  - [OK] `DiscordRichDeliveryMixin._send_to_channel(self, channel, message, rich_data, suggestions)` - Send a message directly to a Discord channel.
+  - [OK] `DiscordRichDeliveryMixin._validate_discord_user_accessibility(self, user_id)` - Validate if a Discord user ID is still accessible.
 
 #### `communication/communication_channels/discord/ui/task_list_ui.py`
 **Functions:**
@@ -2223,13 +2400,28 @@ Args:
 - [MISSING] `_bind_show_more_callback(button, payload, discord_bot)` - No description
 - [MISSING] `_format_task_detail(user_id, task_id)` - No description
 - [MISSING] `_run_handler_intent(user_id, intent, entities, original_message)` - No description
+- [MISSING] `_start_flow(self, interaction, flow_kind)` - No description
 - [OK] `_task_flow_response(user_id, task_id, flow_kind)` - Start a task follow-up flow and return the first prompt.
+- [MISSING] `callback(self, interaction)` - No description
+- [MISSING] `callback(interaction)` - No description
+- [MISSING] `complete_button(self, interaction, button)` - No description
+- [MISSING] `due_date_button(self, interaction, button)` - No description
 - [OK] `get_task_list_view(user_id, task_items, pagination_actions, discord_bot, list_offset)` - Task picker select plus optional Show More button.
+- [MISSING] `more_button(self, interaction, button)` - No description
+- [MISSING] `priority_button(self, interaction, button)` - No description
+- [MISSING] `reminders_button(self, interaction, button)` - No description
 **Classes:**
 - [OK] `TaskDetailView` - Ephemeral actions for one task.
   - [OK] `TaskDetailView.__init__(self, user_id, task_id, discord_bot)` - Special Python method
+  - [MISSING] `TaskDetailView._start_flow(self, interaction, flow_kind)` - No description
+  - [MISSING] `TaskDetailView.complete_button(self, interaction, button)` - No description
+  - [MISSING] `TaskDetailView.due_date_button(self, interaction, button)` - No description
+  - [MISSING] `TaskDetailView.more_button(self, interaction, button)` - No description
+  - [MISSING] `TaskDetailView.priority_button(self, interaction, button)` - No description
+  - [MISSING] `TaskDetailView.reminders_button(self, interaction, button)` - No description
 - [OK] `TaskListSelect` - Dropdown to pick a task from the current list page.
   - [OK] `TaskListSelect.__init__(self, user_id, task_items, discord_bot, list_offset)` - Special Python method
+  - [MISSING] `TaskListSelect.callback(self, interaction)` - No description
 
 #### `communication/communication_channels/discord/ui/task_reminder_view.py`
 **Functions:**
@@ -2243,6 +2435,11 @@ Args:
 - [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
 - [OK] `__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
 - [OK] `__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
+- [OK] `_run_snooze_command(self, interaction, command)` - Defer and run a channel-agnostic snooze command.
+- [OK] `add_all(self, interaction, button)` - Save every suggested step.
+- [OK] `add_steps(self, interaction, titles)` - Save the chosen steps under the original task.
+- [OK] `callback(self, interaction)` - Save the steps the user left selected.
+- [OK] `complete_task_button(self, interaction, button)` - Handle Complete Task button click
 - [OK] `get_task_reminder_view(user_id, task_id, task_title)` - Create a Discord View with buttons for task reminder actions.
 
 Args:
@@ -2254,9 +2451,20 @@ Returns:
     discord.ui.View with buttons for task reminder actions
 - [OK] `get_task_simplify_view(user_id, task_id, task_title, steps)` - Create buttons that save suggested steps under the original task.
 - [OK] `get_task_snooze_choice_view(user_id, task_id, task_title)` - Create buttons for 1 hour, tonight/tomorrow morning, next week, and custom snooze.
+- [OK] `more_button(self, interaction, button)` - Handle More button click - show additional information
+- [OK] `on_submit(self, interaction)` - Snooze the reminder until the typed time.
+- [OK] `remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
+- [OK] `simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
+- [OK] `skip_button(self, interaction, button)` - Skip this occurrence through the shared task command path.
+- [OK] `snooze_custom(self, interaction, button)` - Open a modal so the user can type a custom snooze time.
+- [OK] `snooze_next_week(self, interaction, button)` - Snooze the reminder until next week.
+- [OK] `snooze_one_hour(self, interaction, button)` - Snooze the reminder for one hour.
+- [OK] `snooze_tonight(self, interaction, button)` - Snooze until tonight, or tomorrow morning when it is already evening.
 **Classes:**
 - [MISSING] `TaskBreakdownView` - No description
   - [OK] `TaskBreakdownView.__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
+  - [OK] `TaskBreakdownView.add_all(self, interaction, button)` - Save every suggested step.
+  - [OK] `TaskBreakdownView.add_steps(self, interaction, titles)` - Save the chosen steps under the original task.
 - [MISSING] `TaskReminderView` - No description
   - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
@@ -2264,17 +2472,30 @@ Args:
     user_id: The user's internal user ID
     task_id: The task ID to display in the reminder
     task_title: The title of the task to display
+  - [OK] `TaskReminderView.complete_task_button(self, interaction, button)` - Handle Complete Task button click
+  - [OK] `TaskReminderView.more_button(self, interaction, button)` - Handle More button click - show additional information
+  - [OK] `TaskReminderView.remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
+  - [OK] `TaskReminderView.simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
+  - [OK] `TaskReminderView.skip_button(self, interaction, button)` - Skip this occurrence through the shared task command path.
 - [MISSING] `TaskSnoozeChoiceView` - No description
   - [OK] `TaskSnoozeChoiceView.__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
+  - [OK] `TaskSnoozeChoiceView._run_snooze_command(self, interaction, command)` - Defer and run a channel-agnostic snooze command.
+  - [OK] `TaskSnoozeChoiceView.snooze_custom(self, interaction, button)` - Open a modal so the user can type a custom snooze time.
+  - [OK] `TaskSnoozeChoiceView.snooze_next_week(self, interaction, button)` - Snooze the reminder until next week.
+  - [OK] `TaskSnoozeChoiceView.snooze_one_hour(self, interaction, button)` - Snooze the reminder for one hour.
+  - [OK] `TaskSnoozeChoiceView.snooze_tonight(self, interaction, button)` - Snooze until tonight, or tomorrow morning when it is already evening.
 - [MISSING] `_StepSelect` - No description
   - [OK] `_StepSelect.__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
+  - [OK] `_StepSelect.callback(self, interaction)` - Save the steps the user left selected.
 - [OK] `_TaskSnoozeCustomModal` - Collect a custom snooze time without changing the task due date.
   - [OK] `_TaskSnoozeCustomModal.__init__(self, user_id, task_id, task_title)` - Store the task this custom snooze applies to.
+  - [OK] `_TaskSnoozeCustomModal.on_submit(self, interaction)` - Snooze the reminder until the typed time.
 
 #### `communication/communication_channels/discord/webhooks/__init__.py`
 
 #### `communication/communication_channels/discord/webhooks/handler.py`
 **Functions:**
+- [MISSING] `_send_welcome_dm()` - No description
 - [OK] `handle_application_authorized(event_data, bot_instance)` - Handle APPLICATION_AUTHORIZED webhook event.
 
 This is triggered when a user authorizes the app.
@@ -2375,10 +2596,16 @@ Args:
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
+- [OK] `health_check(self)` - Perform health check on email connections
+- [OK] `initialize(self)` - Initialize the email bot
 - [OK] `initialize__test_imap_connection(self)` - Test IMAP connection synchronously
 - [OK] `initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
+- [OK] `mark_message_seen(self, imap_email_id)` - Mark one inbox message read after it has been handled.
+- [OK] `receive_messages(self)` - Receive messages from email
 - [OK] `reply_kind_from_send_kwargs(kwargs)` - Choose check-in, task reminder, or general message from send options.
+- [OK] `send_message(self, recipient, message)` - Send message via email
 - [OK] `send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
+- [OK] `shutdown(self)` - Shutdown the email bot
 **Classes:**
 - [MISSING] `EmailBot` - No description
   - [OK] `EmailBot.__init__(self, config)` - Initialize the EmailBot with configuration.
@@ -2395,9 +2622,15 @@ Args:
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
+  - [OK] `EmailBot.health_check(self)` - Perform health check on email connections
+  - [OK] `EmailBot.initialize(self)` - Initialize the email bot
   - [OK] `EmailBot.initialize__test_imap_connection(self)` - Test IMAP connection synchronously
   - [OK] `EmailBot.initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
+  - [OK] `EmailBot.mark_message_seen(self, imap_email_id)` - Mark one inbox message read after it has been handled.
+  - [OK] `EmailBot.receive_messages(self)` - Receive messages from email
+  - [OK] `EmailBot.send_message(self, recipient, message)` - Send message via email
   - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
+  - [OK] `EmailBot.shutdown(self)` - Shutdown the email bot
 - [OK] `EmailBotError` - Custom exception for email bot-related errors.
 
 #### `communication/communication_channels/email/inbound_processor.py`
@@ -2460,10 +2693,20 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Functions:**
 - [OK] `__init__(self, config)` - Special Python method
 - [MISSING] `channel_type(self)` - No description
+- [MISSING] `health_check(self)` - No description
+- [MISSING] `initialize(self)` - No description
+- [MISSING] `receive_messages(self)` - No description
+- [MISSING] `send_message(self, recipient, message)` - No description
+- [MISSING] `shutdown(self)` - No description
 **Classes:**
 - [OK] `WebsiteBot` - Always-on channel that keeps a copy of outbound messages for the website.
   - [OK] `WebsiteBot.__init__(self, config)` - Special Python method
   - [MISSING] `WebsiteBot.channel_type(self)` - No description
+  - [MISSING] `WebsiteBot.health_check(self)` - No description
+  - [MISSING] `WebsiteBot.initialize(self)` - No description
+  - [MISSING] `WebsiteBot.receive_messages(self)` - No description
+  - [MISSING] `WebsiteBot.send_message(self, recipient, message)` - No description
+  - [MISSING] `WebsiteBot.shutdown(self)` - No description
 
 #### `communication/communication_channels/website/inbox.py`
 **Functions:**
@@ -2534,24 +2777,30 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
 - [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
+- [OK] `_initialize_channel_with_retry(self, channel, config)` - Initialize a channel with retry logic
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
 - [OK] `_register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+- [OK] `_shutdown_all_async(self)` - Async method to shutdown all channels
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.
+- [OK] `_start_all_async(self)` - Async method to start all configured channels
 - [OK] `_start_sync(self)` - Synchronous method to start all configured channels
 - [OK] `_stop_loop_and_thread(loop, thread)` - Stop one managed asyncio loop and join its thread.
 - [OK] `_stop_managed_event_loop(self)` - Stop this instance's background event loop thread if it is running.
 - [OK] `_unregister_managed_loop(cls, loop)` - Remove a managed loop from the process-wide registry.
+- [OK] `broadcast_message(self, recipients, message)` - Send message to multiple channels
 - [OK] `get_active_channels(self)` - Get active channels with validation.
 
 Returns:
     List[str]: List of active channels, empty list if failed
+- [OK] `get_all_statuses(self)` - Get status of all channels
 - [OK] `get_channel_connectivity_status(self, channel_name)` - Get detailed connectivity status for a channel if it exposes one.
+- [OK] `get_channel_status(self, channel_name)` - Get status of a specific channel
 - [OK] `get_configured_channels(self)` - Get configured channels with validation.
 
 Returns:
@@ -2577,12 +2826,16 @@ value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
     MessageSendResult: Standard send outcome for reminder dispatch.
+- [OK] `health_check_all(self)` - Perform health check on all channels
 - [OK] `initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration with validation.
 
 Returns:
     bool: True if successful, False if failed
+- [OK] `initialize_channels_from_config__initialize_channels_async(self)` - Async method to initialize all configured channels
+- [OK] `receive_messages(self)` - Receive messages from all communication channels
 - [OK] `run_event_loop()` - Run the managed event loop forever on a dedicated thread.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
+- [OK] `send_message(self, channel_name, recipient, message)` - Send message via specified channel using unified interface
 - [OK] `send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
 - [OK] `send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
 - [OK] `send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
@@ -2620,24 +2873,30 @@ or overlapping run_until_complete calls.
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
+  - [OK] `CommunicationManager._initialize_channel_with_retry(self, channel, config)` - Initialize a channel with retry logic
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
   - [OK] `CommunicationManager._register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+  - [OK] `CommunicationManager._shutdown_all_async(self)` - Async method to shutdown all channels
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.
+  - [OK] `CommunicationManager._start_all_async(self)` - Async method to start all configured channels
   - [OK] `CommunicationManager._start_sync(self)` - Synchronous method to start all configured channels
   - [OK] `CommunicationManager._stop_loop_and_thread(loop, thread)` - Stop one managed asyncio loop and join its thread.
   - [OK] `CommunicationManager._stop_managed_event_loop(self)` - Stop this instance's background event loop thread if it is running.
   - [OK] `CommunicationManager._unregister_managed_loop(cls, loop)` - Remove a managed loop from the process-wide registry.
+  - [OK] `CommunicationManager.broadcast_message(self, recipients, message)` - Send message to multiple channels
   - [OK] `CommunicationManager.get_active_channels(self)` - Get active channels with validation.
 
 Returns:
     List[str]: List of active channels, empty list if failed
+  - [OK] `CommunicationManager.get_all_statuses(self)` - Get status of all channels
   - [OK] `CommunicationManager.get_channel_connectivity_status(self, channel_name)` - Get detailed connectivity status for a channel if it exposes one.
+  - [OK] `CommunicationManager.get_channel_status(self, channel_name)` - Get status of a specific channel
   - [OK] `CommunicationManager.get_configured_channels(self)` - Get configured channels with validation.
 
 Returns:
@@ -2663,11 +2922,15 @@ value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
     MessageSendResult: Standard send outcome for reminder dispatch.
+  - [OK] `CommunicationManager.health_check_all(self)` - Perform health check on all channels
   - [OK] `CommunicationManager.initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration with validation.
 
 Returns:
     bool: True if successful, False if failed
+  - [OK] `CommunicationManager.initialize_channels_from_config__initialize_channels_async(self)` - Async method to initialize all configured channels
+  - [OK] `CommunicationManager.receive_messages(self)` - Receive messages from all communication channels
   - [OK] `CommunicationManager.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
+  - [OK] `CommunicationManager.send_message(self, channel_name, recipient, message)` - Send message via specified channel using unified interface
   - [OK] `CommunicationManager.send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
   - [OK] `CommunicationManager.send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
   - [OK] `CommunicationManager.send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using the managed background loop.
@@ -3146,7 +3409,7 @@ Returns:
 
 #### `communication/message_processing/flows/flow_command_helpers.py`
 **Functions:**
-- [MISSING] `_checker(message_lower)` - No description
+- [OK] `_checker(message_lower)` - Return whether this message is unrelated to the current flow step.
 - [OK] `_entity_prefix_patterns(entity)` - Regex patterns for slash/bang and natural entity prefixes.
 - [OK] `_expand_keyword_variants(base_words)` - Expand each base word into all prefix variants for flow keyword lists.
 - [OK] `_natural_language_create_pattern(entities)` - Regex for natural-language commands that mention one of *entities*.
@@ -3715,6 +3978,7 @@ Args:
 
 Shared by file-not-found and JSON-decode recovery so defaults stay aligned.
 - [OK] `_show_user_error(self, error, context, custom_message)` - Show user-friendly error message.
+- [MISSING] `async_wrapper()` - No description
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 
@@ -3744,7 +4008,7 @@ Args:
 
 Returns:
     True if this strategy can handle configuration-related errors
-- [MISSING] `decorator(func)` - No description
+- [OK] `decorator(func)` - Wrap func so errors are handled, using an async wrapper for coroutines.
 - [OK] `handle_ai_error(error, operation, user_id)` - Convenience function for handling AI-related errors.
 - [OK] `handle_communication_error(error, channel, operation, user_id)` - Convenience function for handling communication errors.
 - [OK] `handle_configuration_error(error, setting, operation)` - Convenience function for handling configuration errors.
@@ -4609,8 +4873,8 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [OK] `_normalize_oauth_identities(cls, value)` - Persist only supported provider subjects, never OAuth access tokens.
 - [OK] `_normalize_password_hash(cls, value)` - Keep only bounded MHM password-hash strings; plaintext is never valid.
 - [OK] `_normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
-- [MISSING] `_require_updated_at(cls, value)` - No description
-- [MISSING] `_require_updated_at(cls, value)` - No description
+- [OK] `_require_updated_at(cls, value)` - Require updated_at on an account envelope to be a full timestamp.
+- [OK] `_require_updated_at(cls, value)` - Require updated_at on a context envelope to be a full timestamp.
 - [OK] `_valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
 - [OK] `_valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
 - [MISSING] `_validate_categories(cls, value)` - No description
@@ -4639,7 +4903,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
   - [OK] `AccountV2EnvelopeModel._normalize_oauth_identities(cls, value)` - Persist only supported provider subjects, never OAuth access tokens.
   - [OK] `AccountV2EnvelopeModel._normalize_password_hash(cls, value)` - Keep only bounded MHM password-hash strings; plaintext is never valid.
   - [OK] `AccountV2EnvelopeModel._normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
-  - [MISSING] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - No description
+  - [OK] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - Require updated_at on an account envelope to be a full timestamp.
   - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
 - [MISSING] `CategoryScheduleV2Model` - No description
 - [MISSING] `ChannelV2Model` - No description
@@ -4649,7 +4913,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [MISSING] `ChatInteractionsV2EnvelopeModel` - No description
   - [MISSING] `ChatInteractionsV2EnvelopeModel._validate_updated_at(cls, value)` - No description
 - [MISSING] `ContextV2EnvelopeModel` - No description
-  - [MISSING] `ContextV2EnvelopeModel._require_updated_at(cls, value)` - No description
+  - [OK] `ContextV2EnvelopeModel._require_updated_at(cls, value)` - Require updated_at on a context envelope to be a full timestamp.
   - [MISSING] `ContextV2EnvelopeModel._validate_dob(cls, value)` - No description
   - [MISSING] `ContextV2EnvelopeModel._validate_optional_timestamps(cls, value)` - No description
 - [MISSING] `CustomFieldsV2Model` - No description
@@ -5175,8 +5439,11 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_account_service.py`
 **Functions:**
+- [OK] `__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity)` - Remember the account store and in-memory session state for this process.
 - [OK] `_account_features(account)` - Return the feature-flag map from an account envelope or nested document.
 - [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
+- [OK] `_fetch_discord_identity(code)` - Exchange a Discord OAuth code and return the verified user identity.
+- [OK] `_fetch_oauth_identity(provider, code)` - Exchange an authorization code and read a verified provider identity.
 - [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
@@ -5185,11 +5452,22 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
 - [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
 - [OK] `_valid_account_email(email)` - Return whether an address can be stored as an MHM account email.
+- [OK] `account(self, request)` - Return the signed-in account summary used by website pages.
+- [OK] `account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
+- [OK] `account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
+- [OK] `account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
 - [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
+- [OK] `asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
+- [OK] `authenticated_account(self, request)` - Resolve an active account from the request session cookie.
+- [OK] `body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
 - [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
+- [OK] `chat_api(self, request)` - Send one signed-in message through the website conversation channel.
+- [OK] `chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
+- [OK] `chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
+- [OK] `checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
 - [OK] `clean(data)` - Validate an editable message template payload.
 - [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
@@ -5198,36 +5476,59 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `clear_open_checkin()` - Drop an in-progress check-in so the next login starts fresh.
 - [OK] `create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
-- [OK] `discord_available()` - Return whether the Discord OAuth credentials are configured.
-- [OK] `discord_redirect_uri()` - Return the configured Discord callback URI or the website default.
+- [OK] `discord_available(self)` - Return whether the Discord OAuth credentials are configured.
+- [OK] `discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.
+- [OK] `discord_redirect_uri(self)` - Return the configured Discord callback URI or the website default.
+- [OK] `discord_start(self, request)` - Create a short-lived Discord OAuth state and authorization URL.
 - [OK] `documents(self, uid)` - Load the account documents exposed through self-service settings.
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
 - [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
 - [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
+- [OK] `font_asset(self, request)` - Serve one self-hosted typeface file.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
+- [OK] `guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
+- [OK] `health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
+- [OK] `insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
+- [OK] `logout(self, request)` - Revoke the current session cookie and clear it from the browser.
 - [OK] `mark_setup_complete(self, uid)` - Remember that this account has finished website first-run setup.
-- [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
-- [OK] `oauth_provider_config(provider)` - Return provider credentials and callback settings from configuration.
-- [OK] `prune()` - Remove expired challenges, sessions, rate limits, and OAuth states.
+- [OK] `messages_api(self, request)` - Manage the signed-in user's reusable message templates.
+- [OK] `note_view(self, entry)` - Return the stable, browser-safe representation of a notebook entry.
+- [OK] `notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
+- [OK] `oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
+- [OK] `oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
+- [OK] `oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
+- [OK] `oauth_start(self, request)` - Create one-time state and return a provider authorization URL.
+- [OK] `password_login(self, request)` - Authenticate an active account with its saved password.
+- [OK] `password_setup(self, request)` - Set or replace the password for the signed-in account.
+- [OK] `prune(self)` - Remove expired challenges, sessions, rate limits, and OAuth states.
 - [OK] `remove_secrets(value)` - Remove authentication secrets from an otherwise complete export.
+- [OK] `request_action(self, request)` - Queue an authenticated one-off delivery request for the MHM service.
+- [OK] `request_code(self, request)` - Validate a login or signup request and send an eligible email code.
 - [OK] `save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
 - [OK] `send_code(email, code)` - Use MHM's configured SMTP account, with TLS and no code logging.
 - [OK] `set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
+- [OK] `settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
 - [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
+- [OK] `setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
 - [OK] `snapshot()` - Return the browser-safe Google Health state.
-- [OK] `start_session(uid, email, response)` - Attach a new opaque browser session to a response.
-- [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
-- [OK] `throttle(key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
+- [OK] `start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
+- [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+- [OK] `task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+- [OK] `task_view(self, task)` - Return the stable, browser-safe task shape used by the website.
+- [OK] `tasks_api(self, request)` - Handle authenticated website task routes through the task service.
+- [OK] `tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
+- [OK] `throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
 - [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
-- [OK] `valid_password(value)` - Accept long passphrases without brittle composition requirements.
+- [OK] `valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
+- [OK] `verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
 - [OK] `view(message)` - Return one browser-safe message template.
 - [OK] `view(message)` - Return the browser check-in state.
-- [OK] `website_redirect(path)` - Build a same-origin website redirect with encoded query parameters.
+- [OK] `website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description
 - [OK] `MHMAccounts` - Use product persistence; never maintain a separate website account database.
@@ -5247,6 +5548,56 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
   - [OK] `MHMAccounts.unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
+- [OK] `WebGateway` - Website routes for one gateway process.
+
+Session, challenge, and rate-limit state live here and are discarded when
+the process stops. ``create_web_app`` builds this object and registers
+its methods as routes.
+  - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity)` - Remember the account store and in-memory session state for this process.
+  - [OK] `WebGateway.account(self, request)` - Return the signed-in account summary used by website pages.
+  - [OK] `WebGateway.account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
+  - [OK] `WebGateway.account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
+  - [OK] `WebGateway.account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
+  - [OK] `WebGateway.asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
+  - [OK] `WebGateway.authenticated_account(self, request)` - Resolve an active account from the request session cookie.
+  - [OK] `WebGateway.body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
+  - [OK] `WebGateway.chat_api(self, request)` - Send one signed-in message through the website conversation channel.
+  - [OK] `WebGateway.chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
+  - [OK] `WebGateway.chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
+  - [OK] `WebGateway.checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
+  - [OK] `WebGateway.discord_available(self)` - Return whether the Discord OAuth credentials are configured.
+  - [OK] `WebGateway.discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.
+  - [OK] `WebGateway.discord_redirect_uri(self)` - Return the configured Discord callback URI or the website default.
+  - [OK] `WebGateway.discord_start(self, request)` - Create a short-lived Discord OAuth state and authorization URL.
+  - [OK] `WebGateway.font_asset(self, request)` - Serve one self-hosted typeface file.
+  - [OK] `WebGateway.guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
+  - [OK] `WebGateway.health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
+  - [OK] `WebGateway.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
+  - [OK] `WebGateway.logout(self, request)` - Revoke the current session cookie and clear it from the browser.
+  - [OK] `WebGateway.messages_api(self, request)` - Manage the signed-in user's reusable message templates.
+  - [OK] `WebGateway.note_view(self, entry)` - Return the stable, browser-safe representation of a notebook entry.
+  - [OK] `WebGateway.notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
+  - [OK] `WebGateway.oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
+  - [OK] `WebGateway.oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
+  - [OK] `WebGateway.oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
+  - [OK] `WebGateway.oauth_start(self, request)` - Create one-time state and return a provider authorization URL.
+  - [OK] `WebGateway.password_login(self, request)` - Authenticate an active account with its saved password.
+  - [OK] `WebGateway.password_setup(self, request)` - Set or replace the password for the signed-in account.
+  - [OK] `WebGateway.prune(self)` - Remove expired challenges, sessions, rate limits, and OAuth states.
+  - [OK] `WebGateway.request_action(self, request)` - Queue an authenticated one-off delivery request for the MHM service.
+  - [OK] `WebGateway.request_code(self, request)` - Validate a login or signup request and send an eligible email code.
+  - [OK] `WebGateway.settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
+  - [OK] `WebGateway.setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
+  - [OK] `WebGateway.start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
+  - [OK] `WebGateway.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+  - [OK] `WebGateway.task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+  - [OK] `WebGateway.task_view(self, task)` - Return the stable, browser-safe task shape used by the website.
+  - [OK] `WebGateway.tasks_api(self, request)` - Handle authenticated website task routes through the task service.
+  - [OK] `WebGateway.tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
+  - [OK] `WebGateway.throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
+  - [OK] `WebGateway.valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
+  - [OK] `WebGateway.verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
+  - [OK] `WebGateway.website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
 
 #### `core/web_chat.py`
 **Functions:**
@@ -5257,12 +5608,14 @@ Returns None if path resolution fails (caller treats as no users dir).
 **Functions:**
 - [OK] `__init__(self)` - Configure a gateway runtime without starting its background thread.
 - [OK] `_run(self)` - Run the async gateway and report startup failures to ``start``.
+- [OK] `_serve(self)` - Bind aiohttp, signal readiness, and serve until shutdown is requested.
 - [OK] `start(self)` - Report bind failures without disrupting other MHM services or servers.
 - [OK] `stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
 **Classes:**
 - [OK] `WebGatewayRuntime` - Own the local web gateway loop and its background thread lifecycle.
   - [OK] `WebGatewayRuntime.__init__(self)` - Configure a gateway runtime without starting its background thread.
   - [OK] `WebGatewayRuntime._run(self)` - Run the async gateway and report startup failures to ``start``.
+  - [OK] `WebGatewayRuntime._serve(self)` - Bind aiohttp, signal readiness, and serve until shutdown is requested.
   - [OK] `WebGatewayRuntime.start(self)` - Report bind failures without disrupting other MHM services or servers.
   - [OK] `WebGatewayRuntime.stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
 
@@ -7069,7 +7422,7 @@ Args:
 - [MISSING] `guard(rw)` - No description
 - [OK] `handle_save(self)` - Handle save button click - prevents dialog closure on validation errors.
 - [OK] `load_existing_data(self)` - Load existing schedule data using the new reusable function.
-- [MISSING] `number_from_widget(w)` - No description
+- [OK] `number_from_widget(w)` - Return the message period number encoded in this widget's name.
 - [OK] `open_schedule_editor(parent, user_id, category, on_save)` - Open the schedule editor dialog.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `resort_period_widgets(self)` - Re-sort the period widgets to maintain proper order (ALL at bottom).
@@ -7761,7 +8114,7 @@ new children on an orphaned layout and the visible widget blank.
 - [OK] `get_default_question_state(self, question_key)` - Get default enabled state for a question.
 - [OK] `guard(_row_widget)` - Return True to abort removal (e.g. when only one period remains).
 - [OK] `load_existing_data(self)` - Load existing check-in data.
-- [MISSING] `number_from_widget(w)` - No description
+- [OK] `number_from_widget(w)` - Return the check-in reminder number encoded in this widget's period name.
 - [OK] `on_question_toggled(self, checked)` - Handle question checkbox toggle.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `set_checkin_settings(self, settings)` - Set the check-in settings.
@@ -8027,7 +8380,7 @@ Args:
 - [OK] `get_task_settings(self)` - Get the current task settings.
 - [MISSING] `load_existing_data(self)` - No description
 - [OK] `load_recurring_task_settings(self)` - Load recurring task settings from user preferences.
-- [MISSING] `number_from_widget(w)` - No description
+- [OK] `number_from_widget(w)` - Return the task reminder number encoded in this widget's period name.
 - [OK] `refresh_tags(self)` - Refresh the tags in the tag widget.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `save_recurring_task_settings(self)` - Save recurring task settings to user preferences.

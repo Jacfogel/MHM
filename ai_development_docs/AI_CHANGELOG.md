@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Function scan sees async routes **COMPLETED**
+- Complexity and registry scans now include `async def`, score each function without its nested helpers, and match handler keywords on whole name parts.
+- Website routes are methods on `WebGateway`. `create_web_app` only builds the app and registers them.
+- The next `audit` refreshes `AI_PRIORITIES.md`. `tasks_api` is now visible to that ranking.
+- Six nested helpers now have docstrings. The website mailer is typed so Pyright accepts `asyncio.to_thread`. Task and note route descriptions no longer use the word facade, so they are not compatibility shims.
+- `handle_errors` now documents the inner `decorator` that wraps both sync functions and coroutines.
+
 ### 2026-09-28 - Small counts, lighter sleep, and low-energy focus **COMPLETED**
 - A positive count that would round to zero is written as "under 100 steps", "under 5 active minutes", or "under 30 minutes of sleep". A real zero stays zero.
 - "Shorter sleep" is a run of short nights. Restless nights of ordinary length say "lighter sleep" and leave the hours out.
@@ -110,10 +117,6 @@ Guidelines:
 - Apple website sign-in, its settings, and its callback are removed. Google and Facebook remain.
 - First-run setup requires one of messages, tasks, or check-ins, and it no longer force-enables task reminders. Each feature left on gets its own category, question, or task step, plus a reminder-window step.
 - Setup can connect Discord and return to setup. Skipping it keeps email delivery and leaves Discord-only buttons and message reactions unavailable. Custom check-in questions and personalized message categories are added later in Account.
-
-### 2026-09-22 - Website privacy, terms, and data pages **COMPLETED**
-- Public privacy, terms, and data pages now explain what MHM stores, that it is not medical care, and how to download or request deletion.
-- Home, login, and the account card link to them. The gateway and Worker allowlists serve the new files.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

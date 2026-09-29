@@ -193,6 +193,36 @@ def func2():
         assert len(errors) == 0
         assert functions[0].name == "func1"
         assert functions[1].name == "func2"
+
+    @pytest.mark.unit
+    def test_extract_async_functions_and_methods(self, tmp_path):
+        """Async functions and methods are part of the registry inventory."""
+        test_file = tmp_path / "test_module.py"
+        test_file.write_text(
+            """
+async def load_inbox():
+    return None
+
+class Gateway:
+    async def tasks_api(self):
+        def helper():
+            value = 1
+            other = 2
+            extra = 3
+            return value + other + extra
+        return helper()
+"""
+        )
+
+        errors = []
+        functions, classes = extract_functions_and_classes(test_file, errors)
+
+        by_name = {func.name: func for func in functions}
+        assert "load_inbox" in by_name
+        assert "tasks_api" in by_name
+        assert by_name["load_inbox"].is_handler is True
+        assert by_name["tasks_api"].complexity < by_name["helper"].complexity
+        assert classes[0].methods == ("tasks_api",)
     
     @pytest.mark.unit
     def test_extract_classes_basic(self, tmp_path):

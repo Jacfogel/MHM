@@ -25,7 +25,12 @@ try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
     from ..shared.standard_exclusions import should_exclude_file
-    from ..shared.exclusion_utilities import is_constructor_name
+    from ..shared.exclusion_utilities import (
+        FUNCTION_DEF_TYPES,
+        function_node_complexity,
+        is_constructor_name,
+        name_matches_keywords,
+    )
 except ImportError:
     import sys
     from pathlib import Path
@@ -42,7 +47,12 @@ except ImportError:
         run_cli,
     )
     from development_tools.shared.standard_exclusions import should_exclude_file
-    from development_tools.shared.exclusion_utilities import is_constructor_name
+    from development_tools.shared.exclusion_utilities import (
+        FUNCTION_DEF_TYPES,
+        function_node_complexity,
+        is_constructor_name,
+        name_matches_keywords,
+    )
 
 # Import component logger
 from development_tools.shared.logging import get_dev_tools_logger
@@ -125,7 +135,7 @@ def decorator_names(node: ast.AST) -> tuple[str, ...]:
     return tuple(names)
 
 
-def function_arguments(node: ast.FunctionDef) -> tuple[str, ...]:
+def function_arguments(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[str, ...]:
     parts: list[str] = []
     for arg in getattr(node.args, "posonlyargs", []):
         parts.append(arg.arg)
@@ -141,7 +151,8 @@ def function_arguments(node: ast.FunctionDef) -> tuple[str, ...]:
 
 
 def node_complexity(node: ast.AST) -> int:
-    return sum(1 for _ in ast.walk(node))
+    """Score one function without counting nested function bodies again."""
+    return function_node_complexity(node)
 
 
 def extract_functions_and_classes(
@@ -168,7 +179,7 @@ def extract_functions_and_classes(
     classes: list[ClassRecord] = []
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
+        if isinstance(node, FUNCTION_DEF_TYPES):
             name = node.name
             docstring = ast.get_docstring(node, clean=False) or ""
             functions.append(
@@ -180,9 +191,7 @@ def extract_functions_and_classes(
                     docstring=docstring,
                     is_test=name.startswith("test_") or "test" in name.lower(),
                     is_main=name in {"main", "__main__"},
-                    is_handler=any(
-                        keyword in name.lower() for keyword in HANDLER_KEYWORDS
-                    ),
+                    is_handler=name_matches_keywords(name, HANDLER_KEYWORDS),
                     has_docstring=bool(docstring.strip()),
                     complexity=node_complexity(node),
                 )
@@ -190,7 +199,9 @@ def extract_functions_and_classes(
         elif isinstance(node, ast.ClassDef):
             docstring = ast.get_docstring(node, clean=False) or ""
             method_names = tuple(
-                child.name for child in node.body if isinstance(child, ast.FunctionDef)
+                child.name
+                for child in node.body
+                if isinstance(child, FUNCTION_DEF_TYPES)
             )
             classes.append(
                 ClassRecord(

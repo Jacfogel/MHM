@@ -293,6 +293,7 @@ def build_unrelated_checker(
 
     # error_handling_exclude: nested closure; caller uses decorated flow handlers
     def _checker(message_lower: str) -> bool:
+        """Return whether this message is unrelated to the current flow step."""
         return is_unrelated_flow_message(
             message_lower,
             current_focus=current_focus,

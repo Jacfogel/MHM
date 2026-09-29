@@ -220,6 +220,7 @@ class ScheduleEditorDialog(QDialog):
 
         # duplicate_functions_exclude: thin wrapper; delegates to shared helper
         def number_from_widget(w):
+            """Return the message period number encoded in this widget's name."""
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_name()
             return _number_from_regex(name, r"Message\s+(\d+)$")

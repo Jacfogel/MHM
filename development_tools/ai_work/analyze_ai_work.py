@@ -233,7 +233,7 @@ def validate_code_consistency(changed_files: list[str]) -> dict:
 
             # Extract function signatures
             for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     args = [arg.arg for arg in node.args.args]
                     results["function_signatures"].append(
                         {"file": file_path, "name": node.name, "args": args}

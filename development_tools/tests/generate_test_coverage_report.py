@@ -345,7 +345,7 @@ class TestCoverageReportGenerator:
                 continue
 
             for node in tree.body:
-                if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_"):
                     total_test_nodes += 1
                     markers = {
                         self._extract_marker_name(dec)
@@ -361,7 +361,7 @@ class TestCoverageReportGenerator:
                     }
                     class_markers = {m for m in class_markers if m}
                     for member in node.body:
-                        if isinstance(member, ast.FunctionDef) and member.name.startswith(
+                        if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)) and member.name.startswith(
                             "test_"
                         ):
                             total_test_nodes += 1

@@ -372,3 +372,34 @@ def is_test_function(func_name: str, file_path: str | None = None) -> bool:
             return True
 
     return False
+
+
+FUNCTION_DEF_TYPES = (ast.FunctionDef, ast.AsyncFunctionDef)
+
+
+@handle_errors("scoring function AST complexity", default_return=0)
+def function_node_complexity(node: ast.AST) -> int:
+    """Count AST nodes in one function, excluding nested function bodies.
+
+    Nested functions are scored on their own. Counting them again inside the
+    parent makes a factory look larger than every function it contains.
+    """
+    nested: set[int] = set()
+    for child in ast.walk(node):
+        if child is node:
+            continue
+        if isinstance(child, FUNCTION_DEF_TYPES):
+            nested.update(id(item) for item in ast.walk(child))
+    return sum(1 for item in ast.walk(node) if id(item) not in nested)
+
+
+@handle_errors("matching a function name to keywords", default_return=False)
+def name_matches_keywords(name: str, keywords) -> bool:
+    """Match keywords against underscore-separated name parts.
+
+    ``set`` matches ``set_password`` and does not match ``settings`` or ``reset``.
+    """
+    if not name:
+        return False
+    parts = {part for part in name.lower().split("_") if part}
+    return any(str(keyword).lower() in parts for keyword in keywords)

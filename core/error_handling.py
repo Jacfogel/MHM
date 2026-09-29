@@ -578,6 +578,7 @@ def handle_errors(
     """
 
     def decorator(func: Callable) -> Callable:
+        """Wrap func so errors are handled, using an async wrapper for coroutines."""
         # Check if the function is async
         import asyncio
 

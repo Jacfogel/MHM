@@ -29,21 +29,27 @@ try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.standard_exclusions import should_exclude_file
     from ..shared.exclusion_utilities import (
+        FUNCTION_DEF_TYPES,
+        function_node_complexity,
         is_generated_file,
         is_generated_function,
         is_special_python_method,
         is_constructor_name,
         is_test_function,
+        name_matches_keywords,
     )
 except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.exclusion_utilities import (
+        FUNCTION_DEF_TYPES,
+        function_node_complexity,
         is_generated_file,
         is_generated_function,
         is_special_python_method,
         is_constructor_name,
         is_test_function,
+        name_matches_keywords,
     )
 
 # Ensure external config is loaded
@@ -265,7 +271,7 @@ def extract_functions(
     functions = []
     try:
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, FUNCTION_DEF_TYPES):
                 name = node.name
 
                 # Skip auto-generated code
@@ -302,8 +308,8 @@ def extract_functions(
                     )
                     for d in node.decorator_list
                 ]
-                complexity = len(list(ast.walk(node)))
-                is_handler = any(k in name.lower() for k in HANDLER_KEYWORDS)
+                complexity = function_node_complexity(node)
+                is_handler = name_matches_keywords(name, HANDLER_KEYWORDS)
                 is_test = is_test_function(name, file_path)
                 is_special = is_special_python_method(name, complexity)
 
@@ -348,7 +354,7 @@ def extract_functions_from_file(
 
     try:
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, FUNCTION_DEF_TYPES):
                 # Get function signature
                 args = []
                 for arg in node.args.args:
@@ -381,23 +387,11 @@ def extract_functions_from_file(
                 # Check if it's a main function
                 is_main = node.name == "main" or node.name == "__main__"
 
-                # Get function complexity (rough estimate)
-                complexity = len(list(ast.walk(node)))
+                # Score this function only. Nested functions are recorded separately.
+                complexity = function_node_complexity(node)
 
-                # Check if it's a handler/utility function
-                is_handler = any(
-                    keyword in node.name.lower()
-                    for keyword in [
-                        "handle",
-                        "process",
-                        "validate",
-                        "check",
-                        "get",
-                        "set",
-                        "save",
-                        "load",
-                    ]
-                )
+                # Match whole name parts so "set" does not flag "settings" or "reset".
+                is_handler = name_matches_keywords(node.name, HANDLER_KEYWORDS)
 
                 functions.append(
                     {
@@ -450,7 +444,7 @@ def extract_classes_from_file(
                 # Get class methods
                 methods = []
                 for child in node.body:
-                    if isinstance(child, ast.FunctionDef):
+                    if isinstance(child, FUNCTION_DEF_TYPES):
                         # Get method arguments
                         args = [arg.arg for arg in child.args.args]
 
@@ -747,8 +741,6 @@ def categorize_functions(functions: list[dict]) -> dict[str, list[dict]]:
     for func in functions:
         if func["is_test"]:
             categories["tests"].append(func)
-        elif func["is_handler"]:
-            categories["handlers"].append(func)
         elif is_constructor_name(func.get("name", "")):
             # Constructor AST size is sequential setup, not mixed-responsibility complexity.
             categories["special_methods"].append(func)
@@ -758,6 +750,9 @@ def categorize_functions(functions: list[dict]) -> dict[str, list[dict]]:
             categories["high_complex"].append(func)
         elif func["complexity"] >= MODERATE_COMPLEXITY:
             categories["moderate_complex"].append(func)
+        elif func["is_handler"]:
+            # Name tag only. Large handlers are already in a complexity bucket.
+            categories["handlers"].append(func)
         elif func["is_special"]:
             # Special methods go to their own category
             categories["special_methods"].append(func)

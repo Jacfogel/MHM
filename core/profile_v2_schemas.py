@@ -213,6 +213,7 @@ class AccountV2EnvelopeModel(BaseModel):
     @field_validator("updated_at")
     @classmethod
     def _require_updated_at(cls, value: str) -> str:
+        """Require updated_at on an account envelope to be a full timestamp."""
         return _validate_full_timestamp(value)
 
     @field_validator("email")
@@ -364,6 +365,7 @@ class ContextV2EnvelopeModel(BaseModel):
     @field_validator("updated_at")
     @classmethod
     def _require_updated_at(cls, value: str) -> str:
+        """Require updated_at on a context envelope to be a full timestamp."""
         return _validate_full_timestamp(value)
 
     @field_validator("date_of_birth")

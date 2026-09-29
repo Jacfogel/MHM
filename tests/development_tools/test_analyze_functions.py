@@ -404,6 +404,48 @@ def func2():
         assert len(functions) == 1, "Should extract function"
         assert functions[0]["is_handler"] is True, "Should detect handler function"
 
+    @pytest.mark.unit
+    def test_extract_async_function_and_whole_name_parts(self, temp_python_workspace):
+        """Async functions are visible, and keywords match name parts only."""
+        test_file = temp_python_workspace / "test.py"
+        test_file.write_text(
+            """async def create_web_app():
+    return None
+
+def settings():
+    return None
+
+def reset_session():
+    return None
+"""
+        )
+
+        functions = extract_functions(str(test_file))
+        by_name = {func["name"]: func for func in functions}
+        assert set(by_name) == {"create_web_app", "settings", "reset_session"}
+        assert by_name["create_web_app"]["is_handler"] is True
+        assert by_name["settings"]["is_handler"] is False
+        assert by_name["reset_session"]["is_handler"] is False
+
+    @pytest.mark.unit
+    def test_extract_complexity_skips_nested_function_bodies(self, temp_python_workspace):
+        """A parent function is not scored as the sum of its nested functions."""
+        test_file = temp_python_workspace / "test.py"
+        test_file.write_text(
+            """def outer():
+    def inner():
+        value = 1
+        other = 2
+        return value + other
+    return inner()
+"""
+        )
+
+        functions = extract_functions(str(test_file))
+        by_name = {func["name"]: func for func in functions}
+        assert set(by_name) == {"outer", "inner"}
+        assert by_name["outer"]["complexity"] < by_name["inner"]["complexity"]
+
 
 class TestExtractFunctionsFromFile:
     """Test function extraction for registry format."""
@@ -558,6 +600,24 @@ class TestCategorizeFunctions:
 
         categories = categorize_functions(functions)
         assert len(categories["handlers"]) == 1, "Should categorize handler functions"
+
+    @pytest.mark.unit
+    def test_categorize_large_handler_by_complexity(self):
+        """A handler name does not hide a function from the complexity ranking."""
+        functions = [
+            {
+                "name": "create_web_app",
+                "is_handler": True,
+                "is_test": False,
+                "complexity": 350,
+                "is_special": False,
+                "docstring": "Gateway",
+            },
+        ]
+
+        categories = categorize_functions(functions)
+        assert len(categories["critical_complex"]) == 1
+        assert categories["handlers"] == []
 
     @pytest.mark.unit
     def test_categorize_tests(self):

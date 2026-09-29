@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 22:59:28
+> **Last Generated**: 2026-09-28 23:50:22
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.6% [!] GOOD**
-- **Total Functions**: 2867
-- **Total Methods**: 1434
-- **Documented**: 3852/4301
+### **Documentation Coverage: 88.4% [!] GOOD**
+- **Total Functions**: 3034
+- **Total Methods**: 1571
+- **Documented**: 4070/4605
 - **Files Scanned**: 291
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chat/chatbot.py` - Main AI implementation (67 functions)
++-- `ai/chat/chatbot.py` - Main AI implementation (69 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (91 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -40,8 +40,8 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (76 functions)
-+-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (96 functions)
++-- `communication/communication_channels/base/base_channel.py` - Channel base class (24 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
 ### **[UI] Need UI/User Interface?**
@@ -51,7 +51,7 @@ UI Operations Decision Tree:
 +-- `ui/admin_actions.py` - Admin system/menu actions (27 functions)
 +-- `ui/request_actions.py` - Admin request-file actions (15/16 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (36 functions)
-`-- `ui/widgets/task_settings_widget.py` - Task settings (32/35 functions)```
+`-- `ui/widgets/task_settings_widget.py` - Task settings (33/35 functions)```
 
 ### **[CORE] Need Core System Operations?**
 ```
@@ -115,17 +115,17 @@ Core System Decision Tree:
 **Examples**:
 - `SafeFileContext` (core/error_handling.py)
 
-### **Decorator Pattern** (3 found)
+### **Decorator Pattern** (4 found)
 **Purpose**: Function/method decoration (error handling, logging)
-**Location**: `core/error_handling.py`, `core/file_auditor.py`
+**Location**: `communication/communication_channels/discord/events/lifecycle.py`, `core/error_handling.py`, `core/file_auditor.py`
 **Pattern**: 
 - `@handle_errors` - Error handling decorator
 - `@<name>` - Custom decorators
 - Applied to functions/methods
 
 **Examples**:
-- `handle_errors` (core/error_handling.py)
-- ... and 2 more
+- `handle_error` (communication/communication_channels/discord/events/lifecycle.py)
+- ... and 3 more
 
 
 
@@ -156,25 +156,23 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/profile_v2_schemas.py` - 24/54 functions undocumented (56% coverage)
-- `communication/communication_channels/discord/events/connection_health.py` - 22/22 functions undocumented (0% coverage)
+- `communication/communication_channels/discord/bot.py` - 42/44 functions undocumented (5% coverage)
+- `communication/communication_channels/discord/events/connection_health.py` - 26/26 functions undocumented (0% coverage)
 - `storage/user_data_operations.py` - 22/24 functions undocumented (8% coverage)
+- `core/profile_v2_schemas.py` - 20/54 functions undocumented (63% coverage)
 - `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/communication_channels/discord/ui/rich_delivery.py` - 16/20 functions undocumented (20% coverage)
+- `communication/communication_channels/discord/ui/task_list_ui.py` - 18/24 functions undocumented (25% coverage)
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
+- `communication/communication_channels/discord/ui/rich_delivery.py` - 16/28 functions undocumented (43% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
-- `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
-- `communication/message_processing/interaction_manager.py` - 14/30 functions undocumented (53% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `communication/communication_channels/discord/ui/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback/conversational.py` - 2/4 functions undocumented (50% coverage)
-- `communication/communication_channels/website/bot.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
@@ -187,17 +185,17 @@ Core System Decision Tree:
 2. **AI Response**: `ai/chat/chatbot.py::generate_response()`
 3. **Main Entry**: `run_headless_service.py::main()`
 4. **Command Parsing**: `communication/message_processing/action_request_adapter.py::convert_action_request_to_parsed_command()`
-5. **Error Handling**: `core/error_handling.py::handle_errors()`
+5. **Error Handling**: `communication/communication_channels/discord/events/lifecycle.py::handle_error()`
 6. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
 
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `core/web_account_service.py::create_web_app()` - Complexity: 15955
-2. [OK] `run_tests.py::run_command()` - Complexity: 3215
-3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-4. [OK] `run_tests.py::main()` - Complexity: 2820
-5. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 2655
+1. [OK] `run_tests.py::main()` - Complexity: 2820
+2. [OK] `run_tests.py::run_command()` - Complexity: 2212
+3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1898
+4. [OK] `core/web_account_service.py::tasks_api()` - Complexity: 1676
+5. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 
 
 ### **Pattern Recognition**
@@ -207,10 +205,10 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (38 files, 414 functions)
+- `ai/` - AI chatbot functionality (38 files, 416 functions)
 - `checkins/` -  (7 files, 153 functions)
-- `communication/` - Communication channels and message processing (97 files, 1309 functions)
-- `core/` - System utilities and data management (38 files, 720 functions)
+- `communication/` - Communication channels and message processing (97 files, 1526 functions)
+- `core/` - System utilities and data management (38 files, 805 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 61 functions)
 - `scheduler/` -  (9 files, 110 functions)

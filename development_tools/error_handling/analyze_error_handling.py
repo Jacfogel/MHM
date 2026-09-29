@@ -798,7 +798,7 @@ class ErrorHandlingAnalyzer:
         
         # Analyze methods
         for node in class_node.body:
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 method_analysis = self._analyze_function(node, content)
                 analysis['methods'].append(method_analysis)
                 if method_analysis['has_error_handling']:

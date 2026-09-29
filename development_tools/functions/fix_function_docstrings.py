@@ -319,7 +319,7 @@ def scan_and_document_functions(project_root_path: Path | None = None):
                 tree = ast.parse(content)
 
                 for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                         # Get function signature
                         args = [arg.arg for arg in node.args.args]
 
