@@ -50,7 +50,7 @@
     return 'night';
   }
 
-  function scoreFocus(task, now) {
+  function scoreFocus(task, now, energy) {
     const until = snoozeUntil(task);
     if (until && until.getTime() > now.getTime()) return null;
     const days = daysUntil(task.due_date, now);
@@ -58,6 +58,7 @@
     const recurring = Boolean(task.recurrence && task.recurrence.pattern);
     const tags = (Array.isArray(task.tags) ? task.tags : []).map(tag => String(tag).toLowerCase());
     const reasons = [];
+    const lowEnergy = typeof energy === 'number' && energy >= 1 && energy <= 2;
     let score = PRIORITY_SCORE[priority] || 12;
     if (days === null) score += 5;
     else if (days < 0) {
@@ -95,19 +96,23 @@
     const minutes = Number(task.effort_minutes);
     if (Number.isFinite(minutes) && minutes > 0) {
       reasons.push('effort');
-      if (minutes <= 10) score += 22;
+      if (lowEnergy) {
+        reasons.push('low-energy');
+        if (minutes <= 15) score += 28;
+        else score -= 18;
+      } else if (minutes <= 10) score += 22;
       else if (minutes <= 30) score += 10;
       else score -= 8;
     }
     return { task, score: Math.max(score, 1), reasons, days, priority, recurring, minutes: Number.isFinite(minutes) ? minutes : null };
   }
 
-  function chooseFocus(tasks, now = new Date(), random = Math.random) {
+  function chooseFocus(tasks, now = new Date(), random = Math.random, energy = null) {
     const list = tasks || [];
     const parentsWithSteps = new Set(list.map(task => task && task.parent_id).filter(Boolean));
     const smallerSteps = list.filter(task => task && !parentsWithSteps.has(task.id));
-    let ranked = smallerSteps.map(task => scoreFocus(task, now)).filter(Boolean);
-    if (!ranked.length) ranked = list.map(task => scoreFocus(task, now)).filter(Boolean);
+    let ranked = smallerSteps.map(task => scoreFocus(task, now, energy)).filter(Boolean);
+    if (!ranked.length) ranked = list.map(task => scoreFocus(task, now, energy)).filter(Boolean);
     if (!ranked.length) return null;
     ranked.sort((left, right) => right.score - left.score || String(left.task.title).localeCompare(String(right.task.title)));
     const roll = typeof random === 'function' ? random() : Math.random();
@@ -139,12 +144,22 @@
     if (reasons.includes('deferred') && reasons.includes('overdue')) {
       return 'You already set this aside, and it is still overdue. A small start still counts.';
     }
+    if (reasons.includes('low-energy') && pick.minutes <= 15) {
+      return 'Your energy is low today, so this is a small one to start with.';
+    }
+    if (reasons.includes('low-energy') && pick.minutes > 15 && (reasons.includes('due-today') || reasons.includes('overdue'))) {
+      const when = reasons.includes('overdue') ? 'overdue' : 'due today';
+      return `Your energy is low, and this will take a while. It is still ${when}.`;
+    }
     if (reasons.includes('overdue')) return 'This is overdue. Clearing it first takes the pressure off.';
     if (reasons.includes('effort') && pick.minutes <= 15 && (reasons.includes('due-today') || reasons.includes('overdue'))) {
       return 'This is probably the easiest useful thing to clear first.';
     }
+    if (reasons.includes('due-today') && Number.isFinite(pick.minutes) && pick.minutes > 30) {
+      return 'This will take a while, and it is due today.';
+    }
     if (reasons.includes('due-today') && priority !== 'high' && priority !== 'urgent' && priority !== 'critical') {
-      return 'This is probably the easiest useful thing to clear first.';
+      return 'This is due today.';
     }
     if (reasons.includes('due-today')) return 'Due today, and it matters more than the other open tasks.';
     if (reasons.includes('deferred')) return 'You already set this aside once. A small start still counts.';
@@ -209,7 +224,9 @@
         efforts = {};
       }
       const withEffort = (tasks.tasks || []).map(task => ({ ...task, effort_minutes: efforts[task.id] }));
-      const pick = chooseFocus(withEffort, new Date(), window.mhmRandom || Math.random);
+      const rawEnergy = checkinState.energy_today;
+      const energy = typeof rawEnergy === 'number' && Number.isFinite(rawEnergy) ? rawEnergy : null;
+      const pick = chooseFocus(withEffort, new Date(), window.mhmRandom || Math.random, energy);
       focusedTask = pick ? pick.task : null;
       const actions = document.getElementById('home-task-actions');
       const breakForm = document.getElementById('home-task-break-form');

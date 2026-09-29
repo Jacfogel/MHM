@@ -42,6 +42,49 @@ def test_get_checkin_start_status_detects_today_checkin():
 
 @pytest.mark.unit
 @pytest.mark.checkins
+def test_today_checkin_energy_reads_todays_one_to_five_score():
+    with patch("checkins.checkin_service.is_user_checkins_enabled", return_value=True), patch(
+        "checkins.checkin_service.get_recent_checkins",
+        return_value=[
+            {
+                "submitted_at": "2026-05-11 08:00:00",
+                "questions_asked": ["energy"],
+                "responses": {"energy": "2"},
+            }
+        ],
+    ), patch(
+        "checkins.checkin_service.user_local_date",
+        return_value=date(2026, 5, 11),
+    ):
+        assert checkin_service.today_checkin_energy("u1") == 2
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
+def test_today_checkin_energy_ignores_yesterday_and_skipped_answers():
+    with patch("checkins.checkin_service.is_user_checkins_enabled", return_value=True), patch(
+        "checkins.checkin_service.get_recent_checkins",
+        return_value=[
+            {
+                "submitted_at": "2026-05-11 08:00:00",
+                "questions_asked": ["energy"],
+                "responses": {"energy": "SKIPPED"},
+            },
+            {
+                "submitted_at": "2026-05-10 08:00:00",
+                "questions_asked": ["energy"],
+                "responses": {"energy": 4},
+            },
+        ],
+    ), patch(
+        "checkins.checkin_service.user_local_date",
+        return_value=date(2026, 5, 11),
+    ):
+        assert checkin_service.today_checkin_energy("u1") is None
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
 def test_checkin_display_date_falls_back_to_timestamp():
     with patch(
         "checkins.checkin_service.checkin_runtime_timestamp",

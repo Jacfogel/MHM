@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Small counts, lighter sleep, and low-energy focus **COMPLETED**
+- A positive count that would round to zero is written as "under 100 steps", "under 5 active minutes", or "under 30 minutes of sleep". A real zero stays zero.
+- "Shorter sleep" is a run of short nights. Restless nights of ordinary length say "lighter sleep" and leave the hours out.
+- Home calls a task the easiest one only when it is about 15 minutes or less. A longer task due today says it will take a while.
+- Today's check-in energy of 1 or 2 prefers a task around 15 minutes and stops boosting longer ones.
+
 ### 2026-09-28 - Wellness streaks, honest rounding, and a quiet inbox **COMPLETED**
 - A wellness reply keeps a multi-day sleep or activity streak. The number beside it is the rounded middle of those days, written once as "about 5 hours".
 - Sleep, steps, and active minutes round a .5 tie away from zero, so 50 steps is about 100, not 0.
@@ -73,7 +79,7 @@ Guidelines:
 - The notebook slice for the model should be recent titles, pinned entries, and a short summary when there is no title, so the prompt stays small. The code still sends the last 10 full entries.
 
 ### 2026-09-24 - Talk to MHM on the home page **COMPLETED**
-- Home suggests what to focus on with a weighted roll. The model estimates minutes, and shorter tasks are more likely. Done, Later, and Break it down act on that task. Today's energy is not ranked yet. The effort cache key uses the shared error handler, and the function registry includes those functions.
+- Home suggests what to focus on with a weighted roll. The model estimates minutes, and shorter tasks are more likely. Done, Later, and Break it down act on that task. The effort cache key uses the shared error handler, and the function registry includes those functions.
 - Home chat shows website, Discord, and email messages in one timeline, oldest first, opens at the newest message, and starts with the last 48 hours. More loads the previous 48 hours. Personalized messages are check-ins, Google Health, and profile.
 - Home uses one check-in action: start, continue, or you're checked in. Account deletion is on Account, under Your data, after typing DELETE. Inter and Nunito are self-hosted, so pages do not request fonts from Google. Email check-ins skip channel buttons when that channel has none.
 - Home chat lists action names only, and leaves out actions for features that are turned off, so the prompt fits a 2048-token model. The notebook title field uses the rest of the create row. Ordinary website use is allowed 240 API calls per 10 minutes instead of 60. A website check-in saves when the check-in file is an empty list. Notebook replies no longer crash when an entry has no metadata, and the unused website inbox helper is gone. Insights says sleep length is not recorded yet instead of null hours, and Answer a check-in uses the same button as Home. Message creation keeps the message visible and tucks days and reminder windows behind More options. Every day and Any reminder window stay in step with the individual choices. Scheduled Discord messages use More like this and Not for me buttons instead of the bot adding both thumbs. Those buttons use the shared error handler. Account and Integrations are choices in the account side list. A scheduled check-in no longer replaces one that is still open, so an email reply is scored for the question in that email. Home chat shows the date and time on each message.

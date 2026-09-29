@@ -41,6 +41,61 @@ def test_wellness_counts_round_halves_away_from_zero():
     assert _format_rounded_steps(250) == "300 steps"
     assert _format_rounded_active_minutes(2.5) == "5 active minutes"
     assert _format_rounded_active_minutes(12.5) == "15 active minutes"
+    assert _format_rounded_steps(40) == "under 100 steps"
+    assert _format_rounded_steps(0) == "0 steps"
+    assert _format_rounded_active_minutes(2) == "under 5 active minutes"
+    assert _format_rounded_active_minutes(0) == "0 active minutes"
+    assert _format_rounded_sleep_hours(0.2) == "under 30 minutes of sleep"
+    assert _format_rounded_sleep_hours(0) == "0 hours of sleep"
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_small_positive_counts_are_not_called_about_zero():
+    from core.health_context_builder import _health_signal_notes, _streak_reply_phrase
+
+    notes = _health_signal_notes(
+        {"steps": 40, "active_minutes": 2, "sleep_hours": 0.2},
+        voice="you",
+    )
+    text = " ".join(phrase for _, phrase in notes)
+    assert "under 100 steps" in text
+    assert "under 5 active minutes" in text
+    assert "under 30 minutes of sleep" in text
+    assert "about 0" not in text
+    assert "about under" not in text
+    assert _streak_reply_phrase(
+        "lighter activity for 2 days in a row", "under 100 steps"
+    ) == "lighter activity for 2 days in a row (under 100 steps)"
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_quality_only_nights_are_a_lighter_sleep_streak(monkeypatch):
+    from core.health_context_builder import _health_streaks
+
+    signals = [
+        {
+            "date": "2026-06-26",
+            "sleep_quality": "low",
+            "sleep_recovery": "normal",
+            "sleep_vs_baseline": "normal",
+            "sleep_hours": 8.0,
+        },
+        {
+            "date": "2026-06-27",
+            "sleep_quality": "low",
+            "sleep_recovery": "normal",
+            "sleep_vs_baseline": "normal",
+            "sleep_hours": 7.5,
+        },
+    ]
+    monkeypatch.setattr(
+        "core.health_context_builder.load_health_signals",
+        lambda user_id: {"signals": signals},
+    )
+    streaks = _health_streaks("user", signals[-1])
+    assert streaks == [("sleep", "lighter sleep for 2 days in a row", "")]
 
 
 @pytest.mark.unit

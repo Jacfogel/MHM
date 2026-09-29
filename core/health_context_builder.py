@@ -51,14 +51,27 @@ def _round_sleep_hours(hours: float) -> float:
     return _round_half_away_from_zero(float(hours) * 2.0) / 2.0
 
 
+@handle_errors("phrasing a rounded wellness count", default_return="")
+def _about_quantity(text: str) -> str:
+    """Prefix a rounded count with about. An under-bucket phrase stays as written."""
+    if not text:
+        return ""
+    if text.startswith("under "):
+        return text
+    return f"about {text}"
+
+
 @handle_errors("formatting rounded sleep hours", default_return="")
 def _format_rounded_sleep_hours(hours: Any) -> str:
     """Return '5.5 hours of sleep' or empty when unavailable."""
     if isinstance(hours, bool) or not isinstance(hours, (int, float)):
         return ""
-    rounded = _round_sleep_hours(float(hours))
+    value = float(hours)
+    rounded = _round_sleep_hours(value)
     if rounded is None:
         return ""
+    if value > 0 and rounded == 0:
+        return "under 30 minutes of sleep"
     text = str(int(rounded)) if rounded == int(rounded) else f"{rounded:.1f}"
     return f"{text} hours of sleep"
 
@@ -68,7 +81,10 @@ def _format_rounded_steps(steps: Any) -> str:
     """Return '2,400 steps' or empty when unavailable."""
     if isinstance(steps, bool) or not isinstance(steps, (int, float)):
         return ""
-    rounded = _round_half_away_from_zero(float(steps) / 100.0) * 100
+    value = float(steps)
+    rounded = _round_half_away_from_zero(value / 100.0) * 100
+    if value > 0 and rounded == 0:
+        return "under 100 steps"
     return f"{rounded:,} steps"
 
 
@@ -77,18 +93,28 @@ def _format_rounded_active_minutes(active_minutes: Any) -> str:
     """Return '45 active minutes' or empty when unavailable."""
     if isinstance(active_minutes, bool) or not isinstance(active_minutes, (int, float)):
         return ""
-    rounded = _round_half_away_from_zero(float(active_minutes) / 5.0) * 5
+    value = float(active_minutes)
+    rounded = _round_half_away_from_zero(value / 5.0) * 5
+    if value > 0 and rounded == 0:
+        return "under 5 active minutes"
     return f"{rounded} active minutes"
 
 
 @handle_errors("checking short-sleep signal day", default_return=False)
 def _is_short_sleep_day(signal: dict[str, Any]) -> bool:
-    """True when sleep recovery, baseline, or quality indicates a lighter night."""
+    """True when the night was short: low hours, or below the usual amount."""
     return (
         str(signal.get("sleep_recovery") or "").strip().lower() == "low"
         or str(signal.get("sleep_vs_baseline") or "").strip().lower() == "below"
-        or str(signal.get("sleep_quality") or "").strip().lower() == "low"
     )
+
+
+@handle_errors("checking lighter-sleep signal day", default_return=False)
+def _is_lighter_sleep_day(signal: dict[str, Any]) -> bool:
+    """True when sleep quality was low and the night was not also short."""
+    if _is_short_sleep_day(signal):
+        return False
+    return str(signal.get("sleep_quality") or "").strip().lower() == "low"
 
 
 @handle_errors("finding the middle wellness value", default_return=None)
@@ -142,6 +168,8 @@ def _health_streaks(
 
     The metric is the middle sleep hours, or steps before active minutes, across
     the days that formed the streak. It is empty when those days have no number.
+    A lighter-sleep streak also leaves the metric empty, because those nights
+    were restless rather than short.
     """
     end_date = str(anchor_signal.get("date") or "").strip()
     if not end_date:
@@ -164,6 +192,14 @@ def _health_streaks(
         streaks.append(
             ("sleep", f"shorter sleep for {len(short_sleep)} days in a row", metric)
         )
+    else:
+        lighter_sleep = _consecutive_streak_signals(
+            signals_by_date, end_date=end_date, predicate=_is_lighter_sleep_day
+        )
+        if len(lighter_sleep) >= MIN_STREAK_DAYS:
+            streaks.append(
+                ("sleep", f"lighter sleep for {len(lighter_sleep)} days in a row", "")
+            )
 
     light_activity = _consecutive_streak_signals(
         signals_by_date,
@@ -347,20 +383,20 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
                 "low": "a lighter night",
                 "normal": "about typical",
             }.get(sleep_recovery)
-            if qualifier:
-                sleep_phrase = f"you got about {sleep_text} recently ({qualifier})"
-            else:
-                sleep_phrase = f"you got about {sleep_text} recently"
+            lead = _about_quantity(sleep_text)
+            sleep_phrase = (
+                f"you got {lead} recently ({qualifier})"
+                if qualifier
+                else f"you got {lead} recently"
+            )
         else:
             qualifier = {
                 "high": "a fuller night",
                 "low": "a shorter night",
                 "normal": "about typical",
             }.get(sleep_recovery)
-            if qualifier:
-                sleep_phrase = f"about {sleep_text} ({qualifier})"
-            else:
-                sleep_phrase = f"about {sleep_text}"
+            lead = _about_quantity(sleep_text)
+            sleep_phrase = f"{lead} ({qualifier})" if qualifier else lead
         _append_signal_note(notes, "sleep", sleep_phrase)
     elif sleep_recovery == "high":
         _append_signal_note(
@@ -420,10 +456,8 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
             "high": "higher than usual",
             "normal": f"around {usual} usual level",
         }.get(activity)
-        if step_qualifier:
-            steps_phrase = f"about {steps_text} ({step_qualifier})"
-        else:
-            steps_phrase = f"about {steps_text}"
+        lead = _about_quantity(steps_text)
+        steps_phrase = f"{lead} ({step_qualifier})" if step_qualifier else lead
         _append_signal_note(notes, "movement", steps_phrase)
     elif activity == "low":
         _append_signal_note(
@@ -458,10 +492,8 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
             "low": "lighter than usual",
             "normal": f"around {usual} usual level",
         }.get(active_intensity)
-        if effort_qualifier:
-            active_phrase = f"about {active_text} ({effort_qualifier})"
-        else:
-            active_phrase = f"about {active_text}"
+        lead = _about_quantity(active_text)
+        active_phrase = f"{lead} ({effort_qualifier})" if effort_qualifier else lead
         _append_signal_note(notes, "movement", active_phrase)
     elif active_intensity == "high":
         _append_signal_note(notes, "movement", "active effort was higher than usual")
@@ -506,8 +538,9 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
 @handle_errors("preferring a multi-day streak in a wellness reply", default_return="")
 def _streak_reply_phrase(streak: str, metric: str) -> str:
     """Keep the streak, with the rounded middle value in parentheses."""
-    if metric:
-        return f"{streak} (about {metric})"
+    lead = _about_quantity(metric)
+    if lead:
+        return f"{streak} ({lead})"
     return streak
 
 
@@ -546,7 +579,8 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     data still supports an honest wellness reply. Keeps one sleep note, one
     movement note, and one readiness note. A multi-day streak is that bucket's
     note. The count in parentheses is the rounded median of the days in the
-    streak. Never includes HR/HRV numbers.
+    streak. A lighter-sleep streak names the run and leaves the hours out.
+    Never includes HR/HRV numbers.
     """
     if not is_personalization_active(user_id):
         return ""

@@ -24,7 +24,7 @@ function node(extras = {}) {
   };
 }
 
-async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, fetchImpl, random = () => 0, chat = false } = {}) {
+async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, energy = null, fetchImpl, random = () => 0, chat = false } = {}) {
   const nodes = new Map([
     ['app-status', node({ hidden: false })],
     ['home-content', node()],
@@ -70,7 +70,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
       if (url === '/api/account') return Response.json(account);
       if (url === '/api/tasks?status=active') return Response.json(tasks);
       if (url === '/api/tasks/effort') return Response.json(efforts);
-      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true, energy_today: energy });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       if (String(url).endsWith('/breakdown')) return Response.json({ steps: ['Ask if the refill is ready'] });
       if (String(url).endsWith('/subtasks')) return Response.json({ message: 'Added 1 smaller step. The original task stays.' });
@@ -141,7 +141,7 @@ test('home prefers a due-today task over a later one and skips a snoozed task', 
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Water plants');
   assert.match(view.nodes.get('home-task-meta').textContent, /Due today/);
-  assert.match(view.nodes.get('home-task-why').textContent, /easiest useful/);
+  assert.match(view.nodes.get('home-task-why').textContent, /This is due today/);
 });
 
 test('a short due-today task is preferred, and a low roll can still pick another fit', async () => {
@@ -299,6 +299,34 @@ test('a scheduled message in the chat can ask for more like it', async () => {
   assert.deepEqual(reactions, [{ delivery_id: 'delivery-1', kind: 'up' }]);
   assert.equal(more.getAttribute('aria-pressed'), 'true');
   assert.equal(view.nodes.get('talk-status').textContent, "I'll send more messages like that.");
+});
+
+test('a long task due today is not called the easiest one', async () => {
+  const today = new Date();
+  const pad = value => String(value).padStart(2, '0');
+  const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  const view = await page({
+    tasks: { tasks: [{ id: 'house', title: 'Clean the whole house', due_date: todayKey, priority: 'medium' }] },
+    efforts: { tasks: [{ id: 'house', minutes: 120 }] },
+  });
+  assert.equal(view.nodes.get('home-task-title').textContent, 'Clean the whole house');
+  assert.match(view.nodes.get('home-task-why').textContent, /will take a while/);
+  assert.doesNotMatch(view.nodes.get('home-task-why').textContent, /easiest/);
+});
+
+test('low energy prefers a short task over a longer one', async () => {
+  const view = await page({
+    energy: 2,
+    tasks: {
+      tasks: [
+        { id: 'long', title: 'Rewrite the notes', priority: 'high' },
+        { id: 'short', title: 'Send one email', priority: 'low' },
+      ],
+    },
+    efforts: { tasks: [{ id: 'long', minutes: 25 }, { id: 'short', minutes: 10 }] },
+  });
+  assert.equal(view.nodes.get('home-task-title').textContent, 'Send one email');
+  assert.match(view.nodes.get('home-task-why').textContent, /energy is low/);
 });
 
 test('home.js can load after app.js without a global status clash', async () => {

@@ -2621,12 +2621,15 @@ def create_web_app(
         """Start or answer the signed-in user's check-in in the browser."""
         uid, _ = await authenticated_account(request)
         from checkins.checkin_data_manager import is_user_checkins_enabled
-        from checkins.checkin_service import get_checkin_start_status
+        from checkins.checkin_service import get_checkin_start_status, today_checkin_energy
         from communication.message_processing.conversation_flow_manager import (
             conversation_manager,
         )
 
         enabled = bool(await asyncio.to_thread(is_user_checkins_enabled, uid))
+        energy_today = (
+            await asyncio.to_thread(today_checkin_energy, uid) if enabled else None
+        )
 
         # ERROR_HANDLING_EXCLUDE: Serializer is only used by this guarded route.
         def view(message, *, active, completed, completed_today, index, total, question_type):
@@ -2640,6 +2643,7 @@ def create_web_app(
                 "index": index,
                 "total": total,
                 "question_type": question_type if active else None,
+                "energy_today": energy_today,
             }
 
         snapshot = await asyncio.to_thread(conversation_manager.current_checkin_prompt, uid) or {}

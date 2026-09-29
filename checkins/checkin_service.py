@@ -5,12 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from core.error_handling import handle_errors
+from checkins.analysis import coerce_numeric, is_question_asked, response_value
 from checkins.checkin_data_manager import (
     checkin_runtime_timestamp,
     get_recent_checkins,
     is_user_checkins_enabled,
 )
+from core.error_handling import handle_errors
 from core.time_utilities import parse_timestamp_full
 from scheduler.user_timezone import user_local_date
 
@@ -62,6 +63,30 @@ def get_checkin_start_status(
             )
 
     return CheckinStartStatus(enabled=True, already_completed_today=False)
+
+
+@handle_errors("checkin service: today's energy", default_return=None)
+def today_checkin_energy(user_id: str) -> int | None:
+    """Return today's 1-5 energy score, or None when today has no energy answer."""
+    if not is_user_checkins_enabled(user_id):
+        return None
+    today = user_local_date(user_id)
+    for checkin in get_recent_checkins(user_id, limit=5):
+        if not isinstance(checkin, dict):
+            continue
+        timestamp = checkin_runtime_timestamp(checkin)
+        parsed = parse_timestamp_full(timestamp) if timestamp else None
+        if parsed is None:
+            continue
+        if parsed.date() != today:
+            break
+        if not is_question_asked(checkin, "energy"):
+            continue
+        value = coerce_numeric(response_value(checkin, "energy"))
+        if value is None or value < 1 or value > 5:
+            continue
+        return int(round(value))
+    return None
 
 
 @handle_errors("checkin service: recent checkin summary", default_return=RecentCheckinSummary([], False))

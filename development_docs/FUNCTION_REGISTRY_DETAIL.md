@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 17:48:47
+> **Last Generated**: 2026-09-28 22:59:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 291
-- **Functions Found**: 2858
+- **Functions Found**: 2867
 - **Methods Found**: 1434
 - **Classes Found**: 266
-- **Total Items**: 4292
-- **Functions Documented**: 2555
+- **Total Items**: 4301
+- **Functions Documented**: 2564
 - **Methods Documented**: 1288
 - **Classes Documented**: 199
-- **Total Documented**: 3843
+- **Total Documented**: 3852
 - **Template-Generated**: 56
 - **Last Updated**: 2026-09-28
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (553)
+### **Core System Functions** (559)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (750)
+### **Communication Functions** (752)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -1123,6 +1123,7 @@ Checks custom questions first (if user_id provided), then predefined questions.
 - [OK] `checkin_display_date(checkin)` - Return a stable display date for a check-in.
 - [OK] `get_checkin_start_status(user_id)` - Return whether a user can start a new check-in right now.
 - [OK] `get_recent_checkin_summary(user_id)` - Return recent check-ins if check-ins are enabled for the user.
+- [OK] `today_checkin_energy(user_id)` - Return today's 1-5 energy score, or None when today has no energy answer.
 **Classes:**
 - [OK] `CheckinStartStatus` - Preflight status for starting a check-in.
 - [OK] `RecentCheckinSummary` - Recent check-in data normalized for command display.
@@ -4121,6 +4122,7 @@ Raises:
 
 #### `core/health_context_builder.py`
 **Functions:**
+- [OK] `_about_quantity(text)` - Prefix a rounded count with about. An under-bucket phrase stays as written.
 - [OK] `_append_signal_note(notes, bucket, text)` - Record a phrase under sleep, movement, or readiness.
 - [OK] `_consecutive_streak_signals(signals_by_date)` - Return consecutive calendar days ending at end_date that match predicate.
 - [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
@@ -4139,7 +4141,13 @@ Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
 ``voice`` is ``you`` for a reply or ``their`` for an AI prompt. Callers
 choose how many notes to keep.
 - [OK] `_health_streaks(user_id, anchor_signal)` - Return each multi-day streak as bucket, phrase, and rounded median metric.
-- [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
+
+The metric is the middle sleep hours, or steps before active minutes, across
+the days that formed the streak. It is empty when those days have no number.
+A lighter-sleep streak also leaves the metric empty, because those nights
+were restless rather than short.
+- [OK] `_is_lighter_sleep_day(signal)` - True when sleep quality was low and the night was not also short.
+- [OK] `_is_short_sleep_day(signal)` - True when the night was short: low hours, or below the usual amount.
 - [OK] `_join_wellness_phrases(phrases)` - Join one, two, or three wellness phrases into a single sentence.
 - [OK] `_median_number(values)` - Return the median of finite numbers. An even count averages the two middle values.
 - [OK] `_round_half_away_from_zero(value)` - Round a .5 tie away from zero so 0.5 becomes 1 and 2.5 becomes 3.
@@ -4163,7 +4171,8 @@ Used when message_guidance is empty or confidence is low but recent wearable
 data still supports an honest wellness reply. Keeps one sleep note, one
 movement note, and one readiness note. A multi-day streak is that bucket's
 note. The count in parentheses is the rounded median of the days in the
-streak. Never includes HR/HRV numbers.
+streak. A lighter-sleep streak names the run and leaves the hours out.
+Never includes HR/HRV numbers.
 - [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
 - [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
 - [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.

@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Small counts, lighter sleep, and low-energy focus
+- **Fix**: A positive sleep, step, or active-minute count that rounds into the first empty bucket is named as under that bucket. 40 steps is "under 100 steps", 2 active minutes is "under 5 active minutes", and 12 minutes of sleep is "under 30 minutes of sleep". A true zero stays zero. The word "about" is not added in front of "under". See [health_context_builder.py](../core/health_context_builder.py).
+- **Fix**: "Shorter sleep" is only a run of nights that were low on hours or below the usual amount. A run of restless nights with ordinary length says "lighter sleep" and leaves the hour count out. See [health_context_builder.py](../core/health_context_builder.py).
+- **Fix**: Home calls a task the easiest one only when the estimate is about 15 minutes or less. A longer task due today says it will take a while. A medium-priority task due today, with no estimate, says it is due today. See [home.js](../website/home.js).
+- **Feature**: Home reads today's check-in energy from `energy_today` on `/api/checkins`. A score of 1 or 2 prefers tasks around 15 minutes or less and stops giving longer tasks a boost. The reason says energy is low. See [checkin_service.py](../checkins/checkin_service.py), [web_account_service.py](../core/web_account_service.py), and [home.js](../website/home.js).
+- **Impact**: Wellness replies no longer call a short walk "about 0", a long night is not called shorter sleep, and a low-energy day is pointed at a small task.
+
 ### 2026-09-28 - Wellness streaks, honest rounding, and a quiet inbox
 - **Fix**: A wellness reply now keeps a multi-day streak as the one sleep or movement note. The number in parentheses is the rounded median of the days in that streak, so the latest night does not stand in for the whole run. The sentence says "about" once. See [health_context_builder.py](../core/health_context_builder.py).
 - **Fix**: Sleep hours, steps, and active minutes round a halfway value away from zero. 50 steps is shown as about 100, and 7.25 hours as about 7.5. The rounded text no longer adds a tilde on top of "about". See [health_context_builder.py](../core/health_context_builder.py).
