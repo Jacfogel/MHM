@@ -30,21 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-09-28 - Registry and doc-path checks match the website chat **COMPLETED**
-- The function registry includes the two website inbox helpers that mark a scheduled message as reactable.
-- A documentation link to an existing website test is no longer reported as a missing Python module.
-- The reaction lookup reads message details once, which clears the inbox type warning.
+### 2026-09-28 - Wellness replies and task identifier cleanup **COMPLETED**
+- A wellness reply keeps one sleep note, one movement note, and one readiness note.
+- The reply and the AI prompt share one phrase helper. The prompt still lists every note.
+- Task name cleanup lives in one helper, and profile updates are no longer parsed inside the task extractor.
 
-### 2026-09-27 - Talk to MHM can react to a scheduled message **COMPLETED**
-- A scheduled message in the home chat has More like this and Not for me. Those choices do the same work as a positive or negative Discord reaction.
-- A conversation reply and a check-in do not offer that choice.
-
-### 2026-09-27 - Website can ask for smaller task steps **COMPLETED**
-- Suggest smaller steps, adding those steps, and separating a step now pass through the public site proxy. The same proxy also forwards task effort estimates and bulk delete.
-- Before this, Suggest smaller steps stopped at the proxy and the tasks page showed "Page not found."
-
-### 2026-09-27 - Clicking outside a dialog closes it **COMPLETED**
-- A click on the dimmed area around a task or notebook dialog closes that dialog. A click inside the box, or a drag that starts inside it, leaves it open.
+### 2026-09-28 - Website chat, smaller steps, and dialogs **COMPLETED**
+- Suggest smaller steps, adding those steps, and separating a step now pass through the public site proxy. Before this, the tasks page showed "Page not found."
+- Clicking the dimmed area around a dialog closes it. A click that starts inside the box leaves it open.
+- A scheduled message in Talk to MHM has More like this and Not for me, the same as a Discord reaction. A conversation reply and a check-in do not.
+- The registry lists those inbox helpers, a link to an existing website test is not reported as a missing module, and the reaction lookup no longer trips the inbox type warning.
 
 ### 2026-09-27 - Discord reactions replace message buttons **COMPLETED**
 - Scheduled Discord messages no longer include More like this and Not for me buttons.

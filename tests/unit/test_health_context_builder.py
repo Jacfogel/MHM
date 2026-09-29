@@ -49,12 +49,14 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
                 {
                     "date": "2026-07-12",
                     "sleep_recovery": "high",
+                    "sleep_hours": 7.2,
+                    "steps": 2437,
                     "sleep_vs_baseline": "normal",
                     "sleep_quality": "high",
-                    "activity_level": "unknown",
-                    "active_intensity": "normal",
+                    "activity_level": "low",
+                    "active_intensity": "high",
                     "resting_hr_signal": "normal",
-                    "hrv_signal": "normal",
+                    "hrv_signal": "low",
                     "confidence": "low",
                     "message_guidance": [],
                     "baseline_days_used": 28,
@@ -68,9 +70,14 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
         snippet = build_user_facing_signal_wellness_snippet(user_id)
 
-    assert "solid night" in snippet.lower() or "sleep" in snippet.lower()
-    assert "sleep quality" in snippet.lower()
-    assert "usual amount" in snippet.lower() or "typical" in snippet.lower()
+    assert "solid night" in snippet.lower()
+    assert "~7 hours of sleep" in snippet
+    assert "~2,400 steps" in snippet
+    assert "gentler pace" in snippet.lower()
+    assert "sleep quality" not in snippet.lower()
+    assert "usual amount" not in snippet.lower()
+    assert "7.2" not in snippet
+    assert "2437" not in snippet
 
 
 @pytest.mark.unit

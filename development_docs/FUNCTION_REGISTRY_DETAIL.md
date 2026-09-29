@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-27 19:46:42
+> **Last Generated**: 2026-09-28 17:48:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 291
-- **Functions Found**: 2849
-- **Methods Found**: 1432
+- **Functions Found**: 2858
+- **Methods Found**: 1434
 - **Classes Found**: 266
-- **Total Items**: 4281
-- **Functions Documented**: 2546
-- **Methods Documented**: 1286
+- **Total Items**: 4292
+- **Functions Documented**: 2555
+- **Methods Documented**: 1288
 - **Classes Documented**: 199
-- **Total Documented**: 3832
+- **Total Documented**: 3843
 - **Template-Generated**: 56
-- **Last Updated**: 2026-09-27
+- **Last Updated**: 2026-09-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (548)
+### **Core System Functions** (553)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (746)
+### **Communication Functions** (750)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2866,6 +2866,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
 - [OK] `_assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
 - [OK] `_assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+- [OK] `_assign_parsed_task_identifier(self, entities, identifier)` - Strip a leading 'task ' and store the cleaned task identifier.
 - [OK] `_assign_snooze_option_entities(self, entities, message, match)` - Fill snooze_option / snooze_when from a snooze command match.
 - [OK] `_assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
 - [OK] `_build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
@@ -2878,6 +2879,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
 - [OK] `_extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
 - [OK] `_extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
+- [OK] `_extract_profile_entities_rule_based(self, intent, match, message, entities)` - Extract field and value for an update_profile command.
 - [OK] `_extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
 - [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
@@ -2926,6 +2928,7 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._assign_entry_ref_and_item_index(match, entities)` - Assign entry_ref and optional item_index from a two-group list-item match.
   - [OK] `EnhancedCommandParser._assign_match_groups(match, entities, fields)` - Copy required regex groups onto entity keys when all groups are present.
   - [OK] `EnhancedCommandParser._assign_optional_int_group(match, entities)` - Assign an optional integer capture, using default when missing or invalid.
+  - [OK] `EnhancedCommandParser._assign_parsed_task_identifier(self, entities, identifier)` - Strip a leading 'task ' and store the cleaned task identifier.
   - [OK] `EnhancedCommandParser._assign_snooze_option_entities(self, entities, message, match)` - Fill snooze_option / snooze_when from a snooze command match.
   - [OK] `EnhancedCommandParser._assign_task_link_entities(self, entities, remainder)` - Parse URL and optional label from add/remove-link remainder text.
   - [OK] `EnhancedCommandParser._build_rule_based_result_from_pattern(self, intent, pattern, message_for_match, original_message)` - Build rule-based parsing result for one pattern match attempt.
@@ -2938,6 +2941,7 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
   - [OK] `EnhancedCommandParser._extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
   - [OK] `EnhancedCommandParser._extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
+  - [OK] `EnhancedCommandParser._extract_profile_entities_rule_based(self, intent, match, message, entities)` - Extract field and value for an update_profile command.
   - [OK] `EnhancedCommandParser._extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
   - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
@@ -4115,6 +4119,7 @@ Raises:
 
 #### `core/health_context_builder.py`
 **Functions:**
+- [OK] `_append_signal_note(notes, bucket, text)` - Record a phrase under sleep, movement, or readiness.
 - [OK] `_count_consecutive_streak(signals_by_date)` - Count consecutive calendar days ending at end_date that match predicate.
 - [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
 - [OK] `_format_health_signal_coarse(signal)` - Plain-language wellness notes for AI prompts.
@@ -4127,8 +4132,15 @@ Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
 - [OK] `_format_rounded_active_minutes(active_minutes)` - Return '~45 active minutes' or empty when unavailable.
 - [OK] `_format_rounded_sleep_hours(hours)` - Return '~5.5 hours of sleep' or empty when unavailable.
 - [OK] `_format_rounded_steps(steps)` - Return '~2,400 steps' or empty when unavailable.
+- [OK] `_health_signal_notes(signal)` - Turn one health signal into sleep, movement, and readiness phrases.
+
+``voice`` is ``you`` for a reply or ``their`` for an AI prompt. Callers
+choose how many notes to keep.
 - [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
+- [OK] `_join_wellness_phrases(phrases)` - Join one, two, or three wellness phrases into a single sentence.
 - [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour.
+- [OK] `_select_one_note_per_bucket(notes)` - Keep the first sleep note, the first movement note, and the first readiness note.
+- [OK] `_signal_band(value)` - Normalize a coarse signal label such as high, low, or unknown.
 - [OK] `build_personalized_checkin_context(user_id)` - Build scheduled-message context from recent check-ins only.
 - [OK] `build_personalized_google_health_context(user_id)` - Build scheduled-message context from Google Health signals only.
 - [OK] `build_personalized_profile_context(user_id)` - Build scheduled-message context from non-medical profile preferences.
@@ -4142,8 +4154,10 @@ Tone tokens only — never includes sleep hours, steps, HR, HRV, or device names
 - [OK] `build_user_facing_signal_wellness_snippet(user_id)` - Return a coarse, user-facing wellness read from the active health signal.
 
 Used when message_guidance is empty or confidence is low but recent wearable
-data still supports an honest wellness reply. May include rounded sleep hours,
-step counts, active minutes, and multi-day streaks; never HR/HRV numbers.
+data still supports an honest wellness reply. Keeps one sleep note, one
+movement note, and one readiness note. May include rounded sleep hours,
+step counts, active minutes, and a streak when that bucket has no clearer
+note. Never includes HR/HRV numbers.
 - [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
 - [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
 - [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.
@@ -5646,7 +5660,7 @@ Raises:
 - [OK] `_add_similar_library_messages(user_id, category, source_text, template_id)` - Create library messages that resemble a thumbs-upped message.
 - [OK] `_clean_draft(text)` - Strip quotes and list numbering from one generated draft.
 - [OK] `_feedback_path(user_id)` - Return the per-user file that stores reaction feedback.
-- [OK] `_find_delivery(user_id, discord_message_id)` - Return the sent message that matches a Discord message id.
+- [OK] `_find_delivery(user_id, discord_message_id, delivery_id)` - Return the sent message that matches a delivery id or a Discord message id.
 - [OK] `_mark_delivery(user_id, delivery_id, updates)` - Store the latest reaction on the sent-message record.
 - [OK] `_remember_liked(user_id, category, text)` - Keep a liked message as an example for later generation.
 - [OK] `_remove_liked(user_id, category, text)` - Drop a liked example after that same message is thumbs-downed.
@@ -5654,7 +5668,7 @@ Raises:
 - [OK] `_set_template_active(user_id, category, template_id, active)` - Turn a library template on or off. Personalized messages have no template.
 - [OK] `_text_key(text)` - Return a case-insensitive key for comparing message text.
 - [OK] `_unretire_text(user_id, text)` - Allow a previously thumbs-downed text after a later thumbs up.
-- [OK] `apply_message_reaction(user_id, discord_message_id, kind, *, delivery_id="")` - Apply a thumbs-up or thumbs-down to one scheduled library or personalized message.
+- [OK] `apply_message_reaction(user_id, discord_message_id, kind)` - Apply a thumbs-up or thumbs-down to one scheduled library or personalized message.
 - [OK] `exclude_retired_messages(user_id, messages)` - Drop candidate templates whose text was thumbs-downed.
 - [OK] `generate_similar_message_texts(user_id, source_text)` - Ask the assistant model for new messages that resemble a liked one.
 - [OK] `load_message_feedback(user_id)` - Return liked examples and retired message texts for a user.

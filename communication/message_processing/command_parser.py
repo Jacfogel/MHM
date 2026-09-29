@@ -1450,10 +1450,7 @@ class EnhancedCommandParser:
             identifier = ""
             if match.groups():
                 identifier = (match.group(1) or "").strip()
-            if identifier.lower().startswith("task "):
-                identifier = identifier[5:].strip()
-            if identifier:
-                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            self._assign_parsed_task_identifier(entities, identifier)
             self._assign_snooze_option_entities(entities, message, match)
             return True
 
@@ -1461,10 +1458,7 @@ class EnhancedCommandParser:
             identifier = ""
             if match.groups():
                 identifier = (match.group(1) or "").strip()
-            if identifier.lower().startswith("task "):
-                identifier = identifier[5:].strip()
-            if identifier:
-                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            self._assign_parsed_task_identifier(entities, identifier)
             return True
 
         if intent == "simplify_task":
@@ -1474,10 +1468,7 @@ class EnhancedCommandParser:
                 identifier = (match.group(1) or "").strip()
             if match.lastindex and match.lastindex >= 2:
                 new_title = (match.group(2) or "").strip()
-            if identifier.lower().startswith("task "):
-                identifier = identifier[5:].strip()
-            if identifier:
-                entities["task_identifier"] = self._clean_task_identifier(identifier)
+            self._assign_parsed_task_identifier(entities, identifier)
             if new_title:
                 entities["simplified_title"] = new_title
             return True
@@ -1497,18 +1488,13 @@ class EnhancedCommandParser:
                     entities["link_label"] = match.group(1).strip()
                     identifier = match.group(2).strip()
                     remainder_index = 3
-                if identifier.lower().startswith("task "):
-                    identifier = identifier[5:].strip()
-
-                if intent == "complete_task" and identifier.lower() in [
-                    "that task",
-                    "the task",
-                    "this task",
-                ]:
-                    task_name = self._extract_task_name_from_context(message)
-                    identifier = task_name or identifier
-
-                entities["task_identifier"] = self._clean_task_identifier(identifier)
+                self._assign_parsed_task_identifier(
+                    entities,
+                    identifier,
+                    message=message,
+                    resolve_complete_pronoun=intent == "complete_task",
+                    assign_when_empty=True,
+                )
 
                 if intent == "update_task" and len(match.groups()) > 1:
                     update_text = match.group(2).strip()
@@ -1520,13 +1506,6 @@ class EnhancedCommandParser:
                     if match.lastindex and match.lastindex >= remainder_index:
                         remainder = (match.group(remainder_index) or "").strip()
                     self._assign_task_link_entities(entities, remainder)
-            return True
-
-        if intent == "update_profile":
-            if len(match.groups()) >= 2:
-                field = match.group(1).strip()
-                value = match.group(2).strip()
-                entities[field] = value
             return True
 
         if intent == "task_stats":
@@ -1549,6 +1528,51 @@ class EnhancedCommandParser:
             return True
 
         return False
+
+    @handle_errors("assigning a parsed task identifier", default_return=None)
+    def _assign_parsed_task_identifier(
+        self,
+        entities: dict[str, Any],
+        identifier: str,
+        *,
+        message: str = "",
+        resolve_complete_pronoun: bool = False,
+        assign_when_empty: bool = False,
+    ) -> None:
+        """Strip a leading 'task ' and store the cleaned task identifier."""
+        text = (identifier or "").strip()
+        if text.lower().startswith("task "):
+            text = text[5:].strip()
+        if resolve_complete_pronoun and text.lower() in {
+            "that task",
+            "the task",
+            "this task",
+        }:
+            task_name = self._extract_task_name_from_context(message)
+            text = task_name or text
+        if not text and not assign_when_empty:
+            return
+        entities["task_identifier"] = self._clean_task_identifier(text)
+
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
+    @handle_errors("extracting profile entities from rule-based patterns", default_return=False)
+    def _extract_profile_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+        *,
+        user_id: str | None = None,
+    ) -> bool:
+        """Extract field and value for an update_profile command."""
+        if intent != "update_profile":
+            return False
+        if len(match.groups()) >= 2:
+            field = match.group(1).strip()
+            value = match.group(2).strip()
+            entities[field] = value
+        return True
 
     @handle_errors("assigning snooze option entities", default_return=None)
     def _assign_snooze_option_entities(
@@ -2080,6 +2104,7 @@ class EnhancedCommandParser:
 
         extractors = (
             self._extract_phrase_settings_entities_rule_based,
+            self._extract_profile_entities_rule_based,
             self._extract_task_entities_rule_based,
             self._extract_schedule_entities_rule_based,
             self._extract_history_analytics_entities_rule_based,

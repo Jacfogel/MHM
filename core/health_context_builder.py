@@ -244,14 +244,234 @@ def health_wellness_snippet_from_context(
     return ""
 
 
+@handle_errors("normalizing a health signal band", default_return="unknown")
+def _signal_band(value: Any) -> str:
+    """Normalize a coarse signal label such as high, low, or unknown."""
+    return str(value or "unknown").strip().lower()
+
+
+@handle_errors("appending a health signal note", default_return=None)
+def _append_signal_note(
+    notes: list[tuple[str, str]], bucket: str, text: str
+) -> None:
+    """Record a phrase under sleep, movement, or readiness."""
+    if text:
+        notes.append((bucket, text))
+
+
+@handle_errors("building health signal phrases", default_return=[])
+def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
+    """
+    Turn one health signal into sleep, movement, and readiness phrases.
+
+    ``voice`` is ``you`` for a reply or ``their`` for an AI prompt. Callers
+    choose how many notes to keep.
+    """
+    you = voice == "you"
+    usual = "your" if you else "their"
+    notes: list[tuple[str, str]] = []
+
+    sleep_text = _format_rounded_sleep_hours(signal.get("sleep_hours"))
+    sleep_recovery = _signal_band(signal.get("sleep_recovery"))
+    if sleep_text:
+        if you:
+            qualifier = {
+                "high": "a solid night",
+                "low": "a lighter night",
+                "normal": "about typical",
+            }.get(sleep_recovery)
+            if qualifier:
+                sleep_phrase = f"you got about {sleep_text} recently ({qualifier})"
+            else:
+                sleep_phrase = f"you got about {sleep_text} recently"
+        else:
+            qualifier = {
+                "high": "a fuller night",
+                "low": "a shorter night",
+                "normal": "about typical",
+            }.get(sleep_recovery)
+            if qualifier:
+                sleep_phrase = f"about {sleep_text} ({qualifier})"
+            else:
+                sleep_phrase = f"about {sleep_text}"
+        _append_signal_note(notes, "sleep", sleep_phrase)
+    elif sleep_recovery == "high":
+        _append_signal_note(
+            notes,
+            "sleep",
+            "you got a solid night's sleep recently"
+            if you
+            else "sleep looked solid (a fuller night)",
+        )
+    elif sleep_recovery == "low":
+        _append_signal_note(
+            notes,
+            "sleep",
+            "your recent sleep looked lighter than usual"
+            if you
+            else "sleep looked light (a shorter night)",
+        )
+    elif sleep_recovery == "normal":
+        _append_signal_note(
+            notes,
+            "sleep",
+            "your recent sleep looked about typical"
+            if you
+            else "sleep looked about typical",
+        )
+
+    sleep_vs = _signal_band(signal.get("sleep_vs_baseline"))
+    sleep_vs_phrase = {
+        "below": f"sleep has been below {usual} usual amount"
+        if you
+        else f"sleep was below {usual} usual amount",
+        "above": f"sleep has been above {usual} usual amount"
+        if you
+        else f"sleep was above {usual} usual amount",
+        "normal": f"sleep has been close to {usual} usual amount"
+        if you
+        else f"sleep was close to {usual} usual amount",
+    }.get(sleep_vs, "")
+    _append_signal_note(notes, "sleep", sleep_vs_phrase)
+
+    sleep_quality = _signal_band(signal.get("sleep_quality"))
+    _append_signal_note(
+        notes,
+        "sleep",
+        {
+            "high": "sleep quality looked solid",
+            "low": "sleep quality looked lighter than usual",
+            "normal": "sleep quality looked about typical",
+        }.get(sleep_quality, ""),
+    )
+
+    steps_text = _format_rounded_steps(signal.get("steps"))
+    activity = _signal_band(signal.get("activity_level"))
+    if steps_text:
+        step_qualifier = {
+            "low": "lighter than usual",
+            "high": "higher than usual",
+            "normal": f"around {usual} usual level",
+        }.get(activity)
+        if step_qualifier:
+            steps_phrase = f"about {steps_text} ({step_qualifier})"
+        else:
+            steps_phrase = f"about {steps_text}"
+        _append_signal_note(notes, "movement", steps_phrase)
+    elif activity == "low":
+        _append_signal_note(
+            notes,
+            "movement",
+            "activity has been on the lighter side"
+            if you
+            else "activity was lighter than usual",
+        )
+    elif activity == "high":
+        _append_signal_note(
+            notes,
+            "movement",
+            "you have been more active than usual"
+            if you
+            else "activity was higher than usual",
+        )
+    elif activity == "normal":
+        _append_signal_note(
+            notes,
+            "movement",
+            f"activity has been around {usual} usual level"
+            if you
+            else f"activity was around {usual} usual level",
+        )
+
+    active_text = _format_rounded_active_minutes(signal.get("active_minutes"))
+    active_intensity = _signal_band(signal.get("active_intensity"))
+    if active_text:
+        effort_qualifier = {
+            "high": "higher than usual",
+            "low": "lighter than usual",
+            "normal": f"around {usual} usual level",
+        }.get(active_intensity)
+        if effort_qualifier:
+            active_phrase = f"about {active_text} ({effort_qualifier})"
+        else:
+            active_phrase = f"about {active_text}"
+        _append_signal_note(notes, "movement", active_phrase)
+    elif active_intensity == "high":
+        _append_signal_note(notes, "movement", "active effort was higher than usual")
+    elif active_intensity == "low":
+        _append_signal_note(notes, "movement", "active effort was lighter than usual")
+    elif active_intensity == "normal":
+        _append_signal_note(
+            notes, "movement", f"active effort was around {usual} usual level"
+        )
+
+    resting_hr = _signal_band(signal.get("resting_hr_signal"))
+    if resting_hr == "elevated":
+        _append_signal_note(
+            notes, "readiness", "resting heart rate looks a bit higher than usual"
+        )
+    elif resting_hr == "low":
+        _append_signal_note(
+            notes, "readiness", "resting heart rate looks a bit lower than usual"
+        )
+
+    hrv = _signal_band(signal.get("hrv_signal"))
+    if hrv == "low":
+        _append_signal_note(
+            notes,
+            "readiness",
+            "your body may need a gentler pace than usual"
+            if you
+            else "body readiness looks a bit lower than usual",
+        )
+    elif hrv == "high":
+        _append_signal_note(
+            notes,
+            "readiness",
+            "your body readiness looks stronger than usual"
+            if you
+            else "body readiness looks stronger than usual",
+        )
+
+    return notes
+
+
+@handle_errors("selecting one wellness note per bucket", default_return=[])
+def _select_one_note_per_bucket(notes: list[tuple[str, str]]) -> list[str]:
+    """Keep the first sleep note, the first movement note, and the first readiness note."""
+    chosen: dict[str, str] = {}
+    for bucket, text in notes:
+        if text and bucket not in chosen:
+            chosen[bucket] = text
+    return [
+        chosen[bucket]
+        for bucket in ("sleep", "movement", "readiness")
+        if bucket in chosen
+    ]
+
+
+@handle_errors("joining wellness phrases", default_return="")
+def _join_wellness_phrases(phrases: list[str]) -> str:
+    """Join one, two, or three wellness phrases into a single sentence."""
+    if not phrases:
+        return ""
+    if len(phrases) == 1:
+        return f"{phrases[0].capitalize()}."
+    if len(phrases) == 2:
+        return f"{phrases[0].capitalize()}, and {phrases[1]}."
+    return f"{phrases[0].capitalize()}, {phrases[1]}, and {phrases[2]}."
+
+
 @handle_errors("building user-facing wellness snippet from health signal", default_return="")
 def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     """
     Return a coarse, user-facing wellness read from the active health signal.
 
     Used when message_guidance is empty or confidence is low but recent wearable
-    data still supports an honest wellness reply. May include rounded sleep hours,
-    step counts, active minutes, and multi-day streaks; never HR/HRV numbers.
+    data still supports an honest wellness reply. Keeps one sleep note, one
+    movement note, and one readiness note. May include rounded sleep hours,
+    step counts, active minutes, and a streak when that bucket has no clearer
+    note. Never includes HR/HRV numbers.
     """
     if not is_personalization_active(user_id):
         return ""
@@ -260,101 +480,25 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     if not signal:
         return ""
 
-    phrases: list[str] = []
-    sleep_text = _format_rounded_sleep_hours(signal.get("sleep_hours"))
-    sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
-    if sleep_text:
-        if sleep_recovery == "high":
-            phrases.append(f"you got about {sleep_text} recently (a solid night)")
-        elif sleep_recovery == "low":
-            phrases.append(f"you got about {sleep_text} recently (a lighter night)")
-        elif sleep_recovery == "normal":
-            phrases.append(f"you got about {sleep_text} recently (about typical)")
+    notes = _health_signal_notes(signal, voice="you")
+    sleep_inserted = False
+    merged: list[tuple[str, str]] = []
+    sleep_streaks: list[tuple[str, str]] = []
+    movement_streaks: list[tuple[str, str]] = []
+    for phrase in _format_health_streak_phrases(user_id, signal):
+        if "sleep" in phrase:
+            sleep_streaks.append(("sleep", phrase))
         else:
-            phrases.append(f"you got about {sleep_text} recently")
-    elif sleep_recovery == "high":
-        phrases.append("you got a solid night's sleep recently")
-    elif sleep_recovery == "low":
-        phrases.append("your recent sleep looked lighter than usual")
-    elif sleep_recovery == "normal":
-        phrases.append("your recent sleep looked about typical")
-
-    phrases.extend(_format_health_streak_phrases(user_id, signal))
-
-    sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
-    if sleep_vs == "below":
-        phrases.append("sleep has been below your usual amount")
-    elif sleep_vs == "above":
-        phrases.append("sleep has been above your usual amount")
-    elif sleep_vs == "normal":
-        phrases.append("sleep has been close to your usual amount")
-
-    sleep_quality = str(signal.get("sleep_quality") or "unknown").strip().lower()
-    if sleep_quality == "high":
-        phrases.append("sleep quality looked solid")
-    elif sleep_quality == "low":
-        phrases.append("sleep quality looked lighter than usual")
-    elif sleep_quality == "normal":
-        phrases.append("sleep quality looked about typical")
-
-    steps_text = _format_rounded_steps(signal.get("steps"))
-    activity = str(signal.get("activity_level") or "unknown").strip().lower()
-    if steps_text:
-        if activity == "low":
-            phrases.append(f"about {steps_text} (lighter than usual)")
-        elif activity == "high":
-            phrases.append(f"about {steps_text} (higher than usual)")
-        elif activity == "normal":
-            phrases.append(f"about {steps_text} (around your usual level)")
-        else:
-            phrases.append(f"about {steps_text}")
-    elif activity == "low":
-        phrases.append("activity has been on the lighter side")
-    elif activity == "high":
-        phrases.append("you have been more active than usual")
-    elif activity == "normal":
-        phrases.append("activity has been around your usual level")
-
-    active_text = _format_rounded_active_minutes(signal.get("active_minutes"))
-    active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
-    if active_text:
-        if active_intensity == "high":
-            phrases.append(f"about {active_text} (higher than usual)")
-        elif active_intensity == "low":
-            phrases.append(f"about {active_text} (lighter than usual)")
-        elif active_intensity == "normal":
-            phrases.append(f"about {active_text} (around your usual level)")
-        else:
-            phrases.append(f"about {active_text}")
-    elif active_intensity == "high":
-        phrases.append("active effort was higher than usual")
-    elif active_intensity == "low":
-        phrases.append("active effort was lighter than usual")
-    elif active_intensity == "normal":
-        phrases.append("active effort was around your usual level")
-
-    resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
-    if resting_hr == "elevated":
-        phrases.append("resting heart rate looks a bit higher than usual")
-    elif resting_hr == "low":
-        phrases.append("resting heart rate looks a bit lower than usual")
-
-    hrv = str(signal.get("hrv_signal") or "unknown").strip().lower()
-    if hrv == "low":
-        phrases.append("your body may need a gentler pace than usual")
-    elif hrv == "high":
-        phrases.append("your body readiness looks stronger than usual")
-
-    if not phrases:
-        return ""
-
-    if len(phrases) == 1:
-        return f"{phrases[0].capitalize()}."
-    if len(phrases) == 2:
-        return f"{phrases[0].capitalize()}, and {phrases[1]}."
-    # Prefer sleep + streak/activity + one more readiness note.
-    selected = phrases[:3]
-    return f"{selected[0].capitalize()}, {selected[1]}, and {selected[2]}."
+            movement_streaks.append(("movement", phrase))
+    for bucket, text in notes:
+        merged.append((bucket, text))
+        if bucket == "sleep" and not sleep_inserted:
+            merged.extend(sleep_streaks)
+            sleep_inserted = True
+    if not sleep_inserted:
+        merged = sleep_streaks + merged
+    merged.extend(movement_streaks)
+    return _join_wellness_phrases(_select_one_note_per_bucket(merged))
 
 
 @handle_errors("checking usable health wellness context", default_return=False)
@@ -429,89 +573,7 @@ def _format_health_signal_coarse(signal: dict) -> str:
     parts: list[str] = []
     if signal.get("date"):
         parts.append(f"for {signal['date']}")
-
-    sleep_text = _format_rounded_sleep_hours(signal.get("sleep_hours"))
-    sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
-    if sleep_text:
-        if sleep_recovery == "high":
-            parts.append(f"about {sleep_text} (a fuller night)")
-        elif sleep_recovery == "low":
-            parts.append(f"about {sleep_text} (a shorter night)")
-        elif sleep_recovery == "normal":
-            parts.append(f"about {sleep_text} (about typical)")
-        else:
-            parts.append(f"about {sleep_text}")
-    elif sleep_recovery == "high":
-        parts.append("sleep looked solid (a fuller night)")
-    elif sleep_recovery == "low":
-        parts.append("sleep looked light (a shorter night)")
-    elif sleep_recovery == "normal":
-        parts.append("sleep looked about typical")
-
-    sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
-    if sleep_vs == "below":
-        parts.append("sleep was below their usual amount")
-    elif sleep_vs == "above":
-        parts.append("sleep was above their usual amount")
-    elif sleep_vs == "normal":
-        parts.append("sleep was close to their usual amount")
-
-    sleep_quality = str(signal.get("sleep_quality") or "unknown").strip().lower()
-    if sleep_quality == "high":
-        parts.append("sleep quality looked solid")
-    elif sleep_quality == "low":
-        parts.append("sleep quality looked lighter than usual")
-    elif sleep_quality == "normal":
-        parts.append("sleep quality looked about typical")
-
-    steps_text = _format_rounded_steps(signal.get("steps"))
-    activity = str(signal.get("activity_level") or "unknown").strip().lower()
-    if steps_text:
-        if activity == "low":
-            parts.append(f"about {steps_text} (lighter than usual)")
-        elif activity == "high":
-            parts.append(f"about {steps_text} (higher than usual)")
-        elif activity == "normal":
-            parts.append(f"about {steps_text} (around their usual level)")
-        else:
-            parts.append(f"about {steps_text}")
-    elif activity == "low":
-        parts.append("activity was lighter than usual")
-    elif activity == "high":
-        parts.append("activity was higher than usual")
-    elif activity == "normal":
-        parts.append("activity was around their usual level")
-
-    active_text = _format_rounded_active_minutes(signal.get("active_minutes"))
-    active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
-    if active_text:
-        if active_intensity == "high":
-            parts.append(f"about {active_text} (higher than usual)")
-        elif active_intensity == "low":
-            parts.append(f"about {active_text} (lighter than usual)")
-        elif active_intensity == "normal":
-            parts.append(f"about {active_text} (around their usual level)")
-        else:
-            parts.append(f"about {active_text}")
-    elif active_intensity == "high":
-        parts.append("active effort was higher than usual")
-    elif active_intensity == "low":
-        parts.append("active effort was lighter than usual")
-    elif active_intensity == "normal":
-        parts.append("active effort was around their usual level")
-
-    resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
-    if resting_hr == "elevated":
-        parts.append("resting heart rate looks a bit higher than usual")
-    elif resting_hr == "low":
-        parts.append("resting heart rate looks a bit lower than usual")
-
-    hrv = str(signal.get("hrv_signal") or "unknown").strip().lower()
-    if hrv == "low":
-        parts.append("body readiness looks a bit lower than usual")
-    elif hrv == "high":
-        parts.append("body readiness looks stronger than usual")
-
+    parts.extend(text for _, text in _health_signal_notes(signal, voice="their"))
     return "; ".join(parts)
 
 
