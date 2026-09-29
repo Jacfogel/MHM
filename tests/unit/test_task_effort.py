@@ -41,5 +41,7 @@ class TestTaskEffort:
             "ai.client.lm_studio_client.call_lm_studio_api"
         ) as call:
             chatbot.return_value.is_ai_available.return_value = False
-            assert estimate_task_efforts([{"id": "a", "title": "Brand new task"}]) == []
+            assert estimate_task_efforts([{"id": "a", "title": "Brand new task"}]) == [
+                {"id": "a", "minutes": 15}
+            ]
             call.assert_not_called()

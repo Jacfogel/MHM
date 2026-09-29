@@ -248,10 +248,6 @@ def test_execute_action_plan_applies_result_aware_when_enhancement_disabled():
     handler_response = InteractionResponse("Here are your tasks: Buy milk", True)
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
-    ai_chatbot.generate_response.return_value = (
-        "You have one task on your list: buy milk."
-    )
-
     with patch(
         "communication.message_processing.action_plan_executor.dispatch_structured_command",
         return_value=handler_response,
@@ -263,20 +259,25 @@ def test_execute_action_plan_applies_result_aware_when_enhancement_disabled():
                 {"role": "user", "content": "show my tasks"},
             ],
         ) as assemble:
-            result = executor.execute_plan(
-                plan,
-                "user-1",
-                "discord",
-                command_parser=MagicMock(),
-                ai_chatbot=ai_chatbot,
-                enable_ai_enhancement=False,
-                command_definitions={},
-            )
+            with patch(
+                "communication.message_processing.action_plan_executor.call_lm_studio_api",
+                return_value="You have one task on your list: buy milk.",
+            ) as rewrite:
+                result = executor.execute_plan(
+                    plan,
+                    "user-1",
+                    "discord",
+                    command_parser=MagicMock(),
+                    ai_chatbot=ai_chatbot,
+                    enable_ai_enhancement=False,
+                    command_definitions={},
+                )
 
     assert result is not None
     assert result.response.message == "You have one task on your list: buy milk."
     assemble.assert_called_once()
-    ai_chatbot.generate_response.assert_called_once()
+    rewrite.assert_called_once()
+    ai_chatbot.generate_response.assert_not_called()
 
 
 def test_execute_multi_action_plan_applies_result_aware_to_each_action():
@@ -305,11 +306,6 @@ def test_execute_multi_action_plan_applies_result_aware_to_each_action():
     list_response = InteractionResponse("Tasks: Weekly laundry (high)", True)
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
-    ai_chatbot.generate_response.side_effect = [
-        "Done — task 1 is now high priority.",
-        "Your tasks: Weekly laundry, marked high priority.",
-    ]
-
     with patch(
         "communication.message_processing.action_plan_executor.dispatch_structured_command",
         side_effect=[update_response, list_response],
@@ -321,21 +317,29 @@ def test_execute_multi_action_plan_applies_result_aware_to_each_action():
                 {"role": "user", "content": "user prompt"},
             ],
         ) as assemble:
-            result = executor.execute_plan(
-                plan,
-                "user-1",
-                "discord",
-                command_parser=MagicMock(),
-                ai_chatbot=ai_chatbot,
-                enable_ai_enhancement=False,
-                command_definitions={},
-            )
+            with patch(
+                "communication.message_processing.action_plan_executor.call_lm_studio_api",
+                side_effect=[
+                    "Done — task 1 is now high priority.",
+                    "Your tasks: Weekly laundry, marked high priority.",
+                ],
+            ) as rewrite:
+                result = executor.execute_plan(
+                    plan,
+                    "user-1",
+                    "discord",
+                    command_parser=MagicMock(),
+                    ai_chatbot=ai_chatbot,
+                    enable_ai_enhancement=False,
+                    command_definitions={},
+                )
 
     assert result is not None
     assert "Done — task 1 is now high priority." in result.response.message
     assert "Your tasks: Weekly laundry, marked high priority." in result.response.message
     assert assemble.call_count == 2
-    assert ai_chatbot.generate_response.call_count == 2
+    assert rewrite.call_count == 2
+    ai_chatbot.generate_response.assert_not_called()
 
 
 def test_execute_action_plan_skips_result_aware_when_ai_unavailable():
@@ -379,3 +383,40 @@ def test_execute_action_plan_skips_result_aware_when_ai_unavailable():
     assert result.response.message == "Here are your tasks."
     assemble.assert_not_called()
     ai_chatbot.generate_response.assert_not_called()
+
+
+def test_result_rewrite_drops_unrelated_breakfast_reply():
+    """A failed or off-topic rewrite must not replace the handler message."""
+    executor = ActionPlanExecutor()
+    handler_response = InteractionResponse("Here are your tasks.", True)
+    action = AIActionRequest(
+        action_name="list_tasks",
+        entities={},
+        confidence=0.9,
+        source_message="show my tasks",
+    )
+    metadata = MagicMock()
+    metadata.to_dict.return_value = {"action_name": "list_tasks"}
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+
+    with patch(
+        "communication.message_processing.action_plan_executor.assemble_action_result_messages",
+        return_value=[
+            {"role": "system", "content": "rules"},
+            {"role": "user", "content": "show my tasks"},
+        ],
+    ):
+        with patch(
+            "communication.message_processing.action_plan_executor.call_lm_studio_api",
+            return_value="Julie, I notice you've been eating breakfast 40% of the time.",
+        ):
+            result = executor._generate_result_aware_response(
+                "user-1",
+                action,
+                handler_response,
+                metadata,
+                ai_chatbot=ai_chatbot,
+            )
+
+    assert result.message == "Here are your tasks."

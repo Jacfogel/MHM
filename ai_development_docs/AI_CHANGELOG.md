@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Home loads first, greetings stay greetings **COMPLETED**
+- Home shows the next task before minute estimates come back, so a slow or failed model call no longer holds the page.
+- A hello is answered as a hello. Check-in statistics are only used when that question was asked, and only for the check-ins that included it.
+- Chat prompts are shortened to fit the 2048-token local model. A failed rewrite keeps the real handler reply.
+
 ### 2026-09-28 - Function scan sees async routes **COMPLETED**
 - Complexity and registry scans now include `async def`, score each function without its nested helpers, and match handler keywords on whole name parts.
 - Website routes are methods on `WebGateway`. `create_web_app` only builds the app and registers them.
@@ -110,13 +115,6 @@ Guidelines:
 ### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds **COMPLETED**
 - [PLANS.md](../development_docs/PLANS.md) Section 7 records SMS, Apple Health ingest, and a 30-day trial then monthly subscription as **PLANNED**. None of that behavior is implemented.
 - SMS uses a paid provider. Apple Health is a phone push into the existing daily-summary path. The alpha account stays comped when billing exists.
-
-### 2026-09-22 - Google sign-in creates accounts; Apple sign-in removed **COMPLETED**
-- A verified Google email, or a Facebook profile that shares an email, now creates an MHM account when that address is new, then opens first-run setup.
-- An address that already belongs to an active account still signs into that account. Facebook without an email does not create an account.
-- Apple website sign-in, its settings, and its callback are removed. Google and Facebook remain.
-- First-run setup requires one of messages, tasks, or check-ins, and it no longer force-enables task reminders. Each feature left on gets its own category, question, or task step, plus a reminder-window step.
-- Setup can connect Discord and return to setup. Skipping it keeps email delivery and leaves Discord-only buttons and message reactions unavailable. Custom check-in questions and personalized message categories are added later in Account.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

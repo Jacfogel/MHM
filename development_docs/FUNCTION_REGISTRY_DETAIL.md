@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 23:50:22
+> **Last Generated**: 2026-09-29 00:28:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 291
-- **Functions Found**: 3034
-- **Methods Found**: 1571
+- **Functions Found**: 3043
+- **Methods Found**: 1572
 - **Classes Found**: 267
-- **Total Items**: 4605
-- **Functions Documented**: 2678
-- **Methods Documented**: 1392
+- **Total Items**: 4615
+- **Functions Documented**: 2687
+- **Methods Documented**: 1393
 - **Classes Documented**: 200
-- **Total Documented**: 4070
+- **Total Documented**: 4080
 - **Template-Generated**: 56
-- **Last Updated**: 2026-09-28
+- **Last Updated**: 2026-09-29
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (167)
+### **Task Management Functions** (169)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -142,6 +142,10 @@ Returns:
 - [OK] `async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
 - [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
+- [OK] `generate_greeting_reply(self, user_prompt, user_id)` - Answer a hello without check-in statistics or a full context prompt.
+
+The local model is loaded with a small context window. A greeting does not
+need that packet, and a failed call used to fall through to a habit statistic.
 - [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
 (check-in data). Uses longer timeout since this is not real-time.
 
@@ -189,6 +193,10 @@ Returns:
   - [OK] `AIChatBotSingleton.async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
   - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
+  - [OK] `AIChatBotSingleton.generate_greeting_reply(self, user_prompt, user_id)` - Answer a hello without check-in statistics or a full context prompt.
+
+The local model is loaded with a small context window. A greeting does not
+need that packet, and a failed call used to fall through to a habit statistic.
   - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
 (check-in data). Uses longer timeout since this is not real-time.
 
@@ -312,7 +320,12 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 
 #### `ai/client/lm_studio_client.py`
 **Functions:**
+- [OK] `_shrink_system_prompt(content, budget)` - Keep the start of the instructions and the start of the user context.
 - [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
+- [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink the system prompt so the request fits a 2048-token local model.
+
+The user message is kept. Extra instruction text is shortened before the
+selected user context, and that context keeps its opening lines.
 - [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
 
 #### `ai/client/lm_studio_manager.py`
@@ -561,6 +574,10 @@ Returns:
 - [OK] `_append_feature_availability_line(parts, feature_status)` - Append the IMPORTANT feature-availability line, or the unknown fallback.
 - [MISSING] `_checkin_completed_today(ts, user_id)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
+- [OK] `_habit_rate_line(verb, yes_count, answered, rate, total_entries)` - Phrase one habit as yeses out of answers. Omit it when it was never asked.
+
+``answered`` of -1 means an older analysis object that only stored a rate
+against every check-in. Those lines keep using the check-in count.
 - [OK] `_phrase_feature_status_lines()` - Return the shared feature-availability phrases.
 - [OK] `_phrase_mood_trend(parts, avg_mood, trend)` - Append the shared mood-average prompt line.
 - [OK] `_phrase_recent_checkin_count(parts, count)` - Append the shared recent check-in count line.
@@ -649,6 +666,9 @@ Returns:
 - [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
 
 ``analysis`` must come from ``analyze_checkin_entries`` so metrics match conversational context.
+
+Long prompts are context dumps, not the user's question. They must not pick
+a check-in statistic just because the dump mentions breakfast or mood.
 - [OK] `try_health_guidance_wellness_response(prompt_lower, name_prefix, health_guidance_summary)` - Return a wellness reply from recent Google Health guidance when check-ins are absent.
 
 #### `ai/fallback/context.py`
@@ -663,6 +683,8 @@ Returns:
 #### `ai/fallback/conversational.py`
 **Functions:**
 - [OK] `default_contextual_response(name_prefix, is_new_user)` - Last-resort supportive fallback when no keyword or check-in path matched.
+- [OK] `is_simple_greeting(message)` - Return True when the whole message is only a hello, with no other request.
+- [OK] `simple_greeting_text(user_name)` - Return a greeting that does not bring up check-ins or habit statistics.
 - [OK] `try_conversational_support(prompt_lower, name_prefix, user_name)` - Keyword-based general support (no check-in calculations).
 - [MISSING] `try_new_user_no_context(prompt_lower, name_prefix, is_new_user)` - No description
 - [MISSING] `try_technical_unavailable(prompt_lower, name_prefix)` - No description
@@ -898,6 +920,10 @@ Returns:
 - [OK] `collect_numeric_values(checkins, key)` - Collect asked-and-answered numeric values for one check-in field.
 - [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale.
 - [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale.
+- [OK] `count_yes_answers(entries, question_key)` - Return (yes count, answered count) for a yes/no question that was asked.
+
+Check-ins that never asked the question, or skipped it, are left out of both
+numbers. A rate then means "of the times they answered", not "of every check-in".
 - [OK] `determine_numeric_trend(values, recent_count)` - Return improving, declining, or stable from a numeric series.
 - [OK] `format_wellness_score_report(analysis)` - Shape CheckinAnalysis into the UI/command wellness-score payload.
 - [OK] `generate_insights(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - Phrase compact check-in insights for prompts and fallback copy.
@@ -6826,7 +6852,9 @@ When restore_steps is true, finished steps of a top-level task come back with it
 #### `tasks/task_effort.py`
 **Functions:**
 - [OK] `_cache_key(task)` - Build a cache key from the task title and description.
+- [OK] `_cache_local_estimates(pending, estimates)` - Store a local minute guess so the next Home load does not wait on the model.
 - [OK] `estimate_task_efforts(tasks)` - Return minute estimates for active tasks. Missing estimates are omitted.
+- [OK] `local_task_minutes(task)` - Guess minutes from the title so Home can rank tasks without the model.
 - [OK] `parse_task_effort_lines(text, allowed_ids)` - Read `id minutes` lines and keep only ids from this request.
 
 #### `tasks/task_link_helpers.py`

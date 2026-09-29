@@ -184,6 +184,20 @@ class TestFallbackResponses:
         _text, category = build_contextual_fallback("did I eat breakfast", "user-test")
         assert category == FallbackCategory.CHECKIN_SUMMARY
 
+    @patch("ai.fallback.data_access.get_user_data", return_value={"context": {"preferred_name": "Julie"}})
+    @patch(
+        "ai.fallback.data_access.get_recent_responses",
+        return_value=[
+            {"mood": 3, "energy": 3, "ate_breakfast": True},
+            {"mood": 4, "energy": 4, "ate_breakfast": True},
+        ],
+    )
+    def test_greeting_does_not_cite_breakfast(self, _mock_recent, _mock_user_data):
+        text, category = build_contextual_fallback("hi", "user-test")
+        assert category == FallbackCategory.GENERAL_SUPPORT
+        assert "breakfast" not in text.lower()
+        assert "hello" in text.lower()
+
     @patch("ai.fallback.data_access.get_user_data", return_value={"context": {}})
     @patch(
         "ai.fallback.data_access.get_recent_responses",

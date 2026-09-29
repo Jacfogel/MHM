@@ -59,6 +59,31 @@ def _rows() -> list[dict]:
     ]
 
 
+def test_breakfast_rate_ignores_checkins_that_did_not_ask():
+    rows = [
+        {
+            "questions_asked": ["ate_breakfast"],
+            "responses": {"ate_breakfast": True},
+        },
+        {
+            "questions_asked": ["mood"],
+            "responses": {"mood": 4},
+        },
+        {
+            "questions_asked": ["ate_breakfast"],
+            "responses": {"ate_breakfast": True},
+        },
+        {
+            "questions_asked": ["energy"],
+            "responses": {"energy": 3},
+        },
+    ]
+    analysis = analyze_checkin_entries(rows)
+    assert analysis.breakfast_answered == 2
+    assert analysis.breakfast_count == 2
+    assert analysis.breakfast_rate == 100.0
+
+
 def test_analyze_checkin_entries_matches_wellness_report_for_same_rows():
     rows = _rows()
     analysis = analyze_checkin_entries(rows)

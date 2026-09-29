@@ -58,6 +58,20 @@ class TestContextAnalyticsSharedSource:
         assert analysis.breakfast_count == 2
         assert analysis.total_entries == 3
 
+    def test_try_checkin_summary_ignores_breakfast_inside_a_context_dump(self):
+        analysis = ContextAnalysis(
+            total_entries=10,
+            breakfast_count=4,
+            breakfast_answered=4,
+            breakfast_rate=40.0,
+        )
+        prompt = (
+            "They ate breakfast 4 out of 10 times (40% of the time). "
+            "User: hi\n"
+            + ("context " * 40)
+        )
+        assert try_checkin_summary_response(prompt, analysis, "Julie, ") is None
+
     def test_try_checkin_summary_does_not_match_breakfast_inside_other_words(self):
         analysis = ContextAnalysis(total_entries=3, breakfast_rate=80.0)
         result = try_checkin_summary_response("tell me lately", analysis, "")

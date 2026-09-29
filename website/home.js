@@ -174,6 +174,41 @@
     return account.needs_setup === true;
   }
 
+  let focusedTask = null;
+  let suggestedSteps = [];
+  let homeLoad = 0;
+
+  function renderFocus(taskList, efforts, energy) {
+    const withEffort = (taskList || []).map(task => ({ ...task, effort_minutes: efforts[task.id] }));
+    const pick = chooseFocus(withEffort, new Date(), window.mhmRandom || Math.random, energy);
+    focusedTask = pick ? pick.task : null;
+    const actions = document.getElementById('home-task-actions');
+    const breakForm = document.getElementById('home-task-break-form');
+    const breakButton = document.getElementById('home-task-break');
+    const ownButton = document.getElementById('home-task-own');
+    const stepTitle = document.getElementById('home-task-step-title');
+    document.getElementById('home-task-title').textContent = focusedTask ? focusedTask.title : 'No tasks yet.';
+    document.getElementById('home-task-meta').textContent = pick
+      ? focusMeta(pick)
+      : 'Add something small on Tasks, or tell MHM what you need.';
+    const parent = focusedTask && focusedTask.parent_id
+      ? withEffort.find(task => task.id === focusedTask.parent_id)
+      : null;
+    const why = pick ? focusReason(pick) : '';
+    document.getElementById('home-task-why').textContent = parent ? `${why} Part of ${parent.title}.` : why;
+    if (actions) actions.hidden = !focusedTask;
+    if (breakButton) breakButton.hidden = !focusedTask || Boolean(focusedTask.parent_id);
+    if (ownButton) ownButton.hidden = !focusedTask || !focusedTask.parent_id;
+    if (stepTitle) stepTitle.value = '';
+    if (breakForm) breakForm.hidden = true;
+    suggestedSteps = [];
+    const taskStatus = document.getElementById('home-task-status');
+    if (taskStatus) {
+      taskStatus.textContent = '';
+      taskStatus.classList.remove('is-error');
+    }
+  }
+
   async function loadHome() {
     if (!homeContent) return;
     try {
@@ -189,14 +224,14 @@
       });
       document.getElementById('home-task-off').hidden = account.tasks_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;
-      let checkinState = { active: false };
-      if (account.checkins_enabled) {
-        try {
-          checkinState = await api('/api/checkins');
-        } catch (error) {
-          checkinState = { active: false };
-        }
-      }
+      const loadId = ++homeLoad;
+      const tasksPromise = api('/api/tasks?status=active');
+      const checkinPromise = account.checkins_enabled
+        ? api('/api/checkins').catch(() => ({ active: false }))
+        : Promise.resolve({ active: false });
+      const [tasks, loadedCheckin] = await Promise.all([tasksPromise, checkinPromise]);
+      if (loadId !== homeLoad) return;
+      const checkinState = loadedCheckin || { active: false };
       const checkinOn = document.getElementById('home-checkin-on');
       const answerLink = document.getElementById('home-checkin-answer');
       const checkedIn = document.getElementById('home-checkin');
@@ -215,48 +250,21 @@
         answerLink.hidden = false;
         answerLink.textContent = 'Start check-in';
       }
-      const tasks = await api('/api/tasks?status=active');
-      let efforts = {};
-      try {
-        const estimate = await api('/api/tasks/effort');
-        efforts = Object.fromEntries((estimate.tasks || []).filter(item => item && item.id).map(item => [item.id, item.minutes]));
-      } catch (error) {
-        efforts = {};
-      }
-      const withEffort = (tasks.tasks || []).map(task => ({ ...task, effort_minutes: efforts[task.id] }));
+      const taskList = tasks.tasks || [];
       const rawEnergy = checkinState.energy_today;
       const energy = typeof rawEnergy === 'number' && Number.isFinite(rawEnergy) ? rawEnergy : null;
-      const pick = chooseFocus(withEffort, new Date(), window.mhmRandom || Math.random, energy);
-      focusedTask = pick ? pick.task : null;
-      const actions = document.getElementById('home-task-actions');
-      const breakForm = document.getElementById('home-task-break-form');
-      const breakButton = document.getElementById('home-task-break');
-      const ownButton = document.getElementById('home-task-own');
-      const stepTitle = document.getElementById('home-task-step-title');
-      document.getElementById('home-task-title').textContent = focusedTask ? focusedTask.title : 'No tasks yet.';
-      document.getElementById('home-task-meta').textContent = pick
-        ? focusMeta(pick)
-        : 'Add something small on Tasks, or tell MHM what you need.';
-      const parent = focusedTask && focusedTask.parent_id
-        ? withEffort.find(task => task.id === focusedTask.parent_id)
-        : null;
-      const why = pick ? focusReason(pick) : '';
-      document.getElementById('home-task-why').textContent = parent ? `${why} Part of ${parent.title}.` : why;
-      if (actions) actions.hidden = !focusedTask;
-      if (breakButton) breakButton.hidden = !focusedTask || Boolean(focusedTask.parent_id);
-      if (ownButton) ownButton.hidden = !focusedTask || !focusedTask.parent_id;
-      if (stepTitle) stepTitle.value = '';
-      if (breakForm) breakForm.hidden = true;
-      suggestedSteps = [];
-      const taskStatus = document.getElementById('home-task-status');
-      if (taskStatus) {
-        taskStatus.textContent = '';
-        taskStatus.classList.remove('is-error');
-      }
+      renderFocus(taskList, {}, energy);
       homeContent.hidden = false;
       pinTalkToLatest();
       window.requestAnimationFrame(pinTalkToLatest);
       status.textContent = '';
+      api('/api/tasks/effort').then(estimate => {
+        if (loadId !== homeLoad) return;
+        const breakForm = document.getElementById('home-task-break-form');
+        if (breakForm && !breakForm.hidden) return;
+        const efforts = Object.fromEntries((estimate.tasks || []).filter(item => item && item.id).map(item => [item.id, item.minutes]));
+        renderFocus(taskList, efforts, energy);
+      }).catch(() => {});
     } catch (error) {
       if (status) {
         status.textContent = error.message;
@@ -264,9 +272,6 @@
       }
     }
   }
-
-  let focusedTask = null;
-  let suggestedSteps = [];
 
   function localStamp(now = new Date()) {
     const pad = value => String(value).padStart(2, '0');

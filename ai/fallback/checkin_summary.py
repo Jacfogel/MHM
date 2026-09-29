@@ -73,7 +73,7 @@ def _partial_checkin_wellness_reply(
         parts.append(f"your average mood is around {analysis.avg_mood:.1f}/5")
     if analysis.avg_energy is not None:
         parts.append(f"your average energy is around {analysis.avg_energy:.1f}/5")
-    if analysis.total_entries and analysis.breakfast_rate is not None:
+    if analysis.breakfast_answered != 0 and analysis.breakfast_rate is not None:
         parts.append(
             f"you've had breakfast about {analysis.breakfast_rate:.0f}% of the time "
             f"in your recent check-ins"
@@ -98,8 +98,14 @@ def try_checkin_summary_response(
     """Return a check-in summary fallback when prompt and data align.
 
     ``analysis`` must come from ``analyze_checkin_entries`` so metrics match conversational context.
+
+    Long prompts are context dumps, not the user's question. They must not pick
+    a check-in statistic just because the dump mentions breakfast or mood.
     """
-    if _prompt_mentions_breakfast(prompt_lower):
+    if len(prompt_lower) > 240:
+        return None
+
+    if _prompt_mentions_breakfast(prompt_lower) and analysis.breakfast_answered != 0:
         if analysis.breakfast_rate >= 80:
             return (
                 f"{name_prefix}Great news! You've been eating breakfast {analysis.breakfast_rate:.0f}% of the time in your recent check-ins. "
@@ -149,7 +155,7 @@ def try_checkin_summary_response(
 
     if any(word in prompt_lower for word in _WELLNESS_PROGRESS_PROMPT_WORDS):
         insights = []
-        if analysis.breakfast_rate >= 70:
+        if analysis.breakfast_answered != 0 and analysis.breakfast_rate >= 70:
             insights.append("great breakfast habits")
         if analysis.avg_mood and analysis.avg_mood >= 3.5:
             insights.append("generally positive mood")

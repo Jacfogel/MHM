@@ -821,6 +821,47 @@ class AIChatBotSingleton:
         return response
 
     @handle_errors(
+        "generating a greeting reply",
+        default_return="Hello! How are you doing today?",
+    )
+    def generate_greeting_reply(self, user_prompt: str, user_id: str | None = None) -> str:
+        """Answer a hello without check-in statistics or a full context prompt.
+
+        The local model is loaded with a small context window. A greeting does not
+        need that packet, and a failed call used to fall through to a habit statistic.
+        """
+        from ai.fallback.conversational import simple_greeting_text
+        from ai.fallback.profile_helpers import load_user_context, preferred_name_from_context
+
+        name = preferred_name_from_context(load_user_context(user_id))
+        fallback = simple_greeting_text(name)
+        if not self._ensure_lm_studio_available():
+            return fallback
+
+        who = name or "there"
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    f"You are MHM. The user's name is {who}. "
+                    "They only said hello. Reply in one or two short warm sentences. "
+                    "Do not mention check-ins, breakfast, habits, tasks, or statistics."
+                ),
+            },
+            {"role": "user", "content": (user_prompt or "").strip()},
+        ]
+        raw = call_lm_studio_api(
+            messages=messages,
+            max_tokens=80,
+            temperature=0.4,
+            timeout=6,
+        )
+        text = (raw or "").strip()
+        if len(text) < 3 or "breakfast" in text.lower():
+            return fallback
+        return text
+
+    @handle_errors(
         "generating quick response",
         default_return="I'm having trouble responding right now. Please try again in a moment.",
     )

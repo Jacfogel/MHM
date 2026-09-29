@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 22:59:58
+> **Last Generated**: 2026-09-29 00:29:14
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 289
-- **Total Imports**: 2596
-- **Standard Library**: 747 (28.8%)
-- **Third-Party**: 222 (8.6%)
-- **Local Imports**: 1627 (62.7%)
+- **Total Imports**: 2603
+- **Standard Library**: 749 (28.8%)
+- **Third-Party**: 222 (8.5%)
+- **Local Imports**: 1632 (62.7%)
 
 ## Dependency Decision Trees
 
@@ -116,8 +116,8 @@ External libraries provide channel and UI support.
 ### High Coupling
 - `core/web_account_service.py` -> 33 unique local dependencies (high fan-out; review for inappropriate edges) (58 import statements; 25 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
-- `ai/chat/chatbot.py` -> 20 unique local dependencies (high fan-out; review for inappropriate edges) (21 import statements; 1 duplicate)
-- `communication/message_processing/interaction_manager.py` -> 18 unique local dependencies (high fan-out; review for inappropriate edges) (19 import statements; 1 duplicate)
+- `ai/chat/chatbot.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (23 import statements; 2 duplicate)
+- `communication/message_processing/interaction_manager.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
 
 ### Third-Party Risks

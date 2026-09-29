@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from ai.chat.action_planner import get_action_planner
+from ai.client.lm_studio_client import call_lm_studio_api
 from ai.context.assembly import assemble_action_result_messages
+from ai.fallback.conversational import is_simple_greeting
 from ai.prompts.action_catalog import AIActionPlan, AIActionRequest
 from communication.command_handlers.shared_types import InteractionResponse
 from communication.message_processing.structured_command_dispatcher import (
@@ -284,6 +286,10 @@ class ActionPlanExecutor:
         ai_chatbot,
     ) -> InteractionResponse:
         """Rewrite handler output using the action_result_response prompt flow."""
+        source = str(getattr(action, "source_message", "") or "")
+        if is_simple_greeting(source) or not ai_chatbot.is_ai_available():
+            return handler_response
+
         result_metadata = metadata.to_dict()
         messages = assemble_action_result_messages(
             user_id,
@@ -293,21 +299,19 @@ class ActionPlanExecutor:
         if not messages or len(messages) < 2:
             return handler_response
 
-        system_content = messages[0].get("content", "")
-        user_content = messages[1].get("content", action.source_message)
-        context_prompt = (
-            f"{system_content}\n\n"
-            f"User: {user_content}\n\n"
-            "Write one calm, concise user-visible reply that reflects the handler result. "
-            "Name what changed. Do not cheerlead, do not teach command syntax, and return ONLY the reply text."
+        raw = call_lm_studio_api(
+            messages=messages,
+            max_tokens=120,
+            temperature=0.4,
+            timeout=6,
         )
-        enhanced_text = ai_chatbot.generate_response(
-            context_prompt,
-            user_id=user_id,
-            timeout=3,
-        )
-        if enhanced_text and len(enhanced_text.strip()) > 10:
-            handler_response.message = enhanced_text.strip()
+        enhanced_text = (raw or "").strip()
+        if len(enhanced_text) <= 10:
+            return handler_response
+        asked_about_food = "breakfast" in source.lower() or "eat" in source.lower()
+        if "breakfast" in enhanced_text.lower() and not asked_about_food:
+            return handler_response
+        handler_response.message = enhanced_text
         return handler_response
 
 

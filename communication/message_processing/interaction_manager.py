@@ -160,6 +160,14 @@ class InteractionManager:
                 f"INTERACTION_MANAGER: Handling as contextual chat: confidence "
                 f"{parsing_result.confidence} < {self.min_command_confidence}"
             )
+            from ai.fallback.conversational import is_simple_greeting
+
+            if is_simple_greeting(message):
+                reply = self.ai_chatbot.generate_greeting_reply(
+                    message, user_id=user_id
+                )
+                return InteractionResponse(reply, True)
+
             from core.config import AI_ACTION_PLANNER_ENABLED
 
             if AI_ACTION_PLANNER_ENABLED:

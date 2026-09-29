@@ -8,8 +8,16 @@ Studio is unavailable. Do not add check-in analytics or new data-aware paths her
 keyword lists; prefer new FallbackCategory handlers in coordinator.py instead.
 """
 
+import re
+
 from ai.fallback.categories import FallbackCategory
 from core.error_handling import handle_errors
+
+_SIMPLE_GREETING = re.compile(
+    r"^(?:hi|hello|hey|hiya|howdy|yo|good morning|good afternoon|good evening|good night)"
+    r"(?: there)?[!., ]*$",
+    re.IGNORECASE,
+)
 
 CONTEXT_REQUIRING_PROMPTS = [
     "how am i",
@@ -64,6 +72,22 @@ def try_new_user_no_context(
             FallbackCategory.NEW_USER_NO_CONTEXT,
         )
     return None
+
+
+@handle_errors("checking for a simple greeting", default_return=False)
+def is_simple_greeting(message: str) -> bool:
+    """Return True when the whole message is only a hello, with no other request."""
+    return bool(_SIMPLE_GREETING.match((message or "").strip()))
+
+
+@handle_errors("building a simple greeting reply", default_return="Hello! How are you doing today?")
+def simple_greeting_text(user_name: str) -> str:
+    """Return a greeting that does not bring up check-ins or habit statistics."""
+    name = f", {user_name}" if user_name else ""
+    return (
+        f"Hello{name}! I'm here to offer support and encouragement. "
+        f"How are you doing today? What's on your mind?"
+    )
 
 
 @handle_errors("building conversational support fallback", default_return=None)
@@ -168,18 +192,12 @@ def try_conversational_support(
             FallbackCategory.GENERAL_SUPPORT,
         )
 
-    greeting_keywords = [
-        "hello",
-        "hi",
-        "hey",
-        "how are you",
-        "good morning",
-        "good evening",
-    ]
-    if any(keyword in prompt_lower for keyword in greeting_keywords):
+    if is_simple_greeting(prompt_lower) or any(
+        keyword in prompt_lower
+        for keyword in ("hello", "how are you", "good morning", "good evening")
+    ):
         return (
-            f"Hello{', ' + user_name if user_name else ''}! I'm here to offer support and encouragement. "
-            f"How are you doing today? What's on your mind?",
+            simple_greeting_text(user_name),
             FallbackCategory.GENERAL_SUPPORT,
         )
 

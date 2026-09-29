@@ -70,6 +70,28 @@ _FEATURE_STATUS_UNKNOWN = (
 )
 
 
+@handle_errors("phrasing a habit rate line", default_return="")
+def _habit_rate_line(
+    verb: str,
+    yes_count: int,
+    answered: int,
+    rate: float,
+    total_entries: int,
+) -> str:
+    """Phrase one habit as yeses out of answers. Omit it when it was never asked.
+
+    ``answered`` of -1 means an older analysis object that only stored a rate
+    against every check-in. Those lines keep using the check-in count.
+    """
+    denominator = total_entries if answered < 0 else answered
+    if denominator <= 0:
+        return ""
+    return (
+        f"They {verb} {yes_count} out of {denominator} times "
+        f"({rate:.0f}% of the time)"
+    )
+
+
 @handle_errors("phrasing check-in summary", default_return="")
 def phrase_checkin_summary(
     analysis: ContextAnalysis,
@@ -89,30 +111,46 @@ def phrase_checkin_summary(
         summary_lines.append(
             f"Their average energy level has been {analysis.avg_energy:.1f} out of 5"
         )
-    summary_lines.append(
-        f"They ate breakfast {analysis.breakfast_count} out of {total_entries} times "
-        f"({analysis.breakfast_rate:.0f}% of the time)"
+    breakfast_line = _habit_rate_line(
+        "ate breakfast",
+        analysis.breakfast_count,
+        analysis.breakfast_answered,
+        analysis.breakfast_rate,
+        total_entries,
     )
-    summary_lines.append(
-        f"They brushed their teeth {analysis.teeth_brushed_count} out of {total_entries} times "
-        f"({analysis.teeth_brushing_rate:.0f}% of the time)"
+    if breakfast_line:
+        summary_lines.append(breakfast_line)
+    teeth_line = _habit_rate_line(
+        "brushed their teeth",
+        analysis.teeth_brushed_count,
+        analysis.teeth_answered,
+        analysis.teeth_brushing_rate,
+        total_entries,
     )
+    if teeth_line:
+        summary_lines.append(teeth_line)
 
     if recent_checkins[:3]:
         summary_lines.append("Most recent check-ins:")
+        from checkins.analysis import coerce_yes_no, response_value
+
         for i, entry in enumerate(recent_checkins[:3]):
             entry_desc = []
-            if entry.get("mood") is not None:
-                entry_desc.append(f"mood was {entry['mood']} out of 5")
-            if entry.get("energy") is not None:
-                entry_desc.append(f"energy was {entry['energy']} out of 5")
-            if entry.get("ate_breakfast") is not None:
+            mood = response_value(entry, "mood")
+            energy = response_value(entry, "energy")
+            if mood is not None:
+                entry_desc.append(f"mood was {mood} out of 5")
+            if energy is not None:
+                entry_desc.append(f"energy was {energy} out of 5")
+            breakfast = coerce_yes_no(response_value(entry, "ate_breakfast"))
+            if breakfast is not None:
                 entry_desc.append(
-                    f"{'ate' if entry['ate_breakfast'] else 'did not eat'} breakfast"
+                    f"{'ate' if breakfast else 'did not eat'} breakfast"
                 )
-            if entry.get("brushed_teeth") is not None:
+            teeth = coerce_yes_no(response_value(entry, "brushed_teeth"))
+            if teeth is not None:
                 entry_desc.append(
-                    f"{'brushed' if entry['brushed_teeth'] else 'did not brush'} teeth"
+                    f"{'brushed' if teeth else 'did not brush'} teeth"
                 )
             if entry_desc:
                 summary_lines.append(f"  - Check-in {i + 1}: {', '.join(entry_desc)}")

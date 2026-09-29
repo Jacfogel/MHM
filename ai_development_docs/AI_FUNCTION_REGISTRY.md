@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 23:50:22
+> **Last Generated**: 2026-09-29 00:28:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 88.4% [!] GOOD**
-- **Total Functions**: 3034
-- **Total Methods**: 1571
-- **Documented**: 4070/4605
+- **Total Functions**: 3043
+- **Total Methods**: 1572
+- **Documented**: 4080/4615
 - **Files Scanned**: 291
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chat/chatbot.py` - Main AI implementation (69 functions)
++-- `ai/chat/chatbot.py` - Main AI implementation (71 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (91 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -172,8 +172,8 @@ Core System Decision Tree:
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
-- `ai/fallback/conversational.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
+- `ai/fallback/conversational.py` - 2/6 functions undocumented (67% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -205,15 +205,15 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (38 files, 416 functions)
-- `checkins/` -  (7 files, 153 functions)
+- `ai/` - AI chatbot functionality (38 files, 423 functions)
+- `checkins/` -  (7 files, 154 functions)
 - `communication/` - Communication channels and message processing (97 files, 1526 functions)
 - `core/` - System utilities and data management (38 files, 805 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 61 functions)
 - `scheduler/` -  (9 files, 110 functions)
 - `storage/` -  (16 files, 144 functions)
-- `tasks/` - Task management system (16 files, 179 functions)
+- `tasks/` - Task management system (16 files, 181 functions)
 - `ui/` - User interface components (43 files, 988 functions)
 - `user/` - User context and preferences (5 files, 56 functions)
 

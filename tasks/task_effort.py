@@ -12,6 +12,23 @@ logger = get_component_logger(__name__)
 
 _MINUTES_RE = re.compile(r"^(\S+)\s+(\d{1,3})\b")
 _effort_cache: dict[str, int] = {}
+_EFFORT_TIMEOUT_SECONDS = 4
+
+
+@handle_errors("estimating task minutes locally", default_return=20)
+def local_task_minutes(task: dict[str, Any]) -> int:
+    """Guess minutes from the title so Home can rank tasks without the model."""
+    title = str(task.get("title") or "").strip()
+    description = str(task.get("description") or "").strip()
+    text = f"{title} {description}".casefold()
+    if any(word in text for word in ("call", "text ", "email", "message")):
+        return 10
+    words = len(title.split())
+    if words <= 3:
+        return 15
+    if words <= 8:
+        return 30
+    return 45
 
 
 @handle_errors("parsing task effort estimates", default_return=[])
@@ -61,11 +78,10 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
         return estimates
     from ai.chat.chatbot import get_ai_chatbot
     from ai.client.lm_studio_client import call_lm_studio_api
-    from core.config import AI_COMMAND_PARSING_TIMEOUT
 
     if not get_ai_chatbot().is_ai_available():
-        logger.info("Skipping task effort estimates because the model is unavailable")
-        return estimates
+        logger.info("Using local task effort estimates because the model is unavailable")
+        return _cache_local_estimates(pending, estimates)
     lines = []
     allowed_ids = set()
     for task in pending[:20]:
@@ -89,14 +105,34 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
         messages=messages,
         max_tokens=220,
         temperature=0.2,
-        timeout=AI_COMMAND_PARSING_TIMEOUT,
+        timeout=_EFFORT_TIMEOUT_SECONDS,
     )
-    parsed = parse_task_effort_lines(raw or "", allowed_ids)
-    by_id = {str(task.get("id")): task for task in pending}
-    for item in parsed:
-        task = by_id.get(item["id"])
-        cache_key = _cache_key(task) if task else ""
+    parsed = {
+        item["id"]: item["minutes"]
+        for item in parse_task_effort_lines(raw or "", allowed_ids)
+    }
+    for task in pending:
+        task_id = str(task.get("id"))
+        minutes = parsed.get(task_id) or local_task_minutes(task)
+        cache_key = _cache_key(task)
         if cache_key:
-            _effort_cache[cache_key] = item["minutes"]
-        estimates.append(item)
+            _effort_cache[cache_key] = minutes
+        estimates.append({"id": task_id, "minutes": minutes})
+    return estimates
+
+
+@handle_errors("caching local task effort estimates", default_return=[])
+def _cache_local_estimates(
+    pending: list[dict[str, Any]], estimates: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Store a local minute guess so the next Home load does not wait on the model."""
+    for task in pending:
+        task_id = str(task.get("id") or "").strip()
+        if not task_id:
+            continue
+        minutes = local_task_minutes(task)
+        cache_key = _cache_key(task)
+        if cache_key:
+            _effort_cache[cache_key] = minutes
+        estimates.append({"id": task_id, "minutes": minutes})
     return estimates

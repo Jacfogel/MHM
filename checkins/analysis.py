@@ -86,9 +86,11 @@ class CheckinAnalysis:
     breakfast_count: int = 0
     teeth_brushed_count: int = 0
     breakfast_rate: float = 0.0
+    breakfast_answered: int = -1
     avg_mood: float | None = None
     avg_energy: float | None = None
     teeth_brushing_rate: float = 0.0
+    teeth_answered: int = -1
     mood_trend: str = "stable"
     energy_trend: str = "stable"
     mood_score: float | None = None
@@ -179,6 +181,29 @@ def coerce_yes_no(value: Any) -> bool | None:
         if text in _NO_TEXTS:
             return False
     return None
+
+
+@handle_errors("counting yes answers for one check-in question", default_return=(0, 0))
+def count_yes_answers(
+    entries: list[dict[str, Any]], question_key: str
+) -> tuple[int, int]:
+    """Return (yes count, answered count) for a yes/no question that was asked.
+
+    Check-ins that never asked the question, or skipped it, are left out of both
+    numbers. A rate then means "of the times they answered", not "of every check-in".
+    """
+    yes_count = 0
+    answered = 0
+    for entry in entries:
+        if not isinstance(entry, dict) or not is_question_asked(entry, question_key):
+            continue
+        value = coerce_yes_no(response_value(entry, question_key))
+        if value is None:
+            continue
+        answered += 1
+        if value:
+            yes_count += 1
+    return yes_count, answered
 
 
 @handle_errors("coercing numeric value", default_return=None)
@@ -544,10 +569,10 @@ def analyze_checkin_entries(
     total_entries = len(entries)
     logger.debug(f"Analyzing {total_entries} recent check-ins")
 
-    breakfast_count = sum(
-        1 for entry in entries if coerce_yes_no(response_value(entry, "ate_breakfast")) is True
+    breakfast_count, breakfast_answered = count_yes_answers(entries, "ate_breakfast")
+    breakfast_rate = (
+        (breakfast_count / breakfast_answered) * 100 if breakfast_answered else 0.0
     )
-    breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries else 0.0
 
     moods = collect_numeric_values(entries, "mood")
     avg_mood = sum(moods) / len(moods) if moods else None
@@ -555,11 +580,9 @@ def analyze_checkin_entries(
     energies = collect_numeric_values(entries, "energy")
     avg_energy = sum(energies) / len(energies) if energies else None
 
-    teeth_brushed_count = sum(
-        1 for entry in entries if coerce_yes_no(response_value(entry, "brushed_teeth")) is True
-    )
+    teeth_brushed_count, teeth_answered = count_yes_answers(entries, "brushed_teeth")
     teeth_brushing_rate = (
-        (teeth_brushed_count / total_entries) * 100 if total_entries else 0.0
+        (teeth_brushed_count / teeth_answered) * 100 if teeth_answered else 0.0
     )
 
     mood_trend = determine_numeric_trend(moods)
@@ -574,11 +597,13 @@ def analyze_checkin_entries(
         habit_score=habit_score,
         sleep_score=sleep_score,
     )
+    # Unanswered habits stay out of the insight bands. 50 and 51 sit between
+    # the breakfast and teeth thresholds, so a missing question is not "poor".
     insights = generate_insights(
-        breakfast_rate,
+        breakfast_rate if breakfast_answered else 50.0,
         avg_mood,
         avg_energy,
-        teeth_brushing_rate,
+        teeth_brushing_rate if teeth_answered else 51.0,
         mood_trend,
         energy_trend,
     )
@@ -594,9 +619,11 @@ def analyze_checkin_entries(
         breakfast_count=breakfast_count,
         teeth_brushed_count=teeth_brushed_count,
         breakfast_rate=breakfast_rate,
+        breakfast_answered=breakfast_answered,
         avg_mood=avg_mood,
         avg_energy=avg_energy,
         teeth_brushing_rate=teeth_brushing_rate,
+        teeth_answered=teeth_answered,
         mood_trend=mood_trend,
         energy_trend=energy_trend,
         mood_score=mood_score,

@@ -62,7 +62,9 @@ class TestContextAnalyticsCoverageExpansion:
 
         analysis = analyze_checkin_entries(rows)
 
-        assert abs(analysis.breakfast_rate - 33.33) < 0.1
+        assert analysis.breakfast_answered == 1
+        assert analysis.breakfast_count == 1
+        assert abs(analysis.breakfast_rate - 100.0) < 0.1
         assert analysis.avg_mood == 3.0
         assert analysis.avg_energy == 4.0
         assert analysis.teeth_brushing_rate == 0

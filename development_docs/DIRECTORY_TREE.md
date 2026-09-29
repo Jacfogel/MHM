@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-28 23:00:08
+> **Last Generated**: 2026-09-29 00:29:26
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -1192,6 +1192,7 @@ C:.
 |   |   |   test_interaction_handlers_helpers.py
 |   |   |   test_interaction_handlers_help_and_registry.py
 |   |   |   test_item_form_shared.py
+|   |   |   test_lm_studio_context_fit.py
 |   |   |   test_lm_studio_manager.py
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py

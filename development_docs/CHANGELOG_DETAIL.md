@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-28 - Home loads first, greetings stay greetings
+- **Fix**: Home renders after account, tasks, and check-in state, and fills minute estimates in afterward. See [home.js](../website/home.js). Estimates fall back to a local guess when the model is unavailable or returns nothing, with a 4 second cap. See [task_effort.py](../tasks/task_effort.py).
+- **Fix**: Breakfast and teeth rates count only check-ins where that question was asked and answered. A hello no longer receives a check-in statistic, and a failed action rewrite keeps the handler reply. Prompts sent to the local model are trimmed to its 2048-token window. See [analysis.py](../checkins/analysis.py), [checkin_summary.py](../ai/fallback/checkin_summary.py), [interaction_manager.py](../communication/message_processing/interaction_manager.py), and [lm_studio_client.py](../ai/client/lm_studio_client.py).
+- **Impact**: Home appears without waiting on the model. "Hi" gets a greeting. A breakfast percentage matches the check-ins that actually asked about breakfast.
+
 ### 2026-09-28 - Function scan sees async routes
 - **Fix**: Function discovery, the function registry, docstring repair, AI-work checks, class error-handling scans, and test-marker counts now treat `async def` the same as `def`. A function's complexity no longer includes nested function bodies. Handler keywords match underscore-separated name parts, so `settings` and `reset` are not treated as `set`. A large handler is still ranked by complexity. See [analyze_functions.py](../development_tools/functions/analyze_functions.py) and [exclusion_utilities.py](../development_tools/shared/exclusion_utilities.py).
 - **Fix**: Website account routes moved from closures inside `create_web_app` onto `WebGateway` in [web_account_service.py](../core/web_account_service.py). `create_web_app` validates configuration, builds the gateway, and registers routes. Session behavior is unchanged.
