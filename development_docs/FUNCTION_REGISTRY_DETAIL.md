@@ -2468,10 +2468,11 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Functions:**
 - [OK] `_chat_interaction_turns(user_id, existing)` - Add Discord and email exchanges that are not already website turns.
 - [OK] `_chat_turns(loaded)` - Return the saved website conversation turns from one inbox document.
+- [OK] `_load_website_inbox(path)` - Return the saved inbox, or an empty one when the file is not there yet.
 - [OK] `_outbound_turns(user_id, existing)` - Add MHM messages sent on any channel that are not already in the transcript.
 - [OK] `_pair_counts(turns)` - Count website user-then-MHM pairs already stored as chat turns.
 - [OK] `_reactable_by_text(recent)` - Map sent text to the newest delivery a website reaction can change.
-- [OK] `_read_website_inbox(path)` - Return the saved inbox, or an empty one when the file is not there yet.
+- [OK] `_read_website_inbox(path)` - Return a fresh inbox copy so one caller cannot change the empty default.
 - [OK] `_turn_sort_key(item, index)` - Oldest first. A person speaks before MHM when both share a timestamp.
 - [OK] `_visible_turn(item)` - Return one stored chat turn the home page can show.
 - [OK] `_with_reaction(turn, reactable)` - Attach the scheduled delivery when this MHM message can take a reaction.
@@ -4121,7 +4122,7 @@ Raises:
 #### `core/health_context_builder.py`
 **Functions:**
 - [OK] `_append_signal_note(notes, bucket, text)` - Record a phrase under sleep, movement, or readiness.
-- [OK] `_count_consecutive_streak(signals_by_date)` - Count consecutive calendar days ending at end_date that match predicate.
+- [OK] `_consecutive_streak_signals(signals_by_date)` - Return consecutive calendar days ending at end_date that match predicate.
 - [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
 - [OK] `_format_health_signal_coarse(signal)` - Plain-language wellness notes for AI prompts.
 
@@ -4130,21 +4131,22 @@ internal field labels and never includes HR/HRV numbers or device names.
 - [OK] `_format_health_streak_phrases(user_id, anchor_signal)` - Build multi-day streak phrases from recent signals.
 
 Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
-- [OK] `_format_rounded_active_minutes(active_minutes)` - Return '~45 active minutes' or empty when unavailable.
-- [OK] `_format_rounded_sleep_hours(hours)` - Return '~5.5 hours of sleep' or empty when unavailable.
-- [OK] `_format_rounded_steps(steps)` - Return '~2,400 steps' or empty when unavailable.
+- [OK] `_format_rounded_active_minutes(active_minutes)` - Return '45 active minutes' or empty when unavailable.
+- [OK] `_format_rounded_sleep_hours(hours)` - Return '5.5 hours of sleep' or empty when unavailable.
+- [OK] `_format_rounded_steps(steps)` - Return '2,400 steps' or empty when unavailable.
 - [OK] `_health_signal_notes(signal)` - Turn one health signal into sleep, movement, and readiness phrases.
 
 ``voice`` is ``you`` for a reply or ``their`` for an AI prompt. Callers
 choose how many notes to keep.
+- [OK] `_health_streaks(user_id, anchor_signal)` - Return each multi-day streak as bucket, phrase, and rounded median metric.
 - [OK] `_is_short_sleep_day(signal)` - True when sleep recovery, baseline, or quality indicates a lighter night.
 - [OK] `_join_wellness_phrases(phrases)` - Join one, two, or three wellness phrases into a single sentence.
+- [OK] `_median_number(values)` - Return the median of finite numbers. An even count averages the two middle values.
 - [OK] `_round_half_away_from_zero(value)` - Round a .5 tie away from zero so 0.5 becomes 1 and 2.5 becomes 3.
 - [OK] `_round_sleep_hours(hours)` - Round sleep hours to the nearest half hour, with ties away from zero.
-- [OK] `_rounded_bucket_metric(signal, bucket)` - Return rounded sleep hours, or steps before active minutes.
 - [OK] `_select_one_note_per_bucket(notes)` - Keep the first sleep note, the first movement note, and the first readiness note.
 - [OK] `_signal_band(value)` - Normalize a coarse signal label such as high, low, or unknown.
-- [OK] `_streak_reply_phrase(streak, signal, bucket)` - Keep the streak, and the rounded count beside it when one exists.
+- [OK] `_streak_reply_phrase(streak, metric)` - Keep the streak, with the rounded middle value in parentheses.
 - [OK] `build_personalized_checkin_context(user_id)` - Build scheduled-message context from recent check-ins only.
 - [OK] `build_personalized_google_health_context(user_id)` - Build scheduled-message context from Google Health signals only.
 - [OK] `build_personalized_profile_context(user_id)` - Build scheduled-message context from non-medical profile preferences.
@@ -4160,8 +4162,8 @@ Tone tokens only — never includes sleep hours, steps, HR, HRV, or device names
 Used when message_guidance is empty or confidence is low but recent wearable
 data still supports an honest wellness reply. Keeps one sleep note, one
 movement note, and one readiness note. A multi-day streak is that bucket's
-note, with rounded sleep hours, steps, or active minutes beside it.
-Never includes HR/HRV numbers.
+note. The count in parentheses is the rounded median of the days in the
+streak. Never includes HR/HRV numbers.
 - [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
 - [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
 - [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.

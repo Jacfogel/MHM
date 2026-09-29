@@ -31,9 +31,9 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-09-28 - Wellness streaks, honest rounding, and a quiet inbox **COMPLETED**
-- A wellness reply keeps a multi-day sleep or activity streak, with the rounded count beside it.
+- A wellness reply keeps a multi-day sleep or activity streak. The number beside it is the rounded middle of those days, written once as "about 5 hours".
 - Sleep, steps, and active minutes round a .5 tie away from zero, so 50 steps is about 100, not 0.
-- Opening website chat before any message exists no longer logs a missing inbox as an error.
+- Opening website chat before any message exists no longer logs a missing inbox as an error. A failed read still returns an empty inbox.
 
 ### 2026-09-28 - Wellness replies and task identifier cleanup **COMPLETED**
 - A wellness reply keeps one sleep note, one movement note, and one readiness note.

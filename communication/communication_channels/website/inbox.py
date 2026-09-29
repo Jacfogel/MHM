@@ -12,10 +12,11 @@ from core.time_utilities import now_timestamp_full
 logger = get_component_logger("communication_manager")
 MAX_INBOX_MESSAGES = 40
 MAX_CHAT_TURNS = 80
+_EMPTY_WEBSITE_INBOX = {"messages": [], "turns": []}
 
 
-@handle_errors("reading website inbox", default_return=None)
-def _read_website_inbox(path: str) -> dict:
+@handle_errors("reading website inbox", default_return=_EMPTY_WEBSITE_INBOX)
+def _load_website_inbox(path: str) -> dict:
     """Return the saved inbox, or an empty one when the file is not there yet."""
     if not isinstance(path, str) or not path.strip() or not os.path.isfile(path):
         return {"messages": [], "turns": []}
@@ -23,6 +24,20 @@ def _read_website_inbox(path: str) -> dict:
     if not isinstance(loaded, dict):
         return {"messages": [], "turns": []}
     return loaded
+
+
+@handle_errors("copying website inbox", default_return=_EMPTY_WEBSITE_INBOX)
+def _read_website_inbox(path: str) -> dict:
+    """Return a fresh inbox copy so one caller cannot change the empty default."""
+    loaded = _load_website_inbox(path)
+    if not isinstance(loaded, dict):
+        loaded = _EMPTY_WEBSITE_INBOX
+    messages = loaded.get("messages")
+    turns = loaded.get("turns")
+    return {
+        "messages": list(messages) if isinstance(messages, list) else [],
+        "turns": list(turns) if isinstance(turns, list) else [],
+    }
 
 
 @handle_errors("loading website inbox", default_return=[])
@@ -72,8 +87,7 @@ def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
         return False
     loaded = _read_website_inbox(path)
     messages = loaded.get("messages") if isinstance(loaded, dict) else None
-    if not isinstance(messages, list):
-        messages = []
+    messages = list(messages) if isinstance(messages, list) else []
     messages.append(
         {
             "id": secrets.token_urlsafe(9),
@@ -83,7 +97,10 @@ def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
         }
     )
     saved = save_json_data(
-        {"messages": messages[-MAX_INBOX_MESSAGES:], "turns": _chat_turns(loaded)},
+        {
+            "messages": messages[-MAX_INBOX_MESSAGES:],
+            "turns": list(_chat_turns(loaded)),
+        },
         path,
     )
     if not saved:
@@ -321,9 +338,8 @@ def append_website_chat_exchange(user_id: str, user_message: str, reply: str) ->
         return False
     loaded = _read_website_inbox(path)
     messages = loaded.get("messages") if isinstance(loaded, dict) else None
-    if not isinstance(messages, list):
-        messages = []
-    turns = _chat_turns(loaded)
+    messages = list(messages) if isinstance(messages, list) else []
+    turns = list(_chat_turns(loaded))
     created_at = now_timestamp_full()
     turns.append(
         {

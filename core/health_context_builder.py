@@ -53,30 +53,32 @@ def _round_sleep_hours(hours: float) -> float:
 
 @handle_errors("formatting rounded sleep hours", default_return="")
 def _format_rounded_sleep_hours(hours: Any) -> str:
-    """Return '~5.5 hours of sleep' or empty when unavailable."""
-    if not isinstance(hours, (int, float)):
+    """Return '5.5 hours of sleep' or empty when unavailable."""
+    if isinstance(hours, bool) or not isinstance(hours, (int, float)):
         return ""
     rounded = _round_sleep_hours(float(hours))
+    if rounded is None:
+        return ""
     text = str(int(rounded)) if rounded == int(rounded) else f"{rounded:.1f}"
-    return f"~{text} hours of sleep"
+    return f"{text} hours of sleep"
 
 
 @handle_errors("formatting rounded steps", default_return="")
 def _format_rounded_steps(steps: Any) -> str:
-    """Return '~2,400 steps' or empty when unavailable."""
-    if not isinstance(steps, (int, float)):
+    """Return '2,400 steps' or empty when unavailable."""
+    if isinstance(steps, bool) or not isinstance(steps, (int, float)):
         return ""
     rounded = _round_half_away_from_zero(float(steps) / 100.0) * 100
-    return f"~{rounded:,} steps"
+    return f"{rounded:,} steps"
 
 
 @handle_errors("formatting rounded active minutes", default_return="")
 def _format_rounded_active_minutes(active_minutes: Any) -> str:
-    """Return '~45 active minutes' or empty when unavailable."""
-    if not isinstance(active_minutes, (int, float)):
+    """Return '45 active minutes' or empty when unavailable."""
+    if isinstance(active_minutes, bool) or not isinstance(active_minutes, (int, float)):
         return ""
     rounded = _round_half_away_from_zero(float(active_minutes) / 5.0) * 5
-    return f"~{rounded} active minutes"
+    return f"{rounded} active minutes"
 
 
 @handle_errors("checking short-sleep signal day", default_return=False)
@@ -89,26 +91,111 @@ def _is_short_sleep_day(signal: dict[str, Any]) -> bool:
     )
 
 
-@handle_errors("counting consecutive health streak days", default_return=0)
-def _count_consecutive_streak(
+@handle_errors("finding the middle wellness value", default_return=None)
+def _median_number(values: list[Any]) -> float | None:
+    """Return the median of finite numbers. An even count averages the two middle values."""
+    numbers: list[float] = []
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        number = float(value)
+        if math.isfinite(number):
+            numbers.append(number)
+    if not numbers:
+        return None
+    numbers.sort()
+    middle = len(numbers) // 2
+    if len(numbers) % 2:
+        return numbers[middle]
+    return (numbers[middle - 1] + numbers[middle]) / 2.0
+
+
+@handle_errors("collecting consecutive health streak days", default_return=[])
+def _consecutive_streak_signals(
     signals_by_date: dict[str, dict[str, Any]],
     *,
     end_date: str,
     predicate: Callable[[dict[str, Any]], bool],
     lookback_days: int = STREAK_LOOKBACK_DAYS,
-) -> int:
-    """Count consecutive calendar days ending at end_date that match predicate."""
+) -> list[dict[str, Any]]:
+    """Return consecutive calendar days ending at end_date that match predicate."""
     end = parse_timestamp_full(f"{end_date} 00:00:00")
     if end is None:
-        return 0
-    count = 0
+        return []
+    matched: list[dict[str, Any]] = []
     for offset in range(lookback_days):
         day = (end.date() - timedelta(days=offset)).strftime(DATE_ONLY)
         signal = signals_by_date.get(day)
         if not signal or not predicate(signal):
             break
-        count += 1
-    return count
+        matched.append(signal)
+    return matched
+
+
+@handle_errors("building health streaks", default_return=[])
+def _health_streaks(
+    user_id: str,
+    anchor_signal: dict[str, Any],
+) -> list[tuple[str, str, str]]:
+    """
+    Return each multi-day streak as bucket, phrase, and rounded median metric.
+
+    The metric is the middle sleep hours, or steps before active minutes, across
+    the days that formed the streak. It is empty when those days have no number.
+    """
+    end_date = str(anchor_signal.get("date") or "").strip()
+    if not end_date:
+        return []
+
+    doc = load_health_signals(user_id) or {}
+    signals_by_date: dict[str, dict[str, Any]] = {}
+    for item in doc.get("signals") or []:
+        if isinstance(item, dict) and item.get("date"):
+            signals_by_date[str(item["date"])] = item
+
+    streaks: list[tuple[str, str, str]] = []
+    short_sleep = _consecutive_streak_signals(
+        signals_by_date, end_date=end_date, predicate=_is_short_sleep_day
+    )
+    if len(short_sleep) >= MIN_STREAK_DAYS:
+        metric = _format_rounded_sleep_hours(
+            _median_number([day.get("sleep_hours") for day in short_sleep])
+        )
+        streaks.append(
+            ("sleep", f"shorter sleep for {len(short_sleep)} days in a row", metric)
+        )
+
+    light_activity = _consecutive_streak_signals(
+        signals_by_date,
+        end_date=end_date,
+        predicate=lambda signal: activity_effort_band(signal) == "low",
+    )
+    high_activity = _consecutive_streak_signals(
+        signals_by_date,
+        end_date=end_date,
+        predicate=lambda signal: activity_effort_band(signal) == "high",
+    )
+    if len(light_activity) >= MIN_STREAK_DAYS:
+        movement = light_activity
+        label = "lighter"
+    elif len(high_activity) >= MIN_STREAK_DAYS:
+        movement = high_activity
+        label = "higher"
+    else:
+        movement = []
+        label = ""
+    if movement:
+        steps = _median_number([day.get("steps") for day in movement])
+        if steps is not None:
+            metric = _format_rounded_steps(steps)
+        else:
+            metric = _format_rounded_active_minutes(
+                _median_number([day.get("active_minutes") for day in movement])
+            )
+        streaks.append(
+            ("movement", f"{label} activity for {len(movement)} days in a row", metric)
+        )
+    return streaks
 
 
 @handle_errors("formatting health streak phrases", default_return=[])
@@ -121,39 +208,10 @@ def _format_health_streak_phrases(
 
     Only reports streaks of at least MIN_STREAK_DAYS consecutive calendar days.
     """
-    end_date = str(anchor_signal.get("date") or "").strip()
-    if not end_date:
-        return []
-
-    doc = load_health_signals(user_id) or {}
-    signals_by_date: dict[str, dict[str, Any]] = {}
-    for item in doc.get("signals") or []:
-        if isinstance(item, dict) and item.get("date"):
-            signals_by_date[str(item["date"])] = item
-
-    phrases: list[str] = []
-    short_sleep = _count_consecutive_streak(
-        signals_by_date, end_date=end_date, predicate=_is_short_sleep_day
-    )
-    if short_sleep >= MIN_STREAK_DAYS:
-        phrases.append(f"shorter sleep for {short_sleep} days in a row")
-
-    light_activity = _count_consecutive_streak(
-        signals_by_date,
-        end_date=end_date,
-        predicate=lambda signal: activity_effort_band(signal) == "low",
-    )
-    high_activity = _count_consecutive_streak(
-        signals_by_date,
-        end_date=end_date,
-        predicate=lambda signal: activity_effort_band(signal) == "high",
-    )
-    if light_activity >= MIN_STREAK_DAYS:
-        phrases.append(f"lighter activity for {light_activity} days in a row")
-    elif high_activity >= MIN_STREAK_DAYS:
-        phrases.append(f"higher activity for {high_activity} days in a row")
-
-    return phrases
+    return [
+        phrase
+        for _bucket, phrase, _metric in _health_streaks(user_id, anchor_signal)
+    ]
 
 
 @handle_errors("building safe health guidance summary", default_return="")
@@ -445,24 +503,11 @@ def _health_signal_notes(signal: dict, *, voice: str) -> list[tuple[str, str]]:
     return notes
 
 
-@handle_errors("formatting a rounded wellness metric", default_return="")
-def _rounded_bucket_metric(signal: dict, bucket: str) -> str:
-    """Return rounded sleep hours, or steps before active minutes."""
-    if bucket == "sleep":
-        return _format_rounded_sleep_hours(signal.get("sleep_hours"))
-    if bucket == "movement":
-        return _format_rounded_steps(signal.get("steps")) or _format_rounded_active_minutes(
-            signal.get("active_minutes")
-        )
-    return ""
-
-
 @handle_errors("preferring a multi-day streak in a wellness reply", default_return="")
-def _streak_reply_phrase(streak: str, signal: dict, bucket: str) -> str:
-    """Keep the streak, and the rounded count beside it when one exists."""
-    metric = _rounded_bucket_metric(signal, bucket)
+def _streak_reply_phrase(streak: str, metric: str) -> str:
+    """Keep the streak, with the rounded middle value in parentheses."""
     if metric:
-        return f"{streak}, about {metric} recently"
+        return f"{streak} (about {metric})"
     return streak
 
 
@@ -500,8 +545,8 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     Used when message_guidance is empty or confidence is low but recent wearable
     data still supports an honest wellness reply. Keeps one sleep note, one
     movement note, and one readiness note. A multi-day streak is that bucket's
-    note, with rounded sleep hours, steps, or active minutes beside it.
-    Never includes HR/HRV numbers.
+    note. The count in parentheses is the rounded median of the days in the
+    streak. Never includes HR/HRV numbers.
     """
     if not is_personalization_active(user_id):
         return ""
@@ -511,24 +556,22 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
         return ""
 
     notes = _health_signal_notes(signal, voice="you")
-    streaks = [
-        ("sleep" if "sleep" in phrase else "movement", phrase)
-        for phrase in _format_health_streak_phrases(user_id, signal)
-    ]
-    streak_by_bucket = dict(streaks)
+    streaks = _health_streaks(user_id, signal)
+    streak_by_bucket = {
+        bucket: _streak_reply_phrase(phrase, metric)
+        for bucket, phrase, metric in streaks
+    }
     used_streaks: set[str] = set()
     merged: list[tuple[str, str]] = []
     for bucket, text in notes:
         if bucket in streak_by_bucket and bucket not in used_streaks:
-            merged.append(
-                (bucket, _streak_reply_phrase(streak_by_bucket[bucket], signal, bucket))
-            )
+            merged.append((bucket, streak_by_bucket[bucket]))
             used_streaks.add(bucket)
             continue
         merged.append((bucket, text))
-    for bucket, phrase in streaks:
+    for bucket, phrase, metric in streaks:
         if bucket not in used_streaks:
-            merged.append((bucket, _streak_reply_phrase(phrase, signal, bucket)))
+            merged.append((bucket, _streak_reply_phrase(phrase, metric)))
             used_streaks.add(bucket)
     return _join_wellness_phrases(_select_one_note_per_bucket(merged))
 

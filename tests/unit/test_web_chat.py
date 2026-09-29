@@ -180,6 +180,20 @@ def test_missing_website_inbox_stays_missing(tmp_path, monkeypatch):
     assert '"turns": []' in stored or '"turns":[]' in stored
 
 
+def test_inbox_read_failure_returns_an_empty_inbox(monkeypatch):
+    from communication.communication_channels.website import inbox
+
+    def fail_isfile(_path):
+        raise OSError("inbox unreadable")
+
+    monkeypatch.setattr(inbox.os.path, "isfile", fail_isfile)
+    first = inbox._read_website_inbox("website_inbox.json")
+    assert first == {"messages": [], "turns": []}
+    first["messages"].append({"id": "x", "text": "leftover"})
+    second = inbox._read_website_inbox("website_inbox.json")
+    assert second == {"messages": [], "turns": []}
+
+
 def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):
     from communication.communication_channels.website import inbox
 

@@ -36,11 +36,54 @@ def test_format_health_guidance_for_user_reply_strips_prompt_framing():
 def test_wellness_counts_round_halves_away_from_zero():
     assert _round_sleep_hours(7.25) == 7.5
     assert _round_sleep_hours(7.75) == 8.0
-    assert _format_rounded_sleep_hours(7.25) == "~7.5 hours of sleep"
-    assert _format_rounded_steps(50) == "~100 steps"
-    assert _format_rounded_steps(250) == "~300 steps"
-    assert _format_rounded_active_minutes(2.5) == "~5 active minutes"
-    assert _format_rounded_active_minutes(12.5) == "~15 active minutes"
+    assert _format_rounded_sleep_hours(7.25) == "7.5 hours of sleep"
+    assert _format_rounded_steps(50) == "100 steps"
+    assert _format_rounded_steps(250) == "300 steps"
+    assert _format_rounded_active_minutes(2.5) == "5 active minutes"
+    assert _format_rounded_active_minutes(12.5) == "15 active minutes"
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_median_number_uses_the_middle_value():
+    from core.health_context_builder import _median_number
+
+    assert _median_number([4.0, 4.5, 7.0]) == 4.5
+    assert _median_number([4.0, 5.0]) == 4.5
+    assert _median_number([1800, 2000, 2200]) == 2000
+    assert _median_number([True, float("nan"), None, 5]) == 5.0
+    assert _median_number([]) is None
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_streak_median_uses_active_minutes_when_steps_are_missing(monkeypatch):
+    from core.health_context_builder import _health_streaks
+
+    signals = [
+        {
+            "date": "2026-06-26",
+            "activity_level": "low",
+            "active_intensity": "low",
+            "active_minutes": 10,
+        },
+        {
+            "date": "2026-06-27",
+            "activity_level": "low",
+            "active_intensity": "low",
+            "active_minutes": 20,
+        },
+    ]
+    monkeypatch.setattr(
+        "core.health_context_builder.load_health_signals",
+        lambda user_id: {"signals": signals},
+    )
+
+    streaks = _health_streaks("user", signals[-1])
+
+    assert streaks == [
+        ("movement", "lighter activity for 2 days in a row", "15 active minutes")
+    ]
 
 
 @pytest.mark.unit
@@ -87,8 +130,9 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
         snippet = build_user_facing_signal_wellness_snippet(user_id)
 
     assert "solid night" in snippet.lower()
-    assert "~7 hours of sleep" in snippet
-    assert "~2,400 steps" in snippet
+    assert "about 7 hours of sleep" in snippet
+    assert "about 2,400 steps" in snippet
+    assert "~" not in snippet
     assert "gentler pace" in snippet.lower()
     assert "sleep quality" not in snippet.lower()
     assert "usual amount" not in snippet.lower()
@@ -184,9 +228,9 @@ def test_recent_patterns_include_rounded_sleep_steps_and_active_minutes(test_dat
         patterns = build_recent_health_patterns(user_id)
 
     assert "Recent wellness patterns" in patterns
-    assert "~5.5 hours of sleep" in patterns
-    assert "~2,400 steps" in patterns
-    assert "~45 active minutes" in patterns
+    assert "about 5.5 hours of sleep" in patterns
+    assert "about 2,400 steps" in patterns
+    assert "about 45 active minutes" in patterns
     assert "5.4" not in patterns
     assert "2437" not in patterns
     assert "47" not in patterns
@@ -259,6 +303,7 @@ def test_recent_patterns_include_multi_day_streaks(test_data_dir):
 
     assert "shorter sleep for 3 days in a row" in patterns
     assert "lighter activity for 3 days in a row" in patterns
+    assert "(about" not in patterns
 
 
 @pytest.mark.unit
@@ -281,7 +326,7 @@ def test_user_facing_snippet_keeps_multi_day_streaks(test_data_dir):
                 {
                     "date": "2026-06-25",
                     "sleep_recovery": "low",
-                    "sleep_hours": 5.0,
+                    "sleep_hours": 4.0,
                     "steps": 2000,
                     "sleep_vs_baseline": "below",
                     "activity_level": "low",
@@ -307,7 +352,7 @@ def test_user_facing_snippet_keeps_multi_day_streaks(test_data_dir):
                 {
                     "date": "2026-06-27",
                     "sleep_recovery": "low",
-                    "sleep_hours": 5.2,
+                    "sleep_hours": 7.0,
                     "steps": 2200,
                     "sleep_vs_baseline": "below",
                     "activity_level": "low",
@@ -325,11 +370,12 @@ def test_user_facing_snippet_keeps_multi_day_streaks(test_data_dir):
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
         snippet = build_user_facing_signal_wellness_snippet(user_id)
 
-    assert "shorter sleep for 3 days in a row" in snippet.lower()
-    assert "about ~5 hours of sleep recently" in snippet.lower()
-    assert "lighter activity for 3 days in a row" in snippet.lower()
-    assert "about ~2,200 steps recently" in snippet.lower()
+    assert "shorter sleep for 3 days in a row (about 4.5 hours of sleep)" in snippet.lower()
+    assert "lighter activity for 3 days in a row (about 2,000 steps)" in snippet.lower()
     assert "lighter night" not in snippet.lower()
+    assert "7 hours" not in snippet.lower()
+    assert "2,200" not in snippet
+    assert "~" not in snippet
 
 
 @pytest.mark.unit
@@ -416,8 +462,8 @@ def test_personalized_google_health_context_uses_coarse_health(test_data_dir):
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
         context = build_personalized_google_health_context(user_id)
 
-    assert "~10 hours of sleep" in context
-    assert "~1,800 steps" in context
+    assert "about 10 hours of sleep" in context
+    assert "about 1,800 steps" in context
     assert "sleep quality looked solid" in context
     assert "active effort was higher than usual" in context
     assert "sleep_recovery=high" not in context

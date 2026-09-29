@@ -33,10 +33,10 @@ When adding new changes, follow this format:
 ## Recent Changes (Most Recent First)
 
 ### 2026-09-28 - Wellness streaks, honest rounding, and a quiet inbox
-- **Fix**: A wellness reply now keeps a multi-day streak as the one sleep or movement note, and puts the rounded hours, steps, or active minutes beside it. See [health_context_builder.py](../core/health_context_builder.py).
-- **Fix**: Sleep hours, steps, and active minutes round a halfway value away from zero. 50 steps is shown as about 100, and 7.25 hours as about 7.5. See [health_context_builder.py](../core/health_context_builder.py).
-- **Fix**: Reading or writing the website inbox before the file exists returns an empty inbox and does not log a missing-file error or rebuild the account. Recovery for that path writes `{messages, turns}`. See [inbox.py](../communication/communication_channels/website/inbox.py), [file_operations.py](../core/file_operations.py), and [error_handling.py](../core/error_handling.py).
-- **Impact**: A check-in can mention several short nights in a row, small step counts are not shown as zero, and opening Home chat before the first message stays quiet.
+- **Fix**: A wellness reply now keeps a multi-day streak as the one sleep or movement note. The number in parentheses is the rounded median of the days in that streak, so the latest night does not stand in for the whole run. The sentence says "about" once. See [health_context_builder.py](../core/health_context_builder.py).
+- **Fix**: Sleep hours, steps, and active minutes round a halfway value away from zero. 50 steps is shown as about 100, and 7.25 hours as about 7.5. The rounded text no longer adds a tilde on top of "about". See [health_context_builder.py](../core/health_context_builder.py).
+- **Fix**: Reading or writing the website inbox before the file exists returns an empty inbox and does not log a missing-file error or rebuild the account. A failed read returns that same empty shape as a fresh copy. Recovery for that path writes `{messages, turns}`. See [inbox.py](../communication/communication_channels/website/inbox.py), [file_operations.py](../core/file_operations.py), and [error_handling.py](../core/error_handling.py).
+- **Impact**: A check-in can mention several short nights in a row, with a middle value for those nights. Small step counts are not shown as zero, and opening Home chat before the first message stays quiet.
 
 ### 2026-09-28 - Wellness replies and task identifier cleanup
 - **Fix**: A wellness reply now keeps one sleep note, one movement note, and one readiness note. Extra sleep sentences no longer crowd out steps or a gentler-pace note. See [health_context_builder.py](../core/health_context_builder.py).
