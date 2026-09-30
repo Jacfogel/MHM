@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Unconfirmed mail is not sent twice, model failures stay with the call **COMPLETED**
+- An SMTP timeout after the message body is written returns `unconfirmed`. Check-ins, reminders, and scheduled messages stop there instead of sending another copy. The body watch logs a failed write and raises it again. It stays off the error decorator so recovery cannot write the body twice.
+- A dropped connection before the body is sent is still retried once.
+- Each LM Studio call carries its own failure reason, including invalid JSON. Command fallbacks still log that reason.
+
 ### 2026-09-30 - Mail retries, command failures stay unparsed, empty inbox stays quiet **COMPLETED**
 - A dropped SMTP connection is retried once with the same Message-ID. The sync bridge stays open long enough for that second attempt.
 - When command interpretation fails, the reply is `ACTION: unknown` and the log includes why the model call failed. Chat still uses a conversational fallback.
@@ -105,10 +110,6 @@ Guidelines:
 - The home page stacks Talk to MHM above Today. Next task and Check-in sit side by side under the chat, and stack on a narrow screen.
 - Break it down asks for smaller steps and saves the ones you keep as subtasks. The original task title stays. Home then focuses on an open subtask.
 - Discord Break it down, and simplify in Discord or email, adds those steps under the task instead of replacing the title. The breakdown helpers use the shared error handler, and the task-load tests store a valid task record.
-
-### 2026-09-25 - File locks time out instead of hanging nightly tests **COMPLETED**
-- Linux file-lock waits use a monotonic clock and re-enter when the same thread already holds the sidecar lock.
-- A lock timeout no longer starts a network probe, so one stuck user-index write cannot run until the 300s test limit.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

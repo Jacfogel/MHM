@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from communication.core.message_send_result import MessageSendResult
+from communication.core.message_send_result import (
+    CHANNEL_SEND_UNCONFIRMED,
+    MessageSendResult,
+)
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
@@ -102,6 +105,11 @@ class CheckinPromptDispatcher:
         success = self.send_checkin_prompt(
             user_id, messaging_service, recipient, message_id=message_id
         )
+        if success == CHANNEL_SEND_UNCONFIRMED:
+            logger.warning(
+                f"Scheduled check-in for user {user_id} was handed off but not confirmed"
+            )
+            return MessageSendResult.unconfirmed(user_id, "checkin")
         if success:
             logger.info(f"Sent scheduled check-in prompt to user {user_id}")
             return MessageSendResult.sent(user_id, "checkin")
@@ -120,7 +128,7 @@ class CheckinPromptDispatcher:
         messaging_service: str,
         recipient: str,
         message_id: str | None = None,
-    ) -> bool:
+    ) -> bool | str:
         """Start the dynamic check-in flow and send its prompt through the channel.
 
         The flow is kept only after the channel accepts the message. A failed
@@ -155,18 +163,16 @@ class CheckinPromptDispatcher:
             if isinstance(message_id, str) and message_id.strip():
                 send_kwargs["message_id"] = message_id.strip()
 
-            accepted = (
-                self._cm.send_message_sync(
-                    messaging_service,
-                    recipient,
-                    reply_text,
-                    user_id=user_id,
-                    category="checkin",
-                    view=custom_view,
-                    **send_kwargs,
-                )
-                is True
+            outcome = self._cm.send_message_sync(
+                messaging_service,
+                recipient,
+                reply_text,
+                user_id=user_id,
+                category="checkin",
+                view=custom_view,
+                **send_kwargs,
             )
+            accepted = outcome is True or outcome == CHANNEL_SEND_UNCONFIRMED
 
             if not accepted:
                 logger.error(f"Failed to send check-in prompt to user {user_id}")
@@ -177,6 +183,11 @@ class CheckinPromptDispatcher:
             )
 
             deliver_to_website(user_id, reply_text, "checkin")
+            if outcome == CHANNEL_SEND_UNCONFIRMED:
+                logger.warning(
+                    f"Check-in prompt for user {user_id} was handed off but not confirmed"
+                )
+                return CHANNEL_SEND_UNCONFIRMED
             logger.info(
                 f"Successfully sent check-in prompt to user {user_id} and initialized flow"
             )

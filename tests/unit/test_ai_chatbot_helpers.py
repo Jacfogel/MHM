@@ -871,16 +871,18 @@ class TestAIChatBotHelpers:
 
     def test_command_mode_failure_stays_unparsed(self, chatbot_instance, monkeypatch):
         """A failed command interpretation must not become chat text the parser can run."""
-        import ai.client.lm_studio_client as lm_studio_client
+        from ai.client.lm_studio_client import LmStudioCompletion
 
         chatbot_instance.response_cache.clear()
         chatbot_instance.lm_studio_available = True
-        lm_studio_client.last_call_failure = "ReadTimeout: The read operation timed out"
         calls = []
 
         def _fail(**kwargs):
             calls.append(kwargs)
-            return None
+            return LmStudioCompletion(
+                text=None,
+                failure="ReadTimeout: The read operation timed out",
+            )
 
         monkeypatch.setattr(chatbot_instance, "_ensure_lm_studio_available", lambda: True)
         monkeypatch.setattr(chatbot_instance, "_call_lm_studio_api", _fail)
@@ -897,4 +899,27 @@ class TestAIChatBotHelpers:
         assert text == "ACTION: unknown"
         assert "help" not in text.lower()
         assert "task" not in text.lower()
+
+    def test_invalid_lm_studio_json_stays_on_the_completion(self, monkeypatch):
+        """A bad response body is a failure on that call, not a shared global."""
+        from ai.client.lm_studio_client import (
+            call_lm_studio_api,
+            complete_lm_studio_chat,
+        )
+
+        class _Response:
+            status_code = 200
+            text = "not-json"
+
+            def json(self):
+                raise ValueError("Expecting value")
+
+        monkeypatch.setattr(
+            "ai.client.lm_studio_client.requests.post",
+            lambda *args, **kwargs: _Response(),
+        )
+        completion = complete_lm_studio_chat([{"role": "user", "content": "hi"}])
+        assert completion.text is None
+        assert "invalid JSON" in (completion.failure or "")
+        assert call_lm_studio_api([{"role": "user", "content": "hi"}]) is None
 

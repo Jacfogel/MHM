@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 11:44:46
+> **Last Generated**: 2026-09-30 14:03:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 292
-- **Functions Found**: 3051
-- **Methods Found**: 1572
-- **Classes Found**: 267
-- **Total Items**: 4623
-- **Functions Documented**: 2695
-- **Methods Documented**: 1393
-- **Classes Documented**: 200
-- **Total Documented**: 4088
+- **Functions Found**: 3057
+- **Methods Found**: 1573
+- **Classes Found**: 268
+- **Total Items**: 4630
+- **Functions Documented**: 2701
+- **Methods Documented**: 1394
+- **Classes Documented**: 201
+- **Total Documented**: 4095
 - **Template-Generated**: 56
 - **Last Updated**: 2026-09-30
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (881)
+### **Communication Functions** (884)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -116,7 +116,7 @@ like "add that as a task" can reuse a title the user already stated.
 - [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
 - [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
 - [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio and keep that call's failure reason.
 - [OK] `_clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
 - [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
@@ -139,6 +139,7 @@ Returns:
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
 - [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
 - [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `_text_from_lm_call(result)` - Return response text, and the failure reason when there is no text.
 - [OK] `_text_when_model_is_unavailable(mode, user_prompt, user_id)` - Return parser-safe text for command modes, and a conversational fallback otherwise.
 - [OK] `async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
 - [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
@@ -168,7 +169,7 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
   - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
   - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.client.lm_studio_client).
+  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio and keep that call's failure reason.
   - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
   - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
@@ -325,12 +326,15 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_context_char_budget(completion_tokens)` - Return how many prompt characters fit beside the reserved completion.
 - [OK] `_keep_text_tail(content, budget)` - Keep the end of text, starting on the next line when a cut lands mid-line.
 - [OK] `_shrink_system_prompt(content, budget)` - Keep the start of the instructions and the start of the user context.
-- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
+- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio and return the text.
+- [OK] `complete_lm_studio_chat(messages, max_tokens, temperature, timeout)` - Request one completion and keep the failure reason on that result.
 - [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink system and user text so the request stays inside the 2048-token window.
 
 The start of the instructions is kept. The end of the user message is kept.
 The combined text never exceeds the character budget.
 - [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
+**Classes:**
+- [OK] `LmStudioCompletion` - Text from one chat/completions call, and why the text is missing.
 
 #### `ai/client/lm_studio_manager.py`
 **Functions:**
@@ -1800,6 +1804,9 @@ Returns:
 - [OK] `is_ready(self)` - Check if channel is ready to send/receive messages
 - [OK] `receive_messages(self)` - Receive messages. Returns list of message dictionaries.
 - [OK] `send_message(self, recipient, message)` - Send a message. Returns True if successful.
+
+Email may return "unconfirmed" when the body was sent and the
+acceptance reply was lost. Callers must not send another copy.
 - [OK] `shutdown(self)` - Shutdown the channel. Returns True if successful.
 **Classes:**
 - [OK] `BaseChannel` - Abstract base class for all communication channels
@@ -1813,6 +1820,9 @@ Returns:
   - [OK] `BaseChannel.is_ready(self)` - Check if channel is ready to send/receive messages
   - [OK] `BaseChannel.receive_messages(self)` - Receive messages. Returns list of message dictionaries.
   - [OK] `BaseChannel.send_message(self, recipient, message)` - Send a message. Returns True if successful.
+
+Email may return "unconfirmed" when the body was sent and the
+acceptance reply was lost. Callers must not send another copy.
   - [OK] `BaseChannel.shutdown(self)` - Shutdown the channel. Returns True if successful.
 - [OK] `ChannelConfig` - Configuration for communication channels
   - [OK] `ChannelConfig.__post_init__(self)` - Post-initialization setup.
@@ -2622,6 +2632,11 @@ Args:
 - [OK] `_mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
 - [OK] `_receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
 - [OK] `_receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
+- [OK] `_send_smtp_payload(original_send, data, handed_off)` - Send one SMTP payload and note when it is the finished message body.
+
+A dropped write is logged and raised again. The error decorator is not
+used here, because its recovery step would write the body a second time.
+- [OK] `_watch_smtp_body(server, handed_off)` - Mark when sendmail has written the message body, before the acceptance reply.
 - [OK] `attempted_email_message_id(manager)` - Return the Message-ID from the latest email attempt, including a failed send.
 - [OK] `build_outbound_message_id(sender, requested)` - Return a Message-ID for an outbound email, reusing one when the caller set it.
 - [OK] `channel_type(self)` - Get the channel type for email bot.
@@ -2640,6 +2655,9 @@ Returns:
 - [OK] `send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
 
 Returns True only after the server accepts the message.
+A dropped connection is retried once when it happens before the body is sent.
+If the body was already written and the acceptance reply is lost, returns
+"unconfirmed" so the caller does not send a second copy.
 - [OK] `shutdown(self)` - Shutdown the email bot
 **Classes:**
 - [MISSING] `EmailBot` - No description
@@ -2667,6 +2685,9 @@ Returns:
   - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
 
 Returns True only after the server accepts the message.
+A dropped connection is retried once when it happens before the body is sent.
+If the body was already written and the acceptance reply is lost, returns
+"unconfirmed" so the caller does not send a second copy.
   - [OK] `EmailBot.shutdown(self)` - Shutdown the email bot
 - [OK] `EmailBotError` - Custom exception for email bot-related errors.
 
@@ -3008,6 +3029,9 @@ Returns:
 - [OK] `matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
 - [OK] `sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
 - [OK] `skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
+- [OK] `unconfirmed(cls, user_id, category, sent_text)` - Result when the message body was sent and acceptance was not confirmed.
+
+The scheduler must not send another copy.
 **Classes:**
 - [OK] `MessageSendResult` - Outcome of ``CommunicationManager.handle_message_sending``.
   - [OK] `MessageSendResult.deferred(cls, user_id, category)` - Result when a scheduled send is deferred (e.g. user mid-conversation flow).
@@ -3015,6 +3039,9 @@ Returns:
   - [OK] `MessageSendResult.matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
   - [OK] `MessageSendResult.sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
   - [OK] `MessageSendResult.skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
+  - [OK] `MessageSendResult.unconfirmed(cls, user_id, category, sent_text)` - Result when the message body was sent and acceptance was not confirmed.
+
+The scheduler must not send another copy.
 
 #### `communication/core/retry_manager.py`
 **Functions:**

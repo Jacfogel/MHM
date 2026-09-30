@@ -91,8 +91,12 @@ class BaseChannel(ABC):
 
     @abstractmethod
     @handle_errors("sending message", default_return=False)
-    async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
-        """Send a message. Returns True if successful."""
+    async def send_message(self, recipient: str, message: str, **kwargs) -> bool | str:
+        """Send a message. Returns True if successful.
+
+        Email may return "unconfirmed" when the body was sent and the
+        acceptance reply was lost. Callers must not send another copy.
+        """
         pass
 
     @abstractmethod

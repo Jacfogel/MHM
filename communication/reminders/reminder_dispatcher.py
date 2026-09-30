@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from communication.core.message_send_result import MessageSendResult
+from communication.core.message_send_result import (
+    CHANNEL_SEND_UNCONFIRMED,
+    MessageSendResult,
+)
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
@@ -133,16 +136,23 @@ class TaskReminderDispatcher:
             **send_kwargs,
         )
 
-        if success:
+        if success is True or success == CHANNEL_SEND_UNCONFIRMED:
             from communication.communication_channels.website.inbox import (
                 deliver_to_website,
             )
 
             deliver_to_website(user_id, reminder_message, TASK_REMINDER_CATEGORY)
+            self._cm._last_task_reminders[user_id] = task_identifier
+            if success == CHANNEL_SEND_UNCONFIRMED:
+                logger.warning(
+                    f"Task reminder for user {user_id}, task {task_identifier} was handed off but not confirmed"
+                )
+                return MessageSendResult.unconfirmed(
+                    user_id, TASK_REMINDER_CATEGORY, sent_text=reminder_message
+                )
             logger.info(
                 f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
             )
-            self._cm._last_task_reminders[user_id] = task_identifier
             return MessageSendResult.sent(
                 user_id, TASK_REMINDER_CATEGORY, sent_text=reminder_message
             )

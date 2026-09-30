@@ -176,6 +176,60 @@ class TestEmailBotGapCoverage:
         assert bot.last_outbound_message_id == "<kept@example.com>"
         assert recorded and recorded[0][1] == "<kept@example.com>"
 
+    def test_send_does_not_retry_after_the_body_was_handed_off(self, monkeypatch):
+        """A timeout after the body is written must not send a second copy."""
+        import smtplib
+
+        from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
+
+        bot = EmailBot()
+        bot._set_status(ChannelStatus.READY)
+        attempts = []
+        recorded = []
+
+        class _Smtp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def login(self, *_args):
+                return None
+
+            def send(self, _data):
+                return None
+
+            def sendmail(self, *_args):
+                attempts.append(1)
+                self.send(b"Subject: hi\r\n\r\nhello\r\n.\r\n")
+                raise smtplib.SMTPServerDisconnected(
+                    "Connection unexpectedly closed: The read operation timed out"
+                )
+
+        monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "me@example.com", "pass"))
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
+            lambda *args, **kwargs: _Smtp(),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.build_outbound_message_id",
+            lambda *_args, **_kwargs: "<kept@example.com>",
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.record_outbound_email",
+            lambda *args, **kwargs: recorded.append(args),
+        )
+        sent = bot.send_message__send_email_sync(
+            "you@example.com",
+            "hello",
+            {"message_id": "<kept@example.com>", "user_id": "user-1"},
+        )
+        assert sent == CHANNEL_SEND_UNCONFIRMED
+        assert attempts == [1]
+        assert bot.last_outbound_message_id == "<kept@example.com>"
+        assert recorded and recorded[0][1] == "<kept@example.com>"
+
     def test_sync_connection_helpers_return_early_without_config(self, monkeypatch):
         bot = EmailBot()
         monkeypatch.setattr(bot, "_get_email_config", lambda: None)

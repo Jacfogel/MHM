@@ -43,8 +43,12 @@ from ai.prompts.command_interpreter import get_command_interpreter
 from ai.fallback import get_fallback_responses
 from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
 from ai.chat.response_generator import get_response_generator
-import ai.client.lm_studio_client as lm_studio_client
-from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
+from ai.client.lm_studio_client import (
+    LmStudioCompletion,
+    call_lm_studio_api,
+    complete_lm_studio_chat,
+    test_lm_studio_connection,
+)
 from ai.chat.action_boundaries import (
     UNCLEAR_USER_INPUT_REPLY,
     is_uninterpretable_user_prompt,
@@ -95,6 +99,22 @@ def _text_when_model_is_unavailable(
     if isinstance(mode, str) and mode.startswith("command"):
         return _COMMAND_PARSE_UNAVAILABLE
     return get_fallback_responses().contextual(user_prompt, user_id)
+
+
+@handle_errors(
+    "reading an LM Studio call result",
+    default_return=(None, "no response text"),
+)
+def _text_from_lm_call(result) -> tuple[str | None, str | None]:
+    """Return response text, and the failure reason when there is no text."""
+    if isinstance(result, LmStudioCompletion):
+        text = result.text.strip() if isinstance(result.text, str) else ""
+        if text:
+            return text, None
+        return None, result.failure or "no response text"
+    if isinstance(result, str) and result.strip():
+        return result.strip(), None
+    return None, "no response text"
 
 
 class AIChatBotSingleton:
@@ -201,8 +221,8 @@ class AIChatBotSingleton:
         *,
         stop: list[str] | None = None,
     ) -> str | None:
-        """Make an API call to LM Studio (delegates to ai.client.lm_studio_client)."""
-        return call_lm_studio_api(
+        """Make an API call to LM Studio and keep that call's failure reason."""
+        return complete_lm_studio_chat(
             messages,
             max_tokens=max_tokens,
             temperature=temperature,
@@ -345,10 +365,11 @@ class AIChatBotSingleton:
                 timeout=timeout,
                 stop=stop_sequences,
             )
+            text, failure = _text_from_lm_call(result)
 
-            if result:
+            if text:
                 response = self._post_process_generated_response(
-                    mode, result, user_prompt
+                    mode, text, user_prompt
                 )
                 if (
                     mode in ("chat", "personalized")
@@ -384,7 +405,7 @@ class AIChatBotSingleton:
                     mode, user_id, user_prompt, response, context_used=False
                 )
 
-                reason = lm_studio_client.last_call_failure or "no response text"
+                reason = failure or "no response text"
                 ai_logger.error(
                     "AI response generation failed - using fallback",
                     user_id=user_id,
@@ -1012,10 +1033,11 @@ class AIChatBotSingleton:
                 temperature=contextual_temperature,
                 timeout=timeout,
             )
+            text, _failure = _text_from_lm_call(result)
 
-            if result:
+            if text:
                 response = self._finalize_contextual_response(
-                    user_prompt, result, context, profile
+                    user_prompt, text, context, profile
                 )
             else:
                 fallback_response = get_fallback_responses().contextual(

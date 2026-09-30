@@ -235,3 +235,20 @@ class TestHandleTaskReminderModule:
             "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
         )
         sleep.assert_called_once_with(0)
+
+    def test_unconfirmed_send_is_marked_sent_without_another_attempt(self):
+        manager = MagicMock()
+        task = {"id": "t1", "status": "open"}
+        manager.delivery.handle_task_reminder.return_value = MessageSendResult.unconfirmed(
+            "u1", "task_reminders", sent_text="wipe the counter"
+        )
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=3, retry_delay=0)
+        manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
+        update_task.assert_called_once_with(
+            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
+        )

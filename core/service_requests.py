@@ -248,7 +248,11 @@ def process_valid_test_message_request(
         send_result = context.delivery.handle_message_sending(
             user_id, category, skip_ai_cache=True
         )
-        if send_result.status != "sent":
+        if send_result.status == "unconfirmed":
+            logger.warning(
+                f"Test message for {user_id}, category={category} was handed off but not confirmed"
+            )
+        elif send_result.status != "sent":
             logger.warning(
                 f"Test message not delivered for {user_id}, category={category}: "
                 f"status={send_result.status}"

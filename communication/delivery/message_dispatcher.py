@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 from typing import Any
 
+from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from messages.message_data_manager import get_recent_messages, load_user_messages, store_sent_message
@@ -146,7 +147,7 @@ class PredefinedMessageDispatcher:
             else selected_message_content
         )
 
-        if success:
+        if success is True or success == CHANNEL_SEND_UNCONFIRMED:
             store_sent_message(
                 user_id,
                 category,
@@ -155,6 +156,11 @@ class PredefinedMessageDispatcher:
                 time_period=current_time_period,
                 metadata=delivery_meta,
             )
+            if success == CHANNEL_SEND_UNCONFIRMED:
+                logger.warning(
+                    f"Message to {recipient} was handed off but not confirmed | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
+                )
+                return CHANNEL_SEND_UNCONFIRMED, selected_message_content
             logger.info(
                 f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
             )

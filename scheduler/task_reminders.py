@@ -88,15 +88,21 @@ def handle_task_reminder(
             result = delivery.handle_task_reminder(
                 user_id, task_identifier, **send_kwargs
             )
-            if getattr(result, "status", None) == "sent":
+            status = getattr(result, "status", None)
+            if status in ("sent", "unconfirmed"):
                 update_task(
                     user_id,
                     task_identifier,
                     {"reminder_sent": True, "reminder_snooze_until": None},
                 )
-                logger.info(
-                    f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
-                )
+                if status == "unconfirmed":
+                    logger.warning(
+                        f"Task reminder for user {user_id}, task {task_identifier} was handed off but not confirmed; not sending another copy"
+                    )
+                else:
+                    logger.info(
+                        f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
+                    )
                 return
             if getattr(result, "status", None) == "skipped":
                 logger.info(

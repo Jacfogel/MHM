@@ -16,7 +16,10 @@ from communication.communication_channels.base.base_channel import (
 from communication.core.factory import ChannelFactory
 from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
-from communication.core.message_send_result import MessageSendResult
+from communication.core.message_send_result import (
+    CHANNEL_SEND_UNCONFIRMED,
+    MessageSendResult,
+)
 from communication.communication_channels.email.inbound_processor import (
     EmailInboundProcessor,
 )
@@ -700,7 +703,7 @@ class CommunicationManager:
     @handle_errors("sending message", default_return=False)
     async def send_message(
         self, channel_name: str, recipient: str, message: str, **kwargs
-    ) -> bool:
+    ) -> bool | str:
         """Send message via specified channel using unified interface"""
         logger.debug(f"Preparing to send message to {recipient} via {channel_name}")
 
@@ -744,7 +747,7 @@ class CommunicationManager:
 
             # FIXED: Better return value validation
             # Use == instead of is to handle mock return values correctly
-            if success is True or success:
+            if success == CHANNEL_SEND_UNCONFIRMED or success is True or success:
                 # Enhanced logging with message content and time period
                 message[:50] + "..." if len(message) > 50 else message
                 kwargs.get("time_period", "unknown")
@@ -761,6 +764,11 @@ class CommunicationManager:
                         delivery_meta["discord_message_id"] = outbound_id
                     elif channel_name == "email":
                         delivery_meta["email_message_id"] = outbound_id
+                if success == CHANNEL_SEND_UNCONFIRMED:
+                    logger.warning(
+                        f"Channel {channel_name} handed the message to {recipient} but did not confirm acceptance"
+                    )
+                    return CHANNEL_SEND_UNCONFIRMED
                 return True
             elif success is False or not success:
                 failure_detail = self._channel_send_failure_detail(channel)
@@ -870,7 +878,7 @@ class CommunicationManager:
     @handle_errors("sending message (sync)", default_return=False)
     def send_message_sync(
         self, channel_name: str, recipient: str, message: str, **kwargs
-    ) -> bool:
+    ) -> bool | str:
         """Synchronous wrapper with logging health check"""
         # Check logging health periodically
         self._check_logging_health()
@@ -1254,6 +1262,12 @@ class CommunicationManager:
 
         # CRITICAL: Only expire check-in flows if a message was actually sent and delivered
         # Don't expire flows for failed sends or when no message was available to send
+        if message_sent == CHANNEL_SEND_UNCONFIRMED:
+            if not is_scheduled_trigger:
+                self._expire_checkin_flow_if_needed(user_id, category)
+            return MessageSendResult.unconfirmed(
+                user_id, category, sent_text=sent_message_content
+            )
         if message_sent:
             # Only cancel check-in flows when responding to user input with unrelated content.
             if not is_scheduled_trigger:
@@ -1312,7 +1326,7 @@ class CommunicationManager:
     @handle_errors("sending check-in prompt", default_return=False)
     def send_checkin_prompt(
         self, user_id: str, messaging_service: str, recipient: str
-    ) -> bool:
+    ) -> bool | str:
         """Public delivery-port wrapper for scheduled check-in prompts."""
         return self.checkin_dispatcher.send_checkin_prompt(
             user_id, messaging_service, recipient
@@ -1392,7 +1406,7 @@ class CommunicationManager:
                 category=category,
                 delivery_meta=delivery_meta,
             )
-            if success:
+            if success is True or success == CHANNEL_SEND_UNCONFIRMED:
                 # Get current time period for storage
                 matching_periods, valid_periods = (
                     get_current_time_periods_with_validation(user_id, category)
@@ -1412,6 +1426,11 @@ class CommunicationManager:
                     if len(message_to_send) > 50
                     else message_to_send
                 )
+                if success == CHANNEL_SEND_UNCONFIRMED:
+                    logger.warning(
+                        f"AI-generated message for user {user_id}, category {category} was not confirmed by the server | Content: '{message_preview}'"
+                    )
+                    return CHANNEL_SEND_UNCONFIRMED, message_to_send
                 logger.info(
                     f"Sent AI-generated personalized message for user {user_id}, category {category} | Content: '{message_preview}'"
                 )

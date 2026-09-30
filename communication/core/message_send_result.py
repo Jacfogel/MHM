@@ -6,12 +6,16 @@ from dataclasses import dataclass
 
 from core.error_handling import handle_errors
 
+# Channel send_message returns this when the body was written and the
+# acceptance reply was lost. Callers must not send another copy.
+CHANNEL_SEND_UNCONFIRMED = "unconfirmed"
+
 
 @dataclass(frozen=True)
 class MessageSendResult:
     """Outcome of ``CommunicationManager.handle_message_sending``."""
 
-    status: str  # sent | failed | deferred | skipped
+    status: str  # sent | unconfirmed | failed | deferred | skipped
     user_id: str
     category: str
     sent_text: str | None = None
@@ -24,6 +28,27 @@ class MessageSendResult:
     def deferred(cls, user_id: str, category: str) -> MessageSendResult:
         """Result when a scheduled send is deferred (e.g. user mid-conversation flow)."""
         return cls(status="deferred", user_id=user_id, category=category, sent_text=None)
+
+    @classmethod
+    @handle_errors(
+        "building unconfirmed send result", user_friendly=False, re_raise=True
+    )
+    def unconfirmed(
+        cls,
+        user_id: str,
+        category: str,
+        sent_text: str | None = None,
+    ) -> MessageSendResult:
+        """Result when the message body was sent and acceptance was not confirmed.
+
+        The scheduler must not send another copy.
+        """
+        return cls(
+            status="unconfirmed",
+            user_id=user_id,
+            category=category,
+            sent_text=sent_text,
+        )
 
     @classmethod
     @handle_errors(

@@ -31,6 +31,7 @@ from communication.communication_channels.email.reply_context import (
     normalize_message_id,
     record_outbound_email,
 )
+from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 from core.error_handling import handle_errors, ConfigurationError
 
 # Route module-level logs to email component for consistency
@@ -44,6 +45,30 @@ _SMTP_SEND_TIMEOUT_SECONDS = 30
 _SMTP_SEND_ATTEMPTS = 2
 _SMTP_RETRY_PAUSE_SECONDS = 1
 _TRANSIENT_SMTP_ERRORS = (smtplib.SMTPServerDisconnected, TimeoutError, ConnectionError)
+
+
+# error_handling_exclude: decorator recovery would retry the write and could send the body twice
+def _send_smtp_payload(original_send, data, handed_off: dict):
+    """Send one SMTP payload and note when it is the finished message body.
+
+    A dropped write is logged and raised again. The error decorator is not
+    used here, because its recovery step would write the body a second time.
+    """
+    try:
+        result = original_send(data)
+    except Exception as exc:
+        logger.warning(f"SMTP payload was not fully written: {exc}")
+        raise
+    if isinstance(data, (bytes, bytearray)) and data.endswith(b"\r\n.\r\n"):
+        handed_off["sent"] = True
+    return result
+
+
+@handle_errors("noting when the SMTP body is sent", default_return=None)
+def _watch_smtp_body(server, handed_off: dict) -> None:
+    """Mark when sendmail has written the message body, before the acceptance reply."""
+    original_send = server.send
+    server.send = lambda data: _send_smtp_payload(original_send, data, handed_off)
 
 
 @handle_errors("choosing email reply kind", default_return="message")
@@ -197,7 +222,7 @@ class EmailBot(BaseChannel):
 
     # not_duplicate: send_message_channel
     @handle_errors("sending email message", default_return=False)
-    async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
+    async def send_message(self, recipient: str, message: str, **kwargs) -> bool | str:
         """Send message via email"""
         if not self.is_ready():
             logger.error("EmailBot is not ready to send messages.")
@@ -214,6 +239,11 @@ class EmailBot(BaseChannel):
         sent = await loop.run_in_executor(
             None, self.send_message__send_email_sync, recipient, message, kwargs
         )
+        if sent == CHANNEL_SEND_UNCONFIRMED:
+            logger.warning(
+                f"Email to {recipient} was handed to the server, but acceptance was not confirmed"
+            )
+            return CHANNEL_SEND_UNCONFIRMED
         if sent is not True:
             logger.error(f"Email send failed to {recipient}")
             return False
@@ -228,11 +258,13 @@ class EmailBot(BaseChannel):
     )
     def send_message__send_email_sync(
         self, recipient: str, message: str, kwargs: dict
-    ) -> bool:
+    ) -> bool | str:
         """Send email synchronously and remember its Message-ID for later replies.
 
         Returns True only after the server accepts the message.
-        A dropped SMTP connection is retried once with the same Message-ID.
+        A dropped connection is retried once when it happens before the body is sent.
+        If the body was already written and the acceptance reply is lost, returns
+        "unconfirmed" so the caller does not send a second copy.
         """
         self.last_outbound_message_id = None
         config = self._get_email_config()
@@ -259,24 +291,51 @@ class EmailBot(BaseChannel):
             msg["In-Reply-To"] = in_reply_to
             msg["References"] = references
 
+        outcome = None
         for attempt in range(1, _SMTP_SEND_ATTEMPTS + 1):
             try:
                 with smtplib.SMTP_SSL(
                     smtp_server, 465, timeout=_SMTP_SEND_TIMEOUT_SECONDS
                 ) as server:
                     server.login(smtp_user, smtp_password)
-                    server.sendmail(smtp_user, recipient, msg.as_string())
-                break
+                    handed_off = {"sent": False}
+                    _watch_smtp_body(server, handed_off)
+                    try:
+                        server.sendmail(smtp_user, recipient, msg.as_string())
+                    except _TRANSIENT_SMTP_ERRORS as exc:
+                        if handed_off["sent"]:
+                            logger.warning(
+                                f"Email to {recipient} was sent but the server did not confirm acceptance: {exc}"
+                            )
+                            outcome = CHANNEL_SEND_UNCONFIRMED
+                        else:
+                            raise
+                    else:
+                        outcome = True
             except _TRANSIENT_SMTP_ERRORS as exc:
+                if outcome == CHANNEL_SEND_UNCONFIRMED:
+                    break
                 if attempt >= _SMTP_SEND_ATTEMPTS:
                     logger.warning(
                         f"Email send failed after {attempt} attempts to {recipient}: {exc}"
                     )
                     return False
                 logger.warning(
-                    f"Email send attempt {attempt} to {recipient} lost the SMTP connection; retrying: {exc}"
+                    f"Email send attempt {attempt} to {recipient} lost the SMTP connection before the message was sent; retrying: {exc}"
                 )
                 time.sleep(_SMTP_RETRY_PAUSE_SECONDS)
+                continue
+            except Exception as exc:
+                if outcome == CHANNEL_SEND_UNCONFIRMED:
+                    logger.warning(
+                        f"Email to {recipient} was not confirmed, and closing the connection failed: {exc}"
+                    )
+                    break
+                raise
+            break
+
+        if outcome not in (True, CHANNEL_SEND_UNCONFIRMED):
+            return False
 
         self.last_outbound_message_id = message_id
         user_id = kwargs.get("user_id")
@@ -288,7 +347,7 @@ class EmailBot(BaseChannel):
                 task_id=str(kwargs.get("task_id") or ""),
                 subject=subject,
             )
-        return True
+        return outcome
 
     # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
     @handle_errors("receiving email messages", default_return=[])

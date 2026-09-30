@@ -958,13 +958,18 @@ class SchedulerManager:
                     send_kwargs["message_id"] = outbound_message_id
                 send_status = self.delivery.handle_message_sending(**send_kwargs)
                 status = getattr(send_status, "status", None)
-                if status == "sent":
-                    logger.info(
-                        f"Message sent successfully for user {user_id}, category {category}."
-                    )
-                    # Remove this job after successful execution to make it a one-time job
+                if status in ("sent", "unconfirmed"):
+                    if status == "unconfirmed":
+                        logger.warning(
+                            f"Scheduled message for user {user_id}, category {category} was handed off but not confirmed; not sending another copy."
+                        )
+                    else:
+                        logger.info(
+                            f"Message sent successfully for user {user_id}, category {category}."
+                        )
+                    # Remove this job after the send is finished so it stays a one-time job
                     self._remove_user_message_job(user_id, category)
-                    return  # Exit after successful execution
+                    return  # Exit after the send is finished
 
                 if status == "deferred":
                     logger.info(

@@ -2,6 +2,8 @@
 
 """HTTP client helpers for LM Studio (OpenAI-compatible API)."""
 
+from dataclasses import dataclass
+
 import requests
 
 from core.config import (
@@ -15,8 +17,14 @@ from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
 logger = get_component_logger("ai")
-# Why the latest chat/completions call returned no text. None after a success.
-last_call_failure: str | None = None
+
+
+@dataclass(frozen=True)
+class LmStudioCompletion:
+    """Text from one chat/completions call, and why the text is missing."""
+
+    text: str | None = None
+    failure: str | None = None
 
 # The loaded local model rejects prompts above this window. Measured English
 # in these prompts is about 2.3 characters per token; 2 keeps the request under.
@@ -164,18 +172,19 @@ def test_lm_studio_connection() -> bool:
     return True
 
 
-@handle_errors("calling LM Studio API", default_return=None)
-def call_lm_studio_api(
+@handle_errors(
+    "completing an LM Studio chat",
+    default_return=LmStudioCompletion(text=None, failure="LM Studio call failed"),
+)
+def complete_lm_studio_chat(
     messages: list,
     max_tokens: int = 100,
     temperature: float = 0.2,
     timeout: int | None = None,
     *,
     stop: list[str] | None = None,
-) -> str | None:
-    """Make a chat/completions request to LM Studio."""
-    global last_call_failure
-    last_call_failure = None
+) -> LmStudioCompletion:
+    """Request one completion and keep the failure reason on that result."""
     if timeout is None:
         timeout = AI_API_CALL_TIMEOUT
 
@@ -203,25 +212,56 @@ def call_lm_studio_api(
             timeout=timeout,
         )
     except requests.RequestException as exc:
-        last_call_failure = f"{type(exc).__name__}: {exc}"
-        logger.warning(f"LM Studio API request failed: {last_call_failure}")
-        return None
+        failure = f"{type(exc).__name__}: {exc}"
+        logger.warning(f"LM Studio API request failed: {failure}")
+        return LmStudioCompletion(text=None, failure=failure)
 
     if response.status_code != 200:
-        last_call_failure = f"HTTP {response.status_code}"
+        failure = f"HTTP {response.status_code}"
         logger.warning(
             f"LM Studio API error: HTTP {response.status_code} - {response.text}"
         )
-        return None
+        return LmStudioCompletion(text=None, failure=failure)
 
-    data = response.json()
-    if "choices" not in data or not data["choices"]:
-        last_call_failure = "empty choices"
-        logger.warning("LM Studio API returned empty choices")
-        return None
+    try:
+        data = response.json()
+    except ValueError as exc:
+        failure = f"invalid JSON: {exc}"
+        logger.warning(f"LM Studio API returned invalid JSON: {exc}")
+        return LmStudioCompletion(text=None, failure=failure)
 
-    content = data["choices"][0]["message"]["content"]
-    if not content:
-        last_call_failure = "empty content"
+    try:
+        choices = data["choices"]
+        content = choices[0]["message"]["content"]
+    except (KeyError, IndexError, TypeError):
+        choices = data.get("choices") if isinstance(data, dict) else None
+        failure = "missing message content" if choices else "empty choices"
+        if failure == "empty choices":
+            logger.warning("LM Studio API returned empty choices")
+        return LmStudioCompletion(text=None, failure=failure)
+
+    if not isinstance(content, str) or not content.strip():
+        return LmStudioCompletion(text=None, failure="empty content")
+    return LmStudioCompletion(text=content.strip())
+
+
+@handle_errors("calling LM Studio API", default_return=None)
+def call_lm_studio_api(
+    messages: list,
+    max_tokens: int = 100,
+    temperature: float = 0.2,
+    timeout: int | None = None,
+    *,
+    stop: list[str] | None = None,
+) -> str | None:
+    """Make a chat/completions request to LM Studio and return the text."""
+    completion = complete_lm_studio_chat(
+        messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        timeout=timeout,
+        stop=stop,
+    )
+    if not isinstance(completion, LmStudioCompletion):
         return None
-    return content.strip()
+    return completion.text
