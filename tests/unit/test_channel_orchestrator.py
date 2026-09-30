@@ -7,7 +7,15 @@ helper methods and utility functions.
 
 import pytest
 from unittest.mock import Mock, patch
-from communication.core.channel_orchestrator import CommunicationManager
+from communication.core.channel_orchestrator import (
+    CommunicationManager,
+    _SYNC_BRIDGE_TIMEOUT_SECONDS,
+)
+from communication.communication_channels.email.bot import (
+    _SMTP_RETRY_PAUSE_SECONDS,
+    _SMTP_SEND_ATTEMPTS,
+    _SMTP_SEND_TIMEOUT_SECONDS,
+)
 from communication.core.message_send_result import MessageSendResult
 
 
@@ -22,6 +30,14 @@ class TestChannelOrchestratorHelpers:
         CommunicationManager._instance = None
         setattr(CommunicationManager, "_initialized", False)  # noqa: B010
         self.manager = CommunicationManager()
+
+    def test_sync_bridge_outlasts_one_smtp_retry(self):
+        """The sync bridge must stay open through one SMTP retry."""
+        needed = (
+            _SMTP_SEND_TIMEOUT_SECONDS * _SMTP_SEND_ATTEMPTS
+            + _SMTP_RETRY_PAUSE_SECONDS
+        )
+        assert needed < _SYNC_BRIDGE_TIMEOUT_SECONDS
 
     def test_get_active_channels_returns_list(self):
         """Test get_active_channels returns a list."""

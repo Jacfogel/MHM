@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Mail retries, command failures stay unparsed, empty inbox stays quiet **COMPLETED**
+- A dropped SMTP connection is retried once with the same Message-ID. The sync bridge stays open long enough for that second attempt.
+- When command interpretation fails, the reply is `ACTION: unknown` and the log includes why the model call failed. Chat still uses a conversational fallback.
+- A missing website inbox loads as an empty inbox. It is no longer logged as a file error.
+
 ### 2026-09-30 - One-time jobs end, and recovery stays a leaf **COMPLETED**
 - A finished scheduled message is removed. Cleanup and conflict checks read the user and category from the keyword arguments `schedule` actually stores.
 - File recovery builds an empty chat file from a leaf module, so error handling and profile loading no longer import each other.
@@ -104,12 +109,6 @@ Guidelines:
 ### 2026-09-25 - File locks time out instead of hanging nightly tests **COMPLETED**
 - Linux file-lock waits use a monotonic clock and re-enter when the same thread already holds the sidecar lock.
 - A lock timeout no longer starts a network probe, so one stuck user-index write cannot run until the 300s test limit.
-
-### 2026-09-25 - Smaller notebook slice for the model **COMPLETED**
-- The model now gets recent note titles, pinned entries, and a short summary when a note has no title. Full note text stays out of that slice.
-- Home shows a few recent titles under the capture box.
-- The notebook plan now records groups as removed and the website notebook as a current surface.
-- The notebook slice for the model should be recent titles, pinned entries, and a short summary when there is no title, so the prompt stays small. The code still sends the last 10 full entries.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

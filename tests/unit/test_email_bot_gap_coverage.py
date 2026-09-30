@@ -97,12 +97,23 @@ class TestEmailBotGapCoverage:
 
         monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "me@example.com", "pass"))
         monkeypatch.setattr(
-            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
-            lambda *args, **kwargs: _Smtp(),
-        )
-        monkeypatch.setattr(
             "communication.communication_channels.email.bot.build_outbound_message_id",
             lambda *_args, **_kwargs: "<kept@example.com>",
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.time.sleep",
+            lambda _seconds: None,
+        )
+        attempts = []
+
+        class _CountingSmtp(_Smtp):
+            def sendmail(self, *_args):
+                attempts.append(1)
+                return _Smtp.sendmail(self, *_args)
+
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
+            lambda *args, **kwargs: _CountingSmtp(),
         )
         sent = bot.send_message__send_email_sync(
             "you@example.com",
@@ -110,7 +121,60 @@ class TestEmailBotGapCoverage:
             {"message_id": "<kept@example.com>"},
         )
         assert sent is False
+        assert attempts == [1, 1]
         assert bot.last_outbound_message_id == "<kept@example.com>"
+
+    def test_send_retries_once_then_accepts_the_same_message_id(self, monkeypatch):
+        bot = EmailBot()
+        bot._set_status(ChannelStatus.READY)
+        attempts = []
+        recorded = []
+
+        class _FlakySmtp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def login(self, *_args):
+                return None
+
+            def sendmail(self, *_args):
+                attempts.append(1)
+                if len(attempts) == 1:
+                    import smtplib
+
+                    raise smtplib.SMTPServerDisconnected(
+                        "Connection unexpectedly closed: The read operation timed out"
+                    )
+
+        monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "me@example.com", "pass"))
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
+            lambda *args, **kwargs: _FlakySmtp(),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.build_outbound_message_id",
+            lambda *_args, **_kwargs: "<kept@example.com>",
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.time.sleep",
+            lambda _seconds: None,
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.record_outbound_email",
+            lambda *args, **kwargs: recorded.append(args),
+        )
+        sent = bot.send_message__send_email_sync(
+            "you@example.com",
+            "hello",
+            {"message_id": "<kept@example.com>", "user_id": "user-1"},
+        )
+        assert sent is True
+        assert attempts == [1, 1]
+        assert bot.last_outbound_message_id == "<kept@example.com>"
+        assert recorded and recorded[0][1] == "<kept@example.com>"
 
     def test_sync_connection_helpers_return_early_without_config(self, monkeypatch):
         bot = EmailBot()

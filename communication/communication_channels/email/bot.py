@@ -41,6 +41,9 @@ _REPLY_KINDS = {"checkin", "task_reminder", "message"}
 # Login can succeed while the server is slow to accept the message body.
 # 10 seconds expired during sendmail on 2026-09-29; 30 seconds stays bounded.
 _SMTP_SEND_TIMEOUT_SECONDS = 30
+_SMTP_SEND_ATTEMPTS = 2
+_SMTP_RETRY_PAUSE_SECONDS = 1
+_TRANSIENT_SMTP_ERRORS = (smtplib.SMTPServerDisconnected, TimeoutError, ConnectionError)
 
 
 @handle_errors("choosing email reply kind", default_return="message")
@@ -229,6 +232,7 @@ class EmailBot(BaseChannel):
         """Send email synchronously and remember its Message-ID for later replies.
 
         Returns True only after the server accepts the message.
+        A dropped SMTP connection is retried once with the same Message-ID.
         """
         self.last_outbound_message_id = None
         config = self._get_email_config()
@@ -255,11 +259,24 @@ class EmailBot(BaseChannel):
             msg["In-Reply-To"] = in_reply_to
             msg["References"] = references
 
-        with smtplib.SMTP_SSL(
-            smtp_server, 465, timeout=_SMTP_SEND_TIMEOUT_SECONDS
-        ) as server:
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, recipient, msg.as_string())
+        for attempt in range(1, _SMTP_SEND_ATTEMPTS + 1):
+            try:
+                with smtplib.SMTP_SSL(
+                    smtp_server, 465, timeout=_SMTP_SEND_TIMEOUT_SECONDS
+                ) as server:
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(smtp_user, recipient, msg.as_string())
+                break
+            except _TRANSIENT_SMTP_ERRORS as exc:
+                if attempt >= _SMTP_SEND_ATTEMPTS:
+                    logger.warning(
+                        f"Email send failed after {attempt} attempts to {recipient}: {exc}"
+                    )
+                    return False
+                logger.warning(
+                    f"Email send attempt {attempt} to {recipient} lost the SMTP connection; retrying: {exc}"
+                )
+                time.sleep(_SMTP_RETRY_PAUSE_SECONDS)
 
         self.last_outbound_message_id = message_id
         user_id = kwargs.get("user_id")

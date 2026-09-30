@@ -73,6 +73,21 @@ class TestFileOperations:
 
     @pytest.mark.unit
     @pytest.mark.file_io
+    def test_missing_website_inbox_returns_empty_shape_without_recovery(self, tmp_path, monkeypatch):
+        """A missing website inbox is an empty inbox, not an error that creates the file."""
+        path = tmp_path / "users" / "abc" / "website_inbox.json"
+        called = []
+        monkeypatch.setattr(
+            "core.file_operations.handle_file_error",
+            lambda *args, **kwargs: called.append(True) or False,
+        )
+        data = load_json_data(str(path))
+        assert data == {"messages": [], "turns": []}
+        assert called == []
+        assert not path.exists()
+
+    @pytest.mark.unit
+    @pytest.mark.file_io
     def test_chat_interactions_recovery_uses_v2_envelope(self):
         """A missing chat file recovers as a v2 envelope without importing profile I/O."""
         from core.error_handling import _recovery_default_document_for_path

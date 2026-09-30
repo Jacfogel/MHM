@@ -34,6 +34,9 @@ import contextlib
 # Route orchestration logs to channels component; keep module logger for local debug if needed
 comm_logger = get_component_logger("communication_manager")
 logger = comm_logger
+# Email send uses two 30-second SMTP attempts plus a 1-second pause.
+# The sync bridge has to outlast that, or it gives up while the retry is still running.
+_SYNC_BRIDGE_TIMEOUT_SECONDS = 75
 
 
 @handle_errors("getting conversation manager", user_friendly=False)
@@ -274,7 +277,7 @@ class CommunicationManager:
                     "await the coroutine directly instead"
                 )
             future = asyncio.run_coroutine_threadsafe(coro, loop)
-            return future.result(timeout=30)
+            return future.result(timeout=_SYNC_BRIDGE_TIMEOUT_SECONDS)
 
         return loop.run_until_complete(coro)
 

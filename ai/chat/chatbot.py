@@ -43,6 +43,7 @@ from ai.prompts.command_interpreter import get_command_interpreter
 from ai.fallback import get_fallback_responses
 from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
 from ai.chat.response_generator import get_response_generator
+import ai.client.lm_studio_client as lm_studio_client
 from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
 from ai.chat.action_boundaries import (
     UNCLEAR_USER_INPUT_REPLY,
@@ -75,8 +76,25 @@ from core.error_handling import ValidationError, handle_errors
 ai_logger = get_component_logger("ai")
 logger = ai_logger
 
+# Command mode feeds the parser. Chat fallback text can contain words like
+# "help" or "task" and get executed as a command when the model is down.
+_COMMAND_PARSE_UNAVAILABLE = "ACTION: unknown"
+
 # Global prompt manager instance
 prompt_manager = get_prompt_manager()
+
+
+@handle_errors(
+    "choosing text when the model is unavailable",
+    default_return=_COMMAND_PARSE_UNAVAILABLE,
+)
+def _text_when_model_is_unavailable(
+    mode: str | None, user_prompt: str, user_id: str | None
+) -> str:
+    """Return parser-safe text for command modes, and a conversational fallback otherwise."""
+    if isinstance(mode, str) and mode.startswith("command"):
+        return _COMMAND_PARSE_UNAVAILABLE
+    return get_fallback_responses().contextual(user_prompt, user_id)
 
 
 class AIChatBotSingleton:
@@ -294,7 +312,7 @@ class AIChatBotSingleton:
                 interaction_type=AIInteractionType.FALLBACK.value,
                 prompt_length=len(user_prompt),
             )
-            response = get_fallback_responses().contextual(user_prompt, user_id)
+            response = _text_when_model_is_unavailable(mode, user_prompt, user_id)
             # Don't cache fallback responses to allow variation
             return response
 
@@ -358,20 +376,22 @@ class AIChatBotSingleton:
                 )
                 return response
             else:
-                # API failed, use contextual fallback
-                response = get_fallback_responses().contextual(user_prompt, user_id)
+                # API failed. Command mode must stay unparsed; chat can use a conversational fallback.
+                response = _text_when_model_is_unavailable(mode, user_prompt, user_id)
                 # Don't cache fallback responses to allow variation
 
                 self._store_chat_mode_interaction(
                     mode, user_id, user_prompt, response, context_used=False
                 )
 
+                reason = lm_studio_client.last_call_failure or "no response text"
                 ai_logger.error(
                     "AI response generation failed - using fallback",
                     user_id=user_id,
                     mode=mode,
                     interaction_type=AIInteractionType.FALLBACK.value,
                     prompt_length=len(user_prompt),
+                    failure_reason=reason,
                 )
                 return response
         finally:
@@ -458,7 +478,7 @@ class AIChatBotSingleton:
         self, user_prompt: str, user_id: str | None, mode: str
     ) -> str:
         """Return contextual fallback when LM Studio is unavailable."""
-        response = get_fallback_responses().contextual(user_prompt, user_id)
+        response = _text_when_model_is_unavailable(mode, user_prompt, user_id)
         ai_logger.warning(
             "AI response using fallback - LM Studio unavailable",
             user_id=user_id,

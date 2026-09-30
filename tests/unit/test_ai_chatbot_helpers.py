@@ -869,3 +869,32 @@ class TestAIChatBotHelpers:
         assert "out of" not in statistic.lower()
         assert "hello" in statistic.lower()
 
+    def test_command_mode_failure_stays_unparsed(self, chatbot_instance, monkeypatch):
+        """A failed command interpretation must not become chat text the parser can run."""
+        import ai.client.lm_studio_client as lm_studio_client
+
+        chatbot_instance.response_cache.clear()
+        chatbot_instance.lm_studio_available = True
+        lm_studio_client.last_call_failure = "ReadTimeout: The read operation timed out"
+        calls = []
+
+        def _fail(**kwargs):
+            calls.append(kwargs)
+            return None
+
+        monkeypatch.setattr(chatbot_instance, "_ensure_lm_studio_available", lambda: True)
+        monkeypatch.setattr(chatbot_instance, "_call_lm_studio_api", _fail)
+        monkeypatch.setattr(
+            chatbot_instance,
+            "_build_response_generation_request",
+            lambda *args, **kwargs: ([{"role": "user", "content": "add task"}], 60, 0.0),
+        )
+
+        text = chatbot_instance.generate_response(
+            "add task buy milk", user_id="user-1", mode="command"
+        )
+        assert calls
+        assert text == "ACTION: unknown"
+        assert "help" not in text.lower()
+        assert "task" not in text.lower()
+

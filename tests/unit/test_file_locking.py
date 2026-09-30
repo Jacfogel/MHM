@@ -415,6 +415,21 @@ class TestSafeJsonWrite:
         ) is False
         assert recovery.can_handle(TimeoutError("socket timed out")) is True
 
+    def test_network_recovery_treats_smtp_disconnect_as_transient(self):
+        """A dropped SMTP connection is a transient network error, not a system crash."""
+        import smtplib
+
+        from core.error_handling import ErrorHandler
+
+        recovery = NetworkRecovery()
+        disconnected = smtplib.SMTPServerDisconnected(
+            "Connection unexpectedly closed: The read operation timed out"
+        )
+        assert recovery.can_handle(disconnected) is True
+        message = ErrorHandler()._get_user_friendly_message(disconnected, {})
+        assert "try again" in message.lower()
+        assert "contact support" not in message.lower()
+
 
 @pytest.mark.unit
 @pytest.mark.file_io

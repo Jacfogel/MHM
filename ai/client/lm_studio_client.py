@@ -15,6 +15,8 @@ from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
 logger = get_component_logger("ai")
+# Why the latest chat/completions call returned no text. None after a success.
+last_call_failure: str | None = None
 
 # The loaded local model rejects prompts above this window. Measured English
 # in these prompts is about 2.3 characters per token; 2 keeps the request under.
@@ -172,6 +174,8 @@ def call_lm_studio_api(
     stop: list[str] | None = None,
 ) -> str | None:
     """Make a chat/completions request to LM Studio."""
+    global last_call_failure
+    last_call_failure = None
     if timeout is None:
         timeout = AI_API_CALL_TIMEOUT
 
@@ -191,14 +195,20 @@ def call_lm_studio_api(
         "Authorization": f"Bearer {LM_STUDIO_API_KEY}",
     }
 
-    response = requests.post(
-        f"{LM_STUDIO_BASE_URL}/chat/completions",
-        headers=headers,
-        json=payload,
-        timeout=timeout,
-    )
+    try:
+        response = requests.post(
+            f"{LM_STUDIO_BASE_URL}/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=timeout,
+        )
+    except requests.RequestException as exc:
+        last_call_failure = f"{type(exc).__name__}: {exc}"
+        logger.warning(f"LM Studio API request failed: {last_call_failure}")
+        return None
 
     if response.status_code != 200:
+        last_call_failure = f"HTTP {response.status_code}"
         logger.warning(
             f"LM Studio API error: HTTP {response.status_code} - {response.text}"
         )
@@ -206,8 +216,12 @@ def call_lm_studio_api(
 
     data = response.json()
     if "choices" not in data or not data["choices"]:
+        last_call_failure = "empty choices"
         logger.warning("LM Studio API returned empty choices")
         return None
 
     content = data["choices"][0]["message"]["content"]
-    return content.strip() if content else None
+    if not content:
+        last_call_failure = "empty content"
+        return None
+    return content.strip()

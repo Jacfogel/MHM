@@ -151,6 +151,11 @@ def load_json_data(file_path):
         with open(file_path, encoding="utf-8") as file:
             return json.load(file)
     except FileNotFoundError as e:
+        # A missing website inbox is normal until the first website message.
+        # Logging it as an error, then creating the file, made a quiet absence look like a crash.
+        if "website_inbox" in file_path:
+            logger.info(f"Website inbox is not created yet; using an empty inbox: {file_path}")
+            return {"messages": [], "turns": []}
         # Use specialized file error handler for better recovery
         if not handle_file_error(e, file_path, "loading JSON data"):
             logger.error(f"File not found and recovery failed: {file_path}")

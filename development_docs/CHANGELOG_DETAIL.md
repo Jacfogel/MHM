@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Mail retries, command failures stay unparsed, empty inbox stays quiet
+- **Fix**: `send_message__send_email_sync` retries once after `SMTPServerDisconnected`, `TimeoutError`, or `ConnectionError`, and keeps the same Message-ID. `NetworkRecovery` treats an SMTP disconnect as transient, and the user-facing text asks to try again. The sync bridge timeout is 75 seconds so it outlasts two 30-second SMTP attempts. See [bot.py](../communication/communication_channels/email/bot.py), [error_handling.py](../core/error_handling.py), and [channel_orchestrator.py](../communication/core/channel_orchestrator.py).
+- **Fix**: A failed command-mode generation returns `ACTION: unknown` instead of conversational fallback text, which the parser could read as a real command. The error log includes `failure_reason` from the LM Studio call. See [chatbot.py](../ai/chat/chatbot.py) and [lm_studio_client.py](../ai/client/lm_studio_client.py).
+- **Fix**: `load_json_data` returns `{"messages": [], "turns": []}` for a missing `website_inbox.json` and does not log it as a recovery failure. See [file_operations.py](../core/file_operations.py).
+- **Impact**: A slow mail server gets one more chance to accept the message. A failed command parse no longer risks running the wrong command. Opening a user who has never used the website does not write an error for a file that is supposed to be absent.
+
 ### 2026-09-30 - One-time jobs end, and recovery stays a leaf
 - **Fix**: Scheduled message cleanup and conflict checks read `user_id` and `category` from `schedule` keyword arguments. A finished check-in, random-time message, or deferred retry is removed instead of firing again the next day. See [manager.py](../scheduler/manager.py).
 - **Fix**: File recovery builds an empty chat-interactions envelope from [chat_interactions_document.py](../core/chat_interactions_document.py). `error_handling` no longer imports `profile_v2_io`. See [error_handling.py](../core/error_handling.py) and [profile_v2_io.py](../core/profile_v2_io.py).

@@ -315,6 +315,12 @@ class NetworkRecovery(ErrorRecoveryStrategy):
         # turns a 10s lock wait into minutes and trips pytest-timeout.
         if isinstance(error, TimeoutError) and "acquire lock" in str(error).lower():
             return False
+        # SMTPServerDisconnected is an OSError, so a dropped mail connection
+        # used to skip this strategy and look like a hard system failure.
+        if type(error).__name__ == "SMTPServerDisconnected":
+            return True
+        if "connection unexpectedly closed" in str(error).lower():
+            return True
         if isinstance(error, (ConnectionError, TimeoutError)):
             return True
         return isinstance(error, CommunicationError) and "network" in str(error).lower()
@@ -538,6 +544,10 @@ class ErrorHandler:
             return "Connection failed. Please check your internet connection and try again."
         elif isinstance(error, TimeoutError):
             return "Operation timed out. Please try again."
+        elif type(error).__name__ == "SMTPServerDisconnected" or (
+            "connection unexpectedly closed" in str(error).lower()
+        ):
+            return "The email server closed the connection. Please try again."
         elif isinstance(error, ValueError):
             return "Invalid data format. Please check your input and try again."
         elif isinstance(error, KeyError):

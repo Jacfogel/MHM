@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chat/chatbot.py` - Main AI implementation (71 functions)
++-- `ai/chat/chatbot.py` - Main AI implementation (72 functions)
 +-- `user/context_manager.py` - Context for AI (14 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (91 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)

@@ -139,6 +139,7 @@ Returns:
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
 - [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
 - [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `_text_when_model_is_unavailable(mode, user_prompt, user_id)` - Return parser-safe text for command modes, and a conversational fallback otherwise.
 - [OK] `async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
 - [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
