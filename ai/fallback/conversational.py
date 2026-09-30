@@ -74,10 +74,22 @@ def try_new_user_no_context(
     return None
 
 
+_CHECKIN_STATISTIC = re.compile(
+    r"(\bout of\b|%\s*of the time|\bcheck-?ins?\b)",
+    re.IGNORECASE,
+)
+
+
 @handle_errors("checking for a simple greeting", default_return=False)
 def is_simple_greeting(message: str) -> bool:
     """Return True when the whole message is only a hello, with no other request."""
     return bool(_SIMPLE_GREETING.match((message or "").strip()))
+
+
+@handle_errors("checking a reply for check-in statistics", default_return=False)
+def reply_cites_checkin_statistics(text: str) -> bool:
+    """Return True when a reply quotes a habit rate or a check-in count."""
+    return bool(_CHECKIN_STATISTIC.search(text or ""))
 
 
 @handle_errors("building a simple greeting reply", default_return="Hello! How are you doing today?")

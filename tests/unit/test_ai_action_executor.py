@@ -420,3 +420,40 @@ def test_result_rewrite_drops_unrelated_breakfast_reply():
             )
 
     assert result.message == "Here are your tasks."
+
+
+def test_result_rewrite_keeps_a_breakfast_task_confirmation():
+    """Naming breakfast is fine when the reply is not a check-in statistic."""
+    executor = ActionPlanExecutor()
+    handler_response = InteractionResponse("Added: buy breakfast.", True)
+    action = AIActionRequest(
+        action_name="create_task",
+        entities={},
+        confidence=0.9,
+        source_message="add that",
+    )
+    metadata = MagicMock()
+    metadata.to_dict.return_value = {"action_name": "create_task", "title": "buy breakfast"}
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+
+    with patch(
+        "communication.message_processing.action_plan_executor.assemble_action_result_messages",
+        return_value=[
+            {"role": "system", "content": "rules"},
+            {"role": "user", "content": "add that"},
+        ],
+    ):
+        with patch(
+            "communication.message_processing.action_plan_executor.call_lm_studio_api",
+            return_value="I added breakfast to your list.",
+        ):
+            result = executor._generate_result_aware_response(
+                "user-1",
+                action,
+                handler_response,
+                metadata,
+                ai_chatbot=ai_chatbot,
+            )
+
+    assert result.message == "I added breakfast to your list."

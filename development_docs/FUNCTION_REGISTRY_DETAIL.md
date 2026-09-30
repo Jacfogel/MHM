@@ -320,12 +320,12 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 
 #### `ai/client/lm_studio_client.py`
 **Functions:**
+- [OK] `_apply_text_budget(messages, indexes, budget)` - Write each selected message so their combined text stays within budget.
+- [OK] `_context_char_budget(completion_tokens)` - Return how many prompt characters fit beside the reserved completion.
+- [OK] `_keep_text_tail(content, budget)` - Keep the end of text, starting on the next line when a cut lands mid-line.
 - [OK] `_shrink_system_prompt(content, budget)` - Keep the start of the instructions and the start of the user context.
 - [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
-- [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink the system prompt so the request fits a 2048-token local model.
-
-The user message is kept. Extra instruction text is shortened before the
-selected user context, and that context keeps its opening lines.
+- [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink system and user text so the request stays inside the 2048-token window.
 - [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
 
 #### `ai/client/lm_studio_manager.py`
@@ -684,6 +684,7 @@ a check-in statistic just because the dump mentions breakfast or mood.
 **Functions:**
 - [OK] `default_contextual_response(name_prefix, is_new_user)` - Last-resort supportive fallback when no keyword or check-in path matched.
 - [OK] `is_simple_greeting(message)` - Return True when the whole message is only a hello, with no other request.
+- [OK] `reply_cites_checkin_statistics(text)` - Return True when a reply quotes a habit rate or a check-in count.
 - [OK] `simple_greeting_text(user_name)` - Return a greeting that does not bring up check-ins or habit statistics.
 - [OK] `try_conversational_support(prompt_lower, name_prefix, user_name)` - Keyword-based general support (no check-in calculations).
 - [MISSING] `try_new_user_no_context(prompt_lower, name_prefix, is_new_user)` - No description
@@ -6851,9 +6852,9 @@ When restore_steps is true, finished steps of a top-level task come back with it
 
 #### `tasks/task_effort.py`
 **Functions:**
+- [OK] `_append_local_estimates(pending, estimates)` - Add a local minute guess for this response without storing it as a model answer.
 - [OK] `_cache_key(task)` - Build a cache key from the task title and description.
-- [OK] `_cache_local_estimates(pending, estimates)` - Store a local minute guess so the next Home load does not wait on the model.
-- [OK] `estimate_task_efforts(tasks)` - Return minute estimates for active tasks. Missing estimates are omitted.
+- [OK] `estimate_task_efforts(tasks)` - Return minute estimates for active tasks.
 - [OK] `local_task_minutes(task)` - Guess minutes from the title so Home can rank tasks without the model.
 - [OK] `parse_task_effort_lines(text, allowed_ids)` - Read `id minutes` lines and keep only ids from this request.
 

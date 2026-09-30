@@ -1,5 +1,7 @@
 """Unit tests for suggested task steps saved as subtasks."""
 
+import uuid
+
 import pytest
 
 from tasks.task_breakdown import (
@@ -9,6 +11,15 @@ from tasks.task_breakdown import (
     suggest_breakdown,
 )
 from tests.test_helpers.test_utilities import TestUserFactory
+
+
+def _fresh_user_id(name: str) -> str:
+    """Return a user id that does not reuse a task file from an earlier run.
+
+    Task files are stored under the id itself. A fixed id keeps the previous
+    run's tasks, and the next full suite then sees those leftovers.
+    """
+    return f"{name}_{uuid.uuid4().hex[:8]}"
 
 
 @pytest.mark.unit
@@ -28,7 +39,7 @@ class TestTaskBreakdown:
         ]
 
     def test_suggest_returns_model_steps(self, test_data_dir, monkeypatch):
-        user_id = "breakdown_suggest"
+        user_id = _fresh_user_id("breakdown_suggest")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -52,7 +63,7 @@ class TestTaskBreakdown:
         assert result.steps == ["Find the phone number", "Ask for the next opening"]
 
     def test_suggest_reports_when_the_model_is_unavailable(self, test_data_dir, monkeypatch):
-        user_id = "breakdown_unavailable"
+        user_id = _fresh_user_id("breakdown_unavailable")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -73,7 +84,7 @@ class TestTaskBreakdown:
         assert result.steps == []
 
     def test_subtasks_keep_the_original_task(self, test_data_dir):
-        user_id = "breakdown_subtasks"
+        user_id = _fresh_user_id("breakdown_subtasks")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -116,7 +127,7 @@ class TestTaskBreakdown:
         assert again.success is False
 
     def test_completing_or_deleting_the_parent_includes_its_steps(self, test_data_dir):
-        user_id = "breakdown_parent_lifecycle"
+        user_id = _fresh_user_id("breakdown_parent")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -158,7 +169,7 @@ class TestTaskBreakdown:
         assert "Buy milk" in remaining_titles
 
     def test_restore_can_bring_steps_back(self, test_data_dir):
-        user_id = "breakdown_restore_steps"
+        user_id = _fresh_user_id("breakdown_restore")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -219,7 +230,7 @@ class TestTaskBreakdown:
         PENDING_RESTORE.pop(user_id, None)
 
     def test_weekly_task_keeps_its_steps_on_the_next_occurrence(self, test_data_dir):
-        user_id = "breakdown_weekly_steps"
+        user_id = _fresh_user_id("breakdown_weekly")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
@@ -250,7 +261,7 @@ class TestTaskBreakdown:
         assert steps[0].get("due", {}).get("date") == parents[0].get("due", {}).get("date")
 
     def test_reminder_names_the_open_step(self, test_data_dir):
-        user_id = "breakdown_reminder_step"
+        user_id = _fresh_user_id("breakdown_reminder")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )

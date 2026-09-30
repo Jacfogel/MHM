@@ -32,6 +32,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-29 - Prompts fit, guesses stay uncached, breakfast is allowed
+- **Fix**: `fit_messages_to_context` now caps the combined prompt. A long user message keeps its ending, and the instructions keep their beginning. See [lm_studio_client.py](../ai/client/lm_studio_client.py).
+- **Fix**: Local task-minute guesses are returned for the current Home load and are not written into the effort cache. Only a parsed model answer is cached. See [task_effort.py](../tasks/task_effort.py).
+- **Fix**: Greeting replies and action rewrites are rejected when they cite a check-in statistic that was not already in the request or the handler result. Mentioning breakfast is allowed. See [conversational.py](../ai/fallback/conversational.py), [chatbot.py](../ai/chat/chatbot.py), and [action_plan_executor.py](../communication/message_processing/action_plan_executor.py).
+- **Impact**: The 2048-token model can answer a long command instead of falling back. Home can pick up real minute estimates after a timeout. A task named breakfast is confirmed as that task.
+- Task step tests start from an empty list
+- **Fix**: Task-step tests in [test_task_breakdown.py](../tests/unit/test_task_breakdown.py) create a new user id each run. Completing, restoring, and repeating a task read `users/<id>/tasks/tasks.json`, and a reused id still held the previous run's tasks.
+- **Impact**: The full suite no longer fails those three tests for leftovers such as a second "Clean the kitchen" or a step from the earlier run.
 ### 2026-09-28 - Home loads first, greetings stay greetings
 - **Fix**: Home renders after account, tasks, and check-in state, and fills minute estimates in afterward. See [home.js](../website/home.js). Estimates fall back to a local guess when the model is unavailable or returns nothing, with a 4 second cap. See [task_effort.py](../tasks/task_effort.py).
 - **Fix**: Breakfast and teeth rates count only check-ins where that question was asked and answered. A hello no longer receives a check-in statistic, and a failed action rewrite keeps the handler reply. Prompts sent to the local model are trimmed to its 2048-token window. See [analysis.py](../checkins/analysis.py), [checkin_summary.py](../ai/fallback/checkin_summary.py), [interaction_manager.py](../communication/message_processing/interaction_manager.py), and [lm_studio_client.py](../ai/client/lm_studio_client.py).

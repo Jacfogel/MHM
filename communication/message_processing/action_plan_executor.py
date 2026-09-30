@@ -8,7 +8,10 @@ from typing import Any
 from ai.chat.action_planner import get_action_planner
 from ai.client.lm_studio_client import call_lm_studio_api
 from ai.context.assembly import assemble_action_result_messages
-from ai.fallback.conversational import is_simple_greeting
+from ai.fallback.conversational import (
+    is_simple_greeting,
+    reply_cites_checkin_statistics,
+)
 from ai.prompts.action_catalog import AIActionPlan, AIActionRequest
 from communication.command_handlers.shared_types import InteractionResponse
 from communication.message_processing.structured_command_dispatcher import (
@@ -308,8 +311,10 @@ class ActionPlanExecutor:
         enhanced_text = (raw or "").strip()
         if len(enhanced_text) <= 10:
             return handler_response
-        asked_about_food = "breakfast" in source.lower() or "eat" in source.lower()
-        if "breakfast" in enhanced_text.lower() and not asked_about_food:
+        grounded = f"{source}\n{handler_response.message or ''}\n{result_metadata}"
+        if reply_cites_checkin_statistics(enhanced_text) and not reply_cites_checkin_statistics(
+            grounded
+        ):
             return handler_response
         handler_response.message = enhanced_text
         return handler_response

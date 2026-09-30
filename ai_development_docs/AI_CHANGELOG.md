@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-29 - Prompts fit, guesses stay uncached, breakfast is allowed **COMPLETED**
+- A long user message is shortened with the instructions so the local model stays inside its 2048-token window.
+- A minute guess used when the model is down or silent is not saved. The next Home load can ask the model again.
+- A hello or a task confirmation may mention breakfast. A reply is dropped only when it quotes a check-in rate the user did not ask about.
+- The task-step tests now use a new user id on every run. Task files live under that id, so a later full suite was reading tasks left by the previous run.
+
 ### 2026-09-28 - Home loads first, greetings stay greetings **COMPLETED**
 - Home shows the next task before minute estimates come back, so a slow or failed model call no longer holds the page.
 - A hello is answered as a hello. Check-in statistics are only used when that question was asked, and only for the check-ins that included it.
@@ -105,16 +111,6 @@ Guidelines:
 - Talk to MHM on the website is planned in [PLANS.md](../development_docs/PLANS.md) Section 7.4 and is not built yet.
 - Scheduled Discord messages no longer repeat themselves in an embed. The reaction flag only adds thumbs. The two check-in Pyright warnings are cleared.
 - The first question starts on its own line after the opening, and later questions start on their own line after the transition phrase. The website answer box clears for the next question. Scale questions offer 1-5 and yes/no questions offer Yes and No, without a text box. Sleep times use dropdowns. Other typed questions still use the text box. Home shows an open check-in. Logging out drops an in-progress check-in. An idle check-in expires after the same two hours used by Discord and email. Check-in, Tasks, and Messages tabs show only when that feature is enabled. Tasks stay available, like the notebook. Home and Insights hide check-in actions when check-ins are off, and the Messages tab hides when messages are off.
-
-### 2026-09-23 - Two-way email replies **COMPLETED**
-- A reply keeps the new text, stays in the same email thread, and the inbox message is marked read only after MHM handles it.
-- Replying to a check-in answers that check-in. Replying to a task reminder with done, later, skip, or simplify to a real smaller step applies to that task. The words after "to" become the new title.
-- Behavior is specified in [email-reply-loop.md](../specs/email-reply-loop.md).
-- The communication guide path, function registry, and Pyright check for this reply code are clean.
-
-### 2026-09-22 - Planned SMS, Apple Health, and subscription scaffolds **COMPLETED**
-- [PLANS.md](../development_docs/PLANS.md) Section 7 records SMS, Apple Health ingest, and a 30-day trial then monthly subscription as **PLANNED**. None of that behavior is implemented.
-- SMS uses a paid provider. Apple Health is a phone push into the existing daily-summary path. The alpha account stays comped when billing exists.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -23,20 +23,69 @@ _CHARS_PER_TOKEN = 2
 _CONTEXT_MARKER = "[selected_user_context]"
 
 
+@handle_errors("measuring the LM Studio character budget", default_return=512)
+def _context_char_budget(completion_tokens: int) -> int:
+    """Return how many prompt characters fit beside the reserved completion."""
+    reserve = max(int(completion_tokens or 0), 0) + 32
+    input_tokens = max(256, _MODEL_CONTEXT_TOKENS - reserve)
+    return input_tokens * _CHARS_PER_TOKEN
+
+
+@handle_errors("keeping the tail of a prompt", default_return="")
+def _keep_text_tail(content: str, budget: int) -> str:
+    """Keep the end of text, starting on the next line when a cut lands mid-line."""
+    if budget < 1 or not content:
+        return ""
+    if len(content) <= budget:
+        return content
+    tail = content[-budget:]
+    newline = tail.find("\n")
+    if newline != -1 and newline < len(tail) - 1:
+        trimmed = tail[newline + 1 :]
+        if trimmed:
+            return trimmed
+    return tail
+
+
+@handle_errors("fitting prompt texts into a character budget", default_return=None)
+def _apply_text_budget(
+    messages: list, indexes: list[int], budget: int, *, keep_tail: bool
+) -> None:
+    """Write each selected message so their combined text stays within budget."""
+    remaining = max(int(budget or 0), 0)
+    order = list(reversed(indexes)) if keep_tail else list(indexes)
+    assigned = {index: "" for index in indexes}
+    for index in order:
+        content = str(messages[index].get("content") or "")
+        if remaining <= 0 or not content:
+            continue
+        if len(content) <= remaining:
+            assigned[index] = content
+            remaining -= len(content)
+            continue
+        piece = (
+            _keep_text_tail(content, remaining)
+            if keep_tail
+            else _shrink_system_prompt(content, remaining)
+        )
+        assigned[index] = piece
+        remaining -= len(piece)
+    for index, text in assigned.items():
+        messages[index]["content"] = text
+
+
 @handle_errors("fitting LM Studio messages to the context window", default_return=[])
 def fit_messages_to_context(
     messages: list, completion_tokens: int
 ) -> list:
-    """Shrink the system prompt so the request fits a 2048-token local model.
+    """Shrink system and user text so the request stays inside the 2048-token window.
 
-    The user message is kept. Extra instruction text is shortened before the
-    selected user context, and that context keeps its opening lines.
+    The start of the instructions is kept. The end of the user message is kept.
+    The combined text never exceeds the character budget.
     """
     if not isinstance(messages, list):
         return []
-    reserve = max(int(completion_tokens or 0), 0) + 32
-    input_tokens = max(256, _MODEL_CONTEXT_TOKENS - reserve)
-    budget = input_tokens * _CHARS_PER_TOKEN
+    budget = _context_char_budget(completion_tokens)
     fitted = []
     for message in messages:
         if isinstance(message, dict):
@@ -45,19 +94,24 @@ def fit_messages_to_context(
     if total <= budget:
         return fitted
 
-    user_len = sum(
-        len(str(message.get("content") or ""))
-        for message in fitted
-        if message.get("role") != "system"
+    system_indexes = [
+        index for index, message in enumerate(fitted) if message.get("role") == "system"
+    ]
+    other_indexes = [
+        index for index, message in enumerate(fitted) if message.get("role") != "system"
+    ]
+    user_len = sum(len(str(fitted[index].get("content") or "")) for index in other_indexes)
+    system_len = sum(
+        len(str(fitted[index].get("content") or "")) for index in system_indexes
     )
-    system_budget = max(400, budget - user_len)
-    for message in fitted:
-        if message.get("role") != "system":
-            continue
-        content = str(message.get("content") or "")
-        if len(content) <= system_budget:
-            continue
-        message["content"] = _shrink_system_prompt(content, system_budget)
+    if user_len < budget:
+        system_budget = budget - user_len
+        user_budget = user_len
+    else:
+        system_budget = min(system_len, budget // 3)
+        user_budget = budget - system_budget
+    _apply_text_budget(fitted, system_indexes, system_budget, keep_tail=False)
+    _apply_text_budget(fitted, other_indexes, user_budget, keep_tail=True)
     return fitted
 
 

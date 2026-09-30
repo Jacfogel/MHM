@@ -61,7 +61,11 @@ def _cache_key(task: dict[str, Any]) -> str:
 
 @handle_errors("estimating how long tasks take", default_return=[])
 def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
-    """Return minute estimates for active tasks. Missing estimates are omitted."""
+    """Return minute estimates for active tasks.
+
+    A local guess fills a gap for this response only. Only a parsed model
+    answer is cached, so a timeout or an unavailable model can be retried.
+    """
     pending = []
     estimates: list[dict[str, Any]] = []
     for task in tasks or []:
@@ -81,7 +85,7 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
 
     if not get_ai_chatbot().is_ai_available():
         logger.info("Using local task effort estimates because the model is unavailable")
-        return _cache_local_estimates(pending, estimates)
+        return _append_local_estimates(pending, estimates)
     lines = []
     allowed_ids = set()
     for task in pending[:20]:
@@ -113,7 +117,10 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
     }
     for task in pending:
         task_id = str(task.get("id"))
-        minutes = parsed.get(task_id) or local_task_minutes(task)
+        minutes = parsed.get(task_id) if task_id in allowed_ids else None
+        if minutes is None:
+            estimates.append({"id": task_id, "minutes": local_task_minutes(task)})
+            continue
         cache_key = _cache_key(task)
         if cache_key:
             _effort_cache[cache_key] = minutes
@@ -121,18 +128,14 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
     return estimates
 
 
-@handle_errors("caching local task effort estimates", default_return=[])
-def _cache_local_estimates(
+@handle_errors("adding local task effort estimates", default_return=[])
+def _append_local_estimates(
     pending: list[dict[str, Any]], estimates: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
-    """Store a local minute guess so the next Home load does not wait on the model."""
+    """Add a local minute guess for this response without storing it as a model answer."""
     for task in pending:
         task_id = str(task.get("id") or "").strip()
         if not task_id:
             continue
-        minutes = local_task_minutes(task)
-        cache_key = _cache_key(task)
-        if cache_key:
-            _effort_cache[cache_key] = minutes
-        estimates.append({"id": task_id, "minutes": minutes})
+        estimates.append({"id": task_id, "minutes": local_task_minutes(task)})
     return estimates

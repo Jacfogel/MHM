@@ -830,7 +830,10 @@ class AIChatBotSingleton:
         The local model is loaded with a small context window. A greeting does not
         need that packet, and a failed call used to fall through to a habit statistic.
         """
-        from ai.fallback.conversational import simple_greeting_text
+        from ai.fallback.conversational import (
+            reply_cites_checkin_statistics,
+            simple_greeting_text,
+        )
         from ai.fallback.profile_helpers import load_user_context, preferred_name_from_context
 
         name = preferred_name_from_context(load_user_context(user_id))
@@ -845,7 +848,7 @@ class AIChatBotSingleton:
                 "content": (
                     f"You are MHM. The user's name is {who}. "
                     "They only said hello. Reply in one or two short warm sentences. "
-                    "Do not mention check-ins, breakfast, habits, tasks, or statistics."
+                    "Do not quote check-in statistics, habit rates, or tasks."
                 ),
             },
             {"role": "user", "content": (user_prompt or "").strip()},
@@ -857,7 +860,7 @@ class AIChatBotSingleton:
             timeout=6,
         )
         text = (raw or "").strip()
-        if len(text) < 3 or "breakfast" in text.lower():
+        if len(text) < 3 or reply_cites_checkin_statistics(text):
             return fallback
         return text
 

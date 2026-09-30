@@ -824,3 +824,48 @@ class TestAIChatBotHelpers:
         assert "Samantha" not in result
         assert "Best wishes" not in result
 
+    def test_greeting_reply_keeps_a_breakfast_wish_and_drops_a_statistic(
+        self, chatbot_instance
+    ):
+        """A hello may mention breakfast. A check-in rate is replaced."""
+        with (
+            patch.object(
+                chatbot_instance, "_ensure_lm_studio_available", return_value=True
+            ),
+            patch(
+                "ai.fallback.profile_helpers.load_user_context",
+                return_value={},
+            ),
+            patch(
+                "ai.fallback.profile_helpers.preferred_name_from_context",
+                return_value="",
+            ),
+            patch(
+                "ai.chat.chatbot.call_lm_studio_api",
+                return_value="Hope breakfast was gentle today.",
+            ),
+        ):
+            warm = chatbot_instance.generate_greeting_reply("hi", user_id="user-1")
+        assert warm == "Hope breakfast was gentle today."
+
+        with (
+            patch.object(
+                chatbot_instance, "_ensure_lm_studio_available", return_value=True
+            ),
+            patch(
+                "ai.fallback.profile_helpers.load_user_context",
+                return_value={},
+            ),
+            patch(
+                "ai.fallback.profile_helpers.preferred_name_from_context",
+                return_value="",
+            ),
+            patch(
+                "ai.chat.chatbot.call_lm_studio_api",
+                return_value="You ate breakfast 4 out of 5 times.",
+            ),
+        ):
+            statistic = chatbot_instance.generate_greeting_reply("hi", user_id="user-1")
+        assert "out of" not in statistic.lower()
+        assert "hello" in statistic.lower()
+
