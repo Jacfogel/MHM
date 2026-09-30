@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-29 - Failed emails stay failed
+- **Fix**: Email send returns True only after SMTP accepts the message. A timeout or login failure returns False, and the async sender no longer logs success in that case. The send timeout is 30 seconds. See [bot.py](../communication/communication_channels/email/bot.py).
+- **Fix**: The two empty `chat_interactions.json` lists were saved as v2 envelopes. Loads no longer accept a bare list. New chat files, file recovery, and analytics use the envelope. See [profile_v2_io.py](../core/profile_v2_io.py), [response_tracking.py](../core/response_tracking.py), and [user_data_summaries.py](../storage/user_data_summaries.py).
+- **Impact**: The 8:00pm motivational email that timed out can be retried. Chat history is read from the v2 envelope only.
+
 ### 2026-09-29 - Prompts fit, guesses stay uncached, breakfast is allowed
 - **Fix**: `fit_messages_to_context` now caps the combined prompt. A long user message keeps its ending, and the instructions keep their beginning. See [lm_studio_client.py](../ai/client/lm_studio_client.py).
 - **Fix**: Local task-minute guesses are returned for the current Home load and are not written into the effort cache. Only a parsed model answer is cached. See [task_effort.py](../tasks/task_effort.py).

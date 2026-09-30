@@ -453,7 +453,7 @@ class TestEmailBotBehavior:
             result = self.email_bot.send_message__send_email_sync(
                 "test@example.com", "test message", {}
             )
-            assert result is None, "Should handle email sending error gracefully"
+            assert result is False, "Should handle email sending error gracefully"
     
     def test_email_bot_performance_under_load(self, test_data_dir):
         """Test that email bot performs well under load."""
@@ -673,7 +673,11 @@ class TestEmailBotIntegration:
         def send_email(recipient, message):
             try:
                 # Mock SMTP connection
-                with patch('smtplib.SMTP_SSL') as mock_smtp:
+                with patch('smtplib.SMTP_SSL') as mock_smtp, patch.object(
+                    self.email_bot,
+                    "_get_email_config",
+                    return_value=("smtp.test.com", "imap.test.com", "user@test.com", "pass"),
+                ):
                     mock_smtp_instance = MagicMock()
                     mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
                     
@@ -707,4 +711,4 @@ class TestEmailBotIntegration:
         
         # All results should be valid
         for result in results:
-            assert result is None, "All results should be None (error handling)"
+            assert result is True, "A completed send should report success"

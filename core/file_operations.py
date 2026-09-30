@@ -650,7 +650,9 @@ def _create_user_files__log_files(user_id):
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if not os.path.exists(log_file):
-                save_json_data([], log_file)
+                from core.profile_v2_io import wrap_chat_interactions_for_save
+
+                save_json_data(wrap_chat_interactions_for_save([]), log_file)
                 logger.debug(f"Created {log_type} file for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating log files for user {user_id}: {e}")

@@ -47,8 +47,8 @@ def test_task_reminder_email_smtp_payload_has_subject_and_body():
         )
 
     smtp_cls.assert_called_once()
-    assert smtp_cls.call_args.kwargs.get("timeout") == 10 or (
-        len(smtp_cls.call_args.args) >= 3 and smtp_cls.call_args.args[2] == 10
+    assert smtp_cls.call_args.kwargs.get("timeout") == 30 or (
+        len(smtp_cls.call_args.args) >= 3 and smtp_cls.call_args.args[2] == 30
     )
     server.login.assert_called_once_with("bot@test.com", "secret")
     server.sendmail.assert_called_once()
@@ -86,7 +86,7 @@ def test_email_send_smtp_auth_failure_logs_and_does_not_raise():
             "person@example.com", "hello", {"subject": "Test"}
         )
 
-    assert result is None
+    assert result is False
 
 
 @pytest.mark.behavior
@@ -105,6 +105,7 @@ def test_email_send_uses_smtp_timeout():
         ) as smtp_cls,
         patch.object(bot, "_get_email_config", return_value=config),
     ):
-        bot.send_message__send_email_sync("to@example.com", "body", {})
+        result = bot.send_message__send_email_sync("to@example.com", "body", {})
 
-    assert smtp_cls.call_args.kwargs.get("timeout") == 10
+    assert result is True
+    assert smtp_cls.call_args.kwargs.get("timeout") == 30

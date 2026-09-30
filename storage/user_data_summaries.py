@@ -331,7 +331,13 @@ def _get_user_data_summary__add_log_file_info(
     try:
         size = os.path.getsize(log_file)
         data = load_json_data(log_file)
-        entry_count = len(data) if isinstance(data, list) else 0
+        if log_type == "chat_interactions":
+            rows = data.get("interactions") if isinstance(data, dict) else None
+            entry_count = len(rows) if isinstance(rows, list) else 0
+        elif isinstance(data, list):
+            entry_count = len(data)
+        else:
+            entry_count = 0
         summary["logs"][log_type] = {
             "exists": True,
             "size": size,
@@ -582,10 +588,12 @@ def get_user_analytics_summary(user_id: str) -> dict[str, Any]:
                         sa = recent[0].get("sent_at")
                         last_ix = str(sa).strip() if sa else "Unknown"
 
-            elif source == "chat_interactions" and isinstance(raw, list):
-                count = len(raw)
-                if raw and isinstance(raw[-1], dict):
-                    last_ix = str(raw[-1].get("timestamp") or "Unknown")
+            elif source == "chat_interactions":
+                chat_rows = raw.get("interactions") if isinstance(raw, dict) else None
+                if isinstance(chat_rows, list):
+                    count = len(chat_rows)
+                    if chat_rows and isinstance(chat_rows[-1], dict):
+                        last_ix = str(chat_rows[-1].get("timestamp") or "Unknown")
 
             analytics["interaction_patterns"][source] = {
                 "count": count,

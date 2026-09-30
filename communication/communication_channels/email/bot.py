@@ -38,6 +38,9 @@ email_logger = get_component_logger("email")
 logger = email_logger
 
 _REPLY_KINDS = {"checkin", "task_reminder", "message"}
+# Login can succeed while the server is slow to accept the message body.
+# 10 seconds expired during sendmail on 2026-09-29; 30 seconds stays bounded.
+_SMTP_SEND_TIMEOUT_SECONDS = 30
 
 
 @handle_errors("choosing email reply kind", default_return="message")
@@ -181,21 +184,32 @@ class EmailBot(BaseChannel):
             # No running loop (shouldn't happen in async context, but handle gracefully)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-        await loop.run_in_executor(
+        sent = await loop.run_in_executor(
             None, self.send_message__send_email_sync, recipient, message, kwargs
         )
-        # Enhanced logging with message content
+        if sent is not True:
+            logger.error(f"Email send failed to {recipient}")
+            return False
         message_preview = message[:50] + "..." if len(message) > 50 else message
         logger.info(f"Email sent to {recipient} | Content: '{message_preview}'")
         return True
 
-    @handle_errors("sending email synchronously")
-    def send_message__send_email_sync(self, recipient: str, message: str, kwargs: dict):
-        """Send email synchronously and remember its Message-ID for later replies."""
+    @handle_errors(
+        "sending email synchronously",
+        default_return=False,
+        user_friendly=False,
+    )
+    def send_message__send_email_sync(
+        self, recipient: str, message: str, kwargs: dict
+    ) -> bool:
+        """Send email synchronously and remember its Message-ID for later replies.
+
+        Returns True only after the server accepts the message.
+        """
         self.last_outbound_message_id = None
         config = self._get_email_config()
         if not config:
-            return
+            return False
         smtp_server, _, smtp_user, smtp_password = config
         subject = str(kwargs.get("subject") or "Personal Assistant Message")
         in_reply_to = normalize_message_id(kwargs.get("in_reply_to"))
@@ -215,8 +229,9 @@ class EmailBot(BaseChannel):
             msg["In-Reply-To"] = in_reply_to
             msg["References"] = references
 
-        # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
-        with smtplib.SMTP_SSL(smtp_server, 465, timeout=10) as server:
+        with smtplib.SMTP_SSL(
+            smtp_server, 465, timeout=_SMTP_SEND_TIMEOUT_SECONDS
+        ) as server:
             server.login(smtp_user, smtp_password)
             server.sendmail(smtp_user, recipient, msg.as_string())
 
@@ -230,6 +245,7 @@ class EmailBot(BaseChannel):
                 task_id=str(kwargs.get("task_id") or ""),
                 subject=subject,
             )
+        return True
 
     # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
     @handle_errors("receiving email messages", default_return=[])

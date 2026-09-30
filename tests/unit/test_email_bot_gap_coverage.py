@@ -117,11 +117,13 @@ class TestEmailBotGapCoverage:
         monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass"))
         monkeypatch.setattr(bot, "initialize__test_smtp_connection", lambda: None)
         monkeypatch.setattr(bot, "initialize__test_imap_connection", lambda: None)
-        monkeypatch.setattr(bot, "send_message__send_email_sync", lambda *args: None)
+        monkeypatch.setattr(bot, "send_message__send_email_sync", lambda *args: True)
         monkeypatch.setattr(bot, "_receive_emails_sync", lambda: [{"id": "1"}])
 
         assert asyncio.run(bot.initialize()) is True
         assert asyncio.run(bot.send_message("u@example.com", "msg", subject="x")) is True
+        monkeypatch.setattr(bot, "send_message__send_email_sync", lambda *args: False)
+        assert asyncio.run(bot.send_message("u@example.com", "msg", subject="x")) is False
         received = asyncio.run(bot.receive_messages())
         assert len(received) == 1
         assert asyncio.run(bot.health_check()) is True

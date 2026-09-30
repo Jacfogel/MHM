@@ -692,7 +692,9 @@ def _recovery_default_document_for_path(
     if "checkins" in file_path:
         return _default_new_checkins_file_payload()
     if "chat_interactions" in file_path:
-        return []
+        from core.profile_v2_io import wrap_chat_interactions_for_save
+
+        return wrap_chat_interactions_for_save([])
     if "website_inbox" in file_path:
         return {"messages": [], "turns": []}
     if file_path.endswith(".json"):

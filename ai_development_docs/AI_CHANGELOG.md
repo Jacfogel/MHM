@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-29 - Failed emails stay failed **COMPLETED**
+- A timed-out email now returns failure, so the scheduler can retry instead of marking the message sent.
+- The send waits up to 30 seconds for the server to accept the body.
+- The two empty chat files that were still plain lists are v2 envelopes. Chat loads only accept that envelope.
+
 ### 2026-09-29 - Prompts fit, guesses stay uncached, breakfast is allowed **COMPLETED**
 - A long user message is shortened with the instructions so the local model stays inside its 2048-token window.
 - A minute guess used when the model is down or silent is not saved. The next Home load can ask the model again.
