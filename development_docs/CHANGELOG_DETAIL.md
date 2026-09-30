@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - One-time jobs end, and recovery stays a leaf
+- **Fix**: Scheduled message cleanup and conflict checks read `user_id` and `category` from `schedule` keyword arguments. A finished check-in, random-time message, or deferred retry is removed instead of firing again the next day. See [manager.py](../scheduler/manager.py).
+- **Fix**: File recovery builds an empty chat-interactions envelope from [chat_interactions_document.py](../core/chat_interactions_document.py). `error_handling` no longer imports `profile_v2_io`. See [error_handling.py](../core/error_handling.py) and [profile_v2_io.py](../core/profile_v2_io.py).
+- **Impact**: A sent or skipped scheduled message stays one-time. Recreating a missing chat file no longer depends on the profile loader. The function registry includes both new helpers. The scheduler test checks that each job callable exists before reading it, which clears the six Pyright warnings.
+
 ### 2026-09-30 - Failed sends stay unsent
 - **Fix**: Task reminders set `reminder_sent` only when delivery returns `sent`. A `failed` result is retried, and the retry passes the same email Message-ID. See [task_reminders.py](../scheduler/task_reminders.py) and [reminder_dispatcher.py](../communication/reminders/reminder_dispatcher.py).
 - **Fix**: Scheduled check-ins return the real send result. A rejected send clears the check-in flow and does not store a website copy. See [checkin_prompt_dispatcher.py](../communication/reminders/checkin_prompt_dispatcher.py) and [channel_orchestrator.py](../communication/core/channel_orchestrator.py).

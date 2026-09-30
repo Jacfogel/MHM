@@ -69,6 +69,29 @@ def _create_standalone_scheduler_manager() -> "SchedulerManager | None":
     return SchedulerManager(_scheduler_delivery_factory())
 
 
+# ERROR_HANDLING_EXCLUDE: pure lookup of arguments stored on a schedule partial
+def scheduled_job_user_and_category(job_func) -> tuple[Any, Any] | None:
+    """Return the user id and category stored on a schedule job callable.
+
+    Jobs are registered with keyword arguments, which ``schedule`` keeps on
+    ``keywords``. Positional ``args`` are checked when keywords do not identify
+    the job.
+    """
+    if job_func is None:
+        return None
+    keywords = getattr(job_func, "keywords", None)
+    if isinstance(keywords, dict):
+        user_id = keywords.get("user_id")
+        category = keywords.get("category")
+        if user_id is not None or category is not None:
+            return user_id, category
+    args = getattr(job_func, "args", None)
+    if isinstance(args, (list, tuple)) and args:
+        category = args[1] if len(args) >= 2 else None
+        return args[0], category
+    return None
+
+
 class SchedulerManager:
     @handle_errors("initializing scheduler manager")
     def __init__(self, delivery: SchedulerDeliveryPort):
@@ -766,8 +789,8 @@ class SchedulerManager:
             if not job_func:
                 continue
 
-            job_args = getattr(job_func, "args", None)
-            if job_args and job_args[0] == user_id:
+            identity = scheduled_job_user_and_category(job_func)
+            if identity and identity[0] == user_id:
                 job_time = job.next_run
                 if not job_time:
                     continue
@@ -896,9 +919,9 @@ class SchedulerManager:
             )
 
             category = "Generic Task"
-            job_args = getattr(job_func, "args", None)
-            if hasattr(job_func, "func") and job_args:
-                category = job_args[0]
+            identity = scheduled_job_user_and_category(job_func)
+            if identity and identity[1]:
+                category = identity[1]
 
             logger.info(
                 f"Task: {task_description}, Category: {category}, Scheduled at: {job.at_time}, Next run: {next_run}"
@@ -1016,14 +1039,11 @@ class SchedulerManager:
                 job_func = job.job_func
                 if not job_func:
                     continue
-                job_args = getattr(job_func, "args", None)
+                identity = scheduled_job_user_and_category(job_func)
                 if (
                     hasattr(job_func, "func")
                     and job_func.func == self.handle_sending_scheduled_message
-                    and job_args
-                    and len(job_args) >= 2
-                    and job_args[0] == user_id
-                    and job_args[1] == category
+                    and identity == (user_id, category)
                 ):
                     jobs_to_remove.append(job)
 

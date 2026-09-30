@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from core.chat_interactions_document import build_chat_interactions_document
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.profile_v2_schemas import (
@@ -393,11 +394,7 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
 @handle_errors("wrapping chat interactions for save", default_return={})
 def wrap_chat_interactions_for_save(interactions: list[dict[str, Any]]) -> dict[str, Any]:
     """Wrap interaction rows in a validated v2 on-disk envelope."""
-    payload = {
-        "schema_version": SCHEMA_VERSION,
-        "updated_at": now_timestamp_full(),
-        "interactions": interactions,
-    }
+    payload = build_chat_interactions_document(interactions)
     normalized, errors = validate_chat_interactions_v2_document(payload)
     if errors:
         logger.warning(f"chat_interactions v2 validation failed: {errors[0]}")

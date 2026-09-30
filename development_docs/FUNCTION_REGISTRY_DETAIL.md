@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 11:09:20
+> **Last Generated**: 2026-09-30 11:44:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 291
-- **Functions Found**: 3049
+- **Files Scanned**: 292
+- **Functions Found**: 3051
 - **Methods Found**: 1572
 - **Classes Found**: 267
-- **Total Items**: 4621
-- **Functions Documented**: 2693
+- **Total Items**: 4623
+- **Functions Documented**: 2695
 - **Methods Documented**: 1393
 - **Classes Documented**: 200
-- **Total Documented**: 4086
+- **Total Documented**: 4088
 - **Template-Generated**: 56
 - **Last Updated**: 2026-09-30
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (598)
+### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (881)
@@ -3900,6 +3900,10 @@ This is separate from production data cleanup.
 - [OK] `should_run_cleanup(interval_days)` - Check if cleanup should run based on last cleanup time.
 - [OK] `update_cleanup_timestamp()` - Update the cleanup tracker file with current timestamp.
 
+#### `core/chat_interactions_document.py`
+**Functions:**
+- [OK] `build_chat_interactions_document(interactions)` - Wrap interaction rows in the v2 chat-interactions envelope.
+
 #### `core/config.py`
 **Functions:**
 - [OK] `__init__(self, message, missing_configs, warnings)` - Initialize the object.
@@ -6341,6 +6345,11 @@ Args:
     user_id: The ID of the newly created user
 - [OK] `schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
 - [OK] `schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
+- [OK] `scheduled_job_user_and_category(job_func)` - Return the user id and category stored on a schedule job callable.
+
+Jobs are registered with keyword arguments, which ``schedule`` keeps on
+``keywords``. Positional ``args`` are checked when keywords do not identify
+the job.
 - [MISSING] `scheduler_loop()` - No description
 - [OK] `select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
 

@@ -208,6 +208,56 @@ class TestSchedulerManagerUncoveredPaths:
             )
             mock_remove.assert_called_once_with("user-1", "motivational")
 
+    def test_remove_user_message_job_matches_keyword_jobs(self, scheduler_manager):
+        """Keyword message jobs are removed, and their clock time still counts as a conflict."""
+        from scheduler.manager import schedule
+
+        schedule.clear()
+        try:
+            schedule.every().day.at("10:15").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="motivational",
+            )
+            schedule.every().day.at("11:15").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="checkin",
+            )
+            schedule.every().day.at("12:15").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                "user-2",
+                "health",
+            )
+            keyword_job = schedule.jobs[0].job_func
+            assert keyword_job is not None
+            assert keyword_job.args == ()
+            assert keyword_job.keywords["category"] == "motivational"
+
+            scheduler_manager._remove_user_message_job("user-1", "motivational")
+            remaining = []
+            for job in schedule.jobs:
+                job_func = job.job_func
+                assert job_func is not None
+                keywords = job_func.keywords
+                if keywords.get("user_id") is not None:
+                    remaining.append((keywords.get("user_id"), keywords.get("category")))
+                else:
+                    remaining.append((job_func.args[0], job_func.args[1]))
+            assert remaining == [("user-1", "checkin"), ("user-2", "health")]
+
+            checkin_run = schedule.jobs[0].next_run
+            assert scheduler_manager.is_time_conflict("user-1", checkin_run) is True
+            assert scheduler_manager.is_time_conflict("someone-else", checkin_run) is False
+
+            scheduler_manager._remove_user_message_job("user-2", "health")
+            assert len(schedule.jobs) == 1
+            checkin_job = schedule.jobs[0].job_func
+            assert checkin_job is not None
+            assert checkin_job.keywords["category"] == "checkin"
+        finally:
+            schedule.clear()
+
     def test_handle_sending_scheduled_message_failed_retries_then_removes_job(
         self, scheduler_manager
     ):

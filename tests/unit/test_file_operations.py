@@ -70,6 +70,20 @@ class TestFileOperations:
             r"data\users\abc\website_inbox.json", {}
         )
         assert document == {"messages": [], "turns": []}
+
+    @pytest.mark.unit
+    @pytest.mark.file_io
+    def test_chat_interactions_recovery_uses_v2_envelope(self):
+        """A missing chat file recovers as a v2 envelope without importing profile I/O."""
+        from core.error_handling import _recovery_default_document_for_path
+
+        document = _recovery_default_document_for_path(
+            r"data\users\abc\chat_interactions.json", {}
+        )
+        assert isinstance(document, dict)
+        assert document["schema_version"] == 2
+        assert document["interactions"] == []
+        assert isinstance(document["updated_at"], str) and document["updated_at"]
     
     @pytest.mark.unit
     @pytest.mark.file_io
