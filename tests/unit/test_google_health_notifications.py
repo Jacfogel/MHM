@@ -302,8 +302,37 @@ def test_send_reconnect_notice_returns_false_when_send_fails(monkeypatch):
     ), patch(
         "communication.core.channel_orchestrator.CommunicationManager",
         return_value=mock_cm,
-    ):
+    ), patch(
+        "communication.communication_channels.website.inbox.deliver_to_website"
+    ) as deliver:
         assert send_reconnect_notice("user-1") is False
+    deliver.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_send_reconnect_notice_stores_website_copy_once_when_unconfirmed(monkeypatch):
+    from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
+
+    monkeypatch.setenv("MHM_TESTING", "0")
+    mock_cm = MagicMock()
+    mock_cm.send_message_sync.return_value = CHANNEL_SEND_UNCONFIRMED
+    mock_resolver = MagicMock()
+    mock_resolver.get_recipient_for_service.return_value = "channel-1"
+    with patch(
+        "integrations.google_health.notifications.get_user_data",
+        return_value={"preferences": {"channel": {"type": "email"}}},
+    ), patch(
+        "communication.delivery.recipient_resolver.RecipientResolver",
+        return_value=mock_resolver,
+    ), patch(
+        "communication.core.channel_orchestrator.CommunicationManager",
+        return_value=mock_cm,
+    ), patch(
+        "communication.communication_channels.website.inbox.deliver_to_website"
+    ) as deliver:
+        assert send_reconnect_notice("user-1") is True
+    deliver.assert_called_once_with("user-1", RECONNECT_NOTICE_TEXT, "health")
 
 
 @pytest.mark.unit

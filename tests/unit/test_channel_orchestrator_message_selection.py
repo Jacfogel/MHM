@@ -119,6 +119,9 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             patch(
                 "communication.delivery.message_dispatcher.store_sent_message"
             ) as mock_store,
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website"
+            ) as mock_deliver,
         ):
             success, content = self.dispatcher.send_and_store_predefined_message(
                 "u1", "motivation", "email", "u@example.com", message, ["morning"]
@@ -127,6 +130,41 @@ class TestChannelOrchestratorMessageSelectionHelpers:
         assert success is False
         assert content is None
         mock_store.assert_not_called()
+        mock_deliver.assert_not_called()
+
+    def test_send_and_store_predefined_message_stores_website_copy_once_when_unconfirmed(self):
+        from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
+
+        message = {"id": "m1", "text": "Hello world"}
+        order = []
+
+        def send_message_sync(*_args, **_kwargs):
+            order.append("send")
+            return CHANNEL_SEND_UNCONFIRMED
+
+        def deliver(*_args, **_kwargs):
+            order.append("website")
+            return True
+
+        with (
+            patch.object(self.manager, "send_message_sync", side_effect=send_message_sync),
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website",
+                side_effect=deliver,
+            ) as mock_deliver,
+            patch(
+                "communication.delivery.message_dispatcher.store_sent_message"
+            ) as mock_store,
+        ):
+            success, content = self.dispatcher.send_and_store_predefined_message(
+                "u1", "motivation", "email", "u@example.com", message, ["morning"]
+            )
+
+        assert success == CHANNEL_SEND_UNCONFIRMED
+        assert content == "Hello world"
+        mock_deliver.assert_called_once_with("u1", "Hello world", "motivation")
+        mock_store.assert_called_once()
+        assert order == ["send", "website"]
 
     def test_send_predefined_message_returns_false_when_library_missing(self):
         with (

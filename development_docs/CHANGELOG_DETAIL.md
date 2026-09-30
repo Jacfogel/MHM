@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Website copies follow an accepted send
+- **Fix**: Scheduled predefined messages, AI-generated messages, and the Google Health reconnect notice store a website inbox copy only after the channel accepts the message or reports `unconfirmed`. A failed send leaves the inbox unchanged, so a retry does not add another Home row. See [message_dispatcher.py](../communication/delivery/message_dispatcher.py), [channel_orchestrator.py](../communication/core/channel_orchestrator.py), and [notifications.py](../integrations/google_health/notifications.py).
+- **Impact**: One reminder shows up once on Home, even when email fails and is tried again.
+
 ### 2026-09-30 - Unconfirmed mail is not sent twice, model failures stay with the call
 - **Fix**: The SMTP body watch is `_send_smtp_payload`, with a docstring and a logged re-raise. It is marked `error_handling_exclude` because the error decorator's recovery step would write the body a second time. `send_message__send_email_sync` retries a dropped SMTP connection only before the message body is written. A timeout while waiting for the acceptance reply returns `unconfirmed`. Task reminders, check-ins, and scheduled messages treat that as finished and do not send another copy. See [bot.py](../communication/communication_channels/email/bot.py), [message_send_result.py](../communication/core/message_send_result.py), [reminder_dispatcher.py](../communication/reminders/reminder_dispatcher.py), [checkin_prompt_dispatcher.py](../communication/reminders/checkin_prompt_dispatcher.py), and [task_reminders.py](../scheduler/task_reminders.py).
 - **Fix**: `complete_lm_studio_chat` returns the text and the failure reason together. Invalid JSON and a missing message body set that reason on the same result. See [lm_studio_client.py](../ai/client/lm_studio_client.py) and [chatbot.py](../ai/chat/chatbot.py).

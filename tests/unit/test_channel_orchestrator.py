@@ -16,7 +16,10 @@ from communication.communication_channels.email.bot import (
     _SMTP_SEND_ATTEMPTS,
     _SMTP_SEND_TIMEOUT_SECONDS,
 )
-from communication.core.message_send_result import MessageSendResult
+from communication.core.message_send_result import (
+    CHANNEL_SEND_UNCONFIRMED,
+    MessageSendResult,
+)
 
 
 @pytest.mark.unit
@@ -30,6 +33,84 @@ class TestChannelOrchestratorHelpers:
         CommunicationManager._instance = None
         setattr(CommunicationManager, "_initialized", False)  # noqa: B010
         self.manager = CommunicationManager()
+
+    def test_ai_message_skips_website_copy_when_send_fails(self):
+        """A failed personalized send must not leave a website inbox row."""
+        with (
+            patch("ai.chat.chatbot.get_ai_chatbot") as get_bot,
+            patch(
+                "messages.message_reactions.personalized_reaction_instructions",
+                return_value="",
+            ),
+            patch("messages.message_reactions.text_is_retired", return_value=False),
+            patch.object(self.manager, "send_message_sync", return_value=False),
+            patch(
+                "communication.core.channel_orchestrator.store_sent_message"
+            ) as store,
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website"
+            ) as deliver,
+        ):
+            get_bot.return_value.generate_personalized_message.return_value = "Hello"
+            success, content = self.manager._send_ai_generated_message(
+                "u1",
+                "motivational",
+                "email",
+                "a@b.co",
+                source="profile",
+            )
+
+        assert success is False
+        assert content is None
+        deliver.assert_not_called()
+        store.assert_not_called()
+
+    def test_ai_message_stores_website_copy_once_when_unconfirmed(self):
+        """An unconfirmed personalized send stores one website copy and does not retry."""
+        order = []
+
+        def send_message_sync(*_args, **_kwargs):
+            order.append("send")
+            return CHANNEL_SEND_UNCONFIRMED
+
+        def deliver(*_args, **_kwargs):
+            order.append("website")
+            return True
+
+        with (
+            patch("ai.chat.chatbot.get_ai_chatbot") as get_bot,
+            patch(
+                "messages.message_reactions.personalized_reaction_instructions",
+                return_value="",
+            ),
+            patch("messages.message_reactions.text_is_retired", return_value=False),
+            patch.object(self.manager, "send_message_sync", side_effect=send_message_sync),
+            patch(
+                "communication.core.channel_orchestrator.get_current_time_periods_with_validation",
+                return_value=(["morning"], ["morning"]),
+            ),
+            patch(
+                "communication.core.channel_orchestrator.store_sent_message"
+            ) as store,
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website",
+                side_effect=deliver,
+            ) as deliver_mock,
+        ):
+            get_bot.return_value.generate_personalized_message.return_value = "Hello"
+            success, content = self.manager._send_ai_generated_message(
+                "u1",
+                "motivational",
+                "email",
+                "a@b.co",
+                source="profile",
+            )
+
+        assert success == CHANNEL_SEND_UNCONFIRMED
+        assert content == "Hello"
+        deliver_mock.assert_called_once_with("u1", "Hello", "motivational")
+        store.assert_called_once()
+        assert order == ["send", "website"]
 
     def test_sync_bridge_outlasts_one_smtp_retry(self):
         """The sync bridge must stay open through one SMTP retry."""

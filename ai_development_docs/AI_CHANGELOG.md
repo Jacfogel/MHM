@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Website copies follow an accepted send **COMPLETED**
+- Scheduled messages and the Google Health reconnect notice are copied to the website inbox only after the channel accepts them, including an unconfirmed handoff.
+- A failed send leaves Home unchanged, so a retry does not add a second copy.
+
 ### 2026-09-30 - Unconfirmed mail is not sent twice, model failures stay with the call **COMPLETED**
 - An SMTP timeout after the message body is written returns `unconfirmed`. Check-ins, reminders, and scheduled messages stop there instead of sending another copy. The body watch logs a failed write and raises it again. It stays off the error decorator so recovery cannot write the body twice.
 - A dropped connection before the body is sent is still retried once.
@@ -105,11 +109,6 @@ Guidelines:
 - Home and the Tasks page can add a step you type. A step can become its own task.
 - `break that into steps` and `break it down` start the same breakdown as `simplify`.
 - Bulk task ranking uses the shared error handler, so a bad rank cannot stop the rest of the selection.
-
-### 2026-09-26 - Home Today panel sits under chat **COMPLETED**
-- The home page stacks Talk to MHM above Today. Next task and Check-in sit side by side under the chat, and stack on a narrow screen.
-- Break it down asks for smaller steps and saves the ones you keep as subtasks. The original task title stays. Home then focuses on an open subtask.
-- Discord Break it down, and simplify in Discord or email, adds those steps under the task instead of replacing the title. The breakdown helpers use the shared error handler, and the task-load tests store a valid task record.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -1346,6 +1346,9 @@ class CommunicationManager:
         """
         Send an AI-generated personalized message using one explicit data source.
 
+        The website copy is stored only after the channel accepts the message
+        or reports that the body was handed off without confirmation.
+
         Returns:
             tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
         """
@@ -1395,9 +1398,6 @@ class CommunicationManager:
             message_id = str(uuid.uuid4())
 
             delivery_meta: dict[str, str] = {}
-            from communication.communication_channels.website.inbox import deliver_to_website
-
-            deliver_to_website(user_id, message_to_send, category)
             success = self.send_message_sync(
                 messaging_service,
                 recipient,
@@ -1407,6 +1407,11 @@ class CommunicationManager:
                 delivery_meta=delivery_meta,
             )
             if success is True or success == CHANNEL_SEND_UNCONFIRMED:
+                from communication.communication_channels.website.inbox import (
+                    deliver_to_website,
+                )
+
+                deliver_to_website(user_id, message_to_send, category)
                 # Get current time period for storage
                 matching_periods, valid_periods = (
                     get_current_time_periods_with_validation(user_id, category)

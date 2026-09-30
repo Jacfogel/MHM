@@ -123,12 +123,8 @@ class PredefinedMessageDispatcher:
         message_to_send: dict,
         matching_periods: list[str],
     ) -> tuple[bool, str | None]:
+        """Send one predefined message and keep a website copy only after the channel accepts it."""
         delivery_meta: dict[str, str] = {}
-        from communication.communication_channels.website.inbox import deliver_to_website
-
-        deliver_to_website(
-            user_id, str(message_to_send.get("text") or ""), category
-        )
         success = self._cm.send_message_sync(
             messaging_service,
             recipient,
@@ -148,6 +144,9 @@ class PredefinedMessageDispatcher:
         )
 
         if success is True or success == CHANNEL_SEND_UNCONFIRMED:
+            from communication.communication_channels.website.inbox import deliver_to_website
+
+            deliver_to_website(user_id, selected_message_content, category)
             store_sent_message(
                 user_id,
                 category,

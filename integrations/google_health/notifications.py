@@ -39,7 +39,10 @@ def is_auth_sync_failure(error: str) -> bool:
 
 @handle_errors("sending Google Health reconnect notice", default_return=False)
 def send_reconnect_notice(user_id: str) -> bool:
-    """Send a one-time low-key reconnect message on the user's primary channel."""
+    """Send a one-time low-key reconnect message on the user's primary channel.
+
+    The website copy is stored only after that channel accepts the notice.
+    """
     if is_google_health_testing_mode():
         logger.debug(f"Skipping reconnect notice in testing mode for user {user_id}")
         return False
@@ -72,9 +75,8 @@ def send_reconnect_notice(user_id: str) -> bool:
         )
         return False
 
-    from communication.communication_channels.website.inbox import deliver_to_website
+    from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 
-    deliver_to_website(user_id, RECONNECT_NOTICE_TEXT, "health")
     success = comm_manager.send_message_sync(
         messaging_service,
         recipient,
@@ -82,13 +84,16 @@ def send_reconnect_notice(user_id: str) -> bool:
         user_id=user_id,
         category="health",
     )
-    if success:
+    if success is True or success == CHANNEL_SEND_UNCONFIRMED:
+        from communication.communication_channels.website.inbox import deliver_to_website
+
+        deliver_to_website(user_id, RECONNECT_NOTICE_TEXT, "health")
         logger.info(f"Sent Google Health reconnect notice to user {user_id}")
-    else:
-        logger.warning(
-            f"Failed to send Google Health reconnect notice to user {user_id}"
-        )
-    return bool(success)
+        return True
+    logger.warning(
+        f"Failed to send Google Health reconnect notice to user {user_id}"
+    )
+    return False
 
 
 @handle_errors("maybe sending Google Health reconnect notice", default_return=None)
