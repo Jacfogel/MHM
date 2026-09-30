@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-29 00:29:14
+> **Last Generated**: 2026-09-30 11:09:51
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 289
-- **Total Imports**: 2603
-- **Standard Library**: 749 (28.8%)
+- **Total Imports**: 2609
+- **Standard Library**: 749 (28.7%)
 - **Third-Party**: 222 (8.5%)
-- **Local Imports**: 1632 (62.7%)
+- **Local Imports**: 1638 (62.8%)
 
 ## Dependency Decision Trees
 
@@ -28,7 +28,7 @@ Core System Dependencies:
 - Data Management
   - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
 - Error Handling
-  - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
+  - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities, profile_v2_io
 
 ### Need AI or Chatbot Support?
 AI System Dependencies:
@@ -126,6 +126,9 @@ External libraries provide channel and UI support.
 - `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `core/profile_v2_schemas.py` -> pytz (7 modules use this)
+
+### Circular Dependencies to Monitor
+- `core/error_handling.py` <-> `core/profile_v2_io.py`
 
 
 ## Quick Reference for AI

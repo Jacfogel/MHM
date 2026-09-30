@@ -208,6 +208,32 @@ class TestSchedulerManagerUncoveredPaths:
             )
             mock_remove.assert_called_once_with("user-1", "motivational")
 
+    def test_handle_sending_scheduled_message_failed_retries_then_removes_job(
+        self, scheduler_manager
+    ):
+        failed = MessageSendResult.failed(
+            "user-1", "checkin", message_id="<checkin@example.com>"
+        )
+        scheduler_manager.delivery.handle_message_sending.side_effect = [
+            failed,
+            failed,
+        ]
+        with (
+            patch.object(scheduler_manager, "_remove_user_message_job") as mock_remove,
+            patch("scheduler.manager.time.sleep") as sleep,
+        ):
+            scheduler_manager.handle_sending_scheduled_message(
+                "user-1",
+                "checkin",
+                retry_attempts=2,
+                retry_delay=5,
+            )
+        assert scheduler_manager.delivery.handle_message_sending.call_count == 2
+        second = scheduler_manager.delivery.handle_message_sending.call_args_list[1]
+        assert second.kwargs["message_id"] == "<checkin@example.com>"
+        sleep.assert_called_once_with(5)
+        mock_remove.assert_called_once_with("user-1", "checkin")
+
     def test_run_full_daily_scheduler(self, scheduler_manager):
         with (
             patch.object(
@@ -375,7 +401,7 @@ class TestTaskRemindersModuleCoverage:
     def test_handle_task_reminder_retries_on_delivery_error(self, scheduler_manager):
         scheduler_manager.delivery.handle_task_reminder.side_effect = [
             RuntimeError("network"),
-            None,
+            MessageSendResult.sent("user-1", "task_reminders"),
         ]
         with (
             patch(

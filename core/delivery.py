@@ -32,13 +32,17 @@ class SchedulerDeliveryPort(Protocol):
         is_scheduled_trigger: bool = False,
         allow_deferral: bool = True,
         skip_ai_cache: bool = False,
+        message_id: str | None = None,
     ) -> MessageSendOutcome:
         """Send a scheduled or manual category message."""
         ...
 
     # ERROR_HANDLING_EXCLUDE: Protocol method declaration; concrete delivery implementations handle errors.
     def handle_task_reminder(
-        self, user_id: str, task_identifier: str
+        self,
+        user_id: str,
+        task_identifier: str,
+        message_id: str | None = None,
     ) -> MessageSendOutcome:
         """Send a task reminder."""
         ...

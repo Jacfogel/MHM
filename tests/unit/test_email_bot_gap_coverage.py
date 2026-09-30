@@ -74,6 +74,44 @@ class TestEmailBotGapCoverage:
         )
         assert bot._get_email_config() is None
 
+    def test_send_timeout_keeps_the_message_id(self, monkeypatch):
+        bot = EmailBot()
+        bot._set_status(ChannelStatus.READY)
+
+        class _Smtp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def login(self, *_args):
+                return None
+
+            def sendmail(self, *_args):
+                import smtplib
+
+                raise smtplib.SMTPServerDisconnected(
+                    "Connection unexpectedly closed: The read operation timed out"
+                )
+
+        monkeypatch.setattr(bot, "_get_email_config", lambda: ("smtp", "imap", "me@example.com", "pass"))
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
+            lambda *args, **kwargs: _Smtp(),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.build_outbound_message_id",
+            lambda *_args, **_kwargs: "<kept@example.com>",
+        )
+        sent = bot.send_message__send_email_sync(
+            "you@example.com",
+            "hello",
+            {"message_id": "<kept@example.com>"},
+        )
+        assert sent is False
+        assert bot.last_outbound_message_id == "<kept@example.com>"
+
     def test_sync_connection_helpers_return_early_without_config(self, monkeypatch):
         bot = EmailBot()
         monkeypatch.setattr(bot, "_get_email_config", lambda: None)

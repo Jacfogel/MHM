@@ -36,7 +36,9 @@ def mock_communication_manager():
     mock_cm.handle_message_sending = Mock(
         return_value=MessageSendResult.sent("mock_user", "mock_category")
     )
-    mock_cm.handle_task_reminder = Mock(return_value=True)
+    mock_cm.handle_task_reminder = Mock(
+        return_value=MessageSendResult.sent("mock_user", "task_reminders")
+    )
     return mock_cm
 
 

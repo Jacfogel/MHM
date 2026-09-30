@@ -362,14 +362,20 @@ class TestChannelOrchestratorHelpers:
                 return_value=False,
             ) as mock_send,
             patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager.current_checkin_prompt",
+                return_value=None,
+            ),
+            patch(
                 "communication.reminders.checkin_prompt_dispatcher.logger"
             ) as mock_logger,
         ):
-            self.manager.checkin_dispatcher.handle_scheduled_checkin(
+            result = self.manager.checkin_dispatcher.handle_scheduled_checkin(
                 user_id, "discord", "recipient"
             )
 
-            mock_send.assert_called_once_with(user_id, "discord", "recipient")
+            mock_send.assert_called_once_with(
+                user_id, "discord", "recipient", message_id=None
+            )
             success_logs = [
                 call
                 for call in mock_logger.info.call_args_list
@@ -377,6 +383,50 @@ class TestChannelOrchestratorHelpers:
                 and "Sent scheduled check-in prompt" in str(call.args[0])
             ]
             assert success_logs == [], "Must not claim success when send failed"
+            assert result.status == "failed"
+
+    def test_failed_checkin_send_clears_flow_and_skips_website_copy(self):
+        """A rejected channel send must not leave an open check-in or a website copy."""
+        user_id = "checkin_fail_user"
+        prefs = {
+            "preferences": {
+                "channel": {"type": "email"},
+                "checkin_settings": {"frequency": "daily"},
+            }
+        }
+        account = {"account": {"features": {"checkins": "enabled"}}}
+        with (
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                side_effect=[prefs, prefs, account],
+            ),
+            patch.object(
+                self.manager.checkin_dispatcher,
+                "should_send_checkin_prompt",
+                return_value=True,
+            ),
+            patch.object(self.manager, "get_recipient_for_service", return_value="a@b.co"),
+            patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager.current_checkin_prompt",
+                return_value=None,
+            ),
+            patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager._start_dynamic_checkin",
+                return_value=("How are you?", False),
+            ),
+            patch(
+                "communication.message_processing.conversation_flow_manager.conversation_manager._clear_flow_state"
+            ) as clear_flow,
+            patch.object(self.manager, "send_message_sync", return_value=False),
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website"
+            ) as deliver,
+        ):
+            status = self.manager.handle_message_sending(user_id, "checkin")
+
+        assert status.status == "failed"
+        clear_flow.assert_called_once_with(user_id, mark_completion=False)
+        deliver.assert_not_called()
 
     def test_select_weighted_message_with_messages(self):
         """Test _select_weighted_message with available messages."""

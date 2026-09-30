@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Failed sends stay unsent **COMPLETED**
+- A task reminder is marked sent only after the channel accepts it. A failed email is retried, and the retry reuses the same Message-ID.
+- A scheduled check-in reports failure when the send fails, and the check-in flow is cleared so the retry can send it. The website copy is stored after the channel accepts the message.
+- A failed scheduled send waits and retries a limited number of times, then the job is removed.
+
 ### 2026-09-29 - Failed emails stay failed **COMPLETED**
 - A timed-out email now returns failure, so the scheduler can retry instead of marking the message sent.
 - The send waits up to 30 seconds for the server to accept the body.
@@ -109,13 +114,6 @@ Guidelines:
 - The signed-in home page sends a message through `handle_user_message` as the `website` channel and shows the reply plus suggestion buttons.
 - Your messages on Home use the preferred name when one is set. Account is the last page tab, and Log out is a dark button separate from the tabs. Extra home-page instructions are gone. Check-in is no longer a tab. Opening it from Home starts at the first question. The check-in page says MHM can send you one from Home. Discord linking is only on delivery settings. CPAP use is no longer a question template. Password and data download are on Account settings. The task list sits under the create form. Extra task and notebook instructions are gone. The notebook page no longer has groups. Notebook creation starts with the type and title. The notebook does not show who is signed in. Turned-off task reminders and check-ins link to those settings. The logo line stays on one line when the header has room. Check-in answer types are yes/no, 1 to 5, time, time pair, and text. A text answer is also saved as a check-in journal entry. Illegal check-in question counts reset to a legal minimum and maximum. With Sometimes questions, the maximum stays above the number of Always questions. Custom questions have no templates and no minimum or maximum fields. The public site proxy allows `/api/chat`. The website is an always-on extra delivery channel. Scheduled messages, check-ins, task reminders, and health notices are copied into the website inbox and shown on Home, while email or Discord delivery stays in place. Turning every support feature off no longer returns the account to setup. Insights shows only while check-ins are on. Google Health is on Integrations, opened from Account settings. Connected sign-ins, including Google, are on Integrations too. The account summary card is gone, and email is shown in Account settings. Home chat messages stay on the account across logout and the next login. The notebook create line sits beside the title field, the same way the task page does. Website chat helpers use the shared error handler, and the function registry includes them. Task and notebook files no longer store a group. AI actions, Discord create forms, task and notebook commands, quick notes, and the website notes API no longer accept one.
 - An open check-in or task flow stays in charge. The typed transcript lasts for the browser visit and clears on logout.
-
-### 2026-09-23 - Website check-ins, groups, and custom snooze **COMPLETED**
-- Notebook groups are tabs again, and entries can be assigned or cleared from those groups.
-- The Check-in page starts, answers, skips, and cancels a check-in in the browser. Task help accepts a typed reminder time.
-- Talk to MHM on the website is planned in [PLANS.md](../development_docs/PLANS.md) Section 7.4 and is not built yet.
-- Scheduled Discord messages no longer repeat themselves in an embed. The reaction flag only adds thumbs. The two check-in Pyright warnings are cleared.
-- The first question starts on its own line after the opening, and later questions start on their own line after the transition phrase. The website answer box clears for the next question. Scale questions offer 1-5 and yes/no questions offer Yes and No, without a text box. Sleep times use dropdowns. Other typed questions still use the text box. Home shows an open check-in. Logging out drops an in-progress check-in. An idle check-in expires after the same two hours used by Discord and email. Check-in, Tasks, and Messages tabs show only when that feature is enabled. Tasks stay available, like the notebook. Home and Insights hide check-in actions when check-ins are off, and the Messages tab hides when messages are off.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

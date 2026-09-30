@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Failed sends stay unsent
+- **Fix**: Task reminders set `reminder_sent` only when delivery returns `sent`. A `failed` result is retried, and the retry passes the same email Message-ID. See [task_reminders.py](../scheduler/task_reminders.py) and [reminder_dispatcher.py](../communication/reminders/reminder_dispatcher.py).
+- **Fix**: Scheduled check-ins return the real send result. A rejected send clears the check-in flow and does not store a website copy. See [checkin_prompt_dispatcher.py](../communication/reminders/checkin_prompt_dispatcher.py) and [channel_orchestrator.py](../communication/core/channel_orchestrator.py).
+- **Fix**: `handle_sending_scheduled_message` counts a `failed` status as one attempt, waits, and removes the job after the last attempt. See [manager.py](../scheduler/manager.py).
+- **Impact**: A timed-out email check-in or task reminder can be tried again. The scheduler no longer treats that failure as a successful send, and it does not spin on a failed status.
+
 ### 2026-09-29 - Failed emails stay failed
 - **Fix**: Email send returns True only after SMTP accepts the message. A timeout or login failure returns False, and the async sender no longer logs success in that case. The send timeout is 30 seconds. See [bot.py](../communication/communication_channels/email/bot.py).
 - **Fix**: The two empty `chat_interactions.json` lists were saved as v2 envelopes. Loads no longer accept a bare list. New chat files, file recovery, and analytics use the envelope. See [profile_v2_io.py](../core/profile_v2_io.py), [response_tracking.py](../core/response_tracking.py), and [user_data_summaries.py](../storage/user_data_summaries.py).

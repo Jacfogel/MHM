@@ -48,6 +48,7 @@ def handle_task_reminder(
         return
 
     attempt = 0
+    outbound_message_id = None
     while attempt < retry_attempts:
         try:
             from tasks import get_task_by_id, update_task
@@ -81,23 +82,40 @@ def handle_task_reminder(
                 )
                 return
 
-            delivery.handle_task_reminder(user_id, task_identifier)
-            update_task(
-                user_id,
-                task_identifier,
-                {"reminder_sent": True, "reminder_snooze_until": None},
+            send_kwargs = {}
+            if isinstance(outbound_message_id, str) and outbound_message_id:
+                send_kwargs["message_id"] = outbound_message_id
+            result = delivery.handle_task_reminder(
+                user_id, task_identifier, **send_kwargs
             )
-
-            logger.info(
-                f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
+            if getattr(result, "status", None) == "sent":
+                update_task(
+                    user_id,
+                    task_identifier,
+                    {"reminder_sent": True, "reminder_snooze_until": None},
+                )
+                logger.info(
+                    f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
+                )
+                return
+            if getattr(result, "status", None) == "skipped":
+                logger.info(
+                    f"Task reminder skipped for user {user_id}, task {task_identifier}"
+                )
+                return
+            next_id = getattr(result, "message_id", None)
+            if isinstance(next_id, str) and next_id.strip():
+                outbound_message_id = next_id.strip()
+            logger.error(
+                f"Task reminder was not accepted for user {user_id}, task {task_identifier}"
             )
-            return
 
         except Exception as e:
             logger.error(
                 f"Error sending task reminder for user {user_id}, task {task_identifier}: {e}"
             )
-            attempt += 1
+        attempt += 1
+        if attempt < retry_attempts:
             logger.info(
                 f"Retrying in {retry_delay} seconds... ({attempt}/{retry_attempts})"
             )

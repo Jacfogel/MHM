@@ -15,6 +15,7 @@ class MessageSendResult:
     user_id: str
     category: str
     sent_text: str | None = None
+    message_id: str | None = None
 
     @classmethod
     @handle_errors(
@@ -36,9 +37,20 @@ class MessageSendResult:
     @handle_errors(
         "building failed send result", user_friendly=False, re_raise=True
     )
-    def failed(cls, user_id: str = "", category: str = "") -> MessageSendResult:
+    def failed(
+        cls,
+        user_id: str = "",
+        category: str = "",
+        message_id: str | None = None,
+    ) -> MessageSendResult:
         """Result when sending failed or prerequisites were missing."""
-        return cls(status="failed", user_id=user_id, category=category, sent_text=None)
+        return cls(
+            status="failed",
+            user_id=user_id,
+            category=category,
+            sent_text=None,
+            message_id=message_id,
+        )
 
     @classmethod
     @handle_errors(

@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from communication.core.message_send_result import MessageSendResult
 from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
 from core.schedule_runtime import (
     clear_schedule_periods_cache,
@@ -197,6 +198,9 @@ def test_task_reminder_sent_flag_persists_and_blocks_duplicate(test_data_dir):
     assert task_id
 
     manager = MagicMock()
+    manager.delivery.handle_task_reminder.return_value = MessageSendResult.sent(
+        user_id, "task_reminders"
+    )
     handle_task_reminder(manager, user_id, task_id, retry_attempts=1, retry_delay=0)
     manager.delivery.handle_task_reminder.assert_called_once_with(user_id, task_id)
 

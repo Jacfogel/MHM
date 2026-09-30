@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from communication.core.message_send_result import MessageSendResult
 from scheduler import task_reminders as tr
 
 
@@ -158,6 +159,9 @@ class TestHandleTaskReminderModule:
     def test_success_sends_and_updates_task(self):
         manager = MagicMock()
         task = {"id": "t1", "status": "open"}
+        manager.delivery.handle_task_reminder.return_value = MessageSendResult.sent(
+            "u1", "task_reminders"
+        )
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
@@ -192,6 +196,9 @@ class TestHandleTaskReminderModule:
             "reminder_sent": True,
             "reminder_snooze_until": "2020-01-01 12:00:00",
         }
+        manager.delivery.handle_task_reminder.return_value = MessageSendResult.sent(
+            "u1", "task_reminders"
+        )
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
@@ -202,3 +209,29 @@ class TestHandleTaskReminderModule:
         update_task.assert_called_once_with(
             "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
         )
+
+    def test_failed_send_is_not_marked_sent_and_reuses_message_id(self):
+        manager = MagicMock()
+        task = {"id": "t1", "status": "open"}
+        failed = MessageSendResult.failed(
+            "u1", "task_reminders", message_id="<same@example.com>"
+        )
+        manager.delivery.handle_task_reminder.side_effect = [
+            failed,
+            MessageSendResult.sent("u1", "task_reminders"),
+        ]
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.time.sleep") as sleep,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=2, retry_delay=0)
+        assert manager.delivery.handle_task_reminder.call_args_list[0].args == ("u1", "t1")
+        assert manager.delivery.handle_task_reminder.call_args_list[1].kwargs == {
+            "message_id": "<same@example.com>"
+        }
+        update_task.assert_called_once_with(
+            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
+        )
+        sleep.assert_called_once_with(0)

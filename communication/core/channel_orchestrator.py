@@ -1155,6 +1155,7 @@ class CommunicationManager:
         is_scheduled_trigger: bool = False,
         allow_deferral: bool = True,
         skip_ai_cache: bool = False,
+        message_id: str | None = None,
     ) -> MessageSendResult:
         """
         Handle sending messages for a user and category with improved recipient resolution.
@@ -1203,10 +1204,12 @@ class CommunicationManager:
 
         # Handle check-in category specially
         if category == "checkin":
-            self.checkin_dispatcher.handle_scheduled_checkin(
-                user_id, messaging_service, recipient
+            return self.checkin_dispatcher.handle_scheduled_checkin(
+                user_id,
+                messaging_service,
+                recipient,
+                message_id=message_id,
             )
-            return MessageSendResult.sent(user_id, category)
 
         # Handle AI-generated messages and track if message was actually sent
         message_sent = False
@@ -1459,7 +1462,10 @@ class CommunicationManager:
     # devtools: ignore[facade-shims]: required SchedulerDeliveryPort implementation delegates to owned dispatcher
     @handle_errors("handling task reminder", default_return=MessageSendResult.failed())
     def handle_task_reminder(
-        self, user_id: str, task_identifier: str
+        self,
+        user_id: str,
+        task_identifier: str,
+        message_id: str | None = None,
     ) -> MessageSendResult:
         """
         Handle sending task reminders for a user.
@@ -1471,7 +1477,7 @@ class CommunicationManager:
             MessageSendResult: Standard send outcome for reminder dispatch.
         """
         return self.task_reminder_dispatcher.handle_task_reminder(
-            user_id, task_identifier
+            user_id, task_identifier, message_id=message_id
         )
 
     @handle_errors("getting last task reminder", default_return=None)

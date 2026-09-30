@@ -24,7 +24,10 @@ class TaskReminderDispatcher:
 
     @handle_errors("handling task reminder", default_return=MessageSendResult.failed())
     def handle_task_reminder(
-        self, user_id: str, task_identifier: str
+        self,
+        user_id: str,
+        task_identifier: str,
+        message_id: str | None = None,
     ) -> MessageSendResult:
         """
         Send a reminder for a task and return the standard send contract.
@@ -117,10 +120,9 @@ class TaskReminderDispatcher:
             send_kwargs["subject"] = f"Task reminder: {display_title}"
             send_kwargs["reply_kind"] = "task_reminder"
             send_kwargs["task_id"] = task_identifier
+        if isinstance(message_id, str) and message_id.strip():
+            send_kwargs["message_id"] = message_id.strip()
 
-        from communication.communication_channels.website.inbox import deliver_to_website
-
-        deliver_to_website(user_id, reminder_message, TASK_REMINDER_CATEGORY)
         success = self._cm.send_message_sync(
             messaging_service,
             recipient,
@@ -132,6 +134,11 @@ class TaskReminderDispatcher:
         )
 
         if success:
+            from communication.communication_channels.website.inbox import (
+                deliver_to_website,
+            )
+
+            deliver_to_website(user_id, reminder_message, TASK_REMINDER_CATEGORY)
             logger.info(
                 f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
             )
@@ -140,10 +147,16 @@ class TaskReminderDispatcher:
                 user_id, TASK_REMINDER_CATEGORY, sent_text=reminder_message
             )
 
+        from communication.communication_channels.email.bot import message_id_for_retry
+
         logger.error(
             f"Failed to send task reminder for user {user_id}, task {task_identifier}"
         )
-        return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+        return MessageSendResult.failed(
+            user_id,
+            TASK_REMINDER_CATEGORY,
+            message_id=message_id_for_retry(self._cm, message_id),
+        )
 
     @handle_errors("creating task reminder view", default_return=None)
     def create_task_reminder_view(

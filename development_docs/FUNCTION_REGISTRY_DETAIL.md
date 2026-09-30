@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-29 00:28:46
+> **Last Generated**: 2026-09-30 11:09:20
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 291
-- **Functions Found**: 3043
+- **Functions Found**: 3049
 - **Methods Found**: 1572
 - **Classes Found**: 267
-- **Total Items**: 4615
-- **Functions Documented**: 2687
+- **Total Items**: 4621
+- **Functions Documented**: 2693
 - **Methods Documented**: 1393
 - **Classes Documented**: 200
-- **Total Documented**: 4080
+- **Total Documented**: 4086
 - **Template-Generated**: 56
-- **Last Updated**: 2026-09-29
+- **Last Updated**: 2026-09-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (598)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (879)
+### **Communication Functions** (881)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -326,6 +326,9 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_shrink_system_prompt(content, budget)` - Keep the start of the instructions and the start of the user context.
 - [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
 - [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink system and user text so the request stays inside the 2048-token window.
+
+The start of the instructions is kept. The end of the user message is kept.
+The combined text never exceeds the character budget.
 - [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
 
 #### `ai/client/lm_studio_manager.py`
@@ -2618,6 +2621,7 @@ Args:
 - [OK] `_mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
 - [OK] `_receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
 - [OK] `_receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
+- [OK] `attempted_email_message_id(manager)` - Return the Message-ID from the latest email attempt, including a failed send.
 - [OK] `build_outbound_message_id(sender, requested)` - Return a Message-ID for an outbound email, reusing one when the caller set it.
 - [OK] `channel_type(self)` - Get the channel type for email bot.
 
@@ -2628,10 +2632,13 @@ Returns:
 - [OK] `initialize__test_imap_connection(self)` - Test IMAP connection synchronously
 - [OK] `initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
 - [OK] `mark_message_seen(self, imap_email_id)` - Mark one inbox message read after it has been handled.
+- [OK] `message_id_for_retry(manager, requested)` - Keep the Message-ID from this attempt so a retry does not mint a second one.
 - [OK] `receive_messages(self)` - Receive messages from email
 - [OK] `reply_kind_from_send_kwargs(kwargs)` - Choose check-in, task reminder, or general message from send options.
 - [OK] `send_message(self, recipient, message)` - Send message via email
 - [OK] `send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
+
+Returns True only after the server accepts the message.
 - [OK] `shutdown(self)` - Shutdown the email bot
 **Classes:**
 - [MISSING] `EmailBot` - No description
@@ -2657,6 +2664,8 @@ Returns:
   - [OK] `EmailBot.receive_messages(self)` - Receive messages from email
   - [OK] `EmailBot.send_message(self, recipient, message)` - Send message via email
   - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
+
+Returns True only after the server accepts the message.
   - [OK] `EmailBot.shutdown(self)` - Shutdown the email bot
 - [OK] `EmailBotError` - Custom exception for email bot-related errors.
 
@@ -2844,9 +2853,9 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Handle sending messages for a user and category with improved recipient resolution.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
+- [OK] `handle_task_reminder(self, user_id, task_identifier, message_id)` - Handle sending task reminders for a user.
 
 ``task_identifier`` matches the task record's canonical ``id`` (or another
 value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
@@ -2940,9 +2949,9 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Handle sending messages for a user and category with improved recipient resolution.
+  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
+  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier, message_id)` - Handle sending task reminders for a user.
 
 ``task_identifier`` matches the task record's canonical ``id`` (or another
 value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
@@ -2994,14 +3003,14 @@ Returns:
 #### `communication/core/message_send_result.py`
 **Functions:**
 - [OK] `deferred(cls, user_id, category)` - Result when a scheduled send is deferred (e.g. user mid-conversation flow).
-- [OK] `failed(cls, user_id, category)` - Result when sending failed or prerequisites were missing.
+- [OK] `failed(cls, user_id, category, message_id)` - Result when sending failed or prerequisites were missing.
 - [OK] `matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
 - [OK] `sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
 - [OK] `skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
 **Classes:**
 - [OK] `MessageSendResult` - Outcome of ``CommunicationManager.handle_message_sending``.
   - [OK] `MessageSendResult.deferred(cls, user_id, category)` - Result when a scheduled send is deferred (e.g. user mid-conversation flow).
-  - [OK] `MessageSendResult.failed(cls, user_id, category)` - Result when sending failed or prerequisites were missing.
+  - [OK] `MessageSendResult.failed(cls, user_id, category, message_id)` - Result when sending failed or prerequisites were missing.
   - [OK] `MessageSendResult.matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
   - [OK] `MessageSendResult.sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
   - [OK] `MessageSendResult.skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
@@ -3795,14 +3804,20 @@ Returns an early InteractionResponse or a converted message for continued parsin
 #### `communication/reminders/checkin_prompt_dispatcher.py`
 **Functions:**
 - [OK] `__init__(self, communication_manager)` - Special Python method
-- [OK] `handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Validate check-in feature settings and send the scheduled prompt when due.
-- [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Start the dynamic check-in flow and send its prompt through the channel.
+- [OK] `handle_scheduled_checkin(self, user_id, messaging_service, recipient, message_id)` - Validate check-in feature settings and send the scheduled prompt when due.
+- [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient, message_id)` - Start the dynamic check-in flow and send its prompt through the channel.
+
+The flow is kept only after the channel accepts the message. A failed
+send clears it so a later attempt can send the same prompt.
 - [OK] `should_send_checkin_prompt(self, user_id, checkin_prefs)` - Return True when the user's check-in settings allow an automatic prompt.
 **Classes:**
 - [OK] `CheckinPromptDispatcher` - Handles scheduled check-in prompt eligibility and delivery.
   - [OK] `CheckinPromptDispatcher.__init__(self, communication_manager)` - Special Python method
-  - [OK] `CheckinPromptDispatcher.handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Validate check-in feature settings and send the scheduled prompt when due.
-  - [OK] `CheckinPromptDispatcher.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Start the dynamic check-in flow and send its prompt through the channel.
+  - [OK] `CheckinPromptDispatcher.handle_scheduled_checkin(self, user_id, messaging_service, recipient, message_id)` - Validate check-in feature settings and send the scheduled prompt when due.
+  - [OK] `CheckinPromptDispatcher.send_checkin_prompt(self, user_id, messaging_service, recipient, message_id)` - Start the dynamic check-in flow and send its prompt through the channel.
+
+The flow is kept only after the channel accepts the message. A failed
+send clears it so a later attempt can send the same prompt.
   - [OK] `CheckinPromptDispatcher.should_send_checkin_prompt(self, user_id, checkin_prefs)` - Return True when the user's check-in settings allow an automatic prompt.
 
 #### `communication/reminders/reminder_dispatcher.py`
@@ -3810,7 +3825,7 @@ Returns an early InteractionResponse or a converted message for continued parsin
 - [OK] `__init__(self, communication_manager)` - Special Python method
 - [OK] `create_task_reminder_message(self, task, focus_step)` - Create a formatted task reminder message.
 - [OK] `create_task_reminder_view(self, user_id, task_identifier, task, messaging_service, task_title)` - Create a channel-specific interactive reminder view when supported.
-- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
+- [OK] `handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a reminder for a task and return the standard send contract.
 
 ``task_identifier`` matches the task record's canonical ``id`` or another
 value ``get_task_by_id`` accepts.
@@ -3819,7 +3834,7 @@ value ``get_task_by_id`` accepts.
   - [OK] `TaskReminderDispatcher.__init__(self, communication_manager)` - Special Python method
   - [OK] `TaskReminderDispatcher.create_task_reminder_message(self, task, focus_step)` - Create a formatted task reminder message.
   - [OK] `TaskReminderDispatcher.create_task_reminder_view(self, user_id, task_identifier, task, messaging_service, task_title)` - Create a channel-specific interactive reminder view when supported.
-  - [OK] `TaskReminderDispatcher.handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
+  - [OK] `TaskReminderDispatcher.handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a reminder for a task and return the standard send contract.
 
 ``task_identifier`` matches the task record's canonical ``id`` or another
 value ``get_task_by_id`` accepts.
@@ -3946,16 +3961,16 @@ Raises:
 #### `core/delivery.py`
 **Functions:**
 - [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
-- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Send a scheduled or manual category message.
-- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Send a scheduled or manual category message.
+- [OK] `handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a task reminder.
 - [OK] `matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
 **Classes:**
 - [OK] `MessageSendOutcome` - Result shape returned by delivery sends.
   - [OK] `MessageSendOutcome.matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
 - [OK] `SchedulerDeliveryPort` - Delivery operations the scheduler needs.
-  - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Send a scheduled or manual category message.
-  - [OK] `SchedulerDeliveryPort.handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
+  - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Send a scheduled or manual category message.
+  - [OK] `SchedulerDeliveryPort.handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a task reminder.
 - [OK] `ServiceRequestDeliveryPort` - Delivery operations needed by file-flag service requests.
   - [OK] `ServiceRequestDeliveryPort.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
   - [OK] `ServiceRequestDeliveryPort.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
@@ -6855,6 +6870,9 @@ When restore_steps is true, finished steps of a top-level task come back with it
 - [OK] `_append_local_estimates(pending, estimates)` - Add a local minute guess for this response without storing it as a model answer.
 - [OK] `_cache_key(task)` - Build a cache key from the task title and description.
 - [OK] `estimate_task_efforts(tasks)` - Return minute estimates for active tasks.
+
+A local guess fills a gap for this response only. Only a parsed model
+answer is cached, so a timeout or an unavailable model can be retried.
 - [OK] `local_task_minutes(task)` - Guess minutes from the title so Home can rank tasks without the model.
 - [OK] `parse_task_effort_lines(text, allowed_ids)` - Read `id minutes` lines and keep only ids from this request.
 

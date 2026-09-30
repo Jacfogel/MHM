@@ -922,16 +922,20 @@ class SchedulerManager:
             return
 
         attempt = 0
+        outbound_message_id = None
         while attempt < retry_attempts:
             try:
-                # Try to send the message
-                send_status = self.delivery.handle_message_sending(
-                    user_id=user_id,
-                    category=category,
-                    is_scheduled_trigger=True,
-                    allow_deferral=allow_deferral,
-                )
-                if send_status.status == "sent":
+                send_kwargs = {
+                    "user_id": user_id,
+                    "category": category,
+                    "is_scheduled_trigger": True,
+                    "allow_deferral": allow_deferral,
+                }
+                if isinstance(outbound_message_id, str) and outbound_message_id:
+                    send_kwargs["message_id"] = outbound_message_id
+                send_status = self.delivery.handle_message_sending(**send_kwargs)
+                status = getattr(send_status, "status", None)
+                if status == "sent":
                     logger.info(
                         f"Message sent successfully for user {user_id}, category {category}."
                     )
@@ -939,7 +943,7 @@ class SchedulerManager:
                     self._remove_user_message_job(user_id, category)
                     return  # Exit after successful execution
 
-                if send_status.status == "deferred":
+                if status == "deferred":
                     logger.info(
                         f"Deferred scheduled message for user {user_id}, category {category}; scheduling one-time retry in 10 minutes."
                     )
@@ -952,21 +956,29 @@ class SchedulerManager:
                     )
                     return
 
-                if send_status.status == "skipped":
+                if status == "skipped":
                     logger.info(
                         f"Skipping scheduled message for user {user_id}, category {category}: no eligible message content."
                     )
                     self._remove_user_message_job(user_id, category)
                     return
+
+                next_id = getattr(send_status, "message_id", None)
+                if isinstance(next_id, str) and next_id.strip():
+                    outbound_message_id = next_id.strip()
+                logger.error(
+                    f"Scheduled message was not sent for user {user_id}, category {category} (status={status})."
+                )
             except Exception as e:
                 logger.error(
                     f"Error sending message for user {user_id}, category {category}: {e}"
                 )
-                attempt += 1
+            attempt += 1
+            if attempt < retry_attempts:
                 logger.info(
                     f"Retrying in {retry_delay} seconds... ({attempt}/{retry_attempts})"
                 )
-                time.sleep(retry_delay)  # Wait before retrying
+                time.sleep(retry_delay)
 
         # Remove job even if it failed after all retries
         self._remove_user_message_job(user_id, category)

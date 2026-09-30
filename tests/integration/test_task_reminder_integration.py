@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock
 from datetime import timedelta
 import uuid
 
+from communication.core.message_send_result import MessageSendResult
 from tasks import (
     create_task,
     complete_task,
@@ -378,6 +379,9 @@ class TestReminderDeliveryIntegration:
 
         # Create mock communication manager
         mock_comm_manager = MagicMock(spec=CommunicationManager)
+        mock_comm_manager.handle_task_reminder.return_value = MessageSendResult.sent(
+            user_id, "task_reminders"
+        )
         scheduler = SchedulerManager(mock_comm_manager)
 
         # Create an active task

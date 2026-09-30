@@ -68,6 +68,30 @@ def build_outbound_message_id(sender: str, requested: str | None = None) -> str:
     return make_msgid(domain=domain)
 
 
+@handle_errors("reading the attempted email message id", default_return=None)
+def attempted_email_message_id(manager) -> str | None:
+    """Return the Message-ID from the latest email attempt, including a failed send."""
+    channels = getattr(manager, "_channels_dict", None)
+    if not isinstance(channels, dict):
+        return None
+    channel = channels.get("email")
+    outbound = getattr(channel, "last_outbound_message_id", None)
+    if isinstance(outbound, str) and outbound.strip():
+        return outbound.strip()
+    return None
+
+
+@handle_errors("choosing a message id for retry", default_return=None)
+def message_id_for_retry(manager, requested: str | None = None) -> str | None:
+    """Keep the Message-ID from this attempt so a retry does not mint a second one."""
+    attempted = attempted_email_message_id(manager)
+    if attempted:
+        return attempted
+    if isinstance(requested, str) and requested.strip():
+        return requested.strip()
+    return None
+
+
 class EmailBotError(Exception):
     """Custom exception for email bot-related errors."""
 
@@ -222,6 +246,8 @@ class EmailBot(BaseChannel):
         msg["To"] = recipient
         msg["Subject"] = subject
         msg["Message-ID"] = message_id
+        if message_id:
+            self.last_outbound_message_id = message_id
         if in_reply_to:
             references = str(kwargs.get("references") or "").strip()
             if in_reply_to not in references:
