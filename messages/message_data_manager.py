@@ -12,7 +12,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, cast
 from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
-from core.file_operations import load_json_data, save_json_data, determine_file_path
+from core.file_operations import load_json_data, save_json_data, determine_file_path, update_json_data
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import (
     now_datetime_utc,
@@ -634,6 +634,7 @@ def store_sent_message(
     delivery_status: str = "sent",
     time_period: str | None = None,
     metadata: dict | None = None,
+    delivery_id: str | None = None,
 ) -> bool:
     """
     Store sent message in chronological order.
@@ -659,11 +660,9 @@ def store_sent_message(
 
     try:
         file_path = determine_file_path("sent_messages", user_id)
-        data = load_json_data(file_path) or {}
-
         sent_at = now_timestamp_full()
         new_delivery = {
-            "id": str(uuid.uuid4()),
+            "id": str(delivery_id or uuid.uuid4()),
             "message_template_id": message_id,
             "sent_text": message,
             "category": category,
@@ -678,14 +677,22 @@ def store_sent_message(
             "time_period": time_period,
             "metadata": dict(metadata or {}),
         }
-        deliveries = data.get("deliveries", [])
-        deliveries.insert(0, new_delivery)
-        data = {
-            "schema_version": SCHEMA_VERSION,
-            "updated_at": now_timestamp_full(),
-            "deliveries": deliveries,
-        }
-        save_json_data(data, file_path)
+        @handle_errors("building sent message update", user_friendly=False, default_return=None)
+        def add_delivery(current):
+            """Add the new delivery to the latest on-disk document."""
+            data = current if isinstance(current, dict) else {}
+            existing = data.get("deliveries")
+            deliveries = list(existing) if isinstance(existing, list) else []
+            deliveries.insert(0, new_delivery)
+            return {
+                "schema_version": SCHEMA_VERSION,
+                "updated_at": now_timestamp_full(),
+                "deliveries": deliveries,
+            }
+
+        if not update_json_data(file_path, add_delivery, default={}):
+            logger.error(f"Could not store sent message for user {user_id}, category {category}")
+            return False
         logger.debug(f"Stored v2 sent message delivery for user {user_id}, category {category}")
         return True
 
@@ -700,22 +707,31 @@ def update_sent_message_metadata(user_id: str, delivery_id: str, updates: dict) 
     if not user_id or not delivery_id or not isinstance(updates, dict):
         return False
     file_path = determine_file_path("sent_messages", user_id)
-    data = load_json_data(file_path) or {}
-    deliveries = data.get("deliveries")
-    if not isinstance(deliveries, list):
-        return False
-    for delivery in deliveries:
-        if str(delivery.get("id") or "") != str(delivery_id):
-            continue
-        metadata = delivery.get("metadata")
-        if not isinstance(metadata, dict):
-            metadata = {}
-        metadata.update(updates)
-        delivery["metadata"] = metadata
-        data["updated_at"] = now_timestamp_full()
-        save_json_data(data, file_path)
-        return True
-    return False
+    found = False
+
+    @handle_errors("building sent message metadata update", user_friendly=False, default_return=None)
+    def merge_metadata(current):
+        """Merge metadata into the matching delivery in the locked document."""
+        nonlocal found
+        data = current if isinstance(current, dict) else {}
+        deliveries = data.get("deliveries")
+        if not isinstance(deliveries, list):
+            return data
+        for delivery in deliveries:
+            if str(delivery.get("id") or "") != str(delivery_id):
+                continue
+            metadata = delivery.get("metadata")
+            if not isinstance(metadata, dict):
+                metadata = {}
+            metadata.update(updates)
+            delivery["metadata"] = metadata
+            data["updated_at"] = now_timestamp_full()
+            found = True
+            break
+        return data
+
+    saved = update_json_data(file_path, merge_metadata, default={})
+    return bool(saved and found)
 
 
 @handle_errors("archiving old messages", default_return=False)

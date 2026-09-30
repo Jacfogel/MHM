@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 
@@ -146,6 +146,10 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             order.append("website")
             return True
 
+        def remember_store(*_args, **_kwargs):
+            order.append("store")
+            return True
+
         with (
             patch.object(self.manager, "send_message_sync", side_effect=send_message_sync),
             patch(
@@ -153,7 +157,8 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 side_effect=deliver,
             ) as mock_deliver,
             patch(
-                "communication.delivery.message_dispatcher.store_sent_message"
+                "communication.delivery.message_dispatcher.store_sent_message",
+                side_effect=remember_store,
             ) as mock_store,
         ):
             success, content = self.dispatcher.send_and_store_predefined_message(
@@ -162,9 +167,10 @@ class TestChannelOrchestratorMessageSelectionHelpers:
 
         assert success == CHANNEL_SEND_UNCONFIRMED
         assert content == "Hello world"
-        mock_deliver.assert_called_once_with("u1", "Hello world", "motivation")
+        mock_deliver.assert_called_once_with("u1", "Hello world", "motivation", delivery_id=ANY)
         mock_store.assert_called_once()
-        assert order == ["send", "website"]
+        assert mock_store.call_args.kwargs["delivery_id"] == mock_deliver.call_args.kwargs["delivery_id"]
+        assert order == ["send", "store", "website"]
 
     def test_send_predefined_message_returns_false_when_library_missing(self):
         with (

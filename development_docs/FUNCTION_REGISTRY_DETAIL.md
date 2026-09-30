@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 14:03:44
+> **Last Generated**: 2026-09-30 16:59:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.4% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 292
-- **Functions Found**: 3057
+- **Functions Found**: 3063
 - **Methods Found**: 1573
 - **Classes Found**: 268
-- **Total Items**: 4630
-- **Functions Documented**: 2701
-- **Methods Documented**: 1394
+- **Total Items**: 4636
+- **Functions Documented**: 2708
+- **Methods Documented**: 1395
 - **Classes Documented**: 201
-- **Total Documented**: 4095
+- **Total Documented**: 4103
 - **Template-Generated**: 56
 - **Last Updated**: 2026-09-30
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (599)
+### **Core System Functions** (601)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (884)
+### **Communication Functions** (886)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2773,11 +2773,13 @@ Returns True only after the message is handled, so the caller can mark it read.
 - [OK] `_load_website_inbox(path)` - Return the saved inbox, or an empty one when the file is not there yet.
 - [OK] `_outbound_turns(user_id, existing)` - Add MHM messages sent on any channel that are not already in the transcript.
 - [OK] `_pair_counts(turns)` - Count website user-then-MHM pairs already stored as chat turns.
-- [OK] `_reactable_by_text(recent)` - Map sent text to the newest delivery a website reaction can change.
+- [OK] `_reactable_by_delivery_id(recent)` - Map delivery IDs to scheduled messages that website reactions can change.
 - [OK] `_read_website_inbox(path)` - Return a fresh inbox copy so one caller cannot change the empty default.
 - [OK] `_turn_sort_key(item, index)` - Oldest first. A person speaks before MHM when both share a timestamp.
 - [OK] `_visible_turn(item)` - Return one stored chat turn the home page can show.
 - [OK] `_with_reaction(turn, reactable)` - Attach the scheduled delivery when this MHM message can take a reaction.
+- [OK] `add_exchange(current)` - Append the exchange to the latest inbox document under one lock.
+- [OK] `add_message(current)` - Append to the latest inbox document while its file lock is held.
 - [OK] `append_website_chat_exchange(user_id, user_message, reply)` - Keep one website message and MHM's reply so the next login can show them.
 - [OK] `deliver_to_website(user_id, message, category)` - Store one outbound message for every user, beside their email or Discord channel.
 - [OK] `list_home_conversation(user_id)` - Return one timeline of website, Discord, and email messages, oldest first.
@@ -2839,6 +2841,9 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
 - [OK] `_register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
+
+The website copy is stored only after the channel accepts the message
+or reports that the body was handed off without confirmation.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -2935,6 +2940,9 @@ Verifies that the logging system is functional and attempts to restart it if iss
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
   - [OK] `CommunicationManager._register_managed_loop(cls, loop, thread)` - Track a managed loop so abandoned singleton resets can still stop it.
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using one explicit data source.
+
+The website copy is stored only after the channel accepts the message
+or reports that the body was handed off without confirmation.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -3124,7 +3132,7 @@ Returns:
 - [MISSING] `load_predefined_messages_library(self, user_id, category)` - No description
 - [MISSING] `normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
 - [MISSING] `select_weighted_message(self, available_messages, matching_periods)` - No description
-- [MISSING] `send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+- [OK] `send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send one predefined message and keep a website copy only after the channel accepts it.
 - [MISSING] `send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
 **Classes:**
 - [OK] `PredefinedMessageDispatcher` - Loads, filters, selects, and sends predefined category messages.
@@ -3134,7 +3142,7 @@ Returns:
   - [MISSING] `PredefinedMessageDispatcher.load_predefined_messages_library(self, user_id, category)` - No description
   - [MISSING] `PredefinedMessageDispatcher.normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
   - [MISSING] `PredefinedMessageDispatcher.select_weighted_message(self, available_messages, matching_periods)` - No description
-  - [MISSING] `PredefinedMessageDispatcher.send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+  - [OK] `PredefinedMessageDispatcher.send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send one predefined message and keep a website copy only after the channel accepts it.
   - [MISSING] `PredefinedMessageDispatcher.send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
 
 #### `communication/delivery/recipient_resolver.py`
@@ -4366,6 +4374,7 @@ Returns:
 
 #### `core/file_operations.py`
 **Functions:**
+- [OK] `_atomic_json_replace(data, file_path)` - Write JSON through a unique sibling file and atomically replace the target.
 - [OK] `_create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)` - Create account.json with actual user data.
 - [OK] `_create_user_files__checkins_file(user_id)` - Create checkins.json only if checkins are enabled.
 - [OK] `_create_user_files__context_file(user_id, user_prefs)` - Create user_context.json with actual personalization data.
@@ -4423,6 +4432,7 @@ Returns:
 
 Raises:
     FileOperationError: If saving fails
+- [OK] `update_json_data(file_path, updater)` - Apply one read-modify-write transaction while holding the file lock.
 - [OK] `verify_file_access(paths)` - Verify that files exist and are accessible.
 
 Args:
@@ -5799,6 +5809,8 @@ Blocks until callback or timeout. Intended for one-time connect.
 Returns updated sync_state (may set reconnect_notice_sent).
 - [OK] `send_reconnect_notice(user_id)` - Send a one-time low-key reconnect message on the user's primary channel.
 
+The website copy is stored only after that channel accepts the notice.
+
 #### `integrations/google_health/personalization_rules.py`
 **Functions:**
 - [OK] `_add_guidance(tokens)` - Append unique message_guidance tokens without duplicates.
@@ -5971,6 +5983,7 @@ Args:
 
 Returns:
     datetime: Parsed datetime object (UTC) or sentinel minimum
+- [OK] `add_delivery(current)` - Add the new delivery to the latest on-disk document.
 - [OK] `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
 
 Args:
@@ -6069,7 +6082,8 @@ Args:
 
 Returns:
     List[dict]: List of message templates for the category
-- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period, metadata)` - Store sent message in chronological order.
+- [OK] `merge_metadata(current)` - Merge metadata into the matching delivery in the locked document.
+- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period, metadata, delivery_id)` - Store sent message in chronological order.
 
 This function maintains the chronological structure by inserting new messages
 in the correct position based on timestamp.

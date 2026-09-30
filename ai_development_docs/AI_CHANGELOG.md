@@ -30,9 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-09-30 - Website copies follow an accepted send **COMPLETED**
-- Scheduled messages and the Google Health reconnect notice are copied to the website inbox only after the channel accepts them, including an unconfirmed handoff.
-- A failed send leaves Home unchanged, so a retry does not add a second copy.
+### 2026-09-30 - Website delivery records stay exact and concurrent-safe **COMPLETED**
+- Scheduled messages are copied to Home only after an accepted or unconfirmed handoff. Sent history and the website row share one exact delivery ID; repeated text no longer redirects reactions to the newest copy.
+- JSON writes use unique temporary files and locked read-modify-write transactions. Failed sent-history writes return failure. A backed-up manual migration linked 83 legacy rows; seven check-ins and one task reminder remain intentionally non-reactable.
+- Note requests allow 128 KiB end to end, enough for a valid 10,000-character Unicode description.
+- All new transaction helpers use centralized error handling. Generated registries were refreshed, and the standard audit reports 100% error-handling coverage with no missing handlers, Phase 1/2 candidates, or registry watch items.
 
 ### 2026-09-30 - Unconfirmed mail is not sent twice, model failures stay with the call **COMPLETED**
 - An SMTP timeout after the message body is written returns `unconfirmed`. Check-ins, reminders, and scheduled messages stop there instead of sending another copy. The body watch logs a failed write and raises it again. It stays off the error decorator so recovery cannot write the body twice.

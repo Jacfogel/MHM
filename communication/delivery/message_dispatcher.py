@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+import uuid
 from typing import Any
 
 from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
@@ -146,15 +147,24 @@ class PredefinedMessageDispatcher:
         if success is True or success == CHANNEL_SEND_UNCONFIRMED:
             from communication.communication_channels.website.inbox import deliver_to_website
 
-            deliver_to_website(user_id, selected_message_content, category)
-            store_sent_message(
+            delivery_id = str(uuid.uuid4())
+            stored = store_sent_message(
                 user_id,
                 category,
                 selected_message_id,
                 selected_message_content,
                 time_period=current_time_period,
                 metadata=delivery_meta,
+                delivery_id=delivery_id,
             )
+            deliver_to_website(
+                user_id,
+                selected_message_content,
+                category,
+                delivery_id=delivery_id if stored else None,
+            )
+            if not stored:
+                logger.error(f"Sent message history could not be stored for user {user_id}, category {category}")
             if success == CHANNEL_SEND_UNCONFIRMED:
                 logger.warning(
                     f"Message to {recipient} was handed off but not confirmed | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"

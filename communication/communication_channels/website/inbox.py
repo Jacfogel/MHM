@@ -5,7 +5,7 @@ import secrets
 
 from core.config import ensure_user_directory, get_user_file_path
 from core.error_handling import handle_errors
-from core.file_operations import load_json_data, save_json_data
+from core.file_operations import load_json_data, update_json_data
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
 
@@ -62,19 +62,27 @@ def list_website_messages(user_id: str) -> list[dict]:
             continue
         if not isinstance(message_id, str) or not message_id:
             continue
-        visible.append(
-            {
-                "id": message_id,
-                "text": text,
-                "category": item.get("category") if isinstance(item.get("category"), str) else "",
-                "created_at": item.get("created_at") if isinstance(item.get("created_at"), str) else "",
-            }
-        )
+        visible_item = {
+            "id": message_id,
+            "text": text,
+            "category": item.get("category") if isinstance(item.get("category"), str) else "",
+            "created_at": item.get("created_at") if isinstance(item.get("created_at"), str) else "",
+        }
+        delivery_id = item.get("delivery_id")
+        if isinstance(delivery_id, str) and delivery_id:
+            visible_item["delivery_id"] = delivery_id
+        visible.append(visible_item)
     return visible
 
 
 @handle_errors("storing website delivery", default_return=False)
-def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
+def deliver_to_website(
+    user_id: str,
+    message: str,
+    category: str = "",
+    *,
+    delivery_id: str | None = None,
+) -> bool:
     """Store one outbound message for every user, beside their email or Discord channel."""
     if not isinstance(user_id, str) or not user_id.strip():
         return False
@@ -85,24 +93,28 @@ def deliver_to_website(user_id: str, message: str, category: str = "") -> bool:
     path = get_user_file_path(user_id, "website_inbox")
     if not path:
         return False
-    loaded = _read_website_inbox(path)
-    messages = loaded.get("messages") if isinstance(loaded, dict) else None
-    messages = list(messages) if isinstance(messages, list) else []
-    messages.append(
-        {
-            "id": secrets.token_urlsafe(9),
-            "text": message.strip(),
-            "category": category if isinstance(category, str) else "",
-            "created_at": now_timestamp_full(),
-        }
-    )
-    saved = save_json_data(
-        {
+    website_message = {
+        "id": secrets.token_urlsafe(9),
+        "text": message.strip(),
+        "category": category if isinstance(category, str) else "",
+        "created_at": now_timestamp_full(),
+    }
+    if isinstance(delivery_id, str) and delivery_id.strip():
+        website_message["delivery_id"] = delivery_id.strip()
+
+    @handle_errors("building website delivery update", user_friendly=False, default_return=None)
+    def add_message(current):
+        """Append to the latest inbox document while its file lock is held."""
+        loaded = current if isinstance(current, dict) else _EMPTY_WEBSITE_INBOX
+        existing = loaded.get("messages")
+        messages = list(existing) if isinstance(existing, list) else []
+        messages.append(website_message)
+        return {
             "messages": messages[-MAX_INBOX_MESSAGES:],
             "turns": list(_chat_turns(loaded)),
-        },
-        path,
-    )
+        }
+
+    saved = update_json_data(path, add_message, default={"messages": [], "turns": []})
     if not saved:
         logger.error(f"Could not store a website delivery for user {user_id}")
     return bool(saved)
@@ -221,21 +233,17 @@ def _chat_interaction_turns(user_id: str, existing: list[dict]) -> list[dict]:
 
 
 @handle_errors("finding scheduled messages that can be reacted to", default_return={})
-def _reactable_by_text(recent: list[dict]) -> dict[str, dict]:
-    """Map sent text to the newest delivery a website reaction can change."""
+def _reactable_by_delivery_id(recent: list[dict]) -> dict[str, dict]:
+    """Map delivery IDs to scheduled messages that website reactions can change."""
     found: dict[str, dict] = {}
     for item in recent:
-        text = str(item.get("sent_text") or "").strip()
         delivery_id = str(item.get("id") or "")
-        if not text or not delivery_id or str(item.get("category") or "") == "checkin":
-            continue
-        if text in found:
+        if not delivery_id or str(item.get("category") or "") == "checkin":
             continue
         raw_metadata = item.get("metadata")
         metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
         reaction = str(metadata.get("reaction") or "")
-        found[text] = {
-            "delivery_id": delivery_id,
+        found[delivery_id] = {
             "reaction": reaction if reaction in {"up", "down"} else "",
         }
     return found
@@ -244,10 +252,11 @@ def _reactable_by_text(recent: list[dict]) -> dict[str, dict]:
 @handle_errors("marking one conversation turn as reactable", default_return=None)
 def _with_reaction(turn: dict, reactable: dict[str, dict]) -> dict:
     """Attach the scheduled delivery when this MHM message can take a reaction."""
-    match = reactable.get(str(turn.get("text") or ""))
+    delivery_id = str(turn.get("delivery_id") or "")
+    match = reactable.get(delivery_id)
     if not match:
+        turn.pop("delivery_id", None)
         return turn
-    turn["delivery_id"] = match["delivery_id"]
     turn["reaction"] = match["reaction"]
     return turn
 
@@ -258,21 +267,26 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
     from messages.message_data_manager import get_recent_messages
 
     recent = get_recent_messages(user_id, limit=MAX_INBOX_MESSAGES)
-    reactable = _reactable_by_text(recent)
+    reactable = _reactable_by_delivery_id(recent)
     seen = {
         (item.get("text", ""), item.get("created_at", ""))
         for item in existing
         if item.get("role") == "mhm"
     }
     added = []
-    copied = set()
+    copied_delivery_ids = set()
+    copied_legacy_text = set()
     for item in list_website_messages(user_id):
         text = item.get("text", "")
         created_at = item.get("created_at") or ""
         if (text, created_at) in seen:
             continue
         seen.add((text, created_at))
-        copied.add(text)
+        delivery_id = str(item.get("delivery_id") or "")
+        if delivery_id:
+            copied_delivery_ids.add(delivery_id)
+        else:
+            copied_legacy_text.add(text)
         added.append(
             _with_reaction(
                 {
@@ -280,6 +294,7 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
                     "role": "mhm",
                     "text": text,
                     "created_at": created_at,
+                    "delivery_id": delivery_id,
                 },
                 reactable,
             )
@@ -290,7 +305,8 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
         if not isinstance(text, str) or not text.strip():
             continue
         text = text.strip()
-        if text in copied or (text, created_at) in seen:
+        delivery_id = str(item.get("id") or "")
+        if delivery_id in copied_delivery_ids or text in copied_legacy_text or (text, created_at) in seen:
             continue
         seen.add((text, created_at))
         added.append(
@@ -300,6 +316,7 @@ def _outbound_turns(user_id: str, existing: list[dict]) -> list[dict]:
                     "role": "mhm",
                     "text": text,
                     "created_at": created_at,
+                    "delivery_id": delivery_id,
                 },
                 reactable,
             )
@@ -336,31 +353,33 @@ def append_website_chat_exchange(user_id: str, user_message: str, reply: str) ->
     path = get_user_file_path(user_id, "website_inbox")
     if not path:
         return False
-    loaded = _read_website_inbox(path)
-    messages = loaded.get("messages") if isinstance(loaded, dict) else None
-    messages = list(messages) if isinstance(messages, list) else []
-    turns = list(_chat_turns(loaded))
     created_at = now_timestamp_full()
-    turns.append(
+    new_turns = [
         {
             "id": secrets.token_urlsafe(9),
             "role": "you",
             "text": user_message.strip(),
             "created_at": created_at,
-        }
-    )
-    turns.append(
+        },
         {
             "id": secrets.token_urlsafe(9),
             "role": "mhm",
             "text": reply.strip(),
             "created_at": created_at,
-        }
-    )
-    saved = save_json_data(
-        {"messages": messages, "turns": turns[-MAX_CHAT_TURNS:]},
-        path,
-    )
+        },
+    ]
+
+    @handle_errors("building website chat update", user_friendly=False, default_return=None)
+    def add_exchange(current):
+        """Append the exchange to the latest inbox document under one lock."""
+        loaded = current if isinstance(current, dict) else _EMPTY_WEBSITE_INBOX
+        existing_messages = loaded.get("messages")
+        messages = list(existing_messages) if isinstance(existing_messages, list) else []
+        turns = list(_chat_turns(loaded))
+        turns.extend(new_turns)
+        return {"messages": messages, "turns": turns[-MAX_CHAT_TURNS:]}
+
+    saved = update_json_data(path, add_exchange, default={"messages": [], "turns": []})
     if not saved:
         logger.error(f"Could not store website chat for user {user_id}")
     return bool(saved)

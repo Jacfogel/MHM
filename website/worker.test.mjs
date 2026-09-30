@@ -77,6 +77,31 @@ test('oversized bodies are rejected before proxying', async () => {
   assert.equal((await worker.fetch(request, env)).status, 413);
 });
 
+test('notes allow large unicode payloads up to their dedicated byte limit', async () => {
+  const originalFetch = globalThis.fetch;
+  let proxied = false;
+  globalThis.fetch = async () => {
+    proxied = true;
+    return Response.json({ ok: true });
+  };
+  try {
+    const accepted = new Request(url + '/api/notes', {
+      method: 'POST',
+      headers: { Origin: url, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Unicode', description: '🙂'.repeat(20_000) }),
+    });
+    assert.equal((await worker.fetch(accepted, env)).status, 200);
+    assert.equal(proxied, true);
+
+    const rejected = new Request(url + '/api/notes', {
+      method: 'POST',
+      headers: { Origin: url, 'Content-Type': 'application/json' },
+      body: 'x'.repeat(131073),
+    });
+    assert.equal((await worker.fetch(rejected, env)).status, 413);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('unexpected gateway redirects are blocked without following or exposing their destination', async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
@@ -303,7 +328,7 @@ test('oversized notebook writes are rejected before reaching the gateway', async
     const request = new Request(url + '/api/notes', {
       method: 'POST',
       headers: { Origin: url, 'Content-Type': 'application/json' },
-      body: 'x'.repeat(65537),
+      body: 'x'.repeat(131073),
     });
     assert.equal((await worker.fetch(request, env)).status, 413);
     assert.equal(proxied, false);

@@ -144,12 +144,15 @@ def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_p
     monkeypatch.setattr(inbox, "get_user_file_path", lambda user_id, file_type: str(path))
     monkeypatch.setattr(inbox, "ensure_user_directory", lambda user_id: True)
 
-    assert inbox.deliver_to_website("existing", "  Good morning.  ", "motivational") is True
+    assert inbox.deliver_to_website(
+        "existing", "  Good morning.  ", "motivational", delivery_id="delivery-1"
+    ) is True
     assert inbox.deliver_to_website("existing", "   ", "motivational") is False
     messages = inbox.list_website_messages("existing")
     assert len(messages) == 1
     assert messages[0]["text"] == "Good morning."
     assert messages[0]["category"] == "motivational"
+    assert messages[0]["delivery_id"] == "delivery-1"
     assert messages[0]["id"]
     assert inbox.append_website_chat_exchange("existing", "  I need a reminder  ", "Noted.") is True
     turns = inbox.list_website_chat_turns("existing")
@@ -205,7 +208,13 @@ def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):
         {"id": "chat-1", "role": "mhm", "text": "Hello from the website.", "created_at": "2026-09-24 17:44:30"},
     ])
     monkeypatch.setattr(inbox, "list_website_messages", lambda user_id: [
-        {"id": "site-1", "text": "Keep going.", "category": "motivational", "created_at": "2026-09-24 08:00:00"},
+        {
+            "id": "site-1",
+            "text": "Keep going.",
+            "category": "motivational",
+            "created_at": "2026-09-24 08:00:00",
+            "delivery_id": "delivery-1",
+        },
     ])
     monkeypatch.setattr(
         "messages.message_data_manager.get_recent_messages",
@@ -232,6 +241,59 @@ def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):
     assert turns["Keep going."]["reaction"] == "up"
     assert "delivery_id" not in turns["How is your mood?"]
     assert "delivery_id" not in turns["Hello from the website."]
+
+
+def test_repeated_message_text_keeps_each_exact_delivery_reaction(monkeypatch):
+    from communication.communication_channels.website import inbox
+
+    monkeypatch.setattr(inbox, "list_website_chat_turns", lambda user_id: [])
+    monkeypatch.setattr(
+        "core.response_tracking.get_recent_chat_interactions",
+        lambda user_id, limit=80: [],
+    )
+    monkeypatch.setattr(
+        inbox,
+        "list_website_messages",
+        lambda user_id: [
+            {
+                "id": "site-old",
+                "text": "Same",
+                "category": "motivational",
+                "created_at": "2026-09-24 08:00:00",
+                "delivery_id": "delivery-old",
+            },
+            {
+                "id": "site-new",
+                "text": "Same",
+                "category": "motivational",
+                "created_at": "2026-09-25 08:00:00",
+                "delivery_id": "delivery-new",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "messages.message_data_manager.get_recent_messages",
+        lambda user_id, category=None, limit=40, days_back=None: [
+            {
+                "id": "delivery-new",
+                "sent_text": "Same",
+                "sent_at": "2026-09-25 08:00:00",
+                "category": "motivational",
+                "metadata": {"reaction": "down"},
+            },
+            {
+                "id": "delivery-old",
+                "sent_text": "Same",
+                "sent_at": "2026-09-24 08:00:00",
+                "category": "motivational",
+                "metadata": {"reaction": "up"},
+            },
+        ],
+    )
+
+    turns = inbox.list_home_conversation("existing")
+    assert [turn["delivery_id"] for turn in turns] == ["delivery-old", "delivery-new"]
+    assert [turn["reaction"] for turn in turns] == ["up", "down"]
 
 
 def test_home_conversation_orders_website_discord_and_email_together(monkeypatch):
@@ -314,8 +376,8 @@ def test_predefined_send_also_keeps_a_website_copy(monkeypatch):
 
     seen = {}
 
-    def remember(user_id, message, category=""):
-        seen.update(user_id=user_id, message=message, category=category)
+    def remember(user_id, message, category="", *, delivery_id=None):
+        seen.update(user_id=user_id, message=message, category=category, delivery_id=delivery_id)
         return True
 
     monkeypatch.setattr(
@@ -324,7 +386,7 @@ def test_predefined_send_also_keeps_a_website_copy(monkeypatch):
     )
     monkeypatch.setattr(
         "communication.delivery.message_dispatcher.store_sent_message",
-        lambda *args, **kwargs: None,
+        lambda *args, **kwargs: True,
     )
 
     class Manager:
@@ -345,6 +407,7 @@ def test_predefined_send_also_keeps_a_website_copy(monkeypatch):
     assert seen["channel_name"] == "email"
     assert seen["message"] == "Hello from MHM"
     assert seen["category"] == "motivational"
+    assert seen["delivery_id"]
 
 
 async def test_chat_inbox_returns_website_deliveries(chat_gateway, monkeypatch):

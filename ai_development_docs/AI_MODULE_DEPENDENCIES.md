@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 14:04:17
+> **Last Generated**: 2026-09-30 17:00:05
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 290
-- **Total Imports**: 2616
-- **Standard Library**: 751 (28.7%)
+- **Total Imports**: 2622
+- **Standard Library**: 755 (28.8%)
 - **Third-Party**: 222 (8.5%)
-- **Local Imports**: 1643 (62.8%)
+- **Local Imports**: 1645 (62.7%)
 
 ## Dependency Decision Trees
 
@@ -26,7 +26,7 @@ Core System Dependencies:
   - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, token_crypto
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
-  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
+  - core/file_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, error_handling, file_locking, time_utilities (+4 more)
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities, chat_interactions_document
 
@@ -101,7 +101,7 @@ External libraries provide channel and UI support.
 - `run_headless_service.py` -> standard library (argparse, sys, typing), third-party (aiohttp), error_handling, headless_service, logger, core, web_account_service (main application entry)
 
 ### Data Flow
-- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
+- file_operations.py: core/file_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, error_handling, file_locking, time_utilities (+4 more)
 - user_data_backup.py: storage/user_data_backup.py <- standard library (__future__, json, os, pathlib), config, error_handling, file_operations, logger, time_utilities (+2 more)
 - user_data_index.py: storage/user_data_index.py <- standard library (__future__, json, os, pathlib), error_handling, file_operations, logger, time_utilities, user_management (+7 more)
 

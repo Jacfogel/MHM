@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 14:03:56
+> **Last Generated**: 2026-09-30 16:59:41
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 290
-- **Total Imports Found**: 2616
+- **Total Imports Found**: 2622
 - **Dependencies Documented**: 290 (100% coverage)
-- **Standard Library Imports**: 751 (28.7%)
+- **Standard Library Imports**: 755 (28.8%)
 - **Third-Party Imports**: 222 (8.5%)
-- **Local Imports**: 1643 (62.8%)
+- **Local Imports**: 1645 (62.7%)
 - **Last Updated**: 2026-09-30
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 751 imports (28.7%)
+- **Standard Library**: 755 imports (28.8%)
 - **Third-Party**: 222 imports (8.5%)
-- **Local**: 1643 imports (62.8%)
+- **Local**: 1645 imports (62.7%)
 
 ## Module Dependencies by Directory
 
@@ -2548,7 +2548,7 @@
   - **Local**:
     - `core.config (ensure_user_directory, get_user_file_path)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.file_operations (load_json_data, save_json_data)` (NEW)
+    - `core.file_operations (load_json_data, update_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_chat_interactions)` (NEW)
     - `core.time_utilities (now_timestamp_full, timestamp_sort_key_from_dict)` (NEW)
@@ -2698,10 +2698,11 @@
   - `communication/delivery/message_dispatcher.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
+  - `integrations/google_health/notifications.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/core/channel_orchestrator.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py
+- Removed: communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2785,6 +2786,7 @@
     - `__future__ (annotations)`
     - `random`
     - `typing (Any)`
+    - `uuid`
 - **Used by**:
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/__init__.py`
@@ -3998,6 +4000,7 @@
     - `threading`
     - `time`
 - **Used by**:
+  - `core/file_operations.py`
   - `core/user_lookup.py`
   - `storage/user_data_index.py`
 
@@ -4016,19 +4019,23 @@
     - `core.config (DEFAULT_MESSAGES_DIR_PATH, ensure_user_directory, get_user_data_dir, get_user_file_path)` (NEW)
     - `core.error_handling (FileOperationError, handle_errors, handle_file_error)` (NEW)
     - `core.file_auditor (record_created)` (NEW)
+    - `core.file_locking (file_lock)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.profile_v2_io (schedule_categories, wrap_chat_interactions_for_save, wrap_profile_document_for_save)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `storage.user_data_v2_base (SCHEMA_VERSION)`
     - `tasks.task_schemas (TASKS_V2_FILENAME)` (NEW)
   - **Standard Library**:
+    - `collections.abc (Callable)`
     - `importlib`
     - `json`
     - `os`
     - `pathlib (Path)`
     - `re`
     - `shutil`
+    - `tempfile`
     - `time`
+    - `typing (Any)`
 - **Used by**:
   - `checkins/checkin_data_manager.py`
   - `checkins/checkin_dynamic_manager.py`
@@ -4051,7 +4058,7 @@
   - `storage/user_item_storage.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_auditor, core.logger, core.profile_v2_io, core.time_utilities, tasks.task_schemas
+- Added: core.config, core.error_handling, core.file_auditor, core.file_locking, core.logger, core.profile_v2_io, core.time_utilities, tasks.task_schemas
 - Removed: checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, core/admin_account_provisioning.py, core/response_tracking.py, core/service.py, core/tags.py, messages/message_data_manager.py, messages/message_reactions.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py, storage/user_item_storage.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5282,6 +5289,7 @@
   - **Local**:
     - `communication.communication_channels.website.inbox (deliver_to_website)` (NEW)
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
+    - `communication.core.message_send_result (CHANNEL_SEND_UNCONFIRMED)` (NEW)
     - `communication.delivery.recipient_resolver (RecipientResolver)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -5293,7 +5301,7 @@
   - `integrations/google_health/sync_manager.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.website.inbox, communication.core.channel_orchestrator, communication.delivery.recipient_resolver, core, core.error_handling, core.logger, integrations.google_health.testing
+- Added: communication.communication_channels.website.inbox, communication.core.channel_orchestrator, communication.core.message_send_result, communication.delivery.recipient_resolver, core, core.error_handling, core.logger, integrations.google_health.testing
 - Removed: integrations/google_health/sync_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5518,7 +5526,7 @@
     - `core (get_user_data, get_user_id_by_identifier)` (NEW)
     - `core.config (DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
-    - `core.file_operations (determine_file_path, load_json_data, save_json_data)` (NEW)
+    - `core.file_operations (determine_file_path, load_json_data, save_json_data, update_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_datetime_utc, now_timestamp_filename, now_timestamp_full, parse_timestamp_full, timestamp_sort_key_from_dict)` (NEW)
     - `messages.message_schemas (MessageTemplateV2Model)` (NEW)

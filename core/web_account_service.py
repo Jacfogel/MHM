@@ -56,6 +56,7 @@ OAUTH_TOKEN_URLS = {
     "google": "https://oauth2.googleapis.com/token",
     "facebook": "https://graph.facebook.com/oauth/access_token",
 }
+MAX_WEB_REQUEST_BYTES = 128 * 1024
 
 
 # ERROR_HANDLING_EXCLUDE: Pure bounded crypto helper; callers own user-facing errors.
@@ -3015,7 +3016,7 @@ def create_web_app(
         discord_identity=discord_identity,
         oauth_identity=oauth_identity,
     )
-    app = web.Application(middlewares=[gateway.guard], client_max_size=32768)
+    app = web.Application(middlewares=[gateway.guard], client_max_size=MAX_WEB_REQUEST_BYTES)
     app.router.add_post("/api/auth/password", gateway.password_login)
     app.router.add_post("/api/auth/password/setup", gateway.password_setup)
     app.router.add_post("/api/auth/request-code", gateway.request_code)

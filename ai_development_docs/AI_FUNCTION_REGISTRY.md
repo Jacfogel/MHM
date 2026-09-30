@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 14:03:44
+> **Last Generated**: 2026-09-30 16:59:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.4% [!] GOOD**
-- **Total Functions**: 3057
+### **Documentation Coverage: 88.5% [!] GOOD**
+- **Total Functions**: 3063
 - **Total Methods**: 1573
-- **Documented**: 4095/4630
+- **Documented**: 4103/4636
 - **Files Scanned**: 292
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -146,7 +146,7 @@ Core System Decision Tree:
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_read.py` - User data operations
 - **Validation**: `core/user_data_validation.py` - Data validation
-- **File Operations**: `core/file_operations.py` - File I/O (16 functions)
+- **File Operations**: `core/file_operations.py` - File I/O (18 functions)
 
 ### **Communication Patterns**
 - **Message Sending**: `communication/core/channel_orchestrator.py::_channel_send_failure_detail()`
@@ -165,7 +165,7 @@ Core System Decision Tree:
 - `communication/communication_channels/discord/ui/task_list_ui.py` - 18/24 functions undocumented (25% coverage)
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/communication_channels/discord/ui/rich_delivery.py` - 16/28 functions undocumented (43% coverage)
-- `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
+- `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -207,10 +207,10 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 430 functions)
 - `checkins/` -  (7 files, 154 functions)
-- `communication/` - Communication channels and message processing (97 files, 1532 functions)
-- `core/` - System utilities and data management (39 files, 806 functions)
+- `communication/` - Communication channels and message processing (97 files, 1534 functions)
+- `core/` - System utilities and data management (39 files, 808 functions)
 - `integrations/` -  (13 files, 116 functions)
-- `messages/` -  (6 files, 61 functions)
+- `messages/` -  (6 files, 63 functions)
 - `scheduler/` -  (9 files, 111 functions)
 - `storage/` -  (16 files, 144 functions)
 - `tasks/` - Task management system (16 files, 181 functions)

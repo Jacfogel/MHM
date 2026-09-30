@@ -437,18 +437,13 @@ class TestSentMessages:
         message_id = "test_msg"
         message = "Test motivational message"
         
-        # Mock file operations
-        mock_load = Mock(return_value={})
-        mock_save = Mock()
-        
-        with patch('messages.message_data_manager.load_json_data', mock_load), \
-             patch('messages.message_data_manager.save_json_data', mock_save):
-            
+        mock_update = Mock(return_value=True)
+
+        with patch("messages.message_data_manager.update_json_data", mock_update):
             result = store_sent_message(user_id, category, message_id, message)
-            
-            assert result is True or result is None
-            mock_load.assert_called_once()
-            mock_save.assert_called_once()
+
+            assert result is True
+            mock_update.assert_called_once()
     
     @pytest.mark.messages
     @pytest.mark.file_io
@@ -695,13 +690,12 @@ class TestErrorHandling:
         message_id = "test_msg"
         message = "Test message"
         
-        # Mock file operations to raise exception
-        mock_load = Mock(side_effect=Exception("File error"))
-        
-        with patch('messages.message_data_manager.load_json_data', mock_load):
+        mock_update = Mock(side_effect=Exception("File error"))
+
+        with patch("messages.message_data_manager.update_json_data", mock_update):
             result = store_sent_message(user_id, category, message_id, message)
-            
-            assert result is False or result is None
+
+            assert result is False
 
 
 @pytest.mark.communication

@@ -90,7 +90,7 @@ export default {
           const { done, value } = await reader.read();
           if (done) break;
           size += value.byteLength;
-          const maxBody = url.pathname === '/api/settings' ? 32768 : url.pathname.startsWith('/api/tasks') ? 8192 : url.pathname.startsWith('/api/notes') ? 65536 : 4096;
+          const maxBody = url.pathname === '/api/settings' ? 32768 : url.pathname.startsWith('/api/tasks') ? 8192 : url.pathname.startsWith('/api/notes') ? 131072 : 4096;
           if (size > maxBody) {
             await reader.cancel();
             return error('This request is too large.', 413);

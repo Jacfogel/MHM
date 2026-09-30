@@ -63,10 +63,15 @@ class TestStoreSentMessage:
     
     def test_store_sent_message_success(self):
         """Test storing a sent message successfully."""
-        with patch('messages.message_data_manager.load_json_data', return_value={"sent_messages": []}):
-            with patch('messages.message_data_manager.save_json_data', return_value=True):
-                result = store_sent_message("test_user", "motivational", "msg1", "Test message")
-                assert result is True
+        with patch("messages.message_data_manager.update_json_data", return_value=True):
+            result = store_sent_message("test_user", "motivational", "msg1", "Test message")
+            assert result is True
+
+    def test_store_sent_message_reports_transaction_failure(self):
+        """A failed history write must not be reported as a successful store."""
+        with patch("messages.message_data_manager.update_json_data", return_value=False):
+            result = store_sent_message("test_user", "motivational", "msg1", "Test message")
+        assert result is False
 
 
 @pytest.mark.unit

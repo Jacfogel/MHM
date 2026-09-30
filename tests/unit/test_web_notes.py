@@ -102,6 +102,16 @@ async def test_note_create_edit_search_and_archive(notes_gateway):
     assert (await client.get("/api/notes?status=archived")).status == 200
 
 
+async def test_note_accepts_maximum_unicode_description(notes_gateway):
+    """The gateway byte limit must allow the handler's 10,000-character maximum."""
+    response = await notes_gateway.post(
+        "/api/notes",
+        json={"title": "Unicode", "description": "🙂" * 10_000},
+        headers={"Origin": ORIGIN},
+    )
+    assert response.status == 201
+
+
 async def test_journal_and_list_create_and_edit(notes_gateway):
     client = notes_gateway
     journal_response = await client.post(

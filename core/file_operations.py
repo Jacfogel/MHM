@@ -7,7 +7,12 @@ Contains functions for file I/O, path determination, and file management.
 import importlib
 import os
 import json
+import shutil
+import tempfile
+import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 from core.logger import get_component_logger
 from core.config import (
     DEFAULT_MESSAGES_DIR_PATH,
@@ -16,6 +21,7 @@ from core.config import (
     get_user_data_dir,
 )
 from core.error_handling import FileOperationError, handle_file_error, handle_errors
+from core.file_locking import file_lock
 from core.time_utilities import now_timestamp_full
 
 try:
@@ -226,6 +232,43 @@ def load_json_data(file_path):
         return {}
 
 
+@handle_errors(
+    "atomically replacing JSON data",
+    user_friendly=False,
+    re_raise=True,
+)
+def _atomic_json_replace(data: Any, file_path: Path) -> None:
+    """Write JSON through a unique sibling file and atomically replace the target."""
+    temp_name: str | None = None
+    try:
+        temp_fd, temp_name = tempfile.mkstemp(
+            dir=file_path.parent,
+            prefix=f".{file_path.name}.",
+            suffix=".tmp",
+        )
+        with os.fdopen(temp_fd, "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+            file.flush()
+            os.fsync(file.fileno())
+        try:
+            os.replace(temp_name, file_path)
+            temp_name = None
+        except PermissionError:
+            time.sleep(0.05)
+            try:
+                os.replace(temp_name, file_path)
+                temp_name = None
+            except Exception:
+                shutil.move(temp_name, file_path)
+                temp_name = None
+    finally:
+        if temp_name and os.path.exists(temp_name):
+            try:
+                os.remove(temp_name)
+            except OSError:
+                logger.debug(f"Failed to clean up temporary JSON file {temp_name}")
+
+
 @handle_errors("saving JSON data", user_friendly=False, default_return=False)
 def save_json_data(data, file_path):
     """
@@ -253,7 +296,6 @@ def save_json_data(data, file_path):
     if data is None:
         logger.error("None data provided to save_json_data")
         return False
-    # Atomic write with temp file and replace to avoid partial writes
     file_path = Path(file_path)
     directory = file_path.parent
 
@@ -265,38 +307,10 @@ def save_json_data(data, file_path):
         except Exception as e:
             raise FileOperationError(f"Failed to create directory {directory}: {e}") from e
 
-    # Save the data
-    tmp_path = None
     try:
-        # Ensure directory exists before writing (race condition fix)
         directory.mkdir(parents=True, exist_ok=True)
-
-        tmp_path = file_path.with_suffix(file_path.suffix + ".tmp")
-        with open(tmp_path, "w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
-            file.flush()
-            os.fsync(file.fileno())
-        try:
-            os.replace(tmp_path, file_path)
-            # On successful replace, tmp_path no longer exists (it became file_path)
-        except PermissionError:
-            # Windows can hold the target briefly; retry once after short delay
-            try:
-                import time as _t
-
-                _t.sleep(0.05)
-                os.replace(tmp_path, file_path)
-                # On successful replace, tmp_path no longer exists
-            except Exception:
-                # As a last resort, attempt shutil.move
-                try:
-                    import shutil as _sh
-
-                    _sh.move(str(tmp_path), str(file_path))
-                    # On successful move, tmp_path no longer exists
-                except Exception:
-                    # All attempts failed - re-raise the original error
-                    raise
+        with file_lock(str(file_path), timeout=10.0):
+            _atomic_json_replace(data, file_path)
         logger.debug(f"Successfully saved data to {file_path}")
         try:
             if _record_created:
@@ -305,16 +319,47 @@ def save_json_data(data, file_path):
             pass
         return True
     except Exception as e:
-        # Clean up temp file if it exists and wasn't successfully moved/replaced
-        if tmp_path is not None and tmp_path.exists():
-            try:
-                tmp_path.unlink()
-            except Exception:
-                # Best effort cleanup - log but don't fail on cleanup error
-                logger.debug(
-                    f"Failed to clean up temp file {tmp_path}, but continuing with error handling"
-                )
         raise FileOperationError(f"Failed to save data to {file_path}: {e}") from e
+
+
+@handle_errors("updating JSON data", user_friendly=False, default_return=False)
+def update_json_data(
+    file_path: str | os.PathLike[str],
+    updater: Callable[[Any], Any],
+    *,
+    default: Any = None,
+) -> bool:
+    """Apply one read-modify-write transaction while holding the file lock."""
+    if not isinstance(file_path, (str, os.PathLike)) or not str(file_path).strip():
+        logger.error(f"Invalid file_path: {file_path}")
+        return False
+    if not callable(updater):
+        logger.error("update_json_data requires a callable updater")
+        return False
+
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with file_lock(str(path), timeout=10.0):
+        current = default
+        try:
+            if path.exists() and path.stat().st_size:
+                with open(path, encoding="utf-8") as file:
+                    current = json.load(file)
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
+            raise FileOperationError(f"Failed to read data for update from {path}: {exc}") from exc
+        updated = updater(current)
+        if updated is None:
+            logger.error(f"JSON updater returned None for {path}")
+            return False
+        _atomic_json_replace(updated, path)
+
+    logger.debug(f"Successfully updated data in {path}")
+    try:
+        if _record_created:
+            _record_created(str(path), reason="update_json_data")
+    except Exception:
+        pass
+    return True
 
 
 @handle_errors("creating user files", user_friendly=True, default_return=False)

@@ -6,7 +6,7 @@ helper methods and utility functions.
 """
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 from communication.core.channel_orchestrator import (
     CommunicationManager,
     _SYNC_BRIDGE_TIMEOUT_SECONDS,
@@ -77,6 +77,10 @@ class TestChannelOrchestratorHelpers:
             order.append("website")
             return True
 
+        def remember_store(*_args, **_kwargs):
+            order.append("store")
+            return True
+
         with (
             patch("ai.chat.chatbot.get_ai_chatbot") as get_bot,
             patch(
@@ -90,7 +94,8 @@ class TestChannelOrchestratorHelpers:
                 return_value=(["morning"], ["morning"]),
             ),
             patch(
-                "communication.core.channel_orchestrator.store_sent_message"
+                "communication.core.channel_orchestrator.store_sent_message",
+                side_effect=remember_store,
             ) as store,
             patch(
                 "communication.communication_channels.website.inbox.deliver_to_website",
@@ -108,9 +113,10 @@ class TestChannelOrchestratorHelpers:
 
         assert success == CHANNEL_SEND_UNCONFIRMED
         assert content == "Hello"
-        deliver_mock.assert_called_once_with("u1", "Hello", "motivational")
+        deliver_mock.assert_called_once_with("u1", "Hello", "motivational", delivery_id=ANY)
         store.assert_called_once()
-        assert order == ["send", "website"]
+        assert store.call_args.kwargs["delivery_id"] == deliver_mock.call_args.kwargs["delivery_id"]
+        assert order == ["send", "store", "website"]
 
     def test_sync_bridge_outlasts_one_smtp_retry(self):
         """The sync bridge must stay open through one SMTP retry."""

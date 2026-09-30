@@ -1411,20 +1411,29 @@ class CommunicationManager:
                     deliver_to_website,
                 )
 
-                deliver_to_website(user_id, message_to_send, category)
                 # Get current time period for storage
                 matching_periods, valid_periods = (
                     get_current_time_periods_with_validation(user_id, category)
                 )
                 current_time_period = matching_periods[0] if matching_periods else None
-                store_sent_message(
+                delivery_id = str(uuid.uuid4())
+                stored = store_sent_message(
                     user_id,
                     category,
                     message_id,
                     message_to_send,
                     time_period=current_time_period,
                     metadata=delivery_meta,
+                    delivery_id=delivery_id,
                 )
+                deliver_to_website(
+                    user_id,
+                    message_to_send,
+                    category,
+                    delivery_id=delivery_id if stored else None,
+                )
+                if not stored:
+                    logger.error(f"Sent message history could not be stored for user {user_id}, category {category}")
                 # Enhanced logging with message content
                 message_preview = (
                     message_to_send[:50] + "..."

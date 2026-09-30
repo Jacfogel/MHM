@@ -7,11 +7,13 @@ Tests file I/O operations, data loading/saving, and file path management.
 import pytest
 import os
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 from core.file_operations import (
 
     load_json_data,
     save_json_data,
+    update_json_data,
     determine_file_path,
     verify_file_access,
     get_user_file_path,
@@ -189,6 +191,26 @@ class TestFileOperations:
         # Verify file and directory were created
         assert os.path.exists(file_path)
         assert os.path.exists(os.path.dirname(file_path))
+
+    @pytest.mark.unit
+    @pytest.mark.file_io
+    def test_update_json_data_keeps_all_concurrent_changes(self, tmp_path):
+        """Concurrent read-modify-write calls must not overwrite one another."""
+        path = tmp_path / "counter.json"
+
+        def increment(_index):
+            def updater(current):
+                document = current if isinstance(current, dict) else {}
+                return {"count": int(document.get("count", 0)) + 1}
+
+            return update_json_data(path, updater, default={"count": 0})
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(increment, range(32)))
+
+        assert all(results)
+        assert json.loads(path.read_text(encoding="utf-8")) == {"count": 32}
+        assert list(tmp_path.glob(".counter.json.*.tmp")) == []
     
     @pytest.mark.unit
     @pytest.mark.file_io
