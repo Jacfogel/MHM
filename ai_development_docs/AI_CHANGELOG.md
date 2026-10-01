@@ -33,6 +33,7 @@ Guidelines:
 ### 2026-10-01 - Linux locks clean up after themselves **COMPLETED**
 - Unix file locks remove their `.lock` sidecar on release, so user directories no longer keep `account.json.lock` and similar files.
 - The frozen-clock lock test times only its body, so session cleanup cannot trip the 5-second limit.
+- Unix lock tests restore the real `fcntl` module before reload, so a busy-lock stand-in cannot make later JSON reads return `{}`.
 
 ### 2026-09-30 - Delivery and reply state fail safely **COMPLETED**
 - Channels accept only explicit success or `unconfirmed`; unexpected truthy results remain failed and retryable.

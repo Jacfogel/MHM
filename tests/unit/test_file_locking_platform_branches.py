@@ -15,10 +15,30 @@ import core.file_locking as file_locking_mod
 
 pytestmark = [pytest.mark.core]
 
+def _restore_file_locking_platform(original_platform: str, original_fcntl) -> None:
+    """Reload file locking against the real platform module, not a test double.
+
+    importlib.reload keeps the fcntl object already stored on the module.
+    Restoring sys.modules after that reload leaves later tests calling the
+    test flock, which always raises and turns JSON reads into {}.
+    """
+    if original_fcntl is not None:
+        sys.modules["fcntl"] = original_fcntl
+    sys.platform = original_platform
+    importlib.reload(file_locking_mod)
+    if original_fcntl is None:
+        # Windows never imports fcntl, and reload does not delete the name
+        # bound by the Unix branch.
+        file_locking_mod.__dict__.pop("fcntl", None)
+    else:
+        assert file_locking_mod.fcntl is original_fcntl
+
+
 @pytest.fixture
 def unix_file_locking_module(monkeypatch):
     """Reload core.file_locking as if running on Unix (non-win32)."""
     original_platform = sys.platform
+    original_fcntl = sys.modules.get("fcntl")
 
     fake_fcntl = types.SimpleNamespace(LOCK_EX=1, LOCK_NB=2, LOCK_UN=8)
     fake_fcntl.flock = lambda fd, flags: None
@@ -29,9 +49,7 @@ def unix_file_locking_module(monkeypatch):
     unix_mod = importlib.reload(file_locking_mod)
     yield unix_mod
 
-    # Restore module implementation for the real platform after test completes.
-    monkeypatch.setattr(sys, "platform", original_platform)
-    importlib.reload(file_locking_mod)
+    _restore_file_locking_platform(original_platform, original_fcntl)
 
 
 @pytest.mark.unit
@@ -135,6 +153,38 @@ class TestFileLockingPlatformBranches:
                 inner.seek(0)
                 inner.write(b"{}")
                 assert inner.tell() == 2
+
+    def test_fcntl_stub_does_not_survive_reload(self, tmp_path):
+        """A busy flock stand-in must not remain installed for the next test."""
+        original_platform = sys.platform
+        original_fcntl = sys.modules.get("fcntl")
+        fake_fcntl = types.SimpleNamespace(LOCK_EX=1, LOCK_NB=2, LOCK_UN=8)
+
+        def _flock_raises(fd, flags):
+            raise OSError("busy")
+
+        fake_fcntl.flock = _flock_raises
+        target = tmp_path / "after_stub.json"
+        target.write_text('{"key": "value", "number": 123}', encoding="utf-8")
+        try:
+            sys.platform = "linux"
+            sys.modules["fcntl"] = fake_fcntl
+            importlib.reload(file_locking_mod)
+            assert file_locking_mod.fcntl.flock is _flock_raises
+            _restore_file_locking_platform(original_platform, original_fcntl)
+            assert file_locking_mod.safe_json_read(str(target)) == {
+                "key": "value",
+                "number": 123,
+            }
+        finally:
+            sys.platform = original_platform
+            if original_fcntl is None:
+                sys.modules.pop("fcntl", None)
+            else:
+                sys.modules["fcntl"] = original_fcntl
+            importlib.reload(file_locking_mod)
+            if original_fcntl is None:
+                file_locking_mod.__dict__.pop("fcntl", None)
 
     def test_unix_file_lock_timeout_in_outer_open_loop(self, unix_file_locking_module, test_data_dir):
         target = Path(test_data_dir) / "unix_open_timeout.json"
