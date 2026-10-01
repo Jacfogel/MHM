@@ -1102,12 +1102,12 @@ class TestEmailInboundProcessorHelpers:
     def test_poll_once_processes_new_email_ids(self, processor):
         channel = MagicMock()
         email_msg = {
-            "imap_email_id": "abc",
+            "imap_uid": "abc",
             "from": "user@example.com",
             "body": "hello",
             "subject": "Hi",
         }
-        processor._run_async_sync.return_value = [email_msg]
+        processor._run_async_sync.side_effect = [[email_msg], True]
         with patch.object(
             processor, "process_incoming_email", return_value=True
         ) as mock_process:
@@ -1115,6 +1115,35 @@ class TestEmailInboundProcessorHelpers:
         mock_process.assert_called_once_with(email_msg)
         assert "abc" in processor._processed_email_ids
         channel.mark_message_seen.assert_called_once_with("abc")
+
+    def test_poll_once_retries_only_seen_acknowledgement_after_failure(self, processor):
+        channel = MagicMock()
+        email_msg = {
+            "imap_uid": "abc",
+            "from": "user@example.com",
+            "body": "hello",
+            "subject": "Hi",
+        }
+        processor._run_async_sync.side_effect = [
+            [email_msg],
+            False,
+            [email_msg],
+            True,
+        ]
+
+        with patch.object(
+            processor, "process_incoming_email", return_value=True
+        ) as mock_process:
+            processor._poll_once(channel)
+            assert "abc" in processor._handled_email_ids_pending_seen
+            assert "abc" not in processor._processed_email_ids
+
+            processor._poll_once(channel)
+
+        mock_process.assert_called_once_with(email_msg)
+        assert channel.mark_message_seen.call_count == 2
+        assert "abc" not in processor._handled_email_ids_pending_seen
+        assert "abc" in processor._processed_email_ids
 
     def test_process_incoming_email_skips_missing_fields(self, processor):
         with patch.object(processor, "send_email_response") as mock_send:

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Inbound mail stays attached to the right message **COMPLETED**
+- Incoming mail uses stable IMAP UIDs, processes the oldest unread batch first, and retries one temporary mailbox disconnect without changing the application's global network timeout.
+- A handled email is marked complete only after the server confirms `\\Seen`. If that acknowledgement fails, later polls retry it without sending the reply again.
+- Encoded subjects retain every fragment and declared charset. Pyright is clean after correcting the IMAP call and scheduler positional-argument lookup.
+- Focused email, message-processing, orchestrator, and scheduler suites passed; Ruff and diff checks passed.
+
 ### 2026-09-30 - Website delivery records stay exact and concurrent-safe **COMPLETED**
 - Scheduled messages are copied to Home only after an accepted or unconfirmed handoff. Sent history and the website row share one exact delivery ID; repeated text no longer redirects reactions to the newest copy.
 - JSON writes use unique temporary files and locked read-modify-write transactions. Failed sent-history writes return failure. A backed-up manual migration linked 83 legacy rows; seven check-ins and one task reminder remain intentionally non-reactable.
@@ -104,13 +110,6 @@ Guidelines:
 ### 2026-09-27 - Discord reactions replace message buttons **COMPLETED**
 - Scheduled Discord messages no longer include More like this and Not for me buttons.
 - A clearly positive reaction, such as a smile, heart, or celebration, still requests more messages like that one. A clearly negative reaction, such as a frown, anger, or a broken heart, still turns that message off. Ambiguous emoji are ignored.
-
-### 2026-09-27 - Task steps stay with the parent **COMPLETED**
-- Completing or deleting a task now completes or deletes its steps. Restoring that task can bring the finished steps back. A repeating task copies those step titles onto the next occurrence.
-- Reminders name the oldest open step and say which task it is part of. Done finishes that step. Later and Skip still apply to the parent reminder.
-- Home and the Tasks page can add a step you type. A step can become its own task.
-- `break that into steps` and `break it down` start the same breakdown as `simplify`.
-- Bulk task ranking uses the shared error handler, so a bad rank cannot stop the rest of the selection.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

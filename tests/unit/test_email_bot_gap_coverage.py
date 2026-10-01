@@ -17,13 +17,23 @@ class _ExecutorLoop:
 
 
 class _FakeImapMailbox:
-    def __init__(self, search_result=None, fetch_map=None, search_error=None):
+    def __init__(
+        self,
+        search_result=None,
+        fetch_map=None,
+        search_error=None,
+        select_result=("OK", []),
+        store_result=("OK", [b""]),
+    ):
         if search_result is None:
             search_result = ("OK", [b""])
         self.search_result = search_result
         self.fetch_map = fetch_map or {}
         self.search_error = search_error
+        self.select_result = select_result
+        self.store_result = store_result
         self.store_calls = []
+        self.uid_calls = []
         self.closed = False
         self.logged_out = False
 
@@ -31,7 +41,7 @@ class _FakeImapMailbox:
         return "OK"
 
     def select(self, mailbox):
-        return "OK", []
+        return self.select_result
 
     def search(self, *_args):
         if self.search_error is not None:
@@ -46,7 +56,17 @@ class _FakeImapMailbox:
 
     def store(self, email_id, flags_mode, flags_value):
         self.store_calls.append((email_id, flags_mode, flags_value))
-        return "OK"
+        return self.store_result
+
+    def uid(self, command, *args):
+        self.uid_calls.append((command, *args))
+        if command == "search":
+            return self.search(*args)
+        if command == "fetch":
+            return self.fetch(args[0], args[1])
+        if command == "store":
+            return self.store(args[0], args[1], args[2])
+        raise AssertionError(f"Unexpected UID command: {command}")
 
     def close(self):
         self.closed = True
@@ -324,6 +344,7 @@ class TestEmailBotGapCoverage:
         assert len(messages) == 1
         assert messages[0]["from"] == "sender@example.com"
         assert messages[0]["subject"] == "Test Subject"
+        assert messages[0]["imap_uid"] == "1"
         assert mailbox.store_calls == []
         assert mailbox.closed is True
         assert mailbox.logged_out is True
@@ -338,9 +359,98 @@ class TestEmailBotGapCoverage:
         )
 
         assert bot._mark_message_seen_sync("1") is True
-        assert mailbox.store_calls == [("1", "+FLAGS", "\\Seen")]
+        assert mailbox.store_calls == [("1", "+FLAGS", "(\\Seen)")]
         assert mailbox.closed is True
         assert mailbox.logged_out is True
+
+    def test_mark_message_seen_reports_rejected_store(self, monkeypatch):
+        bot = EmailBot()
+        mailbox = _FakeImapMailbox(store_result=("NO", [b"rejected"]))
+        monkeypatch.setattr(
+            bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass")
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: mailbox,
+        )
+
+        assert bot._mark_message_seen_sync("42") is False
+        assert mailbox.store_calls == [("42", "+FLAGS", "(\\Seen)")]
+
+    def test_receive_emails_sync_decodes_complete_declared_charset_subject(
+        self, monkeypatch
+    ):
+        bot = EmailBot()
+        raw_bytes = (
+            b"Subject: =?iso-8859-1?q?Ol=E1?= reminder\r\n"
+            b"From: sender@example.com\r\n"
+            b"Content-Type: text/plain; charset=utf-8\r\n\r\nBody text"
+        )
+        mailbox = _FakeImapMailbox(
+            search_result=("OK", [b"7"]),
+            fetch_map={b"7": ("OK", [(None, raw_bytes)])},
+        )
+        monkeypatch.setattr(
+            bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass")
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: mailbox,
+        )
+
+        messages = bot._receive_emails_sync()
+
+        assert messages[0]["subject"] == "Olá reminder"
+
+    def test_receive_emails_sync_retries_imap_abort(self, monkeypatch):
+        import imaplib
+
+        bot = EmailBot()
+
+        class _AbortingMailbox(_FakeImapMailbox):
+            def select(self, mailbox):
+                raise imaplib.IMAP4.abort("temporary server failure")
+
+        first = _AbortingMailbox()
+        second = _FakeImapMailbox(search_result=("OK", [b""]))
+        mailboxes = iter([first, second])
+        monkeypatch.setattr(
+            bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass")
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: next(mailboxes),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.time.sleep",
+            lambda _seconds: None,
+        )
+
+        assert bot._receive_emails_sync() == []
+        assert first.logged_out is True
+        assert second.logged_out is True
+
+    def test_receive_emails_sync_drains_oldest_twenty_uids_first(self, monkeypatch):
+        bot = EmailBot()
+        raw_bytes = b"Subject: Test\r\nFrom: sender@example.com\r\n\r\nBody"
+        all_uids = [str(value).encode("ascii") for value in range(1, 26)]
+        mailbox = _FakeImapMailbox(
+            search_result=("OK", [b" ".join(all_uids)]),
+            fetch_map={uid: ("OK", [(None, raw_bytes)]) for uid in all_uids},
+        )
+        monkeypatch.setattr(
+            bot, "_get_email_config", lambda: ("smtp", "imap", "user", "pass")
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: mailbox,
+        )
+
+        messages = bot._receive_emails_sync()
+        fetched_uids = [call[1] for call in mailbox.uid_calls if call[0] == "fetch"]
+
+        assert len(messages) == 20
+        assert fetched_uids == all_uids[:20]
 
     def test_receive_emails_sync_timeout_cleanup_and_rate_limit(self, monkeypatch):
         bot = EmailBot()
@@ -355,6 +465,10 @@ class TestEmailBotGapCoverage:
         monkeypatch.setattr(
             "communication.communication_channels.email.bot.time.time",
             lambda: 9999999,
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.time.sleep",
+            lambda _seconds: None,
         )
 
         messages = bot._receive_emails_sync()

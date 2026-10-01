@@ -70,7 +70,7 @@ def _create_standalone_scheduler_manager() -> "SchedulerManager | None":
 
 
 # ERROR_HANDLING_EXCLUDE: pure lookup of arguments stored on a schedule partial
-def scheduled_job_user_and_category(job_func) -> tuple[Any, Any] | None:
+def scheduled_job_user_and_category(job_func: Any) -> tuple[Any, Any] | None:
     """Return the user id and category stored on a schedule job callable.
 
     Jobs are registered with keyword arguments, which ``schedule`` keeps on
@@ -85,10 +85,12 @@ def scheduled_job_user_and_category(job_func) -> tuple[Any, Any] | None:
         category = keywords.get("category")
         if user_id is not None or category is not None:
             return user_id, category
-    args = getattr(job_func, "args", None)
-    if isinstance(args, (list, tuple)) and args:
-        category = args[1] if len(args) >= 2 else None
-        return args[0], category
+    args: list[Any] | tuple[Any, ...] | None = getattr(job_func, "args", None)
+    if isinstance(args, (list, tuple)):
+        positional_args = list(args)
+        if positional_args:
+            category = positional_args[1] if len(positional_args) >= 2 else None
+            return positional_args[0], category
     return None
 
 

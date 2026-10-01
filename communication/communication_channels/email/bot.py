@@ -6,7 +6,7 @@ import asyncio
 import time
 import contextlib
 from email.mime.text import MIMEText
-from email.header import decode_header
+from email.header import decode_header, make_header
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default as email_policy_default
@@ -45,6 +45,16 @@ _SMTP_SEND_TIMEOUT_SECONDS = 30
 _SMTP_SEND_ATTEMPTS = 2
 _SMTP_RETRY_PAUSE_SECONDS = 1
 _TRANSIENT_SMTP_ERRORS = (smtplib.SMTPServerDisconnected, TimeoutError, ConnectionError)
+_IMAP_RECEIVE_ATTEMPTS = 2
+_IMAP_RETRY_PAUSE_SECONDS = 1
+
+
+@handle_errors("decoding an email subject", default_return="")
+def decode_email_subject(subject: Any) -> str:
+    """Decode every encoded-word fragment using its declared charset."""
+    if subject is None:
+        return ""
+    return str(make_header(decode_header(str(subject))))
 
 
 # error_handling_exclude: decorator recovery would retry the write and could send the body twice
@@ -374,129 +384,127 @@ class EmailBot(BaseChannel):
     @handle_errors("receiving emails synchronously", default_return=[])
     def _receive_emails_sync(self) -> list[dict[str, Any]]:
         """Receive emails synchronously - only fetches UNSEEN emails for efficiency"""
-        import socket
-
-        messages = []
-        mail = None
         config = self._get_email_config()
         if not config:
-            return messages
+            return []
         _, imap_server, smtp_user, smtp_password = config
 
+        for attempt in range(1, _IMAP_RECEIVE_ATTEMPTS + 1):
+            try:
+                return self._receive_emails_sync_once(
+                    imap_server, smtp_user, smtp_password
+                )
+            except TimeoutError as exc:
+                current_time = time.time()
+                time_since_last_log = current_time - EmailBot._last_timeout_log_time
+                if time_since_last_log >= EmailBot._timeout_log_interval:
+                    logger.debug(
+                        "IMAP socket timeout after 8 seconds "
+                        f"(attempt {attempt}/{_IMAP_RECEIVE_ATTEMPTS}): {exc}"
+                    )
+                    EmailBot._last_timeout_log_time = current_time
+            except imaplib.IMAP4.abort as exc:
+                logger.warning(
+                    "IMAP connection aborted "
+                    f"(attempt {attempt}/{_IMAP_RECEIVE_ATTEMPTS}): {exc}"
+                )
+
+            if attempt < _IMAP_RECEIVE_ATTEMPTS:
+                time.sleep(_IMAP_RETRY_PAUSE_SECONDS)
+
+        return []
+
+    # error_handling_exclude: exceptions are handled by the bounded retry wrapper above
+    def _receive_emails_sync_once(
+        self, imap_server: str, smtp_user: str, smtp_password: str
+    ) -> list[dict[str, Any]]:
+        """Fetch one bounded batch using stable IMAP UIDs."""
+        messages: list[dict[str, Any]] = []
+        mail = None
         try:
-            # Create IMAP connection with socket timeout (8 seconds to leave buffer for overall 10s timeout)
-            # Set socket timeout before creating connection
-            socket.setdefaulttimeout(8)
             logger.debug(f"Connecting to IMAP server: {imap_server}")
             mail = imaplib.IMAP4_SSL(imap_server, timeout=8)
-
             logger.debug("Attempting IMAP login")
             mail.login(smtp_user, smtp_password)
             logger.debug("IMAP login successful")
 
             logger.debug("Selecting inbox")
-            mail.select("inbox")
+            status, _select_data = mail.select("inbox")
+            if status != "OK":
+                raise EmailBotError(f"IMAP inbox selection failed: {status}")
 
-            # Only search for UNSEEN emails (new emails) instead of ALL
-            # This is much faster and avoids processing already-seen emails
-            logger.debug("Searching for UNSEEN emails")
-            status, message_ids = mail.search(None, "UNSEEN")
-
-            if status != "OK" or not message_ids[0]:
+            logger.debug("Searching for UNSEEN email UIDs")
+            status, uid_data = mail.uid("search", "UNSEEN")
+            if status != "OK":
+                raise EmailBotError(f"IMAP unread search failed: {status}")
+            if not uid_data or not uid_data[0]:
                 logger.debug("No UNSEEN emails found")
-                mail.close()
-                mail.logout()
                 return messages
 
-            email_ids = message_ids[0].split()
+            email_uids = uid_data[0].split()
+            # Drain the oldest unread messages first so a busy inbox cannot starve them.
+            email_uids = email_uids[:20]
+            logger.info(f"Processing {len(email_uids)} new emails")
 
-            # Limit to last 20 emails to prevent timeout with large inboxes
-            # Process most recent emails first (reverse order)
-            email_ids = email_ids[-20:] if len(email_ids) > 20 else email_ids
-
-            logger.info(f"Processing {len(email_ids)} new emails")
-
-            processed_email_ids = []  # Track successfully processed email IDs
-
-            for email_id in email_ids:
+            fetched_uids: list[bytes] = []
+            for email_uid in email_uids:
                 try:
-                    status, msg_data = mail.fetch(email_id, "(BODY.PEEK[])")
+                    status, msg_data = mail.uid(
+                        "fetch", email_uid, "(BODY.PEEK[])"
+                    )
                     if status != "OK":
-                        logger.debug(f"Failed to fetch email {email_id}: {status}")
+                        logger.debug(
+                            f"Failed to fetch email UID {email_uid!r}: {status}"
+                        )
                         continue
 
                     for response_part in msg_data:
-                        if isinstance(response_part, tuple):
-                            msg = BytesParser(policy=email_policy_default).parsebytes(
-                                response_part[1]
-                            )
-                            email_subject = decode_header(msg["subject"])[0][0]
-                            if isinstance(email_subject, bytes):
-                                email_subject = email_subject.decode()
-                            email_from = msg.get("from")
+                        if not isinstance(response_part, tuple):
+                            continue
+                        msg = BytesParser(policy=email_policy_default).parsebytes(
+                            response_part[1]
+                        )
+                        email_subject = decode_email_subject(msg.get("subject"))
+                        email_from = msg.get("from")
+                        body_text = self._receive_emails_sync__extract_body(msg)
+                        uid_text = email_uid.decode("ascii")
+                        messages.append(
+                            {
+                                "from": email_from,
+                                "subject": email_subject,
+                                "body": body_text,
+                                "imap_uid": uid_text,
+                                # Compatibility alias for callers that have not migrated yet.
+                                "imap_email_id": uid_text,
+                                "message_id": str(msg.get("Message-ID") or ""),
+                                "in_reply_to": str(msg.get("In-Reply-To") or ""),
+                                "references": str(msg.get("References") or ""),
+                            }
+                        )
+                        fetched_uids.append(email_uid)
+                        break
+                except (TimeoutError, imaplib.IMAP4.abort):
+                    raise
+                except Exception as exc:
+                    logger.warning(f"Error processing email UID {email_uid!r}: {exc}")
 
-                            # Extract email body text
-                            body_text = self._receive_emails_sync__extract_body(msg)
-
-                            messages.append(
-                                {
-                                    "from": email_from,
-                                    "subject": email_subject,
-                                    "body": body_text,
-                                    # IMAP message sequence / fetch id (not a user template id)
-                                    "imap_email_id": email_id.decode(),
-                                    "message_id": str(msg.get("Message-ID") or ""),
-                                    "in_reply_to": str(msg.get("In-Reply-To") or ""),
-                                    "references": str(msg.get("References") or ""),
-                                }
-                            )
-                            # Fetched with BODY.PEEK so the message stays unread
-                            # until inbound handling succeeds.
-                            processed_email_ids.append(email_id)
-                            break  # Only process first valid response part
-                except Exception as e:
-                    logger.warning(f"Error processing email {email_id}: {e}")
-                    continue  # Continue with next email even if one fails
-
-            if processed_email_ids:
+            if fetched_uids:
                 logger.debug(
-                    f"Fetched {len(processed_email_ids)} unread emails without marking them seen"
+                    f"Fetched {len(fetched_uids)} unread emails without marking them seen"
                 )
-
             logger.debug("Email processing completed successfully")
-            mail.close()
-            mail.logout()
-        except TimeoutError as e:
-            # Rate limit timeout logging to once per hour (expected behavior when no emails)
-            current_time = time.time()
-            time_since_last_log = current_time - EmailBot._last_timeout_log_time
-
-            if time_since_last_log >= EmailBot._timeout_log_interval:
-                # Log at DEBUG level since this is expected behavior when no emails are present
-                logger.debug(
-                    f"IMAP socket timeout in _receive_emails_sync after 8 seconds (expected when no emails): {e}"
-                )
-                EmailBot._last_timeout_log_time = current_time
-            # Try to clean up connection if it exists
-            try:
-                if mail:
-                    mail.close()
-                    mail.logout()
-            except Exception:
-                pass
+            return messages
         finally:
-            # Reset socket timeout to default
-            socket.setdefaulttimeout(None)
-
-        logger.debug(
-            f"Email receive operation completed, returning {len(messages)} messages"
-        )
-        return messages
+            if mail is not None:
+                with contextlib.suppress(Exception):
+                    mail.close()
+                with contextlib.suppress(Exception):
+                    mail.logout()
 
     @handle_errors("marking email message seen", default_return=False)
-    async def mark_message_seen(self, imap_email_id: str) -> bool:
+    async def mark_message_seen(self, imap_uid: str) -> bool:
         """Mark one inbox message read after it has been handled."""
-        if not imap_email_id or not self.is_ready():
+        if not imap_uid or not self.is_ready():
             return False
         try:
             loop = asyncio.get_running_loop()
@@ -504,28 +512,34 @@ class EmailBot(BaseChannel):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         return bool(
-            await loop.run_in_executor(None, self._mark_message_seen_sync, imap_email_id)
+            await loop.run_in_executor(None, self._mark_message_seen_sync, imap_uid)
         )
 
     @handle_errors("marking email message seen synchronously", default_return=False)
-    def _mark_message_seen_sync(self, imap_email_id: str) -> bool:
-        """Mark one IMAP message \\Seen."""
-        import socket
-
+    def _mark_message_seen_sync(self, imap_uid: str) -> bool:
+        """Mark one IMAP UID \\Seen and verify that the server accepted it."""
         config = self._get_email_config()
-        if not config or not imap_email_id:
+        if not config or not imap_uid:
             return False
         _, imap_server, smtp_user, smtp_password = config
         mail = None
         try:
-            socket.setdefaulttimeout(8)
             mail = imaplib.IMAP4_SSL(imap_server, timeout=8)
             mail.login(smtp_user, smtp_password)
-            mail.select("inbox")
-            mail.store(str(imap_email_id), "+FLAGS", "\\Seen")
+            status, _select_data = mail.select("inbox")
+            if status != "OK":
+                logger.warning(f"Cannot mark email read; inbox selection failed: {status}")
+                return False
+            status, _store_data = mail.uid(
+                "store", str(imap_uid), "+FLAGS", r"(\Seen)"
+            )
+            if status != "OK":
+                logger.warning(
+                    f"IMAP server rejected marking UID {imap_uid} read: {status}"
+                )
+                return False
             return True
         finally:
-            socket.setdefaulttimeout(None)
             if mail is not None:
                 with contextlib.suppress(Exception):
                     mail.close()
