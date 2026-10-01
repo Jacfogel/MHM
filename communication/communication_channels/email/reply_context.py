@@ -8,7 +8,7 @@ from typing import Any
 
 from core.config import get_user_data_dir
 from core.error_handling import handle_errors
-from core.file_operations import load_json_data, save_json_data
+from core.file_operations import load_json_data, save_json_data, update_json_data
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
 
@@ -83,14 +83,36 @@ def _save_context(user_id: str, data: dict[str, Any]) -> bool:
     threads = threads_raw if isinstance(threads_raw, list) else []
     handled_raw = data.get("handled_inbound_ids")
     handled = handled_raw if isinstance(handled_raw, list) else []
-    save_json_data(
-        {
-            "threads": threads[-_MAX_THREADS:],
-            "handled_inbound_ids": handled[-_MAX_HANDLED:],
-        },
-        path,
+    return bool(
+        save_json_data(
+            {
+                "threads": threads[-_MAX_THREADS:],
+                "handled_inbound_ids": handled[-_MAX_HANDLED:],
+            },
+            path,
+        )
     )
-    return True
+
+
+@handle_errors(
+    "normalizing email reply context",
+    default_return={"threads": [], "handled_inbound_ids": []},
+)
+def _normalized_context(data: Any) -> dict[str, Any]:
+    """Return the bounded mutable shape used by reply-context transactions."""
+    payload = data if isinstance(data, dict) else {}
+    threads = payload.get("threads")
+    handled = payload.get("handled_inbound_ids")
+    return {
+        "threads": [item for item in threads if isinstance(item, dict)][-_MAX_THREADS:]
+        if isinstance(threads, list)
+        else [],
+        "handled_inbound_ids": [str(item) for item in handled if str(item).strip()][
+            -_MAX_HANDLED:
+        ]
+        if isinstance(handled, list)
+        else [],
+    }
 
 
 @handle_errors("recording outbound email reply context", default_return=False)
@@ -107,23 +129,42 @@ def record_outbound_email(
     if not user_id or not normalized:
         return False
     stored_kind = kind if kind in _KINDS else "message"
-    data = _load_context(user_id)
-    threads = [
-        item
-        for item in data["threads"]
-        if normalize_message_id(str(item.get("message_id") or "")) != normalized
-    ]
-    threads.append(
-        {
-            "message_id": normalized,
-            "kind": stored_kind,
-            "task_id": str(task_id or ""),
-            "subject": str(subject or ""),
-            "created_at": now_timestamp_full(),
-        }
+    path = _context_path(user_id)
+    if not path:
+        return False
+
+    @handle_errors(
+        "building outbound email context update",
+        user_friendly=False,
+        default_return=None,
     )
-    data["threads"] = threads
-    return _save_context(user_id, data)
+    def add_thread(current: Any) -> dict[str, Any] | None:
+        """Add one outbound thread to the latest locked context document."""
+        data = _normalized_context(current)
+        threads = [
+            item
+            for item in data["threads"]
+            if normalize_message_id(str(item.get("message_id") or "")) != normalized
+        ]
+        threads.append(
+            {
+                "message_id": normalized,
+                "kind": stored_kind,
+                "task_id": str(task_id or ""),
+                "subject": str(subject or ""),
+                "created_at": now_timestamp_full(),
+            }
+        )
+        data["threads"] = threads[-_MAX_THREADS:]
+        return data
+
+    return bool(
+        update_json_data(
+            path,
+            add_thread,
+            default={"threads": [], "handled_inbound_ids": []},
+        )
+    )
 
 
 @handle_errors("finding email reply context", default_return=None)
@@ -176,8 +217,27 @@ def mark_inbound_handled(user_id: str, message_id: str) -> bool:
     normalized = normalize_message_id(message_id)
     if not user_id or not normalized:
         return False
-    data = _load_context(user_id)
-    handled = [item for item in data["handled_inbound_ids"] if item != normalized]
-    handled.append(normalized)
-    data["handled_inbound_ids"] = handled
-    return _save_context(user_id, data)
+    path = _context_path(user_id)
+    if not path:
+        return False
+
+    @handle_errors(
+        "building handled inbound email update",
+        user_friendly=False,
+        default_return=None,
+    )
+    def add_handled_id(current: Any) -> dict[str, Any] | None:
+        """Add one inbound ID to the latest locked context document."""
+        data = _normalized_context(current)
+        handled = [item for item in data["handled_inbound_ids"] if item != normalized]
+        handled.append(normalized)
+        data["handled_inbound_ids"] = handled[-_MAX_HANDLED:]
+        return data
+
+    return bool(
+        update_json_data(
+            path,
+            add_handled_id,
+            default={"threads": [], "handled_inbound_ids": []},
+        )
+    )

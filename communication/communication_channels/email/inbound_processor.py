@@ -31,8 +31,9 @@ class EmailInboundProcessor:
         self._is_runtime_running = is_runtime_running
         self._polling_thread: threading.Thread | None = None
         self._polling_stop_event = threading.Event()
-        self._processed_email_ids: set[str] = set()
-        self._handled_email_ids_pending_seen: set[str] = set()
+        self._processed_email_ids: set[tuple[str, str]] = set()
+        self._handled_email_ids_pending_seen: set[tuple[str, str]] = set()
+        self._mailbox_uid_validity = ""
 
     @property
     @handle_errors("getting email polling thread", default_return=None)
@@ -119,22 +120,38 @@ class EmailInboundProcessor:
                 email_id = email_msg.get("imap_uid") or email_msg.get("imap_email_id")
                 if not isinstance(email_id, str) or not email_id:
                     continue
-                if email_id in self._processed_email_ids:
+                uid_validity = email_msg.get("imap_uid_validity")
+                uid_validity = uid_validity if isinstance(uid_validity, str) else ""
+                if (
+                    uid_validity
+                    and self._mailbox_uid_validity
+                    and uid_validity != self._mailbox_uid_validity
+                ):
+                    self._processed_email_ids.clear()
+                    self._handled_email_ids_pending_seen.clear()
+                if uid_validity:
+                    self._mailbox_uid_validity = uid_validity
+                email_identity = (uid_validity, email_id)
+                if email_identity in self._processed_email_ids:
                     continue
-                if email_id in self._handled_email_ids_pending_seen:
-                    if self._mark_handled_email_seen(email_channel, email_id):
-                        self._handled_email_ids_pending_seen.discard(email_id)
-                        self._remember_processed_email_id(email_id)
+                if email_identity in self._handled_email_ids_pending_seen:
+                    if self._mark_handled_email_seen(
+                        email_channel, email_id, uid_validity
+                    ):
+                        self._handled_email_ids_pending_seen.discard(email_identity)
+                        self._remember_processed_email_id(email_identity)
                     continue
 
                 handled = self.process_incoming_email(email_msg)
                 if handled is True:
                     # Remember that business handling completed before attempting the
                     # IMAP acknowledgement, preventing duplicate replies on retries.
-                    self._handled_email_ids_pending_seen.add(email_id)
-                    if self._mark_handled_email_seen(email_channel, email_id):
-                        self._handled_email_ids_pending_seen.discard(email_id)
-                        self._remember_processed_email_id(email_id)
+                    self._handled_email_ids_pending_seen.add(email_identity)
+                    if self._mark_handled_email_seen(
+                        email_channel, email_id, uid_validity
+                    ):
+                        self._handled_email_ids_pending_seen.discard(email_identity)
+                        self._remember_processed_email_id(email_identity)
         except asyncio.TimeoutError:
             logger.error(
                 "Error polling for emails: Timeout waiting for receive_messages() to complete",
@@ -154,20 +171,27 @@ class EmailInboundProcessor:
             )
 
     @handle_errors("remembering a processed email id", default_return=None)
-    def _remember_processed_email_id(self, email_id: str) -> None:
+    def _remember_processed_email_id(self, email_id: tuple[str, str]) -> None:
         """Bound the in-memory duplicate guard after an acknowledgement succeeds."""
         self._processed_email_ids.add(email_id)
         if len(self._processed_email_ids) > 1000:
             self._processed_email_ids = set(list(self._processed_email_ids)[-500:])
 
     @handle_errors("marking a handled email seen", default_return=False)
-    def _mark_handled_email_seen(self, email_channel: Any, imap_uid: str) -> bool:
+    def _mark_handled_email_seen(
+        self, email_channel: Any, imap_uid: str, imap_uid_validity: str = ""
+    ) -> bool:
         """Mark one inbox message read after handling succeeds."""
         mark_seen = getattr(email_channel, "mark_message_seen", None)
         if not callable(mark_seen):
             logger.warning("Email channel cannot mark messages seen")
             return False
-        marked = self._run_async_sync(mark_seen(imap_uid))
+        mark_operation = (
+            mark_seen(imap_uid, imap_uid_validity=imap_uid_validity)
+            if imap_uid_validity
+            else mark_seen(imap_uid)
+        )
+        marked = self._run_async_sync(mark_operation)
         if marked is not True:
             logger.warning(
                 f"Email UID {imap_uid} was handled but could not be marked read; will retry"

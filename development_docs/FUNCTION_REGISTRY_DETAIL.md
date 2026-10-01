@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 16:59:28
+> **Last Generated**: 2026-10-01 11:33:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 292
-- **Functions Found**: 3063
-- **Methods Found**: 1573
+- **Functions Found**: 3070
+- **Methods Found**: 1575
 - **Classes Found**: 268
-- **Total Items**: 4636
-- **Functions Documented**: 2708
-- **Methods Documented**: 1395
+- **Total Items**: 4645
+- **Functions Documented**: 2715
+- **Methods Documented**: 1397
 - **Classes Documented**: 201
-- **Total Documented**: 4103
+- **Total Documented**: 4112
 - **Template-Generated**: 56
-- **Last Updated**: 2026-09-30
+- **Last Updated**: 2026-10-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (601)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (886)
+### **Communication Functions** (893)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (538)
@@ -2629,9 +2629,10 @@ Args:
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
 - [MISSING] `_get_email_config(self)` - No description
-- [OK] `_mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
+- [OK] `_mark_message_seen_sync(self, imap_uid, expected_uid_validity)` - Mark one IMAP UID \Seen and verify that the server accepted it.
 - [OK] `_receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
 - [OK] `_receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
+- [OK] `_receive_emails_sync_once(self, imap_server, smtp_user, smtp_password)` - Fetch one bounded batch using stable IMAP UIDs.
 - [OK] `_send_smtp_payload(original_send, data, handed_off)` - Send one SMTP payload and note when it is the finished message body.
 
 A dropped write is logged and raised again. The error decorator is not
@@ -2643,11 +2644,13 @@ used here, because its recovery step would write the body a second time.
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
+- [OK] `decode_email_subject(subject)` - Decode every encoded-word fragment using its declared charset.
 - [OK] `health_check(self)` - Perform health check on email connections
+- [OK] `imap_uid_validity(mail)` - Return the selected mailbox UIDVALIDITY value, when advertised.
 - [OK] `initialize(self)` - Initialize the email bot
 - [OK] `initialize__test_imap_connection(self)` - Test IMAP connection synchronously
 - [OK] `initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
-- [OK] `mark_message_seen(self, imap_email_id)` - Mark one inbox message read after it has been handled.
+- [OK] `mark_message_seen(self, imap_uid)` - Mark one inbox message read after it has been handled.
 - [OK] `message_id_for_retry(manager, requested)` - Keep the Message-ID from this attempt so a retry does not mint a second one.
 - [OK] `receive_messages(self)` - Receive messages from email
 - [OK] `reply_kind_from_send_kwargs(kwargs)` - Choose check-in, task reminder, or general message from send options.
@@ -2668,9 +2671,10 @@ Args:
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
   - [MISSING] `EmailBot._get_email_config(self)` - No description
-  - [OK] `EmailBot._mark_message_seen_sync(self, imap_email_id)` - Mark one IMAP message \Seen.
+  - [OK] `EmailBot._mark_message_seen_sync(self, imap_uid, expected_uid_validity)` - Mark one IMAP UID \Seen and verify that the server accepted it.
   - [OK] `EmailBot._receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
   - [OK] `EmailBot._receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
+  - [OK] `EmailBot._receive_emails_sync_once(self, imap_server, smtp_user, smtp_password)` - Fetch one bounded batch using stable IMAP UIDs.
   - [OK] `EmailBot.channel_type(self)` - Get the channel type for email bot.
 
 Returns:
@@ -2679,7 +2683,7 @@ Returns:
   - [OK] `EmailBot.initialize(self)` - Initialize the email bot
   - [OK] `EmailBot.initialize__test_imap_connection(self)` - Test IMAP connection synchronously
   - [OK] `EmailBot.initialize__test_smtp_connection(self)` - Test SMTP connection synchronously
-  - [OK] `EmailBot.mark_message_seen(self, imap_email_id)` - Mark one inbox message read after it has been handled.
+  - [OK] `EmailBot.mark_message_seen(self, imap_uid)` - Mark one inbox message read after it has been handled.
   - [OK] `EmailBot.receive_messages(self)` - Receive messages from email
   - [OK] `EmailBot.send_message(self, recipient, message)` - Send message via email
   - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously and remember its Message-ID for later replies.
@@ -2694,9 +2698,10 @@ If the body was already written and the acceptance reply is lost, returns
 #### `communication/communication_channels/email/inbound_processor.py`
 **Functions:**
 - [OK] `__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
-- [OK] `_mark_handled_email_seen(self, email_channel, imap_email_id)` - Mark one inbox message read after handling succeeds.
+- [OK] `_mark_handled_email_seen(self, email_channel, imap_uid, imap_uid_validity)` - Mark one inbox message read after handling succeeds.
 - [OK] `_poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
 - [OK] `_polling_loop(self)` - Background thread that periodically polls for incoming emails.
+- [OK] `_remember_processed_email_id(self, email_id)` - Bound the in-memory duplicate guard after an acknowledgement succeeds.
 - [OK] `_reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
 - [OK] `_route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
 - [OK] `polling_thread(self)` - Return the active polling thread, if one has been started.
@@ -2710,9 +2715,10 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Classes:**
 - [OK] `EmailInboundProcessor` - Polls the email channel, routes inbound messages, and sends replies.
   - [OK] `EmailInboundProcessor.__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
-  - [OK] `EmailInboundProcessor._mark_handled_email_seen(self, email_channel, imap_email_id)` - Mark one inbox message read after handling succeeds.
+  - [OK] `EmailInboundProcessor._mark_handled_email_seen(self, email_channel, imap_uid, imap_uid_validity)` - Mark one inbox message read after handling succeeds.
   - [OK] `EmailInboundProcessor._poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
   - [OK] `EmailInboundProcessor._polling_loop(self)` - Background thread that periodically polls for incoming emails.
+  - [OK] `EmailInboundProcessor._remember_processed_email_id(self, email_id)` - Bound the in-memory duplicate guard after an acknowledgement succeeds.
   - [OK] `EmailInboundProcessor._reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
   - [OK] `EmailInboundProcessor._route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
   - [OK] `EmailInboundProcessor.polling_thread(self)` - Return the active polling thread, if one has been started.
@@ -2733,7 +2739,10 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Functions:**
 - [OK] `_context_path(user_id)` - Return the per-user email reply index path.
 - [OK] `_load_context(user_id)` - Load the reply index, or an empty index when the file is missing.
+- [OK] `_normalized_context(data)` - Return the bounded mutable shape used by reply-context transactions.
 - [OK] `_save_context(user_id, data)` - Persist the reply index for one user.
+- [OK] `add_handled_id(current)` - Add one inbound ID to the latest locked context document.
+- [OK] `add_thread(current)` - Add one outbound thread to the latest locked context document.
 - [OK] `find_reply_context(user_id, in_reply_to, references)` - Return the outbound email this reply is answering, when we sent it.
 - [OK] `inbound_already_handled(user_id, message_id)` - Return True when this inbound Message-ID was already answered.
 - [OK] `mark_inbound_handled(user_id, message_id)` - Remember an inbound Message-ID so a later poll does not answer it twice.
@@ -4319,22 +4328,7 @@ Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STA
 #### `core/file_locking.py`
 **Functions:**
 - [OK] `_thread_lock_for(path)` - Return a process-local mutex for *path* (normalized absolute path).
-- [OK] `file_lock(file_path, timeout, retry_interval)` - Context manager for file locking on Windows.
-
-Uses a separate lock file (file_path + '.lock') to coordinate access.
-File creation is atomic on Windows, so we use file existence as the lock.
-
-Args:
-    file_path: Path to the file to lock
-    timeout: Maximum time to wait for lock (seconds)
-    retry_interval: Time between lock attempts (seconds)
-
-Yields:
-    File handle (opened in 'r+b' mode)
-
-Raises:
-    TimeoutError: If lock cannot be acquired within timeout
-    OSError: If file operations fail
+- [OK] `file_lock(file_path, timeout, retry_interval)` - Lock a data path with a crash-safe, reentrant Windows sidecar lock.
 - [OK] `file_lock(file_path, timeout, retry_interval)` - Context manager for file locking on Unix/Linux.
 
 Uses fcntl.flock() on a sidecar `{file_path}.lock` so the data inode

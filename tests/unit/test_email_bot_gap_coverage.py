@@ -24,6 +24,7 @@ class _FakeImapMailbox:
         search_error=None,
         select_result=("OK", []),
         store_result=("OK", [b""]),
+        uid_validity="1",
     ):
         if search_result is None:
             search_result = ("OK", [b""])
@@ -32,6 +33,7 @@ class _FakeImapMailbox:
         self.search_error = search_error
         self.select_result = select_result
         self.store_result = store_result
+        self.uid_validity = uid_validity
         self.store_calls = []
         self.uid_calls = []
         self.closed = False
@@ -42,6 +44,11 @@ class _FakeImapMailbox:
 
     def select(self, mailbox):
         return self.select_result
+
+    def response(self, code):
+        if code == "UIDVALIDITY":
+            return code, [self.uid_validity.encode("ascii")]
+        return code, []
 
     def search(self, *_args):
         if self.search_error is not None:
@@ -184,7 +191,7 @@ class TestEmailBotGapCoverage:
         )
         monkeypatch.setattr(
             "communication.communication_channels.email.bot.record_outbound_email",
-            lambda *args, **kwargs: recorded.append(args),
+            lambda *args, **kwargs: recorded.append(args) or True,
         )
         sent = bot.send_message__send_email_sync(
             "you@example.com",
@@ -238,7 +245,7 @@ class TestEmailBotGapCoverage:
         )
         monkeypatch.setattr(
             "communication.communication_channels.email.bot.record_outbound_email",
-            lambda *args, **kwargs: recorded.append(args),
+            lambda *args, **kwargs: recorded.append(args) or True,
         )
         sent = bot.send_message__send_email_sync(
             "you@example.com",
@@ -249,6 +256,35 @@ class TestEmailBotGapCoverage:
         assert attempts == [1]
         assert bot.last_outbound_message_id == "<kept@example.com>"
         assert recorded and recorded[0][1] == "<kept@example.com>"
+
+    def test_send_aborts_before_smtp_when_reply_context_cannot_be_stored(
+        self, monkeypatch
+    ):
+        bot = EmailBot()
+        smtp_calls = []
+        monkeypatch.setattr(
+            bot,
+            "_get_email_config",
+            lambda: ("smtp", "imap", "me@example.com", "pass"),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.record_outbound_email",
+            lambda *_args, **_kwargs: False,
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.smtplib.SMTP_SSL",
+            lambda *args, **kwargs: smtp_calls.append((args, kwargs)),
+        )
+
+        sent = bot.send_message__send_email_sync(
+            "you@example.com",
+            "hello",
+            {"user_id": "user-1"},
+        )
+
+        assert sent is False
+        assert smtp_calls == []
+        assert bot.last_outbound_message_id is None
 
     def test_sync_connection_helpers_return_early_without_config(self, monkeypatch):
         bot = EmailBot()
@@ -345,9 +381,26 @@ class TestEmailBotGapCoverage:
         assert messages[0]["from"] == "sender@example.com"
         assert messages[0]["subject"] == "Test Subject"
         assert messages[0]["imap_uid"] == "1"
+        assert messages[0]["imap_uid_validity"] == "1"
         assert mailbox.store_calls == []
         assert mailbox.closed is True
         assert mailbox.logged_out is True
+
+    def test_mark_message_seen_rejects_changed_uid_validity(self, monkeypatch):
+        bot = EmailBot()
+        mailbox = _FakeImapMailbox(uid_validity="2")
+        monkeypatch.setattr(
+            bot,
+            "_get_email_config",
+            lambda: ("smtp", "imap", "user", "pass"),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: mailbox,
+        )
+
+        assert bot._mark_message_seen_sync("1", "1") is False
+        assert mailbox.store_calls == []
 
     def test_mark_message_seen_sets_seen_flag(self, monkeypatch):
         bot = EmailBot()

@@ -373,6 +373,26 @@ class TestCommunicationManagerCoverageExpansion:
         assert result is False
         # assert not comm_manager._failed_message_queue.empty()
 
+    @pytest.mark.regression
+    def test_async_message_sending_rejects_unexpected_truthy_result(
+        self, comm_manager, realistic_mock_channel
+    ):
+        """Only explicit channel success states may complete a delivery."""
+        comm_manager._channels_dict["test_channel"] = realistic_mock_channel
+        realistic_mock_channel.send_message.return_value = "accepted-ish"
+
+        with patch(
+            "communication.core.channel_orchestrator.wait_for_network",
+            return_value=True,
+        ):
+            result = asyncio.run(
+                comm_manager.send_message(
+                    "test_channel", "test_recipient", "Test message"
+                )
+            )
+
+        assert result is False
+
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical

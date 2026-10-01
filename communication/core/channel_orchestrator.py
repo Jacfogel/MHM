@@ -745,9 +745,11 @@ class CommunicationManager:
             # FIXED: Ensure we're actually awaiting a coroutine
             success = await channel.send_message(recipient, message, **kwargs)
 
-            # FIXED: Better return value validation
-            # Use == instead of is to handle mock return values correctly
-            if success == CHANNEL_SEND_UNCONFIRMED or success is True or success:
+            # Accept only the channel contract's explicit success states. Treating
+            # arbitrary truthy objects as success can suppress a required retry.
+            if success is True or (
+                isinstance(success, str) and success == CHANNEL_SEND_UNCONFIRMED
+            ):
                 # Enhanced logging with message content and time period
                 message[:50] + "..." if len(message) > 50 else message
                 kwargs.get("time_period", "unknown")
@@ -770,20 +772,17 @@ class CommunicationManager:
                     )
                     return CHANNEL_SEND_UNCONFIRMED
                 return True
-            elif success is False or not success:
+            if success is False:
                 failure_detail = self._channel_send_failure_detail(channel)
                 detail_suffix = f": {failure_detail}" if failure_detail else ""
                 logger.error(
                     f"Channel {channel_name} returned False for message send to {recipient}{detail_suffix}"
                 )
                 return False
-            else:
-                # Handle unexpected return values
-                logger.warning(
-                    f"Channel {channel_name} returned unexpected value: {success} (type: {type(success)})"
-                )
-                # If it's not explicitly False, assume success if no exception was raised
-                return True
+            logger.warning(
+                f"Channel {channel_name} returned unexpected value: {success} (type: {type(success)})"
+            )
+            return False
 
         except ConnectionError as e:
             from core.error_handling import handle_network_error

@@ -57,6 +57,24 @@ def decode_email_subject(subject: Any) -> str:
     return str(make_header(decode_header(str(subject))))
 
 
+@handle_errors("reading IMAP UID validity", default_return="")
+def imap_uid_validity(mail: Any) -> str:
+    """Return the selected mailbox UIDVALIDITY value, when advertised."""
+    response = getattr(mail, "response", None)
+    if not callable(response):
+        return ""
+    raw_response: Any = response("UIDVALIDITY")
+    if not isinstance(raw_response, (list, tuple)) or len(raw_response) < 2:
+        return ""
+    values = raw_response[1]
+    if not isinstance(values, (list, tuple)) or not values:
+        return ""
+    value = values[0]
+    if isinstance(value, bytes):
+        return value.decode("ascii", errors="ignore").strip()
+    return str(value or "").strip()
+
+
 # error_handling_exclude: decorator recovery would retry the write and could send the body twice
 def _send_smtp_payload(original_send, data, handed_off: dict):
     """Send one SMTP payload and note when it is the finished message body.
@@ -287,6 +305,20 @@ class EmailBot(BaseChannel):
             subject = f"Re: {subject}"
         message_id = build_outbound_message_id(smtp_user, kwargs.get("message_id"))
 
+        user_id = kwargs.get("user_id")
+        context_user_id = user_id.strip() if isinstance(user_id, str) else ""
+        if context_user_id and not record_outbound_email(
+            context_user_id,
+            message_id,
+            kind=reply_kind_from_send_kwargs(kwargs),
+            task_id=str(kwargs.get("task_id") or ""),
+            subject=subject,
+        ):
+            logger.error(
+                f"Email reply context could not be stored for user {context_user_id}; send aborted"
+            )
+            return False
+
         msg = MIMEText(message)
         msg["From"] = smtp_user
         msg["To"] = recipient
@@ -348,15 +380,6 @@ class EmailBot(BaseChannel):
             return False
 
         self.last_outbound_message_id = message_id
-        user_id = kwargs.get("user_id")
-        if isinstance(user_id, str) and user_id.strip():
-            record_outbound_email(
-                user_id.strip(),
-                message_id,
-                kind=reply_kind_from_send_kwargs(kwargs),
-                task_id=str(kwargs.get("task_id") or ""),
-                subject=subject,
-            )
         return outcome
 
     # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
@@ -432,6 +455,7 @@ class EmailBot(BaseChannel):
             status, _select_data = mail.select("inbox")
             if status != "OK":
                 raise EmailBotError(f"IMAP inbox selection failed: {status}")
+            uid_validity = imap_uid_validity(mail)
 
             logger.debug("Searching for UNSEEN email UIDs")
             status, uid_data = mail.uid("search", "UNSEEN")
@@ -474,6 +498,7 @@ class EmailBot(BaseChannel):
                                 "subject": email_subject,
                                 "body": body_text,
                                 "imap_uid": uid_text,
+                                "imap_uid_validity": uid_validity,
                                 # Compatibility alias for callers that have not migrated yet.
                                 "imap_email_id": uid_text,
                                 "message_id": str(msg.get("Message-ID") or ""),
@@ -502,7 +527,9 @@ class EmailBot(BaseChannel):
                     mail.logout()
 
     @handle_errors("marking email message seen", default_return=False)
-    async def mark_message_seen(self, imap_uid: str) -> bool:
+    async def mark_message_seen(
+        self, imap_uid: str, *, imap_uid_validity: str = ""
+    ) -> bool:
         """Mark one inbox message read after it has been handled."""
         if not imap_uid or not self.is_ready():
             return False
@@ -512,11 +539,18 @@ class EmailBot(BaseChannel):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         return bool(
-            await loop.run_in_executor(None, self._mark_message_seen_sync, imap_uid)
+            await loop.run_in_executor(
+                None,
+                self._mark_message_seen_sync,
+                imap_uid,
+                imap_uid_validity,
+            )
         )
 
     @handle_errors("marking email message seen synchronously", default_return=False)
-    def _mark_message_seen_sync(self, imap_uid: str) -> bool:
+    def _mark_message_seen_sync(
+        self, imap_uid: str, expected_uid_validity: str = ""
+    ) -> bool:
         """Mark one IMAP UID \\Seen and verify that the server accepted it."""
         config = self._get_email_config()
         if not config or not imap_uid:
@@ -529,6 +563,13 @@ class EmailBot(BaseChannel):
             status, _select_data = mail.select("inbox")
             if status != "OK":
                 logger.warning(f"Cannot mark email read; inbox selection failed: {status}")
+                return False
+            current_uid_validity = imap_uid_validity(mail)
+            if expected_uid_validity and current_uid_validity != expected_uid_validity:
+                logger.warning(
+                    "Cannot mark email read because mailbox UIDVALIDITY changed "
+                    f"from {expected_uid_validity} to {current_uid_validity or 'unknown'}"
+                )
                 return False
             status, _store_data = mail.uid(
                 "store", str(imap_uid), "+FLAGS", r"(\Seen)"

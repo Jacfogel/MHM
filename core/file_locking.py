@@ -37,83 +37,89 @@ def _thread_lock_for(path: str) -> threading.RLock:
             _path_thread_locks[normalized] = lock
         return lock
 
-# Windows-specific file locking using lock files
+# Windows-specific file locking using a kernel-managed byte lock.
 if sys.platform == "win32":
+    import msvcrt
 
     @contextmanager
     def file_lock(file_path: str, timeout: float = 30.0, retry_interval: float = 0.1):
-        """
-        Context manager for file locking on Windows.
+        """Lock a data path with a crash-safe, reentrant Windows sidecar lock."""
+        data_path = Path(file_path)
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_sidecar = Path(str(file_path) + ".lock")
+        lock_sidecar.parent.mkdir(parents=True, exist_ok=True)
 
-        Uses a separate lock file (file_path + '.lock') to coordinate access.
-        File creation is atomic on Windows, so we use file existence as the lock.
-
-        Args:
-            file_path: Path to the file to lock
-            timeout: Maximum time to wait for lock (seconds)
-            retry_interval: Time between lock attempts (seconds)
-
-        Yields:
-            File handle (opened in 'r+b' mode)
-
-        Raises:
-            TimeoutError: If lock cannot be acquired within timeout
-            OSError: If file operations fail
-        """
-        # Ensure directory exists
-        lock_file_path = Path(file_path)
-        lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Lock file path (separate file for coordination)
-        lock_file = Path(str(file_path) + ".lock")
-        lock_file.parent.mkdir(parents=True, exist_ok=True)
-
-        # monotonic, not time.time: tests patch time.time, and a frozen clock
-        # would retry until pytest-timeout (300s) instead of this timeout.
+        sidecar_key = str(lock_sidecar.resolve())
+        thread_lock = _thread_lock_for(sidecar_key)
         deadline = time.monotonic() + max(0.0, float(timeout))
-        lock_acquired = False
+        remaining = max(0.0, deadline - time.monotonic())
+        if not thread_lock.acquire(timeout=remaining):
+            raise TimeoutError(
+                f"Could not acquire lock on {file_path} within {timeout} seconds"
+            )
 
         try:
-            # Try to acquire lock by creating lock file
-            while not lock_acquired:
+            hold_depth = _sidecar_hold_depth.get(sidecar_key, 0)
+            if hold_depth > 0:
+                _sidecar_hold_depth[sidecar_key] = hold_depth + 1
                 try:
-                    # Try to create lock file exclusively (fails if it exists)
-                    # Use 'x' mode which fails if file exists (atomic on Windows)
-                    with open(lock_file, "x"):
-                        pass
-                    lock_acquired = True
-                    break
-                except FileExistsError:
-                    # Lock file exists - another process has the lock
+                    if not data_path.exists():
+                        data_path.touch()
+                    with open(data_path, "r+b") as file_handle:
+                        yield file_handle
+                finally:
+                    _sidecar_hold_depth[sidecar_key] = hold_depth
+                return
+
+            lock_fd = None
+            while lock_fd is None:
+                try:
+                    # The successful handle enters a context manager below; opening
+                    # is separate so transient Windows share errors can be retried.
+                    lock_fd = open(lock_sidecar, "a+b")  # noqa: SIM115
+                except OSError as exc:
                     if time.monotonic() >= deadline:
                         raise TimeoutError(
                             f"Could not acquire lock on {file_path} within {timeout} seconds"
-                        ) from None
-                    remaining = deadline - time.monotonic()
-                    time.sleep(min(max(0.0, retry_interval), max(0.0, remaining)))
-                    continue
-                except OSError as e:
-                    if time.monotonic() >= deadline:
-                        raise TimeoutError(
-                            f"Could not acquire lock on {file_path} within {timeout} seconds: {e}"
-                        ) from e
-                    remaining = deadline - time.monotonic()
-                    time.sleep(min(max(0.0, retry_interval), max(0.0, remaining)))
-                    continue
+                        ) from exc
+                    wait_for = deadline - time.monotonic()
+                    time.sleep(min(max(0.0, retry_interval), max(0.0, wait_for)))
 
-            lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-            # Do not Path.touch() an existing data file: that can recreate an
-            # empty inode if utime fails, so a later r+b read returns {}.
-            if not lock_file_path.exists():
-                lock_file_path.touch()
-            with open(lock_file_path, "r+b") as file_handle:
-                yield file_handle
+            lock_acquired = False
+            with lock_fd:
+                if lock_fd.tell() == 0:
+                    lock_fd.write(b"\0")
+                    lock_fd.flush()
+                while not lock_acquired:
+                    try:
+                        lock_fd.seek(0)
+                        msvcrt.locking(lock_fd.fileno(), msvcrt.LK_NBLCK, 1)
+                        lock_acquired = True
+                    except OSError as exc:
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError(
+                                f"Could not acquire lock on {file_path} within {timeout} seconds"
+                            ) from exc
+                        wait_for = deadline - time.monotonic()
+                        time.sleep(min(max(0.0, retry_interval), max(0.0, wait_for)))
 
+                _sidecar_hold_depth[sidecar_key] = 1
+                try:
+                    if not data_path.exists():
+                        data_path.touch()
+                    with open(data_path, "r+b") as file_handle:
+                        yield file_handle
+                finally:
+                    _sidecar_hold_depth.pop(sidecar_key, None)
+                    if lock_acquired:
+                        with suppress(OSError):
+                            lock_fd.seek(0)
+                            msvcrt.locking(lock_fd.fileno(), msvcrt.LK_UNLCK, 1)
         finally:
-            # Release lock by removing lock file
-            if lock_acquired and lock_file.exists():
+            if _sidecar_hold_depth.get(sidecar_key, 0) == 0 and lock_sidecar.exists():
                 with suppress(OSError):
-                    lock_file.unlink()
+                    lock_sidecar.unlink()
+            thread_lock.release()
 
 else:
     # Unix/Linux file locking using fcntl

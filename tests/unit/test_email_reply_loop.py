@@ -1,6 +1,7 @@
 """Tests for email reply stripping, threading, and check-in/task routing."""
 
 from email import message_from_string
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -89,6 +90,53 @@ class TestReplyContext:
                 for child in path.glob("*"):
                     child.unlink()
                 path.rmdir()
+
+    def test_save_context_reports_failed_write(self):
+        from communication.communication_channels.email import reply_context
+
+        with patch.object(
+            reply_context, "_context_path", return_value="context.json"
+        ), patch.object(reply_context, "save_json_data", return_value=False):
+            assert (
+                reply_context._save_context(
+                    "user-1", {"threads": [], "handled_inbound_ids": []}
+                )
+                is False
+            )
+
+    def test_concurrent_context_updates_preserve_threads_and_handled_ids(
+        self, monkeypatch, tmp_path
+    ):
+        monkeypatch.setattr(
+            "communication.communication_channels.email.reply_context.get_user_data_dir",
+            lambda _user_id: str(tmp_path),
+        )
+
+        def record(index: int) -> bool:
+            return record_outbound_email(
+                "user-1",
+                f"<out-{index}@example.com>",
+                kind="message",
+            )
+
+        def mark(index: int) -> bool:
+            return mark_inbound_handled("user-1", f"<in-{index}@example.com>")
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(record, range(20)))
+            results.extend(executor.map(mark, range(20)))
+
+        assert all(results)
+        for index in range(20):
+            assert (
+                find_reply_context(
+                    "user-1", f"<out-{index}@example.com>", ""
+                )
+                is not None
+            )
+            assert inbound_already_handled(
+                "user-1", f"<in-{index}@example.com>"
+            )
 
 
 @pytest.mark.unit

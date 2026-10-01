@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-09-30 - Delivery and reply state fail safely **COMPLETED**
+- Channels accept only explicit success or `unconfirmed`; unexpected truthy results remain failed and retryable.
+- Email reply context is updated transactionally and must be stored before SMTP starts. Save failures are no longer reported as success.
+- IMAP duplicate and acknowledgement identity includes UIDVALIDITY, so a rebuilt mailbox cannot reuse an old UID as the same message.
+- Windows JSON locks use a crash-safe OS byte lock with same-thread re-entry. Focused verification passed 201 tests; Ruff, Pyright, and diff checks passed.
+
 ### 2026-09-30 - Inbound mail stays attached to the right message **COMPLETED**
 - Incoming mail uses stable IMAP UIDs, processes the oldest unread batch first, and retries one temporary mailbox disconnect without changing the application's global network timeout.
 - A handled email is marked complete only after the server confirms `\\Seen`. If that acknowledgement fails, later polls retry it without sending the reply again.
@@ -106,10 +112,6 @@ Guidelines:
 - Clicking the dimmed area around a dialog closes it. A click that starts inside the box leaves it open.
 - A scheduled message in Talk to MHM has More like this and Not for me, the same as a Discord reaction. A conversation reply and a check-in do not.
 - The registry lists those inbox helpers, a link to an existing website test is not reported as a missing module, and the reaction lookup no longer trips the inbox type warning.
-
-### 2026-09-27 - Discord reactions replace message buttons **COMPLETED**
-- Scheduled Discord messages no longer include More like this and Not for me buttons.
-- A clearly positive reaction, such as a smile, heart, or celebration, still requests more messages like that one. A clearly negative reaction, such as a frown, anger, or a broken heart, still turns that message off. Ambiguous emoji are ignored.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

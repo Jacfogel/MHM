@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-09-30 16:59:41
+> **Last Generated**: 2026-10-01 11:33:59
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 290
-- **Total Imports Found**: 2622
+- **Total Imports Found**: 2621
 - **Dependencies Documented**: 290 (100% coverage)
-- **Standard Library Imports**: 755 (28.8%)
+- **Standard Library Imports**: 754 (28.8%)
 - **Third-Party Imports**: 222 (8.5%)
-- **Local Imports**: 1645 (62.7%)
-- **Last Updated**: 2026-09-30
+- **Local Imports**: 1645 (62.8%)
+- **Last Updated**: 2026-10-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 755 imports (28.8%)
+- **Standard Library**: 754 imports (28.8%)
 - **Third-Party**: 222 imports (8.5%)
-- **Local**: 1645 imports (62.7%)
+- **Local**: 1645 imports (62.8%)
 
 ## Module Dependencies by Directory
 
@@ -2394,7 +2394,7 @@
   - **Standard Library**:
     - `asyncio`
     - `contextlib`
-    - `email.header (decode_header)`
+    - `email.header (decode_header, make_header)`
     - `email.message (EmailMessage)`
     - `email.mime.text (MIMEText)`
     - `email.parser (BytesParser)`
@@ -2402,7 +2402,6 @@
     - `email.utils (make_msgid, parseaddr)`
     - `imaplib`
     - `smtplib`
-    - `socket`
     - `time`
     - `typing (Any)`
 - **Used by**:
@@ -2473,7 +2472,7 @@
   - **Local**:
     - `core.config (get_user_data_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.file_operations (load_json_data, save_json_data)` (NEW)
+    - `core.file_operations (load_json_data, save_json_data, update_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
@@ -2702,7 +2701,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py
+- Removed: communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, integrations/google_health/notifications.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3992,6 +3991,7 @@
     - `contextlib (contextmanager, suppress)`
     - `fcntl`
     - `json`
+    - `msvcrt`
     - `os`
     - `pathlib (Path)`
     - `shutil`
@@ -4006,7 +4006,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: core/user_lookup.py, storage/user_data_index.py
+- Removed: core/file_operations.py, core/user_lookup.py, storage/user_data_index.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4059,7 +4059,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.file_locking, core.logger, core.profile_v2_io, core.time_utilities, tasks.task_schemas
-- Removed: checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, core/admin_account_provisioning.py, core/response_tracking.py, core/service.py, core/tags.py, messages/message_data_manager.py, messages/message_reactions.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py, storage/user_item_storage.py
+- Removed: checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, collections.abc, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, core/admin_account_provisioning.py, core/response_tracking.py, core/service.py, core/tags.py, messages/message_data_manager.py, messages/message_reactions.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py, storage/user_item_storage.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: File operations and data management

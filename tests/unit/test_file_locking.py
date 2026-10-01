@@ -88,46 +88,43 @@ class TestFileLocking:
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Lock-file contention only applies to Windows implementation")
     def test_file_lock_timeout_when_locked(self, test_data_dir):
-        """Test that file_lock times out when file is already locked (Windows lock-file impl)."""
+        """Test that file_lock times out while another thread owns the byte lock."""
         test_file = os.path.join(test_data_dir, "test_timeout.json")
-        lock_file = test_file + ".lock"
+        acquired = threading.Event()
+        release = threading.Event()
 
-        if os.path.exists(lock_file):
-            with contextlib.suppress(OSError):
-                os.remove(lock_file)
+        def hold_lock():
+            with file_lock(test_file, timeout=1.0):
+                acquired.set()
+                release.wait(timeout=2.0)
 
+        holder = threading.Thread(target=hold_lock)
+        holder.start()
+        assert acquired.wait(timeout=1.0)
         try:
-            with open(lock_file, 'x') as f:
-                f.write("locked")
-
             with pytest.raises(TimeoutError):
-                with file_lock(test_file, timeout=0.5, retry_interval=0.1):
+                with file_lock(test_file, timeout=0.25, retry_interval=0.05):
                     pass
-        except FileExistsError:
-            pytest.skip("Lock file already exists, cannot test timeout")
         finally:
-            # Clean up lock file
-            if os.path.exists(lock_file):
-                with contextlib.suppress(OSError):
-                    os.remove(lock_file)
+            release.set()
+            holder.join(timeout=2.0)
+        assert not holder.is_alive()
 
     def test_file_lock_retries_until_available(self, test_data_dir):
         """Test that file_lock retries until lock becomes available."""
         test_file = os.path.join(test_data_dir, "test_retry.json")
         lock_file = test_file + ".lock"
         
-        # Create lock file
-        with open(lock_file, 'w') as f:
-            f.write("locked")
-        
-        # In a separate thread, release lock after short delay
-        def release_lock_after_delay():
-            time.sleep(0.3)
-            if os.path.exists(lock_file):
-                os.remove(lock_file)
-        
-        release_thread = threading.Thread(target=release_lock_after_delay)
+        acquired = threading.Event()
+
+        def hold_lock_briefly():
+            with file_lock(test_file, timeout=1.0):
+                acquired.set()
+                time.sleep(0.3)
+
+        release_thread = threading.Thread(target=hold_lock_briefly)
         release_thread.start()
+        assert acquired.wait(timeout=1.0)
         
         try:
             # Try to acquire lock - should succeed after retry
@@ -149,19 +146,51 @@ class TestFileLocking:
             lock_file = test_file + ".lock"
             assert os.path.exists(lock_file), "Windows should create separate lock file"
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows byte-lock behavior")
+    def test_file_lock_windows_ignores_stale_sidecar(self, test_data_dir):
+        """An unlocked sidecar left by a crashed process must not strand writes."""
+        test_file = os.path.join(test_data_dir, "test_windows_stale.json")
+        lock_file = test_file + ".lock"
+        with open(lock_file, "wb") as handle:
+            handle.write(b"\0")
+
+        with file_lock(test_file, timeout=0.5) as handle:
+            assert handle is not None
+
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows byte-lock behavior")
+    def test_file_lock_windows_reenters_same_thread(self, test_data_dir):
+        """Nested operations on one path share the outer Windows lock."""
+        test_file = os.path.join(test_data_dir, "test_windows_reentrant.json")
+        with file_lock(test_file, timeout=0.5):
+            with file_lock(test_file, timeout=0.5) as handle:
+                handle.seek(0)
+                handle.write(b"{}")
+
     @pytest.mark.timeout(5)
     @pytest.mark.skipif(sys.platform != "win32", reason="Windows lock-file timeout loop")
     def test_file_lock_timeout_ignores_frozen_time_time(self, test_data_dir):
         """A patched time.time must not stretch a busy lock wait to pytest-timeout."""
         test_file = os.path.join(test_data_dir, f"frozen_time_{uuid.uuid4().hex}.json")
-        lock_file = test_file + ".lock"
-        with open(lock_file, "w", encoding="utf-8") as handle:
-            handle.write("")
+        acquired = threading.Event()
+        release = threading.Event()
+
+        def hold_lock():
+            with file_lock(test_file, timeout=1.0):
+                acquired.set()
+                release.wait(timeout=2.0)
+
+        holder = threading.Thread(target=hold_lock)
+        holder.start()
+        assert acquired.wait(timeout=1.0)
         started = time.monotonic()
-        with patch("core.file_locking.time.time", return_value=1000.0):
-            with pytest.raises(TimeoutError, match="Could not acquire lock"):
-                with file_lock(test_file, timeout=0.25, retry_interval=0.05):
-                    pass
+        try:
+            with patch("core.file_locking.time.time", return_value=1000.0):
+                with pytest.raises(TimeoutError, match="Could not acquire lock"):
+                    with file_lock(test_file, timeout=0.25, retry_interval=0.05):
+                        pass
+        finally:
+            release.set()
+            holder.join(timeout=2.0)
         assert time.monotonic() - started < 2.0
 
 

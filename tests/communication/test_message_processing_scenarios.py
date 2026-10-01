@@ -1103,6 +1103,7 @@ class TestEmailInboundProcessorHelpers:
         channel = MagicMock()
         email_msg = {
             "imap_uid": "abc",
+            "imap_uid_validity": "10",
             "from": "user@example.com",
             "body": "hello",
             "subject": "Hi",
@@ -1113,13 +1114,16 @@ class TestEmailInboundProcessorHelpers:
         ) as mock_process:
             processor._poll_once(channel)
         mock_process.assert_called_once_with(email_msg)
-        assert "abc" in processor._processed_email_ids
-        channel.mark_message_seen.assert_called_once_with("abc")
+        assert ("10", "abc") in processor._processed_email_ids
+        channel.mark_message_seen.assert_called_once_with(
+            "abc", imap_uid_validity="10"
+        )
 
     def test_poll_once_retries_only_seen_acknowledgement_after_failure(self, processor):
         channel = MagicMock()
         email_msg = {
             "imap_uid": "abc",
+            "imap_uid_validity": "10",
             "from": "user@example.com",
             "body": "hello",
             "subject": "Hi",
@@ -1135,15 +1139,39 @@ class TestEmailInboundProcessorHelpers:
             processor, "process_incoming_email", return_value=True
         ) as mock_process:
             processor._poll_once(channel)
-            assert "abc" in processor._handled_email_ids_pending_seen
-            assert "abc" not in processor._processed_email_ids
+            assert ("10", "abc") in processor._handled_email_ids_pending_seen
+            assert ("10", "abc") not in processor._processed_email_ids
 
             processor._poll_once(channel)
 
         mock_process.assert_called_once_with(email_msg)
         assert channel.mark_message_seen.call_count == 2
-        assert "abc" not in processor._handled_email_ids_pending_seen
-        assert "abc" in processor._processed_email_ids
+        assert ("10", "abc") not in processor._handled_email_ids_pending_seen
+        assert ("10", "abc") in processor._processed_email_ids
+
+    def test_poll_once_reprocesses_reused_uid_after_uidvalidity_changes(
+        self, processor
+    ):
+        channel = MagicMock()
+        first = {
+            "imap_uid": "abc",
+            "imap_uid_validity": "10",
+            "from": "user@example.com",
+            "body": "first",
+            "subject": "Hi",
+        }
+        rebuilt = {**first, "imap_uid_validity": "11", "body": "new mailbox"}
+        processor._run_async_sync.side_effect = [[first], True, [rebuilt], True]
+
+        with patch.object(
+            processor, "process_incoming_email", return_value=True
+        ) as mock_process:
+            processor._poll_once(channel)
+            processor._poll_once(channel)
+
+        assert mock_process.call_count == 2
+        assert ("10", "abc") not in processor._processed_email_ids
+        assert ("11", "abc") in processor._processed_email_ids
 
     def test_process_incoming_email_skips_missing_fields(self, processor):
         with patch.object(processor, "send_email_response") as mock_send:
