@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-01 - Linux locks clean up after themselves **COMPLETED**
+- Unix file locks remove their `.lock` sidecar on release, so user directories no longer keep `account.json.lock` and similar files.
+- The frozen-clock lock test times only its body, so session cleanup cannot trip the 5-second limit.
+
 ### 2026-09-30 - Delivery and reply state fail safely **COMPLETED**
 - Channels accept only explicit success or `unconfirmed`; unexpected truthy results remain failed and retryable.
 - Email reply context is updated transactionally and must be stored before SMTP starts. Save failures are no longer reported as success.

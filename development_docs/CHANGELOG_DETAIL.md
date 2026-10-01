@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-01 - Linux lock sidecars are removed, and lock-timeout tests ignore cleanup
+- **Fix**: Unix `file_lock` now deletes its `{path}.lock` sidecar when the lock is released, matching Windows. User lifecycle checks were failing because `account.json.lock`, `preferences.json.lock`, and `tags.json.lock` stayed behind after reads and writes. The sidecar is created only after the in-process lock is held, and a nested same-thread lock does not delete it early. See [file_locking.py](../core/file_locking.py).
+- **Fix**: The frozen-`time.time` lock tests time only the test body. A 5-second limit was also covering session cleanup, so the Linux nightly run aborted `test_unix_file_lock_timeout_ignores_frozen_time_time` while other threads were still shutting down. See [test_file_locking_platform_branches.py](../tests/unit/test_file_locking_platform_branches.py).
+- **Verification**: 31 file-locking tests passed, including Unix sidecar removal. `nightly-test-suite --strict` then finished clean: 7524 parallel passed and 127 no-parallel passed, with both previously failing tests green. The lifecycle case was exercised on Windows; the Unix sidecar removal is covered by the reloaded platform-branch test.
+
 ### 2026-09-30 - Delivery contracts, reply identity, and Windows locks fail safely
 - **Fix**: Channel delivery accepts only the explicit `True` and `unconfirmed` results. Unexpected truthy objects now fail instead of marking a message delivered and suppressing its retry. See [channel_orchestrator.py](../communication/core/channel_orchestrator.py).
 - **Fix**: Email reply-context saves return their real result, and outbound-thread and handled-inbound updates use locked read-modify-write transactions. Outbound reply context is reserved before SMTP begins; if it cannot be stored, the email is not sent. See [reply_context.py](../communication/communication_channels/email/reply_context.py) and [bot.py](../communication/communication_channels/email/bot.py).

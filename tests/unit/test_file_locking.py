@@ -166,7 +166,7 @@ class TestFileLocking:
                 handle.seek(0)
                 handle.write(b"{}")
 
-    @pytest.mark.timeout(5)
+    @pytest.mark.timeout(5, func_only=True)
     @pytest.mark.skipif(sys.platform != "win32", reason="Windows lock-file timeout loop")
     def test_file_lock_timeout_ignores_frozen_time_time(self, test_data_dir):
         """A patched time.time must not stretch a busy lock wait to pytest-timeout."""

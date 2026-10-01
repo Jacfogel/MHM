@@ -65,6 +65,7 @@ class TestFileLockingPlatformBranches:
         assert unix_file_locking_module.fcntl.LOCK_EX | unix_file_locking_module.fcntl.LOCK_NB in calls
         assert unix_file_locking_module.fcntl.LOCK_UN in calls
         assert target.exists()
+        assert not Path(str(target) + ".lock").exists()
 
     def test_unix_file_lock_timeout_in_flock_retry_loop(self, unix_file_locking_module, test_data_dir):
         target = Path(test_data_dir) / "unix_flock_timeout.json"
@@ -79,12 +80,17 @@ class TestFileLockingPlatformBranches:
                 str(target), timeout=0.0, retry_interval=0.0
             ):
                 pass
+        assert not Path(str(target) + ".lock").exists()
 
-    @pytest.mark.timeout(5)
+    @pytest.mark.timeout(5, func_only=True)
     def test_unix_file_lock_timeout_ignores_frozen_time_time(
         self, unix_file_locking_module, test_data_dir
     ):
-        """A patched time.time must not keep a busy flock retrying until pytest-timeout."""
+        """A patched time.time must not keep a busy flock retrying until pytest-timeout.
+
+        func_only keeps session cleanup, which can take longer than 5 seconds,
+        outside this limit.
+        """
         import time
 
         target = Path(test_data_dir) / "unix_frozen_time.json"

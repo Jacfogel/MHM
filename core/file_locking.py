@@ -152,7 +152,6 @@ else:
         data_path.parent.mkdir(parents=True, exist_ok=True)
         lock_sidecar = Path(str(file_path) + ".lock")
         lock_sidecar.parent.mkdir(parents=True, exist_ok=True)
-        lock_sidecar.touch(exist_ok=True)
 
         # Key the in-process lock on the sidecar. Two data paths that flock the
         # same sidecar must share one mutex, or the second fd spins on EAGAIN
@@ -167,6 +166,10 @@ else:
             )
 
         try:
+            # Create the sidecar only after the in-process lock is held so the
+            # finally block can remove it. Leaving *.lock files in user
+            # directories fails lifecycle checks and accumulates stale sidecars.
+            lock_sidecar.touch(exist_ok=True)
             hold_depth = _sidecar_hold_depth.get(sidecar_key, 0)
             if hold_depth > 0:
                 # This thread already holds the sidecar flock. A second flock on
@@ -232,6 +235,9 @@ else:
                         ) from exc
                     time.sleep(min(max(0.0, retry_interval), wait_for))
         finally:
+            if _sidecar_hold_depth.get(sidecar_key, 0) == 0 and lock_sidecar.exists():
+                with suppress(OSError):
+                    lock_sidecar.unlink()
             thread_lock.release()
 
 
