@@ -123,55 +123,22 @@ class TestAccountCreatorDialogSignalHandlers:
     @pytest.mark.user
     @pytest.mark.regression
     @pytest.mark.critical
-    def test_username_textChanged_signal_handler_accepts_parameter(self, dialog):
-        """Test that on_username_changed accepts text parameter from textChanged signal.
+    def test_preferred_name_textChanged_signal_handler_accepts_parameter(self, dialog):
+        """Test that on_preferred_name_changed accepts text parameter from textChanged signal.
         
         This test would catch the signature mismatch where the handler only
         accepted 'self' but the signal emits a text parameter.
         """
         # Arrange - Get the line edit widget
-        username_edit = dialog.ui.lineEdit_username
-        assert username_edit is not None, "Username line edit should exist"
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
+        assert preferred_name_edit is not None, "Preferred name line edit should exist"
         
         # Verify the handler can accept the parameter that textChanged signal emits
         # textChanged signal emits (str) - the new text
         # This would fail with TypeError if signature was wrong (e.g., only accepts self)
         try:
             # Simulate what the signal would do - call handler with text parameter
-            dialog.on_username_changed("testtext")
-        except TypeError as e:
-            if "takes" in str(e) and "positional argument" in str(e):
-                pytest.fail(
-                    f"Handler signature mismatch: on_username_changed should accept text parameter "
-                    f"from textChanged signal, but got TypeError: {e}"
-                )
-            raise
-        
-        # Also verify it works when called with no parameter (compatibility fallback)
-        try:
-            dialog.on_username_changed()
-        except TypeError as e:
-            pytest.fail(f"Handler should also work with no parameter (default), but got TypeError: {e}")
-        
-        # Verify signal is actually connected and works
-        username_edit.setText("newusername")
-        QApplication.processEvents()
-        # The handler should have updated the username
-        assert dialog.username == "newusername", "Signal handler should update username when text changes"
-    
-    @pytest.mark.ui
-    @pytest.mark.user
-    @pytest.mark.regression
-    @pytest.mark.critical
-    def test_preferred_name_textChanged_signal_handler_accepts_parameter(self, dialog):
-        """Test that on_preferred_name_changed accepts text parameter from textChanged signal."""
-        # Arrange
-        preferred_name_edit = dialog.ui.lineEdit_preferred_name
-        assert preferred_name_edit is not None, "Preferred name line edit should exist"
-        
-        # Verify handler accepts parameter that textChanged signal emits
-        try:
-            dialog.on_preferred_name_changed("testname")
+            dialog.on_preferred_name_changed("testtext")
         except TypeError as e:
             if "takes" in str(e) and "positional argument" in str(e):
                 pytest.fail(
@@ -180,11 +147,17 @@ class TestAccountCreatorDialogSignalHandlers:
                 )
             raise
         
-        # Verify it works with no parameter too
+        # Also verify it works when called with no parameter (compatibility fallback)
         try:
             dialog.on_preferred_name_changed()
         except TypeError as e:
             pytest.fail(f"Handler should also work with no parameter (default), but got TypeError: {e}")
+        
+        # Verify signal is actually connected and works
+        preferred_name_edit.setText("New Name")
+        QApplication.processEvents()
+        # The handler should have updated the preferred name
+        assert dialog.preferred_name == "New Name", "Signal handler should update preferred name when text changes"
         
         # Verify signal connection works
         preferred_name_edit.setText("New Name")
@@ -370,7 +343,7 @@ class TestUISignalConnectionIntegrity:
                 dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
             
             # Trigger signals that should call handlers
-            dialog.ui.lineEdit_username.setText("testuser")
+            dialog.ui.lineEdit_preferred_name.setText("Test User")
             QApplication.processEvents()
             
             dialog.ui.lineEdit_preferred_name.setText("Test Name")

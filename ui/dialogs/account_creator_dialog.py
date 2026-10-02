@@ -19,7 +19,6 @@ dialog_logger = logger
 
 # Import core functionality
 from storage.user_data_validation import validate_schedule_periods
-from core import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Dialog helpers
@@ -46,7 +45,6 @@ class AccountCreatorDialog(QDialog):
 
         self.parent = parent
         self.communication_manager = communication_manager
-        self._username = ""
         self.preferred_name = ""
         self.personalization_data = {}
 
@@ -54,6 +52,10 @@ class AccountCreatorDialog(QDialog):
         self.setWindowTitle("Create New Account")
         self.ui = Ui_Dialog_create_account()
         self.ui.setupUi(self)
+        # Accounts are identified by UUID/contact identifiers; the retired username
+        # input remains in the generated form until the next Qt UI regeneration.
+        self.ui.label_username.hide()
+        self.ui.lineEdit_username.hide()
         logger.info("AccountCreatorDialog UI setup completed")
 
         # Set up the dialog
@@ -261,10 +263,6 @@ class AccountCreatorDialog(QDialog):
         logger.info("setup_connections() called")
 
         # Connect basic info fields
-        username_edit = self.ui.lineEdit_username
-        if username_edit:
-            username_edit.textChanged.connect(self.on_username_changed)
-
         preferred_name_edit = self.ui.lineEdit_preferred_name
         if preferred_name_edit:
             preferred_name_edit.textChanged.connect(self.on_preferred_name_changed)
@@ -343,32 +341,6 @@ class AccountCreatorDialog(QDialog):
         ):
             return
         super().keyPressEvent(event)
-
-    @handle_errors("handling username change", default_return=None)
-    def on_username_changed(self, text=""):
-        """Handle username change.
-
-        Args:
-            text: The new text from the textChanged signal (ignored, we read from widget)
-        """
-        username_edit = self.ui.lineEdit_username
-        if username_edit:
-            self._username = username_edit.text().strip().lower()
-
-    @property
-    @handle_errors("getting username from field", default_return="")
-    def username(self) -> str:
-        """Get username from field if not set, ensuring we always have the latest value."""
-        username_edit = self.ui.lineEdit_username
-        if username_edit:
-            self._username = username_edit.text().strip().lower()
-        return self._username
-
-    @username.setter
-    # ERROR_HANDLING_EXCLUDE: Simple property setter
-    def username(self, value: str):
-        """Set username value."""
-        self._username = value
 
     @handle_errors("handling preferred name change", default_return=None)
     def on_preferred_name_changed(self, text=""):
@@ -494,18 +466,6 @@ class AccountCreatorDialog(QDialog):
     def validate_input(self) -> tuple[bool, str]:
         """Validate the input and return (is_valid, error_message)."""
         logger.info("validate_input() called - starting validation")
-
-        # Check username (property getter will read from field if needed)
-        if not self.username:
-            logger.warning("Validation failed: Username is required")
-            return False, "Username is required."
-
-        # Check if username is already taken
-        if get_user_id_by_identifier(self.username):
-            logger.warning(
-                f"Validation failed: Username '{self.username}' is already taken"
-            )
-            return False, "Username is already taken."
 
         # Check timezone from channel widget
         if hasattr(self, "channel_widget"):
@@ -647,20 +607,14 @@ class AccountCreatorDialog(QDialog):
         return True, ""
 
     @handle_errors("collecting basic user info")
-    def _validate_and_accept__collect_basic_user_info(self) -> tuple[str, str]:
+    def _validate_and_accept__collect_basic_user_info(self) -> str:
         """Collect basic user information from UI fields."""
-        username_edit = self.ui.lineEdit_username
-        if username_edit:
-            self.username = username_edit.text().strip().lower()
-
         preferred_name_edit = self.ui.lineEdit_preferred_name
         if preferred_name_edit:
             self.preferred_name = preferred_name_edit.text().strip()
 
-        logger.info(
-            f"Collected basic info - username: '{self.username}', preferred_name: '{self.preferred_name}'"
-        )
-        return self.username, self.preferred_name
+        logger.info(f"Collected preferred name: '{self.preferred_name}'")
+        return self.preferred_name
 
     @handle_errors("collecting feature settings")
     def _validate_and_accept__collect_feature_settings(self) -> tuple[bool, bool, bool]:
@@ -746,7 +700,6 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("building account data")
     def _validate_and_accept__build_account_data(
         self,
-        username: str,
         preferred_name: str,
         timezone: str,
         channel_data: dict,
@@ -761,7 +714,6 @@ class AccountCreatorDialog(QDialog):
         """Build the complete account data structure."""
         logger.info("About to build account_data")
         account_data = {
-            "username": username,
             "preferred_name": preferred_name,
             "categories": categories,
             "channel": channel_data,
@@ -791,12 +743,16 @@ class AccountCreatorDialog(QDialog):
         error_dialog.exec()
 
     @handle_errors("showing success dialog")
-    def _validate_and_accept__show_success_dialog(self, username: str):
+    def _validate_and_accept__show_success_dialog(self, display_name: str):
         """Show a success dialog for account creation."""
         success_dialog = QMessageBox(self)
         success_dialog.setIcon(QMessageBox.Icon.Information)
         success_dialog.setWindowTitle("Account Created Successfully")
-        success_dialog.setText(f"Account '{username}' has been created successfully!")
+        success_dialog.setText(
+            f"Account for '{display_name}' has been created successfully!"
+            if display_name
+            else "Account created successfully!"
+        )
         success_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
         success_dialog.setModal(True)
         success_dialog.exec()
@@ -816,14 +772,15 @@ class AccountCreatorDialog(QDialog):
             success = self._validate_and_accept__create_account(account_data)
 
             if success:
-                self._validate_and_accept__handle_success(account_data["username"])
+                self._validate_and_accept__handle_success(
+                    account_data.get("preferred_name", "")
+                )
             else:
                 self._validate_and_accept__show_error_dialog(
                     "Account Creation Failed",
                     "Unable to create the account.\n\n"
                     "Please check that:\n"
                     "â€¢ All required fields are filled in\n"
-                    "â€¢ The username is not already taken\n"
                     "â€¢ You have permission to create user accounts\n\n"
                     "Try again with different information if needed.",
                 )
@@ -834,7 +791,6 @@ class AccountCreatorDialog(QDialog):
                 "An unexpected error occurred while creating the account.\n\n"
                 "Please try:\n"
                 "â€¢ Checking that all fields are valid\n"
-                "â€¢ Using a different username\n"
                 "â€¢ Closing and reopening the dialog\n\n"
                 "If the problem continues, check the logs for details.",
             )
@@ -842,7 +798,7 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("checking input errors")
     def _validate_and_accept__input_errors(self) -> bool:
         """Validate input and show error dialog if validation fails."""
-        username, preferred_name = self._validate_and_accept__collect_basic_user_info()
+        self._validate_and_accept__collect_basic_user_info()
 
         is_valid, error_message = self.validate_input()
         logger.info(
@@ -873,10 +829,9 @@ class AccountCreatorDialog(QDialog):
             self._validate_and_accept__collect_widget_data()
         )
 
-        username, preferred_name = self._validate_and_accept__collect_basic_user_info()
+        preferred_name = self._validate_and_accept__collect_basic_user_info()
 
         return self._validate_and_accept__build_account_data(
-            username,
             preferred_name,
             timezone,
             channel_data,
@@ -904,10 +859,10 @@ class AccountCreatorDialog(QDialog):
             return False
 
     @handle_errors("handling success")
-    def _validate_and_accept__handle_success(self, username: str):
+    def _validate_and_accept__handle_success(self, display_name: str):
         """Handle successful account creation."""
         self.user_changed.emit()
-        self._validate_and_accept__show_success_dialog(username)
+        self._validate_and_accept__show_success_dialog(display_name)
         self.close_dialog()
 
     @handle_errors("getting account data")
@@ -933,7 +888,6 @@ class AccountCreatorDialog(QDialog):
             checkin_settings = self.checkin_widget.get_checkin_settings()
 
         data = {
-            "username": self.username,
             "preferred_name": self.preferred_name,
             "categories": selected_categories,
             "message_service": selected_service.lower() if selected_service else "",
@@ -955,38 +909,10 @@ class AccountCreatorDialog(QDialog):
         return self.validate_input()
 
     @staticmethod
-    @handle_errors("validating username")
-    def validate_username_static(username):
-        """Static method to validate username without UI dependencies."""
-        if not username:
-            return False
-
-        if len(username) < 1 or len(username) > 50:
-            return False
-
-        # Check for invalid characters
-        invalid_chars = [
-            "@",
-            " ",
-            ".",
-            "/",
-            "\\",
-            ":",
-            ";",
-            ",",
-            "<",
-            ">",
-            "|",
-            "?",
-            "*",
-        ]
-        return all(char not in username for char in invalid_chars)
-
-    @staticmethod
     @handle_errors("validating preferred name")
     def validate_preferred_name_static(name):
         """Static method to validate preferred name without UI dependencies."""
-        if not name:
+        if not isinstance(name, str) or not name.strip():
             return False
 
         if len(name) < 1 or len(name) > 100:
@@ -998,11 +924,9 @@ class AccountCreatorDialog(QDialog):
 
     @staticmethod
     @handle_errors("validating all fields")
-    def validate_all_fields_static(username, preferred_name):
+    def validate_all_fields_static(preferred_name):
         """Static method to validate all fields without UI dependencies."""
-        return AccountCreatorDialog.validate_username_static(
-            username
-        ) and AccountCreatorDialog.validate_preferred_name_static(preferred_name)
+        return AccountCreatorDialog.validate_preferred_name_static(preferred_name)
 
 
 @handle_errors("creating account dialog")

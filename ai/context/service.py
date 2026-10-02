@@ -242,8 +242,6 @@ def _format_account(account: dict[str, Any]) -> str:
     bits = []
     if account.get("preferred_name"):
         bits.append(f"preferred name {account['preferred_name']}")
-    if account.get("internal_username"):
-        bits.append(f"username {account['internal_username']}")
     features = account.get("features") or {}
     enabled = sorted(k for k, v in features.items() if v == "enabled")
     if enabled:

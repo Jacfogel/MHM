@@ -552,15 +552,10 @@ class TestAIChatBotIntegration:
         success = TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
-        # Get the UUID for the user
-        from core import get_user_id_by_identifier
-        actual_user_id = None
-        for attempt in range(5):
-            actual_user_id = get_user_id_by_identifier(user_id)
-            if actual_user_id:
-                break
-            if attempt < 4:
-                time.sleep(0.1)
+        # Resolve the fixture label without adding it to the production index.
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify user data was saved by loading it
@@ -571,15 +566,14 @@ class TestAIChatBotIntegration:
             materialize_user_minimal_via_public_apis(actual_user_id)
             account_result = get_user_data(actual_user_id, 'account')
             loaded_account = account_result.get('account', {}) if account_result else {}
-            if loaded_account.get('user_id') and loaded_account.get('internal_username'):
+            if loaded_account.get('user_id'):
                 break
             if attempt < 9:
                 time.sleep(0.1)
         assert loaded_account is not None, "User account should be saved and retrievable"
         # Under heavy parallel runs, identifier maps may lag briefly; verify account integrity instead
-        # of strict username equality.
+        # of display-label equality.
         assert loaded_account.get('user_id'), "User account should contain user_id"
-        assert loaded_account.get('internal_username'), "User account should contain internal_username"
         
         # Test AI chatbot with this user data
         chatbot = AIChatBotSingleton()

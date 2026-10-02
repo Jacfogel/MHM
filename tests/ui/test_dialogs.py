@@ -155,7 +155,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         # Resolve UUID if test_user is an internal username (mock_user_data creates users with internal usernames)
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         actual_user_id = (
-            TUF.get_test_user_id_by_internal_username(test_user, test_data_dir)
+            TUF.get_test_user_id_by_label(test_user, test_data_dir)
             or test_user
         )
         
@@ -164,7 +164,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         for attempt in range(3):
             if actual_user_id and actual_user_id != test_user:
                 break
-            resolved_id = TUF.get_test_user_id_by_internal_username(
+            resolved_id = TUF.get_test_user_id_by_label(
                 test_user, test_data_dir
             )
             if resolved_id:

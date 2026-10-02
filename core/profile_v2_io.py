@@ -42,7 +42,6 @@ _SCHEDULE_V2_RESERVED_KEYS = frozenset({"schema_version", "updated_at", "categor
 _CONTEXT_ACCOUNT_LEAK_KEYS = frozenset(
     {
         "user_id",
-        "internal_username",
         "account_status",
         "chat_id",
         "phone",
@@ -286,7 +285,6 @@ def unwrap_profile_document_on_load(
 _ACCOUNT_V2_KEYS = frozenset(
     {
         "user_id",
-        "internal_username",
         "account_status",
         "chat_id",
         "phone",

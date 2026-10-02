@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-01 - Internal account username compatibility field retired **COMPLETED**
+- **Feature**: Removed the cross-cutting `internal_username` compatibility field from account schemas, persistence, identifier lookup, user indexes, admin/UI flows, prompts, and test fixtures. Canonical UUIDs and optional contact identifiers are now the only identity keys; preferred names remain display-only.
+- **Migration**: Existing account files must be backed up, have the retired field removed, and have the user index rebuilt before normal reads. The deprecation inventory records the retired search terms and replacement policy.
+- **Testing**: Focused core, integration, behavior, storage, and UI suites were updated to assert canonical IDs/contact identifiers and fixture-only metadata; the affected suites pass.
+
 ### 2026-10-01 - Linux lock sidecars are removed, and lock-timeout tests ignore cleanup
 - **Fix**: Unix `file_lock` now deletes its `{path}.lock` sidecar when the lock is released, matching Windows. User lifecycle checks were failing because `account.json.lock`, `preferences.json.lock`, and `tags.json.lock` stayed behind after reads and writes. The sidecar is created only after the in-process lock is held, and a nested same-thread lock does not delete it early. See [file_locking.py](../core/file_locking.py).
 - **Fix**: The frozen-`time.time` lock tests time only the test body. A 5-second limit was also covering session cleanup, so the Linux nightly run aborted `test_unix_file_lock_timeout_ignores_frozen_time_time` while other threads were still shutting down. See [test_file_locking_platform_branches.py](../tests/unit/test_file_locking_platform_branches.py).

@@ -18,12 +18,11 @@ def _local_dt(tz_name: str, year: int, month: int, day: int, hour: int, minute: 
 
 
 def _indexed_factory_user(username: str, test_data_dir: str) -> str:
-    from core.user_lookup import get_user_id_by_identifier
     from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
     assert TestUserFactory.create_basic_user(username, test_data_dir=test_data_dir)
-    user_id = get_user_id_by_identifier(username)
-    assert user_id, f"factory did not index user {username!r}"
+    user_id = TestUserFactory.get_test_user_id_by_label(username, test_data_dir)
+    assert user_id, f"factory did not create user {username!r}"
     return user_id
 
 

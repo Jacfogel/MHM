@@ -45,7 +45,7 @@ def documents():
     return {
         "account": {
             "email": "river@example.com",
-            "internal_username": "river",
+            "test_label": "river",
             "account_status": "active",
             "timezone": "America/Regina",
             "features": {

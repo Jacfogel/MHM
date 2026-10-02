@@ -366,9 +366,6 @@ class DialogActions:
         context_result = get_user_data(current_user, "context")
         user_context = context_result.get("context")
         if user_account:
-            UserContext().set_internal_username(
-                user_account.get("internal_username", "")
-            )
             if user_context:
                 UserContext().set_preferred_name(user_context.get("preferred_name", ""))
             UserContext().load_user_data(current_user)

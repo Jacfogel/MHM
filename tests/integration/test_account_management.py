@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Systematic Account Management Testing Script for MHM
 Tests all account management functionality for editing existing users
@@ -141,7 +141,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         if not test_user:
             from core import get_user_id_by_identifier
 
-            test_user = TestUserFactory.get_test_user_id_by_internal_username(
+            test_user = TestUserFactory.get_test_user_id_by_label(
                 test_user_id, test_data_dir
             ) or get_user_id_by_identifier(test_user_id)
         assert test_user is not None, "Should be able to get UUID for test user"
@@ -188,7 +188,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             account_data = get_user_data(test_user, 'account')
             if account_data and 'account' in account_data:
                 account = account_data['account']
-                required_fields = ['user_id', 'internal_username', 'account_status', 'features']
+                required_fields = ['user_id', 'account_status', 'features']
                 missing_fields = [field for field in required_fields if field not in account]
                 
                 if not missing_fields:
@@ -260,7 +260,6 @@ def test_account_management_validation():
         # Test valid account updates
         try:
             valid_updates = {
-                'internal_username': 'testuser',
                 'email': 'test@example.com',
                 'channel': {'type': 'email'}
             }
@@ -279,8 +278,7 @@ def test_account_management_validation():
         # Test invalid account updates
         try:
             invalid_updates = {
-                'internal_username': '',  # Empty username should fail
-                'channel': {'type': 'invalid'}  # Invalid channel type
+                'account_status': 'invalid'
             }
             is_valid, errors = validate_user_update('test-user', 'account', invalid_updates)
             
@@ -338,7 +336,6 @@ def test_account_management_safe_operations():
             # Create minimal test data
             test_account = {
                 'user_id': temp_user_id,
-                'internal_username': 'tempuser',
                 'account_status': 'active',
                 'features': {
                     'automated_messages': 'disabled',
@@ -397,7 +394,7 @@ def test_account_management_safe_operations():
         # Test updating temporary user data
         try:
             update_result = save_user_data(temp_user_id, {
-                'account': {'internal_username': 'updatedtempuser'}
+                'account': {'timezone': 'America/Regina'}
             })
             
             if update_result.get('account'):

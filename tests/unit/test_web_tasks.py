@@ -16,7 +16,7 @@ ORIGIN = "http://localhost:8080"
 
 class Accounts:
     def __init__(self):
-        self.users = {"existing": {"internal_username": "river", "email": "river@example.com", "account_status": "active"}}
+        self.users = {"existing": {"test_label": "river", "email": "river@example.com", "account_status": "active"}}
 
     def by_email(self, email):
         for uid, account in self.users.items():
@@ -34,7 +34,7 @@ class Accounts:
         return self.users.get(uid, {})
 
     def create(self, email, username, timezone):
-        self.users["existing"].update(email=email, internal_username=username, timezone=timezone)
+        self.users["existing"].update(email=email, test_label=username, timezone=timezone)
         return "existing"
 
 

@@ -491,7 +491,6 @@ def get_user_summary(user_id: str) -> dict[str, Any]:
 
         return {
             "user_id": user_id,
-            "internal_username": user_info.get("internal_username", ""),
             "preferred_name": user_info.get("preferred_name", ""),
             "active": user_info.get("active", False),
             "categories": categories,

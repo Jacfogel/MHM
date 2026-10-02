@@ -39,7 +39,7 @@ class TestUserListProvider:
         def _get_user_data(user_id, _fields):
             if user_id == "u1":
                 return {
-                    "account": {"account_status": "inactive", "internal_username": "zeta"},
+                    "account": {"account_status": "inactive", "user_id": "u1"},
                     "preferences": {},
                     "context": {},
                 }
@@ -47,7 +47,7 @@ class TestUserListProvider:
                 return {
                     "account": {
                         "account_status": "active",
-                        "internal_username": "alpha",
+                        "user_id": "u2",
                         "features": {"checkins": "enabled"},
                     },
                     "preferences": {"channel": {"type": "email"}},
@@ -56,7 +56,7 @@ class TestUserListProvider:
             return {
                 "account": {
                     "account_status": "active",
-                    "internal_username": "beta",
+                    "user_id": "u3",
                     "features": {"task_management": "enabled"},
                 },
                 "preferences": {"channel": {"type": "discord"}},
@@ -80,7 +80,8 @@ class TestUserListProvider:
         display = provider.build_user_combo_display_name(
             {
                 "user_id": "u1",
-                "internal_username": "jdoe",
+                "display_label": "jdoe",
+                "contact_label": "jdoe@example.com",
                 "channel_type": "email",
                 "enabled_features": [
                     "automated_messages",
@@ -92,13 +93,14 @@ class TestUserListProvider:
         )
 
         assert display == (
-            "jdoe (email) [Messages: Daily Motivation, Check-ins, Tasks] - u1"
+            "jdoe / jdoe@example.com (email) "
+            "[Messages: Daily Motivation, Check-ins, Tasks] - u1"
         )
 
     def test_collect_fallback_display_names(self, provider):
         def _get_user_data(user_id, section):
             if section == "account":
-                return {"account": {"internal_username": f"name-{user_id}"}}
+                return {"account": {"email": f"name-{user_id}@example.com"}}
             if user_id == "u1":
                 return {"context": {"preferred_name": "Preferred"}}
             return {"context": {}}
@@ -110,8 +112,8 @@ class TestUserListProvider:
             names = provider.collect_fallback_display_names()
 
         assert names == [
-            "Preferred (name-u1) - u1",
-            "name-u2 - u2",
+            "Preferred (name-u1@example.com) - u1",
+            "name-u2@example.com - u2",
         ]
 
     def test_parse_user_id_from_display(self):

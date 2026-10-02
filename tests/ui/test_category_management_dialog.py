@@ -43,7 +43,7 @@ def category_user(test_data_dir):
     user_id = f"test_category_user_{uuid.uuid4().hex[:8]}"
     TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
     for _ in range(10):
-        resolved_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        resolved_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if resolved_user_id:
@@ -502,7 +502,7 @@ class TestCategoryManagementDialogRealBehavior:
         TestUserFactory.create_basic_user(user_id, test_data_dir=isolated_data_dir)
         test_user = None
         for _ in range(10):
-            test_user = TestUserFactory.get_test_user_id_by_internal_username(
+            test_user = TestUserFactory.get_test_user_id_by_label(
                 user_id, isolated_data_dir
             )
             if test_user:

@@ -27,7 +27,7 @@ def _user(prefix: str, test_data_dir: str, **kwargs) -> str:
     assert TestUserFactory.create_basic_user(
         internal, test_data_dir=test_data_dir, **kwargs
     )
-    resolved = TestUserFactory.get_test_user_id_by_internal_username(
+    resolved = TestUserFactory.get_test_user_id_by_label(
         internal, test_data_dir
     )
     assert resolved, f"Could not resolve created user {internal}"

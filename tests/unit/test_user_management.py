@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests for core user management module.
 
 Tests user data operations, user lookup, and user preferences.
@@ -66,10 +66,10 @@ class TestUserManagement:
         assert TestUserFactory.create_basic_user(
             shared_name, test_data_dir=str(tests_data_dir)
         )
-        isolated_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+        isolated_uuid = TestUserFactory.get_test_user_id_by_label(
             isolated_name, test_path_factory
         )
-        shared_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+        shared_uuid = TestUserFactory.get_test_user_id_by_label(
             shared_name, str(tests_data_dir)
         )
         assert isolated_uuid
@@ -219,7 +219,7 @@ class TestUserManagement:
 
         account_data = TestUserDataFactory.create_account_data(
             user_id=actual_user_id,
-            internal_username=internal_name,
+            test_label=internal_name,
             email="test@example.com",
             channel_type="email",
         )
@@ -436,7 +436,7 @@ class TestUserManagement:
 
         account_data = {
             "user_id": actual_user_id,
-            "internal_username": internal_name,
+            "test_label": internal_name,
             "email": "test@example.com",
             "account_status": "active",
             "channel": {"type": "email", "contact": "test@example.com"},
@@ -553,7 +553,7 @@ class TestUserManagementEdgeCases:
         )
         assert success is True, "Failed to create test user"
 
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             internal_name, test_data_dir
         )
         assert actual_user_id is not None, "Should be able to get UUID for created user"

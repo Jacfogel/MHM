@@ -15,13 +15,13 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     user_id = "ai-context-envelope-user"
     assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
 
-    from core import get_user_id_by_identifier
     from checkins.checkin_data_manager import store_checkin_response
     from messages.message_data_manager import add_message, store_sent_message
     from notebook import notebook_service
     from tasks import task_service
 
-    actual_user_id = get_user_id_by_identifier(user_id) or user_id
+    actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert actual_user_id
     task_id = task_service.create_task(
         user_id=actual_user_id,
         title="Review refill request",
@@ -98,10 +98,10 @@ def test_notebook_context_uses_titles_pinned_entries_and_short_summaries(test_da
     user_id = "ai-context-notebook-slice-user"
     assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
 
-    from core import get_user_id_by_identifier
     from notebook import notebook_data_manager as notes
 
-    actual_user_id = get_user_id_by_identifier(user_id) or user_id
+    actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert actual_user_id
     long_body = "The gate code is 1234 and the spare key is under the mat by the side door after dark."
     assert notes.create_note(
         actual_user_id,
@@ -141,9 +141,8 @@ def test_ai_context_prompt_selection_records_included_sections(test_data_dir):
     user_id = "ai-context-selection-user"
     assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
 
-    from core import get_user_id_by_identifier
-
-    actual_user_id = get_user_id_by_identifier(user_id) or user_id
+    actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert actual_user_id
     envelope = build_ai_context_envelope(
         actual_user_id,
         prompt_request="Summarize my recent check-in mood and health recovery.",

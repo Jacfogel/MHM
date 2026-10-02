@@ -48,7 +48,7 @@ class TestDiscordCheckinRetryBehavior:
             save_user_data,
         )
 
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if actual_user_id:
@@ -97,7 +97,7 @@ class TestDiscordCheckinRetryBehavior:
             clear_user_caches,
         )
 
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if not actual_user_id:
@@ -242,7 +242,7 @@ class TestDiscordCheckinRetryBehavior:
     ):
         """Test that 'User check-in started' is logged only once after successful message delivery."""
         # Arrange: Get actual user ID (UUID) for the test user
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if not actual_user_id:
@@ -297,7 +297,7 @@ class TestDiscordCheckinRetryBehavior:
     ):
         """Test that 'User check-in started' is NOT logged when message send fails."""
         # Arrange: Get actual user ID (UUID) for the test user
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if not actual_user_id:
@@ -335,7 +335,7 @@ class TestDiscordCheckinRetryBehavior:
     ):
         """Test that queued check-in messages are retried after Discord reconnects."""
         # Arrange: Get actual user ID (UUID) for the test user
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if not actual_user_id:
@@ -401,7 +401,7 @@ class TestDiscordCheckinRetryBehavior:
     ):
         """Test that multiple check-in send attempts only result in one log entry."""
         # Arrange: Get actual user ID (UUID) for the test user
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if not actual_user_id:

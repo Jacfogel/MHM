@@ -1,4 +1,4 @@
-﻿"""
+"""
 Interaction Handlers Behavior Tests
 
 Tests for communication/command_handlers/interaction_handlers.py focusing on real behavior and side effects.
@@ -207,7 +207,7 @@ class TestInteractionHandlersBehavior:
             assert wait_until(
                 lambda: (
                     get_user_id_by_identifier(user_id) is not None
-                    or TestUserFactory.get_test_user_id_by_internal_username(
+                    or TestUserFactory.get_test_user_id_by_label(
                         user_id, test_data_dir
                     )
                     is not None
@@ -215,7 +215,7 @@ class TestInteractionHandlersBehavior:
                 timeout_seconds=3.0,
                 poll_seconds=0.02,
             ), "Should resolve user UUID from index or test directory scan"
-            internal_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(
+            internal_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_label(
                 user_id, test_data_dir
             )
         if internal_user_id is None:
@@ -223,7 +223,7 @@ class TestInteractionHandlersBehavior:
             assert wait_until(
                 lambda: (
                     get_user_id_by_identifier(user_id) is not None
-                    or TestUserFactory.get_test_user_id_by_internal_username(
+                    or TestUserFactory.get_test_user_id_by_label(
                         user_id, test_data_dir
                     )
                     is not None
@@ -233,7 +233,7 @@ class TestInteractionHandlersBehavior:
             ), "Should resolve user UUID for created user"
             internal_user_id = get_user_id_by_identifier(user_id)
         if internal_user_id is None:
-            internal_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            internal_user_id = TestUserFactory.get_test_user_id_by_label(
                 user_id, test_data_dir
             )
         assert internal_user_id is not None, "Should be able to get UUID for created user"
@@ -266,20 +266,11 @@ class TestInteractionHandlersBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Get the actual UUID for the created user
-        from core import get_user_id_by_identifier
-        from storage.user_data_operations import rebuild_user_index
-        from tests.test_helpers.test_support.test_helpers import wait_until
-        
-        # Resolve UUID with a short poll first; rebuild index only as fallback.
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            rebuild_user_index()
-            assert wait_until(
-                lambda: get_user_id_by_identifier(user_id) is not None,
-                timeout_seconds=1.0,
-                poll_seconds=0.01,
-            ), "Should resolve user UUID after index rebuild"
-            actual_user_id = get_user_id_by_identifier(user_id)
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "Should be able to get UUID for created user"
 
         # Create a test task first
@@ -342,22 +333,15 @@ class TestInteractionHandlersBehavior:
         
         # Create test user using centralized utilities
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core import get_user_id_by_identifier
         from storage.user_data_operations import rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the created user
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            rebuild_user_index()
-            assert wait_until(
-                lambda: get_user_id_by_identifier(user_id) is not None,
-                timeout_seconds=1.0,
-                poll_seconds=0.01,
-            ), "Should resolve user UUID after index rebuild"
-            actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
         # Update user context with profile-specific data.

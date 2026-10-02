@@ -1,9 +1,7 @@
 """Tests for core.admin_account_provisioning."""
 
 import os
-import time
 import uuid
-from pathlib import Path
 
 import pytest
 
@@ -14,42 +12,6 @@ from core.admin_account_provisioning import (
     provision_admin_account,
 )
 from tests.test_helpers.test_support.test_helpers import wait_until
-
-
-def _resolve_user_id_with_retry(
-    internal_username: str,
-    test_data_dir: str | None = None,
-    attempts: int = 200,
-    delay: float = 0.05,
-) -> str | None:
-    """Resolve internal_username -> user_id with index + on-disk fallback."""
-    from core import get_user_id_by_identifier
-    from core.file_locking import safe_json_read
-
-    for attempt in range(attempts):
-        user_id = get_user_id_by_identifier(internal_username)
-        if user_id:
-            return user_id
-
-        if test_data_dir:
-            users_dir = Path(test_data_dir) / "users"
-            if users_dir.exists():
-                for account_file in users_dir.glob("*/account.json"):
-                    account = safe_json_read(str(account_file), default={})
-                    account_internal_username = str(
-                        account.get("internal_username", "")
-                    ).strip()
-                    account_username = str(account.get("username", "")).strip()
-                    if (
-                        account_internal_username.casefold()
-                        == internal_username.casefold()
-                        or account_username.casefold() == internal_username.casefold()
-                    ):
-                        return account_file.parent.name
-
-        if attempt < attempts - 1:
-            time.sleep(delay)
-    return None
 
 
 @pytest.mark.unit
@@ -103,7 +65,8 @@ class TestAdminAccountProvisioningHelpers:
 
         prefs = build_user_preferences_from_account_data(account_data)
 
-        assert prefs["internal_username"] == "testuser"
+        assert "test_label" not in prefs
+        assert prefs["personalization_data"]["preferred_name"] == "Test"
         assert prefs["chat_id"] == "999"
         assert prefs["categories"] == ["motivational"]
         assert "enabled" not in prefs["task_settings"]
@@ -116,10 +79,9 @@ class TestAdminAccountProvisioningHelpers:
 @pytest.mark.user
 class TestProvisionAdminAccount:
     def test_provision_admin_account_creates_user(self, test_data_dir):
-        # Unique username: fixed "provision_test_user" collides under xdist worker data dirs.
-        unique_username = f"provision-test-user-{uuid.uuid4().hex[:8]}"
+        preferred_name = f"Provision Test User {uuid.uuid4().hex[:8]}"
         account_data = {
-            "username": unique_username,
+            "preferred_name": preferred_name,
             "timezone": "America/Regina",
             "channel": {"type": "discord"},
             "contact_info": {"email": "", "phone": "", "discord": "111222333"},
@@ -131,7 +93,7 @@ class TestProvisionAdminAccount:
                 "tasks": False,
                 "checkins": False,
             },
-            "personalization_data": {},
+            "personalization_data": {"preferred_name": preferred_name},
         }
 
         user_id = provision_admin_account(account_data)
@@ -141,13 +103,10 @@ class TestProvisionAdminAccount:
         from core import get_user_data
 
         account = get_user_data(user_id, "account")
-        assert account["account"]["internal_username"] == unique_username
-        resolved = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
-        assert resolved == user_id
+        assert account["account"]["user_id"] == user_id
+        assert "test_label" not in account["account"]
 
-    def test_provision_admin_account_generates_alias_when_username_missing(
+    def test_provision_admin_account_uses_uuid_when_preferred_name_missing(
         self, test_data_dir
     ):
         account_data = {
@@ -175,7 +134,8 @@ class TestProvisionAdminAccount:
         from core import get_user_data, get_user_id_by_identifier
 
         account = get_user_data(user_id, "account")["account"]
-        assert account["internal_username"].startswith("mhm_")
+        assert account["user_id"] == user_id
+        assert "test_label" not in account
         assert get_user_id_by_identifier(user_id) == user_id
 
 
@@ -202,10 +162,7 @@ class TestProvisionAdminAccountBehavior:
         user_id = provision_admin_account(account_data)
         assert user_id is not None
 
-        resolved_user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
-        assert resolved_user_id is not None
+        resolved_user_id = user_id
 
         user_dir = os.path.join(test_data_dir, "users", resolved_user_id)
         assert os.path.exists(user_dir)
@@ -230,11 +187,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         preferences = get_user_data(user_id, "preferences").get("preferences", {})
@@ -258,11 +211,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         preferences = get_user_data(user_id, "preferences").get("preferences", {})
@@ -299,11 +248,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         saved_task_settings = (
@@ -342,11 +287,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         saved_checkin_settings = (
@@ -381,10 +322,7 @@ class TestProvisionAdminAccountBehavior:
         user_id = provision_admin_account(account_data)
         assert user_id is not None
 
-        resolved_user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
-        assert resolved_user_id is not None
+        resolved_user_id = user_id
 
         def _index_complete_for_user() -> bool:
             clear_user_caches()
@@ -417,11 +355,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         tags = get_user_tags(user_id)
@@ -450,11 +384,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         tags = (
@@ -484,11 +414,7 @@ class TestProvisionAdminAccountBehavior:
             "personalization_data": {},
         }
 
-        assert provision_admin_account(account_data) is not None
-
-        user_id = _resolve_user_id_with_retry(
-            unique_username, test_data_dir=test_data_dir
-        )
+        user_id = provision_admin_account(account_data)
         assert user_id is not None
 
         features = get_user_data(user_id, "account").get("account", {})["features"]

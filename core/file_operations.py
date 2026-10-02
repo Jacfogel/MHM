@@ -474,7 +474,6 @@ def _create_user_files__account_file(
         # Canonical readable timestamp for metadata fields
         current_time = now_timestamp_full()
 
-        internal_username = user_prefs.get("internal_username", "")
         chat_id = user_prefs.get("chat_id", "")
         phone = user_prefs.get("phone", "")
         email = user_prefs.get("email", "")
@@ -492,7 +491,6 @@ def _create_user_files__account_file(
 
         account_data = {
             "user_id": user_id,
-            "internal_username": internal_username,
             "account_status": "active",
             "chat_id": chat_id,
             "phone": phone,

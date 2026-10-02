@@ -51,7 +51,7 @@ def task_management_user(test_data_dir):
     )
     if not ok:
         pytest.fail(
-            f"TestUserFactory.create_basic_user failed for internal_username={user_id!r}"
+            f"TestUserFactory.create_basic_user failed for fixture_label={user_id!r}"
         )
 
     users_dir = Path(test_data_dir) / "users"
@@ -62,10 +62,10 @@ def task_management_user(test_data_dir):
         if users_dir.exists():
             for account_file in users_dir.glob("*/account.json"):
                 account_data = safe_json_read(str(account_file), default={})
-                if account_data.get("internal_username") == user_id:
+                if account_data.get("metadata", {}).get("fixture_label") == user_id:
                     resolved["id"] = account_file.parent.name
                     return True
-        rid = TestUserFactory.get_test_user_id_by_internal_username(
+        rid = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if rid:

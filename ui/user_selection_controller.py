@@ -121,10 +121,7 @@ class UserSelectionController:
             if user_account:
                 self.load_user_categories(user_id)
                 self.enable_content_management()
-                logger.info(
-                    f"Admin Panel: User selected for management: {user_id} "
-                    f"({user_account.get('internal_username', 'Unknown')})"
-                )
+                logger.info(f"Admin Panel: User selected for management: {user_id}")
                 return self.current_user
 
             QMessageBox.warning(

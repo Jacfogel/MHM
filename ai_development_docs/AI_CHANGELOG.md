@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-01 - Internal account username compatibility field retired **COMPLETED**
+- Account identity now uses canonical UUIDs and optional contact identifiers; preferred names remain display-only.
+- Removed the compatibility field from schemas, persistence, lookups, indexes, admin/UI flows, prompts, and test fixtures.
+- Existing account files require the documented backup, migration, and index-rebuild step before normal reads.
+
 ### 2026-10-01 - Linux locks clean up after themselves **COMPLETED**
 - Unix file locks remove their `.lock` sidecar on release, so user directories no longer keep `account.json.lock` and similar files.
 - The frozen-clock lock test times only its body, so session cleanup cannot trip the 5-second limit.
@@ -106,17 +111,6 @@ Guidelines:
 - A wellness reply keeps a multi-day sleep or activity streak. The number beside it is the rounded middle of those days, written once as "about 5 hours".
 - Sleep, steps, and active minutes round a .5 tie away from zero, so 50 steps is about 100, not 0.
 - Opening website chat before any message exists no longer logs a missing inbox as an error. A failed read still returns an empty inbox.
-
-### 2026-09-28 - Wellness replies and task identifier cleanup **COMPLETED**
-- A wellness reply keeps one sleep note, one movement note, and one readiness note.
-- The reply and the AI prompt share one phrase helper. The prompt still lists every note.
-- Task name cleanup lives in one helper, and profile updates are no longer parsed inside the task extractor.
-
-### 2026-09-28 - Website chat, smaller steps, and dialogs **COMPLETED**
-- Suggest smaller steps, adding those steps, and separating a step now pass through the public site proxy. Before this, the tasks page showed "Page not found."
-- Clicking the dimmed area around a dialog closes it. A click that starts inside the box leaves it open.
-- A scheduled message in Talk to MHM has More like this and Not for me, the same as a Discord reaction. A conversation reply and a check-in do not.
-- The registry lists those inbox helpers, a link to an existing website test is not reported as a missing module, and the reaction lookup no longer trips the inbox type warning.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

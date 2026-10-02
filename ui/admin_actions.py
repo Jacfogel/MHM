@@ -8,6 +8,8 @@ from collections.abc import Callable
 from importlib import import_module
 from typing import Any
 
+from core.user_identity import user_display_label
+
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QDialog,
@@ -349,16 +351,13 @@ Current cache files found:
             if not user_account:
                 continue
 
-            username = user_account.get("internal_username", "Unknown")
-            preferred_name = user_context.get("preferred_name", "") if user_context else ""
+            display_label = user_display_label(user_id, user_account, user_context)
             prefs_result = get_user_data(user_id, "preferences")
             prefs = prefs_result.get("preferences", {})
             categories = prefs.get("categories", [])
             messaging_service = prefs.get("channel", {}).get("type", "Unknown")
 
-            summary_text += f"User: {username}"
-            if preferred_name:
-                summary_text += f" ({preferred_name})"
+            summary_text += f"User: {display_label}"
             summary_text += "\n"
             summary_text += f"  ID: {user_id}\n"
             summary_text += f"  Service: {messaging_service}\n"

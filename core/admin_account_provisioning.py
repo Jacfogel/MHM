@@ -12,7 +12,6 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import core.user_management as _user_management
 from core.error_handling import handle_errors
 from core.file_operations import create_user_files
 from core.logger import get_component_logger
@@ -66,8 +65,12 @@ def build_user_preferences_from_account_data(
     )
     features = build_features_dict(features_enabled)
 
+    personalization_data = dict(account_data.get("personalization_data", {}))
+    preferred_name = str(account_data.get("preferred_name") or "").strip()
+    if preferred_name and not personalization_data.get("preferred_name"):
+        personalization_data["preferred_name"] = preferred_name
+
     user_preferences: dict[str, Any] = {
-        "internal_username": account_data.get("username", ""),
         "chat_id": chat_id,
         "phone": phone,
         "email": email,
@@ -77,7 +80,7 @@ def build_user_preferences_from_account_data(
         "channel": account_data["channel"],
         "categories": account_data["categories"],
         "features": features,
-        "personalization_data": account_data.get("personalization_data", {}),
+        "personalization_data": personalization_data,
         "features_enabled": features_enabled,
     }
 
@@ -236,10 +239,6 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
     """
     user_id = str(uuid.uuid4())
     user_preferences = build_user_preferences_from_account_data(account_data)
-    if not str(user_preferences.get("internal_username") or "").strip():
-        user_preferences["internal_username"] = _user_management.generate_internal_alias(
-            user_id
-        )
 
     create_user_files(user_id, account_data["categories"], user_preferences)
 
@@ -256,7 +255,5 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
     update_user_index_with_retry(user_id)
     schedule_new_user_if_available(user_id)
 
-    logger.info(
-        f"Created new user: {user_id} ({user_preferences['internal_username']})"
-    )
+    logger.info(f"Created new user: {user_id}")
     return user_id

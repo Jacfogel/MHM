@@ -28,7 +28,7 @@ def wait_until(predicate, timeout_seconds: float = 1.0, poll_seconds: float = 0.
 def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     """Ensure minimal structures exist without overwriting existing data.
 
-    - Merges into existing account (preserves internal_username and enabled features)
+    - Merges into existing account (preserves canonical identity and enabled features)
     - Adds missing preferences keys (keeps existing categories/channel)
     - Adds a default motivational/morning period if schedules missing
     """
@@ -42,16 +42,16 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     from core.config import get_user_data_dir
     import os
 
-    # Resolve UUID if user_id is an internal username (race condition fix)
+    # Resolve a canonical UUID from a contact or fixture label when needed.
     # get_user_data_dir uses user_id directly, so we need to resolve UUIDs first
     resolved_user_id = user_id
     if not os.path.exists(get_user_data_dir(user_id)):
-        # Try to resolve UUID from internal username
+        # Try a production identifier, then fixture-only metadata.
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
 
         uuid_resolved = get_user_id_by_identifier(
             user_id
-        ) or TUF.get_test_user_id_by_internal_username(
+        ) or TUF.get_test_user_id_by_label(
             user_id, os.getenv("TEST_DATA_DIR", "tests/data")
         )
         if uuid_resolved and uuid_resolved != user_id:
@@ -84,7 +84,6 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
 
     account_updates = {
         "user_id": current_account.get("user_id") or user_id,
-        "internal_username": current_account.get("internal_username") or user_id,
         "account_status": current_account.get("account_status") or "active",
         "features": merged_features,
     }

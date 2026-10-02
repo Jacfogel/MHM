@@ -46,7 +46,7 @@ _DEFAULT_USER_DATA_LOADERS: dict = {
     "account": {
         "loader": None,
         "file_type": "account",
-        "default_fields": ["user_id", "internal_username", "account_status"],
+        "default_fields": ["user_id", "account_status"],
         "metadata_fields": ["created_at", "updated_at"],
         "description": "User account information and settings",
     },
@@ -262,7 +262,6 @@ def _account_default_data(user_id: str) -> dict[str, Any] | None:
     current_time_str = now_timestamp_full()
     return {
         "user_id": user_id,
-        "internal_username": "",
         "account_status": "active",
         "chat_id": "",
         "phone": "",

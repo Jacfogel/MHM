@@ -1,4 +1,4 @@
-﻿"""Unit coverage for profile command service helpers."""
+"""Unit coverage for profile command service helpers."""
 
 from unittest.mock import patch
 
@@ -11,7 +11,7 @@ from user import profile_service
 @pytest.mark.user
 def test_load_profile_sections_reads_expected_data_types():
     values = {
-        "account": {"account": {"internal_username": "jules"}},
+        "account": {"account": {"user_id": "u1", "email": "jules@example.com"}},
         "context": {"context": {"preferred_name": "Julie"}},
         "preferences": {"preferences": {"timezone": "America/Regina"}},
     }
@@ -19,7 +19,7 @@ def test_load_profile_sections_reads_expected_data_types():
     with patch("user.profile_service.get_user_data", side_effect=lambda _u, kind: values[kind]):
         sections = profile_service.load_profile_sections("u1")
 
-    assert sections.account["internal_username"] == "jules"
+    assert sections.account["user_id"] == "u1"
     assert sections.context["preferred_name"] == "Julie"
     assert sections.preferences["timezone"] == "America/Regina"
 

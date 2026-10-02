@@ -278,10 +278,7 @@ def add_schedule_period(
     with contextlib.suppress(Exception):
         clear_schedule_periods_cache(UserContext().get_user_id(), category)
     user_id = UserContext().get_user_id()
-    internal_username = UserContext().get_internal_username()
-    logger.debug(
-        f"Retrieved user_id: {user_id}, internal_username: {internal_username}"
-    )
+    logger.debug(f"Retrieved user_id: {user_id}")
 
     if not user_id:
         logger.error("User ID is not set in UserContext (add_schedule_period).")

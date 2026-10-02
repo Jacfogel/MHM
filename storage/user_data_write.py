@@ -267,17 +267,6 @@ def _save_user_data__merge_single_type(
         elif dt == "preferences":
             _save_user_data__preserve_preference_settings(updated, updates, user_id)
         _save_user_data__normalize_data(dt, updated)
-        if dt == "account":
-            try:
-                if not updated.get("internal_username"):
-                    prior_username = (
-                        current.get("internal_username")
-                        if isinstance(current, dict)
-                        else None
-                    )
-                    updated["internal_username"] = prior_username or user_id
-            except Exception:
-                pass
         if dt == "preferences" and preserve_categories_order is not None:
             try:
                 seen = set()

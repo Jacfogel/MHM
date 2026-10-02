@@ -16,7 +16,7 @@ ORIGIN = "http://localhost:8080"
 
 class Accounts:
     def __init__(self):
-        self.user = {"internal_username": "river", "email": "river@example.com", "account_status": "active"}
+        self.user = {"test_label": "river", "email": "river@example.com", "account_status": "active"}
 
     def by_email(self, email):
         return ("existing", self.user) if email.casefold() == self.user["email"] else None

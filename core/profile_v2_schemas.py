@@ -189,7 +189,6 @@ class AccountV2EnvelopeModel(BaseModel):
     schema_version: Literal[2] = SCHEMA_VERSION
     updated_at: str
     user_id: str
-    internal_username: str = ""
     account_status: Literal["active", "inactive", "suspended"] = "active"
     chat_id: str = ""
     phone: str = ""

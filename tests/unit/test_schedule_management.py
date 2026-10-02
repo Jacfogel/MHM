@@ -65,7 +65,6 @@ class TestScheduleManagement:
              patch("core.schedule_runtime.create_reschedule_request") as mock_reschedule:
             mock_ctx = MockUserContext.return_value
             mock_ctx.get_user_id.return_value = user_id
-            mock_ctx.get_internal_username.return_value = "tester"
 
             add_schedule_period(category, "morning", "08:00", "10:00")
             # Clear cache after add to ensure we read fresh data (parallel test safety)

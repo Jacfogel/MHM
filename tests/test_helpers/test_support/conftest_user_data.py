@@ -480,7 +480,6 @@ def ensure_user_materialized(test_data_dir):
                 _json.dump(
                     {
                         "user_id": user_id,
-                        "internal_username": user_id,
                         "account_status": "active",
                         "features": {
                             "automated_messages": "disabled",
@@ -639,7 +638,6 @@ def mock_user_data(mock_config, test_data_dir, request):
     current_time = now_timestamp_full()
     account_data = {
         "user_id": user_id,
-        "internal_username": f"testuser_{user_id[-4:]}",
         "account_status": "active",
         "chat_id": "",
         "phone": "",
@@ -802,7 +800,6 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
     current_time = now_timestamp_full()
     account_data = {
         "user_id": user_id,
-        "internal_username": f"testuser_{user_id[-4:]}",
         "account_status": "active",
         "chat_id": "",
         "phone": "",

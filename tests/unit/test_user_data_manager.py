@@ -118,10 +118,10 @@ class TestUserDataManagerMessageReferences:
             test_data_dir=test_data_dir
         )
         
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
+        actual_user_id = (
+            TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+            or user_id
+        )
         
         return actual_user_id
     
@@ -211,10 +211,10 @@ class TestUserDataManagerBackup:
         user_id = _unique_username("test_backup_user")
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
+        actual_user_id = (
+            TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+            or user_id
+        )
         
         return actual_user_id
     
@@ -291,10 +291,10 @@ class TestUserDataManagerExport:
         user_id = "test_export_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
+        actual_user_id = (
+            TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+            or user_id
+        )
         
         return actual_user_id
     
@@ -366,7 +366,7 @@ class TestUserDataManagerIndex:
         
         user_data = get_user_data(test_user, 'account', auto_create=True)
         user_account = user_data.get('account') or {}
-        assert user_account and user_account.get('internal_username'), \
+        assert user_account and user_account.get('user_id') == test_user, \
             f"User account data not available for {test_user} (account keys: {list(user_account.keys())})"
         
         result = manager.update_user_index(test_user)
@@ -418,12 +418,13 @@ class TestUserDataManagerIndex:
         """Test: rebuild_full_index rebuilds index successfully"""
         user1 = _unique_username("test_rebuild_user1")
         user2 = _unique_username("test_rebuild_user2")
-        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        TestUserFactory.create_minimal_user(user2, test_data_dir=test_data_dir)
-        from core import get_user_id_by_identifier
-
-        uid1 = get_user_id_by_identifier(user1)
-        uid2 = get_user_id_by_identifier(user2)
+        success1, uid1 = TestUserFactory.create_minimal_user_and_get_id(
+            user1, test_data_dir=test_data_dir
+        )
+        success2, uid2 = TestUserFactory.create_minimal_user_and_get_id(
+            user2, test_data_dir=test_data_dir
+        )
+        assert success1 and success2
         assert uid1 is not None and uid2 is not None
 
         with patch(
@@ -471,7 +472,7 @@ class TestUserDataManagerSearch:
         # Arrange: User is created in fixture
         
         # Act: Search users
-        results = manager.search_users("test_search", search_fields=["internal_username"])
+        results = manager.search_users("test_search", search_fields=["email"])
         
         # Assert: Should return list
         assert isinstance(results, list), "Should return list"
@@ -591,7 +592,7 @@ class TestUserDataManagerConvenienceFunctions:
 
         user_data = get_user_data(test_user, 'account', auto_create=True)
         user_account = user_data.get('account') or {}
-        assert user_account and user_account.get('internal_username'), \
+        assert user_account and user_account.get('user_id') == test_user, \
             f"User account data not available for {test_user}"
 
         result = user_data_manager.update_message_references(test_user)
@@ -645,10 +646,10 @@ class TestUserDataManagerConvenienceFunctions:
     def test_rebuild_user_index_function(self, test_data_dir):
         """Test: rebuild_user_index convenience function works"""
         user1 = _unique_username("test_rebuild_conv_user1")
-        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        from core import get_user_id_by_identifier
-
-        uid = get_user_id_by_identifier(user1)
+        success, uid = TestUserFactory.create_minimal_user_and_get_id(
+            user1, test_data_dir=test_data_dir
+        )
+        assert success
         assert uid is not None
 
         with patch(
@@ -686,10 +687,10 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: build_user_index convenience function works"""
         # Arrange: Create test users
         user1 = _unique_username("test_build_index_user1")
-        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        from core import get_user_id_by_identifier
-
-        uid = get_user_id_by_identifier(user1)
+        success, uid = TestUserFactory.create_minimal_user_and_get_id(
+            user1, test_data_dir=test_data_dir
+        )
+        assert success
         assert uid is not None, "Expected created user to resolve to a UUID"
 
         # Scope to this test's user only; build_user_index scans get_all_user_ids()
@@ -717,10 +718,10 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: get_all_user_summaries convenience function works"""
         # Arrange: Create test users
         user1 = _unique_username("test_all_summaries_user1")
-        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        from core import get_user_id_by_identifier
-
-        uid = get_user_id_by_identifier(user1)
+        success, uid = TestUserFactory.create_minimal_user_and_get_id(
+            user1, test_data_dir=test_data_dir
+        )
+        assert success
         assert uid is not None, "Expected created user to resolve to a UUID"
 
         with patch(
@@ -761,10 +762,10 @@ class TestUserDataManagerDeleteUser:
         user_id = _unique_username("test_delete_user")
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
+        actual_user_id = (
+            TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+            or user_id
+        )
         
         return actual_user_id
     

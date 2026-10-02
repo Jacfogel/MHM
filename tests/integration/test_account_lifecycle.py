@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Integration Tests for Account Lifecycle - MHM
 Tests complete account workflows: creation, modification, feature enablement, deletion
@@ -55,7 +55,6 @@ class TestAccountLifecycle:
 
         update_user_account(uid, {
             'user_id': current_account.get('user_id') or uid,
-            'internal_username': current_account.get('internal_username') or uid,
             'account_status': current_account.get('account_status') or 'active',
             'features': merged_features,
         })
@@ -92,7 +91,6 @@ class TestAccountLifecycle:
         data = get_user_data(uid) or {}
         account = data.get("account") or {
             "user_id": uid,
-            "internal_username": uid,
             "account_status": "active",
             "features": {
                 "automated_messages": "enabled",
@@ -231,7 +229,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
@@ -390,7 +388,6 @@ class TestAccountLifecycle:
         # Arrange - Create full user
         user_id = self._unique_username("test-disable-tasks")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -431,7 +428,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
         self._ensure_minimal_structure(actual_user_id)
@@ -488,7 +485,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with tasks disabled
         user_id = self._unique_username("test-reenable-tasks")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -526,7 +522,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
         self._ensure_minimal_structure(actual_user_id)
@@ -591,7 +587,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with automated_messages enabled and basic categories
         user_id = self._unique_username("test-add-category")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -626,7 +621,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         
@@ -681,7 +676,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with multiple categories
         user_id = self._unique_username("test-remove-category")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -716,7 +710,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         
@@ -752,7 +746,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with basic schedule
         user_id = self._unique_username("test-add-period")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -787,7 +780,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         if actual_user_id:
@@ -834,7 +827,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with schedule
         user_id = self._unique_username("test-modify-period")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -869,7 +861,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
         if actual_user_id:
             update_user_index(actual_user_id)
@@ -899,7 +891,6 @@ class TestAccountLifecycle:
         # Arrange - Create user with multiple periods
         user_id = self._unique_username("test-remove-period")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -940,7 +931,7 @@ class TestAccountLifecycle:
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
         from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
         if actual_user_id:
             update_user_index(actual_user_id)
@@ -978,7 +969,6 @@ class TestAccountLifecycle:
         # 1. Create account
         user_id = self._unique_username("test-lifecycle")
         account_data = {
-            "internal_username": user_id,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "enabled_features": ["messages"]
@@ -1016,7 +1006,7 @@ class TestAccountLifecycle:
         from storage.user_data_operations import update_user_index
         import time
         from tests.test_helpers.test_utilities import TestUserFactory
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, self.test_data_dir) or user_id
         if actual_user_id:
             update_user_index(actual_user_id)
         assert actual_user_id is not None

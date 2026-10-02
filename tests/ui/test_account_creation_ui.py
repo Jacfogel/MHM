@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive tests for account creation and management UI components.
 
 Tests the actual UI behavior, user interactions, and side effects for:
@@ -37,18 +37,20 @@ from core.file_operations import get_user_file_path
 
 
 def _resolve_user_id_with_retry(
-    internal_username: str,
+    fixture_label: str,
     test_data_dir: str | None = None,
     attempts: int = 200,
     delay: float = 0.05,
 ):
-    """Resolve internal_username -> user_id with index + on-disk fallback."""
-    from core import get_user_id_by_identifier
+    """Resolve a fixture label to a canonical user id."""
+    from tests.test_helpers.test_utilities import TestUserFactory
     from core.file_locking import safe_json_read
     import time
 
     for attempt in range(attempts):
-        user_id = get_user_id_by_identifier(internal_username)
+        user_id = TestUserFactory.get_test_user_id_by_label(
+            fixture_label, test_data_dir
+        ) if test_data_dir else None
         if user_id:
             return user_id
 
@@ -58,15 +60,11 @@ def _resolve_user_id_with_retry(
             if users_dir.exists():
                 for account_file in users_dir.glob("*/account.json"):
                     account = safe_json_read(str(account_file), default={})
-                    account_internal_username = str(
-                        account.get("internal_username", "")
+                    metadata = account.get("metadata", {})
+                    account_fixture_label = str(
+                        metadata.get("fixture_label", "")
                     ).strip()
-                    account_username = str(account.get("username", "")).strip()
-                    if (
-                        account_internal_username.casefold()
-                        == internal_username.casefold()
-                        or account_username.casefold() == internal_username.casefold()
-                    ):
+                    if account_fixture_label.casefold() == fixture_label.casefold():
                         return account_file.parent.name
 
         if attempt < attempts - 1:
@@ -115,7 +113,7 @@ def _wait_for_account_features(
 
         if changed or "features" not in raw_account:
             raw_account.setdefault("user_id", user_id)
-            raw_account.setdefault("internal_username", user_id)
+            raw_account.setdefault("user_id", user_id)
             raw_account["features"] = raw_features
             save_result = save_user_data(user_id, {"account": raw_account})
             return bool(save_result.get("account"))
@@ -326,48 +324,24 @@ class TestAccountCreationDialogRealBehavior:
             ), "Should switch to Basic Information tab when messages disabled"
 
     @pytest.mark.ui
-    def test_username_validation_real_behavior(self, dialog, test_data_dir):
-        """REAL BEHAVIOR TEST: Test username validation with real UI interactions."""
-        username_edit = dialog.ui.lineEdit_username
+    def test_preferred_name_capture_real_behavior(self, dialog, test_data_dir):
+        """REAL BEHAVIOR TEST: Test preferred-name capture with real UI interactions."""
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
 
         # [OK] VERIFY INITIAL STATE: Username field should be empty
-        assert username_edit.text() == "", "Username field should be empty initially"
+        assert preferred_name_edit.text() == "", "Preferred-name field should be empty initially"
 
-        # Test entering valid username
-        QTest.keyClicks(username_edit, "testuser")
+        # Test entering a display name
+        QTest.keyClicks(preferred_name_edit, "Test User")
         QApplication.processEvents()
 
         # [OK] VERIFY REAL BEHAVIOR: Username should be captured
         assert (
-            username_edit.text() == "testuser"
-        ), "Username should be captured in field"
-        assert dialog.username == "testuser", "Username should be stored in dialog"
-
-        # Test entering invalid username (empty)
-        username_edit.clear()
-        QApplication.processEvents()
-
-        # [OK] VERIFY REAL BEHAVIOR: Validation should fail for empty username
-        is_valid, error_message = dialog.validate_input()
-        assert not is_valid, "Empty username should be invalid"
-        assert (
-            "Username is required" in error_message
-        ), "Should show username required error"
-
-        # Test entering duplicate username (if exists)
-        with patch(
-            "ui.dialogs.account_creator_dialog.get_user_id_by_identifier",
-            return_value="existing-user-id",
-        ):
-            QTest.keyClicks(username_edit, "existinguser")
-            QApplication.processEvents()
-
-            # [OK] VERIFY REAL BEHAVIOR: Duplicate username should be detected
-            is_valid, error_message = dialog.validate_input()
-            assert not is_valid, "Duplicate username should be invalid"
-            assert (
-                "Username is already taken" in error_message
-            ), "Should show duplicate username error"
+            preferred_name_edit.text() == "Test User"
+        ), "Preferred name should be captured in field"
+        assert dialog.preferred_name == "Test User", "Preferred name should be stored in dialog"
+        assert AccountCreatorDialog.validate_preferred_name_static("Test User")
+        assert not AccountCreatorDialog.validate_preferred_name_static("   ")
 
     @pytest.mark.ui
     def test_timezone_validation_real_behavior(self, dialog, test_data_dir):
@@ -379,9 +353,9 @@ class TestAccountCreationDialogRealBehavior:
             timezone_combo.currentText() != ""
         ), "Timezone should have a default selection"
 
-        # Set up username first (required for validation to proceed past username check)
-        username_edit = dialog.ui.lineEdit_username
-        QTest.keyClicks(username_edit, "testuser")
+        # Set up a display name for the form
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
+        QTest.keyClicks(preferred_name_edit, "Test User")
         QApplication.processEvents()
 
         # Ensure messages are enabled and categories are set (to avoid category validation error)
@@ -420,14 +394,14 @@ class TestAccountCreationDialogRealBehavior:
     @pytest.mark.slow
     def test_feature_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test feature validation with proper category requirements."""
-        # Set up username and timezone first (required for validation to proceed past these checks)
-        username_edit = dialog.ui.lineEdit_username
+        # Set up display name and timezone first
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        # Use unique username to avoid conflicts (UUID for better uniqueness in parallel execution)
+        # Use a unique display name for isolation.
         import uuid
 
-        unique_username = f"testuser_feature_validation_{uuid.uuid4().hex[:8]}"
-        QTest.keyClicks(username_edit, unique_username)
+        unique_username = f"Test User {uuid.uuid4().hex[:8]}"
+        QTest.keyClicks(preferred_name_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
 
@@ -504,12 +478,12 @@ class TestAccountCreationDialogRealBehavior:
     @pytest.mark.slow
     def test_messages_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test messages-specific validation when messages are enabled."""
-        # Set up username and timezone first (required for validation to proceed past these checks)
-        username_edit = dialog.ui.lineEdit_username
+        # Set up display name and timezone first
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        # Use unique username to avoid conflicts
-        unique_username = f"testuser_messages_validation_{now_timestamp_filename()}"
-        QTest.keyClicks(username_edit, unique_username)
+        # Use a unique display name for isolation
+        unique_username = f"Test User {now_timestamp_filename()}"
+        QTest.keyClicks(preferred_name_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
 
@@ -599,10 +573,10 @@ class TestAccountCreationDialogRealBehavior:
         import uuid
 
         # Set up basic required fields
-        username_edit = dialog.ui.lineEdit_username
+        preferred_name_edit = dialog.ui.lineEdit_preferred_name
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        unique_username = f"testuser_{uuid.uuid4().hex[:8]}"
-        QTest.keyClicks(username_edit, unique_username)
+        unique_username = f"Test User {uuid.uuid4().hex[:8]}"
+        QTest.keyClicks(preferred_name_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
 
@@ -648,7 +622,7 @@ class TestAccountCreationDialogRealBehavior:
                         # Create required files
                         account_data = {
                             "user_id": user_id,
-                            "internal_username": unique_username,
+                            "preferred_name": unique_username,
                             "timezone": "America/New_York",
                             "features": {
                                 "automated_messages": "enabled",
@@ -728,7 +702,7 @@ class TestAccountCreationDialogRealBehavior:
 
                     account_data = account_snapshot[0]
                     preferences_data = preferences_snapshot[0]
-                    assert account_data["internal_username"] == unique_username, "Username should be saved correctly"
+                    assert account_data["preferred_name"] == unique_username, "Preferred name should be saved correctly"
                     assert (
                         account_data["features"]["automated_messages"] == "enabled"
                     ), "Messages should be enabled in account"
@@ -827,7 +801,7 @@ class TestAccountManagementRealBehavior:
             import time
 
             time.sleep(0.1)  # Brief delay for index to update
-            actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
                 user_id, test_data_dir
             )
             if actual_user_id is None:
@@ -843,7 +817,7 @@ class TestAccountManagementRealBehavior:
                             try:
                                 with open(account_file, encoding="utf-8") as f:
                                     account_data = json.load(f)
-                                    if account_data.get("internal_username") == user_id:
+                                    if account_data.get("user_id") == user_id:
                                         actual_user_id = entry
                                         break
                             except Exception:
@@ -886,10 +860,7 @@ class TestAccountManagementRealBehavior:
         loaded_data = get_user_data(actual_user_id, "all", auto_create=True)
 
         # [OK] VERIFY REAL BEHAVIOR: User data should be loadable
-        assert loaded_data["account"]["internal_username"] in (
-            user_id,
-            "",
-        ), "Username should be present or empty prior to profile update"
+        assert loaded_data["account"]["user_id"] == actual_user_id
         assert loaded_data["context"]["preferred_name"] == "Profile User"
         assert loaded_data["context"]["gender_identity"] == ["they/them"]
 
@@ -926,14 +897,14 @@ class TestAccountManagementRealBehavior:
         preferences_data_by_user = {}
         for i in range(3):
             user_id = str(uuid.uuid4())
-            internal_username = f"indexuser{i}_{uuid.uuid4().hex[:8]}"
+            fixture_label = f"indexuser{i}_{uuid.uuid4().hex[:8]}"
             user_dir = os.path.join(test_data_dir, "users", user_id)
             os.makedirs(user_dir, exist_ok=True)
 
             # Create account data
             account_data = {
                 "user_id": user_id,
-                "internal_username": internal_username,
+                "preferred_name": fixture_label,
                 "timezone": "America/New_York",
                 "channel": {"type": "email", "contact": f"test{i}@example.com"},
                 "features": {
@@ -972,7 +943,7 @@ class TestAccountManagementRealBehavior:
                     f,
                     indent=2,
                 )
-            test_users.append((user_id, internal_username))
+            test_users.append((user_id, fixture_label))
 
         # Update user index for each user
         for user_id, _ in test_users:
@@ -1004,8 +975,8 @@ class TestAccountManagementRealBehavior:
                 return json.load(f)
 
         # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
-        # Check that each user's internal_username is mapped to their UUID in the flat index
-        for user_id, expected_internal_username in test_users:
+        # Check that each user's canonical UUID is represented in the index.
+        for user_id, _fixture_label in test_users:
             user_dir = os.path.join(test_data_dir, "users", user_id)
             user_account_file = os.path.join(
                 test_data_dir, "users", user_id, "account.json"
@@ -1046,22 +1017,14 @@ class TestAccountManagementRealBehavior:
             ), f"Account file should exist for {user_id}"
             with open(user_account_file) as f:
                 account = json.load(f)
-            internal_username = account.get("internal_username")
-            assert (
-                internal_username == expected_internal_username
-            ), f"Account internal_username should stay isolated for {user_id}"
+            assert account.get("user_id") == user_id
             assert wait_until(
-                lambda user_index_path=user_index_path, internal_username=internal_username, user_id=user_id: (
-                    os.path.exists(user_index_path)
-                    and (
-                        lambda idx, internal_username=internal_username, user_id=user_id: (
-                            internal_username in idx and idx[internal_username] == user_id
-                        )
-                    )(_load_index_data())
+                lambda user_index_path=user_index_path, user_id=user_id: (
+                    os.path.exists(user_index_path) and user_id in _load_index_data()
                 ),
                 timeout_seconds=8.0,
                 poll_seconds=0.05,
-            ), f"Index should map {internal_username} to {user_id}"
+            ), f"Index should contain canonical user id {user_id}"
 
     @pytest.mark.ui
     def test_feature_enablement_persistence_real_behavior(
@@ -1082,7 +1045,7 @@ class TestAccountManagementRealBehavior:
         assert success, f"Failed to create feature persistence test user {user_id}"
 
         # [OK] VERIFY REAL BEHAVIOR: Get the actual user ID from the test utilities
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         if actual_user_id is None:
@@ -1166,7 +1129,7 @@ class TestAccountCreationErrorHandling:
         assert success_1, f"Failed to create first duplicate test user {user_id_1}"
 
         # [OK] VERIFY REAL BEHAVIOR: Get the actual user ID for first user
-        actual_user_id_1 = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id_1 = TestUserFactory.get_test_user_id_by_label(
             user_id_1, test_data_dir
         )
         if actual_user_id_1 is None:
@@ -1190,7 +1153,7 @@ class TestAccountCreationErrorHandling:
         assert success_2, f"Failed to create second duplicate test user {user_id_2}"
 
         # [OK] VERIFY REAL BEHAVIOR: Get the actual user ID for second user
-        actual_user_id_2 = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id_2 = TestUserFactory.get_test_user_id_by_label(
             user_id_2, test_data_dir
         )
         if actual_user_id_2 is None:
@@ -1207,13 +1170,10 @@ class TestAccountCreationErrorHandling:
         assert os.path.exists(user_dir_1), "First user directory should exist"
         assert os.path.exists(user_dir_2), "Second user directory should exist"
 
-        # [OK] VERIFY REAL BEHAVIOR: Both users should have different internal_usernames (as created by enhanced utilities)
-        assert account_data_1.get("internal_username", "") in (user_id_1, "")
-        assert account_data_2.get("internal_username") == user_id_2
-        assert (
-            account_data_1.get("internal_username")
-            != account_data_2.get("internal_username")
-        )
+        # Display labels are not identity keys; canonical IDs remain distinct.
+        assert account_data_1.get("user_id") == actual_user_id_1
+        assert account_data_2.get("user_id") == actual_user_id_2
+        assert actual_user_id_1 != actual_user_id_2
 
     @pytest.mark.ui
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
@@ -1229,7 +1189,7 @@ class TestAccountCreationErrorHandling:
         # Test with invalid account data (missing required fields)
         invalid_account_data = {
             "user_id": user_id,
-            # Missing internal_username, timezone, etc.
+            # Missing required account fields, such as timezone.
         }
 
         # [OK] VERIFY REAL BEHAVIOR: Should handle invalid data gracefully
@@ -1258,19 +1218,13 @@ class TestAccountCreationErrorHandling:
                 candidate_user_dirs.append(users_dir / resolved_user_id)
             candidate_user_dirs.append(users_dir / user_id)
 
-            # Also accept any user directory whose account maps to this internal username.
+            # Also accept any user directory whose account contains the canonical id.
             if users_dir.exists():
                 for account_file in users_dir.glob("*/account.json"):
                     account_data = safe_json_read(str(account_file), default={})
-                    account_internal_username = str(
-                        account_data.get("internal_username", "")
-                    ).strip()
-                    account_username = str(account_data.get("username", "")).strip()
                     account_user_id = str(account_data.get("user_id", "")).strip()
                     if (
-                        account_internal_username == user_id
-                        or account_username == user_id
-                        or account_user_id == user_id
+                        account_user_id == user_id
                         or (resolved_user_id and account_user_id == resolved_user_id)
                     ):
                         candidate_user_dirs.append(account_file.parent)
@@ -1287,15 +1241,9 @@ class TestAccountCreationErrorHandling:
                 if users_dir.exists():
                     for account_file in users_dir.glob("*/account.json"):
                         account_data = safe_json_read(str(account_file), default={})
-                        account_internal_username = str(
-                            account_data.get("internal_username", "")
-                        ).strip()
-                        account_username = str(account_data.get("username", "")).strip()
                         account_user_id = str(account_data.get("user_id", "")).strip()
                         if (
-                            account_internal_username == user_id
-                            or account_username == user_id
-                            or account_user_id == user_id
+                            account_user_id == user_id
                             or (resolved_user_id and account_user_id == resolved_user_id)
                         ):
                             candidate_user_dirs.append(account_file.parent)
@@ -1349,7 +1297,7 @@ class TestAccountCreationErrorHandling:
         try:
             account_data = {
                 "user_id": user_id,
-                "internal_username": "fsuser",
+                "preferred_name": "Filesystem User",
                 "account_status": "active",
                 "timezone": "America/New_York",
                 "channel": {"type": "email", "contact": "fs@example.com"},
@@ -1418,12 +1366,12 @@ class TestAccountCreationIntegration:
         import uuid
 
         user_id = str(uuid.uuid4())
-        internal_username = f"test-lifecycle-user-{uuid.uuid4().hex[:8]}"
+        preferred_name = f"Lifecycle User {uuid.uuid4().hex[:8]}"
 
         # Create account data with all features enabled
         account_data = {
             "user_id": user_id,
-            "internal_username": internal_username,
+            "preferred_name": preferred_name,
             "timezone": "America/New_York",
             "channel": {"type": "discord", "contact": "test#1234"},
             "features": {
@@ -1561,9 +1509,7 @@ class TestAccountCreationIntegration:
         clear_user_caches()
         final_data = get_user_data(user_id, normalize_on_read=True)
         # [OK] VERIFY REAL BEHAVIOR: Data should persist correctly
-        assert (
-            final_data["account"]["internal_username"] == internal_username
-        ), "Username should persist"
+        assert final_data["account"]["user_id"] == user_id
         assert final_data["preferences"]["categories"] == [
             "motivational",
             "health",
@@ -1588,12 +1534,12 @@ class TestAccountCreationIntegration:
         suffix = uuid.uuid4().hex[:8]
         for i in range(3):
             user_id = str(uuid.uuid4())
-            internal_username = f"multiuser{i}_{suffix}"
+            preferred_name = f"Multi User {i} {suffix}"
 
             # Create account data with same features for all users
             account_data = {
                 "user_id": user_id,
-                "internal_username": internal_username,
+                "preferred_name": preferred_name,
                 "timezone": "America/New_York",
                 "channel": {"type": "email", "contact": f"multi{i}@example.com"},
                 "features": {
@@ -1621,10 +1567,10 @@ class TestAccountCreationIntegration:
             assert preferences_result.get(
                 "preferences"
             ), f"Preferences for user {user_id} should be created successfully"
-            test_users.append((user_id, internal_username))
+            test_users.append((user_id, preferred_name))
 
         # Update user index for each user
-        for user_id, _expected_internal_username in test_users:
+        for user_id, _preferred_name in test_users:
             try:
                 success = update_user_index(user_id)
                 # [OK] VERIFY REAL BEHAVIOR: Index update should succeed
@@ -1643,7 +1589,7 @@ class TestAccountCreationIntegration:
         ), "User index should be rebuilt successfully"
 
         # Verify all users have same features
-        for user_id, _expected_internal_username in test_users:
+        for user_id, _preferred_name in test_users:
             clear_user_caches()
             user_data = get_user_data(user_id, normalize_on_read=True)
             if "account" not in user_data:
@@ -1703,22 +1649,9 @@ class TestAccountCreationIntegration:
                 index_data = json.load(f)
 
             # [OK] VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
-            # Check that each user's internal_username is mapped to their UUID in the flat index
-            for user_id, internal_username in test_users:
-                # Get the user's account to find their internal_username
-                user_account_file = os.path.join(
-                    test_data_dir, "users", user_id, "account.json"
-                )
-                if os.path.exists(user_account_file):
-                    with open(user_account_file) as f:
-                        account = json.load(f)
-                    internal_username = account.get("internal_username")
-                    assert (
-                        internal_username in index_data
-                    ), f"User {internal_username} should be in index"
-                    assert (
-                        index_data[internal_username] == user_id
-                    ), f"Index should map {internal_username} to {user_id}"
+            # Each user's canonical UUID is indexed directly.
+            for user_id, _preferred_name in test_users:
+                assert index_data.get(user_id) == user_id
 
         except Exception:
             # If user index verification fails, that's okay for now
@@ -1748,35 +1681,21 @@ class TestAccountCreatorDialogHelperMethods:
 
     @pytest.mark.ui
     @pytest.mark.unit
-    def test_validate_username_static_validates_username(self, qapp):
-        """Test that validate_username_static validates usernames correctly."""
+    def test_validate_preferred_name_static_validates_name(self, qapp):
+        """Test that preferred-name validation accepts safe display names."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 
-        # Test valid username
-        is_valid = AccountCreatorDialog.validate_username_static("testuser")
+        # Test valid display name
+        is_valid = AccountCreatorDialog.validate_preferred_name_static("Test User")
         assert is_valid is True, "Valid username should pass"
 
-        # Test empty username
-        is_valid = AccountCreatorDialog.validate_username_static("")
+        # Test empty name
+        is_valid = AccountCreatorDialog.validate_preferred_name_static("")
         assert is_valid is False, "Empty username should fail"
 
-        # Test whitespace-only username
-        is_valid = AccountCreatorDialog.validate_username_static("   ")
+        # Test whitespace-only name
+        is_valid = AccountCreatorDialog.validate_preferred_name_static("   ")
         assert is_valid is False, "Whitespace-only username should fail"
-
-    @pytest.mark.ui
-    @pytest.mark.unit
-    def test_validate_preferred_name_static_validates_name(self, qapp):
-        """Test that validate_preferred_name_static validates preferred names."""
-        from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-
-        # Test valid name
-        is_valid = AccountCreatorDialog.validate_preferred_name_static("Test User")
-        assert is_valid is True, "Valid name should pass"
-
-        # Test empty name (returns False per implementation - name is required if provided)
-        is_valid = AccountCreatorDialog.validate_preferred_name_static("")
-        assert is_valid is False, "Empty name returns False per implementation"
 
     @pytest.mark.ui
     @pytest.mark.unit
@@ -1785,32 +1704,17 @@ class TestAccountCreatorDialogHelperMethods:
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 
         # Test valid fields
-        is_valid = AccountCreatorDialog.validate_all_fields_static(
-            "testuser", "Test User"
-        )
+        is_valid = AccountCreatorDialog.validate_all_fields_static("Test User")
         assert is_valid is True, "Valid fields should pass"
 
-        # Test invalid username
-        is_valid = AccountCreatorDialog.validate_all_fields_static("", "Test User")
-        assert is_valid is False, "Invalid username should fail"
-
-    @pytest.mark.ui
-    @pytest.mark.unit
-    def test_on_username_changed_updates_username(self, dialog):
-        """Test that on_username_changed updates username."""
-        # Arrange
-        dialog.ui.lineEdit_username.setText("newusername")
-
-        # Act
-        dialog.on_username_changed()
-
-        # Assert
-        assert dialog.username == "newusername", "Should update username"
+        # Test invalid preferred name
+        is_valid = AccountCreatorDialog.validate_all_fields_static("")
+        assert is_valid is False, "Invalid preferred name should fail"
 
     @pytest.mark.ui
     @pytest.mark.unit
     def test_on_preferred_name_changed_updates_name(self, dialog):
-        """Test that on_preferred_name_changed updates preferred name."""
+        """Test that preferred-name changes update dialog state."""
         # Arrange
         dialog.ui.lineEdit_preferred_name.setText("New Name")
 
@@ -1951,7 +1855,6 @@ class TestAccountCreatorDialogHelperMethods:
     def test_get_account_data_returns_data(self, dialog):
         """Test that get_account_data returns account data."""
         # Arrange
-        dialog.username = "testuser"
         dialog.preferred_name = "Test User"
 
         with patch.object(dialog, "validate_input", return_value=(True, "")):
@@ -1959,7 +1862,6 @@ class TestAccountCreatorDialogHelperMethods:
                 dialog, "_validate_and_accept__collect_data"
             ) as mock_collect:
                 mock_collect.return_value = {
-                    "username": "testuser",
                     "preferred_name": "Test User",
                 }
 

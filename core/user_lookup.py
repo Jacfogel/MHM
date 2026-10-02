@@ -2,7 +2,6 @@
 Resolve identifier to user_id.
 """
 
-import os
 from pathlib import Path
 
 from core.logger import get_component_logger
@@ -51,7 +50,7 @@ def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> str | None:
 @handle_errors("getting user id by identifier", default_return=None)
 def get_user_id_by_identifier(identifier: str) -> str | None:
     """
-    Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+    Get user ID by canonical UUID or an email, Discord ID, or phone number.
     """
     if not identifier:
         return None
@@ -61,16 +60,13 @@ def get_user_id_by_identifier(identifier: str) -> str | None:
 
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = safe_json_read(index_file, default={})
+        users_dir = Path(BASE_DATA_DIR) / "users" / identifier
+        if users_dir.is_dir():
+            return identifier
         if identifier in index_data:
             mapped = index_data[identifier]
             if isinstance(mapped, str) and mapped:
                 return mapped
-            try:
-                users_dir = str(Path(BASE_DATA_DIR) / "users" / identifier)
-                if os.path.isdir(users_dir):
-                    return identifier
-            except Exception:
-                pass
         email_key = f"email:{identifier}"
         if email_key in index_data:
             return index_data[email_key]
@@ -86,7 +82,6 @@ def get_user_id_by_identifier(identifier: str) -> str | None:
         )
 
     account_field_lookups = [
-        ("internal_username", "internal_username", False),
         ("email", "email", False),
         ("discord_user_id", "discord_user_id", True),
         ("phone", "phone", False),

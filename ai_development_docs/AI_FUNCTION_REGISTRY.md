@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 11:33:47
+> **Last Generated**: 2026-10-01 23:44:37
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 88.5% [!] GOOD**
-- **Total Functions**: 3070
-- **Total Methods**: 1575
-- **Documented**: 4112/4645
-- **Files Scanned**: 292
+- **Total Functions**: 3063
+- **Total Methods**: 1567
+- **Documented**: 4097/4630
+- **Files Scanned**: 293
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -24,7 +24,7 @@ User Data Operations Decision Tree:
 +-- `core/user_data_read.py` - Primary data access
 +-- `core/user_data_operations.py` - Data management
 +-- `core/user_data_validation.py` - Validation
-+-- `user/user_context.py` - User context management (20 functions)
++-- `user/user_context.py` - User context management (16 functions)
 +-- `user/user_preferences.py` - User preferences (18 functions)
 `-- `core/user_data_read.py` - Account operations```
 
@@ -207,14 +207,14 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 430 functions)
 - `checkins/` -  (7 files, 154 functions)
-- `communication/` - Communication channels and message processing (97 files, 1543 functions)
-- `core/` - System utilities and data management (39 files, 808 functions)
+- `communication/` - Communication channels and message processing (97 files, 1539 functions)
+- `core/` - System utilities and data management (40 files, 809 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)
 - `scheduler/` -  (9 files, 111 functions)
 - `storage/` -  (16 files, 144 functions)
 - `tasks/` - Task management system (16 files, 181 functions)
-- `ui/` - User interface components (43 files, 988 functions)
-- `user/` - User context and preferences (5 files, 56 functions)
+- `ui/` - User interface components (43 files, 980 functions)
+- `user/` - User context and preferences (5 files, 52 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

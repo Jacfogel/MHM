@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 11:34:17
+> **Last Generated**: 2026-10-01 23:45:10
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 290
-- **Total Imports**: 2621
-- **Standard Library**: 754 (28.8%)
+- **Files Scanned**: 291
+- **Total Imports**: 2626
+- **Standard Library**: 755 (28.8%)
 - **Third-Party**: 222 (8.5%)
-- **Local Imports**: 1645 (62.8%)
+- **Local Imports**: 1649 (62.8%)
 
 ## Dependency Decision Trees
 
@@ -36,7 +36,7 @@ AI System Dependencies:
   - ai/__init__.py <- chatbot, cache_manager, action_catalog, action_planner, command_interpreter (+11 more)
   - ai/chat/action_boundaries.py <- standard library (__future__, re), error_handling
 - Command Processing
-  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
+  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_identity, user_data_operations (+3 more)
   - communication/command_handlers/analytics_formatting.py <- standard library (typing), checkin_data_manager, error_handling
   - communication/command_handlers/analytics_handler.py <- standard library (typing), error_handling, command_handlers, base_handler, shared_types
 - Communication Integration
@@ -62,7 +62,7 @@ UI Dependencies:
   - ui/ui_app_qt.py <- standard library (functools, importlib, os, pathlib), third-party (PySide6.QtCore, PySide6.QtWidgets)
 - Dialogs
   - ui/dialog_actions.py <- standard library (collections.abc, importlib, typing), third-party (PySide6.QtWidgets)
-  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, uuid, warnings), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+7 more)
+  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, uuid, warnings), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, error_handling, dialog_helpers, category_selection_widget (+6 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, message_data_manager, logger
@@ -79,6 +79,7 @@ Communication and AI modules depend on core system modules.
 
 ### UI -> Core
 UI modules rely on core configuration and data access.
+- `ui/admin_actions.py` -> core.user_identity
 - `ui/generate_ui_files.py` -> core.error_handling, core.time_utilities
 
 ### Communication -> Communication
@@ -107,7 +108,7 @@ External libraries provide channel and UI support.
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
-- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
+- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_identity, user_data_operations (+3 more)
 - analytics_formatting: communication/command_handlers/analytics_formatting.py <- standard library (typing), checkin_data_manager, error_handling
 
 

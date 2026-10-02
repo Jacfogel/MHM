@@ -1,4 +1,4 @@
-﻿"""
+"""
 User Context Tests
 
 Tests for user/user_context.py:
@@ -6,7 +6,6 @@ Tests for user/user_context.py:
 - Thread safety
 - Load/save user data
 - Set/get user_id
-- Set/get internal_username
 - Set/get preferred_name
 - get_instance_context
 """
@@ -123,64 +122,6 @@ class TestUserContextUserID:
         """Test: get_user_id returns None when not set"""
         # Act
         result = context.get_user_id()
-        
-        # Assert
-        assert result is None, "Should return None when not set"
-
-
-@pytest.mark.user
-class TestUserContextInternalUsername:
-    """Test UserContext internal_username methods"""
-    
-    @pytest.fixture
-    def context(self):
-        """Create UserContext instance for testing"""
-        UserContext._instance = None
-        return UserContext()
-    
-    @pytest.mark.unit
-    def test_set_internal_username(self, context):
-        """Test: set_internal_username sets internal_username in user_data"""
-        # Arrange
-        username = "test_username"
-        
-        # Act
-        context.set_internal_username(username)
-        
-        # Assert
-        assert context.user_data['internal_username'] == username, "Should set internal_username"
-    
-    @pytest.mark.unit
-    def test_set_internal_username_none_clears(self, context):
-        """Test: set_internal_username with None clears value"""
-        # Arrange
-        username = "test_username"
-        context.set_internal_username(username)
-        
-        # Act
-        context.set_internal_username(None)
-        
-        # Assert
-        assert context.user_data['internal_username'] is None, "Should clear internal_username"
-    
-    @pytest.mark.unit
-    def test_get_internal_username_returns_username(self, context):
-        """Test: get_internal_username returns internal_username"""
-        # Arrange
-        username = "test_username"
-        context.set_internal_username(username)
-        
-        # Act
-        result = context.get_internal_username()
-        
-        # Assert
-        assert result == username, "Should return internal_username"
-    
-    @pytest.mark.unit
-    def test_get_internal_username_returns_none_when_not_set(self, context):
-        """Test: get_internal_username returns None when not set"""
-        # Act
-        result = context.get_internal_username()
         
         # Assert
         assert result is None, "Should return None when not set"

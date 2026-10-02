@@ -386,13 +386,6 @@ def validate_user_update(
             if validation_errors:
                 errors.extend(validation_errors)
 
-            # Additional strict validation for critical fields
-            if (
-                "internal_username" in updates
-                and not updates["internal_username"].strip()
-            ):
-                errors.append("internal_username cannot be empty")
-
             if "channel" in updates:
                 channel = updates["channel"]
                 if isinstance(channel, dict) and "type" in channel:
@@ -633,8 +626,6 @@ def validate_new_user_data(
     if not account:
         errors.append("account data is required for new user creation")
     else:
-        if not account.get("internal_username"):
-            errors.append("internal_username is required for new user creation")
         if account.get("email") and not is_valid_email(account["email"]):
             errors.append("Invalid email format")
         if "account_status" in account and account["account_status"] not in [

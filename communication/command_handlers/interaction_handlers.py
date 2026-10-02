@@ -12,6 +12,7 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.user_identity import user_display_label
 from core import get_user_data
 
 from communication.command_handlers.shared_types import (
@@ -338,7 +339,10 @@ class HelpHandler(InteractionHandler):
             )
 
         # Get user info
-        username = account_data.get("internal_username", "Unknown")
+        context_result = get_user_data(user_id, "context")
+        display_label = user_display_label(
+            user_id, account_data, context_result.get("context", {})
+        )
         features = account_data.get("features", {})
 
         # Get active tasks
@@ -349,11 +353,11 @@ class HelpHandler(InteractionHandler):
         checkins_enabled = is_user_checkins_enabled(user_id)
 
         # Build status response
-        response = f"**System Status for {username}** 🌟\n\n"
+        response = f"**System Status for {display_label}** 🌟\n\n"
 
         # Account status
         response += "👤 **Account Status:**\n"
-        response += f"• Username: {username}\n"
+        response += f"• Account ID: {user_id}\n"
         response += "• Account: Active ✅\n"
         response += f"• Timezone: {account_data.get('timezone', 'Not set')}\n\n"
 
@@ -410,13 +414,16 @@ class HelpHandler(InteractionHandler):
             )
 
         # Get user info
-        username = account_data.get("internal_username", "Unknown")
+        context_result = get_user_data(user_id, "context")
+        display_label = user_display_label(
+            user_id, account_data, context_result.get("context", {})
+        )
 
         # Get recent check-ins (as a proxy for recent messages)
         recent_checkins = get_recent_checkins(user_id, limit=5)
 
         # Build messages response
-        response = f"**Messages for {username}** 📬\n\n"
+        response = f"**Messages for {display_label}** 📬\n\n"
 
         # Message settings
         response += "📧 **Message Settings:**\n"

@@ -122,7 +122,7 @@ class TestCheckinManagementDialogInitialization:
         )
         actual_user_id = None
         for _ in range(40):
-            actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
                 user_id, test_data_dir
             )
             if actual_user_id is None:

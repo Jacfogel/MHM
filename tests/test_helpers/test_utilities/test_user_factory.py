@@ -126,7 +126,6 @@ class TestUserFactory:
         """Create account data structure."""
         return {
             "user_id": actual_user_id,
-            "internal_username": user_id,
             "account_status": "active",
             "chat_id": user_data.get("chat_id", ""),
             "phone": user_data.get("phone", ""),
@@ -150,6 +149,7 @@ class TestUserFactory:
                 ),
             },
             "timezone": user_data.get("timezone", ""),
+            "metadata": {"fixture_label": user_id},
         }
 
     @staticmethod
@@ -284,9 +284,9 @@ class TestUserFactory:
         discord_user_id: str | None = None,
         email: str | None = None,
     ):
-        """Update user index to map internal_username to UUID.
+        """Update the test index with UUID and optional contact mappings.
 
-        Also adds mappings for Discord user ID and email if provided.
+        Adds mappings for Discord user ID and email when provided.
         Uses in-process mutex plus file locking for parallel test execution.
         """
         from core.file_locking import file_lock
@@ -312,7 +312,7 @@ class TestUserFactory:
                         except (json.JSONDecodeError, OSError, UnicodeDecodeError):
                             user_index = {}
 
-                        user_index[user_id] = actual_user_id
+                        user_index[actual_user_id] = actual_user_id
 
                         if discord_user_id:
                             user_index[f"discord:{discord_user_id}"] = actual_user_id
@@ -428,7 +428,6 @@ class TestUserFactory:
                 # AND ensure checkin/task settings match current parameters (for correctness)
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Test User {user_id}"
                 # Ensure checkin and task settings match current parameters
@@ -437,7 +436,6 @@ class TestUserFactory:
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -540,7 +538,6 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 # CRITICAL: Always set discord_user_id explicitly, don't rely on cached value
                 user_data["discord_user_id"] = discord_user_id
@@ -553,7 +550,6 @@ class TestUserFactory:
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -649,13 +645,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Full Featured User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -720,7 +714,7 @@ class TestUserFactory:
                 user_id, user_data, test_data_dir
             )
 
-            # Update user index to map internal_username to UUID (critical for UUID resolution)
+            # Update the canonical UUID/contact index.
             TestUserFactory.create_basic_user__update_index(
                 test_data_dir, user_id, actual_user_id
             )
@@ -745,7 +739,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -863,13 +856,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = email
                 user_data["preferred_name"] = f"Email User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": email,
@@ -934,7 +925,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": email,
@@ -1040,7 +1030,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1184,7 +1173,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1501,13 +1489,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Minimal User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -1568,7 +1554,6 @@ class TestUserFactory:
         try:
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1626,7 +1611,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1676,7 +1660,6 @@ class TestUserFactory:
             from core import create_new_user
 
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1758,13 +1741,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Complex Checkins User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -1843,7 +1824,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -1948,13 +1928,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Health Focus User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -2036,7 +2014,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -2139,13 +2116,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Task Focus User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -2216,7 +2191,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -2308,13 +2282,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
                 user_data["preferred_name"] = f"Disability User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": f"{user_id}@example.com",
@@ -2384,7 +2356,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
@@ -2482,13 +2453,11 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 # Limited data users should have empty preferred_name (not a generated name)
                 user_data["preferred_name"] = ""
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "",
                     "email": "",
@@ -2549,7 +2518,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
                 "email": "",
@@ -2638,12 +2606,10 @@ class TestUserFactory:
                 # Use cached data structure but update user_id-specific fields
                 # Use deepcopy to avoid modifying the cached template
                 user_data = copy.deepcopy(cached_data)
-                user_data["internal_username"] = user_id
                 user_data["preferred_name"] = f"Inconsistent User {user_id}"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
-                    "internal_username": user_id,
                     "chat_id": "",
                     "phone": "3062619228",
                     "email": "",
@@ -2704,7 +2670,6 @@ class TestUserFactory:
 
             # Create user data in the format expected by create_new_user
             user_data = {
-                "internal_username": user_id,
                 "chat_id": "",
                 "phone": "3062619228",
                 "email": "",
@@ -2749,48 +2714,32 @@ class TestUserFactory:
 
     @staticmethod
     def get_test_user_data(user_id: str, test_data_dir: str) -> dict[str, Any]:
-        """Get user data from test directory"""
+        """Load fixture data by canonical UUID or fixture-only label."""
         try:
-            # First try to find the user by internal username in the user index
-            user_index_file = os.path.join(test_data_dir, "user_index.json")
-            if os.path.exists(user_index_file):
-                with open(user_index_file, encoding="utf-8") as f:
-                    user_index = json.load(f)
+            users_dir = os.path.join(test_data_dir, "users")
+            direct_dir = os.path.join(users_dir, user_id)
+            actual_user_id = (
+                user_id
+                if os.path.isdir(direct_dir)
+                else TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+            )
+            if not actual_user_id:
+                return {}
 
-                if user_id in user_index:
-                    actual_user_id = user_index[user_id]
-                    user_dir = os.path.join(test_data_dir, "users", actual_user_id)
-
-                    # Load all user data files
-                    result = {}
-
-                    # Load account data
-                    account_file = os.path.join(user_dir, "account.json")
-                    if os.path.exists(account_file):
-                        with open(account_file, encoding="utf-8") as f:
-                            result["account"] = json.load(f)
-
-                    # Load preferences data
-                    preferences_file = os.path.join(user_dir, "preferences.json")
-                    if os.path.exists(preferences_file):
-                        with open(preferences_file, encoding="utf-8") as f:
-                            result["preferences"] = json.load(f)
-
-                    # Load context data
-                    context_file = os.path.join(user_dir, "user_context.json")
-                    if os.path.exists(context_file):
-                        with open(context_file, encoding="utf-8") as f:
-                            result["context"] = json.load(f)
-
-                    # Load schedules data
-                    schedules_file = os.path.join(user_dir, "schedules.json")
-                    if os.path.exists(schedules_file):
-                        with open(schedules_file, encoding="utf-8") as f:
-                            result["schedules"] = json.load(f)
-
-                    return result
-
-            return {}
+            user_dir = os.path.join(users_dir, actual_user_id)
+            result = {}
+            for data_type, filename in (
+                ("account", "account.json"),
+                ("preferences", "preferences.json"),
+                ("context", "user_context.json"),
+                ("schedules", "schedules.json"),
+            ):
+                payload_path = os.path.join(user_dir, filename)
+                if os.path.exists(payload_path):
+                    result[data_type] = TestUserFactory._read_test_json_file(
+                        payload_path
+                    )
+            return result
 
         except Exception as e:
             logger.error(f"Error getting test user data for {user_id}: {e}")
@@ -2812,42 +2761,20 @@ class TestUserFactory:
             return {}
 
     @staticmethod
-    def _account_internal_username(account_payload: dict[str, Any]) -> str | None:
-        """Return internal_username from a v2 account envelope or metadata extra."""
+    def _account_fixture_label(account_payload: dict[str, Any]) -> str | None:
+        """Return the fixture-only label from a v2 account envelope."""
         if not isinstance(account_payload, dict) or not account_payload:
             return None
-        from core.profile_v2_io import account_extra
-
-        username = account_extra(account_payload, "internal_username")
-        if isinstance(username, str) and username:
-            return username
+        metadata = account_payload.get("metadata")
+        label = metadata.get("fixture_label") if isinstance(metadata, dict) else None
+        if isinstance(label, str) and label:
+            return label
         return None
 
     @staticmethod
-    def get_test_user_id_by_internal_username(
-        internal_username: str, test_data_dir: str
-    ) -> str | None:
-        """Get user ID by internal username from test directory"""
+    def get_test_user_id_by_label(fixture_label: str, test_data_dir: str) -> str | None:
+        """Get a canonical user ID from an ephemeral fixture label."""
         try:
-            user_index_file = os.path.join(test_data_dir, "user_index.json")
-            if os.path.exists(user_index_file):
-                user_index = TestUserFactory._read_test_json_file(user_index_file)
-                mapped_user_id = user_index.get(internal_username)
-                if mapped_user_id:
-                    mapped_account_file = os.path.join(
-                        test_data_dir, "users", mapped_user_id, "account.json"
-                    )
-                    if os.path.exists(mapped_account_file):
-                        mapped_account = TestUserFactory._read_test_json_file(
-                            mapped_account_file
-                        )
-                        if (
-                            TestUserFactory._account_internal_username(mapped_account)
-                            == internal_username
-                        ):
-                            return mapped_user_id
-
-            # Fallback: scan user directories when index is missing or out-of-date
             users_dir = os.path.join(test_data_dir, "users")
             if os.path.exists(users_dir):
                 for entry in os.listdir(users_dir):
@@ -2856,20 +2783,13 @@ class TestUserFactory:
                     if not os.path.exists(account_file):
                         continue
                     account_data = TestUserFactory._read_test_json_file(account_file)
-                    if (
-                        TestUserFactory._account_internal_username(account_data)
-                        == internal_username
-                    ):
-                        # Update the index so future lookups are fast and consistent
-                        TestUserFactory.create_basic_user__update_index(
-                            test_data_dir, internal_username, entry
-                        )
+                    if TestUserFactory._account_fixture_label(account_data) == fixture_label:
                         return entry
 
             return None
 
         except Exception as e:
-            logger.error(f"Error getting test user ID for {internal_username}: {e}")
+            logger.error(f"Error getting test user ID for {fixture_label}: {e}")
             return None
 
     @staticmethod

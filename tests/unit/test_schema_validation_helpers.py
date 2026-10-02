@@ -26,7 +26,6 @@ def test_validate_account_v2_normalizes_features_when_validation_fails(features,
     bad_account = {
         "schema_version": 2,
         "updated_at": "2026-08-25 12:00:00",
-        "internal_username": "tester",
         "features": features,
         "extra_field": "preserve",
     }

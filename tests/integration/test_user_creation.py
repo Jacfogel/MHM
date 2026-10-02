@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive tests for user creation and management scenarios.
 
 Tests all the possibilities and options for user creation, including:
@@ -33,16 +33,16 @@ def _schedule_categories_from_loaded(schedules: dict) -> dict:
     return categories if isinstance(categories, dict) else schedules
 
 
-def _resolve_created_user_id(internal_username: str, test_data_dir: str) -> str:
+def _resolve_created_user_id(fixture_label: str, test_data_dir: str) -> str:
     """Resolve factory-created user to UUID; sync index for this user only."""
     from core import get_user_id_by_identifier
     from storage.user_data_operations import update_user_index
 
     # Prefer test_data_dir lookup: global index can be stale under parallel xdist.
     actual_user_id = (
-        TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
-        or get_user_id_by_identifier(internal_username)
-        or internal_username
+        TestUserFactory.get_test_user_id_by_label(fixture_label, test_data_dir)
+        or get_user_id_by_identifier(fixture_label)
+        or fixture_label
     )
     if actual_user_id:
         update_user_index(actual_user_id)
@@ -80,13 +80,9 @@ class TestUserCreationScenarios:
     @pytest.mark.file_io
     def test_basic_email_user_creation(self, test_data_dir, mock_config):
         """Test creating a basic email user with minimal settings."""
-        import uuid
-        user_id = f'test-basic-email-{uuid.uuid4().hex[:8]}'
-        
         # Create test user directly using create_new_user
         from core import create_new_user
         user_data = {
-            "internal_username": user_id,
             "email": 'basic@example.com',
             "channel": {"type": "email"},
             "categories": ["motivational", "health"],
@@ -184,7 +180,7 @@ class TestUserCreationScenarios:
         
         # Get the UUID for the user
         from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = get_user_id_by_identifier(f"{user_id}@example.com")
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify complex data can be loaded
@@ -217,9 +213,8 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
-            user_id, test_data_dir
-        )
+        from core import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(f"{user_id}@example.com")
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify schedule data can be loaded
@@ -292,7 +287,6 @@ class TestUserCreationValidation:
         # Missing required fields
         incomplete_account = {
             'user_id': user_id,
-            # Missing internal_username
             'account_status': 'active'
             # Missing channel type
         }
@@ -326,7 +320,6 @@ class TestUserCreationErrorHandling:
         # Create first user
         account_data = {
             'user_id': user_id,
-            'internal_username': 'duplicateuser',
             'account_status': 'active',
             'channel': {'type': 'email', 'contact': 'test@example.com'}
         }
@@ -359,7 +352,6 @@ class TestUserCreationErrorHandling:
         
         account_data = {
             'user_id': invalid_user_id,
-            'internal_username': 'testuser',
             'account_status': 'active',
             'channel': {'type': 'email', 'contact': 'test@example.com'}
         }
@@ -405,7 +397,7 @@ class TestUserCreationIntegration:
         # 1. Create user
         account_data = {
             'user_id': user_id,
-            'internal_username': 'lifecycleuser',
+            'email': 'lifecycle@example.com',
             'account_status': 'active',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'lifecycle@example.com'}
@@ -442,7 +434,7 @@ class TestUserCreationIntegration:
 
         loaded_data = get_user_data(actual_user_id, 'all', auto_create=True)
         assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
-        assert loaded_data['account']['internal_username'] == 'lifecycleuser'
+        assert loaded_data['account']['email'] == 'lifecycle@example.com'
         
         # 3. Update user preferences
         updated_preferences = {
@@ -504,7 +496,7 @@ class TestUserCreationIntegration:
         for user in users:
             account_data = {
                 'user_id': user['id'],
-                'internal_username': user['username'],
+                'email': user['email'],
                 'account_status': 'active',
                 'channel': {'type': 'email', 'contact': user['email']}
             }
@@ -543,7 +535,6 @@ class TestUserCreationIntegration:
         # Account with all channel types (should choose one)
         account_data = {
             'user_id': user_id,
-            'internal_username': 'allfeaturesuser',
             'account_status': 'active',
             'timezone': 'UTC',
             'channel': {

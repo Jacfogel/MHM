@@ -720,7 +720,7 @@ class TestBackupManagerBehavior:
 
         actual_user_uuids = []
         for user_id in created_user_ids:
-            resolved_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+            resolved_uuid = TestUserFactory.get_test_user_id_by_label(
                 user_id, self.test_data_dir
             ) or get_user_id_by_identifier(user_id)
             if resolved_uuid and resolved_uuid != user_id:

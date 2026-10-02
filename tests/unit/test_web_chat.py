@@ -18,7 +18,7 @@ ORIGIN = "http://localhost:8080"
 class Accounts:
     def __init__(self):
         self.user = {
-            "internal_username": "river",
+            "test_label": "river",
             "email": "river@example.com",
             "account_status": "active",
         }

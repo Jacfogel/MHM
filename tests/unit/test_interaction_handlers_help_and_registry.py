@@ -111,15 +111,19 @@ class TestHelpHandler:
         assert response.completed is True
 
     def test_handle_status_with_registered_account(self, monkeypatch):
-        monkeypatch.setattr(
-            "communication.command_handlers.interaction_handlers.get_user_data",
-            lambda user_id, data_type: {
+        def get_profile_data(user_id, data_type):
+            if data_type == "context":
+                return {"context": {"preferred_name": "julie"}}
+            return {
                 "account": {
-                    "internal_username": "julie",
                     "timezone": "America/Regina",
                     "features": {"tasks": "enabled", "checkins": "disabled"},
                 }
-            },
+            }
+
+        monkeypatch.setattr(
+            "communication.command_handlers.interaction_handlers.get_user_data",
+            get_profile_data,
         )
         monkeypatch.setattr(
             "tasks.load_active_tasks",
@@ -147,7 +151,11 @@ class TestHelpHandler:
     def test_handle_messages_with_recent_activity(self, monkeypatch):
         monkeypatch.setattr(
             "communication.command_handlers.interaction_handlers.get_user_data",
-            lambda user_id, data_type: {"account": {"internal_username": "julie"}},
+            lambda user_id, data_type: (
+                {"context": {"preferred_name": "julie"}}
+                if data_type == "context"
+                else {"account": {"account_status": "active"}}
+            ),
         )
         monkeypatch.setattr(
             "checkins.checkin_data_manager.get_recent_checkins",
@@ -171,7 +179,11 @@ class TestHelpHandler:
     def test_handle_messages_with_no_recent_activity(self, monkeypatch):
         monkeypatch.setattr(
             "communication.command_handlers.interaction_handlers.get_user_data",
-            lambda user_id, data_type: {"account": {"internal_username": "julie"}},
+            lambda user_id, data_type: (
+                {"context": {"preferred_name": "julie"}}
+                if data_type == "context"
+                else {"account": {"account_status": "active"}}
+            ),
         )
         monkeypatch.setattr(
             "checkins.checkin_data_manager.get_recent_checkins",

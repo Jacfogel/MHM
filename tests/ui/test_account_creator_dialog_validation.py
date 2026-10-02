@@ -15,47 +15,30 @@ import pytest
 class TestAccountCreatorDialogValidation:
     """Test AccountCreatorDialog validation methods directly."""
     
-    def test_username_validation_valid(self):
-        """Test username validation with valid usernames."""
+    def test_preferred_name_validation_accepts_display_names(self):
+        """Test preferred-name validation with valid display names."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
-        # Test various valid usernames
-        valid_usernames = [
-            "testuser",
-            "user123", 
-            "test_user",
-            "user-test",
-            "a",  # minimum length
-            "a" * 50,  # maximum length
-        ]
+        valid_names = ["Test User", "Jean-Pierre", "José", "李小明", "a", "a" * 100]
         
-        for username in valid_usernames:
-            # Test the validation method directly without instantiating the dialog
-            result = AccountCreatorDialog.validate_username_static(username)
-            assert result, f"Username '{username}' should be valid"
+        for name in valid_names:
+            result = AccountCreatorDialog.validate_preferred_name_static(name)
+            assert result, f"Preferred name '{name}' should be valid"
     
-    def test_username_validation_invalid(self):
-        """Test username validation with invalid usernames."""
+    def test_preferred_name_validation_rejects_invalid_names(self):
+        """Test preferred-name validation with invalid names."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
-        invalid_usernames = [
-            "",  # empty
-            "a" * 51,  # too long
-            "user@test",  # invalid character
-            "user space",  # space
-            "user.name",  # dot
-            "user/name",  # slash
-            "user\\name",  # backslash
-        ]
+        invalid_names = ["", "   ", "a" * 101, "John@Doe", "John/Doe", "John\\Doe"]
         
-        for username in invalid_usernames:
-            result = AccountCreatorDialog.validate_username_static(username)
-            assert not result, f"Username '{username}' should be invalid"
-    
+        for name in invalid_names:
+            result = AccountCreatorDialog.validate_preferred_name_static(name)
+            assert not result, f"Preferred name '{name}' should be invalid"
+
     def test_preferred_name_validation_valid(self):
         """Test preferred name validation with valid names."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        
+
         valid_names = [
             "John",
             "Mary Jane",
@@ -91,20 +74,12 @@ class TestAccountCreatorDialogValidation:
         """Test static validation when all fields are valid."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
-        result = AccountCreatorDialog.validate_all_fields_static("testuser", "Test User")
+        result = AccountCreatorDialog.validate_all_fields_static("Test User")
         assert result, "All valid fields should pass validation"
-    
-    def test_validate_all_fields_static_invalid_username(self):
-        """Test static validation when username is invalid."""
-        from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        
-        result = AccountCreatorDialog.validate_all_fields_static("", "Test User")
-        assert not result, "Invalid username should fail validation"
-    
+
     def test_validate_all_fields_static_invalid_preferred_name(self):
         """Test static validation when preferred name is invalid."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        
-        result = AccountCreatorDialog.validate_all_fields_static("testuser", "")
-        assert not result, "Invalid preferred name should fail validation"
 
+        result = AccountCreatorDialog.validate_all_fields_static("")
+        assert not result, "Invalid preferred name should fail validation"

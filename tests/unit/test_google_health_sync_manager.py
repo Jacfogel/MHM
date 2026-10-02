@@ -7,7 +7,6 @@ import pytest
 
 from core import update_user_account
 from core.error_handling import CommunicationError
-from core.user_lookup import get_user_id_by_identifier
 from integrations.google_health.data_handlers import (
     delete_user_health_data,
     ensure_health_directory,
@@ -23,11 +22,15 @@ from integrations.google_health.sync_manager import (
 from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
 
-def _indexed_factory_user(username: str, test_data_dir: str) -> str:
-    """Create a factory user and return the on-disk UUID, not the username."""
-    assert TestUserFactory.create_basic_user(username, test_data_dir=test_data_dir)
-    user_id = get_user_id_by_identifier(username)
-    assert user_id, f"factory did not index user {username!r}"
+def _indexed_factory_user(fixture_label: str, test_data_dir: str) -> str:
+    """Create a factory user and return its canonical on-disk UUID."""
+    assert TestUserFactory.create_basic_user(
+        fixture_label, test_data_dir=test_data_dir
+    )
+    user_id = TestUserFactory.get_test_user_id_by_label(
+        fixture_label, test_data_dir
+    )
+    assert user_id, f"factory did not resolve fixture {fixture_label!r}"
     return user_id
 
 

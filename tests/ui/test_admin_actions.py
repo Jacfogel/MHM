@@ -27,7 +27,7 @@ def test_build_all_users_summary_uses_user_data_sections():
 
     def fake_get_user_data(user_id, section, **_kwargs):
         data = {
-            "account": {"account": {"internal_username": "test-user"}},
+            "account": {"account": {"user_id": "user-1"}},
             "context": {"context": {"preferred_name": "Tester"}},
             "preferences": {
                 "preferences": {
@@ -42,7 +42,8 @@ def test_build_all_users_summary_uses_user_data_sections():
         summary = actions._build_all_users_summary(["user-1"])
 
     assert "Total users: 1" in summary
-    assert "User: test-user (Tester)" in summary
+    assert "User: Tester" in summary
+    assert "ID: user-1" in summary
     assert "Service: discord" in summary
     assert "Categories: health, work" in summary
 

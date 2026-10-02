@@ -257,7 +257,7 @@ class TestCustomQuestions:
         # Get the actual user_id (UUID) after creation
         self.user_id = (
             get_user_id_by_identifier(username)
-            or TestUserFactory.get_test_user_id_by_internal_username(
+            or TestUserFactory.get_test_user_id_by_label(
                 username, self.test_data_dir
             )
             or username
@@ -409,7 +409,7 @@ class TestAnalyticsWithNewQuestions:
         # Get the actual user_id (UUID) after creation
         self.user_id = (
             get_user_id_by_identifier(username)
-            or TestUserFactory.get_test_user_id_by_internal_username(
+            or TestUserFactory.get_test_user_id_by_label(
                 username, self.test_data_dir
             )
             or username

@@ -22,7 +22,9 @@ class FeatureSelectionView(discord.ui.View):
     """View for selecting account features during creation."""
 
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
-    def __init__(self, username: str, discord_user_id: str, timeout: float = 300.0):
+    def __init__(
+        self, preferred_name: str, discord_user_id: str, timeout: float = 300.0
+    ):
         """
         Initialize the feature selection view for account creation.
 
@@ -30,12 +32,12 @@ class FeatureSelectionView(discord.ui.View):
         account features (tasks, check-ins, messages, timezone) during account creation.
 
         Args:
-            username: The username for the account being created
+            preferred_name: The display name for the account being created
             discord_user_id: The Discord user ID of the account creator
             timeout: View timeout in seconds (default: 300.0)
         """
         super().__init__(timeout=timeout)
-        self.username = username
+        self.preferred_name = preferred_name
         self.discord_user_id = discord_user_id
         self.tasks_enabled = True  # Default
         self.checkins_enabled = True  # Default
@@ -260,7 +262,7 @@ class CreateAccountButton(discord.ui.Button):
         parsed_command = ParsedCommand(
             intent="create_account",
             entities={
-                "username": self.parent_view.username,
+                "preferred_name": self.parent_view.preferred_name,
                 "channel_identifier": self.parent_view.discord_user_id,
                 "channel_type": "discord",
                 "tasks_enabled": self.parent_view.tasks_enabled,
@@ -269,7 +271,7 @@ class CreateAccountButton(discord.ui.Button):
                 "timezone": self.parent_view.timezone,
             },
             confidence=1.0,
-            original_message=f"create account {self.parent_view.username}",
+            original_message=f"create account {self.parent_view.preferred_name}",
         )
 
         response = _account_handler.handle(
@@ -281,14 +283,14 @@ class CreateAccountButton(discord.ui.Button):
 
         if response.completed:
             logger.info(
-                f"Created new MHM account for Discord user {self.parent_view.discord_user_id}: {self.parent_view.username}"
+                f"Created new MHM account for Discord user {self.parent_view.discord_user_id}: {self.parent_view.preferred_name}"
             )
             # Update the original message to show it's complete (gracefully handle failures)
             try:
                 if interaction.message:
                     await interaction.message.edit(
                         content=f"✅ **Account created successfully!**\n\n"
-                        f"Username: `{self.parent_view.username}`\n"
+                        f"Preferred name: `{self.parent_view.preferred_name}`\n"
                         f"Features enabled:\n"
                         f"• Task Management: {'✅' if self.parent_view.tasks_enabled else '❌'}\n"
                         f"• Check-ins: {'✅' if self.parent_view.checkins_enabled else '❌'}\n"
@@ -339,27 +341,17 @@ async def start_account_creation_flow(
         await interaction.response.send_message(status_response.message, ephemeral=True)
         return
 
-    # Check if Discord username is available for prefilling (if unique)
-    prefilled_username = ""
-    if discord_username:
-        # Check if Discord username is unique (not already taken in MHM system)
-        # Use the handler's internal method to check username availability
-        try:
-            if not _account_handler._username_exists(discord_username):
-                prefilled_username = discord_username
-        except Exception as e:
-            logger.debug(f"Could not check username availability for prefilling: {e}")
-            # If check fails, don't prefill (safer)
-            prefilled_username = ""
+    # Discord handles are safe defaults for a display-only preferred name.
+    prefilled_name = discord_username or ""
 
     # Create a modal for account creation
     class CreateAccountModal(discord.ui.Modal, title="Create MHM Account"):
-        username_input = discord.ui.TextInput(
-            label="Username",
-            placeholder="Enter a unique username for MHM",
-            default=prefilled_username,
-            min_length=3,
-            max_length=50,
+        preferred_name_input = discord.ui.TextInput(
+            label="Preferred name",
+            placeholder="How should MHM address you?",
+            default=prefilled_name,
+            min_length=1,
+            max_length=100,
             required=True,
         )
 
@@ -367,28 +359,19 @@ async def start_account_creation_flow(
             "submitting account creation modal", context={"component": "discord"}
         )
         async def on_submit(self, modal_interaction: discord.Interaction):
-            username = self.username_input.value.strip()
+            preferred_name = self.preferred_name_input.value.strip()
 
-            # Validate username
-            if not username or len(username) < 3:
+            if not preferred_name:
                 await modal_interaction.response.send_message(
-                    "❌ Username must be at least 3 characters long.", ephemeral=True
+                    "❌ Please enter a preferred name.", ephemeral=True
                 )
                 return
 
-            # Check if username already exists
-            if _account_handler._username_exists(username):
-                await modal_interaction.response.send_message(
-                    f"❌ Username '{username}' is already taken. Please choose a different username.",
-                    ephemeral=True,
-                )
-                return
-
-            # After username is validated, show feature selection view
+            # Preferred names are display-only and do not need to be unique.
             await modal_interaction.response.send_message(
-                f"✅ Username '{username}' is available!\n\n"
-                f"Now let's configure your account. Please select which features you'd like to enable:",
-                view=FeatureSelectionView(username, discord_user_id),
+                f"✅ MHM will call you **{preferred_name}**.\n\n"
+                "Now select which features you'd like to enable:",
+                view=FeatureSelectionView(preferred_name, discord_user_id),
                 ephemeral=True,
             )
 
@@ -421,13 +404,13 @@ async def start_account_linking_flow(
         await interaction.response.send_message(status_response.message, ephemeral=True)
         return
 
-    # Create a modal for username input
+    # Create a modal for a canonical UUID or contact identifier.
     class LinkAccountModal(discord.ui.Modal, title="Link to Existing Account"):
-        username_input = discord.ui.TextInput(
-            label="MHM Username",
-            placeholder="Enter your existing MHM username",
-            min_length=3,
-            max_length=50,
+        account_identifier_input = discord.ui.TextInput(
+            label="Account ID or contact",
+            placeholder="UUID, email, Discord ID, or phone number",
+            min_length=1,
+            max_length=100,
             required=True,
         )
 
@@ -435,26 +418,25 @@ async def start_account_linking_flow(
             "submitting account linking modal", context={"component": "discord"}
         )
         async def on_submit(self, modal_interaction: discord.Interaction):
-            username = self.username_input.value.strip()
+            account_identifier = self.account_identifier_input.value.strip()
 
-            # Validate username
-            if not username or len(username) < 3:
+            if not account_identifier:
                 await modal_interaction.response.send_message(
-                    "❌ Username must be at least 3 characters long.", ephemeral=True
+                    "❌ Enter an account ID or contact identifier.", ephemeral=True
                 )
                 return
 
-            # Use channel-agnostic handler for account linking (step 1: username)
+            # Use the channel-agnostic handler for account linking.
             try:
                 parsed_command = ParsedCommand(
                     intent="link_account",
                     entities={
-                        "username": username,
+                        "account_identifier": account_identifier,
                         "channel_identifier": discord_user_id,
                         "channel_type": "discord",
                     },
                     confidence=1.0,
-                    original_message=f"link account {username}",
+                    original_message=f"link account {account_identifier}",
                 )
 
                 response = _account_handler.handle(discord_user_id, parsed_command)
@@ -490,13 +472,13 @@ async def start_account_linking_flow(
                                     parsed_command = ParsedCommand(
                                         intent="link_account",
                                         entities={
-                                            "username": username,
+                                            "account_identifier": account_identifier,
                                             "confirmation_code": entered_code,
                                             "channel_identifier": discord_user_id,
                                             "channel_type": "discord",
                                         },
                                         confidence=1.0,
-                                        original_message=f"link account {username} {entered_code}",
+                                        original_message=f"link account {account_identifier} {entered_code}",
                                     )
 
                                     link_response = _account_handler.handle(
@@ -509,7 +491,7 @@ async def start_account_linking_flow(
 
                                     if link_response.completed:
                                         logger.info(
-                                            f"Linked MHM account {username} to Discord user {discord_user_id}"
+                                            f"Linked MHM account {account_identifier} to Discord user {discord_user_id}"
                                         )
                                 except Exception as e:
                                     logger.error(

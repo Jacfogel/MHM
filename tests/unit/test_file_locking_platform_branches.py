@@ -31,7 +31,7 @@ def _restore_file_locking_platform(original_platform: str, original_fcntl) -> No
         # bound by the Unix branch.
         file_locking_mod.__dict__.pop("fcntl", None)
     else:
-        assert file_locking_mod.fcntl is original_fcntl
+        assert getattr(file_locking_mod, "fcntl") is original_fcntl  # noqa: B009
 
 
 @pytest.fixture
@@ -40,8 +40,12 @@ def unix_file_locking_module(monkeypatch):
     original_platform = sys.platform
     original_fcntl = sys.modules.get("fcntl")
 
-    fake_fcntl = types.SimpleNamespace(LOCK_EX=1, LOCK_NB=2, LOCK_UN=8)
-    fake_fcntl.flock = lambda fd, flags: None
+    fake_fcntl = types.ModuleType("fcntl")
+    # Dynamic attributes keep this stand-in a real module for sys.modules and Pyright.
+    setattr(fake_fcntl, "LOCK_EX", 1)  # noqa: B010
+    setattr(fake_fcntl, "LOCK_NB", 2)  # noqa: B010
+    setattr(fake_fcntl, "LOCK_UN", 8)  # noqa: B010
+    setattr(fake_fcntl, "flock", lambda fd, flags: None)  # noqa: B010
 
     monkeypatch.setattr(sys, "platform", "linux")
     monkeypatch.setitem(sys.modules, "fcntl", fake_fcntl)
@@ -158,19 +162,22 @@ class TestFileLockingPlatformBranches:
         """A busy flock stand-in must not remain installed for the next test."""
         original_platform = sys.platform
         original_fcntl = sys.modules.get("fcntl")
-        fake_fcntl = types.SimpleNamespace(LOCK_EX=1, LOCK_NB=2, LOCK_UN=8)
+        fake_fcntl = types.ModuleType("fcntl")
+        setattr(fake_fcntl, "LOCK_EX", 1)  # noqa: B010
+        setattr(fake_fcntl, "LOCK_NB", 2)  # noqa: B010
+        setattr(fake_fcntl, "LOCK_UN", 8)  # noqa: B010
 
         def _flock_raises(fd, flags):
             raise OSError("busy")
 
-        fake_fcntl.flock = _flock_raises
+        setattr(fake_fcntl, "flock", _flock_raises)  # noqa: B010
         target = tmp_path / "after_stub.json"
         target.write_text('{"key": "value", "number": 123}', encoding="utf-8")
         try:
             sys.platform = "linux"
             sys.modules["fcntl"] = fake_fcntl
             importlib.reload(file_locking_mod)
-            assert file_locking_mod.fcntl.flock is _flock_raises
+            assert getattr(file_locking_mod, "fcntl").flock is _flock_raises  # noqa: B009
             _restore_file_locking_platform(original_platform, original_fcntl)
             assert file_locking_mod.safe_json_read(str(target)) == {
                 "key": "value",

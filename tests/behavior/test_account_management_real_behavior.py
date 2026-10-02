@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Real Behavior Testing for Account Management - MHM
 Tests actual system changes, side effects, and integration scenarios
@@ -19,14 +19,14 @@ from core.profile_v2_io import schedule_categories
 TEST_LOGGER = logging.getLogger("mhm_tests")
 
 
-def _resolve_test_user_id(internal_username: str, test_data_dir: str) -> str:
+def _resolve_test_user_id(test_label: str, test_data_dir: str) -> str:
     """Resolve internal username to UUID using index helpers (parallel-safe per user)."""
     from core import get_user_id_by_identifier
 
     return (
-        get_user_id_by_identifier(internal_username)
-        or TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
-        or internal_username
+        get_user_id_by_identifier(test_label)
+        or TestUserFactory.get_test_user_id_by_label(test_label, test_data_dir)
+        or test_label
     )
 
 # Do not modify sys.path; rely on package imports
@@ -331,7 +331,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
         
         # Test data
         account_data = {
-            "internal_username": user_id,
+            "test_label": user_id,
             "enabled_features": ["messages"]
         }
         
@@ -753,10 +753,7 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
             user_index = json.load(f)
         
         logging.getLogger("mhm_tests").debug(f"User index content: {user_index}")
-        assert f"test-user-basic-{test_id}" in user_index, "User should still be in index"
-        # User index now maps internal_username to UUID, not to object with 'active' field
-        # Check that the user exists in the index (UUID should be a string)
-        assert isinstance(user_index[f"test-user-basic-{test_id}"], str), "User index should map to UUID string"
+        assert user_index.get(basic_uuid) == basic_uuid, "Canonical UUID should remain indexed"
         
         logging.getLogger("mhm_tests").debug("User index consistency: Success")
         

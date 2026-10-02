@@ -163,7 +163,7 @@ class TestUIAppBehavior:
         user_display = "Test User - test-user"
         
         # Act - Test user selection
-        with patch('ui.ui_app_qt.get_user_data', return_value={'account': {'internal_username': 'test'}}), \
+        with patch('ui.ui_app_qt.get_user_data', return_value={'account': {'test_label': 'test'}}), \
              patch('ui.ui_app_qt.MHMManagerUI.load_ui'), \
              patch('ui.ui_app_qt.MHMManagerUI.connect_signals'), \
              patch('ui.ui_app_qt.MHMManagerUI.initialize_ui'), \

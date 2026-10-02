@@ -18,7 +18,6 @@ def base_account_envelope():
         "schema_version": 2,
         "updated_at": "2026-08-25 12:00:00",
         "user_id": "user-123",
-        "internal_username": "tester",
         "email": "not-an-email",
         "features": {
             "automated_messages": True,

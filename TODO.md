@@ -55,12 +55,6 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ### Integrations / refactor hygiene
 
-**Retire the legacy internal username field** - Remove the temporary account alias after all remaining admin, lookup, export, and migration paths use the canonical UUID and optional contact identifiers.
-- *What it means*: Migrate legacy `internal_username` reads and displays, rebuild indexes without depending on it, then remove the generated alias from new account records and schemas.
-- *Why it helps*: Keeps identity based on immutable UUIDs while preventing an internal compatibility field from becoming a second public account identity.
-- *Estimated effort*: Medium
-- *Created*: 2026-09-16
-
 **Google Health deferred leftovers (from archived plan)** - Optional follow-ups after V0/V1 ship; not required for personal use. Live monitoring checklist is in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](archive/HEALTH_INTEGRATION_PLAN.md).
 - *Created*: 2026-07-28
 - *Estimated effort*: Small-Medium (pick items as needed)

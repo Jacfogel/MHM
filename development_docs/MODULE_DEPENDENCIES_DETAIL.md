@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 11:33:59
+> **Last Generated**: 2026-10-01 23:44:50
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 290
-- **Total Imports Found**: 2621
-- **Dependencies Documented**: 290 (100% coverage)
-- **Standard Library Imports**: 754 (28.8%)
+- **Files Scanned**: 291
+- **Total Imports Found**: 2626
+- **Dependencies Documented**: 291 (100% coverage)
+- **Standard Library Imports**: 755 (28.8%)
 - **Third-Party Imports**: 222 (8.5%)
-- **Local Imports**: 1645 (62.8%)
+- **Local Imports**: 1649 (62.8%)
 - **Last Updated**: 2026-10-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 754 imports (28.8%)
+- **Standard Library**: 755 imports (28.8%)
 - **Third-Party**: 222 imports (8.5%)
-- **Local**: 1645 imports (62.8%)
+- **Local**: 1649 imports (62.8%)
 
 ## Module Dependencies by Directory
 
@@ -1223,9 +1223,10 @@
     - `communication.command_handlers.base_handler (InteractionHandler)`
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
-    - `core (create_new_user, get_all_user_ids, get_user_data, get_user_id_by_identifier, update_user_account)` (NEW)
+    - `core (create_new_user, get_user_data, get_user_id_by_identifier, update_user_account)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.user_identity (user_display_label)` (NEW)
     - `storage.user_data_operations (update_user_index)`
   - **Standard Library**:
     - `secrets`
@@ -1235,7 +1236,7 @@
   - `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger
+- Added: core, core.error_handling, core.logger, core.user_identity
 - Removed: communication/communication_channels/discord/onboarding/account_flow_handler.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1427,6 +1428,7 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.user_identity (user_display_label)` (NEW)
     - `tasks (load_active_tasks)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
@@ -1439,7 +1441,7 @@
   - `communication/message_processing/structured_command_dispatcher.py`
 
 **Dependency Changes**:
-- Added: communication.command_handlers.handler_registry, communication.command_handlers.notebook_handler, core, core.error_handling, core.logger, tasks
+- Added: communication.command_handlers.handler_registry, communication.command_handlers.notebook_handler, core, core.error_handling, core.logger, core.user_identity, tasks
 - Removed: communication/communication_channels/discord/events/interaction_router.py, communication/communication_channels/discord/ui/helpers.py, communication/message_processing/command_parser.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/interaction_manager.py, communication/message_processing/structured_command_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3536,7 +3538,6 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_operations (create_user_files)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.user_management` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `storage.user_data_operations (update_user_index)` (NEW)
     - `tasks (add_user_task_tag, setup_default_task_tags)` (NEW)
@@ -3550,7 +3551,7 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.user_management, scheduler.runtime_access, storage.user_data_operations, tasks
+- Added: core, core.config, core.error_handling, core.file_operations, core.logger, scheduler.runtime_access, storage.user_data_operations, tasks
 - Removed: ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3857,6 +3858,7 @@
   - `core/service_utilities.py`
   - `core/tags.py`
   - `core/ui_management.py`
+  - `core/user_identity.py`
   - `core/user_lookup.py`
   - `core/user_management.py`
   - `core/web_account_service.py`
@@ -4962,6 +4964,28 @@
 **Enhanced Purpose**: UI management and widget utilities
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/user_identity.py`
+- **Purpose**: Core system module for user_identity
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `typing (Any)`
+- **Used by**:
+  - `communication/command_handlers/account_handler.py`
+  - `communication/command_handlers/interaction_handlers.py`
+  - `ui/admin_actions.py`
+  - `ui/dialogs/user_analytics_dialog.py`
+  - `ui/user_list_provider.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/user_lookup.py`
 - **Purpose**: Centralized user data access and management
 - **Dependencies**:
@@ -4973,7 +4997,6 @@
     - `core.user_management (get_all_user_ids)` (NEW)
     - `storage.user_data_read (get_user_data)`
   - **Standard Library**:
-    - `os`
     - `pathlib (Path)`
 - **Used by**: None (not imported by other modules)
 
@@ -5002,7 +5025,6 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
-  - `core/admin_account_provisioning.py`
   - `core/service.py`
   - `core/user_lookup.py`
   - `integrations/google_health/sync_manager.py`
@@ -6862,6 +6884,8 @@
 #### `ui/admin_actions.py`
 - **Purpose**: User interface component for admin_actions
 - **Dependencies**:
+  - **Local**:
+    - `core.user_identity (user_display_label)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `collections.abc (Callable)`
@@ -6875,6 +6899,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
+- Added: core.user_identity
 - Removed: PySide6.QtGui, PySide6.QtWidgets, collections.abc
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6920,7 +6945,6 @@
 - **Purpose**: Dialog component for account creator dialog
 - **Dependencies**:
   - **Local**:
-    - `core (get_user_id_by_identifier)` (NEW)
     - `core.admin_account_provisioning (provision_admin_account)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
@@ -6942,7 +6966,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.admin_account_provisioning, core.error_handling, core.logger
+- Added: core.admin_account_provisioning, core.error_handling, core.logger
 - Removed: PySide6.QtCore, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7290,6 +7314,7 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
+    - `core.user_identity (user_display_label)` (NEW)
     - `ui.generated.user_analytics_dialog_pyqt (Ui_Dialog_user_analytics)`
   - **Standard Library**:
     - `os`
@@ -7298,7 +7323,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger
+- Added: core, core.error_handling, core.logger, core.user_identity
 - Removed: PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7507,10 +7532,15 @@
 #### `ui/user_list_provider.py`
 - **Purpose**: User interface component for user_list_provider
 - **Dependencies**:
+  - **Local**:
+    - `core.user_identity (account_contact_label, user_display_label)` (NEW)
   - **Standard Library**:
     - `importlib (import_module)`
     - `typing (Any)`
 - **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core.user_identity
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

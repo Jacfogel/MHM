@@ -357,7 +357,7 @@ class TestScheduleManagementBehavior:
         # Set up user data with empty schedules
         user_data = {
             "account": {
-                "internal_username": user_id,
+                "test_label": user_id,
                 "features": {"messages": True}
             },
             "schedules": {
@@ -370,7 +370,7 @@ class TestScheduleManagementBehavior:
         # Mock UserContext to return our test user ID
         mock_user_context = Mock()
         mock_user_context.get_user_id.return_value = user_id
-        mock_user_context.get_internal_username.return_value = user_id
+        mock_user_context.get_test_label.return_value = user_id
         
         # Act - Complete CRUD workflow with UserContext mocking
         with patch(
@@ -384,7 +384,7 @@ class TestScheduleManagementBehavior:
             # Update - need to update user_data to include the created period
             updated_user_data = {
                 "account": {
-                    "internal_username": user_id,
+                    "test_label": user_id,
                     "enabled_features": ["messages"]
                 },
                 "schedules": {
@@ -449,12 +449,12 @@ class TestScheduleManagementBehavior:
         # Mock UserContext
         mock_user_context = Mock()
         mock_user_context.get_user_id.return_value = user_id
-        mock_user_context.get_internal_username.return_value = user_id
+        mock_user_context.get_test_label.return_value = user_id
         
         # Set up schedule with existing period
         existing_schedule = {
             "account": {
-                "internal_username": user_id,
+                "test_label": user_id,
                 "enabled_features": ["messages"]
             },
             "schedules": {
@@ -493,7 +493,7 @@ class TestScheduleManagementBehavior:
         # Mock UserContext
         mock_user_context = Mock()
         mock_user_context.get_user_id.return_value = user_id
-        mock_user_context.get_internal_username.return_value = user_id
+        mock_user_context.get_test_label.return_value = user_id
         
         # Mock scheduler manager
         mock_scheduler = Mock()
@@ -523,7 +523,7 @@ class TestScheduleManagementBehavior:
         # Create realistic user data structure
         user_data = {
             "account": {
-                "internal_username": user_id,
+                "test_label": user_id,
                 "enabled_features": ["messages"]
             },
             "schedules": {
@@ -536,7 +536,7 @@ class TestScheduleManagementBehavior:
         # Mock UserContext
         mock_user_context = Mock()
         mock_user_context.get_user_id.return_value = user_id
-        mock_user_context.get_internal_username.return_value = user_id
+        mock_user_context.get_test_label.return_value = user_id
         
         # Act - Test with realistic user data
         with patch(
@@ -567,7 +567,7 @@ class TestScheduleManagementBehavior:
         # Mock UserContext
         mock_user_context = Mock()
         mock_user_context.get_user_id.return_value = user_id
-        mock_user_context.get_internal_username.return_value = user_id
+        mock_user_context.get_test_label.return_value = user_id
         
         # Test edge cases
         with patch(

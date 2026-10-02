@@ -21,17 +21,12 @@ class TestUIComponentsHeadless:
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         
         # Test validation methods directly
-        assert AccountCreatorDialog.validate_username_static("validuser")
-        assert not AccountCreatorDialog.validate_username_static("")
-        assert not AccountCreatorDialog.validate_username_static("user@invalid")
-        
         assert AccountCreatorDialog.validate_preferred_name_static("John Doe")
         assert not AccountCreatorDialog.validate_preferred_name_static("")
         assert not AccountCreatorDialog.validate_preferred_name_static("John@Doe")
         
-        assert AccountCreatorDialog.validate_all_fields_static("validuser", "John Doe")
-        assert not AccountCreatorDialog.validate_all_fields_static("", "John Doe")
-        assert not AccountCreatorDialog.validate_all_fields_static("validuser", "")
+        assert AccountCreatorDialog.validate_all_fields_static("John Doe")
+        assert not AccountCreatorDialog.validate_all_fields_static("")
     
     def test_checkin_management_business_logic(self):
         """Test checkin management business logic without UI dependencies."""

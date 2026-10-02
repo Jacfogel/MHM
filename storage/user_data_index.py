@@ -32,9 +32,6 @@ def _index_entries_for_account(
     """Return canonical and optional account lookup keys for one user."""
     account = account or {}
     entries: dict[str, str] = {str(user_id): str(user_id)}
-    internal_username = account.get("internal_username") or ""
-    if internal_username:
-        entries[str(internal_username)] = user_id
     email = account.get("email") or ""
     if email:
         entries[f"email:{email}"] = user_id
@@ -64,7 +61,7 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
     Update the user index with current information for a specific user.
 
     Creates flat lookup mappings for fast O(1) user lookups. The UUID is always
-    indexed; existing internal usernames and contact identifiers are optional keys.
+    indexed; contact identifiers are optional keys.
     """
     if not user_id or not isinstance(user_id, str):
         logger.error(f"Invalid user_id: {user_id}")
@@ -110,16 +107,8 @@ def update_user_index(user_id: str, index_file: str | None = None) -> bool:
                 )
             return False
 
-        internal_username = str(user_account.get("internal_username") or "")
         entries = _index_entries_for_account(user_id, user_account)
         for key, mapped_user_id in entries.items():
-            if (
-                internal_username
-                and key == internal_username
-                and key in index_data
-                and index_data[key] != user_id
-            ):
-                continue
             index_data[key] = mapped_user_id
 
         index_data["last_updated"] = now_timestamp_full()
@@ -166,8 +155,6 @@ def remove_from_index(user_id: str, index_file: str | None = None) -> bool:
 
         user_data_result = get_user_data(user_id, "account")
         user_account = user_data_result.get("account") or {}
-        internal_username = user_account.get("internal_username")
-
         for key in _index_entries_for_account(user_id, user_account):
             if key in index_data:
                 del index_data[key]
@@ -178,9 +165,7 @@ def remove_from_index(user_id: str, index_file: str | None = None) -> bool:
             logger.error(f"Failed to save user index after removing user {user_id}")
             return False
 
-        logger.info(
-            f"Removed user {user_id} (internal_username: {internal_username}) from index"
-        )
+        logger.info(f"Removed user {user_id} from index")
         return True
 
     except Exception as e:
@@ -300,7 +285,7 @@ def search_users(
         logger.error(f"Invalid search_fields: {search_fields}")
         return []
     if search_fields is None:
-        search_fields = ["internal_username", "email", "discord_user_id", "phone"]
+        search_fields = ["email", "discord_username", "discord_user_id", "phone"]
 
     if not query.strip():
         return []
@@ -353,9 +338,6 @@ def build_user_index() -> dict[str, Any]:
                         if isinstance(account_data, dict) and account_data:
                             user_info = {
                                 "user_id": user_id,
-                                "internal_username": account_data.get(
-                                    "internal_username", ""
-                                ),
                                 "preferred_name": "",
                                 "account_status": account_data.get(
                                     "account_status", "unknown"

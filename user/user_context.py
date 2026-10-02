@@ -46,7 +46,6 @@ class UserContext:
         # Store data directly in the current canonical structure.
         self.user_data = {
             "user_id": account_data.get("user_id", user_id),
-            "internal_username": account_data.get("internal_username", ""),
             "active": account_data.get("account_status") == "active",
             "preferred_name": context_data.get("preferred_name", ""),
             "chat_id": account_data.get("chat_id", ""),
@@ -76,7 +75,6 @@ class UserContext:
         # Extract data and update using current helper functions.
         account_updates = {
             "user_id": self.user_data.get("user_id", user_id),
-            "internal_username": self.user_data.get("internal_username", ""),
             "account_status": (
                 "active" if self.user_data.get("active", True) else "inactive"
             ),
@@ -129,35 +127,6 @@ class UserContext:
             str: The current user ID, or None if not set.
         """
         return self.user_data.get("user_id")
-
-    @handle_errors("setting internal username")
-    def set_internal_username(self, internal_username):
-        """
-        Sets the internal_username in the user_data dictionary.
-
-        Args:
-            internal_username (str): The internal username to be set.
-        """
-        if internal_username:
-            self.user_data["internal_username"] = internal_username
-            logger.debug(
-                f"UserContext: set_internal_username called with {internal_username}"
-            )
-        else:
-            logger.debug(
-                "UserContext: Clearing internal_username (set to None during logout)"
-            )
-            self.user_data["internal_username"] = None
-
-    @handle_errors("getting internal username", default_return=None)
-    def get_internal_username(self):
-        """
-        Retrieves the internal_username from the user_data dictionary.
-
-        Returns:
-            str: The current internal username, or None if not set.
-        """
-        return self.user_data.get("internal_username")
 
     @handle_errors("setting preferred name")
     def set_preferred_name(self, preferred_name):

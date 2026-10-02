@@ -141,7 +141,6 @@ def get_user_info_for_tracking(user_id: str) -> dict[str, Any]:
 
         return {
             "user_id": user_id,
-            "internal_username": user_account.get("internal_username", ""),
             "preferred_name": (
                 user_context.get("preferred_name", "") if user_context else ""
             ),

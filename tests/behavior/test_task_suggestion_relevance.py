@@ -13,7 +13,6 @@ from communication.message_processing.interaction_manager import handle_user_mes
 from tasks import load_active_tasks, save_active_tasks
 from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 
 
 @pytest.mark.tasks
@@ -27,7 +26,8 @@ class TestTaskSuggestionRelevance:
         """Test that 'what would you like to update' prompt has no generic suggestions."""
         user_id = "test_suggestion_suppress"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-        internal_uid = get_user_id_by_identifier(user_id)
+        internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+        assert internal_uid
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
@@ -63,7 +63,8 @@ class TestTaskSuggestionRelevance:
         """
         user_id = "test_list_edit"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-        internal_uid = get_user_id_by_identifier(user_id)
+        internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+        assert internal_uid
         
         # Create multiple tasks
         tasks = load_active_tasks(internal_uid)
@@ -96,7 +97,8 @@ class TestTaskSuggestionRelevance:
         
         user_id = "test_update_no_id"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-        internal_uid = get_user_id_by_identifier(user_id)
+        internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+        assert internal_uid
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
@@ -117,7 +119,8 @@ class TestTaskSuggestionRelevance:
         """Test that 'due' (without 'date') works for due date updates."""
         user_id = "test_due_variation"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-        internal_uid = get_user_id_by_identifier(user_id)
+        internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+        assert internal_uid
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
@@ -143,7 +146,8 @@ class TestTaskSuggestionRelevance:
         """Test that 'due date' works for due date updates."""
         user_id = "test_due_date_variation"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-        internal_uid = get_user_id_by_identifier(user_id)
+        internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+        assert internal_uid
         
         # Create a task
         tasks = load_active_tasks(internal_uid)

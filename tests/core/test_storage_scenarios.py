@@ -91,7 +91,7 @@ class TestUserDataWriteScenarios:
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         result = save_user_data(
             user_id,
-            {"account": {"timezone": None, "internal_username": user_id}},
+            {"account": {"timezone": None, "user_id": user_id}},
         )
         assert result.get("account") is True
         account = get_user_data(user_id, "account").get("account", {})
@@ -120,7 +120,7 @@ class TestUserDataWriteScenarios:
             user_id,
             {
                 "account": {
-                    "internal_username": user_id,
+                    "user_id": user_id,
                     "features": {"automated_messages": "disabled"},
                 }
             },
@@ -204,7 +204,6 @@ class TestUserDataOperationsWrappers:
             "storage.user_data_user_info.get_user_info_for_data_manager",
             return_value={
                 "user_id": uid,
-                "internal_username": "test",
                 "message_files": {},
             },
         ):

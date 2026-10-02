@@ -65,7 +65,6 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
 
         user_info = {
             "user_id": user_id,
-            "internal_username": account_data.get("internal_username", ""),
             "preferred_name": context_data.get("preferred_name", ""),
             "account_status": account_data.get("account_status", "unknown"),
             "email": account_data.get("email", ""),

@@ -287,7 +287,7 @@ def test_prepare_category_editor_loads_user_context():
 
     def fake_get_user_data(_user, section):
         if section == "account":
-            return {"account": {"internal_username": "ada"}}
+            return {"account": {"user_id": "user-1"}}
         return {"context": {"preferred_name": "Ada"}}
 
     with patch("ui.dialog_actions._require_current_user", return_value=True), \
@@ -299,7 +299,6 @@ def test_prepare_category_editor_loads_user_context():
 
     assert result == "motivational"
     context.set_user_id.assert_called_with("user-1")
-    context.set_internal_username.assert_called_once_with("ada")
     context.set_preferred_name.assert_called_once_with("Ada")
     context.load_user_data.assert_called_once_with("user-1")
 

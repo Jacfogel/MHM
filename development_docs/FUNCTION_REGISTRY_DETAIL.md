@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 11:33:47
+> **Last Generated**: 2026-10-01 23:44:37
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 292
-- **Functions Found**: 3070
-- **Methods Found**: 1575
+- **Files Scanned**: 293
+- **Functions Found**: 3063
+- **Methods Found**: 1567
 - **Classes Found**: 268
-- **Total Items**: 4645
-- **Functions Documented**: 2715
-- **Methods Documented**: 1397
+- **Total Items**: 4630
+- **Functions Documented**: 2708
+- **Methods Documented**: 1389
 - **Classes Documented**: 201
-- **Total Documented**: 4112
+- **Total Documented**: 4097
 - **Template-Generated**: 56
 - **Last Updated**: 2026-10-01
 
@@ -39,16 +39,16 @@
 
 ## Function Categories
 
-### **Core System Functions** (601)
+### **Core System Functions** (602)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (893)
+### **Communication Functions** (891)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (538)
+### **User Interface Functions** (534)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (30)
+### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (169)
@@ -1179,13 +1179,12 @@ to avoid circular dependencies with error handling infrastructure.
 #### `communication/command_handlers/account_handler.py`
 **Functions:**
 - [OK] `_generate_confirmation_code()` - Generate a 6-digit confirmation code
-- [OK] `_get_user_id_by_username(self, username)` - Get user ID by username
 - [OK] `_handle_check_account_status(self, user_id)` - Check if user has an account linked
 - [OK] `_handle_create_account(self, user_id, entities)` - Handle account creation request.
 
 Args:
     user_id: The user's internal ID (if they already have one) or channel identifier
-    entities: Command entities containing username and other account data
+    entities: Command entities containing a preferred name and account data
 
 Returns:
     InteractionResponse with account creation result
@@ -1193,7 +1192,7 @@ Returns:
 
 Args:
     user_id: The channel identifier (Discord ID, email, etc.)
-    entities: Command entities containing username and confirmation code
+    entities: Command entities containing an account identifier and confirmation code
 
 Returns:
     InteractionResponse with account linking result
@@ -1207,20 +1206,18 @@ Args:
     confirmation_code: The 6-digit confirmation code
     channel_type: The channel being linked ('discord', 'email', etc.) - used for message context
     channel_identifier: Channel-specific identifier (Discord user ID, etc.) - used for message context only
-- [OK] `_username_exists(self, username)` - Check if a username already exists in the system
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent
 - [OK] `get_examples(self)` - Get example commands for account management.
 - [OK] `get_help(self)` - Get help text for account management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle account management interactions
 **Classes:**
 - [OK] `AccountManagementHandler` - Handler for account management interactions
-  - [OK] `AccountManagementHandler._get_user_id_by_username(self, username)` - Get user ID by username
   - [OK] `AccountManagementHandler._handle_check_account_status(self, user_id)` - Check if user has an account linked
   - [OK] `AccountManagementHandler._handle_create_account(self, user_id, entities)` - Handle account creation request.
 
 Args:
     user_id: The user's internal ID (if they already have one) or channel identifier
-    entities: Command entities containing username and other account data
+    entities: Command entities containing a preferred name and account data
 
 Returns:
     InteractionResponse with account creation result
@@ -1228,11 +1225,10 @@ Returns:
 
 Args:
     user_id: The channel identifier (Discord ID, email, etc.)
-    entities: Command entities containing username and confirmation code
+    entities: Command entities containing an account identifier and confirmation code
 
 Returns:
     InteractionResponse with account linking result
-  - [OK] `AccountManagementHandler._username_exists(self, username)` - Check if a username already exists in the system
   - [OK] `AccountManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent
   - [OK] `AccountManagementHandler.get_examples(self)` - Get example commands for account management.
   - [OK] `AccountManagementHandler.get_help(self)` - Get help text for account management commands.
@@ -2155,13 +2151,13 @@ Returns:
 
 #### `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 **Functions:**
-- [OK] `__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
+- [OK] `__init__(self, preferred_name, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
 
 Creates a Discord UI view with select menus and buttons for configuring
 account features (tasks, check-ins, messages, timezone) during account creation.
 
 Args:
-    username: The username for the account being created
+    preferred_name: The display name for the account being created
     discord_user_id: The Discord user ID of the account creator
     timeout: View timeout in seconds (default: 300.0)
 - [OK] `__init__(self, parent_view)` - Initialize the task management feature select menu.
@@ -2243,13 +2239,13 @@ Args:
 - [MISSING] `CreateAccountModal` - No description
   - [MISSING] `CreateAccountModal.on_submit(self, modal_interaction)` - No description
 - [OK] `FeatureSelectionView` - View for selecting account features during creation.
-  - [OK] `FeatureSelectionView.__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
+  - [OK] `FeatureSelectionView.__init__(self, preferred_name, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
 
 Creates a Discord UI view with select menus and buttons for configuring
 account features (tasks, check-ins, messages, timezone) during account creation.
 
 Args:
-    username: The username for the account being created
+    preferred_name: The display name for the account being created
     discord_user_id: The Discord user ID of the account creator
     timeout: View timeout in seconds (default: 300.0)
   - [OK] `FeatureSelectionView.on_timeout(self)` - Handle view timeout.
@@ -5491,11 +5487,16 @@ Args:
 Returns:
     Storage-formatted period name (preserve original case)
 
+#### `core/user_identity.py`
+**Functions:**
+- [OK] `account_contact_label(account)` - Return the first useful contact label from an account document.
+- [OK] `user_display_label(user_id, account, context)` - Return preferred name, contact label, or the canonical UUID for display.
+
 #### `core/user_lookup.py`
 **Functions:**
 - [MISSING] `_get_user_id_by_identifier__by_chat_id(chat_id)` - No description
 - [OK] `_scan_user_accounts_for_field(field_name, value, label)` - Fallback directory scan for account fields not found in user_index.json.
-- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+- [OK] `get_user_id_by_identifier(identifier)` - Get user ID by canonical UUID or an email, Discord ID, or phone number.
 
 #### `core/user_management.py`
 **Functions:**
@@ -5511,7 +5512,6 @@ Returns:
 
 Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
-- [OK] `generate_internal_alias(user_id)` - Return an opaque storage alias derived from a canonical UUID.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
 
@@ -6577,7 +6577,7 @@ Returns:
 - [OK] `update_user_index(user_id, index_file)` - Update the user index with current information for a specific user.
 
 Creates flat lookup mappings for fast O(1) user lookups. The UUID is always
-indexed; existing internal usernames and contact identifiers are optional keys.
+indexed; contact identifiers are optional keys.
 
 #### `storage/user_data_operations.py`
 **Functions:**
@@ -7179,17 +7179,17 @@ Returns:
 #### `ui/dialogs/account_creator_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
-- [OK] `_validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
+- [OK] `_validate_and_accept__build_account_data(self, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
 - [OK] `_validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
 - [OK] `_validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
 - [OK] `_validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
 - [OK] `_validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
 - [OK] `_validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
 - [OK] `_validate_and_accept__create_account(self, account_data)` - Create the account via the shared provisioning service.
-- [OK] `_validate_and_accept__handle_success(self, username)` - Handle successful account creation.
+- [OK] `_validate_and_accept__handle_success(self, display_name)` - Handle successful account creation.
 - [OK] `_validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
 - [OK] `_validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
-- [OK] `_validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
+- [OK] `_validate_and_accept__show_success_dialog(self, display_name)` - Show a success dialog for account creation.
 - [OK] `accept(self)` - Override accept to prevent automatic dialog closing.
 - [OK] `center_dialog(self)` - Center the dialog on the parent window.
 - [OK] `close_dialog(self)` - Close the dialog properly.
@@ -7207,10 +7207,6 @@ Returns:
 
 Args:
     text: The new text from the textChanged signal (ignored, we read from widget)
-- [OK] `on_username_changed(self, text)` - Handle username change.
-
-Args:
-    text: The new text from the textChanged signal (ignored, we read from widget)
 - [OK] `open_personalization_dialog(self)` - Open the personalization dialog.
 - [OK] `setup_connections(self)` - Setup signal connections.
 - [OK] `setup_dialog(self)` - Set up the dialog properties.
@@ -7218,28 +7214,25 @@ Args:
 - [OK] `setup_profile_button(self)` - Setup the profile button.
 - [OK] `update_profile_button_state(self)` - Update the profile button to show if profile has been configured.
 - [OK] `update_tab_visibility(self)` - Update tab visibility based on feature enablement.
-- [OK] `username(self)` - Get username from field if not set, ensuring we always have the latest value.
-- [OK] `username(self, value)` - Set username value.
 - [OK] `validate_account_data(self)` - Validate the account data.
-- [OK] `validate_all_fields_static(username, preferred_name)` - Static method to validate all fields without UI dependencies.
+- [OK] `validate_all_fields_static(preferred_name)` - Static method to validate all fields without UI dependencies.
 - [OK] `validate_and_accept(self)` - Validate input and accept the dialog.
 - [OK] `validate_input(self)` - Validate the input and return (is_valid, error_message).
 - [OK] `validate_preferred_name_static(name)` - Static method to validate preferred name without UI dependencies.
-- [OK] `validate_username_static(username)` - Static method to validate username without UI dependencies.
 **Classes:**
 - [OK] `AccountCreatorDialog` - Account creation dialog using existing UI files.
   - [OK] `AccountCreatorDialog.__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
-  - [OK] `AccountCreatorDialog._validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
+  - [OK] `AccountCreatorDialog._validate_and_accept__build_account_data(self, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
   - [OK] `AccountCreatorDialog._validate_and_accept__create_account(self, account_data)` - Create the account via the shared provisioning service.
-  - [OK] `AccountCreatorDialog._validate_and_accept__handle_success(self, username)` - Handle successful account creation.
+  - [OK] `AccountCreatorDialog._validate_and_accept__handle_success(self, display_name)` - Handle successful account creation.
   - [OK] `AccountCreatorDialog._validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
   - [OK] `AccountCreatorDialog._validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
-  - [OK] `AccountCreatorDialog._validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
+  - [OK] `AccountCreatorDialog._validate_and_accept__show_success_dialog(self, display_name)` - Show a success dialog for account creation.
   - [OK] `AccountCreatorDialog.accept(self)` - Override accept to prevent automatic dialog closing.
   - [OK] `AccountCreatorDialog.center_dialog(self)` - Center the dialog on the parent window.
   - [OK] `AccountCreatorDialog.close_dialog(self)` - Close the dialog properly.
@@ -7255,10 +7248,6 @@ Args:
 
 Args:
     text: The new text from the textChanged signal (ignored, we read from widget)
-  - [OK] `AccountCreatorDialog.on_username_changed(self, text)` - Handle username change.
-
-Args:
-    text: The new text from the textChanged signal (ignored, we read from widget)
   - [OK] `AccountCreatorDialog.open_personalization_dialog(self)` - Open the personalization dialog.
   - [OK] `AccountCreatorDialog.setup_connections(self)` - Setup signal connections.
   - [OK] `AccountCreatorDialog.setup_dialog(self)` - Set up the dialog properties.
@@ -7266,14 +7255,11 @@ Args:
   - [OK] `AccountCreatorDialog.setup_profile_button(self)` - Setup the profile button.
   - [OK] `AccountCreatorDialog.update_profile_button_state(self)` - Update the profile button to show if profile has been configured.
   - [OK] `AccountCreatorDialog.update_tab_visibility(self)` - Update tab visibility based on feature enablement.
-  - [OK] `AccountCreatorDialog.username(self)` - Get username from field if not set, ensuring we always have the latest value.
-  - [OK] `AccountCreatorDialog.username(self, value)` - Set username value.
   - [OK] `AccountCreatorDialog.validate_account_data(self)` - Validate the account data.
-  - [OK] `AccountCreatorDialog.validate_all_fields_static(username, preferred_name)` - Static method to validate all fields without UI dependencies.
+  - [OK] `AccountCreatorDialog.validate_all_fields_static(preferred_name)` - Static method to validate all fields without UI dependencies.
   - [OK] `AccountCreatorDialog.validate_and_accept(self)` - Validate input and accept the dialog.
   - [OK] `AccountCreatorDialog.validate_input(self)` - Validate the input and return (is_valid, error_message).
   - [OK] `AccountCreatorDialog.validate_preferred_name_static(name)` - Static method to validate preferred name without UI dependencies.
-  - [OK] `AccountCreatorDialog.validate_username_static(username)` - Static method to validate username without UI dependencies.
 
 #### `ui/dialogs/admin_panel.py`
 **Functions:**
@@ -8592,10 +8578,6 @@ Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
 
 Returns:
     dict: Dictionary containing basic user context information
-- [OK] `get_internal_username(self)` - Retrieves the internal_username from the user_data dictionary.
-
-Returns:
-    str: The current internal username, or None if not set.
 - [OK] `get_preferred_name(self)` - Retrieves the preferred_name from the user_data dictionary.
 
 Returns:
@@ -8612,10 +8594,6 @@ Args:
 
 Args:
     user_id (str): The user ID whose data needs to be saved.
-- [OK] `set_internal_username(self, internal_username)` - Sets the internal_username in the user_data dictionary.
-
-Args:
-    internal_username (str): The internal username to be set.
 - [OK] `set_preferred_name(self, preferred_name)` - Sets the preferred_name in the user_data dictionary.
 
 Args:
@@ -8631,10 +8609,6 @@ Args:
 
 Returns:
     dict: Dictionary containing basic user context information
-  - [OK] `UserContext.get_internal_username(self)` - Retrieves the internal_username from the user_data dictionary.
-
-Returns:
-    str: The current internal username, or None if not set.
   - [OK] `UserContext.get_preferred_name(self)` - Retrieves the preferred_name from the user_data dictionary.
 
 Returns:
@@ -8651,10 +8625,6 @@ Args:
 
 Args:
     user_id (str): The user ID whose data needs to be saved.
-  - [OK] `UserContext.set_internal_username(self, internal_username)` - Sets the internal_username in the user_data dictionary.
-
-Args:
-    internal_username (str): The internal username to be set.
   - [OK] `UserContext.set_preferred_name(self, preferred_name)` - Sets the preferred_name in the user_data dictionary.
 
 Args:

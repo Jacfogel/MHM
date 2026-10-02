@@ -375,7 +375,7 @@ class TestDiscordBotBehavior:
         if not internal_uid:
             # In parallel/randomized runs, index writes can lag briefly.
             for _ in range(20):
-                internal_uid = TestUserFactory.get_test_user_id_by_internal_username(
+                internal_uid = TestUserFactory.get_test_user_id_by_label(
                     username, test_data_dir
                 )
                 if internal_uid:
@@ -417,7 +417,7 @@ class TestDiscordBotBehavior:
         
         # Resolve from test-owned data first to avoid stale global index collisions.
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        internal_uid = TUF.get_test_user_id_by_internal_username(username, test_data_dir)
+        internal_uid = TUF.get_test_user_id_by_label(username, test_data_dir)
         if not internal_uid:
             internal_uid = get_user_id_by_identifier(username)
         
@@ -491,7 +491,7 @@ class TestDiscordBotBehavior:
         # Fallback to TestUserFactory lookup if needed
         if not internal_uid:
             from tests.test_helpers.test_utilities import TestUserFactory as TUF
-            internal_uid = TUF.get_test_user_id_by_internal_username("task_user", test_data_dir)
+            internal_uid = TUF.get_test_user_id_by_label("task_user", test_data_dir)
         
         assert internal_uid, f"Should be able to get UUID for user 'task_user'. User creation returned: {ok}"
 
@@ -555,7 +555,7 @@ class TestDiscordBotBehavior:
             ):
                 internal_uid = get_user_id_by_identifier("fuzzy_user")
             if not internal_uid:
-                internal_uid = TestUserFactory.get_test_user_id_by_internal_username(
+                internal_uid = TestUserFactory.get_test_user_id_by_label(
                     "fuzzy_user", str(test_data_dir)
                 )
             if internal_uid:
@@ -579,12 +579,13 @@ class TestDiscordBotBehavior:
     def test_discord_response_after_task_reminder(self, test_data_dir):
         """Simulate a user replying to a reminder by completing the first task."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core import get_user_id_by_identifier
         from tasks import create_task
 
         ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
-        internal_uid = get_user_id_by_identifier("reminder_user")
+        internal_uid = TestUserFactory.get_test_user_id_by_label(
+            "reminder_user", test_data_dir
+        )
         assert internal_uid
 
         create_task(internal_uid, "Brush your teeth", due_date="2025-07-07")
@@ -686,15 +687,15 @@ class TestDiscordBotIntegration:
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
         created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"
-        from core import get_user_id_by_identifier
-        internal_uid = get_user_id_by_identifier("e2e_user")
+        internal_uid = TestUserFactory.get_test_user_id_by_label(
+            "e2e_user", test_data_dir
+        )
         assert internal_uid is not None, "Should resolve internal user id"
 
         # Load current account data and add discord_user_id
         from core import get_user_data, save_user_data
         account_result = get_user_data(internal_uid, 'account')
         acct_data = account_result.get('account', {}) or {}
-        acct_data["internal_username"] = "e2e_user"
         acct_data["discord_user_id"] = "123456789012345678"
         result = save_user_data(internal_uid, {'account': acct_data})
         ok = result.get('account', False)

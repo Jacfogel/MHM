@@ -3,6 +3,8 @@
 from importlib import import_module
 from typing import Any
 
+from core.user_identity import account_contact_label, user_display_label
+
 
 _lazy_dependencies = import_module("ui.lazy_dependencies")
 handle_errors = _lazy_dependencies.handle_errors
@@ -51,10 +53,11 @@ class UserListProvider:
             users_data.append(
                 {
                     "user_id": user_id,
-                    "internal_username": user_account.get(
-                        "internal_username", "Unknown"
-                    ),
                     "preferred_name": user_context.get("preferred_name", ""),
+                    "contact_label": account_contact_label(user_account),
+                    "display_label": user_display_label(
+                        user_id, user_account, user_context
+                    ),
                     "channel_type": user_preferences.get("channel", {}).get(
                         "type", "unknown"
                     ),
@@ -65,17 +68,15 @@ class UserListProvider:
             )
         return sorted(
             users_data,
-            key=lambda item: (
-                item["preferred_name"] or item["internal_username"],
-                item["internal_username"],
-            ),
+            key=lambda item: (item["display_label"], item["user_id"]),
         )
 
     @handle_errors("building user display name", default_return="Unknown")
     def build_user_combo_display_name(self, user_data: dict[str, Any]) -> str:
         """Create user dropdown display text including channel/features."""
         user_id = user_data["user_id"]
-        internal_username = user_data["internal_username"]
+        display_label = user_data["display_label"]
+        contact_label = user_data.get("contact_label", "")
         channel_type = user_data["channel_type"]
         enabled_features = user_data["enabled_features"]
 
@@ -97,7 +98,12 @@ class UserListProvider:
             feature_summary.append("Tasks")
 
         feature_text = f" [{', '.join(feature_summary)}]" if feature_summary else ""
-        return f"{internal_username} ({channel_type}){feature_text} - {user_id}"
+        secondary = (
+            f" / {contact_label}"
+            if contact_label and contact_label != display_label
+            else ""
+        )
+        return f"{display_label}{secondary} ({channel_type}){feature_text} - {user_id}"
 
     @handle_errors("collecting fallback user display names", default_return=[])
     def collect_fallback_display_names(self) -> list[str]:
@@ -105,23 +111,17 @@ class UserListProvider:
         display_names: list[str] = []
         for user_id in get_all_user_ids():
             user_data_result = get_user_data(user_id, "account")
-            user_account = user_data_result.get("account")
-            internal_username = (
-                user_account.get("internal_username", "Unknown")
-                if user_account
-                else "Unknown"
-            )
+            user_account = user_data_result.get("account") or {}
             context_result = get_user_data(user_id, "context")
-            user_context = context_result.get("context")
-            preferred_name = (
-                user_context.get("preferred_name", "") if user_context else ""
+            user_context = context_result.get("context") or {}
+            display_label = user_display_label(user_id, user_account, user_context)
+            contact_label = account_contact_label(user_account)
+            secondary = (
+                f" ({contact_label})"
+                if contact_label and contact_label != display_label
+                else ""
             )
-            if preferred_name:
-                display_names.append(
-                    f"{preferred_name} ({internal_username}) - {user_id}"
-                )
-            else:
-                display_names.append(f"{internal_username} - {user_id}")
+            display_names.append(f"{display_label}{secondary} - {user_id}")
         return display_names
 
     @staticmethod

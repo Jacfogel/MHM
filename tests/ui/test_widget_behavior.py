@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive behavior tests for UI widgets.
 
 Tests real behavior, user interactions, and side effects for all widgets:
@@ -60,7 +60,7 @@ class TestTagWidgetBehavior:
         assert success, f"Failed to create test user {user_id}"
         
         # Get the actual user ID (UUID) from the test data
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
         assert actual_user_id, f"Could not find actual user ID for {user_id}"
         
         # Create widget with valid user_id
@@ -134,7 +134,7 @@ class TestTagWidgetBehavior:
         assert success, f"Failed to create test user {user_id}"
         
         # Get the actual user ID (UUID) from the test data
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
         assert actual_user_id, f"Could not find actual user ID for {user_id}"
         
         # Create widget in selection mode with valid user_id
@@ -161,7 +161,7 @@ class TestTaskSettingsWidgetBehavior:
         assert success, f"Failed to create test user {user_id}"
         
         # Get the actual user ID (UUID) from the test data
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
         assert actual_user_id, f"Could not find actual user ID for {user_id}"
         
         # Create widget
@@ -329,7 +329,7 @@ class TestCheckinSettingsWidgetBehavior:
         import time
         actual_user_id = None
         for attempt in range(5):
-            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
             if actual_user_id:
                 break
             # Rebuild index if lookup fails (race condition fix)
@@ -388,7 +388,7 @@ class TestUserProfileSettingsWidgetBehavior:
         assert success, f"Failed to create test user {user_id}"
         
         # Get the actual user ID (UUID) from the test data
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
         assert actual_user_id, f"Could not find actual user ID for {user_id}"
         
         # Create widget

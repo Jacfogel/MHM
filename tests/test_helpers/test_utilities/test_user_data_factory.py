@@ -22,7 +22,6 @@ class TestUserDataFactory:
         """
         base_data = {
             "user_id": user_id,
-            "internal_username": user_id,
             "account_status": "active",
             "name": f"Test User {user_id}",
             "pronouns": "they/them",

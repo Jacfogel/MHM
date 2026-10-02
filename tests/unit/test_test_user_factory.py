@@ -1,4 +1,4 @@
-﻿"""Tests for shared test user factory helpers."""
+"""Tests for shared test user factory helpers."""
 
 import json
 import os
@@ -17,9 +17,9 @@ def test_get_test_user_id_resolves_v2_account_and_metadata_username(
 ):
     """Username lookup must work for v2 accounts without locked full-dir scans."""
     test_data_dir = test_path_factory
-    internal_username = "v2_lookup_user"
+    fixture_label = "v2_lookup_user"
     success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
-        internal_username, test_data_dir=test_data_dir
+        fixture_label, test_data_dir=test_data_dir
     )
     assert success
     assert actual_user_id
@@ -33,12 +33,12 @@ def test_get_test_user_id_resolves_v2_account_and_metadata_username(
     # Production account.json is a v2 envelope with top-level identity fields.
     assert account_payload.get("schema_version") == 2
     assert (
-        TestUserFactory._account_internal_username(account_payload)
-        == internal_username
+        TestUserFactory._account_fixture_label(account_payload)
+        == fixture_label
     )
     assert (
-        TestUserFactory.get_test_user_id_by_internal_username(
-            internal_username, test_data_dir
+        TestUserFactory.get_test_user_id_by_label(
+            fixture_label, test_data_dir
         )
         == actual_user_id
     )
@@ -48,11 +48,11 @@ def test_get_test_user_id_resolves_v2_account_and_metadata_username(
         "schema_version": 2,
         "updated_at": "2026-07-27 00:00:00",
         "user_id": actual_user_id,
-        "metadata": {"internal_username": internal_username},
+        "metadata": {"fixture_label": fixture_label},
     }
     assert (
-        TestUserFactory._account_internal_username(metadata_only)
-        == internal_username
+        TestUserFactory._account_fixture_label(metadata_only)
+        == fixture_label
     )
 
 
@@ -81,6 +81,6 @@ def test_user_index_updates_preserve_concurrent_entries(test_path_factory):
         user_index = json.load(file_obj)
 
     for index in range(20):
-        assert user_index[f"concurrent_user_{index}"] == f"actual-user-{index}"
+        assert user_index[f"actual-user-{index}"] == f"actual-user-{index}"
         assert user_index[f"discord:discord-{index}"] == f"actual-user-{index}"
         assert user_index[f"email:user-{index}@example.com"] == f"actual-user-{index}"

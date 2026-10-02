@@ -82,6 +82,18 @@
   ],
   "removed_inventory": [
     {
+      "id": "account_internal_username_compatibility_field",
+      "removed_at": "2026-10-01",
+      "search_terms": [
+        "internal_username",
+        "generate_internal_alias",
+        "get_internal_username",
+        "set_internal_username"
+      ],
+      "replacement": "Canonical UUID and optional contact identifiers for identity; preferred_name and context for display",
+      "notes": "Removed from account schemas, persistence, lookup, indexes, UI, prompts, and test fixtures. Existing account files require backup, field migration, and index rebuild before normal reads."
+    },
+    {
       "id": "personalized_message_category_expansion_bridge",
       "removed_at": "2026-09-17",
       "search_terms": [

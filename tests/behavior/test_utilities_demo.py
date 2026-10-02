@@ -149,7 +149,7 @@ class TestUtilitiesDemo:
 
         from core import get_user_id_by_identifier
         for user_id in [f"multi_basic_{suffix}", f"multi_discord_{suffix}", f"multi_full_{suffix}", f"multi_minimal_{suffix}"]:
-            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(
+            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_label(
                 user_id, test_data_dir
             )
             assert actual_user_id is not None, f"User should be found by internal username: {user_id}"
@@ -165,7 +165,7 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_email_user(user_id, email=email, test_data_dir=test_data_dir)
         assert success, "Email user should be created successfully"
 
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
             user_id, test_data_dir
         )
         assert actual_user_id is not None, "User should be found by internal username"
@@ -195,15 +195,15 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_user_with_custom_fields(user_id, custom_fields=custom_fields, test_data_dir=test_data_dir)
         assert success, "Custom fields user should be created successfully"
         
-        # Verify user was created by checking internal username
+        # Resolve through the contact identifier written by this factory.
         from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = get_user_id_by_identifier(f"{user_id}@example.com")
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             pytest.fail("User created but identifier lookup returned None")
         else:
-            assert actual_user_id is not None, "User should be found by internal username"
+            assert actual_user_id is not None, "User should be found by email"
             
             # Verify user directory exists (parallel workers: resolve under test_data_dir fallback)
             from core.config import get_user_data_dir
@@ -250,15 +250,15 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_user_with_schedules(user_id, schedule_config=schedule_config, test_data_dir=test_data_dir)
         assert success, "Scheduled user should be created successfully"
         
-        # Verify user was created by checking internal username
+        # Resolve through the contact identifier written by this factory.
         from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = get_user_id_by_identifier(f"{user_id}@example.com")
         if actual_user_id is None:
             logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             pytest.fail("User created but identifier lookup returned None")
         else:
-            assert actual_user_id is not None, "User should be found by internal username"
+            assert actual_user_id is not None, "User should be found by email"
             
             # Verify user directory exists
             from core.config import get_user_data_dir
@@ -326,7 +326,7 @@ class TestUtilitiesDemo:
                     from tests.test_helpers.test_utilities import TestUserFactory
                     
                     # Get the actual user ID (UUID) that was created using test-specific function
-                    actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+                    actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
                     if actual_user_id:
                         user_data = TestUserFactory.get_test_user_data(user_id, test_data_dir)
                     else:
@@ -364,14 +364,15 @@ class TestUtilitiesDemo:
         """Test scenarios that mirror real user data patterns."""
         from tests.test_helpers.test_utilities import TestUserFactory
         from core import get_user_data
-        from core import get_user_id_by_identifier
         
         # Scenario 1: User with phone but no email (like real user c59410b9...)
         success1 = TestUserFactory.create_user_with_inconsistent_data("phone_only_user", test_data_dir=test_data_dir)
         assert success1, "Phone-only user should be created successfully"
         
-        actual_user_id1 = get_user_id_by_identifier("phone_only_user")
-        user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data("phone_only_user")
+        actual_user_id1 = TestUserFactory.get_test_user_id_by_label(
+            "phone_only_user", test_data_dir
+        )
+        user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else {}
         # Check if user_data1 is empty (indicating the same issue we fixed in user management tests)
         if not user_data1:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
@@ -386,8 +387,10 @@ class TestUtilitiesDemo:
         success2 = TestUserFactory.create_user_with_complex_checkins("complex_checkin_user", test_data_dir=test_data_dir)
         assert success2, "Complex check-in user should be created successfully"
         
-        actual_user_id2 = get_user_id_by_identifier("complex_checkin_user")
-        user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data("complex_checkin_user")
+        actual_user_id2 = TestUserFactory.get_test_user_id_by_label(
+            "complex_checkin_user", test_data_dir
+        )
+        user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else {}
         # Check if user_data2 is empty
         if not user_data2:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
@@ -410,8 +413,10 @@ class TestUtilitiesDemo:
         success3 = TestUserFactory.create_user_with_limited_data("minimal_data_user", test_data_dir=test_data_dir)
         assert success3, "Minimal data user should be created successfully"
         
-        actual_user_id3 = get_user_id_by_identifier("minimal_data_user")
-        user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("minimal_data_user")
+        actual_user_id3 = TestUserFactory.get_test_user_id_by_label(
+            "minimal_data_user", test_data_dir
+        )
+        user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else {}
         
         # Check if user_data3 is empty
         if not user_data3:
@@ -431,8 +436,10 @@ class TestUtilitiesDemo:
         success4 = TestUserFactory.create_user_with_health_focus("health_focus_user", test_data_dir=test_data_dir)
         assert success4, "Health focus user should be created successfully"
         
-        actual_user_id4 = get_user_id_by_identifier("health_focus_user")
-        user_data4 = get_user_data(actual_user_id4) if actual_user_id4 else get_user_data("health_focus_user")
+        actual_user_id4 = TestUserFactory.get_test_user_id_by_label(
+            "health_focus_user", test_data_dir
+        )
+        user_data4 = get_user_data(actual_user_id4) if actual_user_id4 else {}
         
         # Check if user_data4 is empty
         if not user_data4:
@@ -454,8 +461,10 @@ class TestUtilitiesDemo:
         success5 = TestUserFactory.create_user_with_task_focus("task_focus_user", test_data_dir=test_data_dir)
         assert success5, "Task focus user should be created successfully"
         
-        actual_user_id5 = get_user_id_by_identifier("task_focus_user")
-        user_data5 = get_user_data(actual_user_id5) if actual_user_id5 else get_user_data("task_focus_user")
+        actual_user_id5 = TestUserFactory.get_test_user_id_by_label(
+            "task_focus_user", test_data_dir
+        )
+        user_data5 = get_user_data(actual_user_id5) if actual_user_id5 else {}
         
         # Check if user_data5 is empty
         if not user_data5:
@@ -483,32 +492,37 @@ class TestUtilitiesDemo:
         """Test edge cases and boundary conditions for user creation."""
         from tests.test_helpers.test_utilities import TestUserFactory
         from core import get_user_data
-        from core import get_user_id_by_identifier
         
         # Edge case 1: User with very long user_id
         long_user_id = "a" * 50  # 50 character user ID (more reasonable)
         success1 = TestUserFactory.create_basic_user(long_user_id, test_data_dir=test_data_dir)
         assert success1, "Long user ID should be handled"
         
-        actual_user_id1 = get_user_id_by_identifier(long_user_id)
-        user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data(long_user_id)
+        actual_user_id1 = TestUserFactory.get_test_user_id_by_label(
+            long_user_id, test_data_dir
+        )
+        user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else {}
         assert user_data1 is not None, "Long user ID should have loadable data"
         
-        # Edge case 2: User with special characters in user_id (but valid for internal_username)
+        # Edge case 2: Fixture labels with punctuation remain supported by test utilities.
         special_user_id = "test-user_with.special_chars_123"
         success2 = TestUserFactory.create_basic_user(special_user_id, test_data_dir=test_data_dir)
         assert success2, "Special characters in user ID should be handled"
         
-        actual_user_id2 = get_user_id_by_identifier(special_user_id)
-        user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data(special_user_id)
+        actual_user_id2 = TestUserFactory.get_test_user_id_by_label(
+            special_user_id, test_data_dir
+        )
+        user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else {}
         assert user_data2 is not None, "Special character user ID should have loadable data"
         
         # Edge case 3: User with all features disabled
         success3 = TestUserFactory.create_basic_user("disabled_user", enable_checkins=False, enable_tasks=False, test_data_dir=test_data_dir)
         assert success3, "User with all features disabled should be created"
         
-        actual_user_id3 = get_user_id_by_identifier("disabled_user")
-        user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("disabled_user")
+        actual_user_id3 = TestUserFactory.get_test_user_id_by_label(
+            "disabled_user", test_data_dir
+        )
+        user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else {}
         # Check if user_data3 is empty
         if not user_data3:
             logging.getLogger("mhm_tests").warning("get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
@@ -537,8 +551,10 @@ class TestUtilitiesDemo:
         success6 = TestUserFactory.create_basic_user(numeric_user_id, test_data_dir=test_data_dir)
         assert success6, "Numeric user ID should be handled"
         
-        actual_user_id6 = get_user_id_by_identifier(numeric_user_id)
-        user_data6 = get_user_data(actual_user_id6) if actual_user_id6 else get_user_data(numeric_user_id)
+        actual_user_id6 = TestUserFactory.get_test_user_id_by_label(
+            numeric_user_id, test_data_dir
+        )
+        user_data6 = get_user_data(actual_user_id6) if actual_user_id6 else {}
         assert user_data6 is not None, "Numeric user ID should have loadable data"
         
         logging.getLogger("mhm_tests").info("All edge case scenarios tested successfully")
@@ -546,7 +562,7 @@ class TestUtilitiesDemo:
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core import get_user_data, get_user_id_by_identifier
+        from core import get_user_data
         from storage.user_data_read import clear_user_caches
 
         suffix = uuid.uuid4().hex[:8]
@@ -564,7 +580,9 @@ class TestUtilitiesDemo:
                 assert success, f"{user_id} should be created successfully"
 
                 clear_user_caches()
-                user_id_to_use = get_user_id_by_identifier(user_id)
+                user_id_to_use = TestUserFactory.get_test_user_id_by_label(
+                    user_id, test_data_dir
+                )
                 assert user_id_to_use is not None, f"{user_id} should resolve to UUID"
 
                 user_data = get_user_data(user_id_to_use)
@@ -586,7 +604,7 @@ class TestUtilitiesDemo:
                     
                     # Verify account structure
                     account = user_data['account']
-                    required_account_fields = ['user_id', 'internal_username', 'account_status', 'features']
+                    required_account_fields = ['user_id', 'account_status', 'features']
                     for field in required_account_fields:
                         assert field in account, f"{user_id} account should have {field} field"
                     

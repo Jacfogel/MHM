@@ -1,4 +1,4 @@
-﻿"""
+"""
 Unit tests for core validation functions.
 Tests focus on real behavior and side effects of validation operations.
 """
@@ -210,7 +210,6 @@ class TestUserUpdateValidation:
         """Test successful account update validation."""
         user_id = "test-user"
         updates = {
-            "internal_username": "testuser",
             "email": "test@example.com",
             "account_status": "active"
         }
@@ -218,7 +217,7 @@ class TestUserUpdateValidation:
         # Mock get_user_data to return existing account
         with patch('storage.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
-                "account": {"internal_username": "existinguser"}
+                "account": {"email": "existing@example.com"}
             }
             
             is_valid, errors = validate_user_update(user_id, 'account', updates)
@@ -229,17 +228,17 @@ class TestUserUpdateValidation:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.regression
-    def test_validate_user_update_account_missing_username(self, test_data_dir):
-        """Test account update validation with missing internal_username."""
+    def test_validate_user_update_account_without_display_label(self, test_data_dir):
+        """Test account updates do not require a display label."""
         user_id = "test-user"
         updates = {
             "email": "test@example.com"
         }
         
-        # Mock get_user_data to return existing account WITHOUT internal_username
+        # Account identity is the canonical UUID, so no display label is required.
         with patch('storage.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
-                "account": {"email": "old@example.com"}  # No internal_username
+                "account": {"email": "old@example.com"}  # No test_label
             }
             
             # Mock get_user_file_path to simulate existing account file
@@ -248,8 +247,6 @@ class TestUserUpdateValidation:
                 
                 is_valid, errors = validate_user_update(user_id, 'account', updates)
                 
-                # Pydantic validation is more lenient - it doesn't require internal_username for updates
-                # The test expectation was based on old validation logic
                 assert is_valid is True, f"Account update should be valid with Pydantic validation, got errors: {errors}"
     
     @pytest.mark.unit
@@ -259,14 +256,13 @@ class TestUserUpdateValidation:
         """Test account update validation with invalid account status."""
         user_id = "test-user"
         updates = {
-            "internal_username": "testuser",
             "account_status": "invalid_status"
         }
         
         # Mock get_user_data to return existing account
         with patch('storage.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
-                "account": {"internal_username": "existinguser"}
+                "account": {"email": "existing@example.com"}
             }
             
             is_valid, errors = validate_user_update(user_id, 'account', updates)
@@ -282,14 +278,13 @@ class TestUserUpdateValidation:
         """Test account update validation with invalid email format."""
         user_id = "test-user"
         updates = {
-            "internal_username": "testuser",
             "email": "invalid-email"
         }
         
         # Mock get_user_data to return existing account
         with patch('storage.user_data_read.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
-                "account": {"internal_username": "existinguser"}
+                "account": {"email": "existing@example.com"}
             }
             
             is_valid, errors = validate_user_update(user_id, 'account', updates)
@@ -561,7 +556,7 @@ class TestUserUpdateValidation:
             enable_tasks=False,
             test_data_dir=test_data_dir,
         )
-        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+        user_id = TestUserFactory.get_test_user_id_by_label(
             username, test_data_dir
         )
         assert user_id
@@ -811,7 +806,6 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser",
                 "email": "newuser@example.com",
                 "account_status": "active"
             },
@@ -841,7 +835,7 @@ class TestNewUserDataValidation:
         """Test new user data validation with missing user_id."""
         data_updates = {
             "account": {
-                "internal_username": "newuser"
+                "email": "newuser@example.com"
             },
             "preferences": {
                 "channel": {"type": "email"}
@@ -873,7 +867,7 @@ class TestNewUserDataValidation:
         user_id = "existing-user"
         data_updates = {
             "account": {
-                "internal_username": "existinguser"
+                "email": "existing@example.com"
             },
             "preferences": {
                 "channel": {"type": "email"}
@@ -911,12 +905,12 @@ class TestNewUserDataValidation:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.regression
-    def test_validate_new_user_data_missing_username(self):
-        """Test new user data validation with missing internal_username."""
+    def test_validate_new_user_data_accepts_contact_only_account(self):
+        """Test new user data does not require a compatibility alias."""
         user_id = "new-user"
         data_updates = {
             "account": {
-                "email": "test@example.com"  # Provide some account data but no username
+                "email": "test@example.com"
             },
             "preferences": {
                 "channel": {"type": "email"}
@@ -925,8 +919,8 @@ class TestNewUserDataValidation:
         
         is_valid, errors = validate_new_user_data(user_id, data_updates)
         
-        assert is_valid is False, "Missing username should be invalid"
-        assert "internal_username is required for new user creation" in errors
+        assert is_valid is True, f"Contact-only account should be valid: {errors}"
+        assert errors == []
     
     @pytest.mark.unit
     @pytest.mark.user
@@ -936,7 +930,7 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser"
+                "email": "newuser@example.com"
             }
         }
         
@@ -953,7 +947,7 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser"
+                "email": "newuser@example.com"
             },
             "preferences": {
                 "channel": {"type": "invalid_channel"}
@@ -973,7 +967,6 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser",
                 "email": "invalid-email"
             },
             "preferences": {
@@ -994,7 +987,7 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser",
+                "email": "newuser@example.com",
                 "account_status": "invalid_status"
             },
             "preferences": {
@@ -1173,7 +1166,6 @@ class TestValidationIntegration:
         user_id = "integration-user"
         data_updates = {
             "account": {
-                "internal_username": "integrationuser",
                 "channel": {"type": "email"},
                 "email": "integration@example.com",
                 "account_status": "active"
@@ -1221,7 +1213,6 @@ class TestValidationIntegration:
         user_id = "error-user"
         data_updates = {
             "account": {
-                "internal_username": "erroruser",
                 "channel": {"type": "email"},
                 "email": "invalid-email"  # Invalid email
             }
@@ -1249,7 +1240,7 @@ class TestValidationIntegration:
             
             data_updates = {
                 "account": {
-                    "internal_username": "fileuser",
+                    "email": "file@example.com",
                     "channel": {"type": "email"}
                 }
             }

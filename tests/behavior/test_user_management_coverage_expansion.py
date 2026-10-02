@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Behavior tests for Core User Management coverage expansion.
 
@@ -203,7 +203,6 @@ class TestUserManagementCoverageExpansion:
         # Arrange - Create test account file
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "testuser",
             "account_status": "active",
             "created_at": "2024-01-01 00:00:00",
             "updated_at": "2024-01-01 00:00:00",
@@ -228,7 +227,6 @@ class TestUserManagementCoverageExpansion:
         # In parallel runs, identifier normalization can return a canonical UUID-like user_id.
         # Validate identity fields without requiring strict equality to the fixture identifier.
         assert result.get("user_id"), "Should have a non-empty user ID"
-        assert result.get("internal_username"), "Should have a non-empty username"
         assert result["account_status"] == "active", "Should have correct status"
     
     def test_load_account_data_auto_create_real_behavior(self):
@@ -270,8 +268,6 @@ class TestUserManagementCoverageExpansion:
         assert result is not None, "Should return created account data"
         # Auto-create may normalize to a canonical identifier under parallel runs.
         assert result.get("user_id"), "Should have a non-empty user ID"
-        # Default auto-created account uses empty internal_username until account setup.
-        assert "internal_username" in result, "Should include internal_username field"
         assert result["account_status"] == "active", "Should have default status"
         assert mock_save.called, "Should save the created account data"
         saved_account = mock_save.call_args[0][0] if mock_save.call_args else {}
@@ -301,7 +297,6 @@ class TestUserManagementCoverageExpansion:
         # Arrange
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "testuser",
             "account_status": "active"
         }
         
@@ -781,7 +776,6 @@ class TestUserManagementCoverageExpansion:
         # Arrange
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "testuser",
             "account_status": "active"
         }
         account_file = os.path.join(self.test_user_dir, "account.json")
@@ -804,7 +798,7 @@ class TestUserManagementCoverageExpansion:
         # The function adds updated_at timestamp, so check for that
         assert "updated_at" in saved_data, "Should add updated_at timestamp"
         # Check that the original data is preserved
-        assert saved_data.get("internal_username") == "testuser", "Should save correct username"
+        assert saved_data.get("user_id") == self.test_user_id, "Should save canonical ID"
         assert saved_data.get("account_status") == "active", "Should save correct status"
 
 
@@ -839,7 +833,6 @@ class TestUserManagementIntegration:
         # Arrange
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "integration_user",
             "account_status": "active"
         }
         
@@ -885,7 +878,7 @@ class TestUserManagementIntegration:
         assert context_result is True, "Context save should succeed"
         assert schedules_result is True, "Schedules save should succeed"
         # Count only the main data saves (not the side effect saves from update_user_index)
-        main_saves = [call for call in mock_save.call_args_list if len(call[0]) > 0 and isinstance(call[0][0], dict) and any(key in call[0][0] for key in ['internal_username', 'categories', 'preferred_name', 'morning'])]
+        main_saves = [call for call in mock_save.call_args_list if len(call[0]) > 0 and isinstance(call[0][0], dict) and any(key in call[0][0] for key in ['user_id', 'categories', 'preferred_name', 'morning'])]
         assert len(main_saves) == 4, f"Should save all four data types, got {len(main_saves)}"
     
     def test_user_data_consistency_real_behavior(self):
@@ -893,7 +886,6 @@ class TestUserManagementIntegration:
         # Arrange
         original_account = {
             "user_id": self.test_user_id,
-            "internal_username": "consistency_user",
             "account_status": "active"
         }
         
@@ -920,7 +912,6 @@ class TestUserManagementIntegration:
         assert save_result is True, "Save should succeed"
         assert load_result is not None, "Load should succeed"
         assert load_result["user_id"] == original_account["user_id"], "Should maintain user ID consistency"
-        assert load_result["internal_username"] == original_account["internal_username"], "Should maintain username consistency"
         assert load_result["account_status"] == original_account["account_status"], "Should maintain status consistency"
     
     def test_user_data_error_recovery_real_behavior(self):
@@ -950,7 +941,6 @@ class TestUserManagementIntegration:
         # Arrange
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": "performance_user",
             "account_status": "active"
         }
         
@@ -981,17 +971,14 @@ class TestUserManagementIntegration:
         # Assert
         assert total_time < 10.0, f"Should complete operations quickly, took {total_time:.2f} seconds"
         # Count only the main account saves (not side effect saves)
-        account_saves = [call for call in mock_save.call_args_list if len(call[0]) > 0 and isinstance(call[0][0], dict) and 'internal_username' in call[0][0]]
-        # First call creates default account, then 100 iterations = 101 total
-        assert len(account_saves) == 101, f"Should perform all save operations (1 default + 100 iterations), got {len(account_saves)}"
+        account_saves = [call for call in mock_save.call_args_list if len(call[0]) > 0 and isinstance(call[0][0], dict) and call[0][0].get('user_id') == self.test_user_id]
+        assert len(account_saves) == 101, f"Should perform default creation plus 100 saves, got {len(account_saves)}"
     
     def test_user_data_concurrent_access_real_behavior(self):
         """Test user data concurrent access behavior."""
         # Arrange
-        concurrent_username = f"concurrent_user_{uuid.uuid4().hex[:8]}"
         test_account = {
             "user_id": self.test_user_id,
-            "internal_username": concurrent_username,
             "account_status": "active"
         }
         
@@ -1064,7 +1051,6 @@ class TestUserDataManagerCoverageExpansion:
         # Create test user files (v2 envelopes — runtime loads v2 only)
         account_data = {
             "user_id": self.user_id,
-            "internal_username": self.user_id,
             "enabled_features": ["messages", "tasks", "checkins"],
             "created_at": "2024-01-01T00:00:00Z",
         }
@@ -1107,7 +1093,7 @@ class TestUserDataManagerCoverageExpansion:
         """Test updating message references in user profile."""
         # Mock get_user_info_for_data_manager to return test data
         with patch('storage.user_data_user_info.get_user_info_for_data_manager', return_value={
-            "internal_username": self.user_id,
+            "user_id": self.user_id,
             "enabled_features": ["messages"],
             "message_files": []
         }):
@@ -1123,7 +1109,7 @@ class TestUserDataManagerCoverageExpansion:
         """Test exporting user data to JSON format."""
         # Mock get_user_data to return test data
         with patch('storage.user_data_user_info.get_user_data', return_value={
-            "account": {"internal_username": self.user_id},
+            "account": {"user_id": self.user_id},
             "preferences": {"timezone": "UTC"},
             "messages": [{"id": "msg1", "content": "Test"}]
         }):
@@ -1142,7 +1128,7 @@ class TestUserDataManagerCoverageExpansion:
         """Test getting user data summary."""
         # Mock get_user_data to return test data
         with patch('storage.user_data_summaries.get_user_data', return_value={
-            "account": {"internal_username": self.user_id, "enabled_features": ["messages", "tasks"]},
+            "account": {"user_id": self.user_id, "enabled_features": ["messages", "tasks"]},
             "preferences": {"timezone": "UTC", "language": "en"},
             "messages": [{"id": "msg1"}, {"id": "msg2"}],
             "tasks": [{"id": "task1"}, {"id": "task2"}]
@@ -1201,7 +1187,7 @@ class TestUserDataManagerCoverageExpansion:
         """Test get user data summary when user has no data."""
         # Mock get_user_data to return minimal data
         with patch('storage.user_data_summaries.get_user_data', return_value={
-            "account": {"internal_username": self.user_id}
+            "account": {"user_id": self.user_id}
         }):
             
             result = user_data_manager.get_user_data_summary(self.user_id)

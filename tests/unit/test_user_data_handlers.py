@@ -1,4 +1,4 @@
-﻿"""
+"""
 Unit tests for user data handlers convenience functions.
 
 Tests for user data handlers (core.user_data_* modules) focusing on update convenience functions
@@ -30,10 +30,10 @@ def extract_nested_data(data, data_type):
     return data
 
 
-def _resolve_account_file(test_data_dir, internal_username):
+def _resolve_account_file(test_data_dir, test_label):
     """Resolve account.json path for a logical test username via test index mapping."""
-    actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
-        internal_username, test_data_dir
+    actual_user_id = TestUserFactory.get_test_user_id_by_label(
+        test_label, test_data_dir
     )
     if not actual_user_id:
         return None
@@ -42,21 +42,13 @@ def _resolve_account_file(test_data_dir, internal_username):
     return Path(test_data_dir) / "users" / actual_user_id / "account.json"
 
 
-def _resolve_actual_user_id(test_data_dir, internal_username):
-    """Resolve UUID user id for a logical username using on-disk account data first."""
-    from pathlib import Path
+def _resolve_actual_user_id(test_data_dir, test_label):
+    """Resolve a canonical UUID from a fixture-only label."""
     import time
 
-    users_dir = Path(test_data_dir) / "users"
     for _ in range(40):
-        if users_dir.exists():
-            for account_file in users_dir.glob("*/account.json"):
-                account = safe_json_read(str(account_file), default={})
-                if account.get("internal_username") == internal_username:
-                    return account_file.parent.name
-        # Fallback to index mapping if direct scan does not find it yet.
-        mapped = TestUserFactory.get_test_user_id_by_internal_username(
-            internal_username, test_data_dir
+        mapped = TestUserFactory.get_test_user_id_by_label(
+            test_label, test_data_dir
         )
         if mapped:
             return mapped
@@ -94,9 +86,6 @@ class TestUserDataHandlersConvenienceFunctions:
             lambda: account_file.exists(), timeout_seconds=1.0, poll_seconds=0.01
         ), "Should resolve created account file"
         account = safe_json_read(str(account_file), default={})
-        assert (
-            account.get("internal_username") == user_id
-        ), "Should read the expected test user"
         assert account.get("user_id") == actual_user_id, "Should update the expected UUID user"
         assert account.get("timezone") == "America/New_York", "Should update timezone"
 
@@ -426,8 +415,8 @@ class TestUserDataHandlersConvenienceFunctions:
         """Test get_user_data with include_metadata=True."""
         user_id = "test_metadata"
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id) or user_id
+        actual_user_id = _resolve_actual_user_id(test_data_dir, user_id)
+        assert actual_user_id
         
         result = get_user_data(actual_user_id, "account", include_metadata=True)
         
@@ -480,7 +469,6 @@ class TestUserDataHandlersConvenienceFunctions:
         
         data_updates = {
             "account": {
-                "internal_username": user_id,
                 "timezone": "America/Chicago"
             },
             "preferences": {
@@ -499,7 +487,6 @@ class TestUserDataHandlersConvenienceFunctions:
             lambda: account_file.exists(), timeout_seconds=1.0, poll_seconds=0.01
         ), "Should resolve created account file"
         account = safe_json_read(str(account_file), default={})
-        assert account.get("internal_username") == user_id, "Should read the expected test user"
         assert account.get("user_id") == actual_user_id, "Should update the expected UUID user"
         assert account.get("timezone") == "America/Chicago", "Should update account timezone"
 

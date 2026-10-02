@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests for User Data Flow Architecture Refactoring
 
 Tests the two-phase save approach, in-memory cross-file invariants,
@@ -30,7 +30,7 @@ class TestCrossFileInvariants:
         user_id = 'test-invariant-categories'
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled', 'task_management': 'enabled'}
@@ -92,7 +92,7 @@ class TestCrossFileInvariants:
         # Act: Save account and preferences together (account has messages disabled, preferences has categories)
         account_data = {
             'user_id': user_id,
-            'internal_username': 'testuser',
+            'test_label': 'testuser',
             'email': 'test@example.com',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
             'features': {'automated_messages': 'disabled'}  # Messages disabled
@@ -133,7 +133,7 @@ class TestCrossFileInvariants:
         user_id = f'test-invariant-account-added-{uuid.uuid4().hex[:8]}'
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled'}
@@ -222,7 +222,7 @@ class TestProcessingOrder:
         )
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email'
         )
@@ -291,7 +291,7 @@ class TestProcessingOrder:
         # Account should be processed first, then preferences
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled'}
@@ -345,7 +345,7 @@ class TestAtomicOperations:
         # Act: Save multiple types
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email'
         )
@@ -391,7 +391,7 @@ class TestAtomicOperations:
         # Act: Save multiple types
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email'
         )
@@ -438,7 +438,7 @@ class TestAtomicOperations:
         # Act: Save account data
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email'
         )
@@ -472,7 +472,7 @@ class TestNoNestedSaves:
         user_id = 'test-no-nested-saves'
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled'}
@@ -521,7 +521,7 @@ class TestNoNestedSaves:
         user_id = 'test-no-nested-saves-direct'
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled'}
@@ -581,7 +581,7 @@ class TestTwoPhaseSave:
         # Act: Save multiple types
         account_data = TestUserDataFactory.create_account_data(
             user_id=actual_user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email',
             features={'automated_messages': 'disabled'}
@@ -643,7 +643,7 @@ class TestTwoPhaseSave:
         # Act: Save valid data
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
-            internal_username='testuser',
+            test_label='testuser',
             email='test@example.com',
             channel_type='email'
         )

@@ -29,7 +29,7 @@ class Accounts:
     def __init__(self):
         self.users: dict[str, dict] = {
             "existing": {
-                "internal_username": "river",
+                "test_label": "river",
                 "email": "river@example.com",
                 "account_status": "active",
                 "timezone": "America/Regina",
@@ -59,7 +59,7 @@ class Accounts:
         uid = f"new-{len(self.users)}"
         self.users[uid] = {
             "email": email,
-            "internal_username": f"mhm_{uid}",
+            "test_label": f"mhm_{uid}",
             "timezone": timezone,
             "account_status": "active",
             "password_hash": password_hash,
@@ -544,7 +544,7 @@ async def test_creation_rechecks_duplicates_after_verification(gateway):
         "challenge"
     ]
     accounts.users["racing"] = {
-        "internal_username": "mhm_racing",
+        "test_label": "mhm_racing",
         "email": "brook@example.com",
         "account_status": "active",
     }
@@ -695,12 +695,12 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
     ) == "new-id"
     assert captured[0]["channel"] == {"type": "email"}
     assert captured[0]["preferred_name"] == "New User"
-    assert "internal_username" not in captured[0]
+    assert "test_label" not in captured[0]
     assert not captured[0]["messages_enabled"]
     monkeypatch.setattr(
         adapter,
         "all",
-        lambda: [("one", {"email": "River@Example.com", "internal_username": "River"})],
+        lambda: [("one", {"email": "River@Example.com", "test_label": "River"})],
     )
     match = adapter.by_email("river@example.com")
     assert match is not None
@@ -720,7 +720,7 @@ async def test_duplicate_email_cannot_be_disambiguated_by_preferred_name(gateway
     client, accounts, sent, _ = gateway
     accounts.users["second"] = {
         "email": "river@example.com",
-        "internal_username": "brook",
+        "test_label": "brook",
         "account_status": "active",
         "timezone": "America/Regina",
     }
@@ -1105,7 +1105,7 @@ async def test_discord_oauth_rejects_an_identity_linked_to_another_account(
     monkeypatch.setattr(service.config, "DISCORD_CLIENT_SECRET", "client-secret")
     accounts.users["other"] = {
         "email": "other@example.com",
-        "internal_username": "other",
+        "test_label": "other",
         "account_status": "active",
         "discord_user_id": "987654321",
     }

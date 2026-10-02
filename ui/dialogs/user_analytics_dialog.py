@@ -18,6 +18,7 @@ from checkins.checkin_analytics import CheckinAnalytics
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
+from core.user_identity import user_display_label
 
 setup_logging()
 logger = get_component_logger("ui")
@@ -60,11 +61,13 @@ class UserAnalyticsDialog(QDialog):
         """Setup initial dialog state."""
         # Set window title with user info
         if self.user_id:
-            user_data = get_user_data(self.user_id, "account")
-            username = user_data.get("account", {}).get(
-                "internal_username", self.user_id
+            user_data = get_user_data(self.user_id, ["account", "context"])
+            label = user_display_label(
+                self.user_id,
+                user_data.get("account", {}),
+                user_data.get("context", {}),
             )
-            self.setWindowTitle(f"User Analytics - {username}")
+            self.setWindowTitle(f"User Analytics - {label}")
 
         # Set default time period to 30 days
         self.ui.comboBox_time_period.setCurrentIndex(2)  # 30 days

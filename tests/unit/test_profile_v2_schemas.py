@@ -286,7 +286,6 @@ def test_account_extra_reads_metadata_overflow():
 
     inner = {
         "user_id": "user-1",
-        "internal_username": "user-1",
         "timezone": "UTC",
         "created_at": "2024-01-01 00:00:00",
         "features": {"automated_messages": "enabled"},

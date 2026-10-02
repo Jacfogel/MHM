@@ -367,7 +367,6 @@ class TestResponseTrackingBehavior:
         
         # Arrange - Create test user data
         test_account = {
-            "internal_username": "testuser",
             "created_at": "2025-01-01",
             "last_updated": "2025-01-15"
         }
@@ -392,7 +391,6 @@ class TestResponseTrackingBehavior:
         
         # Assert - Verify complete user info is returned
         assert user_info["user_id"] == user_id, "Should include user ID"
-        assert user_info["internal_username"] == "testuser", "Should include internal username"
         assert user_info["preferred_name"] == "Test User", "Should include preferred name"
         assert user_info["categories"] == ["health", "work"], "Should include categories"
         assert user_info["messaging_service"] == "discord", "Should include messaging service"
@@ -564,7 +562,7 @@ class TestResponseTrackingIntegration:
         
         # Arrange - Create complete user data structure
         test_account = {
-            "internal_username": "integration_user",
+            "test_label": "integration_user",
             "features": {"checkins": "enabled"},
             "created_at": "2025-01-01"
         }

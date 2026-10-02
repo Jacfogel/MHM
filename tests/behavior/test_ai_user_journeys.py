@@ -29,7 +29,6 @@ from communication.message_processing.interaction_manager import (
     InteractionManager,
     handle_user_message,
 )
-from core import get_user_id_by_identifier
 import core.config as app_config
 from core.time_utilities import (
     TIMESTAMP_FULL,
@@ -68,7 +67,9 @@ def _create_journey_user(
         test_data_dir=test_data_dir,
     )
     assert created, f"Failed to create journey user {username}"
-    return get_user_id_by_identifier(username) or username
+    user_id = TestUserFactory.get_test_user_id_by_label(username, test_data_dir)
+    assert user_id, f"Failed to resolve journey user {username}"
+    return user_id
 
 
 def _use_mocked_lm_studio_api(chatbot, return_value=None):
