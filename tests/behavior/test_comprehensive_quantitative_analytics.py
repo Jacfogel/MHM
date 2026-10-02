@@ -13,7 +13,6 @@ from storage.user_data_v2_base import SCHEMA_VERSION
 from core import (
     get_user_data,
     save_user_data,
-    get_user_id_by_identifier,
 )
 from core.config import get_user_file_path
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
@@ -68,7 +67,9 @@ class TestComprehensiveQuantitativeAnalytics:
         ), "Failed to create test user"
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Enable ALL quantitative questions from questions.json
@@ -260,7 +261,9 @@ class TestComprehensiveQuantitativeAnalytics:
         ), "Failed to create test user"
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Create check-in data with various yes/no formats (use recent dates)
@@ -352,7 +355,9 @@ class TestComprehensiveQuantitativeAnalytics:
         ), "Failed to create test user"
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Create check-in data with top-level format (use recent dates)

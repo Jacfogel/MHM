@@ -561,9 +561,10 @@ class TestConversationManagerIntegration:
         success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
-        # Get the UUID for the user
-        from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(test_user_id)
+        # Resolve the factory-only fixture label to the canonical UUID.
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            test_user_id, test_data_dir
+        )
         assert actual_user_id is not None, f"Should be able to get UUID for user {test_user_id}"
         
         # Update user preferences with check-in settings

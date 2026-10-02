@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 23:44:37
+> **Last Generated**: 2026-10-02 15:00:45
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 293
-- **Functions Found**: 3063
-- **Methods Found**: 1567
-- **Classes Found**: 268
-- **Total Items**: 4630
-- **Functions Documented**: 2708
-- **Methods Documented**: 1389
-- **Classes Documented**: 201
-- **Total Documented**: 4097
-- **Template-Generated**: 56
-- **Last Updated**: 2026-10-01
+- **Files Scanned**: 295
+- **Functions Found**: 3067
+- **Methods Found**: 1568
+- **Classes Found**: 270
+- **Total Items**: 4635
+- **Functions Documented**: 2712
+- **Methods Documented**: 1390
+- **Classes Documented**: 203
+- **Total Documented**: 4102
+- **Template-Generated**: 60
+- **Last Updated**: 2026-10-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (602)
+### **Core System Functions** (606)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (891)
@@ -5545,10 +5545,8 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `chat_api(self, request)` - Send one signed-in message through the website conversation channel.
 - [OK] `chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
 - [OK] `chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
-- [OK] `checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
 - [OK] `clean(data)` - Validate an editable message template payload.
 - [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
-- [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
 - [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
 - [OK] `clear_open_checkin()` - Drop an in-progress check-in so the next login starts fresh.
@@ -5562,7 +5560,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
 - [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
 - [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
-- [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
 - [OK] `font_asset(self, request)` - Serve one self-hosted typeface file.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
@@ -5574,8 +5571,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `logout(self, request)` - Revoke the current session cookie and clear it from the browser.
 - [OK] `mark_setup_complete(self, uid)` - Remember that this account has finished website first-run setup.
 - [OK] `messages_api(self, request)` - Manage the signed-in user's reusable message templates.
-- [OK] `note_view(self, entry)` - Return the stable, browser-safe representation of a notebook entry.
-- [OK] `notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
 - [OK] `oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
 - [OK] `oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
 - [OK] `oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
@@ -5605,7 +5600,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
 - [OK] `verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
 - [OK] `view(message)` - Return one browser-safe message template.
-- [OK] `view(message)` - Return the browser check-in state.
 - [OK] `website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description
@@ -5642,7 +5636,6 @@ its methods as routes.
   - [OK] `WebGateway.chat_api(self, request)` - Send one signed-in message through the website conversation channel.
   - [OK] `WebGateway.chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
   - [OK] `WebGateway.chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
-  - [OK] `WebGateway.checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
   - [OK] `WebGateway.discord_available(self)` - Return whether the Discord OAuth credentials are configured.
   - [OK] `WebGateway.discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.
   - [OK] `WebGateway.discord_redirect_uri(self)` - Return the configured Discord callback URI or the website default.
@@ -5653,8 +5646,6 @@ its methods as routes.
   - [OK] `WebGateway.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
   - [OK] `WebGateway.logout(self, request)` - Revoke the current session cookie and clear it from the browser.
   - [OK] `WebGateway.messages_api(self, request)` - Manage the signed-in user's reusable message templates.
-  - [OK] `WebGateway.note_view(self, entry)` - Return the stable, browser-safe representation of a notebook entry.
-  - [OK] `WebGateway.notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
   - [OK] `WebGateway.oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
   - [OK] `WebGateway.oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
   - [OK] `WebGateway.oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
@@ -5682,6 +5673,17 @@ its methods as routes.
 - [OK] `chat_payload(response)` - Return the plain reply and suggestion buttons a browser can render.
 - [OK] `website_chat_reply(user_id, message)` - Send one website message through the same path as Discord and email.
 
+#### `core/web_checkins.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Special Python method
+- [OK] `checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
+- [OK] `register_checkin_routes(app, gateway)` - Register all check-in endpoints on a website gateway application.
+- [OK] `view(message)` - Return the browser check-in state.
+**Classes:**
+- [OK] `WebCheckinRoutes` - Handle the check-in route family using shared gateway infrastructure.
+  - [OK] `WebCheckinRoutes.__init__(self, gateway)` - Special Python method
+  - [OK] `WebCheckinRoutes.checkins_api(self, request)` - Start or answer the signed-in user's check-in in the browser.
+
 #### `core/web_gateway_runtime.py`
 **Functions:**
 - [OK] `__init__(self)` - Configure a gateway runtime without starting its background thread.
@@ -5696,6 +5698,19 @@ its methods as routes.
   - [OK] `WebGatewayRuntime._serve(self)` - Bind aiohttp, signal readiness, and serve until shutdown is requested.
   - [OK] `WebGatewayRuntime.start(self)` - Report bind failures without disrupting other MHM services or servers.
   - [OK] `WebGatewayRuntime.stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
+
+#### `core/web_notes.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Special Python method
+- [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
+- [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
+- [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
+- [OK] `notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
+- [OK] `register_notes_routes(app, gateway)` - Register all notebook endpoints on a website gateway application.
+**Classes:**
+- [OK] `WebNotesRoutes` - Handle the notebook route family using shared gateway infrastructure.
+  - [OK] `WebNotesRoutes.__init__(self, gateway)` - Special Python method
+  - [OK] `WebNotesRoutes.notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
 
 #### `core/web_user_settings.py`
 **Functions:**

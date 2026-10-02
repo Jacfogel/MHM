@@ -10,7 +10,6 @@ from checkins.checkin_analytics import CheckinAnalytics
 from storage.user_data_v2_base import SCHEMA_VERSION
 from core import (
     get_user_data,
-    get_user_id_by_identifier,
     save_user_data,
 )
 from core.config import get_user_file_path
@@ -66,7 +65,9 @@ class TestQuantitativeAnalyticsExpansion:
         )
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Enable multiple quantitative fields
@@ -230,7 +231,9 @@ class TestQuantitativeAnalyticsExpansion:
         )
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Enable only some quantitative fields
@@ -312,7 +315,9 @@ class TestQuantitativeAnalyticsExpansion:
         )
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Enable all quantitative fields
@@ -424,7 +429,9 @@ class TestQuantitativeAnalyticsExpansion:
         )
 
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert actual_user_id is not None, "User should be created and resolvable"
 
         # Enable quantitative fields
@@ -514,16 +521,9 @@ class TestQuantitativeAnalyticsExpansion:
         )
 
         # Get the actual UUID for the user
-        # Retry lookup in case of race conditions with index updates in parallel execution
-        import time
-
-        actual_user_id = None
-        for attempt in range(5):
-            actual_user_id = get_user_id_by_identifier(user_id)
-            if actual_user_id is not None:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, test_data_dir
+        )
         assert (
             actual_user_id is not None
         ), f"User should be created and resolvable after index update (attempted {user_id})"

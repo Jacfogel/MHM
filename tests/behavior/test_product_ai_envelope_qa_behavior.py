@@ -13,7 +13,6 @@ import pytest
 from ai.context.chatbot_context import build_chatbot_context_dict
 from ai.context.service import build_ai_context_envelope
 from ai.fallback import FallbackCategory, build_contextual_fallback
-from core import get_user_id_by_identifier
 from tasks import are_tasks_enabled, create_task, load_active_tasks
 from tests.test_helpers.test_utilities import TestUserFactory
 
@@ -28,7 +27,8 @@ def _create_user_with_task(test_data_dir, user_id: str, task_title: str) -> str:
         enable_checkins=True,
         test_data_dir=test_data_dir,
     )
-    resolved_id = get_user_id_by_identifier(user_id) or user_id
+    resolved_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert resolved_id is not None
     create_task(resolved_id, task_title, due_date="2026-07-15")
     assert are_tasks_enabled(resolved_id)
     assert any(
@@ -58,7 +58,8 @@ def test_fallback_answers_preferred_name_from_envelope(test_data_dir):
         enable_checkins=False,
         test_data_dir=test_data_dir,
     )
-    resolved_id = get_user_id_by_identifier(user_id) or user_id
+    resolved_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert resolved_id is not None
 
     context = build_chatbot_context_dict(resolved_id, include_conversation_history=False)
     preferred = (context.get("user_profile") or {}).get("preferred_name")
@@ -81,7 +82,8 @@ def test_fallback_mentions_active_schedules_from_envelope(test_data_dir):
         enable_checkins=False,
         test_data_dir=test_data_dir,
     )
-    resolved_id = get_user_id_by_identifier(user_id) or user_id
+    resolved_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
+    assert resolved_id is not None
 
     text, category = build_contextual_fallback("what is my schedule", resolved_id)
 

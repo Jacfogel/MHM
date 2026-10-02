@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-02 - Website routes extracted and test fixtures aligned **COMPLETED**
+- Check-in and notebook endpoints moved from the oversized `WebGateway` into focused route modules; the account service now delegates their registration and reuses the notebook serializer.
+- Route-family initialization and registration use centralized, re-raising error handling, with focused coverage for routing, validation, lifecycle behavior, and error reporting.
+- Behavior tests resolve factory-only labels through `TestUserFactory`, so analytics, AI-envelope, conversation, and user-context coverage no longer depends on the retired production username lookup.
+- Generated function/dependency documentation was refreshed. The normal full suite passes: 5,966 passed, 28 skipped, with zero failures or errors.
+
 ### 2026-10-01 - Internal account username compatibility field retired **COMPLETED**
 - Account identity now uses canonical UUIDs and optional contact identifiers; preferred names remain display-only.
 - Removed the compatibility field from schemas, persistence, lookups, indexes, admin/UI flows, prompts, and test fixtures.

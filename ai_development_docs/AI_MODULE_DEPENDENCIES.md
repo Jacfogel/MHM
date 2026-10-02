@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-01 23:45:10
+> **Last Generated**: 2026-10-02 15:01:07
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 291
-- **Total Imports**: 2626
-- **Standard Library**: 755 (28.8%)
-- **Third-Party**: 222 (8.5%)
-- **Local Imports**: 1649 (62.8%)
+- **Files Scanned**: 293
+- **Total Imports**: 2634
+- **Standard Library**: 757 (28.7%)
+- **Third-Party**: 224 (8.5%)
+- **Local Imports**: 1653 (62.8%)
 
 ## Dependency Decision Trees
 
@@ -115,7 +115,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `core/web_account_service.py` -> 33 unique local dependencies (high fan-out; review for inappropriate edges) (58 import statements; 25 duplicate)
+- `core/web_account_service.py` -> 32 unique local dependencies (high fan-out; review for inappropriate edges) (54 import statements; 22 duplicate)
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (33 import statements; 10 duplicate)
 - `ai/chat/chatbot.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (23 import statements; 2 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
@@ -126,7 +126,7 @@ External libraries provide channel and UI support.
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
-- `core/profile_v2_schemas.py` -> pytz (7 modules use this)
+- `communication/communication_channels/discord/bot.py` -> aiohttp (7 modules use this)
 
 
 ## Quick Reference for AI

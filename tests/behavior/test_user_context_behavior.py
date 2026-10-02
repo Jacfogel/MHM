@@ -387,12 +387,14 @@ class TestUserContextManagerIntegration:
         test_user_id = "real-user-test"
 
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core import get_user_id_by_identifier, update_user_context
+        from core import update_user_context
 
         assert TestUserFactory.create_basic_user(
             test_user_id, test_data_dir=test_data_dir
         )
-        actual_user_id = get_user_id_by_identifier(test_user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_label(
+            test_user_id, test_data_dir
+        )
         assert actual_user_id is not None
 
         assert update_user_context(
