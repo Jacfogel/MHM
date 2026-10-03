@@ -30,12 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-10-02 - Website message and chat routes extracted **COMPLETED**
+### 2026-10-02 - Website message, chat, task, and settings routes extracted **COMPLETED**
 - Reusable scheduled-message CRUD endpoints moved from the oversized `WebGateway` into `core/web_messages.py` without changing their URLs, validation, account ownership, or responses.
 - The account service delegates message route registration, with centralized startup error reporting and focused route-owner tests.
 - Website chat send, inbox, and reaction endpoints moved from the oversized `WebGateway` into `core/web_chat.py`, beside the existing conversation reply helpers.
 - The account service delegates chat route registration while preserving the existing URLs, authentication, throttling, persistence, and response behavior.
 - Route initialization and registration use centralized, re-raising error handling with focused regression coverage.
+- Task CRUD, bulk actions, templates, effort estimates, and the shared export serializer moved into `core/web_tasks.py`; all existing task URLs and behavior remain unchanged.
+- `WebGateway` is roughly 570 lines smaller, and the former highest-complexity route now has a focused owner backed by the existing task lifecycle suite.
+- The complete suite passes: 5,974 passed, 28 skipped, with zero failures, errors, or warnings.
+- Self-service settings and authenticated insights endpoints moved into `core/web_settings.py`; the existing settings transformation helpers remain in `core/web_user_settings.py` and setup completion is shared without duplication.
 
 ### 2026-10-02 - Website routes extracted and test fixtures aligned **COMPLETED**
 - Check-in and notebook endpoints moved from the oversized `WebGateway` into focused route modules; the account service now delegates their registration and reuses the notebook serializer.

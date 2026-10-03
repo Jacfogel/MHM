@@ -7,7 +7,9 @@ import pytest
 import pytest_asyncio
 from aiohttp import CookieJar
 
+from core.error_handling import error_handler
 from core.web_account_service import create_web_app
+from core.web_tasks import WebTaskRoutes, register_task_routes
 from tests.unit.test_web_account_service import web_client
 
 pytestmark = [pytest.mark.unit, pytest.mark.tasks, pytest.mark.asyncio]
@@ -316,3 +318,48 @@ async def test_breakdown_adds_subtasks_and_keeps_the_original_title(task_gateway
         headers={"Origin": ORIGIN},
     )
     assert nested.status == 400
+
+
+async def test_task_route_initialization_reports_and_reraises_errors(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        error_handler,
+        "handle_error",
+        lambda error, context, operation, user_friendly=True: calls.append(
+            (error, operation, user_friendly)
+        )
+        or False,
+    )
+
+    class BrokenTaskRoutes(WebTaskRoutes):
+        def __setattr__(self, _name, _value):
+            raise RuntimeError("cannot initialize routes")
+
+    with pytest.raises(RuntimeError, match="cannot initialize routes"):
+        BrokenTaskRoutes(object())
+
+    assert len(calls) == 1
+    assert calls[0][1:] == ("initializing website task routes", False)
+
+
+async def test_task_route_registration_reports_and_reraises_errors(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        error_handler,
+        "handle_error",
+        lambda error, context, operation, user_friendly=True: calls.append(
+            (error, operation, user_friendly)
+        )
+        or False,
+    )
+
+    class BrokenRouter:
+        def add_get(self, *_args, **_kwargs):
+            raise RuntimeError("cannot register routes")
+
+    app = SimpleNamespace(router=BrokenRouter())
+    with pytest.raises(RuntimeError, match="cannot register routes"):
+        register_task_routes(app, object())
+
+    assert len(calls) == 1
+    assert calls[0][1:] == ("registering website task routes", False)

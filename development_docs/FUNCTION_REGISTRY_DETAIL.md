@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-02 17:38:24
+> **Last Generated**: 2026-10-02 20:38:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 296
-- **Functions Found**: 3071
-- **Methods Found**: 1570
-- **Classes Found**: 272
-- **Total Items**: 4641
-- **Functions Documented**: 2716
-- **Methods Documented**: 1392
-- **Classes Documented**: 205
-- **Total Documented**: 4108
+- **Files Scanned**: 298
+- **Functions Found**: 3076
+- **Methods Found**: 1572
+- **Classes Found**: 274
+- **Total Items**: 4648
+- **Functions Documented**: 2721
+- **Methods Documented**: 1394
+- **Classes Documented**: 207
+- **Total Documented**: 4115
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-02
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (610)
+### **Core System Functions** (615)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (891)
@@ -5525,7 +5525,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
-- [OK] `_remember_setup_complete(account)` - Mark one in-memory account document as finished with first-run setup.
 - [OK] `_setup_completed(account)` - True after the website first-run has been finished.
 - [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
 - [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
@@ -5535,16 +5534,11 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
 - [OK] `account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
-- [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
 - [OK] `asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
 - [OK] `authenticated_account(self, request)` - Resolve an active account from the request session cookie.
 - [OK] `body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
-- [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
-- [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
-- [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
-- [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
 - [OK] `clear_open_checkin()` - Drop an in-progress check-in so the next login starts fresh.
 - [OK] `create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
 - [OK] `create_web_app()` - Construct an injectable gateway; tests use isolated account and email adapters.
@@ -5554,14 +5548,11 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `discord_start(self, request)` - Create a short-lived Discord OAuth state and authorization URL.
 - [OK] `documents(self, uid)` - Load the account documents exposed through self-service settings.
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
-- [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
-- [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
 - [OK] `font_asset(self, request)` - Serve one self-hosted typeface file.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
 - [OK] `guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
 - [OK] `health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
-- [OK] `insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
 - [OK] `logout(self, request)` - Revoke the current session cookie and clear it from the browser.
@@ -5579,16 +5570,10 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
 - [OK] `send_code(email, code)` - Use MHM's configured SMTP account, with TLS and no code logging.
 - [OK] `set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
-- [OK] `settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
 - [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
 - [OK] `setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
 - [OK] `snapshot()` - Return the browser-safe Google Health state.
 - [OK] `start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
-- [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
-- [OK] `task_templates(self, request)` - Return safe built-in task templates for quick website creation.
-- [OK] `task_view(self, task)` - Return the stable, browser-safe task shape used by the website.
-- [OK] `tasks_api(self, request)` - Handle authenticated website task routes through the task service.
-- [OK] `tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
 - [OK] `throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
 - [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
@@ -5634,7 +5619,6 @@ its methods as routes.
   - [OK] `WebGateway.font_asset(self, request)` - Serve one self-hosted typeface file.
   - [OK] `WebGateway.guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
   - [OK] `WebGateway.health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
-  - [OK] `WebGateway.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
   - [OK] `WebGateway.logout(self, request)` - Revoke the current session cookie and clear it from the browser.
   - [OK] `WebGateway.oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
   - [OK] `WebGateway.oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
@@ -5645,14 +5629,8 @@ its methods as routes.
   - [OK] `WebGateway.prune(self)` - Remove expired challenges, sessions, rate limits, and OAuth states.
   - [OK] `WebGateway.request_action(self, request)` - Queue an authenticated one-off delivery request for the MHM service.
   - [OK] `WebGateway.request_code(self, request)` - Validate a login or signup request and send an eligible email code.
-  - [OK] `WebGateway.settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
   - [OK] `WebGateway.setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
   - [OK] `WebGateway.start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
-  - [OK] `WebGateway.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
-  - [OK] `WebGateway.task_templates(self, request)` - Return safe built-in task templates for quick website creation.
-  - [OK] `WebGateway.task_view(self, task)` - Return the stable, browser-safe task shape used by the website.
-  - [OK] `WebGateway.tasks_api(self, request)` - Handle authenticated website task routes through the task service.
-  - [OK] `WebGateway.tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
   - [OK] `WebGateway.throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
   - [OK] `WebGateway.valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
   - [OK] `WebGateway.verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
@@ -5725,6 +5703,44 @@ its methods as routes.
   - [OK] `WebNotesRoutes.__init__(self, gateway)` - Special Python method
   - [OK] `WebNotesRoutes.notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
 
+#### `core/web_settings.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Keep the shared gateway services used by settings endpoints.
+- [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
+- [OK] `insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
+- [OK] `register_settings_routes(app, gateway)` - Register settings and insights endpoints on a gateway application.
+- [OK] `settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
+**Classes:**
+- [OK] `WebSettingsRoutes` - Handle self-service settings and insights using gateway infrastructure.
+  - [OK] `WebSettingsRoutes.__init__(self, gateway)` - Keep the shared gateway services used by settings endpoints.
+  - [OK] `WebSettingsRoutes.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
+  - [OK] `WebSettingsRoutes.settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
+
+#### `core/web_tasks.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
+- [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
+- [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
+- [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
+- [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
+- [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
+- [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
+- [OK] `register_task_routes(app, gateway)` - Register all task endpoints on a gateway application.
+- [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+- [OK] `task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+- [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
+- [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
+- [OK] `tasks_api(self, request)` - Handle authenticated website task routes through the task service.
+- [OK] `tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
+**Classes:**
+- [OK] `WebTaskRoutes` - Handle the task route family using gateway infrastructure.
+  - [OK] `WebTaskRoutes.__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
+  - [OK] `WebTaskRoutes.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+  - [OK] `WebTaskRoutes.task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+  - [OK] `WebTaskRoutes.task_view(task)` - Return the stable, browser-safe task shape used by the website.
+  - [OK] `WebTaskRoutes.tasks_api(self, request)` - Handle authenticated website task routes through the task service.
+  - [OK] `WebTaskRoutes.tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
+
 #### `core/web_user_settings.py`
 **Functions:**
 - [OK] `_available_message_categories(options, features)` - Return categories supported by the user's currently enabled data sources.
@@ -5733,6 +5749,7 @@ its methods as routes.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
 - [OK] `flag(key)` - Apply a validated website feature flag to the account document.
 - [OK] `periods(category)` - Return editable named periods for one schedule category.
+- [OK] `remember_setup_complete(account)` - Mark one in-memory account document as finished with first-run setup.
 - [OK] `save_periods(category, periods)` - Validate and stage named reminder windows for one category.
 - [OK] `save_settings(user_id, updates)` - Persist validated settings and refresh dependent caches and defaults.
 - [OK] `settings_options(user_id)` - Return the time zones, message categories, and check-in choices for a user.

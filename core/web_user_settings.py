@@ -36,6 +36,18 @@ PERSONALIZED_CATEGORIES = {
     "personalized_google_health": "google_health",
     "personalized_profile": None,
 }
+
+
+@handle_errors("remembering website setup completion", user_friendly=False, default_return=None)
+def remember_setup_complete(account):
+    """Mark one in-memory account document as finished with first-run setup."""
+    if not isinstance(account, dict):
+        return
+    metadata = account.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+        account["metadata"] = metadata
+    metadata["website_setup_completed"] = True
 CUSTOM_QUESTION_TYPES = frozenset(
     {"optional_text", "yes_no", "scale_1_5", "number", "time", "time_pair"}
 )
