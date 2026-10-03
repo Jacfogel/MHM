@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-02 - Website message and chat routes extracted **COMPLETED**
+- Reusable scheduled-message CRUD endpoints moved from the oversized `WebGateway` into `core/web_messages.py` without changing their URLs, validation, account ownership, or responses.
+- The account service delegates message route registration, with centralized startup error reporting and focused route-owner tests.
+- Website chat send, inbox, and reaction endpoints moved from the oversized `WebGateway` into `core/web_chat.py`, beside the existing conversation reply helpers.
+- The account service delegates chat route registration while preserving the existing URLs, authentication, throttling, persistence, and response behavior.
+- Route initialization and registration use centralized, re-raising error handling with focused regression coverage.
+
 ### 2026-10-02 - Website routes extracted and test fixtures aligned **COMPLETED**
 - Check-in and notebook endpoints moved from the oversized `WebGateway` into focused route modules; the account service now delegates their registration and reuses the notebook serializer.
 - Route-family initialization and registration use centralized, re-raising error handling, with focused coverage for routing, validation, lifecycle behavior, and error reporting.
@@ -99,24 +106,6 @@ Guidelines:
 - Home shows the next task before minute estimates come back, so a slow or failed model call no longer holds the page.
 - A hello is answered as a hello. Check-in statistics are only used when that question was asked, and only for the check-ins that included it.
 - Chat prompts are shortened to fit the 2048-token local model. A failed rewrite keeps the real handler reply.
-
-### 2026-09-28 - Function scan sees async routes **COMPLETED**
-- Complexity and registry scans now include `async def`, score each function without its nested helpers, and match handler keywords on whole name parts.
-- Website routes are methods on `WebGateway`. `create_web_app` only builds the app and registers them.
-- The next `audit` refreshes `AI_PRIORITIES.md`. `tasks_api` is now visible to that ranking.
-- Six nested helpers now have docstrings. The website mailer is typed so Pyright accepts `asyncio.to_thread`. Task and note route descriptions no longer use the word facade, so they are not compatibility shims.
-- `handle_errors` now documents the inner `decorator` that wraps both sync functions and coroutines.
-
-### 2026-09-28 - Small counts, lighter sleep, and low-energy focus **COMPLETED**
-- A positive count that would round to zero is written as "under 100 steps", "under 5 active minutes", or "under 30 minutes of sleep". A real zero stays zero.
-- "Shorter sleep" is a run of short nights. Restless nights of ordinary length say "lighter sleep" and leave the hours out.
-- Home calls a task the easiest one only when it is about 15 minutes or less. A longer task due today says it will take a while.
-- Today's check-in energy of 1 or 2 prefers a task around 15 minutes and stops boosting longer ones.
-
-### 2026-09-28 - Wellness streaks, honest rounding, and a quiet inbox **COMPLETED**
-- A wellness reply keeps a multi-day sleep or activity streak. The number beside it is the rounded middle of those days, written once as "about 5 hours".
-- Sleep, steps, and active minutes round a .5 tie away from zero, so 50 steps is about 100, not 0.
-- Opening website chat before any message exists no longer logs a missing inbox as an error. A failed read still returns an empty inbox.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

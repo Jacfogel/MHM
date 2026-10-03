@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-02 15:01:09
+> **Last Generated**: 2026-10-02 17:38:48
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -367,6 +367,7 @@ C:.
 |   |   web_chat.py
 |   |   web_checkins.py
 |   |   web_gateway_runtime.py
+|   |   web_messages.py
 |   |   web_notes.py
 |   |   web_user_settings.py
 |   |   __init__.py
@@ -1287,6 +1288,7 @@ C:.
 |   |   |   test_web_chat.py
 |   |   |   test_web_checkins.py
 |   |   |   test_web_gateway_runtime.py
+|   |   |   test_web_messages.py
 |   |   |   test_web_notes.py
 |   |   |   test_web_tasks.py
 |   |   |   test_web_user_settings.py

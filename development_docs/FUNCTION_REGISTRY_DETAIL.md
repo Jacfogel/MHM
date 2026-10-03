@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-02 15:00:45
+> **Last Generated**: 2026-10-02 17:38:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,16 +15,16 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 295
-- **Functions Found**: 3067
-- **Methods Found**: 1568
-- **Classes Found**: 270
-- **Total Items**: 4635
-- **Functions Documented**: 2712
-- **Methods Documented**: 1390
-- **Classes Documented**: 203
-- **Total Documented**: 4102
-- **Template-Generated**: 60
+- **Files Scanned**: 296
+- **Functions Found**: 3071
+- **Methods Found**: 1570
+- **Classes Found**: 272
+- **Total Items**: 4641
+- **Functions Documented**: 2716
+- **Methods Documented**: 1392
+- **Classes Documented**: 205
+- **Total Documented**: 4108
+- **Template-Generated**: 64
 - **Last Updated**: 2026-10-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (606)
+### **Core System Functions** (610)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (891)
@@ -5542,10 +5542,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `build_insights()` - Build one JSON-safe analytics snapshot off the event loop.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
-- [OK] `chat_api(self, request)` - Send one signed-in message through the website conversation channel.
-- [OK] `chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
-- [OK] `chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
-- [OK] `clean(data)` - Validate an editable message template payload.
 - [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
 - [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
 - [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
@@ -5570,7 +5566,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
 - [OK] `logout(self, request)` - Revoke the current session cookie and clear it from the browser.
 - [OK] `mark_setup_complete(self, uid)` - Remember that this account has finished website first-run setup.
-- [OK] `messages_api(self, request)` - Manage the signed-in user's reusable message templates.
 - [OK] `oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
 - [OK] `oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
 - [OK] `oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
@@ -5599,7 +5594,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
 - [OK] `verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
-- [OK] `view(message)` - Return one browser-safe message template.
 - [OK] `website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
 **Classes:**
 - [MISSING] `Challenge` - No description
@@ -5633,9 +5627,6 @@ its methods as routes.
   - [OK] `WebGateway.asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
   - [OK] `WebGateway.authenticated_account(self, request)` - Resolve an active account from the request session cookie.
   - [OK] `WebGateway.body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
-  - [OK] `WebGateway.chat_api(self, request)` - Send one signed-in message through the website conversation channel.
-  - [OK] `WebGateway.chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
-  - [OK] `WebGateway.chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled message from the website chat.
   - [OK] `WebGateway.discord_available(self)` - Return whether the Discord OAuth credentials are configured.
   - [OK] `WebGateway.discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.
   - [OK] `WebGateway.discord_redirect_uri(self)` - Return the configured Discord callback URI or the website default.
@@ -5645,7 +5636,6 @@ its methods as routes.
   - [OK] `WebGateway.health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
   - [OK] `WebGateway.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
   - [OK] `WebGateway.logout(self, request)` - Revoke the current session cookie and clear it from the browser.
-  - [OK] `WebGateway.messages_api(self, request)` - Manage the signed-in user's reusable message templates.
   - [OK] `WebGateway.oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
   - [OK] `WebGateway.oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
   - [OK] `WebGateway.oauth_providers(self, request)` - Report which optional social sign-in providers are configured.
@@ -5670,8 +5660,19 @@ its methods as routes.
 
 #### `core/web_chat.py`
 **Functions:**
+- [OK] `__init__(self, gateway)` - Special Python method
+- [OK] `chat_api(self, request)` - Send one signed-in message through the website conversation channel.
+- [OK] `chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
 - [OK] `chat_payload(response)` - Return the plain reply and suggestion buttons a browser can render.
+- [OK] `chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled chat message.
+- [OK] `register_chat_routes(app, gateway)` - Register all website chat endpoints on a gateway application.
 - [OK] `website_chat_reply(user_id, message)` - Send one website message through the same path as Discord and email.
+**Classes:**
+- [OK] `WebChatRoutes` - Handle the website chat route family using shared gateway infrastructure.
+  - [OK] `WebChatRoutes.__init__(self, gateway)` - Special Python method
+  - [OK] `WebChatRoutes.chat_api(self, request)` - Send one signed-in message through the website conversation channel.
+  - [OK] `WebChatRoutes.chat_inbox(self, request)` - Return outbound messages stored for the always-on website channel.
+  - [OK] `WebChatRoutes.chat_reaction(self, request)` - Apply More like this or Not for me to one scheduled chat message.
 
 #### `core/web_checkins.py`
 **Functions:**
@@ -5698,6 +5699,18 @@ its methods as routes.
   - [OK] `WebGatewayRuntime._serve(self)` - Bind aiohttp, signal readiness, and serve until shutdown is requested.
   - [OK] `WebGatewayRuntime.start(self)` - Report bind failures without disrupting other MHM services or servers.
   - [OK] `WebGatewayRuntime.stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
+
+#### `core/web_messages.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Special Python method
+- [OK] `clean(data)` - Validate an editable message template payload.
+- [OK] `messages_api(self, request)` - Manage the signed-in user's reusable message templates.
+- [OK] `register_message_routes(app, gateway)` - Register all message-template endpoints on a gateway application.
+- [OK] `view(message)` - Return one browser-safe message template.
+**Classes:**
+- [OK] `WebMessageRoutes` - Handle the message-template route family using gateway infrastructure.
+  - [OK] `WebMessageRoutes.__init__(self, gateway)` - Special Python method
+  - [OK] `WebMessageRoutes.messages_api(self, request)` - Manage the signed-in user's reusable message templates.
 
 #### `core/web_notes.py`
 **Functions:**

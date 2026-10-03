@@ -1,5 +1,6 @@
 """Website chat sends through the shared handler as the website channel."""
 
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
@@ -7,12 +8,63 @@ import pytest_asyncio
 from aiohttp import CookieJar
 
 from communication.command_handlers.shared_types import InteractionResponse
+from core.error_handling import error_handler
 from core.web_account_service import create_web_app
-from core.web_chat import chat_payload, website_chat_reply
+from core.web_chat import (
+    WebChatRoutes,
+    chat_payload,
+    register_chat_routes,
+    website_chat_reply,
+)
 from tests.unit.test_web_account_service import web_client
 
 pytestmark = [pytest.mark.unit, pytest.mark.communication, pytest.mark.asyncio]
 ORIGIN = "http://localhost:8080"
+
+
+async def test_chat_route_initialization_reports_and_reraises_errors(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        error_handler,
+        "handle_error",
+        lambda error, context, operation, user_friendly=True: calls.append(
+            (error, operation, user_friendly)
+        )
+        or False,
+    )
+
+    class BrokenChatRoutes(WebChatRoutes):
+        def __setattr__(self, _name, _value):
+            raise RuntimeError("cannot initialize routes")
+
+    with pytest.raises(RuntimeError, match="cannot initialize routes"):
+        BrokenChatRoutes(object())
+
+    assert len(calls) == 1
+    assert calls[0][1:] == ("initializing website chat routes", False)
+
+
+async def test_chat_route_registration_reports_and_reraises_errors(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        error_handler,
+        "handle_error",
+        lambda error, context, operation, user_friendly=True: calls.append(
+            (error, operation, user_friendly)
+        )
+        or False,
+    )
+
+    class BrokenRouter:
+        def add_get(self, *_args, **_kwargs):
+            raise RuntimeError("cannot register routes")
+
+    app = SimpleNamespace(router=BrokenRouter())
+    with pytest.raises(RuntimeError, match="cannot register routes"):
+        register_chat_routes(app, object())
+
+    assert len(calls) == 1
+    assert calls[0][1:] == ("registering website chat routes", False)
 
 
 class Accounts:

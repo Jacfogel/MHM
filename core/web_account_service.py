@@ -32,7 +32,9 @@ from core.error_handling import (
     handle_errors,
 )
 from core.logger import get_component_logger
+from core.web_chat import register_chat_routes
 from core.web_checkins import register_checkin_routes
+from core.web_messages import register_message_routes
 from core.web_notes import note_view, register_notes_routes
 
 logger = get_component_logger("main")
@@ -2282,137 +2284,6 @@ class WebGateway:
 
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def messages_api(self, request):
-        """Manage the signed-in user's reusable message templates."""
-        uid, _ = await self.authenticated_account(request)
-        from messages.message_data_manager import (
-            add_message,
-            delete_message,
-            edit_message,
-            is_ai_generated_message_category,
-            load_user_messages,
-        )
-
-        options = await asyncio.to_thread(self.accounts.settings_options, uid)
-        categories = [
-            category
-            for category in options.get("categories", [])
-            if isinstance(category, str)
-            and not is_ai_generated_message_category(category)
-        ]
-        category = request.match_info.get("category") or request.query.get("category")
-        if not category and categories:
-            category = categories[0]
-        if category not in categories:
-            raise web.HTTPBadRequest(text="Choose an available message category.")
-
-        documents = await asyncio.to_thread(self.accounts.documents, uid)
-        from core.profile_v2_io import schedule_categories
-
-        schedule = schedule_categories(documents.get("schedules") or {})
-        period_names = [
-            name
-            for name in (schedule.get(category, {}).get("periods") or {})
-            if name != "ALL"
-        ]
-
-        @handle_errors(
-            "serializing website message template",
-            user_friendly=False,
-            re_raise=True,
-        )
-        def view(message):
-            """Return one browser-safe message template."""
-            message_schedule = message.get("schedule") or {}
-            return {
-                "id": str(message.get("id") or ""),
-                "text": str(message.get("text") or ""),
-                "active": bool(message.get("active", True)),
-                "days": [str(day) for day in message_schedule.get("days") or ["ALL"]],
-                "periods": [str(period) for period in message_schedule.get("periods") or ["ALL"]],
-                "updated_at": message.get("updated_at"),
-            }
-
-        # error_handling_exclude: Raises intentional HTTP validation responses;
-        # unexpected failures propagate to the guarded messages_api boundary.
-        def clean(data):
-            """Validate an editable message template payload."""
-            if set(data) != {"text", "active", "days", "periods"}:
-                raise web.HTTPBadRequest(text="Submit the message text, schedule, and enabled state.")
-            text = data["text"]
-            days = data["days"]
-            periods = data["periods"]
-            valid_days = {"ALL", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
-            allowed_periods = {"ALL", *period_names}
-            if not isinstance(text, str) or not text.strip() or len(text.strip()) > 5000:
-                raise web.HTTPBadRequest(text="Messages must be between 1 and 5,000 characters.")
-            if type(data["active"]) is not bool:
-                raise web.HTTPBadRequest(text="Choose whether this message is enabled.")
-            if (
-                not isinstance(days, list)
-                or not days
-                or len(days) > 7
-                or any(not isinstance(day, str) or day not in valid_days for day in days)
-                or len(set(days)) != len(days)
-                or ("ALL" in days and len(days) != 1)
-            ):
-                raise web.HTTPBadRequest(text="Choose valid days for this message.")
-            if (
-                not isinstance(periods, list)
-                or not periods
-                or len(periods) > 20
-                or any(not isinstance(period, str) or period not in allowed_periods for period in periods)
-                or len(set(periods)) != len(periods)
-                or ("ALL" in periods and len(periods) != 1)
-            ):
-                raise web.HTTPBadRequest(text="Choose valid reminder windows for this message.")
-            return {
-                "text": text.strip(),
-                "active": data["active"],
-                "schedule": {"days": days, "periods": periods},
-            }
-
-        if request.method == "GET":
-            messages = await asyncio.to_thread(load_user_messages, uid, category)
-            return web.json_response(
-                {
-                    "category": category,
-                    "categories": categories,
-                    "period_names": period_names,
-                    "messages": [view(message) for message in messages],
-                }
-            )
-        if request.method == "POST" and not request.match_info.get("message_id"):
-            values = clean(await self.body(request))
-            message_id = secrets.token_urlsafe(18)
-            await asyncio.to_thread(
-                add_message, uid, category, {"id": message_id, **values}
-            )
-        else:
-            message_id = request.match_info.get("message_id")
-            if not message_id or len(message_id) > 200:
-                raise web.HTTPBadRequest(text="Choose a valid message.")
-            existing = await asyncio.to_thread(load_user_messages, uid, category)
-            if not any(str(message.get("id")) == message_id for message in existing):
-                raise web.HTTPNotFound(text="That message could not be found.")
-            if request.method == "PATCH":
-                values = clean(await self.body(request))
-                await asyncio.to_thread(edit_message, uid, category, message_id, values)
-            elif request.method == "DELETE":
-                if await self.body(request):
-                    raise web.HTTPBadRequest(text="Deleting a message does not need a request body.")
-                await asyncio.to_thread(delete_message, uid, category, message_id)
-                return web.json_response({"ok": True})
-            else:
-                raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
-        saved = await asyncio.to_thread(load_user_messages, uid, category)
-        message = next((item for item in saved if str(item.get("id")) == message_id), None)
-        if not message:
-            raise web.HTTPServiceUnavailable(text="MHM could not finish saving that message.")
-        return web.json_response({"message": view(message)}, status=201 if request.method == "POST" else 200)
-
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def request_action(self, request):
         """Queue an authenticated one-off delivery request for the MHM service."""
         uid, _ = await self.authenticated_account(request)
@@ -2519,76 +2390,6 @@ class WebGateway:
         active = await asyncio.to_thread(load_active_tasks, uid)
         estimates = await asyncio.to_thread(estimate_task_efforts, active)
         return web.json_response({"tasks": estimates})
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_api(self, request):
-        """Send one signed-in message through the website conversation channel."""
-        from core.web_chat import website_chat_reply
-
-        uid, _current = await self.authenticated_account(request)
-        data = await self.body(request)
-        message = data.get("message")
-        if set(data) != {"message"} or not isinstance(message, str):
-            raise web.HTTPBadRequest(text="Enter a message to send.")
-        message = message.strip()
-        if not message or len(message) > 2000:
-            raise web.HTTPBadRequest(text="Enter a message of up to 2000 characters.")
-        self.throttle(("chat", uid), 30, 600)
-        result = await asyncio.to_thread(website_chat_reply, uid, message)
-        from communication.communication_channels.website.inbox import (
-            append_website_chat_exchange,
-        )
-
-        await asyncio.to_thread(
-            append_website_chat_exchange, uid, message, result.get("reply", "")
-        )
-        return web.json_response(result)
-
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_inbox(self, request):
-        """Return outbound messages stored for the always-on website channel."""
-        from communication.communication_channels.website.inbox import (
-            list_home_conversation,
-            list_website_messages,
-        )
-
-        uid, _current = await self.authenticated_account(request)
-        messages = await asyncio.to_thread(list_website_messages, uid)
-        turns = await asyncio.to_thread(list_home_conversation, uid)
-        return web.json_response({"messages": messages, "turns": turns})
-
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def chat_reaction(self, request):
-        """Apply More like this or Not for me to one scheduled message from the website chat."""
-        from messages.message_reactions import apply_message_reaction
-
-        uid, _current = await self.authenticated_account(request)
-        data = await self.body(request)
-        kind = data.get("kind")
-        delivery_id = data.get("delivery_id")
-        if (
-            set(data) != {"kind", "delivery_id"}
-            or kind not in {"up", "down"}
-            or not isinstance(delivery_id, str)
-            or not delivery_id.strip()
-            or len(delivery_id.strip()) > 80
-        ):
-            raise web.HTTPBadRequest(text="Choose more like this or not for me.")
-        self.throttle(("reaction", uid), 30, 600)
-        result = await asyncio.to_thread(
-            apply_message_reaction,
-            uid,
-            "",
-            kind,
-            delivery_id=delivery_id.strip(),
-        )
-        status = str(result.get("status") or "")
-        if status == "ignored":
-            raise web.HTTPNotFound(text="That message cannot change later messages.")
-        return web.json_response({"status": status, "reply": str(result.get("reply") or "")})
-
 
     # Explicit allowlist keeps configs, Worker source, and docs off the local server.
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -2751,16 +2552,11 @@ def create_web_app(
         "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach}",
         gateway.tasks_api,
     )
-    app.router.add_get("/api/messages", gateway.messages_api)
-    app.router.add_post("/api/messages", gateway.messages_api)
+    register_message_routes(app, gateway)
     app.router.add_post("/api/actions", gateway.request_action)
 
     register_checkin_routes(app, gateway)
-    app.router.add_get("/api/chat", gateway.chat_inbox)
-    app.router.add_post("/api/chat", gateway.chat_api)
-    app.router.add_post("/api/chat/reactions", gateway.chat_reaction)
-    app.router.add_route("PATCH", "/api/messages/{category}/{message_id}", gateway.messages_api)
-    app.router.add_route("DELETE", "/api/messages/{category}/{message_id}", gateway.messages_api)
+    register_chat_routes(app, gateway)
     register_notes_routes(app, gateway)
 
     app.router.add_get("/", gateway.asset)

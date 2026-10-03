@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-02 - Website message and chat routes extracted
+- **Refactor**: Moved reusable scheduled-message CRUD endpoints from `WebGateway` into [web_messages.py](../core/web_messages.py). [web_account_service.py](../core/web_account_service.py) delegates all four existing message routes through `register_message_routes()` while retaining the same authentication, category filtering, schedule validation, persistence calls, and response shapes.
+- **Reliability and tests**: Route-family initialization and registration report and re-raise startup failures. Focused ownership tests complement the existing end-to-end message CRUD coverage.
+- **Refactor**: Moved the authenticated chat send, inbox, and reaction endpoints from `WebGateway` into [web_chat.py](../core/web_chat.py), which already owns the shared website reply helpers. [web_account_service.py](../core/web_account_service.py) now delegates the route family through `register_chat_routes()` with no URL or behavior changes.
+- **Reliability**: Route-family initialization and registration report failures through the centralized error handler and re-raise them so startup cannot silently omit chat endpoints.
+- **Tests**: Added focused initialization and registration failure coverage alongside the existing chat endpoint suite.
+
 ### 2026-10-02 - Website route families extracted and behavior tests aligned
 - **Refactor**: Moved the authenticated check-in endpoints from the oversized `WebGateway` into [web_checkins.py](../core/web_checkins.py) and the notebook endpoints plus shared `note_view()` serializer into [web_notes.py](../core/web_notes.py). [web_account_service.py](../core/web_account_service.py) now delegates both route families through their registration functions while preserving the existing URLs, authentication, validation, and response behavior.
 - **Error handling and tests**: Route-family constructors and registration functions use centralized `@handle_errors` decorators that report failures and re-raise them during application setup. Focused coverage in [test_web_checkins.py](../tests/unit/test_web_checkins.py) and [test_web_notes.py](../tests/unit/test_web_notes.py) verifies registration failures as well as check-in lifecycle, notebook CRUD, filtering, validation, and archive/restore behavior.
