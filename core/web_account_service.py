@@ -32,8 +32,10 @@ from core.error_handling import (
     handle_errors,
 )
 from core.logger import get_component_logger
+from core.web_assets import register_asset_routes
 from core.web_chat import register_chat_routes
 from core.web_checkins import register_checkin_routes
+from core.web_health import register_health_routes
 from core.web_messages import register_message_routes
 from core.web_notes import note_view, register_notes_routes
 from core.web_settings import register_settings_routes
@@ -1547,101 +1549,6 @@ class WebGateway:
             return web.HTTPFound(self.website_redirect(return_path, discord="error"))
         return web.HTTPFound(self.website_redirect(return_path, discord="connected"))
 
-
-
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def health_settings(self, request):
-        """Read or change the signed-in user's Google Health integration."""
-        uid, _ = await self.authenticated_account(request)
-        from integrations.google_health.user_settings import (
-            delete_health_integration,
-            enable_health_integration,
-            get_connect_authorization_url,
-            get_connect_readiness,
-            get_health_integration_status,
-            pause_health_integration,
-            run_connect_flow_async,
-            sync_health_integration,
-        )
-
-        @handle_errors(
-            "building Google Health website status",
-            user_friendly=False,
-            re_raise=True,
-        )
-        def snapshot():
-            """Return the browser-safe Google Health state."""
-            status = get_health_integration_status(uid)
-            ready, readiness_error = get_connect_readiness()
-            return {
-                "feature_state": status.feature_state if status else "disabled",
-                "connected": bool(status and status.connected),
-                "last_success_at": status.last_success_at if status else "never",
-                "has_recent_error": bool(status and status.has_recent_error),
-                "connect_available": ready,
-                "connect_error": readiness_error,
-                "connecting": uid in self.health_connecting,
-            }
-
-        if request.method == "GET":
-            return web.json_response(await asyncio.to_thread(snapshot))
-        data = await self.body(request)
-        if set(data) != {"action"} or data.get("action") not in {
-            "connect",
-            "pause",
-            "enable",
-            "sync",
-            "delete",
-        }:
-            raise web.HTTPBadRequest(text="Choose a valid Google Health action.")
-        action = data["action"]
-        self.throttle(("health", uid), 12, 600)
-        async with self.health_lock:
-            await self.authenticated_account(request)
-            if action == "connect":
-                ready, error = await asyncio.to_thread(get_connect_readiness)
-                if not ready:
-                    raise web.HTTPServiceUnavailable(text=error)
-                if uid in self.health_connecting:
-                    raise web.HTTPConflict(text="Google Health connection is already in progress.")
-                url = await asyncio.to_thread(get_connect_authorization_url, uid)
-                if not url:
-                    raise web.HTTPServiceUnavailable(text="Google Health could not start connecting.")
-                self.health_connecting.add(uid)
-
-                @handle_errors(
-                    "finishing Google Health website connection",
-                    user_friendly=False,
-                    default_return=None,
-                )
-                def finished(_success, _error):
-                    """Release the single in-progress connect slot for this user."""
-                    self.health_connecting.discard(uid)
-
-                run_connect_flow_async(uid, finished)
-                return web.json_response({"ok": True, "url": url, **snapshot()})
-            if action == "pause":
-                ok = await asyncio.to_thread(pause_health_integration, uid)
-                message = "Google Health personalization is paused."
-            elif action == "enable":
-                ok, error = await asyncio.to_thread(enable_health_integration, uid)
-                message = "Google Health personalization is enabled."
-                if not ok and error:
-                    raise web.HTTPBadRequest(text=error)
-            elif action == "sync":
-                ok = await asyncio.to_thread(sync_health_integration, uid)
-                message = "Google Health sync finished."
-            else:
-                ok = await asyncio.to_thread(delete_health_integration, uid)
-                message = "Google Health data was deleted and the integration was disabled."
-            if not ok:
-                raise web.HTTPServiceUnavailable(text="Google Health could not complete that action.")
-            return web.json_response({"ok": True, "message": message, **snapshot()})
-
-
-
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def request_action(self, request):
         """Queue an authenticated one-off delivery request for the MHM service."""
@@ -1738,62 +1645,6 @@ class WebGateway:
                 text="MHM could not save that setup is finished. Please try again."
             )
         return web.json_response({"needs_setup": False})
-
-
-    # Explicit allowlist keeps configs, Worker source, and docs off the local server.
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def asset(self, request):
-        """Serve one explicitly allowlisted website asset from the local gateway."""
-        name = request.match_info.get("name", "index.html")
-        if name not in {
-            "index.html",
-            "login.html",
-            "home.html",
-            "setup.html",
-            "app.html",
-            "account-settings.html",
-            "integrations.html",
-            "tasks.html",
-            "notes.html",
-            "insights.html",
-            "messages.html",
-            "checkin.html",
-            "privacy.html",
-            "terms.html",
-            "data.html",
-            "styles.css",
-            "mhm-logo.png",
-            "script.js",
-            "auth.js",
-            "app.js",
-            "home.js",
-            "setup.js",
-            "settings.js",
-            "tasks.js",
-            "notes.js",
-            "insights.js",
-            "integrations.js",
-            "messages.js",
-            "checkin.js",
-        }:
-            raise web.HTTPNotFound(text="Page not found.")
-        return web.FileResponse(self.root / name)
-
-
-    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
-    async def font_asset(self, request):
-        """Serve one self-hosted typeface file."""
-        name = request.match_info.get("name", "")
-        if name not in {
-            "inter-latin.woff2",
-            "inter-latin-ext.woff2",
-            "nunito-latin.woff2",
-            "nunito-latin-ext.woff2",
-        }:
-            raise web.HTTPNotFound(text="Page not found.")
-        return web.FileResponse(self.root / "fonts" / name)
-
-
 def create_web_app(
     *,
     accounts=None,
@@ -1883,8 +1734,7 @@ def create_web_app(
     app.router.add_get("/api/account/export", gateway.account_export)
     app.router.add_post("/api/account/delete", gateway.account_delete)
     register_settings_routes(app, gateway)
-    app.router.add_get("/api/health", gateway.health_settings)
-    app.router.add_post("/api/health", gateway.health_settings)
+    register_health_routes(app, gateway)
 
     register_task_routes(app, gateway)
     register_message_routes(app, gateway)
@@ -1894,7 +1744,5 @@ def create_web_app(
     register_chat_routes(app, gateway)
     register_notes_routes(app, gateway)
 
-    app.router.add_get("/", gateway.asset)
-    app.router.add_get("/fonts/{name}", gateway.font_asset)
-    app.router.add_get("/{name}", gateway.asset)
+    register_asset_routes(app, gateway)
     return app

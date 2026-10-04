@@ -32,7 +32,7 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-10-02 - Website message, chat, task, and settings routes extracted
+### 2026-10-02 - Website route families extracted
 - **Refactor**: Moved reusable scheduled-message CRUD endpoints from `WebGateway` into [web_messages.py](../core/web_messages.py). [web_account_service.py](../core/web_account_service.py) delegates all four existing message routes through `register_message_routes()` while retaining the same authentication, category filtering, schedule validation, persistence calls, and response shapes.
 - **Reliability and tests**: Route-family initialization and registration report and re-raise startup failures. Focused ownership tests complement the existing end-to-end message CRUD coverage.
 - **Refactor**: Moved the authenticated chat send, inbox, and reaction endpoints from `WebGateway` into [web_chat.py](../core/web_chat.py), which already owns the shared website reply helpers. [web_account_service.py](../core/web_account_service.py) now delegates the route family through `register_chat_routes()` with no URL or behavior changes.
@@ -44,6 +44,8 @@ When adding new changes, follow this format:
 - **Impact**: The gateway is roughly 570 lines smaller, its highest-complexity route has a focused owner, and no route, authentication, validation, persistence, or response behavior changed.
 - **Settings and insights routes**: Moved `/api/settings` and `/api/insights` from `WebGateway` into [web_settings.py](../core/web_settings.py). The route owner continues to use [web_user_settings.py](../core/web_user_settings.py) for snapshots and validated updates, and both account summaries and settings saves now reuse its setup-completion helper.
 - **Settings verification**: Added focused route initialization and registration failure coverage. Existing endpoint tests continue to cover authentication, CSRF, revision conflicts, allowlisted updates, setup completion, bounded analytics periods, and JSON-safe insight responses.
+- **Health and asset routes**: Moved the Google Health integration endpoints into [web_health.py](../core/web_health.py) and public asset/font serving into [web_assets.py](../core/web_assets.py). [web_account_service.py](../core/web_account_service.py) now delegates both families while preserving the health action workflow, response shapes, URLs, route order, and explicit file allowlists.
+- **Health and asset verification**: Added focused ownership, registration-failure, health snapshot, invalid-action, and asset-allowlist coverage. All 127 web-service tests pass; Ruff and Pyright report no issues. The complete suite finished with 5,981 passed, 28 skipped, zero failures, zero errors, and zero warnings.
 
 ### 2026-10-02 - Website route families extracted and behavior tests aligned
 - **Refactor**: Moved the authenticated check-in endpoints from the oversized `WebGateway` into [web_checkins.py](../core/web_checkins.py) and the notebook endpoints plus shared `note_view()` serializer into [web_notes.py](../core/web_notes.py). [web_account_service.py](../core/web_account_service.py) now delegates both route families through their registration functions while preserving the existing URLs, authentication, validation, and response behavior.

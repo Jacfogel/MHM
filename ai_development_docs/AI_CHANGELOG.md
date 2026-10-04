@@ -30,7 +30,7 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-10-02 - Website message, chat, task, and settings routes extracted **COMPLETED**
+### 2026-10-02 - Website route families extracted **COMPLETED**
 - Reusable scheduled-message CRUD endpoints moved from the oversized `WebGateway` into `core/web_messages.py` without changing their URLs, validation, account ownership, or responses.
 - The account service delegates message route registration, with centralized startup error reporting and focused route-owner tests.
 - Website chat send, inbox, and reaction endpoints moved from the oversized `WebGateway` into `core/web_chat.py`, beside the existing conversation reply helpers.
@@ -40,6 +40,8 @@ Guidelines:
 - `WebGateway` is roughly 570 lines smaller, and the former highest-complexity route now has a focused owner backed by the existing task lifecycle suite.
 - The complete suite passes: 5,974 passed, 28 skipped, with zero failures, errors, or warnings.
 - Self-service settings and authenticated insights endpoints moved into `core/web_settings.py`; the existing settings transformation helpers remain in `core/web_user_settings.py` and setup completion is shared without duplication.
+- Google Health integration endpoints moved into `core/web_health.py`, and allowlisted public asset/font routes moved into `core/web_assets.py`; URLs, health actions, responses, route order, and file allowlists are unchanged.
+- Focused ownership and behavior coverage accompanies both new route owners; all 127 web-service tests pass, Ruff and Pyright are clean, and the complete suite passes with 5,981 passed and 28 skipped.
 
 ### 2026-10-02 - Website routes extracted and test fixtures aligned **COMPLETED**
 - Check-in and notebook endpoints moved from the oversized `WebGateway` into focused route modules; the account service now delegates their registration and reuses the notebook serializer.

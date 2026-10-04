@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-02 20:38:23
+> **Last Generated**: 2026-10-02 21:58:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 298
-- **Functions Found**: 3076
-- **Methods Found**: 1572
-- **Classes Found**: 274
-- **Total Items**: 4648
-- **Functions Documented**: 2721
-- **Methods Documented**: 1394
-- **Classes Documented**: 207
-- **Total Documented**: 4115
+- **Files Scanned**: 300
+- **Functions Found**: 3080
+- **Methods Found**: 1574
+- **Classes Found**: 276
+- **Total Items**: 4654
+- **Functions Documented**: 2725
+- **Methods Documented**: 1396
+- **Classes Documented**: 209
+- **Total Documented**: 4121
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-02
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (615)
+### **Core System Functions** (619)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (891)
@@ -5534,7 +5534,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
 - [OK] `account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
-- [OK] `asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
 - [OK] `authenticated_account(self, request)` - Resolve an active account from the request session cookie.
 - [OK] `body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
@@ -5548,11 +5547,8 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `discord_start(self, request)` - Create a short-lived Discord OAuth state and authorization URL.
 - [OK] `documents(self, uid)` - Load the account documents exposed through self-service settings.
 - [OK] `email_exists(self, email)` - Return whether any account already uses an email address.
-- [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
-- [OK] `font_asset(self, request)` - Serve one self-hosted typeface file.
 - [OK] `get(self, uid)` - Load one account document by canonical user ID.
 - [OK] `guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
-- [OK] `health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
 - [OK] `link_discord(self, uid, discord_user_id, discord_username)` - Link a unique Discord identity to an existing MHM account.
 - [OK] `link_oauth(self, uid, provider, subject)` - Link a provider subject once, without storing provider tokens.
 - [OK] `logout(self, request)` - Revoke the current session cookie and clear it from the browser.
@@ -5572,7 +5568,6 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
 - [OK] `settings_options(self, uid)` - Load the allowed settings choices for one account.
 - [OK] `setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
-- [OK] `snapshot()` - Return the browser-safe Google Health state.
 - [OK] `start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
 - [OK] `throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
 - [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
@@ -5609,16 +5604,13 @@ its methods as routes.
   - [OK] `WebGateway.account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
   - [OK] `WebGateway.account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
   - [OK] `WebGateway.account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
-  - [OK] `WebGateway.asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
   - [OK] `WebGateway.authenticated_account(self, request)` - Resolve an active account from the request session cookie.
   - [OK] `WebGateway.body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
   - [OK] `WebGateway.discord_available(self)` - Return whether the Discord OAuth credentials are configured.
   - [OK] `WebGateway.discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.
   - [OK] `WebGateway.discord_redirect_uri(self)` - Return the configured Discord callback URI or the website default.
   - [OK] `WebGateway.discord_start(self, request)` - Create a short-lived Discord OAuth state and authorization URL.
-  - [OK] `WebGateway.font_asset(self, request)` - Serve one self-hosted typeface file.
   - [OK] `WebGateway.guard(self, request, handler)` - Enforce proxy, origin, JSON, security-header, and safe-error policies.
-  - [OK] `WebGateway.health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
   - [OK] `WebGateway.logout(self, request)` - Revoke the current session cookie and clear it from the browser.
   - [OK] `WebGateway.oauth_callback(self, request)` - Validate a social callback, link its identity, and start a session.
   - [OK] `WebGateway.oauth_provider_config(self, provider)` - Return provider credentials and callback settings from configuration.
@@ -5635,6 +5627,18 @@ its methods as routes.
   - [OK] `WebGateway.valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
   - [OK] `WebGateway.verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
   - [OK] `WebGateway.website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
+
+#### `core/web_assets.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Keep the shared gateway root used by public asset endpoints.
+- [OK] `asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
+- [OK] `font_asset(self, request)` - Serve one self-hosted typeface file.
+- [OK] `register_asset_routes(app, gateway)` - Register public website asset endpoints on a gateway application.
+**Classes:**
+- [OK] `WebAssetRoutes` - Serve public website files using the gateway's configured root.
+  - [OK] `WebAssetRoutes.__init__(self, gateway)` - Keep the shared gateway root used by public asset endpoints.
+  - [OK] `WebAssetRoutes.asset(self, request)` - Serve one explicitly allowlisted website asset from the local gateway.
+  - [OK] `WebAssetRoutes.font_asset(self, request)` - Serve one self-hosted typeface file.
 
 #### `core/web_chat.py`
 **Functions:**
@@ -5677,6 +5681,18 @@ its methods as routes.
   - [OK] `WebGatewayRuntime._serve(self)` - Bind aiohttp, signal readiness, and serve until shutdown is requested.
   - [OK] `WebGatewayRuntime.start(self)` - Report bind failures without disrupting other MHM services or servers.
   - [OK] `WebGatewayRuntime.stop(self)` - Stop only the gateway this runtime owns and let aiohttp drain requests.
+
+#### `core/web_health.py`
+**Functions:**
+- [OK] `__init__(self, gateway)` - Keep the shared gateway services used by health endpoints.
+- [OK] `finished(_success, _error)` - Release the single in-progress connect slot for this user.
+- [OK] `health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
+- [OK] `register_health_routes(app, gateway)` - Register Google Health endpoints on a gateway application.
+- [OK] `snapshot()` - Return the browser-safe Google Health state.
+**Classes:**
+- [OK] `WebHealthRoutes` - Manage Google Health integration state using gateway infrastructure.
+  - [OK] `WebHealthRoutes.__init__(self, gateway)` - Keep the shared gateway services used by health endpoints.
+  - [OK] `WebHealthRoutes.health_settings(self, request)` - Read or change the signed-in user's Google Health integration.
 
 #### `core/web_messages.py`
 **Functions:**
