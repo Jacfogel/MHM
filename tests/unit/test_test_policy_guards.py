@@ -72,6 +72,13 @@ def _iter_test_python_files():
         yield path
 
 
+def test_run_tests_isolates_environment_before_core_imports():
+    source = (PROJECT_ROOT / "run_tests.py").read_text(encoding="utf-8")
+    isolation = source.index("os." + 'environ["MHM_TESTING"] = "1"')
+    first_core_import = source.index("from core.")
+    assert isolation < first_core_import
+
+
 def _extract_category_markers(decorators: list[ast.expr]) -> set[str]:
     markers: set[str] = set()
     for dec in decorators:

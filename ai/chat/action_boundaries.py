@@ -24,6 +24,7 @@ _FALSE_CRUD_CLAIM_PATTERNS: tuple[tuple[str, Pattern[str]], ...] = (
         "claims task/item was created",
         re.compile(
             r"\bi(?:'ve| have)? created\b|\b(?:successfully|done!)\s+.{0,25}created\b"
+            r"|\bi(?:'ve| have)? added\b"
             r"|\b(?:task|reminder).{0,40}(?:has been|was) (?:created|added)\b"
             r"|\btask has been added\b",
             re.IGNORECASE,
@@ -62,6 +63,9 @@ FALSE_CRUD_SUCCESS_SUBSTRINGS: tuple[str, ...] = (
     "i created",
     "i've created",
     "i have created",
+    "i added",
+    "i've added",
+    "i have added",
     "task has been added",
     "has been created",
     "successfully created",

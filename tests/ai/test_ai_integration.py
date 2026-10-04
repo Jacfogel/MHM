@@ -4,16 +4,12 @@ AI Integration Tests
 Tests for context with check-ins, conversation history, and integration features.
 """
 
-import os
-from unittest.mock import patch
-
 # NOTE: Avoid datetime.now in tests that touch production behavior.
 # Use canonical time helpers from core.time_utilities instead.
 
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 from core.response_tracking import get_recent_chat_interactions
 from ai.context.chatbot_context import build_chatbot_context_dict
 from user.context_manager import user_context_manager
@@ -47,17 +43,9 @@ class TestAIIntegration(AITestBase):
                 )
                 return
 
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -189,17 +177,9 @@ class TestAIIntegration(AITestBase):
                 )
                 return
 
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -340,17 +320,9 @@ class TestAIIntegration(AITestBase):
                 )
                 return
 
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(

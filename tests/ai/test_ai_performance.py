@@ -5,12 +5,9 @@ Tests for response times, performance metrics, and quality validation.
 """
 
 import time
-import os
-from unittest.mock import patch
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 
 
 class TestAIPerformance(AITestBase):
@@ -58,32 +55,31 @@ class TestAIPerformance(AITestBase):
             )
             
             if success:
-                import core.config
-                with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                     patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                    contextual_user_id = get_user_id_by_identifier("test_perf_contextual")
+                contextual_user_id = TestUserFactory.get_test_user_id_by_label(
+                    "test_perf_contextual", self.test_data_dir
+                )
+
+                if contextual_user_id:
+                    # Get context info before generating response
+                    context_info = self._build_context_info(contextual_user_id, include_history=False)
+
+                    prompt = "How am I doing today?"
+                    start_time = time.time()
+                    response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
+                    response_time = time.time() - start_time
                     
-                    if contextual_user_id:
-                        # Get context info before generating response
-                        context_info = self._build_context_info(contextual_user_id, include_history=False)
-                        
-                        prompt = "How am I doing today?"
-                        start_time = time.time()
-                        response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
-                        response_time = time.time() - start_time
-                        
-                        if response and response_time < 15.0:
-                            status = "PASS" if response_time < 10.0 else "PARTIAL"
-                            self.log_test("T-9.2", "Contextual query response time", status,
-                                        f"Response time: {response_time:.2f}s (target <10s)", 
-                                        prompt=prompt, response=response, response_time=response_time, test_type="contextual", context_info=context_info)
-                        else:
-                            self.log_test("T-9.2", "Contextual query response time", "FAIL" if response_time >= 15.0 else "PARTIAL",
-                                        f"Response time too slow: {response_time:.2f}s" if response_time >= 15.0 else f"Response time: {response_time:.2f}s",
-                                        prompt=prompt, response_time=response_time)
+                    if response and response_time < 15.0:
+                        status = "PASS" if response_time < 10.0 else "PARTIAL"
+                        self.log_test("T-9.2", "Contextual query response time", status,
+                                    f"Response time: {response_time:.2f}s (target <10s)",
+                                    prompt=prompt, response=response, response_time=response_time, test_type="contextual", context_info=context_info)
                     else:
-                        self.log_test("T-9.2", "Contextual query response time", "FAIL",
-                                    "", "Could not get user UUID")
+                        self.log_test("T-9.2", "Contextual query response time", "FAIL" if response_time >= 15.0 else "PARTIAL",
+                                    f"Response time too slow: {response_time:.2f}s" if response_time >= 15.0 else f"Response time: {response_time:.2f}s",
+                                    prompt=prompt, response_time=response_time)
+                else:
+                    self.log_test("T-9.2", "Contextual query response time", "FAIL",
+                                "", "Could not get user UUID")
             else:
                 self.log_test("T-9.2", "Contextual query response time", "FAIL",
                             "", "Failed to create test user")

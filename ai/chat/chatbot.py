@@ -67,6 +67,17 @@ from ai.chat.response_postprocess import (
     keep_first_personalized_block,
     normalize_personalized_greeting,
     polish_greeting_response,
+    repair_action_status_reply,
+    repair_command_clarification_reply,
+    repair_direct_helpful_reply,
+    repair_direct_fact_reply,
+    repair_emotional_support_reply,
+    repair_focus_reply,
+    repair_simple_arithmetic_reply,
+    repair_short_story_mismatch,
+    repair_symbol_only_topic_reply,
+    repair_unexecuted_chat_create_reply,
+    repair_vague_capabilities_reply,
     sanitize_false_crud_claims,
     smart_truncate_response,
     strip_instruction_tuning_markers,
@@ -465,8 +476,8 @@ class AIChatBotSingleton:
             return None
 
         if mode == "command":
-            cleaned_response = get_command_interpreter().extract_command_from_response(
-                cached_response
+            cleaned_response = get_command_interpreter().ensure_structured_command_response(
+                cached_response, user_prompt
             )
             ai_logger.debug(
                 "AI response served from cache (cleaned)",
@@ -591,10 +602,26 @@ class AIChatBotSingleton:
             response = sanitize_false_crud_claims(response)
             if not response.strip():
                 response = UNCLEAR_USER_INPUT_REPLY
+            response = polish_greeting_response(response, user_prompt)
+            response = repair_action_status_reply(user_prompt, response)
+            if mode == "chat":
+                response = repair_unexecuted_chat_create_reply(user_prompt, response)
             response = collapse_persona_definition_echo(user_prompt, response)
+            response = repair_vague_capabilities_reply(user_prompt, response)
+            response = repair_direct_helpful_reply(user_prompt, response)
+            response = repair_direct_fact_reply(user_prompt, response)
+            response = repair_simple_arithmetic_reply(user_prompt, response)
+            response = repair_focus_reply(user_prompt, response)
+            response = repair_emotional_support_reply(user_prompt, response)
+            response = repair_symbol_only_topic_reply(user_prompt, response)
+            response = repair_short_story_mismatch(user_prompt, response)
+            if mode == "command_with_clarification":
+                response = repair_command_clarification_reply(user_prompt, response)
             response = trim_verbose_reply_for_simple_prompt(user_prompt, response)
         if mode == "command":
-            response = get_command_interpreter().extract_command_from_response(response)
+            response = get_command_interpreter().ensure_structured_command_response(
+                response, user_prompt
+            )
         if mode == "personalized":
             response = keep_first_personalized_block(response)
             response = strip_letter_signoffs(response)

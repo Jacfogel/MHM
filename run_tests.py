@@ -22,6 +22,17 @@ import shutil
 import shlex
 from pathlib import Path
 from typing import Any
+
+# Isolate logging and data paths before importing any application module. The
+# runner itself imports core helpers, so waiting for pytest's conftest is too late.
+_RUNNER_TEST_LOGS_DIR = (Path(__file__).resolve().parent / "tests" / "logs").resolve()
+os.environ["MHM_TESTING"] = "1"
+os.environ["MHM_TEST_RUNNER"] = "1"
+os.environ.setdefault("TEST_CONSOLIDATED_LOGGING", "1")
+os.environ["LOGS_DIR"] = str(_RUNNER_TEST_LOGS_DIR)
+os.environ["TEST_LOGS_DIR"] = str(_RUNNER_TEST_LOGS_DIR)
+os.environ["LOG_MAIN_FILE"] = str(_RUNNER_TEST_LOGS_DIR / "test_consolidated.log")
+
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 

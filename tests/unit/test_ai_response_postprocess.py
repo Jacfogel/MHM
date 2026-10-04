@@ -38,6 +38,12 @@ _LEAK_FIXTURES: list[tuple[str, str, str | None, list[str]]] = [
         ["### Response", "task to complete"],
     ),
     (
+        "user_asked_tail",
+        'TestUser, I\'m doing well.\n\nUser asked: "What can you do?"\nResponse:',
+        "TestUser, I'm doing well.",
+        ["User asked", "Response:"],
+    ),
+    (
         "expected_outcome",
         "The answer to 5 + 5 is 10.\n\n## Expected Outcome:\nYou will receive a response",
         "The answer to 5 + 5 is 10",
@@ -233,6 +239,48 @@ def test_find_response_leak_markers_detects_instruction_leaks():
     assert find_response_leak_markers(text)
 
 
+def test_clean_system_prompt_leaks_truncates_inline_persona_and_user_input():
+    raw = (
+        "I'm fine, thanks for asking. [persona]\n"
+        "[user_input]\nHow do I check in?"
+    )
+    assert clean_system_prompt_leaks(raw) == "I'm fine, thanks for asking."
+
+
+def test_clean_system_prompt_leaks_truncates_markdown_chat_response_heading():
+    raw = (
+        "Hi there! How are you doing today?\n\n"
+        "## [chat_response]\nThis is a sample response from an in-app chatbot."
+    )
+    assert clean_system_prompt_leaks(raw) == "Hi there! How are you doing today?"
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("Hi TestUser.\n\n### User said:\nI'm tired.", "Hi TestUser."),
+        ("The answer is 10.\n\"\"\"", "The answer is 10."),
+        ("Focus on one thing.\n\n## Task List\nClick Add New.", "Focus on one thing."),
+        ("That's 10.\n\n## Chatflow for MHM\nUser said: hi", "That's 10."),
+    ],
+)
+def test_clean_system_prompt_leaks_truncates_live_template_continuations(raw, expected):
+    assert clean_system_prompt_leaks(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "Hello, my name is [insert name].",
+        "I'm [your_name], an assistant.",
+        "You are at [current_date]. Your name is [preferred_name].",
+        "Done. [selected_user_context]",
+    ],
+)
+def test_clean_system_prompt_leaks_rejects_unresolved_placeholders(raw):
+    assert clean_system_prompt_leaks(raw) == ""
+
+
 def test_find_response_leak_markers_detects_data_honesty_leak():
     from ai.chat.response_postprocess import find_response_leak_markers
 
@@ -273,6 +321,59 @@ def test_polish_greeting_response_removes_immediate_help_offer():
     assert "how can i help" not in polished.lower()
 
 
+def test_polish_greeting_response_replaces_instructional_greeting_reply():
+    polished = polish_greeting_response(
+        "You can talk to me by saying hello and sharing what is on your mind.",
+        "Hello",
+    )
+    assert polished == "Hi! How are you doing today?"
+
+
+def test_polish_greeting_response_answers_how_are_you_when_model_is_unclear():
+    polished = polish_greeting_response(
+        "I'm not sure what you mean by that. Could you rephrase?",
+        "How are you?",
+    )
+    assert "doing well" in polished.lower()
+
+
+def test_polish_greeting_response_trims_irrelevant_tutorial_after_answer():
+    polished = polish_greeting_response(
+        "I'm doing well. How about you?\nYou can use the check-in section to track tasks.",
+        "How are you doing today?",
+    )
+    assert polished == "I'm doing well. How about you?"
+
+
+def test_polish_greeting_response_bounds_long_simple_greeting():
+    polished = polish_greeting_response("Hello! " + ("More text. " * 30), "Hello!")
+    assert polished == "Hi! How are you doing today?"
+
+
+def test_polish_greeting_response_rejects_invented_user_state():
+    polished = polish_greeting_response(
+        "You are in a nice mood and your energy level is good.",
+        "How are you feeling? (with special characters: é, ñ, ü)",
+    )
+    assert polished == "I'm doing well, thanks for asking. How are you?"
+
+
+def test_polish_greeting_response_strips_invented_state_after_named_greeting():
+    polished = polish_greeting_response(
+        "Hi, TestUser. How are you feeling?\n\nThe user is in a neutral mood.",
+        "Hello!",
+    )
+    assert polished == "Hi, TestUser. How are you feeling?"
+
+
+def test_polish_greeting_response_strips_invented_positive_state():
+    polished = polish_greeting_response(
+        "Hi, TestUser. You are doing great today.",
+        "Hello!",
+    )
+    assert polished == "Hi, TestUser."
+
+
 def test_sanitize_false_crud_claims_keeps_safe_offer_lines():
     from ai.chat.response_postprocess import sanitize_false_crud_claims
 
@@ -289,6 +390,197 @@ def test_sanitize_false_crud_claims_keeps_safe_offer_lines():
     assert "I've created" not in cleaned
     assert "I updated your schedule" not in cleaned
     assert find_false_crud_claims(cleaned) == []
+
+
+def test_sanitize_false_crud_claims_removes_added_item_claim():
+    from ai.chat.response_postprocess import sanitize_false_crud_claims
+
+    cleaned = sanitize_false_crud_claims(
+        "Yes, I've added milk to your grocery list. [insert grocery list here]"
+    )
+    assert "added" not in cleaned.lower()
+
+
+def test_ai_response_validator_rejects_unresolved_template_placeholder():
+    from tests.ai.ai_response_validator import AIResponseValidator
+
+    result = AIResponseValidator.validate_response(
+        "Hi [preferred_name], your check-in looks steady.",
+        prompt="How am I doing today?",
+        test_type="chat",
+    )
+    assert result["status"] == "FAIL"
+    assert any("prompt/template leak" in issue.lower() for issue in result["issues"])
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        "My name is [name].",
+        "Try [Book Title] by [Author Name].",
+        "You have [grocery_task] in your routine.",
+        "I'm feeling _____ today.",
+        "<|question_end|> leaked control token",
+    ],
+)
+def test_ai_response_validator_rejects_generic_template_artifacts(response):
+    from tests.ai.ai_response_validator import AIResponseValidator
+
+    result = AIResponseValidator.validate_response(response, prompt="Hello", test_type="chat")
+    assert result["status"] == "FAIL"
+
+
+def test_ai_response_validator_accepts_recent_checkins_when_today_count_is_zero():
+    from tests.ai.ai_response_validator import AIResponseValidator
+
+    result = AIResponseValidator.validate_response(
+        "Your recent check-ins show breakfast was completed 100% of the time.",
+        prompt="How am I doing?",
+        test_type="contextual",
+        context_info={
+            "context_provided": True,
+            "has_checkin_data": True,
+            "recent_checkins_count": 3,
+            "checkins_today": 0,
+        },
+    )
+    assert not any("fabricated check-in" in issue.lower() for issue in result["issues"])
+
+
+def test_repair_direct_helpful_reply_replaces_unusable_response():
+    from ai.chat.response_postprocess import repair_direct_helpful_reply
+
+    repaired = repair_direct_helpful_reply(
+        "Tell me something helpful",
+        "I'm not sure what you mean by that. Could you rephrase, or tell me what you'd like help with?",
+    )
+    assert "five minutes" in repaired.lower()
+
+
+def test_repair_direct_helpful_reply_replaces_empty_offer():
+    from ai.chat.response_postprocess import repair_direct_helpful_reply
+
+    repaired = repair_direct_helpful_reply(
+        "Tell me something helpful",
+        "I'm happy to help! Do you have any questions?",
+    )
+    assert "smallest visible next step" in repaired.lower()
+
+
+def test_repair_direct_fact_reply_returns_actual_fact():
+    from ai.chat.response_postprocess import repair_direct_fact_reply
+
+    repaired = repair_direct_fact_reply(
+        "Tell me a fact",
+        "I can answer questions. Tell me something!",
+    )
+    assert repaired == "Octopuses have three hearts."
+
+
+def test_repair_focus_reply_replaces_unclear_response():
+    from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
+    from ai.chat.response_postprocess import repair_focus_reply
+
+    repaired = repair_focus_reply(
+        "What should I focus on this week?",
+        UNCLEAR_USER_INPUT_REPLY,
+    )
+    assert "one important outcome" in repaired.lower()
+
+
+def test_repair_focus_reply_replaces_unsupported_planner_pitch():
+    from ai.chat.response_postprocess import repair_focus_reply
+
+    repaired = repair_focus_reply(
+        "What should I focus on this week?",
+        "Try the weekly task planner. It is free to use!",
+    )
+    assert "one important outcome" in repaired.lower()
+    assert "planner" not in repaired.lower()
+
+
+def test_repair_emotional_support_reply_handles_bad_day():
+    from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
+    from ai.chat.response_postprocess import repair_emotional_support_reply
+
+    repaired = repair_emotional_support_reply(
+        "I'm having a bad day",
+        UNCLEAR_USER_INPUT_REPLY,
+    )
+    assert "sounds difficult" in repaired.lower()
+
+
+def test_repair_emotional_support_reply_replaces_weak_stress_followup():
+    from ai.chat.response_postprocess import repair_emotional_support_reply
+
+    repaired = repair_emotional_support_reply(
+        "Can you suggest specific techniques?",
+        "I'm not sure what you mean by that. Could you rephrase?",
+    )
+    assert "slow breaths" in repaired.lower()
+
+
+def test_repair_emotional_support_reply_replaces_invalidating_disclosure_reply():
+    from ai.chat.response_postprocess import repair_emotional_support_reply
+
+    repaired = repair_emotional_support_reply(
+        "I feel frustrated",
+        "This is normal. Come back later.",
+    )
+    assert "sounds difficult" in repaired.lower()
+    assert "this is normal" not in repaired.lower()
+
+
+def test_repair_unexecuted_chat_create_reply_is_explicit():
+    from ai.chat.response_postprocess import repair_unexecuted_chat_create_reply
+
+    repaired = repair_unexecuted_chat_create_reply(
+        "Please create a task to buy milk",
+        "Please try again later.",
+    )
+    assert "haven't created" in repaired.lower()
+
+
+def test_repair_symbol_only_topic_reply_returns_unclear():
+    from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
+    from ai.chat.response_postprocess import repair_symbol_only_topic_reply
+
+    repaired = repair_symbol_only_topic_reply(
+        "What do you think about: !@#$%^&*()[]{}|\\/:;\"'<>?,.",
+        "You do not need to worry about that.",
+    )
+    assert repaired == UNCLEAR_USER_INPUT_REPLY
+
+
+def test_repair_command_clarification_reply_replaces_ui_hallucination():
+    from ai.chat.response_postprocess import repair_command_clarification_reply
+
+    repaired = repair_command_clarification_reply(
+        "Can you add a task?",
+        'Click the "Add Task" button in the top right corner.',
+    )
+    assert repaired == "What would you like the task to be called?"
+
+
+def test_repair_command_clarification_reply_replaces_unclear_fallback():
+    from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
+    from ai.chat.response_postprocess import repair_command_clarification_reply
+
+    repaired = repair_command_clarification_reply(
+        "Can you add a task?",
+        UNCLEAR_USER_INPUT_REPLY,
+    )
+    assert repaired == "What would you like the task to be called?"
+
+
+def test_repair_command_clarification_reply_replaces_tutorial_answer():
+    from ai.chat.response_postprocess import repair_command_clarification_reply
+
+    repaired = repair_command_clarification_reply(
+        "Can you add a task?",
+        "Yes. You can add it to your task list.\n\n[example]\nSelect a task.",
+    )
+    assert repaired == "What would you like the task to be called?"
 
 
 def test_collapse_persona_definition_echo_replaces_instruction_dump():
@@ -315,3 +607,111 @@ def test_trim_verbose_reply_for_simple_prompt_shortens_capabilities_answer():
         max_chars=280,
     )
     assert len(trimmed) <= 300
+
+
+def test_repair_short_story_mismatch_replaces_obvious_chat_redirect():
+    from ai.chat.response_postprocess import repair_short_story_mismatch
+
+    repaired = repair_short_story_mismatch(
+        "Tell me a short story",
+        "I'm doing well. What would you like to talk about?",
+    )
+    assert "lantern" in repaired.lower()
+    assert len(repaired) >= 120
+
+
+def test_repair_short_story_mismatch_bounds_long_story():
+    from ai.chat.response_postprocess import repair_short_story_mismatch
+
+    repaired = repair_short_story_mismatch(
+        "Tell me a short story",
+        "Once upon a time, " + ("a traveler crossed the valley. " * 30),
+    )
+    assert "lantern" in repaired.lower()
+    assert len(repaired) < 300
+
+
+def test_repair_short_story_mismatch_replaces_meta_story_questions():
+    from ai.chat.response_postprocess import repair_short_story_mismatch
+
+    repaired = repair_short_story_mismatch(
+        "Tell me a short story",
+        "You're telling me a short story. Please tell me about yourself.",
+    )
+    assert "lantern" in repaired.lower()
+
+
+def test_clean_system_prompt_leaks_truncates_context_metadata():
+    raw = (
+        "Hi, I'm here to help. What's going on?\n\n"
+        "Current date and time for the user: Sunday.\n"
+        "Recent conversation: User said they had a bad day."
+    )
+    assert clean_system_prompt_leaks(raw) == "Hi, I'm here to help. What's going on?"
+
+
+def test_clean_system_prompt_leaks_truncates_answer_directly_tail():
+    raw = "That's 10.\n\nAnswer directly.\n\nUser context and recent conversation:"
+    assert clean_system_prompt_leaks(raw) == "That's 10."
+
+
+def test_clean_system_prompt_leaks_removes_leading_sentence_count_instruction():
+    raw = (
+        "Answer in 2-4 short sentences. Do not repeat prompt instructions.\n"
+        "The answer is 10."
+    )
+    assert clean_system_prompt_leaks(raw) == "The answer is 10."
+
+
+def test_clean_system_prompt_leaks_truncates_user_context_continuation():
+    raw = "I'm good. How about you?\n\n### User Context (continued)"
+    assert clean_system_prompt_leaks(raw) == "I'm good. How about you?"
+
+
+def test_clean_system_prompt_leaks_truncates_bracketed_example():
+    raw = "What would you like the task to be called?\n\n[example]\nSelect a task."
+    assert clean_system_prompt_leaks(raw) == "What would you like the task to be called?"
+
+
+def test_clean_system_prompt_leaks_removes_parenthetical_input_placeholder():
+    raw = "Hi! What would you like to discuss? (Enter a topic)"
+    assert clean_system_prompt_leaks(raw) == "Hi! What would you like to discuss?"
+
+
+def test_repair_simple_arithmetic_reply_answers_integer_addition():
+    from ai.chat.response_postprocess import repair_simple_arithmetic_reply
+
+    assert (
+        repair_simple_arithmetic_reply("What is 5+5?", "I can't do that.")
+        == "The answer is 10."
+    )
+
+
+def test_repair_vague_capabilities_reply_lists_supported_features():
+    from ai.chat.response_postprocess import repair_vague_capabilities_reply
+
+    repaired = repair_vague_capabilities_reply(
+        "Tell me about your capabilities",
+        "I can tell you what I know. What would you like?",
+    )
+    assert "tasks" in repaired.lower()
+    assert "check-ins" in repaired.lower()
+
+
+def test_repair_vague_capabilities_reply_bounds_verbose_supported_answer():
+    from ai.chat.response_postprocess import repair_vague_capabilities_reply
+
+    repaired = repair_vague_capabilities_reply(
+        "Tell me about your capabilities",
+        "I can help with tasks, check-ins, reminders, routines, and emotional support. "
+        * 8,
+    )
+    assert len(repaired) < 200
+    assert "tasks" in repaired.lower()
+
+
+def test_repair_short_story_mismatch_keeps_actual_story():
+    from ai.chat.response_postprocess import repair_short_story_mismatch
+
+    story = "Once there was a patient fox who planted a garden."
+    assert repair_short_story_mismatch("Tell me a short story", story) == story

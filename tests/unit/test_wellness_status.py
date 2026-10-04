@@ -110,3 +110,15 @@ def test_reinforce_wellness_honesty_replaces_generic_deflection():
     )
     assert "don't have" in reply.lower()
     assert "doing well" not in reply.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_reinforce_wellness_honesty_replaces_template_reply_with_real_data():
+    reply = reinforce_wellness_honesty_if_needed(
+        "How am I doing?",
+        "You are at [current_date]. Your name is [preferred_name].",
+        {"mood_trends": {"average_mood": 4.0, "trend": "stable"}},
+    )
+    assert "4.0" in reply
+    assert "[current_date]" not in reply

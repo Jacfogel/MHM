@@ -36,6 +36,7 @@ SAFE_SUGGESTION_RESPONSES = (
 # Samples that must trigger detection (false completion claims).
 UNSAFE_FALSE_CRUD_RESPONSES = (
     ("I've created that task for you.", "claims task/item was created"),
+    ("Yes, I've added the groceries to your list.", "claims task/item was created"),
     ("Done! Your task has been added.", "claims task/item was created"),
     ("I updated your schedule for tomorrow.", "claims item was updated or deleted"),
     ("I deleted the old task.", "claims item was updated or deleted"),

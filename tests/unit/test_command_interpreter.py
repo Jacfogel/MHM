@@ -2,6 +2,8 @@
 Unit tests for ai/command_interpreter.py boundary behavior.
 """
 
+import json
+
 import pytest
 
 from ai.prompts.command_interpreter import CommandInterpreter, get_command_interpreter
@@ -21,6 +23,13 @@ class TestCommandInterpreter:
 
     def test_detect_mode_chat_for_greeting(self, interpreter):
         assert interpreter.detect_mode("Hello, how are you?") == "chat"
+
+    @pytest.mark.parametrize(
+        "prompt",
+        ["Tell me something helpful", "Tell me a fact", "Tell me a short story"],
+    )
+    def test_detect_mode_direct_information_requests_are_chat(self, interpreter, prompt):
+        assert interpreter.detect_mode(prompt) == "chat"
 
     def test_detect_mode_command_for_detailed_request(self, interpreter):
         result = interpreter.detect_mode(
@@ -64,6 +73,24 @@ class TestCommandInterpreter:
         result = interpreter.extract_command_from_response(raw)
         assert result.count("\n") <= 5
         assert "ACTION:" in result
+
+    def test_ensure_structured_command_response_repairs_explicit_task_prose(
+        self, interpreter
+    ):
+        result = interpreter.ensure_structured_command_response(
+            "I can add that as a task. Want me to?", "add task buy milk"
+        )
+        assert result == '{"action": "create_task", "details": {"title": "buy milk"}}'
+
+    def test_ensure_structured_command_response_wraps_unparsed_command_safely(
+        self, interpreter
+    ):
+        result = interpreter.ensure_structured_command_response(
+            "Could you clarify?", "do something"
+        )
+        parsed = json.loads(result)
+        assert parsed["action"] == "unknown"
+        assert parsed["details"] == {}
 
     @pytest.mark.parametrize(
         "prompt,expected_mode",

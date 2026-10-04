@@ -23,6 +23,11 @@ _GENERIC_DEFLECTION_PATTERN = re.compile(
     r"(?i)^(?:i'm doing well|i am doing well|i'm fine|i am fine)"
     r"(?:\.|!)?\s*(?:how are you|what would you like|how can i help)?"
 )
+_TEMPLATE_RESPONSE_PATTERN = re.compile(
+    r"\[(?:insert\s+[^\]]+|your[_\s]+name|preferred_name|current_date|"
+    r"selected_user_context)\]",
+    re.IGNORECASE,
+)
 
 
 @handle_errors("checking wellness status question", default_return=False)
@@ -120,21 +125,7 @@ def reinforce_wellness_honesty_if_needed(
     response: str,
     context: dict[str, Any],
 ) -> str:
-    """Replace generic deflections when a wellness question lacks supporting data."""
+    """Return a concise wellness summary built only from verified context data."""
     if not is_wellness_status_question(user_prompt):
         return response
-    if context_has_wellness_data(context):
-        return response
-
-    text = (response or "").strip()
-    if not text or not _GENERIC_DEFLECTION_PATTERN.search(text):
-        if any(
-            phrase in text.lower()
-            for phrase in ("don't have", "no check-in", "not enough", "yet")
-        ):
-            return response
-        if "support" in text.lower() or "here to help" in text.lower():
-            return response
-        return build_honest_wellness_status_reply(context)
-
     return build_honest_wellness_status_reply(context)

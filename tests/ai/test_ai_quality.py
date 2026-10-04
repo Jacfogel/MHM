@@ -4,13 +4,9 @@ AI Quality and Edge Case Tests
 Tests for response quality validation, formatting, and edge case handling.
 """
 
-import os
-from unittest.mock import patch
-
 from ai.chat.response_postprocess import find_response_leak_markers
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 from core import save_user_data
 
 
@@ -111,37 +107,36 @@ class TestAIQuality(AITestBase):
             )
             
             if success:
-                import core.config
-                with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                     patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                    contextual_user_id = get_user_id_by_identifier("test_quality_contextual")
+                contextual_user_id = TestUserFactory.get_test_user_id_by_label(
+                    "test_quality_contextual", self.test_data_dir
+                )
+
+                if contextual_user_id:
+                    save_user_data(contextual_user_id, {"context": {"preferred_name": "QualityTest"}})
+
+                    # Get context info before generating response
+                    context_info = self._build_context_info(contextual_user_id, include_history=False)
+
+                    prompt = "How am I doing?"
+                    response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
                     
-                    if contextual_user_id:
-                        save_user_data(contextual_user_id, {"context": {"preferred_name": "QualityTest"}})
+                    if response:
+                        has_user_ref = "QualityTest" in response or "qualitytest" in response.lower()
+                        has_contextual_language = any(word in response.lower() for word in [
+                            "you", "your", "today", "recent", "check", "activity"
+                        ])
                         
-                        # Get context info before generating response
-                        context_info = self._build_context_info(contextual_user_id, include_history=False)
-                        
-                        prompt = "How am I doing?"
-                        response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
-                        
-                        if response:
-                            has_user_ref = "QualityTest" in response or "qualitytest" in response.lower()
-                            has_contextual_language = any(word in response.lower() for word in [
-                                "you", "your", "today", "recent", "check", "activity"
-                            ])
-                            
-                            is_contextual = has_user_ref or has_contextual_language
-                            status = "PASS" if is_contextual else "PARTIAL"
-                            self.log_test("T-12.3", "Contextual response quality", status,
-                                        f"Response appears {'contextual' if is_contextual else 'generic'}",
-                                        prompt=prompt, response=response, test_type="contextual", context_info=context_info)
-                        else:
-                            self.log_test("T-12.3", "Contextual response quality", "FAIL",
-                                        "No response generated", prompt=prompt)
+                        is_contextual = has_user_ref or has_contextual_language
+                        status = "PASS" if is_contextual else "PARTIAL"
+                        self.log_test("T-12.3", "Contextual response quality", status,
+                                    f"Response appears {'contextual' if is_contextual else 'generic'}",
+                                    prompt=prompt, response=response, test_type="contextual", context_info=context_info)
                     else:
                         self.log_test("T-12.3", "Contextual response quality", "FAIL",
-                                    "", "Could not get user UUID")
+                                    "No response generated", prompt=prompt)
+                else:
+                    self.log_test("T-12.3", "Contextual response quality", "FAIL",
+                                "", "Could not get user UUID")
             else:
                 self.log_test("T-12.3", "Contextual response quality", "FAIL",
                             "", "Failed to create test user")

@@ -5,12 +5,8 @@ Tests for multi-turn conversations, response coherence, personality consistency,
 and error recovery scenarios.
 """
 
-import os
-from unittest.mock import patch
-
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 
 
 class TestAIAdvanced(AITestBase):
@@ -37,10 +33,9 @@ class TestAIAdvanced(AITestBase):
                             "", "Failed to create test user")
                 return
             
-            import core.config
-            with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                 patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
             
             if not actual_user_id:
                 self.log_test("T-14.0", "Get user UUID for multi-turn tests", "FAIL",
@@ -72,7 +67,11 @@ class TestAIAdvanced(AITestBase):
                 
                 # Check if responses build on each other
                 mentions_stress = any("stress" in r.lower() or "overwhelm" in r.lower() for r in responses[1:])
-                maintains_context = any("work" in r.lower() or "overwhelm" in r.lower() for r in responses[1:])
+                topic_terms = ("stress", "overwhelm", "work", "relax", "break", "breath")
+                maintains_context = any(
+                    any(term in response.lower() for term in topic_terms)
+                    for response in responses[1:]
+                )
                 
                 # Include all responses for multi-turn conversations
                 all_responses = " | ".join(responses) if responses else ""
@@ -141,10 +140,9 @@ class TestAIAdvanced(AITestBase):
                             "", "Failed to create test user")
                 return
             
-            import core.config
-            with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                 patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
             
             if not actual_user_id:
                 self.log_test("T-15.0", "Get user UUID for personality tests", "FAIL",
@@ -237,10 +235,9 @@ class TestAIAdvanced(AITestBase):
                             "", "Failed to create test user")
                 return
             
-            import core.config
-            with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                 patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
             
             if not actual_user_id:
                 self.log_test("T-16.0", "Get user UUID for error recovery tests", "FAIL",

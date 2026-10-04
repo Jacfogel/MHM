@@ -101,6 +101,26 @@ class TestAIPostprocess(AITestBase):
             "must_not_contain": ["[persona]", "You are MHM's in-app assistant"],
         },
         {
+            "id": "T-17.9a",
+            "name": "Strip inline persona and user-input category leak",
+            "raw": (
+                "I'm fine, thanks for asking. [persona]\n"
+                "[user_input]\nHow do I check in?"
+            ),
+            "must_contain": "I'm fine, thanks for asking.",
+            "must_not_contain": ["[persona]", "[user_input]", "How do I check in?"],
+        },
+        {
+            "id": "T-17.9b",
+            "name": "Strip markdown chat-response category leak",
+            "raw": (
+                "Hi there! How are you doing today?\n\n"
+                "## [chat_response]\nThis is a sample response from an in-app chatbot."
+            ),
+            "must_contain": "Hi there!",
+            "must_not_contain": ["[chat_response]", "sample response"],
+        },
+        {
             "id": "T-17.10",
             "name": "Full pipeline leaves natural chat intact",
             "raw": "QualityTest, I'm doing well! How about you?\n\nDo you want to add a new task?",

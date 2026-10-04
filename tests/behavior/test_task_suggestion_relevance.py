@@ -8,6 +8,8 @@ Tests verify that:
 4. All suggestions are actionable (handlers exist)
 """
 
+from uuid import uuid4
+
 import pytest
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks import load_active_tasks, save_active_tasks
@@ -24,7 +26,7 @@ class TestTaskSuggestionRelevance:
     @pytest.mark.behavior
     def test_update_task_prompt_suppresses_generic_suggestions(self, test_data_dir):
         """Test that 'what would you like to update' prompt has no generic suggestions."""
-        user_id = "test_suggestion_suppress"
+        user_id = f"test_suggestion_suppress_{uuid4().hex}"
         TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
         internal_uid = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
         assert internal_uid

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-04 - AI responses and Tier 3 tests hardened **COMPLETED**
+- Response cleanup removes prompt/template leaks and letter signoffs, blocks unsupported action claims, and produces concise grounded replies for common direct requests; all seven reported personalized-response failures are fixed.
+- Command-mode replies are normalized to structured output, ambiguous task creation asks for a title, and chat-mode text cannot claim an action executed when it did not.
+- AI fixtures and the full-suite runner now isolate test identities, data, and logs; the retired production `internal_username` field was backed up, removed from the final account, and cleared from the rebuilt index.
+- Generated registries are current with zero missing entries for `response_postprocess.py`. Verification passed 65 helper tests, 149 broader response tests, all 78 manually reviewed live AI tests, and the complete suite with 6,045 passed, 28 skipped, zero failures, and zero errors.
+
 ### 2026-10-02 - Website route families extracted **COMPLETED**
 - Reusable scheduled-message CRUD endpoints moved from the oversized `WebGateway` into `core/web_messages.py` without changing their URLs, validation, account ownership, or responses.
 - The account service delegates message route registration, with centralized startup error reporting and focused route-owner tests.

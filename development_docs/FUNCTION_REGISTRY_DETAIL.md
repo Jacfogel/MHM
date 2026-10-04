@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-02 21:58:47
+> **Last Generated**: 2026-10-04 03:43:27
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.5% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 300
-- **Functions Found**: 3080
-- **Methods Found**: 1574
+- **Functions Found**: 3092
+- **Methods Found**: 1575
 - **Classes Found**: 276
-- **Total Items**: 4654
-- **Functions Documented**: 2725
-- **Methods Documented**: 1396
+- **Total Items**: 4667
+- **Functions Documented**: 2739
+- **Methods Documented**: 1397
 - **Classes Documented**: 209
-- **Total Documented**: 4121
+- **Total Documented**: 4136
 - **Template-Generated**: 64
-- **Last Updated**: 2026-10-02
+- **Last Updated**: 2026-10-04
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -240,10 +240,10 @@ answer with the stated fact instead of a vague or forgetful reply.
 
 #### `ai/chat/response_postprocess.py`
 **Functions:**
-- [MISSING] `_first_nonempty_line_looks_like_user_prose(text)` - No description
+- [OK] `_first_nonempty_line_looks_like_user_prose(text)` - Return whether the first meaningful response line looks like natural prose.
 - [OK] `_line_is_letter_signoff(line)` - True when a line is a letter closing, signature, soft closer, or meta note.
 - [OK] `_response_is_mostly_instruction_leak(text)` - True when the remaining text looks like leaked prompt instructions, not chat.
-- [MISSING] `_response_starts_with_code_artifact(text)` - No description
+- [OK] `_response_starts_with_code_artifact(text)` - Return whether the response begins with a leaked code artifact.
 - [OK] `_truncate_at_first_leak(text, patterns)` - Return text truncated before the earliest leak pattern match.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
@@ -253,7 +253,18 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
 - [OK] `normalize_personalized_greeting(text)` - Rewrite Dear Name to Hi Name, and normalize greeting punctuation to a period.
 - [OK] `polish_greeting_response(response, user_prompt)` - Drop immediate help offers when the reply already answers a greeting/feeling question.
+- [OK] `repair_action_status_reply(user_prompt, response)` - Keep chat answers about prior task creation explicit and non-speculative.
+- [OK] `repair_command_clarification_reply(user_prompt, response)` - Replace unsafe UI guesses with a direct clarification question.
+- [OK] `repair_direct_fact_reply(user_prompt, response)` - Ensure a direct fact request receives an actual, concise fact.
+- [OK] `repair_direct_helpful_reply(user_prompt, response)` - Return a concrete tip when a direct helpful request produced unusable text.
+- [OK] `repair_emotional_support_reply(user_prompt, response)` - Provide a grounded, relevant reply to direct stress or emotional disclosures.
+- [OK] `repair_focus_reply(user_prompt, response)` - Replace unusable focus advice with one concrete prioritization step.
+- [OK] `repair_short_story_mismatch(user_prompt, response)` - Return a brief story when a direct story request gets an obvious chat redirect.
+- [OK] `repair_simple_arithmetic_reply(user_prompt, response)` - Answer a direct integer-addition question without model drift or refusal.
+- [OK] `repair_symbol_only_topic_reply(user_prompt, response)` - Treat a symbol-only topic as unclear instead of inventing meaning.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
+- [OK] `repair_unexecuted_chat_create_reply(user_prompt, response)` - State clearly that chat-mode task creation did not execute.
+- [OK] `repair_vague_capabilities_reply(user_prompt, response)` - Answer capability questions with a concise list of supported features.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
@@ -270,7 +281,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `build_honest_wellness_status_reply(context)` - Return a supportive reply that does not invent wellness metrics.
 - [OK] `context_has_wellness_data(context)` - True when context includes check-in, mood trend, or recent health guidance.
 - [OK] `is_wellness_status_question(prompt)` - True when the user asks for a personal wellness or progress read.
-- [OK] `reinforce_wellness_honesty_if_needed(user_prompt, response, context)` - Replace generic deflections when a wellness question lacks supporting data.
+- [OK] `reinforce_wellness_honesty_if_needed(user_prompt, response, context)` - Return a concise wellness summary built only from verified context data.
 
 #### `ai/client/__init__.py`
 
@@ -777,6 +788,7 @@ Required-field checks happen in the planner parser.
 - [OK] `_is_nlp_boilerplate_line(line_stripped)` - True for interpreter-style boilerplate leftover in natural-language responses.
 - [OK] `create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
 - [OK] `detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
+- [OK] `ensure_structured_command_response(self, response, user_prompt)` - Keep command-mode output machine-readable when the model answers in prose.
 - [OK] `extract_command_from_response(self, response)` - Extract command structure from command mode responses.
 Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `get_command_interpreter()` - Return the shared command interpreter.
@@ -788,6 +800,7 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
   - [OK] `CommandInterpreter.__init__(self)` - Special Python method
   - [OK] `CommandInterpreter.create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
   - [OK] `CommandInterpreter.detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
+  - [OK] `CommandInterpreter.ensure_structured_command_response(self, response, user_prompt)` - Keep command-mode output machine-readable when the model answers in prose.
   - [OK] `CommandInterpreter.extract_command_from_response(self, response)` - Extract command structure from command mode responses.
 Handles JSON, key-value pairs (ACTION: ...), or natural language.
   - [OK] `CommandInterpreter.has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.

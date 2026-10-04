@@ -9,6 +9,7 @@ import re
 from typing import Any
 
 from ai.chat.action_boundaries import find_false_crud_claims
+from ai.chat.response_postprocess import find_response_leak_markers
 
 
 class AIResponseValidator:
@@ -91,6 +92,12 @@ class AIResponseValidator:
         if meta_issues:
             issues.extend(meta_issues)
 
+        leak_markers = find_response_leak_markers(response)
+        if leak_markers:
+            issues.append(
+                "Prompt/template leak detected: " + ", ".join(leak_markers)
+            )
+
         # Check for code fragments (depending on test type)
         if test_type != "command":  # Command mode might legitimately return JSON
             code_issues = cls._check_code_fragments(response)
@@ -134,7 +141,11 @@ class AIResponseValidator:
             issues.extend(appropriateness_issues)
 
         # NEW: Check for missing context handling quality
-        if "context" in test_type.lower() or "missing" in prompt.lower():
+        context_is_missing = bool(
+            context_info is not None
+            and context_info.get("context_provided") is False
+        )
+        if "missing" in prompt.lower() or context_is_missing:
             context_quality_issues = cls._check_missing_context_handling(
                 response, prompt
             )
@@ -178,6 +189,7 @@ class AIResponseValidator:
                     critical in i.lower()
                     for critical in [
                         "meta-text",
+                        "prompt/template leak",
                         "code fragment",
                         "truncated",
                         "past date",
@@ -191,6 +203,8 @@ class AIResponseValidator:
                         "fabricated",
                         "self-contradiction",
                         "false crud",
+                        "unsupported interface",
+                        "does not provide",
                     ]
                 )
             ]
@@ -543,6 +557,36 @@ class AIResponseValidator:
                 issues.append(
                     "Response to 'Tell me something helpful' should provide helpful information, not ask questions"
                 )
+            empty_offer_markers = (
+                "happy to help",
+                "do you have any questions",
+                "what can i help",
+            )
+            if any(marker in response.lower() for marker in empty_offer_markers):
+                issues.append(
+                    "Response does not provide the helpful information that was requested"
+                )
+
+        if re.search(r"\b(?:tell|give|show) me a fact\b", prompt.lower()):
+            non_answer_markers = (
+                "i can answer",
+                "tell me something",
+                "what would you like",
+                "what can i help",
+            )
+            if any(marker in response.lower() for marker in non_answer_markers):
+                issues.append("Response does not provide the requested fact")
+
+        ui_hallucination_patterns = (
+            r"\bclick(?:ing)? (?:on )?(?:the )?.{0,30}button\b",
+            r"\bbutton (?:at|on) the top right\b",
+            r"\bchat button below\b",
+        )
+        if any(
+            re.search(pattern, response.lower())
+            for pattern in ui_hallucination_patterns
+        ):
+            issues.append("Response contains unsupported interface instructions")
 
         # "How are you feeling?" - should answer how AI is feeling, not redirect
         if (
@@ -752,18 +796,23 @@ class AIResponseValidator:
                     "has_checkin_data", True
                 )  # Default to True if not specified
                 checkins_count = context_info.get("checkins_count", None)
-                checkins_today = context_info.get("checkins_today", None)
                 recent_checkins_count = context_info.get("recent_checkins_count", None)
 
                 # If explicitly stated no check-in data, or counts are zero
-                if (
+                explicitly_has_recent_data = bool(
+                    has_checkin_data
+                    and recent_checkins_count is not None
+                    and recent_checkins_count > 0
+                )
+                no_checkin_data = (
                     not has_checkin_data
                     or (checkins_count is not None and checkins_count == 0)
-                    or (checkins_today is not None and checkins_today == 0)
                     or (
-                        recent_checkins_count is not None and recent_checkins_count == 0
+                        recent_checkins_count is not None
+                        and recent_checkins_count == 0
                     )
-                ):
+                )
+                if no_checkin_data and not explicitly_has_recent_data:
                     issues.append(
                         "Response contains fabricated check-in statistics/details when no check-in data exists"
                     )
@@ -774,8 +823,14 @@ class AIResponseValidator:
                     "no check-in" in context_note.lower()
                     or "no checkin" in context_note.lower()
                     or "minimal context" in context_note.lower()
-                    or (context_info.get("checkins_count", None) == 0)
-                    or (context_info.get("checkins_today", None) == 0)
+                    or (
+                        context_info.get("checkins_count", None) == 0
+                        and not context_info.get("has_checkin_data", False)
+                    )
+                    or (
+                        context_info.get("checkins_today", None) == 0
+                        and int(context_info.get("recent_checkins_count") or 0) == 0
+                    )
                 ):
                     # Flag as potentially fabricated
                     issues.append(

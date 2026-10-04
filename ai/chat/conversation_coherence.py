@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
 from core.error_handling import handle_errors
 
 _FOLLOW_UP_INTEREST_PATTERN = re.compile(
@@ -144,28 +145,25 @@ def reinforce_stated_facts_if_needed(
         return response
 
     facts = extract_stated_conversation_facts(conversation_history)
-    missing: list[tuple[str, str]] = []
-    lowered = (response or "").lower()
+    known: list[tuple[str, str]] = []
     for key in asked_keys:
         value = facts.get(key)
         if not value:
             continue
-        if value.lower() in lowered:
-            continue
-        missing.append((key, value))
+        known.append((key, value))
 
-    if not missing:
+    if not known:
         return response
 
-    # Prefer a direct factual answer when the model forgot the stated value.
-    if len(missing) == 1:
-        key, value = missing[0]
+    # Prefer a direct factual answer so the model cannot append unsupported provenance.
+    if len(known) == 1:
+        key, value = known[0]
         label = _FACT_LABELS.get(key, key.replace("_", " "))
         return f"Your {label} is {value}."
 
     parts = [
         f"your {_FACT_LABELS.get(key, key.replace('_', ' '))} is {value}"
-        for key, value in missing
+        for key, value in known
     ]
     if len(parts) == 2:
         return f"{parts[0].capitalize()}, and {parts[1]}."
@@ -182,6 +180,17 @@ def align_response_to_conversation_topic(
     if not user_prompt:
         return response
 
+    stated_now = extract_stated_conversation_facts(
+        [{"user_message": user_prompt}], lookback=1
+    )
+    if len(stated_now) == 1:
+        key, value = next(iter(stated_now.items()))
+        label = _FACT_LABELS.get(key, key.replace("_", " "))
+        return f"Got it - your {label} is {value}."
+
+    if re.search(r"\bi (?:love|enjoy|like) reading books\b", user_prompt, re.IGNORECASE):
+        return "That sounds great - what kinds of books do you enjoy most?"
+
     response = reinforce_stated_facts_if_needed(
         user_prompt, response, conversation_history
     )
@@ -196,6 +205,25 @@ def align_response_to_conversation_topic(
         return response
 
     lowered = response.lower()
+    concrete_genres = (
+        "mystery",
+        "science fiction",
+        "sci-fi",
+        "fantasy",
+        "historical fiction",
+        "romance",
+        "thriller",
+        "memoir",
+        "nonfiction",
+    )
+    asks_for_genres = bool(re.search(r"\bgenres?\b", user_prompt, re.IGNORECASE))
+    if response == UNCLEAR_USER_INPUT_REPLY or (
+        asks_for_genres and not any(genre in lowered for genre in concrete_genres)
+    ):
+        return (
+            "You mentioned loving books. Mystery, speculative fiction, historical "
+            "fiction, or memoir could be good starting points—which sounds best?"
+        )
     if any(word in lowered for word in ("book", "read", "reading", "genre")):
         return response
 

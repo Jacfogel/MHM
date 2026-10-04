@@ -3,6 +3,7 @@
 """Command interpretation: mode detection, parsing prompts, and structured extraction."""
 
 import json
+import re
 
 from ai.prompts.manager import get_prompt_manager
 from core.error_handling import handle_errors
@@ -217,6 +218,15 @@ _TASK_VERBS = (
 )
 
 _EXPLICIT_COMMAND_WORDS = ("add", "create", "new")
+_DIRECT_CHAT_REQUEST = re.compile(
+    r"^(?:tell|show|give)\s+me\s+"
+    r"(?:something\s+helpful|a\s+fact|a\s+(?:short\s+)?story)\b",
+    re.IGNORECASE,
+)
+_EXPLICIT_CREATE_TASK = re.compile(
+    r"^\s*(?:add|create|new)(?:\s+a)?\s+task(?:\s+to)?\s+(.+?)\s*$",
+    re.IGNORECASE,
+)
 
 
 class CommandInterpreter:
@@ -232,6 +242,9 @@ class CommandInterpreter:
         """Detect whether the prompt is a command or a chat query."""
         prompt_lower = user_prompt.lower().strip()
         if not prompt_lower:
+            return "chat"
+
+        if _DIRECT_CHAT_REQUEST.search(prompt_lower):
             return "chat"
 
         if self.is_natural_language_task_request(prompt_lower):
@@ -488,6 +501,39 @@ class CommandInterpreter:
             return "\n".join(clean_lines)
 
         return response
+
+    @handle_errors("ensuring structured command output", default_return="")
+    def ensure_structured_command_response(
+        self, response: str, user_prompt: str
+    ) -> str:
+        """Keep command-mode output machine-readable when the model answers in prose."""
+        cleaned = self.extract_command_from_response(response)
+        try:
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, dict) and "action" in parsed:
+                return json.dumps(parsed)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+
+        if re.search(r"(?im)^ACTION\s*:", cleaned or ""):
+            return cleaned
+
+        task_match = _EXPLICIT_CREATE_TASK.match(user_prompt or "")
+        if task_match:
+            return json.dumps(
+                {
+                    "action": "create_task",
+                    "details": {"title": task_match.group(1).strip()},
+                }
+            )
+
+        return json.dumps(
+            {
+                "action": "unknown",
+                "details": {},
+                "clarification": (cleaned or "Unable to parse command")[:200],
+            }
+        )
 
 
 _command_interpreter: CommandInterpreter | None = None

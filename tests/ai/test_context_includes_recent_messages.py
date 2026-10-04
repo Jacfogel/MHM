@@ -2,11 +2,12 @@
 import pytest
 
 from ai.chat.response_generator import get_response_generator
-from core import get_user_data, get_user_id_by_identifier
+from core import get_user_data
 from messages.message_data_manager import store_sent_message
 from storage.user_data_write import update_user_account
 from core.response_tracking import store_user_response
 from tests.test_helpers.test_utilities import (
+    TestUserFactory,
     cleanup_test_data_environment,
     setup_test_data_environment,
 )
@@ -24,12 +25,11 @@ class TestAIContextRecentMessages:
 
     def _ensure_automated_messages_enabled(self, user_id: str) -> None:
         """Recent-send context requires account.features.automated_messages enabled."""
-        actual_id = get_user_id_by_identifier(user_id) or user_id
-        account_result = get_user_data(actual_id, "account")
+        account_result = get_user_data(user_id, "account")
         account = account_result.get("account") or {}
         features = dict(account.get("features") or {})
         features["automated_messages"] = "enabled"
-        assert update_user_account(actual_id, {"features": features})
+        assert update_user_account(user_id, {"features": features})
 
     def test_comprehensive_context_includes_recent_sent_messages_and_checkin_status(self, monkeypatch):
         # Set both TEST_DATA_DIR and MHM_TEST_DATA_DIR to ensure path resolution works correctly
@@ -38,13 +38,16 @@ class TestAIContextRecentMessages:
         monkeypatch.setenv("MHM_TESTING", "1")
         user_id = "user_recent_msgs"
         # Ensure check-ins are enabled for this test (required for check-in status to appear)
-        from tests.test_helpers.test_utilities import TestUserFactory
         assert TestUserFactory.create_basic_user(
             user_id,
             enable_checkins=True,
             enable_tasks=True,
             test_data_dir=self.test_data_dir,
         )
+        user_id = TestUserFactory.get_test_user_id_by_label(
+            user_id, self.test_data_dir
+        )
+        assert user_id
         self._ensure_automated_messages_enabled(user_id)
 
         # Store a recent sent message (simulating automated outbound)

@@ -4,13 +4,9 @@ Core AI Functionality Tests
 Tests for basic AI response generation, mode detection, and contextual responses.
 """
 
-import os
-from unittest.mock import patch
-
 from ai.prompts.command_interpreter import get_command_interpreter
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 from core import save_user_data
 from ai.context.chatbot_context import build_chatbot_context_dict
 
@@ -112,10 +108,9 @@ class TestAICore(AITestBase):
                             "", "Failed to create test user")
                 return
             
-            import core.config
-            with patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir), \
-                 patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(self.test_data_dir, 'users')):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
             
             if not actual_user_id:
                 self.log_test("T-2.0", "Get user UUID", "FAIL",

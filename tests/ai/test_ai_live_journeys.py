@@ -19,9 +19,9 @@ from ai.chat.action_boundaries import (
     UNCLEAR_USER_INPUT_REPLY,
     find_false_crud_claims,
 )
+from ai.chat.response_postprocess import find_response_leak_markers
 from checkins.checkin_data_manager import store_checkin_response
 from communication.message_processing.interaction_manager import handle_user_message
-from core import get_user_id_by_identifier
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
 from tasks import load_active_tasks
 from tests.ai.ai_test_base import AITestBase
@@ -70,8 +70,9 @@ class TestAILiveJourneys(AITestBase):
         )
         if not success:
             return None
-        with self._using_test_data_dir():
-            return get_user_id_by_identifier(identifier)
+        return TestUserFactory.get_test_user_id_by_label(
+            identifier, self.test_data_dir
+        )
 
     def _log_safe_reply(
         self,
@@ -92,6 +93,9 @@ class TestAILiveJourneys(AITestBase):
         crud = find_false_crud_claims(response)
         if crud:
             issues.extend(f"false CRUD: {label}" for label in crud)
+        leaks = find_response_leak_markers(response)
+        if leaks:
+            issues.extend(f"prompt/template leak: {marker}" for marker in leaks)
         status = "FAIL" if issues else "PASS"
         self.log_test(
             test_id,

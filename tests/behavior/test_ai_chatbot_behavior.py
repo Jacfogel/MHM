@@ -300,7 +300,7 @@ class TestAIChatBotBehavior:
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used"
         assert call_kwargs["max_tokens"] == 120, "Clarification mode should request more tokens"
         assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be used"
-        assert response == "Please clarify your request."
+        assert response == "What would you like the task to be called?"
 
     @pytest.mark.ai
     def test_ai_chatbot_detect_mode_routes_ambiguous_requests_to_clarification(self, test_data_dir):
@@ -354,7 +354,7 @@ class TestAIChatBotBehavior:
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used for ambiguous requests"
         assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be applied"
-        assert response == "Could you share more details?"
+        assert response == "What would you like the task to be called?"
 
     @pytest.mark.ai
     @pytest.mark.slow

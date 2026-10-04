@@ -4,13 +4,8 @@ Base class for AI functionality tests
 Provides shared utilities for all AI test modules.
 """
 
-import os
-
-from unittest.mock import patch
-
 from ai.chat.chatbot import AIChatBotSingleton
 from tests.test_helpers.test_utilities import TestUserFactory
-from core import get_user_id_by_identifier
 from tests.ai.ai_response_validator import AIResponseValidator
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
@@ -171,21 +166,12 @@ class AITestBase:
             identifier, test_data_dir=self.test_data_dir
         )
         if success:
-            # Patch config to use test data directory when looking up user
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                user_uuid = get_user_id_by_identifier(identifier)
-                if user_uuid:
-                    self._test_users[identifier] = user_uuid
-                    return user_uuid
+            user_uuid = TestUserFactory.get_test_user_id_by_label(
+                identifier, self.test_data_dir
+            )
+            if user_uuid:
+                self._test_users[identifier] = user_uuid
+                return user_uuid
 
         # If user creation fails, return None (will test without user context)
         return None
@@ -203,20 +189,12 @@ class AITestBase:
         )
 
         if success:
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                user_uuid = get_user_id_by_identifier(identifier)
-                if user_uuid:
-                    self._test_users[identifier] = user_uuid
-                    return user_uuid
+            user_uuid = TestUserFactory.get_test_user_id_by_label(
+                identifier, self.test_data_dir
+            )
+            if user_uuid:
+                self._test_users[identifier] = user_uuid
+                return user_uuid
 
         return None
 

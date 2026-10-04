@@ -2,6 +2,7 @@
 
 import pytest
 
+from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
 from ai.chat.conversation_coherence import (
     align_response_to_conversation_topic,
     detect_fact_follow_up_keys,
@@ -47,6 +48,19 @@ def test_align_response_leaves_on_topic_reply_unchanged():
 
 @pytest.mark.unit
 @pytest.mark.ai
+def test_align_response_repairs_unclear_book_genre_follow_up():
+    history = [{"user_message": "I love reading books"}]
+    reply = align_response_to_conversation_topic(
+        "What genres do you think I'd like?",
+        UNCLEAR_USER_INPUT_REPLY,
+        history,
+    )
+    assert "books" in reply.lower()
+    assert "mystery" in reply.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.ai
 def test_align_response_skips_unrelated_follow_up():
     history = [{"user_message": "I love reading books"}]
     reply = align_response_to_conversation_topic(
@@ -88,15 +102,15 @@ def test_reinforce_stated_color_when_model_forgets():
 
 @pytest.mark.unit
 @pytest.mark.ai
-def test_reinforce_leaves_reply_that_already_has_fact():
+def test_reinforce_keeps_only_grounded_fact_when_model_adds_provenance():
     history = [{"user_message": "My favorite color is blue"}]
-    original = "You told me your favorite color is blue!"
     reply = reinforce_stated_facts_if_needed(
         "What's my favorite color?",
-        original,
+        "Your favorite color is blue. This was confirmed by a check-in.",
         history,
     )
-    assert reply == original
+    assert reply == "Your favorite color is blue."
+    assert "check-in" not in reply
 
 
 @pytest.mark.unit
@@ -109,3 +123,25 @@ def test_align_response_recalls_favorite_color_fact():
         history,
     )
     assert "blue" in reply.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_align_response_acknowledges_newly_stated_favorite_color():
+    reply = align_response_to_conversation_topic(
+        "My favorite color is blue",
+        "I cannot see your preferences. Click the chat button.",
+        [],
+    )
+    assert reply == "Got it - your favorite color is blue."
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_align_response_acknowledges_reading_interest():
+    reply = align_response_to_conversation_topic(
+        "I love reading books",
+        UNCLEAR_USER_INPUT_REPLY,
+        [],
+    )
+    assert "what kinds of books" in reply.lower()

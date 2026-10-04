@@ -25,7 +25,6 @@ from ai.prompts.command_interpreter import get_command_interpreter
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.response_tracking import get_recent_chat_interactions
-from core import get_user_id_by_identifier
 from ai.context.chatbot_context import build_chatbot_context_dict
 from user.context_manager import user_context_manager
 
@@ -100,21 +99,12 @@ class AITestRunner:
             identifier, test_data_dir=self.test_data_dir
         )
         if success:
-            # Patch config to use test data directory when looking up user
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                user_uuid = get_user_id_by_identifier(identifier)
-                if user_uuid:
-                    self._test_users[identifier] = user_uuid
-                    return user_uuid
+            user_uuid = TestUserFactory.get_test_user_id_by_label(
+                identifier, self.test_data_dir
+            )
+            if user_uuid:
+                self._test_users[identifier] = user_uuid
+                return user_uuid
 
         # If user creation fails, return None (will test without user context)
         return None
@@ -341,19 +331,9 @@ class AITestRunner:
                 )
                 return
 
-            # Get actual user ID (UUID) with proper test data directory context
-            from unittest.mock import patch
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -595,18 +575,9 @@ class AITestRunner:
                 )
                 return
 
-            from unittest.mock import patch
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -895,18 +866,9 @@ class AITestRunner:
                 )
                 return
 
-            from unittest.mock import patch
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -1031,20 +993,9 @@ class AITestRunner:
                 )
                 return
 
-            from unittest.mock import patch
-            import core.config
-
-            with (
-                patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                patch.object(
-                    core.config,
-                    "USER_INFO_DIR_PATH",
-                    os.path.join(self.test_data_dir, "users"),
-                ),
-            ):
-                from core import get_user_id_by_identifier
-
-                actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = TestUserFactory.get_test_user_id_by_label(
+                user_id, self.test_data_dir
+            )
 
             if not actual_user_id:
                 self.log_test(
@@ -1199,62 +1150,50 @@ class AITestRunner:
             )
 
             if success:
-                import core.config
+                contextual_user_id = TestUserFactory.get_test_user_id_by_label(
+                    "test_perf_contextual", self.test_data_dir
+                )
 
-                with (
-                    patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                    patch.object(
-                        core.config,
-                        "USER_INFO_DIR_PATH",
-                        os.path.join(self.test_data_dir, "users"),
-                    ),
-                ):
-                    contextual_user_id = get_user_id_by_identifier(
-                        "test_perf_contextual"
+                if contextual_user_id:
+                    prompt = "How am I doing today?"
+                    start_time = time.time()
+                    response = self.chatbot.generate_contextual_response(
+                        contextual_user_id, prompt
                     )
+                    response_time = time.time() - start_time
 
-                    if contextual_user_id:
-                        prompt = "How am I doing today?"
-                        start_time = time.time()
-                        response = self.chatbot.generate_contextual_response(
-                            contextual_user_id, prompt
+                    if response and response_time < 15.0:  # Contextual can be slower
+                        status = "PASS" if response_time < 10.0 else "PARTIAL"
+                        self.log_test(
+                            "T-9.2",
+                            "Contextual query response time",
+                            status,
+                            f"Response time: {response_time:.2f}s (target <10s)",
+                            prompt=prompt,
+                            response=response[:200],
+                            response_time=response_time,
                         )
-                        response_time = time.time() - start_time
-
-                        if (
-                            response and response_time < 15.0
-                        ):  # Contextual can be slower
-                            status = "PASS" if response_time < 10.0 else "PARTIAL"
-                            self.log_test(
-                                "T-9.2",
-                                "Contextual query response time",
-                                status,
-                                f"Response time: {response_time:.2f}s (target <10s)",
-                                prompt=prompt,
-                                response=response[:200],
-                                response_time=response_time,
-                            )
-                        else:
-                            self.log_test(
-                                "T-9.2",
-                                "Contextual query response time",
-                                "FAIL" if response_time >= 15.0 else "PARTIAL",
-                                (
-                                    f"Response time too slow: {response_time:.2f}s"
-                                    if response_time >= 15.0
-                                    else f"Response time: {response_time:.2f}s"
-                                ),
-                                prompt=prompt,
-                                response_time=response_time,
-                            )
                     else:
                         self.log_test(
                             "T-9.2",
                             "Contextual query response time",
-                            "FAIL",
-                            "",
-                            "Could not get user UUID",
+                            "FAIL" if response_time >= 15.0 else "PARTIAL",
+                            (
+                                f"Response time too slow: {response_time:.2f}s"
+                                if response_time >= 15.0
+                                else f"Response time: {response_time:.2f}s"
+                            ),
+                            prompt=prompt,
+                            response_time=response_time,
                         )
+                else:
+                    self.log_test(
+                        "T-9.2",
+                        "Contextual query response time",
+                        "FAIL",
+                        "",
+                        "Could not get user UUID",
+                    )
             else:
                 self.log_test(
                     "T-9.2",
@@ -1855,79 +1794,69 @@ class AITestRunner:
             )
 
             if success:
-                import core.config
+                contextual_user_id = TestUserFactory.get_test_user_id_by_label(
+                    "test_quality_contextual", self.test_data_dir
+                )
 
-                with (
-                    patch.object(core.config, "BASE_DATA_DIR", self.test_data_dir),
-                    patch.object(
-                        core.config,
-                        "USER_INFO_DIR_PATH",
-                        os.path.join(self.test_data_dir, "users"),
-                    ),
-                ):
-                    contextual_user_id = get_user_id_by_identifier(
-                        "test_quality_contextual"
+                if contextual_user_id:
+                    # Set user name
+                    from core import save_user_data
+
+                    save_user_data(
+                        contextual_user_id,
+                        {"context": {"preferred_name": "QualityTest"}},
                     )
 
-                    if contextual_user_id:
-                        # Set user name
-                        from core import save_user_data
+                    prompt = "How am I doing?"
+                    response = self.chatbot.generate_contextual_response(
+                        contextual_user_id, prompt
+                    )
 
-                        save_user_data(
-                            contextual_user_id,
-                            {"context": {"preferred_name": "QualityTest"}},
+                    if response:
+                        # Check if response seems contextual (mentions user or references context)
+                        has_user_ref = (
+                            "QualityTest" in response
+                            or "qualitytest" in response.lower()
+                        )
+                        has_contextual_language = any(
+                            word in response.lower()
+                            for word in [
+                                "you",
+                                "your",
+                                "today",
+                                "recent",
+                                "check",
+                                "activity",
+                            ]
                         )
 
-                        prompt = "How am I doing?"
-                        response = self.chatbot.generate_contextual_response(
-                            contextual_user_id, prompt
+                        is_contextual = has_user_ref or has_contextual_language
+
+                        status = "PASS" if is_contextual else "PARTIAL"
+                        self.log_test(
+                            "T-12.3",
+                            "Contextual response quality",
+                            status,
+                            f"Response appears {'contextual' if is_contextual else 'generic'}: {response[:100]}...",
+                            prompt=prompt,
+                            response=response[:300],
                         )
-
-                        if response:
-                            # Check if response seems contextual (mentions user or references context)
-                            has_user_ref = (
-                                "QualityTest" in response
-                                or "qualitytest" in response.lower()
-                            )
-                            has_contextual_language = any(
-                                word in response.lower()
-                                for word in [
-                                    "you",
-                                    "your",
-                                    "today",
-                                    "recent",
-                                    "check",
-                                    "activity",
-                                ]
-                            )
-
-                            is_contextual = has_user_ref or has_contextual_language
-
-                            status = "PASS" if is_contextual else "PARTIAL"
-                            self.log_test(
-                                "T-12.3",
-                                "Contextual response quality",
-                                status,
-                                f"Response appears {'contextual' if is_contextual else 'generic'}: {response[:100]}...",
-                                prompt=prompt,
-                                response=response[:300],
-                            )
-                        else:
-                            self.log_test(
-                                "T-12.3",
-                                "Contextual response quality",
-                                "FAIL",
-                                "No response generated",
-                                prompt=prompt,
-                            )
                     else:
                         self.log_test(
                             "T-12.3",
                             "Contextual response quality",
                             "FAIL",
-                            "",
-                            "Could not get user UUID",
+                            "No response generated",
+                            prompt=prompt,
                         )
+                else:
+                    self.log_test(
+                        "T-12.3",
+                        "Contextual response quality",
+                        "FAIL",
+                        "",
+                        "Could not get user UUID",
+                    )
             else:
                 self.log_test(
                     "T-12.3",
