@@ -176,6 +176,14 @@ class EmailBot(BaseChannel):
             )
         super().__init__(config)
         self.last_outbound_message_id: str | None = None
+        self._last_receive_error = ""
+
+    @handle_errors("reading the last email receive error", default_return="")
+    def consume_receive_error(self) -> str:
+        """Return and clear the most recent inbox receive failure."""
+        error = self._last_receive_error
+        self._last_receive_error = ""
+        return error
 
     @property
     # not_duplicate: channel_type_properties
@@ -387,6 +395,7 @@ class EmailBot(BaseChannel):
     async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from email"""
         if not self.is_ready():
+            self._last_receive_error = "EmailBot is not ready to receive messages"
             logger.error("EmailBot is not ready to receive messages.")
             return []
 
@@ -399,7 +408,12 @@ class EmailBot(BaseChannel):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        messages = await loop.run_in_executor(None, self._receive_emails_sync)
+        try:
+            messages = await loop.run_in_executor(None, self._receive_emails_sync)
+        except Exception as exc:
+            error_message = str(exc).strip() or "no error message"
+            self._last_receive_error = f"{type(exc).__name__}: {error_message}"
+            raise
         if len(messages) > 0:
             logger.info(f"Received {len(messages)} new email(s)")
         return messages
@@ -407,17 +421,21 @@ class EmailBot(BaseChannel):
     @handle_errors("receiving emails synchronously", default_return=[])
     def _receive_emails_sync(self) -> list[dict[str, Any]]:
         """Receive emails synchronously - only fetches UNSEEN emails for efficiency"""
+        self._last_receive_error = ""
         config = self._get_email_config()
         if not config:
+            self._last_receive_error = "Email configuration is unavailable"
             return []
         _, imap_server, smtp_user, smtp_password = config
 
+        last_error: Exception | None = None
         for attempt in range(1, _IMAP_RECEIVE_ATTEMPTS + 1):
             try:
                 return self._receive_emails_sync_once(
                     imap_server, smtp_user, smtp_password
                 )
             except TimeoutError as exc:
+                last_error = exc
                 current_time = time.time()
                 time_since_last_log = current_time - EmailBot._last_timeout_log_time
                 if time_since_last_log >= EmailBot._timeout_log_interval:
@@ -427,14 +445,29 @@ class EmailBot(BaseChannel):
                     )
                     EmailBot._last_timeout_log_time = current_time
             except imaplib.IMAP4.abort as exc:
-                logger.warning(
+                last_error = exc
+                logger.debug(
                     "IMAP connection aborted "
                     f"(attempt {attempt}/{_IMAP_RECEIVE_ATTEMPTS}): {exc}"
+                )
+            except Exception as exc:
+                # Preserve the list-returning channel contract while making the
+                # failure observable to the outage-aware inbound poller.
+                last_error = exc
+                logger.debug(
+                    "IMAP receive failed "
+                    f"(attempt {attempt}/{_IMAP_RECEIVE_ATTEMPTS}): "
+                    f"{type(exc).__name__}: {exc}"
                 )
 
             if attempt < _IMAP_RECEIVE_ATTEMPTS:
                 time.sleep(_IMAP_RETRY_PAUSE_SECONDS)
 
+        if last_error is not None:
+            error_message = str(last_error).strip() or "no error message"
+            self._last_receive_error = (
+                f"{type(last_error).__name__}: {error_message}"
+            )
         return []
 
     # error_handling_exclude: exceptions are handled by the bounded retry wrapper above

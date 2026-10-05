@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-05 - Channel outages stay bounded and quiet **COMPLETED**
+- Equivalent failed deliveries occupy one retry slot, and retry callbacks no longer recursively enqueue another copy when a channel remains unavailable.
+- Successful, exhausted, and explicitly cleared deliveries release retry deduplication state so later legitimate sends remain possible.
+- Inbound email polling now distinguishes an empty inbox from a failed IMAP check, backs off from 1 to 15 minutes during an outage, resets to 30 seconds on recovery, and logs only outage transitions instead of a stack trace every cycle.
+- Real success/failure integration coverage replaces empty retry behavior tests; 69 email-polling and 127 retry-focused tests pass, and Ruff and Pyright are clean.
+
 ### 2026-10-04 - Task templates and bulk priority changes shipped **COMPLETED**
 - Website task settings can save, edit, and remove up to 20 validated personal templates; they appear in the website task picker alongside built-ins.
 - `task template <name_with_underscores>` and template listing resolve only the active account's custom templates, while malformed saved definitions cannot disrupt built-ins.
@@ -115,12 +121,6 @@ Guidelines:
 - A timed-out email now returns failure, so the scheduler can retry instead of marking the message sent.
 - The send waits up to 30 seconds for the server to accept the body.
 - The two empty chat files that were still plain lists are v2 envelopes. Chat loads only accept that envelope.
-
-### 2026-09-29 - Prompts fit, guesses stay uncached, breakfast is allowed **COMPLETED**
-- A long user message is shortened with the instructions so the local model stays inside its 2048-token window.
-- A minute guess used when the model is down or silent is not saved. The next Home load can ask the model again.
-- A hello or a task confirmation may mention breakfast. A reply is dropped only when it quotes a check-in rate the user did not ask about.
-- The task-step tests now use a new user id on every run. Task files live under that id, so a later full suite was reading tasks left by the previous run.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

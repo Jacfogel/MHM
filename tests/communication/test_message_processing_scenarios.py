@@ -8,6 +8,7 @@ and communication command_registry paths below the 80% domain goal.
 from __future__ import annotations
 
 import uuid
+import threading
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -1084,6 +1085,71 @@ class TestEmailInboundProcessorHelpers:
         processor.stop_polling()
         assert processor._polling_thread is None
 
+    def test_poll_failures_back_off_to_cap_and_success_resets(self, processor):
+        intervals = []
+        with patch(
+            "communication.communication_channels.email.inbound_processor.logger"
+        ) as mock_logger:
+            for _ in range(6):
+                processor._record_poll_failure("PermissionError: network unavailable")
+                intervals.append(processor._poll_interval_seconds)
+
+            assert intervals == [60, 120, 300, 900, 900, 900]
+            assert processor._consecutive_poll_failures == 6
+            assert mock_logger.error.call_count == 1
+            assert mock_logger.warning.call_count == 3
+
+            processor._record_poll_success()
+
+        assert processor._poll_interval_seconds == 30
+        assert processor._consecutive_poll_failures == 0
+        mock_logger.info.assert_called_once()
+
+    def test_poll_once_distinguishes_receive_failure_from_empty_inbox(
+        self, processor
+    ):
+        class FailedChannel:
+            def receive_messages(self):
+                return "email-coro"
+
+            def consume_receive_error(self):
+                return "PermissionError: network unavailable"
+
+        processor._run_async_sync.return_value = []
+
+        assert processor._poll_once(FailedChannel()) is False
+        assert processor._poll_interval_seconds == 60
+        assert processor._consecutive_poll_failures == 1
+
+        class EmptyInboxChannel:
+            def receive_messages(self):
+                return "email-coro"
+
+            def consume_receive_error(self):
+                return ""
+
+        assert processor._poll_once(EmptyInboxChannel()) is True
+        assert processor._poll_interval_seconds == 30
+        assert processor._consecutive_poll_failures == 0
+
+    def test_stop_polling_interrupts_a_long_backoff_wait(self, processor):
+        poll_started = threading.Event()
+        channel = MagicMock()
+        channel.is_ready.return_value = True
+        processor._get_email_channel.return_value = channel
+
+        def enter_long_backoff(_channel):
+            processor._poll_interval_seconds = 900
+            poll_started.set()
+            return False
+
+        with patch.object(processor, "_poll_once", side_effect=enter_long_backoff):
+            processor.start_polling()
+            assert poll_started.wait(timeout=1)
+            processor.stop_polling()
+
+        assert processor._polling_thread is None
+
     def test_poll_once_skips_non_dict_and_duplicate_ids(self, processor):
         channel = MagicMock()
         email_msg = {
@@ -1096,7 +1162,7 @@ class TestEmailInboundProcessorHelpers:
         with patch.object(
             processor, "process_incoming_email", return_value=True
         ) as mock_process:
-            processor._poll_once(channel)
+            assert processor._poll_once(channel) is True
         mock_process.assert_called_once_with(email_msg)
 
     def test_poll_once_processes_new_email_ids(self, processor):

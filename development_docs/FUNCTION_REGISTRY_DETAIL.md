@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 23:37:27
+> **Last Generated**: 2026-10-05 13:58:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 301
-- **Functions Found**: 3114
-- **Methods Found**: 1589
+- **Functions Found**: 3120
+- **Methods Found**: 1595
 - **Classes Found**: 278
-- **Total Items**: 4703
-- **Functions Documented**: 2761
-- **Methods Documented**: 1411
+- **Total Items**: 4715
+- **Functions Documented**: 2767
+- **Methods Documented**: 1417
 - **Classes Documented**: 211
-- **Total Documented**: 4172
+- **Total Documented**: 4184
 - **Template-Generated**: 64
-- **Last Updated**: 2026-10-04
+- **Last Updated**: 2026-10-05
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (620)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (891)
+### **Communication Functions** (897)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (548)
@@ -2653,6 +2653,7 @@ used here, because its recovery step would write the body a second time.
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
+- [OK] `consume_receive_error(self)` - Return and clear the most recent inbox receive failure.
 - [OK] `decode_email_subject(subject)` - Decode every encoded-word fragment using its declared charset.
 - [OK] `health_check(self)` - Perform health check on email connections
 - [OK] `imap_uid_validity(mail)` - Return the selected mailbox UIDVALIDITY value, when advertised.
@@ -2688,6 +2689,7 @@ Args:
 
 Returns:
     ChannelType.SYNC: Email operations are synchronous
+  - [OK] `EmailBot.consume_receive_error(self)` - Return and clear the most recent inbox receive failure.
   - [OK] `EmailBot.health_check(self)` - Perform health check on email connections
   - [OK] `EmailBot.initialize(self)` - Initialize the email bot
   - [OK] `EmailBot.initialize__test_imap_connection(self)` - Test IMAP connection synchronously
@@ -2710,6 +2712,8 @@ If the body was already written and the acceptance reply is lost, returns
 - [OK] `_mark_handled_email_seen(self, email_channel, imap_uid, imap_uid_validity)` - Mark one inbox message read after handling succeeds.
 - [OK] `_poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
 - [OK] `_polling_loop(self)` - Background thread that periodically polls for incoming emails.
+- [OK] `_record_poll_failure(self, error)` - Increase the poll delay and log only meaningful outage transitions.
+- [OK] `_record_poll_success(self)` - Restore normal polling after a successful inbox check.
 - [OK] `_remember_processed_email_id(self, email_id)` - Bound the in-memory duplicate guard after an acknowledgement succeeds.
 - [OK] `_reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
 - [OK] `_route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
@@ -2727,6 +2731,8 @@ Returns True only after the message is handled, so the caller can mark it read.
   - [OK] `EmailInboundProcessor._mark_handled_email_seen(self, email_channel, imap_uid, imap_uid_validity)` - Mark one inbox message read after handling succeeds.
   - [OK] `EmailInboundProcessor._poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
   - [OK] `EmailInboundProcessor._polling_loop(self)` - Background thread that periodically polls for incoming emails.
+  - [OK] `EmailInboundProcessor._record_poll_failure(self, error)` - Increase the poll delay and log only meaningful outage transitions.
+  - [OK] `EmailInboundProcessor._record_poll_success(self)` - Restore normal polling after a successful inbox check.
   - [OK] `EmailInboundProcessor._remember_processed_email_id(self, email_id)` - Bound the in-memory duplicate guard after an acknowledgement succeeds.
   - [OK] `EmailInboundProcessor._reply_subject(self, email_subject)` - Keep a single Re: prefix on the reply subject.
   - [OK] `EmailInboundProcessor._route_registered_reply(self, user_id, reply_text, context)` - Send a check-in or task reply to that flow, otherwise use normal chat.
@@ -2865,6 +2871,7 @@ or reports that the body was handed off without confirmation.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+- [OK] `_send_retry_message_sync(self, channel_name, recipient, message)` - Retry one pending message while leaving requeue ownership to RetryManager.
 - [OK] `_shutdown_all_async(self)` - Async method to shutdown all channels
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
@@ -2964,6 +2971,7 @@ or reports that the body was handed off without confirmation.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
+  - [OK] `CommunicationManager._send_retry_message_sync(self, channel_name, recipient, message)` - Retry one pending message while leaving requeue ownership to RetryManager.
   - [OK] `CommunicationManager._shutdown_all_async(self)` - Async method to shutdown all channels
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
@@ -3076,11 +3084,13 @@ The scheduler must not send another copy.
 Args:
     send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs)
                   and returns bool indicating success. If None, retries will only be logged.
+- [OK] `_delivery_key(user_id, category, message, recipient, channel_name)` - Return the stable identity used to deduplicate one pending delivery.
 - [OK] `_process_retry_queue(self)` - Process the retry queue and attempt to resend failed messages
+- [OK] `_release_pending_key(self, queued_message)` - Allow a completed or exhausted delivery to be queued again later.
 - [OK] `_retry_loop(self)` - Main retry loop that processes failed messages
 - [OK] `clear_queue(self)` - Clear all queued messages (use with caution)
 - [OK] `get_queue_size(self)` - Get the current size of the retry queue
-- [OK] `queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
+- [OK] `queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed delivery once while an equivalent retry is pending.
 - [OK] `start_retry_thread(self)` - Start the retry thread for failed messages
 - [OK] `stop_retry_thread(self)` - Stop the retry thread
 **Classes:**
@@ -3091,11 +3101,13 @@ Args:
 Args:
     send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs)
                   and returns bool indicating success. If None, retries will only be logged.
+  - [OK] `RetryManager._delivery_key(user_id, category, message, recipient, channel_name)` - Return the stable identity used to deduplicate one pending delivery.
   - [OK] `RetryManager._process_retry_queue(self)` - Process the retry queue and attempt to resend failed messages
+  - [OK] `RetryManager._release_pending_key(self, queued_message)` - Allow a completed or exhausted delivery to be queued again later.
   - [OK] `RetryManager._retry_loop(self)` - Main retry loop that processes failed messages
   - [OK] `RetryManager.clear_queue(self)` - Clear all queued messages (use with caution)
   - [OK] `RetryManager.get_queue_size(self)` - Get the current size of the retry queue
-  - [OK] `RetryManager.queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
+  - [OK] `RetryManager.queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed delivery once while an equivalent retry is pending.
   - [OK] `RetryManager.start_retry_thread(self)` - Start the retry thread for failed messages
   - [OK] `RetryManager.stop_retry_thread(self)` - Stop the retry thread
 

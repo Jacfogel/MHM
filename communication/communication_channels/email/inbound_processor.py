@@ -13,6 +13,9 @@ from core.logger import get_component_logger
 
 logger = get_component_logger("email")
 
+_NORMAL_POLL_INTERVAL_SECONDS = 30
+_POLL_FAILURE_BACKOFF_SECONDS = (60, 120, 300, 900)
+
 
 class EmailInboundProcessor:
     """Polls the email channel, routes inbound messages, and sends replies."""
@@ -34,6 +37,8 @@ class EmailInboundProcessor:
         self._processed_email_ids: set[tuple[str, str]] = set()
         self._handled_email_ids_pending_seen: set[tuple[str, str]] = set()
         self._mailbox_uid_validity = ""
+        self._poll_interval_seconds = _NORMAL_POLL_INTERVAL_SECONDS
+        self._consecutive_poll_failures = 0
 
     @property
     @handle_errors("getting email polling thread", default_return=None)
@@ -48,6 +53,8 @@ class EmailInboundProcessor:
             logger.debug("Email polling thread already running")
             return
 
+        self._poll_interval_seconds = _NORMAL_POLL_INTERVAL_SECONDS
+        self._consecutive_poll_failures = 0
         self._polling_stop_event.clear()
         self._polling_thread = threading.Thread(
             target=self._polling_loop, daemon=True
@@ -74,7 +81,6 @@ class EmailInboundProcessor:
     def _polling_loop(self) -> None:
         """Background thread that periodically polls for incoming emails."""
         logger.info("Email polling loop started")
-        poll_interval = 30
 
         while not self._polling_stop_event.is_set():
             try:
@@ -88,29 +94,36 @@ class EmailInboundProcessor:
             except Exception as e:
                 error_type = type(e).__name__
                 error_msg = str(e) if str(e) else f"{error_type} with no message"
-                logger.error(
-                    f"Error in email polling loop: {error_type} - {error_msg}",
-                    exc_info=True,
+                self._record_poll_failure(
+                    f"polling loop {error_type}: {error_msg}"
                 )
 
-            if self._polling_stop_event.wait(timeout=poll_interval):
+            if self._polling_stop_event.wait(timeout=self._poll_interval_seconds):
                 break
 
         logger.info("Email polling loop stopped")
 
-    @handle_errors("polling email channel once", default_return=None)
-    def _poll_once(self, email_channel: Any) -> None:
+    @handle_errors("polling email channel once", default_return=False)
+    def _poll_once(self, email_channel: Any) -> bool:
         """Receive available email messages once and process unseen message IDs."""
         try:
             emails = self._run_async_sync(email_channel.receive_messages())
+            consume_error = getattr(type(email_channel), "consume_receive_error", None)
+            if callable(consume_error):
+                receive_error = consume_error(email_channel)
+                if receive_error:
+                    self._record_poll_failure(str(receive_error))
+                    return False
             if emails is None:
                 logger.debug("Email receive returned no messages")
-                return
+                self._record_poll_success()
+                return True
             if not isinstance(emails, list):
-                logger.warning(
-                    f"Email receive returned unexpected payload type: {type(emails).__name__}"
+                self._record_poll_failure(
+                    "email receive returned unexpected payload type "
+                    f"{type(emails).__name__}"
                 )
-                return
+                return False
             for email_msg in emails:
                 if not isinstance(email_msg, dict):
                     logger.warning(
@@ -152,23 +165,63 @@ class EmailInboundProcessor:
                     ):
                         self._handled_email_ids_pending_seen.discard(email_identity)
                         self._remember_processed_email_id(email_identity)
+            self._record_poll_success()
+            return True
         except asyncio.TimeoutError:
-            logger.error(
-                "Error polling for emails: Timeout waiting for receive_messages() to complete",
-                exc_info=True,
+            self._record_poll_failure(
+                "timeout waiting for receive_messages() to complete"
             )
+            return False
         except RuntimeError as e:
-            logger.error(
-                f"Error polling for emails: RuntimeError - {e} (event loop may be closed or invalid)",
-                exc_info=True,
+            self._record_poll_failure(
+                f"RuntimeError: {e} (event loop may be closed or invalid)"
             )
+            return False
         except Exception as e:
             error_type = type(e).__name__
             error_msg = str(e) if str(e) else f"{error_type} with no message"
+            self._record_poll_failure(f"{error_type}: {error_msg}")
+            return False
+
+    @handle_errors("recording an email poll failure", default_return=None)
+    def _record_poll_failure(self, error: str) -> None:
+        """Increase the poll delay and log only meaningful outage transitions."""
+        self._consecutive_poll_failures += 1
+        previous_interval = self._poll_interval_seconds
+        backoff_index = min(
+            self._consecutive_poll_failures - 1,
+            len(_POLL_FAILURE_BACKOFF_SECONDS) - 1,
+        )
+        self._poll_interval_seconds = _POLL_FAILURE_BACKOFF_SECONDS[backoff_index]
+
+        if self._consecutive_poll_failures == 1:
             logger.error(
-                f"Error polling for emails: {error_type} - {error_msg}",
-                exc_info=True,
+                "Email inbox polling failed; "
+                f"retrying in {self._poll_interval_seconds} seconds: {error}"
             )
+        elif self._poll_interval_seconds != previous_interval:
+            logger.warning(
+                "Email inbox polling is still unavailable after "
+                f"{self._consecutive_poll_failures} attempts; retrying in "
+                f"{self._poll_interval_seconds} seconds"
+            )
+        else:
+            logger.debug(
+                "Email inbox polling remains unavailable; "
+                f"retrying in {self._poll_interval_seconds} seconds"
+            )
+
+    @handle_errors("recording email poll recovery", default_return=None)
+    def _record_poll_success(self) -> None:
+        """Restore normal polling after a successful inbox check."""
+        if self._consecutive_poll_failures:
+            logger.info(
+                "Email inbox polling recovered after "
+                f"{self._consecutive_poll_failures} failed attempts; resuming "
+                f"the {_NORMAL_POLL_INTERVAL_SECONDS}-second interval"
+            )
+        self._consecutive_poll_failures = 0
+        self._poll_interval_seconds = _NORMAL_POLL_INTERVAL_SECONDS
 
     @handle_errors("remembering a processed email id", default_return=None)
     def _remember_processed_email_id(self, email_id: tuple[str, str]) -> None:

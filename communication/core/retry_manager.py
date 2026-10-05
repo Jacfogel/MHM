@@ -1,8 +1,8 @@
 # retry_manager.py
 
+import queue
 import threading
 import time
-import queue
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -47,8 +47,37 @@ class RetryManager:
         self._retry_thread = None
         self._retry_running = False
         self._send_callback = send_callback
+        self._pending_keys: set[tuple[str, str, str, str, str]] = set()
+        self._queue_lock = threading.Lock()
 
-    @handle_errors("queueing failed message", default_return=None)
+    @staticmethod
+    @handle_errors(
+        "building retry delivery key", default_return=("", "", "", "", "")
+    )
+    def _delivery_key(
+        user_id: str,
+        category: str,
+        message: str,
+        recipient: str,
+        channel_name: str,
+    ) -> tuple[str, str, str, str, str]:
+        """Return the stable identity used to deduplicate one pending delivery."""
+        return user_id, category, message, recipient, channel_name
+
+    @handle_errors("releasing retry delivery key", default_return=None)
+    def _release_pending_key(self, queued_message: QueuedMessage) -> None:
+        """Allow a completed or exhausted delivery to be queued again later."""
+        key = self._delivery_key(
+            queued_message.user_id,
+            queued_message.category,
+            queued_message.message,
+            queued_message.recipient,
+            queued_message.channel_name,
+        )
+        with self._queue_lock:
+            self._pending_keys.discard(key)
+
+    @handle_errors("queueing failed message", default_return=False)
     def queue_failed_message(
         self,
         user_id: str,
@@ -56,8 +85,19 @@ class RetryManager:
         message: str,
         recipient: str,
         channel_name: str,
-    ):
-        """Queue a failed message for retry"""
+    ) -> bool:
+        """Queue a failed delivery once while an equivalent retry is pending."""
+        key = self._delivery_key(
+            user_id, category, message, recipient, channel_name
+        )
+        with self._queue_lock:
+            if key in self._pending_keys:
+                logger.debug(
+                    f"Retry already pending for user {user_id}, category {category}"
+                )
+                return False
+            self._pending_keys.add(key)
+
         queued_message = QueuedMessage(
             user_id=user_id,
             category=category,
@@ -70,6 +110,7 @@ class RetryManager:
         logger.info(
             f"Queued failed message for user {user_id}, category {category} for retry"
         )
+        return True
 
     @handle_errors("starting retry thread", default_return=None)
     def start_retry_thread(self):
@@ -165,10 +206,13 @@ class RetryManager:
                     if not retry_success:
                         queued_message.timestamp = now_datetime_full()
                         self._failed_message_queue.put(queued_message)
+                    else:
+                        self._release_pending_key(queued_message)
                 else:
                     logger.warning(
                         f"Max retries exceeded for message to user {queued_message.user_id}"
                     )
+                    self._release_pending_key(queued_message)
 
         except Exception as e:
             logger.error(f"Error processing retry queue: {e}")
@@ -186,4 +230,6 @@ class RetryManager:
                 self._failed_message_queue.get_nowait()
             except queue.Empty:
                 break
+        with self._queue_lock:
+            self._pending_keys.clear()
         logger.info("Retry queue cleared")

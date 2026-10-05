@@ -102,8 +102,8 @@ class CommunicationManager:
             {}
         )  # Track last task reminder per user: {user_id: task_id}
         # Initialize extracted modules
-        # Pass send_message_sync as callback for retry manager
-        self.retry_manager = RetryManager(send_callback=self.send_message_sync)
+        # RetryManager owns requeueing; its callback must never enqueue recursively.
+        self.retry_manager = RetryManager(send_callback=self._send_retry_message_sync)
         self.channel_monitor = ChannelMonitor()
         self.email_inbound_processor = EmailInboundProcessor(
             get_email_channel=lambda: self._channels_dict.get("email"),
@@ -303,6 +303,14 @@ class CommunicationManager:
         self.retry_manager.queue_failed_message(
             user_id, category, message, recipient, channel_name
         )
+
+    @handle_errors("retrying message without recursive queueing", default_return=False)
+    def _send_retry_message_sync(
+        self, channel_name: str, recipient: str, message: str, **kwargs
+    ) -> bool | str:
+        """Retry one pending message while leaving requeue ownership to RetryManager."""
+        kwargs["_queue_on_failure"] = False
+        return self.send_message_sync(channel_name, recipient, message, **kwargs)
 
     @handle_errors("starting retry thread", default_return=None)
     def start_all__start_retry_thread(self):
@@ -705,6 +713,7 @@ class CommunicationManager:
         self, channel_name: str, recipient: str, message: str, **kwargs
     ) -> bool | str:
         """Send message via specified channel using unified interface"""
+        queue_on_failure = bool(kwargs.pop("_queue_on_failure", True))
         logger.debug(f"Preparing to send message to {recipient} via {channel_name}")
 
         channel = self._channels_dict.get(channel_name)
@@ -714,14 +723,15 @@ class CommunicationManager:
 
         if not self._channel_can_send(channel):
             logger.error(f"Channel {channel_name} not ready")
-            with contextlib.suppress(Exception):
-                self.send_message_sync__queue_failed_message(
-                    kwargs.get("user_id", ""),
-                    kwargs.get("category", "unknown"),
-                    message,
-                    recipient,
-                    channel_name,
-                )
+            if queue_on_failure:
+                with contextlib.suppress(Exception):
+                    self.send_message_sync__queue_failed_message(
+                        kwargs.get("user_id", ""),
+                        kwargs.get("category", "unknown"),
+                        message,
+                        recipient,
+                        channel_name,
+                    )
             return False
 
         # Check network connectivity with proper error handling
@@ -879,25 +889,31 @@ class CommunicationManager:
         self, channel_name: str, recipient: str, message: str, **kwargs
     ) -> bool | str:
         """Synchronous wrapper with logging health check"""
+        queue_on_failure = bool(kwargs.pop("_queue_on_failure", True))
         # Check logging health periodically
         self._check_logging_health()
 
         # Queue immediately if channel is not ready
         channel = self._channels_dict.get(channel_name)
         if not self._channel_can_send(channel):
-            logger.error(
-                f"Channel {channel_name} not ready - queuing message for retry"
-            )
-            try:
-                self.send_message_sync__queue_failed_message(
-                    kwargs.get("user_id", ""),
-                    kwargs.get("category", "unknown"),
-                    message,
-                    recipient,
-                    channel_name,
+            if queue_on_failure:
+                logger.error(
+                    f"Channel {channel_name} not ready - queuing message for retry"
                 )
-            except Exception as e:
-                logger.warning(f"Failed to queue message for retry: {e}")
+                try:
+                    self.send_message_sync__queue_failed_message(
+                        kwargs.get("user_id", ""),
+                        kwargs.get("category", "unknown"),
+                        message,
+                        recipient,
+                        channel_name,
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to queue message for retry: {e}")
+            else:
+                logger.warning(
+                    f"Channel {channel_name} not ready - existing retry remains pending"
+                )
             return False
 
         try:
@@ -914,7 +930,13 @@ class CommunicationManager:
             # If we get here with a non-existent channel, something went wrong
             try:
                 result = self.send_message_sync__run_async_sync(
-                    self.send_message(channel_name, recipient, message, **kwargs)
+                    self.send_message(
+                        channel_name,
+                        recipient,
+                        message,
+                        _queue_on_failure=queue_on_failure,
+                        **kwargs,
+                    )
                 )
                 # Ensure we return False if result is None or unexpected
                 if result is None:
@@ -930,7 +952,11 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error in simplified send_message_sync: {e}")
             # Queue for retry if this is a scheduled message
-            if "user_id" in kwargs and "category" in kwargs:
+            if (
+                queue_on_failure
+                and "user_id" in kwargs
+                and "category" in kwargs
+            ):
                 self.send_message_sync__queue_failed_message(
                     kwargs["user_id"],
                     kwargs["category"],

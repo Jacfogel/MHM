@@ -14,6 +14,7 @@ This module tests the uncovered areas of CommunicationManager to expand coverage
 import pytest
 import os
 import asyncio
+from datetime import datetime
 from unittest.mock import Mock, patch, AsyncMock
 import threading
 
@@ -189,55 +190,42 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.critical
     def test_retry_queue_processing_real_behavior(self, comm_manager, realistic_mock_channel):
         """Test retry queue processing functionality."""
-        # Add a channel
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
-        
-        # Queue a failed message - this functionality is now in retry_manager
-        # queued_message = QueuedMessage(
-        #     user_id="test_user",
-        #     category="motivational",
-        #     message="Test message",
-        #     recipient="test_recipient",
-        #     channel_name="test_channel",
-        #     timestamp=datetime.now()
-        # )
-        # comm_manager._failed_message_queue.put(queued_message)
-        # 
-        # Mock send_message_sync to return success
-        # with patch.object(comm_manager, 'send_message_sync', return_value=True):
-        #     comm_manager.start_all__process_retry_queue()
-        #     
-        #     # Verify queue was processed
-        #     assert comm_manager._failed_message_queue.empty()
-        pass
+        comm_manager.retry_manager.queue_failed_message(
+            "test_user", "motivational", "Test message", "test_recipient", "test_channel"
+        )
+        queued_message = comm_manager.retry_manager._failed_message_queue.get()
+        queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+        comm_manager.retry_manager._failed_message_queue.put(queued_message)
+
+        with patch(
+            "communication.core.channel_orchestrator.wait_for_network",
+            return_value=True,
+        ):
+            comm_manager.retry_manager._process_retry_queue()
+
+        assert comm_manager.retry_manager.get_queue_size() == 0
+        realistic_mock_channel.send_message.assert_awaited_once()
 
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
     def test_retry_queue_processing_with_failure_real_behavior(self, comm_manager, realistic_mock_channel):
         """Test retry queue processing when message sending fails."""
-        # Add a channel
+        realistic_mock_channel.is_ready.return_value = False
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
-        
-        # Queue a failed message - this functionality is now in retry_manager
-        # queued_message = QueuedMessage(
-        #     user_id="test_user",
-        #     category="motivational",
-        #     message="Test message",
-        #     recipient="test_recipient",
-        #     channel_name="test_channel",
-        #     timestamp=datetime.now()
-        # )
-        # comm_manager._failed_message_queue.put(queued_message)
-        # 
-        # Mock send_message_sync to return failure
-        # with patch.object(comm_manager, 'send_message_sync', return_value=False):
-        #     comm_manager.start_all__process_retry_queue()
-        #     
-        #     # Verify message was requeued with incremented retry count
-        #     # Note: The actual logic may not requeue immediately, so we just verify the method runs
-        #     # The retry logic is complex and depends on timing, so we just test that it doesn't crash
-        pass
+        comm_manager.retry_manager.queue_failed_message(
+            "test_user", "motivational", "Test message", "test_recipient", "test_channel"
+        )
+        queued_message = comm_manager.retry_manager._failed_message_queue.get()
+        queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+        comm_manager.retry_manager._failed_message_queue.put(queued_message)
+
+        comm_manager.retry_manager._process_retry_queue()
+
+        assert comm_manager.retry_manager.get_queue_size() == 1
+        retried_message = comm_manager.retry_manager._failed_message_queue.get()
+        assert retried_message.retry_count == 1
 
     @pytest.mark.behavior
     @pytest.mark.communication

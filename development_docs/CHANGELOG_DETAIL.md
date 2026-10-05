@@ -32,6 +32,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-05 - Channel outages stay bounded and quiet
+- **Fix**: `RetryManager` now deduplicates equivalent pending deliveries and owns the full retry lifecycle. Its communication callback uses a non-enqueueing send path, so an unavailable channel cannot recursively create a new queue entry while the original failed delivery is also requeued. Successful and exhausted deliveries release their deduplication keys, and clearing the queue clears the pending-key index.
+- **Inbound email resilience**: `EmailBot` keeps its public list-returning receive contract while exposing a consumed-on-read failure signal to `EmailInboundProcessor`. Successful empty inbox checks remain distinct from IMAP connection, timeout, authentication, and protocol failures.
+- **Outage backoff and logging**: Inbound polling uses a 30-second healthy interval, then backs off to 60, 120, 300, and at most 900 seconds after consecutive failures. A successful check immediately restores the normal interval. The first failure, backoff transitions, and recovery are logged, while unchanged capped failures remain debug-only; the stop event still interrupts every wait immediately.
+- **Tests**: Added regression coverage for duplicate queue suppression, failed retry retention without queue growth, successful recovery, retry exhaustion, and reuse after a delivery leaves the queue. The previously empty communication-manager retry success/failure behavior tests now exercise the real integration. All 127 retry/orchestrator/communication-manager tests pass; Ruff, Pyright, and diff checks are clean.
+- **Email tests**: Added coverage for exact poll-delay progression and cap, recovery reset, empty-inbox versus outage detection, consumable receive failures, transient recovery, executor failure reporting, and immediate shutdown during a long backoff. All 69 focused email/poller tests pass; Ruff and Pyright are clean.
+- **Impact**: A Discord or email outage can no longer amplify one scheduled message into an expanding in-memory retry queue. A prolonged IMAP outage also stops producing full error stacks every 30 seconds while inbound email resumes normal responsiveness as soon as a check succeeds.
+
 ### 2026-10-04 - Task templates and bulk priority changes shipped
 - **Feature**: Task settings now store up to 20 validated custom templates with reusable titles, details, priorities, tags, times, and recurrence. The website account settings page provides add/edit/remove controls, and saved templates appear beside built-ins in the task creation picker.
 - **Commands and isolation**: `task template <name_with_underscores>` and `list task templates` resolve templates from the active account without exposing them to other users. Built-ins remain available when saved custom data is absent or malformed, and custom names cannot collide with built-in command names.

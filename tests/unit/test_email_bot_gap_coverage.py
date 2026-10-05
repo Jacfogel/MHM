@@ -16,6 +16,11 @@ class _ExecutorLoop:
         return func(*args)
 
 
+class _FailingExecutorLoop:
+    async def run_in_executor(self, executor, func, *args):
+        raise PermissionError("executor unavailable")
+
+
 class _FakeImapMailbox:
     def __init__(
         self,
@@ -340,6 +345,17 @@ class TestEmailBotGapCoverage:
         assert len(received) == 1
         assert asyncio.run(bot.health_check()) is True
 
+    def test_receive_messages_exposes_executor_failure(self, monkeypatch):
+        bot = EmailBot()
+        bot._set_status(ChannelStatus.READY)
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.asyncio.get_running_loop",
+            lambda: _FailingExecutorLoop(),
+        )
+
+        assert asyncio.run(bot.receive_messages()) == []
+        assert bot.consume_receive_error() == "PermissionError: executor unavailable"
+
     def test_receive_emails_sync_no_unseen_branch(self, monkeypatch):
         bot = EmailBot()
         mailbox = _FakeImapMailbox(search_result=("OK", [b""]))
@@ -482,6 +498,7 @@ class TestEmailBotGapCoverage:
         assert bot._receive_emails_sync() == []
         assert first.logged_out is True
         assert second.logged_out is True
+        assert bot.consume_receive_error() == ""
 
     def test_receive_emails_sync_drains_oldest_twenty_uids_first(self, monkeypatch):
         bot = EmailBot()
@@ -528,6 +545,34 @@ class TestEmailBotGapCoverage:
         assert messages == []
         assert mailbox.closed is True
         assert mailbox.logged_out is True
+        assert bot.consume_receive_error() == "TimeoutError: timed out"
+        assert bot.consume_receive_error() == ""
+
+    def test_receive_emails_sync_reports_connection_failure_without_raising(
+        self, monkeypatch
+    ):
+        import imaplib
+
+        bot = EmailBot()
+        monkeypatch.setattr(
+            bot,
+            "_get_email_config",
+            lambda: ("smtp", "imap", "user", "pass"),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.imaplib.IMAP4_SSL",
+            lambda *args, **kwargs: (_ for _ in ()).throw(
+                imaplib.IMAP4.error("connection failed")
+            ),
+        )
+        monkeypatch.setattr(
+            "communication.communication_channels.email.bot.time.sleep",
+            lambda _seconds: None,
+        )
+
+        assert bot._receive_emails_sync() == []
+        assert bot.consume_receive_error() == "error: connection failed"
+        assert bot.consume_receive_error() == ""
 
     def test_extract_body_exception_branches(self):
         bot = EmailBot()

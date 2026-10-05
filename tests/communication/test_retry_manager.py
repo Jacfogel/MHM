@@ -100,6 +100,28 @@ class TestRetryManager:
 
             assert retry_manager.get_queue_size() == 3
 
+    def test_queue_failed_message_deduplicates_pending_delivery(self, retry_manager):
+        """Repeated failures for one delivery should occupy one queue slot."""
+        with patch("communication.core.retry_manager.logger"):
+            first = retry_manager.queue_failed_message(
+                user_id="test_user",
+                category="health",
+                message="Test message",
+                recipient="test@example.com",
+                channel_name="email",
+            )
+            duplicate = retry_manager.queue_failed_message(
+                user_id="test_user",
+                category="health",
+                message="Test message",
+                recipient="test@example.com",
+                channel_name="email",
+            )
+
+        assert first is True
+        assert duplicate is False
+        assert retry_manager.get_queue_size() == 1
+
     def test_get_queue_size_empty(self, retry_manager):
         """Test getting queue size when empty."""
         assert retry_manager.get_queue_size() == 0
@@ -234,6 +256,28 @@ class TestRetryManager:
             # Message should be processed and requeued
             assert retry_manager.get_queue_size() == 1
 
+    def test_successful_retry_releases_pending_delivery(self):
+        """A successful retry should leave no stale deduplication key."""
+        send_callback = Mock(return_value=True)
+        retry_manager = RetryManager(send_callback=send_callback)
+        message_fields = {
+            "user_id": "test_user",
+            "category": "health",
+            "message": "Test message",
+            "recipient": "test@example.com",
+            "channel_name": "email",
+        }
+        retry_manager.queue_failed_message(**message_fields)
+        queued_message = retry_manager._failed_message_queue.get()
+        queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+        retry_manager._failed_message_queue.put(queued_message)
+
+        retry_manager._process_retry_queue()
+
+        send_callback.assert_called_once()
+        assert retry_manager.get_queue_size() == 0
+        assert retry_manager.queue_failed_message(**message_fields) is True
+
     def test_process_retry_queue_message_not_ready(self, retry_manager):
         """Test processing retry queue when message is not ready for retry."""
         with patch("communication.core.retry_manager.logger"):
@@ -278,6 +322,14 @@ class TestRetryManager:
             # Message should be removed from queue
             assert retry_manager.get_queue_size() == 0
             mock_logger.warning.assert_called_once()
+
+        assert retry_manager.queue_failed_message(
+            user_id="test_user",
+            category="motivational",
+            message="Test message",
+            recipient="test@example.com",
+            channel_name="email",
+        ) is True
 
     def test_retry_loop_exception_handling(self, retry_manager):
         """Test retry loop handles exceptions gracefully."""

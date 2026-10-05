@@ -5,6 +5,8 @@ Tests for communication/core/channel_orchestrator.py focusing on
 helper methods and utility functions.
 """
 
+from datetime import datetime
+
 import pytest
 from unittest.mock import ANY, Mock, patch
 from communication.core.channel_orchestrator import (
@@ -125,6 +127,34 @@ class TestChannelOrchestratorHelpers:
             + _SMTP_RETRY_PAUSE_SECONDS
         )
         assert needed < _SYNC_BRIDGE_TIMEOUT_SECONDS
+
+    def test_failed_retry_does_not_recursively_queue_another_message(self):
+        """Retrying an unavailable channel must keep one pending delivery."""
+        unavailable_channel = Mock()
+        unavailable_channel.is_ready.return_value = False
+        self.manager._channels_dict["email"] = unavailable_channel
+
+        assert (
+            self.manager.send_message_sync(
+                "email",
+                "test@example.com",
+                "Test message",
+                user_id="test_user",
+                category="health",
+            )
+            is False
+        )
+        assert self.manager.retry_manager.get_queue_size() == 1
+
+        queued_message = self.manager.retry_manager._failed_message_queue.get()
+        queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+        self.manager.retry_manager._failed_message_queue.put(queued_message)
+
+        self.manager.retry_manager._process_retry_queue()
+
+        assert self.manager.retry_manager.get_queue_size() == 1
+        retried_message = self.manager.retry_manager._failed_message_queue.get()
+        assert retried_message.retry_count == 1
 
     def test_get_active_channels_returns_list(self):
         """Test get_active_channels returns a list."""
