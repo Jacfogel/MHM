@@ -19,6 +19,8 @@ from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 
 # Import core functionality
 from tasks import create_task, update_task
+from tasks.task_service import build_task_data_from_template, list_task_templates
+from tasks.task_templates import TaskTemplate
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
@@ -105,6 +107,8 @@ class TaskEditDialog(QDialog):
         self.task_data = task_data or {}
         self.is_edit = bool(task_data)
         self.reminder_periods = []
+        self.template_combo: QComboBox | None = None
+        self.task_templates_by_id: dict[str, TaskTemplate] = {}
 
         # Load existing tags if editing
         if self.is_edit and self.task_data.get("tags"):
@@ -157,6 +161,10 @@ class TaskEditDialog(QDialog):
         )
         self.ui.comboBox_task_priority.setCurrentText("Medium")
 
+        # Templates are offered only while creating; edits should not overwrite
+        # an existing task with a preset accidentally.
+        self.setup_template_picker()
+
         # Setup due time components
         self.setup_due_time_components()
 
@@ -173,6 +181,84 @@ class TaskEditDialog(QDialog):
 
         # Setup recurring task components
         self.setup_recurring_task_components()
+
+    @handle_errors("setting up desktop task template picker", default_return=None)
+    def setup_template_picker(self):
+        """Add built-in and account-owned templates to the new-task form."""
+        if self.is_edit:
+            return
+        self.template_combo = QComboBox(self)
+        self.template_combo.addItem("Start from scratch", None)
+        for template in list_task_templates(self.user_id):
+            self.task_templates_by_id[template.template_id] = template
+            self.template_combo.addItem(template.display_name, template.template_id)
+        self.ui.formLayout_task_details.insertRow(
+            0, QLabel("Template:"), self.template_combo
+        )
+        self.template_combo.currentIndexChanged.connect(self.apply_selected_template)
+
+    @handle_errors("applying desktop task template", default_return=None)
+    def apply_selected_template(self, index):
+        """Prefill the new-task form from the selected shared template."""
+        if self.template_combo is None or index <= 0:
+            return
+        template_id = self.template_combo.itemData(index)
+        if not isinstance(template_id, str):
+            return
+        task_data = build_task_data_from_template(
+            str(self.user_id or ""), template_id
+        )
+        if not task_data:
+            QMessageBox.warning(
+                self, "Template Unavailable", "That task template could not be loaded."
+            )
+            return
+
+        self.ui.lineEdit_task_title.setText(str(task_data.get("title") or ""))
+        self.ui.textEdit_task_description.setPlainText(
+            str(task_data.get("description") or "")
+        )
+        priority = str(task_data.get("priority") or "medium").capitalize()
+        if self.ui.comboBox_task_priority.findText(priority) >= 0:
+            self.ui.comboBox_task_priority.setCurrentText(priority)
+        self.tag_widget.set_selected_tags(list(task_data.get("tags") or []))
+
+        due_date = task_data.get("due_date")
+        parsed_date = (
+            QDate.fromString(due_date, "yyyy-MM-dd")
+            if isinstance(due_date, str)
+            else QDate()
+        )
+        self.ui.checkBox_no_due_date.setChecked(not parsed_date.isValid())
+        if parsed_date.isValid():
+            self.ui.dateEdit_task_due_date.setDate(parsed_date)
+
+        template = self.task_templates_by_id.get(template_id)
+        due_time = task_data.get("due_time") or (
+            template.default_due_time if template is not None else None
+        )
+        parsed_time = (
+            QTime.fromString(due_time, "HH:mm")
+            if isinstance(due_time, str)
+            else QTime()
+        )
+        if parsed_time.isValid():
+            self.set_due_time_from_24h(parsed_time)
+        else:
+            self.ui.comboBox_due_time_hour.setCurrentText("")
+            self.ui.comboBox_due_time_minute.setCurrentText("")
+
+        pattern = task_data.get("recurrence_pattern")
+        pattern_indexes = {None: 0, "daily": 1, "weekly": 2, "monthly": 3, "yearly": 4}
+        self.ui.comboBox_recurring_pattern.setCurrentIndex(
+            pattern_indexes.get(pattern, 0)
+        )
+        self.ui.spinBox_recurring_interval.setValue(
+            int(task_data.get("recurrence_interval") or 1)
+        )
+        self.ui.checkBox_repeat_after_completion.setChecked(
+            bool(task_data.get("repeat_after_completion", True))
+        )
 
     @handle_errors("setting up due time components")
     def setup_due_time_components(self):

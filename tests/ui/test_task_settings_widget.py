@@ -221,6 +221,40 @@ class TestTaskSettingsWidgetDataManagement:
         assert 'time_periods' in settings, "Should include time_periods"
         assert 'tags' in settings, "Should include tags"
         assert 'recurring_settings' in settings, "Should include recurring_settings"
+        assert 'custom_templates' in settings, "Should include custom_templates"
+
+    @pytest.mark.ui
+    @pytest.mark.unit
+    def test_custom_task_templates_round_trip_and_save_with_preferences(self, widget):
+        """Desktop template settings use the shared account-owned preference field."""
+        templates = {
+            "custom_morning": {
+                "display_name": "Morning routine",
+                "title": "Start morning routine",
+                "description": "Begin with water.",
+                "priority": "high",
+                "tags": ["routine"],
+                "default_due_time": "08:30",
+                "recurrence_pattern": "daily",
+                "recurrence_interval": 1,
+            }
+        }
+        widget.template_editor.set_templates(templates)
+
+        assert widget.get_task_settings()["custom_templates"] == templates
+        with (
+            patch(
+                "ui.widgets.task_settings_widget.get_user_data",
+                return_value={"preferences": {"task_settings": {}}},
+            ),
+            patch(
+                "ui.widgets.task_settings_widget.update_user_preferences"
+            ) as update_preferences,
+        ):
+            widget.save_recurring_task_settings()
+
+        saved_preferences = update_preferences.call_args.args[1]
+        assert saved_preferences["task_settings"]["custom_templates"] == templates
     
     @pytest.mark.ui
     @pytest.mark.unit

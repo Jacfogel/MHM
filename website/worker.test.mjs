@@ -211,6 +211,9 @@ test('smaller-step and effort routes reach the gateway', async () => {
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/bulk/delete', {
       method: 'POST', headers, body: '{"task_ids":["task-1"]}',
     }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/bulk/priority', {
+      method: 'POST', headers, body: '{"task_ids":["task-1"],"priority":"high"}',
+    }), env)).status, 200);
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/effort', {
       headers: { Cookie: 'mhm_session=owned' },
     }), env)).status, 200);
@@ -219,6 +222,7 @@ test('smaller-step and effort routes reach the gateway', async () => {
       ['https://gateway.example/api/tasks/task-1/subtasks', 'POST'],
       ['https://gateway.example/api/tasks/task-1/detach', 'POST'],
       ['https://gateway.example/api/tasks/bulk/delete', 'POST'],
+      ['https://gateway.example/api/tasks/bulk/priority', 'POST'],
       ['https://gateway.example/api/tasks/effort', 'GET'],
     ]);
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/breakdown', { method: 'GET' }), env)).status, 405);

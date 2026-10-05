@@ -453,6 +453,42 @@ class TestTaskCrudDialog:
                                 
                         finally:
                             dialog.deleteLater()
+
+    @pytest.mark.ui
+    def test_bulk_priority_updates_every_selected_active_task(
+        self, qt_app, test_data_dir, mock_task_data
+    ):
+        """The desktop bulk-priority control updates all selected rows."""
+        with (
+            patch(
+                "ui.dialogs.task_crud_dialog.load_active_tasks",
+                return_value=mock_task_data["active_list"],
+            ),
+            patch("ui.dialogs.task_crud_dialog.load_completed_tasks", return_value=[]),
+            patch(
+                "ui.dialogs.task_crud_dialog.get_user_task_stats",
+                return_value={"total_count": 2, "completed_count": 0, "active_count": 2},
+            ),
+            patch("ui.dialogs.task_crud_dialog.get_tasks_due_soon", return_value=[]),
+            patch("ui.dialogs.task_crud_dialog.update_task", return_value=True) as update,
+            patch("ui.dialogs.task_crud_dialog.QMessageBox.information"),
+        ):
+            dialog = TaskCrudDialog(user_id="test_user")
+            try:
+                _select_table_rows(dialog.ui.tableWidget_active_tasks, 0, 1)
+                dialog.bulk_priority_combo.setCurrentText("Urgent")
+                dialog.apply_priority_to_selected_tasks()
+
+                assert update.call_count == 2
+                assert {
+                    (call.args[1], call.args[2]["priority"])
+                    for call in update.call_args_list
+                } == {
+                    ("00000000-0000-4000-8000-000000000001", "urgent"),
+                    ("00000000-0000-4000-8000-000000000002", "urgent"),
+                }
+            finally:
+                dialog.deleteLater()
     
     @pytest.mark.ui
     def test_delete_selected_task_no_selection(self, qt_app, test_data_dir):

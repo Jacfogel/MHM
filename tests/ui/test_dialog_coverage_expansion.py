@@ -338,6 +338,58 @@ class TestTaskEditDialogBehavior:
 
     @pytest.mark.ui
     @pytest.mark.critical
+    def test_new_task_template_picker_prefills_shared_template(
+        self, qapp, test_user_data, test_data_dir
+    ):
+        """New desktop tasks can be prefilled from shared task templates."""
+        from tasks.task_templates import TaskTemplate
+
+        template = TaskTemplate(
+            template_id="custom_morning",
+            display_name="Morning routine",
+            title="Start morning routine",
+            description="Begin with water.",
+            priority="high",
+            tags=("routine",),
+            default_due_time="08:30",
+            recurrence_pattern="daily",
+        )
+        built = {
+            "title": template.title,
+            "description": template.description,
+            "priority": template.priority,
+            "tags": list(template.tags),
+            "due_date": "2026-10-05",
+            "due_time": "08:30",
+            "recurrence_pattern": "daily",
+            "recurrence_interval": 1,
+            "repeat_after_completion": True,
+        }
+        with (
+            patch(
+                "ui.dialogs.task_edit_dialog.list_task_templates",
+                return_value=[template],
+            ),
+            patch(
+                "ui.dialogs.task_edit_dialog.build_task_data_from_template",
+                return_value=built,
+            ),
+        ):
+            dialog = TaskEditDialog(user_id=test_user_data)
+            try:
+                assert dialog.template_combo is not None
+                dialog.template_combo.setCurrentIndex(1)
+                assert dialog.ui.lineEdit_task_title.text() == template.title
+                assert dialog.ui.comboBox_task_priority.currentText() == "High"
+                assert dialog.collect_selected_tags() == ["routine"]
+                assert dialog.ui.comboBox_recurring_pattern.currentIndex() == 1
+                assert dialog.get_due_time_as_24h() == "08:30"
+            finally:
+                dialog.close()
+                dialog.deleteLater()
+
+    @pytest.mark.ui
+    @pytest.mark.critical
     def test_task_data_editing_real_behavior(self, dialog, test_user_data, test_data_dir):
         """Test editing task data updates form fields."""
         # Edit task title

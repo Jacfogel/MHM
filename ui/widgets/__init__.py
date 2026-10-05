@@ -12,6 +12,7 @@ from .channel_selection_widget import ChannelSelectionWidget
 from .category_selection_widget import CategorySelectionWidget
 from .tag_widget import TagWidget
 from .period_row_widget import PeriodRowWidget
+from .task_template_editor import TaskTemplateEditDialog, TaskTemplateManagerWidget
 
 __all__ = [
     # Task settings
@@ -28,4 +29,7 @@ __all__ = [
     "TagWidget",
     # Period row
     "PeriodRowWidget",
+    # Task templates
+    "TaskTemplateEditDialog",
+    "TaskTemplateManagerWidget",
 ]

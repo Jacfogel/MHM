@@ -127,6 +127,54 @@ def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
     assert documents == original
 
 
+def test_custom_task_templates_round_trip_through_task_settings(documents):
+    tasks = values(documents, "tasks")
+    tasks["custom_templates"] = {
+        "custom_abc123": {
+            "display_name": "Morning routine",
+            "title": "Start morning routine",
+            "description": "Begin with water.",
+            "priority": "high",
+            "tags": ["Routine", "morning"],
+            "default_due_time": "08:30",
+            "recurrence_pattern": "daily",
+            "recurrence_interval": 1,
+        }
+    }
+
+    updates = build_settings_updates(documents, OPTIONS, "tasks", tasks)
+    saved = updates["preferences"]["task_settings"]["custom_templates"]
+    assert saved["custom_abc123"]["tags"] == ["routine", "morning"]
+    assert saved["custom_abc123"]["default_due_time"] == "08:30"
+    assert updates["preferences"]["task_settings"]["custom"] == "keep"
+
+
+def test_custom_task_templates_reject_invalid_or_duplicate_names(documents):
+    tasks = values(documents, "tasks")
+    template = {
+        "display_name": "Morning routine",
+        "title": "Start morning routine",
+        "description": "",
+        "priority": "medium",
+        "tags": [],
+        "default_due_time": None,
+        "recurrence_pattern": None,
+        "recurrence_interval": 1,
+    }
+    tasks["custom_templates"] = {
+        "custom_first": template,
+        "custom_second": {**template, "display_name": "Morning-routine"},
+    }
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, OPTIONS, "tasks", tasks)
+
+    tasks["custom_templates"] = {
+        "custom_first": {**template, "default_due_time": "25:00"}
+    }
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, OPTIONS, "tasks", tasks)
+
+
 def test_extended_profile_and_phrase_settings_round_trip_without_losing_private_data(
     documents,
 ):

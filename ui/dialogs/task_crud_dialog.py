@@ -4,9 +4,12 @@
 
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QComboBox,
     QDialog,
     QHeaderView,
+    QLabel,
     QMessageBox,
+    QPushButton,
     QTableWidgetItem,
 )
 from PySide6.QtCore import Qt
@@ -20,6 +23,7 @@ from tasks import (
     get_tasks_due_soon,
     complete_task,
     delete_task,
+    update_task,
 )
 from tasks.task_data_handlers import (
     runtime_task_completed_at,
@@ -56,6 +60,19 @@ class TaskCrudDialog(QDialog):
     @handle_errors("setting up task CRUD UI", default_return=None)
     def setup_ui(self):
         """Setup the UI components."""
+        # Add the missing multi-select priority action beside existing actions.
+        action_layout = self.ui.horizontalLayout_active_tasks_buttons
+        self.bulk_priority_label = QLabel("Priority:", self)
+        self.bulk_priority_combo = QComboBox(self)
+        self.bulk_priority_combo.addItems(
+            ["Low", "Medium", "High", "Urgent", "Critical"]
+        )
+        self.bulk_priority_combo.setCurrentText("Medium")
+        self.bulk_priority_button = QPushButton("Apply Priority", self)
+        action_layout.insertWidget(4, self.bulk_priority_label)
+        action_layout.insertWidget(5, self.bulk_priority_combo)
+        action_layout.insertWidget(6, self.bulk_priority_button)
+
         # Setup table headers for active tasks
         self.ui.tableWidget_active_tasks.setColumnCount(7)
         self.ui.tableWidget_active_tasks.setHorizontalHeaderLabels(
@@ -131,6 +148,7 @@ class TaskCrudDialog(QDialog):
         self.ui.pushButton_delete_selected_task.clicked.connect(
             self.delete_selected_task
         )
+        self.bulk_priority_button.clicked.connect(self.apply_priority_to_selected_tasks)
         self.ui.pushButton_refresh_active_tasks.clicked.connect(
             self.refresh_active_tasks
         )
@@ -432,6 +450,30 @@ class TaskCrudDialog(QDialog):
         )
         self.refresh_active_tasks()
         self.refresh_completed_tasks()
+
+    @handle_errors(
+        "updating priority for selected tasks", user_friendly=True, default_return=None
+    )
+    def apply_priority_to_selected_tasks(self):
+        """Assign the chosen priority to every selected active task."""
+        pairs = self.get_selected_task_pairs(self.ui.tableWidget_active_tasks)
+        if not pairs:
+            QMessageBox.warning(
+                self, "No Selection", "Please select one or more tasks to update."
+            )
+            return
+        priority = self.bulk_priority_combo.currentText().casefold()
+        failed = []
+        for task_id, title in pairs:
+            if not update_task(self.user_id, task_id, {"priority": priority}):
+                failed.append(title)
+        self._report_batch_result(
+            failed,
+            success_one=f"Task priority changed to {priority}.",
+            success_many=f"Changed priority for {len(pairs)} tasks to {priority}.",
+            count=len(pairs),
+        )
+        self.refresh_active_tasks()
 
     @handle_errors(
         "deleting selected tasks from table", user_friendly=True, default_return=None

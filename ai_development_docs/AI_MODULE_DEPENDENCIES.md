@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 03:43:50
+> **Last Generated**: 2026-10-04 23:37:59
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 298
-- **Total Imports**: 2660
-- **Standard Library**: 765 (28.8%)
-- **Third-Party**: 230 (8.6%)
-- **Local Imports**: 1665 (62.6%)
+- **Files Scanned**: 299
+- **Total Imports**: 2676
+- **Standard Library**: 769 (28.7%)
+- **Third-Party**: 234 (8.7%)
+- **Local Imports**: 1673 (62.5%)
 
 ## Dependency Decision Trees
 
@@ -122,8 +122,8 @@ External libraries provide channel and UI support.
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
 
 ### Third-Party Risks
-- `ui/admin_actions.py` -> PySide6.QtWidgets (36 modules use this)
-- `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
+- `ui/admin_actions.py` -> PySide6.QtWidgets (37 modules use this)
+- `ui/ui_app_qt.py` -> PySide6.QtCore (22 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `communication/communication_channels/discord/bot.py` -> aiohttp (13 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)

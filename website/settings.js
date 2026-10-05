@@ -48,7 +48,7 @@ const MHMSettingsInput = Object.freeze({
     delivery: 'Choose where your support arrives and the time zone for your reminders.',
     phrases: 'Choose how MHM interprets everyday time phrases when you create tasks or reminders.',
     messages: 'Choose the encouragement you want and when it can reach you.',
-    tasks: 'Set reminder windows and the defaults for new recurring tasks.',
+    tasks: 'Set reminder windows, recurring defaults, and reusable task templates.',
     checkins: 'Choose when to check in and which questions to include.',
   };
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -248,6 +248,66 @@ const MHMSettingsInput = Object.freeze({
           states: Object.fromEntries(controls.map(item => [item.key, item.frequency.value])),
         };
       },
+    };
+  }
+
+  function customTaskTemplateEditor(parent, initial) {
+    initial = MHMSettingsInput.record(initial);
+    const group = el('fieldset', null, { className: 'custom-question-editor custom-task-template-editor' });
+    group.append(el('legend', 'Saved task templates'));
+    group.append(el('p', 'Save the details you reuse. Templates appear when you create a task and can also be used in chat with task template followed by the underscored template name.', { className: 'field-hint' }));
+    const rows = el('div');
+    const controls = [];
+    function add(key, definition = {}) {
+      definition = MHMSettingsInput.record(definition);
+      const row = el('div', null, { className: 'custom-template-row' });
+      const name = field(row, 'Template name', `${key}-name`, 'text', definition.display_name, { required: '', maxlength: '80', placeholder: 'Morning routine' });
+      const title = field(row, 'Task title', `${key}-title`, 'text', definition.title, { required: '', maxlength: '500', placeholder: 'Start morning routine' });
+      const description = field(row, 'Details', `${key}-description`, 'textarea', definition.description, { maxlength: '10000' });
+      const priority = select(row, 'Priority', `${key}-priority`, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['urgent', 'Urgent'], ['critical', 'Critical']], definition.priority || 'medium');
+      const tags = field(row, 'Tags', `${key}-tags`, 'text', MHMSettingsInput.list(definition.tags || []).join(', '), { maxlength: '1000', placeholder: 'routine, morning' });
+      const dueTime = field(row, 'Default time', `${key}-time`, 'time', definition.default_due_time || '');
+      const recurrence = select(row, 'Repeat', `${key}-repeat`, [['', 'Does not repeat'], ['daily', 'Days'], ['weekly', 'Weeks'], ['monthly', 'Months'], ['yearly', 'Years']], definition.recurrence_pattern || '');
+      const interval = field(row, 'Repeat every', `${key}-interval`, 'number', definition.recurrence_interval || 1, { min: '1', max: '365', required: '' });
+      const syncRecurrence = () => {
+        interval.disabled = !recurrence.value;
+        interval.parentElement.hidden = !recurrence.value;
+      };
+      recurrence.addEventListener('change', syncRecurrence);
+      syncRecurrence();
+      const remove = el('button', 'Remove template', { type: 'button', className: 'plain-button danger-button' });
+      const control = { key, row, name, title, description, priority, tags, dueTime, recurrence, interval };
+      remove.addEventListener('click', () => {
+        controls.splice(controls.indexOf(control), 1);
+        row.remove();
+        parent.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      row.append(remove);
+      controls.push(control);
+      rows.append(row);
+    }
+    for (const [key, definition] of Object.entries(initial)) add(key, definition);
+    const button = el('button', '+ Add task template', { type: 'button', className: 'plain-button' });
+    button.addEventListener('click', () => {
+      if (controls.length >= 20) return;
+      const key = `custom_${crypto.randomUUID().replaceAll('-', '')}`;
+      add(key, { display_name: '', title: '', description: '', priority: 'medium', tags: [], default_due_time: null, recurrence_pattern: null, recurrence_interval: 1 });
+      parent.dispatchEvent(new Event('input', { bubbles: true }));
+      controls.at(-1).name.focus();
+    });
+    group.append(rows, button);
+    parent.append(group);
+    return {
+      read: () => Object.fromEntries(controls.map(item => [item.key, {
+        display_name: item.name.value.trim(),
+        title: item.title.value.trim(),
+        description: item.description.value.trim(),
+        priority: item.priority.value,
+        tags: MHMSettingsInput.profileEntries(item.tags.value),
+        default_due_time: item.dueTime.value || null,
+        recurrence_pattern: item.recurrence.value || null,
+        recurrence_interval: Number(item.interval.value || 1),
+      }])),
     };
   }
 
@@ -475,6 +535,7 @@ const MHMSettingsInput = Object.freeze({
         const periods = periodEditor(details, section === 'tasks' ? 'tasks' : 'checkin', values.periods);
         if (section === 'tasks') {
           const recurring = MHMSettingsInput.record(values.recurring);
+          const customTemplates = customTaskTemplateEditor(details, values.custom_templates);
           const savedPattern = recurring.default_recurrence_pattern || '';
           const savedInterval = Number(recurring.default_recurrence_interval ?? 1);
           const presetPattern = savedInterval === 1 && ['daily', 'weekly', 'monthly'].includes(savedPattern) ? savedPattern : savedPattern ? 'custom' : '';
@@ -498,7 +559,7 @@ const MHMSettingsInput = Object.freeze({
           details.append(el('p', 'These defaults apply to new tasks. Existing tasks keep their own repeat settings.', { className: 'field-hint' }));
           read = () => {
             const recurrencePattern = pattern.value === 'custom' ? unit.value : pattern.value || null;
-            return { enabled: enabled.checked, periods: periods.read(), recurring: { default_recurrence_pattern: recurrencePattern, default_recurrence_interval: pattern.value === 'custom' ? Number(interval.value) : 1, default_repeat_after_completion: recurrencePattern ? after.checked : false } };
+            return { enabled: enabled.checked, periods: periods.read(), custom_templates: customTemplates.read(), recurring: { default_recurrence_pattern: recurrencePattern, default_recurrence_interval: pattern.value === 'custom' ? Number(interval.value) : 1, default_repeat_after_completion: recurrencePattern ? after.checked : false } };
           };
         } else {
           const standardQuestions = MHMSettingsInput.record(data.options.questions);

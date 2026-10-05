@@ -18,6 +18,9 @@ const MHMTaskInput = Object.freeze({
   const tabs = [...document.querySelectorAll('[data-task-view]')];
   const dueSoon = document.getElementById('task-due-soon');
   const selectedCount = document.getElementById('task-selected-count');
+  const bulkPriorityControls = document.getElementById('task-bulk-priority-controls');
+  const bulkPriority = document.getElementById('task-bulk-priority');
+  const bulkPriorityApply = document.getElementById('task-bulk-priority-apply');
   const bulkPrimary = document.getElementById('task-bulk-primary');
   const bulkDelete = document.getElementById('task-bulk-delete');
   let view = 'active';
@@ -154,6 +157,7 @@ const MHMTaskInput = Object.freeze({
     summary.textContent = view === 'active' ? '' : 'You did these.';
     dueSoon.textContent = `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
     bulkPrimary.textContent = view === 'active' ? 'Complete selected' : 'Restore selected';
+    bulkPriorityControls.hidden = view !== 'active';
     empty.hidden = tasks.length !== 0;
     const byId = new Map(tasks.map(task => [task.id, task]));
     const children = new Map();
@@ -252,13 +256,14 @@ const MHMTaskInput = Object.freeze({
     selectedCount.textContent = `${selected.size} selected`;
     bulkPrimary.disabled = selected.size === 0;
     bulkDelete.disabled = selected.size === 0;
+    bulkPriorityApply.disabled = selected.size === 0;
   }
 
-  async function runBulk(action) {
+  async function runBulk(action, extra = {}) {
     if (!selected.size) return;
     const label = action === 'delete' ? 'delete' : action;
-    if (!window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${selected.size} selected ${selected.size === 1 ? 'task' : 'tasks'}?`)) return;
-    const payload = { task_ids: [...selected] };
+    if (action !== 'priority' && !window.confirm(`${label[0].toUpperCase()}${label.slice(1)} ${selected.size} selected ${selected.size === 1 ? 'task' : 'tasks'}?`)) return;
+    const payload = { task_ids: [...selected], ...extra };
     if (action === 'restore' && [...selected].some(id => tasks.some(task => task.parent_id === id))) {
       if (window.confirm('Bring the smaller steps back too?')) payload.restore_steps = true;
     }
@@ -564,6 +569,7 @@ const MHMTaskInput = Object.freeze({
     document.getElementById('task-due-time').value = template.due_time || '';
   });
   bulkPrimary.addEventListener('click', () => runBulk(view === 'active' ? 'complete' : 'restore'));
+  bulkPriorityApply.addEventListener('click', () => runBulk('priority', { priority: bulkPriority.value }));
   bulkDelete.addEventListener('click', () => runBulk('delete'));
   for (const picker of document.querySelectorAll('input[type="date"], input[type="time"]')) {
     picker.addEventListener('pointerdown', event => {

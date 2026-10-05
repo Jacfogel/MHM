@@ -714,7 +714,7 @@ class TaskManagementHandler(InteractionHandler):
     def _handle_create_task_from_template(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
-        """Create a task using a built-in template plus optional overrides."""
+        """Create a task using a built-in or user-defined template."""
         template_ref = entities.get("template_ref") or entities.get("template_id")
         if not template_ref:
             return InteractionResponse(
@@ -723,9 +723,9 @@ class TaskManagementHandler(InteractionHandler):
                 suggestions=["list task templates", "task template medication"],
             )
 
-        template = _task_service().get_builtin_task_template(str(template_ref))
+        template = _task_service().get_task_template(user_id, str(template_ref))
         if not template:
-            help_text = _task_service().get_task_templates_help_text()
+            help_text = _task_service().get_task_templates_help_text(user_id)
             return InteractionResponse(
                 f"I don't recognize template '{template_ref}'.\n\nAvailable templates:\n{help_text}",
                 completed=True,
@@ -772,11 +772,11 @@ class TaskManagementHandler(InteractionHandler):
     def _handle_list_task_templates(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
-        """List built-in task templates."""
+        """List built-in and user-defined task templates."""
         lines = [
             "**Task templates** — tap a button on Discord, or use `task template <name>`:",
             "",
-            _task_service().get_task_templates_help_text(),
+            _task_service().get_task_templates_help_text(user_id),
             "",
             "Optional title override: `task template phone_call Call dentist`",
         ]

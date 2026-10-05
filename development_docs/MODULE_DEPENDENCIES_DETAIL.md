@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 03:43:29
+> **Last Generated**: 2026-10-04 23:37:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 298
-- **Total Imports Found**: 2660
-- **Dependencies Documented**: 298 (100% coverage)
-- **Standard Library Imports**: 765 (28.8%)
-- **Third-Party Imports**: 230 (8.6%)
-- **Local Imports**: 1665 (62.6%)
+- **Files Scanned**: 299
+- **Total Imports Found**: 2676
+- **Dependencies Documented**: 299 (100% coverage)
+- **Standard Library Imports**: 769 (28.7%)
+- **Third-Party Imports**: 234 (8.7%)
+- **Local Imports**: 1673 (62.5%)
 - **Last Updated**: 2026-10-04
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 765 imports (28.8%)
-- **Third-Party**: 230 imports (8.6%)
-- **Local**: 1665 imports (62.6%)
+- **Standard Library**: 769 imports (28.7%)
+- **Third-Party**: 234 imports (8.7%)
+- **Local**: 1673 imports (62.5%)
 
 ## Module Dependencies by Directory
 
@@ -3956,6 +3956,7 @@
   - `ui/widgets/period_row_widget.py`
   - `ui/widgets/tag_widget.py`
   - `ui/widgets/task_settings_widget.py`
+  - `ui/widgets/task_template_editor.py`
   - `ui/widgets/user_profile_settings_widget.py`
   - `user/context_manager.py`
   - `user/profile_service.py`
@@ -5336,6 +5337,7 @@
     - `messages.message_data_manager (ensure_user_message_files, get_message_categories)` (NEW)
     - `storage.user_data_validation (validate_schedule_periods)` (NEW)
     - `tasks (setup_default_task_tags)` (NEW)
+    - `tasks.task_templates (normalize_custom_task_templates)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `copy`
@@ -5350,7 +5352,7 @@
   - `core/web_settings.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.error_handling, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_time_parsing
+- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.error_handling, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_templates, tasks.task_time_parsing
 - Removed: core/web_account_service.py, core/web_settings.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6869,7 +6871,7 @@
     - `tasks.task_link_helpers (MAX_TASK_LINKS, build_task_link, find_task_link_index, format_task_links_display, sanitize_task_links)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
     - `tasks.task_tag_helpers (normalize_task_tag_filter, sanitize_task_tags)` (NEW)
-    - `tasks.task_templates (TaskTemplate, format_templates_for_help, get_template, list_builtin_templates)` (NEW)
+    - `tasks.task_templates (TaskTemplate, custom_template_reference, format_templates_for_help, get_custom_template, get_template, list_builtin_templates, list_custom_templates)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -6884,6 +6886,7 @@
   - `core/web_tasks.py`
   - `tasks/task_breakdown.py`
   - `tasks/task_reminder_snooze.py`
+  - `ui/dialogs/task_edit_dialog.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.ids, core.natural_language_defaults, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_link_helpers, tasks.task_schemas, tasks.task_tag_helpers, tasks.task_templates, tasks.task_time_parsing
@@ -6945,18 +6948,22 @@
 - **Purpose**: Task management and scheduling
 - **Dependencies**:
   - **Local**:
-    - `core.error_handling (handle_errors)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `dataclasses (dataclass)`
+    - `re`
     - `typing (Any)`
 - **Used by**:
   - `communication/communication_channels/discord/ui/create_item_ui.py`
+  - `core/web_user_settings.py`
   - `tasks/task_service.py`
+  - `ui/dialogs/task_edit_dialog.py`
+  - `ui/widgets/task_template_editor.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/communication_channels/discord/ui/create_item_ui.py, tasks/task_service.py
+- Removed: communication/communication_channels/discord/ui/create_item_ui.py, core/web_user_settings.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -7043,6 +7050,7 @@
     - `widgets.period_row_widget (PeriodRowWidget)`
     - `widgets.tag_widget (TagWidget)`
     - `widgets.task_settings_widget (TaskSettingsWidget)`
+    - `widgets.task_template_editor (TaskTemplateEditDialog, TaskTemplateManagerWidget)`
     - `widgets.user_profile_settings_widget (UserProfileSettingsWidget)`
 - **Used by**: None (not imported by other modules)
 
@@ -7410,14 +7418,14 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
-    - `tasks (complete_task, delete_task, get_task_by_id, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task)` (NEW)
+    - `tasks (complete_task, delete_task, get_task_by_id, get_tasks_due_soon, get_user_task_stats, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
     - `tasks.task_data_handlers (load_completed_tasks, runtime_task_completed_at, runtime_task_due_date, runtime_task_due_time)` (NEW)
     - `ui.dialogs.task_completion_dialog (TaskCompletionDialog)`
     - `ui.dialogs.task_edit_dialog (TaskEditDialog)`
     - `ui.generated.task_crud_dialog_pyqt (Ui_Dialog_task_crud)`
   - **Third-party**:
     - `PySide6.QtCore (Qt)`
-    - `PySide6.QtWidgets (QAbstractItemView, QDialog, QHeaderView, QMessageBox, QTableWidgetItem)`
+    - `PySide6.QtWidgets (QAbstractItemView, QComboBox, QDialog, QHeaderView, QLabel, QMessageBox, QPushButton, QTableWidgetItem)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -7436,6 +7444,8 @@
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `tasks (create_task, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time)` (NEW)
+    - `tasks.task_service (build_task_data_from_template, list_task_templates)` (NEW)
+    - `tasks.task_templates (TaskTemplate)` (NEW)
     - `ui.generated.task_edit_dialog_pyqt (Ui_Dialog_task_edit)`
     - `ui.widgets.tag_widget (TagWidget)`
   - **Third-party**:
@@ -7445,7 +7455,7 @@
   - `ui/dialogs/task_crud_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, tasks, tasks.task_data_handlers
+- Added: core.error_handling, core.logger, tasks, tasks.task_data_handlers, tasks.task_service, tasks.task_templates
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/dialogs/task_crud_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7744,6 +7754,7 @@
     - `period_row_widget (PeriodRowWidget)`
     - `tag_widget (TagWidget)`
     - `task_settings_widget (TaskSettingsWidget)`
+    - `task_template_editor (TaskTemplateEditDialog, TaskTemplateManagerWidget)`
     - `user_profile_settings_widget (UserProfileSettingsWidget)`
 - **Used by**: None (not imported by other modules)
 
@@ -7956,6 +7967,7 @@
     - `ui.generated.task_settings_widget_pyqt (Ui_Form_task_settings)`
     - `ui.period_row_management (DEFAULT_PERIOD_DATA, add_period_row_to_layout, collect_period_data_from_widgets, load_period_widgets_for_category, remove_period_row_from_layout)` (NEW)
     - `ui.widgets.tag_widget (TagWidget)`
+    - `ui.widgets.task_template_editor (TaskTemplateManagerWidget)` (NEW)
   - **Third-party**:
     - `PySide6.QtWidgets (QMessageBox, QWidget)`
 - **Used by**:
@@ -7963,8 +7975,31 @@
   - `ui/dialogs/task_management_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.ui_management, tasks, ui.period_row_management
+- Added: core, core.error_handling, core.logger, core.ui_management, tasks, ui.period_row_management, ui.widgets.task_template_editor
 - Removed: PySide6.QtWidgets, ui/dialogs/account_creator_dialog.py, ui/dialogs/task_management_dialog.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ui/widgets/task_template_editor.py`
+- **Purpose**: UI widget component for task template editor
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `tasks.task_templates (MAX_CUSTOM_TASK_TEMPLATES, normalize_custom_task_templates)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `copy (deepcopy)`
+    - `uuid (uuid4)`
+  - **Third-party**:
+    - `PySide6.QtCore (QTime, Qt)`
+    - `PySide6.QtWidgets (QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem, QTextEdit, QTimeEdit, QVBoxLayout, QWidget)`
+- **Used by**:
+  - `ui/widgets/task_settings_widget.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, tasks.task_templates
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

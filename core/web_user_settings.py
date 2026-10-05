@@ -143,6 +143,21 @@ def _editable_custom_questions(checkin_settings):
     return result
 
 
+@handle_errors(
+    "reading editable custom task templates",
+    user_friendly=False,
+    re_raise=True,
+)
+def _custom_task_templates_for_settings(value):
+    """Return canonical browser-editable custom task-template definitions."""
+    from tasks.task_templates import normalize_custom_task_templates
+
+    try:
+        return normalize_custom_task_templates(value, strict=True)
+    except ValidationError as exc:
+        raise ValidationError("Saved custom task templates need to be repaired.") from exc
+
+
 @handle_errors("loading website settings options", user_friendly=False, re_raise=True)
 def settings_options(user_id):
     """Return the time zones, message categories, and check-in choices for a user."""
@@ -271,6 +286,9 @@ def settings_snapshot(documents, options):
         "tasks": {
             "enabled": features.get("task_management") == "enabled",
             "periods": periods("tasks"),
+            "custom_templates": _custom_task_templates_for_settings(
+                task.get("custom_templates", {})
+            ),
             "recurring": {
                 "default_recurrence_pattern": (
                     task.get("recurring_settings") or {}
@@ -566,6 +584,8 @@ def build_settings_updates(documents, options, section, values):
             save_periods(category, values["periods"][category])
         prefs["categories"] = categories
     elif section == "tasks":
+        from tasks.task_templates import normalize_custom_task_templates
+
         recurring = values["recurring"]
         if not isinstance(recurring, dict) or set(recurring) != set(
             current["tasks"]["recurring"]
@@ -588,6 +608,12 @@ def build_settings_updates(documents, options, section, values):
             **(task.get("recurring_settings") or {}),
             **recurring,
         }
+        try:
+            task["custom_templates"] = normalize_custom_task_templates(
+                values["custom_templates"], strict=True
+            )
+        except ValidationError as exc:
+            raise ValidationError(str(exc)) from exc
         prefs["task_settings"] = task
     elif section == "checkins":
         checkin = prefs.get("checkin_settings") or {}

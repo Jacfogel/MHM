@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 03:43:27
+> **Last Generated**: 2026-10-04 23:37:27
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.6% [!] GOOD**
-- **Total Functions**: 3092
-- **Total Methods**: 1575
-- **Documented**: 4136/4667
-- **Files Scanned**: 300
+### **Documentation Coverage: 88.7% [!] GOOD**
+- **Total Functions**: 3114
+- **Total Methods**: 1589
+- **Documented**: 4172/4703
+- **Files Scanned**: 301
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -50,7 +50,7 @@ UI Operations Decision Tree:
 +-- `ui/ui_app_qt.py` - Main admin interface (64 functions)
 +-- `ui/admin_actions.py` - Admin system/menu actions (27 functions)
 +-- `ui/request_actions.py` - Admin request-file actions (15/16 functions)
-+-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (36 functions)
++-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (38 functions)
 `-- `ui/widgets/task_settings_widget.py` - Task settings (33/35 functions)```
 
 ### **[CORE] Need Core System Operations?**
@@ -90,7 +90,7 @@ Core System Decision Tree:
 - `NaturalLanguageSettingsWidget` (ui/widgets/natural_language_settings_widget.py)
 - ... and 6 more
 
-### **Dialog Pattern** (19 found)
+### **Dialog Pattern** (20 found)
 **Purpose**: Modal user interaction windows
 **Location**: `ui/dialog_actions.py`, `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`
 **Pattern**: 
@@ -102,7 +102,7 @@ Core System Decision Tree:
 - `DialogActions` (ui/dialog_actions.py)
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- ... and 16 more
+- ... and 17 more
 
 ### **Context Manager Pattern** (1 found)
 **Purpose**: Safe resource management
@@ -208,13 +208,13 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (38 files, 443 functions)
 - `checkins/` -  (7 files, 154 functions)
 - `communication/` - Communication channels and message processing (97 files, 1539 functions)
-- `core/` - System utilities and data management (47 files, 833 functions)
+- `core/` - System utilities and data management (47 files, 834 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)
 - `scheduler/` -  (9 files, 111 functions)
 - `storage/` -  (16 files, 144 functions)
-- `tasks/` - Task management system (16 files, 181 functions)
-- `ui/` - User interface components (43 files, 980 functions)
+- `tasks/` - Task management system (16 files, 188 functions)
+- `ui/` - User interface components (44 files, 1008 functions)
 - `user/` - User context and preferences (5 files, 52 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

@@ -121,6 +121,22 @@ async def task_gateway(monkeypatch):
     monkeypatch.setattr(service, "restore_task", restore)
     monkeypatch.setattr(service, "delete_task", delete)
     monkeypatch.setattr(
+        service,
+        "get_custom_task_template_records",
+        lambda user_id: {
+            "custom_abc123": {
+                "display_name": "Morning routine",
+                "title": "Start morning routine",
+                "description": "Begin with water.",
+                "priority": "high",
+                "tags": ["routine"],
+                "default_due_time": "08:30",
+                "recurrence_pattern": "daily",
+                "recurrence_interval": 1,
+            }
+        },
+    )
+    monkeypatch.setattr(
         snooze_module,
         "snooze_task_reminder",
         lambda user_id, task_id, option, custom_when=None: SimpleNamespace(
@@ -165,7 +181,12 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     assert {template["id"] for template in templates["templates"]} >= {
         "medication",
         "appointment",
+        "custom_abc123",
     }
+    custom_template = next(
+        template for template in templates["templates"] if template["id"] == "custom_abc123"
+    )
+    assert custom_template["custom"] is True
     snoozed = await client.post(
         f"/api/tasks/{task['id']}/snooze",
         json={"option": "1_hour"},
@@ -246,6 +267,15 @@ async def test_task_bulk_actions(task_gateway):
             "/api/tasks", json={"title": title}, headers={"Origin": ORIGIN}
         )
         ids.append((await response.json())["task"]["id"])
+    prioritized = await client.post(
+        "/api/tasks/bulk/priority",
+        json={"task_ids": ids, "priority": "HIGH"},
+        headers={"Origin": ORIGIN},
+    )
+    assert prioritized.status == 200
+    assert (await prioritized.json())["changed"] == ids
+    active_tasks = (await (await client.get("/api/tasks")).json())["tasks"]
+    assert {task["priority"] for task in active_tasks if task["id"] in ids} == {"high"}
     completed = await client.post(
         "/api/tasks/bulk/complete",
         json={"task_ids": ids},
@@ -265,6 +295,21 @@ async def test_task_bulk_actions(task_gateway):
         headers={"Origin": ORIGIN},
     )
     assert deleted.status == 200
+
+
+@pytest.mark.parametrize("priority", [None, "later", 3])
+async def test_task_bulk_priority_rejects_invalid_values(task_gateway, priority):
+    client, _, _ = task_gateway
+    created = await client.post(
+        "/api/tasks", json={"title": "Choose me"}, headers={"Origin": ORIGIN}
+    )
+    task_id = (await created.json())["task"]["id"]
+    response = await client.post(
+        "/api/tasks/bulk/priority",
+        json={"task_ids": [task_id], "priority": priority},
+        headers={"Origin": ORIGIN},
+    )
+    assert response.status == 400
 
 
 async def test_breakdown_adds_subtasks_and_keeps_the_original_title(task_gateway, monkeypatch):

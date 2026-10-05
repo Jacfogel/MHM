@@ -28,9 +28,12 @@ from tasks.task_link_helpers import (
 from tasks.task_schemas import VALID_PRIORITIES
 from tasks.task_templates import (
     TaskTemplate,
+    custom_template_reference,
     format_templates_for_help,
+    get_custom_template,
     get_template,
     list_builtin_templates,
+    list_custom_templates,
 )
 
 
@@ -167,6 +170,16 @@ def get_recurring_task_defaults(user_id: str) -> dict[str, Any]:
     preferences = user_data.get("preferences", {}) if user_data else {}
     task_settings = preferences.get("task_settings", {})
     return task_settings.get("recurring_settings", {})
+
+
+@handle_errors("task service: load custom task templates", default_return={})
+def get_custom_task_template_records(user_id: str) -> dict[str, Any]:
+    """Return the signed-in user's saved custom task-template records."""
+    user_data = get_user_data(user_id, "preferences")
+    preferences = user_data.get("preferences", {}) if user_data else {}
+    task_settings = preferences.get("task_settings", {})
+    value = task_settings.get("custom_templates", {})
+    return value if isinstance(value, dict) else {}
 
 
 # not_duplicate: task_identifier_service_facade
@@ -762,15 +775,27 @@ def find_most_urgent_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 
 @handle_errors("task service: list task templates", default_return=[])
-def list_task_templates() -> list[TaskTemplate]:
-    """Return built-in task templates available for quick creation."""
-    return list_builtin_templates()
+def list_task_templates(user_id: str | None = None) -> list[TaskTemplate]:
+    """Return built-in templates plus the user's saved templates."""
+    templates = list_builtin_templates()
+    if user_id:
+        templates.extend(list_custom_templates(get_custom_task_template_records(user_id)))
+    return templates
 
 
 @handle_errors("task service: get built-in task template", default_return=None)
 def get_builtin_task_template(name_or_id: str) -> TaskTemplate | None:
     """Return a built-in template by canonical id or user-facing name."""
     return get_template(name_or_id)
+
+
+@handle_errors("task service: get task template", default_return=None)
+def get_task_template(user_id: str, name_or_id: str) -> TaskTemplate | None:
+    """Return a built-in or account-owned custom task template."""
+    builtin = get_template(name_or_id)
+    if builtin:
+        return builtin
+    return get_custom_template(get_custom_task_template_records(user_id), name_or_id)
 
 
 @handle_errors("task service: build task data from template", re_raise=True)
@@ -787,7 +812,7 @@ def build_task_data_from_template(
     now_dt: datetime | None = None,
 ) -> dict[str, Any] | None:
     """Merge template defaults with optional overrides into create_task kwargs."""
-    template = get_template(template_id)
+    template = get_task_template(user_id, template_id)
     if not template:
         return None
 
@@ -830,6 +855,14 @@ def build_task_data_from_template(
         )
 
     resolved_due_time = resolved_due_time or template.default_due_time
+    if (
+        not resolved_due_date
+        and resolved_due_time
+        and template.recurrence_pattern
+    ):
+        resolved_due_date = default_due_date_for_recurring_time(
+            resolved_due_time, now_dt=now_dt
+        )
     if resolved_due_date:
         valid_due_date = (
             resolved_due_date if parse_date_only(resolved_due_date) is not None else None
@@ -869,6 +902,17 @@ def create_task_from_template(
 
 
 @handle_errors("task service: format templates for help", default_return="")
-def get_task_templates_help_text() -> str:
-    """Help snippet listing available task templates."""
-    return format_templates_for_help()
+def get_task_templates_help_text(user_id: str | None = None) -> str:
+    """Help snippet listing built-in and account-owned custom templates."""
+    if not user_id:
+        return format_templates_for_help()
+    lines = []
+    builtins = {template.template_id for template in list_builtin_templates()}
+    for template in list_task_templates(user_id):
+        reference = (
+            template.template_id
+            if template.template_id in builtins
+            else custom_template_reference(template)
+        )
+        lines.append(f"• `{reference}` — {template.display_name}")
+    return "\n".join(lines)

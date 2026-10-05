@@ -452,6 +452,7 @@ button[aria-busy="true"] { cursor: wait; }
 .custom-question-editor { border: 1px solid var(--border); padding: 20px; border-radius: 14px; margin: 28px 0; min-width: 0; }
 .custom-question-editor > legend { font-weight: 700; }
 .custom-question-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
+.custom-template-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
 .custom-question-row .settings-field { margin: 0; }
 .custom-question-row > .danger-button { justify-self: start; }
 .profile-person-row { display: grid; grid-template-columns: minmax(140px, .7fr) minmax(160px, .8fr) minmax(0, 1.5fr) auto; gap: 12px; align-items: end; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: var(--soft); }
@@ -526,6 +527,8 @@ button[aria-busy="true"] { cursor: wait; }
 .task-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
 .task-list-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 12px; }
 .task-bulk-actions { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .875rem; }
+.task-bulk-priority { display: inline-flex; align-items: center; gap: 7px; }
+.task-bulk-priority select { min-width: 92px; padding: 8px 28px 8px 10px; }
 .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; background: var(--lavender); border-radius: 11px; }
 .task-tabs button { border: 0; border-radius: 8px; padding: 9px 15px; background: transparent; color: var(--muted); font-weight: 700; }
 .task-tabs button[aria-selected="true"] { background: white; color: var(--purple-dark); box-shadow: 0 2px 6px rgba(30,36,83,.08); }
@@ -592,6 +595,7 @@ button[aria-busy="true"] { cursor: wait; }
   .checkin-question-groups { grid-template-columns: minmax(0, 1fr); }
   .checkin-question-row { grid-template-columns: minmax(0, 1fr) minmax(112px, 140px); }
   .custom-question-row { grid-template-columns: 1fr; }
+  .custom-template-row { grid-template-columns: 1fr; }
   .profile-person-row { grid-template-columns: 1fr; }
   .tasks-area { margin-top: 48px; padding-top: 38px; }
   .notes-area { margin-top: 48px; padding-top: 38px; }

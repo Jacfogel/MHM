@@ -100,7 +100,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ### 3. Task templates and quick actions
 
-**Status**: Shipped (2026-08-26) — Discord template buttons open a prefilled modal; custom user templates still optional  
+**Status**: Shipped — built-ins, Discord prefills, and account-owned templates are available
 **Priority**: Medium/High  
 **Why it matters**: Templates reduce friction for repeated task types, especially health, household, appointments, and chores.
 
@@ -118,9 +118,15 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] `list task templates` attaches the same create-hub buttons as `create` / `new` / `add`.
 - [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
 
+**Shipped (2026-10-04)**:
+- [x] Account-owned custom templates are stored under task settings with bounded validation.
+- [x] The website task settings editor can add, edit, and remove up to 20 reusable templates.
+- [x] Saved templates appear in the website task picker and work through `task template <name_with_underscores>` in chat/Discord.
+- [x] The desktop/admin app can add, edit, and remove the same account-owned templates and prefill its new-task form from built-in or personal templates.
+- [x] Custom template reads are account-scoped; invalid saved definitions cannot break the built-in templates.
+
 **Remaining**:
 - [ ] Live Discord visual check of template modals and create hub buttons. (2026-08-30: hub is Call/Clean/Forms/Custom task then notes; Call/Clean prefills match live forms.)
-- [ ] Optional: user-defined custom templates (storage + settings UX).
 
 **Acceptance**:
 - Common tasks can be created with fewer words/clicks than a normal task.
@@ -246,14 +252,17 @@ Notebook and tasks both use concepts like tags, short IDs, search/list views, an
 
 ### 7. Batch task operations
 
-**Status**: Planned  
+**Status**: Active
 **Priority**: Low/Medium
 
+**Shipped on the website and desktop/admin app**:
+- [x] Batch complete, restore, and delete.
+- [x] Bulk priority changes (2026-10-04), also available in the desktop/admin app.
+- [x] Confirmation UX for destructive batch deletion.
+
 **Implement later if task usage grows**:
-- [ ] Batch complete/delete/archive.
-- [ ] Bulk priority changes.
+- [ ] Batch archive, if task archiving is introduced.
 - [ ] Bulk tag assignment.
-- [ ] Clear confirmation UX for destructive operations.
 
 ---
 

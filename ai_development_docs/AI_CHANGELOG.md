@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-04 - Task templates and bulk priority changes shipped **COMPLETED**
+- Website task settings can save, edit, and remove up to 20 validated personal templates; they appear in the website task picker alongside built-ins.
+- `task template <name_with_underscores>` and template listing resolve only the active account's custom templates, while malformed saved definitions cannot disrupt built-ins.
+- Selected active website tasks can now receive one validated priority through the account-scoped bulk endpoint and hosted-site proxy.
+- The desktop/admin app now manages the same custom templates, prefills new tasks from built-in or personal templates, and changes priority for multiple selected active tasks.
+- Custom-template validation now uses `ValidationError`, reference helpers use shared error handling, and the analyzers report zero undocumented functions, zero missing handlers, and zero Phase 1 or Phase 2 findings.
+- Focused Python, Qt, and browser-script coverage verifies storage, validation, lookup, prefills, multi-select updates, endpoint exposure, and settings controls; Ruff and Pyright are clean. The complete suite passed after the template work with 6,053 passed and 28 skipped; the desktop parity run passes 688 UI/shared-task tests with 27 expected skips, and all 70 website script tests pass.
+
 ### 2026-10-04 - AI responses and Tier 3 tests hardened **COMPLETED**
 - Response cleanup removes prompt/template leaks and letter signoffs, blocks unsupported action claims, and produces concise grounded replies for common direct requests; all seven reported personalized-response failures are fixed.
 - Command-mode replies are normalized to structured output, ambiguous task creation asks for a title, and chat-mode text cannot claim an action executed when it did not.
@@ -113,11 +121,6 @@ Guidelines:
 - A minute guess used when the model is down or silent is not saved. The next Home load can ask the model again.
 - A hello or a task confirmation may mention breakfast. A reply is dropped only when it quotes a check-in rate the user did not ask about.
 - The task-step tests now use a new user id on every run. Task files live under that id, so a later full suite was reading tasks left by the previous run.
-
-### 2026-09-28 - Home loads first, greetings stay greetings **COMPLETED**
-- Home shows the next task before minute estimates come back, so a slow or failed model call no longer holds the page.
-- A hello is answered as a hello. Check-in statistics are only used when that question was asked, and only for the check-ins that included it.
-- Chat prompts are shortened to fit the 2048-token local model. A failed rewrite keeps the real handler reply.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

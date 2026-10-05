@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 03:43:27
+> **Last Generated**: 2026-10-04 23:37:27
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.6% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 300
-- **Functions Found**: 3092
-- **Methods Found**: 1575
-- **Classes Found**: 276
-- **Total Items**: 4667
-- **Functions Documented**: 2739
-- **Methods Documented**: 1397
-- **Classes Documented**: 209
-- **Total Documented**: 4136
+### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 301
+- **Functions Found**: 3114
+- **Methods Found**: 1589
+- **Classes Found**: 278
+- **Total Items**: 4703
+- **Functions Documented**: 2761
+- **Methods Documented**: 1411
+- **Classes Documented**: 211
+- **Total Documented**: 4172
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-04
 
@@ -39,19 +39,19 @@
 
 ## Function Categories
 
-### **Core System Functions** (619)
+### **Core System Functions** (620)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (891)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (534)
+### **User Interface Functions** (548)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (169)
+### **Task Management Functions** (176)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1696,9 +1696,9 @@ Returns:
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
 - [OK] `_handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-- [OK] `_handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in template plus optional overrides.
+- [OK] `_handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in or user-defined template.
 - [OK] `_handle_delete_task(self, user_id, entities)` - Handle task deletion
-- [OK] `_handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
+- [OK] `_handle_list_task_templates(self, user_id, entities)` - List built-in and user-defined task templates.
 - [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
 - [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
 - [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -1759,9 +1759,9 @@ Returns:
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
   - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
   - [OK] `TaskManagementHandler._handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-  - [OK] `TaskManagementHandler._handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in template plus optional overrides.
+  - [OK] `TaskManagementHandler._handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in or user-defined template.
   - [OK] `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
-  - [OK] `TaskManagementHandler._handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
+  - [OK] `TaskManagementHandler._handle_list_task_templates(self, user_id, entities)` - List built-in and user-defined task templates.
   - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
   - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -5756,7 +5756,7 @@ its methods as routes.
 - [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `register_task_routes(app, gateway)` - Register all task endpoints on a gateway application.
 - [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
-- [OK] `task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+- [OK] `task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
 - [OK] `tasks_api(self, request)` - Handle authenticated website task routes through the task service.
@@ -5765,7 +5765,7 @@ its methods as routes.
 - [OK] `WebTaskRoutes` - Handle the task route family using gateway infrastructure.
   - [OK] `WebTaskRoutes.__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
   - [OK] `WebTaskRoutes.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
-  - [OK] `WebTaskRoutes.task_templates(self, request)` - Return safe built-in task templates for quick website creation.
+  - [OK] `WebTaskRoutes.task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
   - [OK] `WebTaskRoutes.task_view(task)` - Return the stable, browser-safe task shape used by the website.
   - [OK] `WebTaskRoutes.tasks_api(self, request)` - Handle authenticated website task routes through the task service.
   - [OK] `WebTaskRoutes.tasks_bulk(self, request)` - Apply one task action to an explicit set of the signed-in user's tasks.
@@ -5773,6 +5773,7 @@ its methods as routes.
 #### `core/web_user_settings.py`
 **Functions:**
 - [OK] `_available_message_categories(options, features)` - Return categories supported by the user's currently enabled data sources.
+- [OK] `_custom_task_templates_for_settings(value)` - Return canonical browser-editable custom task-template definitions.
 - [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
 - [OK] `_legal_question_counts(always, sometimes, total_enabled, minimum, maximum)` - Return question counts that include every Always question and can vary.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
@@ -7111,12 +7112,14 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `get_builtin_task_template(name_or_id)` - Return a built-in template by canonical id or user-facing name.
 - [OK] `get_completed_task_candidates(tasks, identifier)` - Return completed-task candidates matching id, short_id, number, or title.
 - [OK] `get_contextual_task_suggestion(tasks, now_dt)` - Return a state-based suggestion for a task list.
+- [OK] `get_custom_task_template_records(user_id)` - Return the signed-in user's saved custom task-template records.
 - [OK] `get_recurring_task_defaults(user_id)` - Return recurring-task preference defaults for command task creation.
 - [OK] `get_task_candidates(tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
-- [OK] `get_task_templates_help_text()` - Help snippet listing available task templates.
+- [OK] `get_task_template(user_id, name_or_id)` - Return a built-in or account-owned custom task template.
+- [OK] `get_task_templates_help_text(user_id)` - Help snippet listing built-in and account-owned custom templates.
 - [MISSING] `get_tasks_due_soon(user_id)` - No description
 - [MISSING] `get_user_task_stats(user_id)` - No description
-- [OK] `list_task_templates()` - Return built-in task templates available for quick creation.
+- [OK] `list_task_templates(user_id)` - Return built-in templates plus the user's saved templates.
 - [MISSING] `load_active_tasks(user_id)` - No description
 - [MISSING] `load_completed_tasks(user_id)` - No description
 - [OK] `parse_relative_date(date_str, now_dt)` - Convert relative task due-date strings to YYYY-MM-DD where possible.
@@ -7146,10 +7149,18 @@ completion. Returns None when the reference is ambiguous.
 
 #### `tasks/task_templates.py`
 **Functions:**
+- [OK] `_template_reference(value)` - Return the command-friendly form of a template name.
+- [OK] `custom_template_reference(template)` - Return the readable command reference for a custom template.
 - [OK] `format_templates_for_help()` - Short bullet list for help text.
+- [OK] `get_custom_template(value, name_or_id)` - Find a saved custom template by id, display name, or command reference.
 - [OK] `get_template(template_id)` - Return a built-in template by canonical id, or None.
 - [OK] `list_builtin_templates()` - Return built-in templates in stable display order.
+- [OK] `list_custom_templates(value)` - Build runtime templates from saved preference records.
 - [OK] `lookup_builtin_template_id(name)` - Match a user-facing template name or synonym to a canonical built-in template_id.
+- [OK] `normalize_custom_task_templates(value)` - Return canonical safe custom-template records.
+
+``strict`` is used by settings writes so malformed input is rejected instead
+of silently dropped. Runtime reads stay tolerant of manually edited files.
 - [OK] `template_form_defaults(template_id)` - Return Discord/modal field defaults for a built-in template.
 - [OK] `to_create_kwargs(self)` - Return non-empty template fields suitable for task creation.
 **Classes:**
@@ -7640,6 +7651,7 @@ Returns:
 - [OK] `_delete_selected_from_table(self, table)` - Delete all selected rows in the given table.
 - [OK] `_report_batch_result(self, failed_titles)` - Show success or a list of failed titles after a batch action.
 - [OK] `add_new_task(self)` - Open dialog to add a new task.
+- [OK] `apply_priority_to_selected_tasks(self)` - Assign the chosen priority to every selected active task.
 - [OK] `complete_selected_task(self)` - Mark the selected task(s) as completed.
 - [OK] `delete_completed_task(self)` - Permanently delete selected completed task(s).
 - [OK] `delete_selected_task(self)` - Delete the selected active task(s).
@@ -7660,6 +7672,7 @@ Returns:
   - [OK] `TaskCrudDialog._delete_selected_from_table(self, table)` - Delete all selected rows in the given table.
   - [OK] `TaskCrudDialog._report_batch_result(self, failed_titles)` - Show success or a list of failed titles after a batch action.
   - [OK] `TaskCrudDialog.add_new_task(self)` - Open dialog to add a new task.
+  - [OK] `TaskCrudDialog.apply_priority_to_selected_tasks(self)` - Assign the chosen priority to every selected active task.
   - [OK] `TaskCrudDialog.complete_selected_task(self)` - Mark the selected task(s) as completed.
   - [OK] `TaskCrudDialog.delete_completed_task(self)` - Permanently delete selected completed task(s).
   - [OK] `TaskCrudDialog.delete_selected_task(self)` - Delete the selected active task(s).
@@ -7681,6 +7694,7 @@ Returns:
 - [OK] `_hhmm_from_combos(hour_combo, minute_combo, ampm_combo)` - Return 24-hour HH:MM from hour/minute/AM-PM combos, or empty if incomplete.
 - [OK] `_time_combos_from_hhmm(hour_combo, minute_combo, ampm_combo, hhmm)` - Set hour/minute/AM-PM combos from a 24-hour HH:MM string.
 - [OK] `add_reminder_period(self)` - Add a new reminder period.
+- [OK] `apply_selected_template(self, index)` - Prefill the new-task form from the selected shared template.
 - [OK] `collect_quick_reminders(self)` - Collect quick reminder options.
 - [OK] `collect_recurring_task_data(self)` - Collect recurring task settings from the form.
 - [OK] `collect_reminder_periods(self)` - Collect reminder period data from the UI.
@@ -7700,12 +7714,14 @@ Returns:
 - [OK] `setup_connections(self)` - Setup signal connections.
 - [OK] `setup_due_time_components(self)` - Setup the due time input components.
 - [OK] `setup_recurring_task_components(self)` - Setup the recurring task input components.
+- [OK] `setup_template_picker(self)` - Add built-in and account-owned templates to the new-task form.
 - [OK] `setup_ui(self)` - Setup the UI components.
 - [OK] `validate_form(self)` - Validate the form data.
 **Classes:**
 - [OK] `TaskEditDialog` - Dialog for creating or editing tasks.
   - [OK] `TaskEditDialog.__init__(self, parent, user_id, task_data)` - Initialize the task edit dialog.
   - [OK] `TaskEditDialog.add_reminder_period(self)` - Add a new reminder period.
+  - [OK] `TaskEditDialog.apply_selected_template(self, index)` - Prefill the new-task form from the selected shared template.
   - [OK] `TaskEditDialog.collect_quick_reminders(self)` - Collect quick reminder options.
   - [OK] `TaskEditDialog.collect_recurring_task_data(self)` - Collect recurring task settings from the form.
   - [OK] `TaskEditDialog.collect_reminder_periods(self)` - Collect reminder period data from the UI.
@@ -7725,6 +7741,7 @@ Returns:
   - [OK] `TaskEditDialog.setup_connections(self)` - Setup signal connections.
   - [OK] `TaskEditDialog.setup_due_time_components(self)` - Setup the due time input components.
   - [OK] `TaskEditDialog.setup_recurring_task_components(self)` - Setup the recurring task input components.
+  - [OK] `TaskEditDialog.setup_template_picker(self)` - Add built-in and account-owned templates to the new-task form.
   - [OK] `TaskEditDialog.setup_ui(self)` - Setup the UI components.
   - [OK] `TaskEditDialog.validate_form(self)` - Validate the form data.
 
@@ -8535,7 +8552,7 @@ Args:
 - [OK] `number_from_widget(w)` - Return the task reminder number encoded in this widget's period name.
 - [OK] `refresh_tags(self)` - Refresh the tags in the tag widget.
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
-- [OK] `save_recurring_task_settings(self)` - Save recurring task settings to user preferences.
+- [OK] `save_recurring_task_settings(self)` - Save recurring defaults and custom templates to task preferences.
 - [OK] `set_recurring_task_settings(self, settings)` - Set the recurring task settings.
 - [OK] `set_task_settings(self, settings)` - Set the task settings.
 - [OK] `setup_connections(self)` - Setup signal connections.
@@ -8561,7 +8578,7 @@ Args:
   - [OK] `TaskSettingsWidget.load_recurring_task_settings(self)` - Load recurring task settings from user preferences.
   - [OK] `TaskSettingsWidget.refresh_tags(self)` - Refresh the tags in the tag widget.
   - [OK] `TaskSettingsWidget.remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
-  - [OK] `TaskSettingsWidget.save_recurring_task_settings(self)` - Save recurring task settings to user preferences.
+  - [OK] `TaskSettingsWidget.save_recurring_task_settings(self)` - Save recurring defaults and custom templates to task preferences.
   - [OK] `TaskSettingsWidget.set_recurring_task_settings(self, settings)` - Set the recurring task settings.
   - [OK] `TaskSettingsWidget.set_task_settings(self, settings)` - Set the task settings.
   - [OK] `TaskSettingsWidget.setup_connections(self)` - Setup signal connections.
@@ -8575,6 +8592,34 @@ Args:
     event: The show event object
   - [OK] `TaskSettingsWidget.undo_last_period_delete(self)` - Undo the last time period deletion.
   - [OK] `TaskSettingsWidget.undo_last_tag_delete(self)` - Undo the last tag deletion (account creation mode only).
+
+#### `ui/widgets/task_template_editor.py`
+**Functions:**
+- [OK] `__init__(self, parent, template_id, record)` - Build the template editor for a new or existing record.
+- [OK] `__init__(self, parent)` - Build the compact task-template manager.
+- [OK] `_refresh_table(self)` - Render the current template definitions in the summary table.
+- [OK] `_selected_template_id(self)` - Return the selected custom template ID, if any.
+- [OK] `_validate_and_accept(self)` - Accept the dialog only when its template definition is valid.
+- [OK] `add_template(self)` - Open the editor and append one valid custom template.
+- [OK] `delete_selected_template(self)` - Remove the selected custom template after confirmation.
+- [OK] `edit_selected_template(self)` - Edit the selected custom template without changing its ID.
+- [OK] `set_templates(self, value)` - Replace the editor contents with normalized saved templates.
+- [OK] `template_record(self)` - Return the normalized template record represented by the form.
+- [OK] `templates(self)` - Return a validated copy of the templates currently in the editor.
+**Classes:**
+- [OK] `TaskTemplateEditDialog` - Collect and validate one custom task-template definition.
+  - [OK] `TaskTemplateEditDialog.__init__(self, parent, template_id, record)` - Build the template editor for a new or existing record.
+  - [OK] `TaskTemplateEditDialog._validate_and_accept(self)` - Accept the dialog only when its template definition is valid.
+  - [OK] `TaskTemplateEditDialog.template_record(self)` - Return the normalized template record represented by the form.
+- [OK] `TaskTemplateManagerWidget` - Manage the account-owned task templates stored in task settings.
+  - [OK] `TaskTemplateManagerWidget.__init__(self, parent)` - Build the compact task-template manager.
+  - [OK] `TaskTemplateManagerWidget._refresh_table(self)` - Render the current template definitions in the summary table.
+  - [OK] `TaskTemplateManagerWidget._selected_template_id(self)` - Return the selected custom template ID, if any.
+  - [OK] `TaskTemplateManagerWidget.add_template(self)` - Open the editor and append one valid custom template.
+  - [OK] `TaskTemplateManagerWidget.delete_selected_template(self)` - Remove the selected custom template after confirmation.
+  - [OK] `TaskTemplateManagerWidget.edit_selected_template(self)` - Edit the selected custom template without changing its ID.
+  - [OK] `TaskTemplateManagerWidget.set_templates(self, value)` - Replace the editor contents with normalized saved templates.
+  - [OK] `TaskTemplateManagerWidget.templates(self)` - Return a validated copy of the templates currently in the editor.
 
 #### `ui/widgets/user_profile_settings_widget.py`
 **Functions:**

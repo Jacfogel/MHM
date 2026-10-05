@@ -42,7 +42,7 @@ export default {
       return secured(await env.ASSETS.fetch(request));
     }
     const taskEffort = url.pathname === '/api/tasks/effort';
-    const taskBulk = url.pathname.match(/^\/api\/tasks\/bulk\/(?:complete|restore|delete)$/);
+    const taskBulk = url.pathname.match(/^\/api\/tasks\/bulk\/(?:complete|restore|delete|priority)$/);
     const taskAction = !taskEffort && !taskBulk && url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach))?$/);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
     const messageAction = url.pathname.match(/^\/api\/messages\/[^/]+\/[^/]+$/);

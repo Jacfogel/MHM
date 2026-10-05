@@ -473,11 +473,13 @@ class WebTaskRoutes:
         action = request.match_info["action"]
         task_ids = data.get("task_ids")
         extra = set(data) - {"task_ids"}
-        if extra and not (
+        restore_payload = (
             action == "restore"
             and extra == {"restore_steps"}
             and type(data.get("restore_steps")) is bool
-        ):
+        )
+        priority_payload = action == "priority" and extra == {"priority"}
+        if extra and not (restore_payload or priority_payload):
             raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
         if (
             not isinstance(task_ids, list)
@@ -491,13 +493,25 @@ class WebTaskRoutes:
             raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
         from functools import partial
 
-        from tasks.task_service import complete_task, delete_task, restore_task
+        from tasks.task_service import (
+            complete_task,
+            delete_task,
+            restore_task,
+            update_task,
+        )
+        from tasks.task_schemas import VALID_PRIORITIES
 
         restore_steps = data.get("restore_steps") is True
+        priority = data.get("priority")
+        if action == "priority":
+            if not isinstance(priority, str) or priority.casefold() not in VALID_PRIORITIES:
+                raise web.HTTPBadRequest(text="Choose a valid priority.")
+            priority = priority.casefold()
         operation = {
             "complete": complete_task,
             "restore": partial(restore_task, restore_steps=restore_steps),
             "delete": delete_task,
+            "priority": partial(update_task, updates={"priority": priority}),
         }[action]
 
         @handle_errors(
@@ -545,11 +559,11 @@ class WebTaskRoutes:
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def task_templates(self, request):
-        """Return safe built-in task templates for quick website creation."""
-        await self.gateway.authenticated_account(request)
+        """Return safe built-in and account-owned templates for quick creation."""
+        uid, _current = await self.gateway.authenticated_account(request)
         from tasks.task_service import list_task_templates
 
-        templates = await asyncio.to_thread(list_task_templates)
+        templates = await asyncio.to_thread(list_task_templates, uid)
         return web.json_response(
             {
                 "templates": [
@@ -563,6 +577,7 @@ class WebTaskRoutes:
                         "due_time": template.default_due_time,
                         "recurrence_pattern": template.recurrence_pattern,
                         "recurrence_interval": template.recurrence_interval,
+                        "custom": template.template_id.startswith("custom_"),
                     }
                     for template in templates
                 ]
@@ -599,7 +614,7 @@ def register_task_routes(app, gateway):
     app.router.add_post("/api/tasks", routes.tasks_api)
     app.router.add_get("/api/task-templates", routes.task_templates)
     app.router.add_post(
-        "/api/tasks/bulk/{action:complete|restore|delete}", routes.tasks_bulk
+        "/api/tasks/bulk/{action:complete|restore|delete|priority}", routes.tasks_bulk
     )
     app.router.add_route("PATCH", "/api/tasks/{task_id}", routes.tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", routes.tasks_api)

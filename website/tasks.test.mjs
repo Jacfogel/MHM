@@ -34,3 +34,12 @@ test('extra create fields stay collapsed until More options is opened', () => {
   assert.match(source, /moreOptions\.addEventListener\('click', \(\) => setExtraFieldsOpen\(extraFields\.hidden\)\)/);
   assert.match(source, /if \(!template\) \{ setExtraFieldsOpen\(false\);[\s\S]*setExtraFieldsOpen\(true\);/);
 });
+
+test('selected active tasks can receive one priority in bulk', async () => {
+  const html = await readFile(new URL('./tasks.html', import.meta.url), 'utf8');
+  assert.match(html, /id="task-bulk-priority"/);
+  assert.match(html, /id="task-bulk-priority-apply"/);
+  assert.match(source, /runBulk\('priority', \{ priority: bulkPriority\.value \}\)/);
+  assert.match(source, /bulkPriorityControls\.hidden = view !== 'active'/);
+  assert.match(source, /action !== 'priority' && !window\.confirm/);
+});

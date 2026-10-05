@@ -28,6 +28,7 @@ from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 
 from ui.widgets.tag_widget import TagWidget
+from ui.widgets.task_template_editor import TaskTemplateManagerWidget
 
 setup_logging()
 logger = get_component_logger("ui")
@@ -51,6 +52,12 @@ class TaskSettingsWidget(QWidget):
         self.tag_widget = TagWidget(self, user_id, mode="management", title="Task Tags")
         layout = self.ui.verticalLayout_widget_tag_management_placeholder.layout()
         layout.addWidget(self.tag_widget)
+
+        # Custom templates share the same task-settings storage as the website.
+        self.template_editor = TaskTemplateManagerWidget(self)
+        main_layout = self.ui.verticalLayout_Form_task_settings
+        tag_index = main_layout.indexOf(self.ui.widget_tag_management_placeholder)
+        main_layout.insertWidget(max(0, tag_index), self.template_editor)
 
         self.setup_connections()
         self.load_existing_data()
@@ -215,6 +222,7 @@ class TaskSettingsWidget(QWidget):
             "time_periods": time_periods,
             "tags": tags,
             "recurring_settings": recurring_settings,
+            "custom_templates": self.template_editor.templates(),
         }
 
     @handle_errors("setting task settings")
@@ -241,6 +249,9 @@ class TaskSettingsWidget(QWidget):
         # Set recurring task settings
         recurring_settings = settings.get("recurring_settings", {})
         self.set_recurring_task_settings(recurring_settings)
+
+        # Website- and app-created templates use one account-owned collection.
+        self.template_editor.set_templates(settings.get("custom_templates", {}))
 
     @handle_errors("getting statistics")
     def get_statistics(self):
@@ -327,6 +338,7 @@ class TaskSettingsWidget(QWidget):
             recurring_settings = task_settings.get("recurring_settings", {})
 
             self.set_recurring_task_settings(recurring_settings)
+            self.template_editor.set_templates(task_settings.get("custom_templates", {}))
         except Exception as e:
             logger.error(
                 f"Error loading recurring task settings for user {self.user_id}: {e}"
@@ -334,7 +346,7 @@ class TaskSettingsWidget(QWidget):
 
     @handle_errors("saving recurring task settings")
     def save_recurring_task_settings(self):
-        """Save recurring task settings to user preferences."""
+        """Save recurring defaults and custom templates to task preferences."""
         if not self.user_id:
             return
 
@@ -348,6 +360,7 @@ class TaskSettingsWidget(QWidget):
 
             # Update recurring settings
             task_settings["recurring_settings"] = recurring_settings
+            task_settings["custom_templates"] = self.template_editor.templates()
             preferences["task_settings"] = task_settings
 
             # Save back to user data

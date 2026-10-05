@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-04 03:43:52
+> **Last Generated**: 2026-10-04 23:38:03
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -1355,6 +1355,7 @@ C:.
 |   |   |   period_row_widget.py
 |   |   |   tag_widget.py
 |   |   |   task_settings_widget.py
+|   |   |   task_template_editor.py
 |   |   |   user_profile_settings_widget.py
 |   |   |   __init__.py
 |   |   |

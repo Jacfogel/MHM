@@ -49,6 +49,10 @@ from .widgets.channel_selection_widget import ChannelSelectionWidget
 from .widgets.task_settings_widget import TaskSettingsWidget
 from .widgets.checkin_settings_widget import CheckinSettingsWidget
 from .widgets.tag_widget import TagWidget
+from .widgets.task_template_editor import (
+    TaskTemplateEditDialog,
+    TaskTemplateManagerWidget,
+)
 
 # Widgets (low usage)
 from .widgets.dynamic_list_field import DynamicListField
@@ -94,6 +98,8 @@ __all__ = [
     "TaskSettingsWidget",
     "CheckinSettingsWidget",
     "TagWidget",
+    "TaskTemplateEditDialog",
+    "TaskTemplateManagerWidget",
     # Widgets (low usage)
     "DynamicListField",
     "UserProfileSettingsWidget",

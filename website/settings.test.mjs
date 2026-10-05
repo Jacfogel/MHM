@@ -88,6 +88,14 @@ test('feature details and custom check-in controls are present', async () => {
   assert.doesNotMatch(source, /completeSettingsData/);
 });
 
+test('task settings include an account-owned template editor', () => {
+  assert.match(source, /function customTaskTemplateEditor/);
+  assert.match(source, /\+ Add task template/);
+  assert.match(source, /custom_\$\{crypto\.randomUUID\(\)/);
+  assert.match(source, /custom_templates: customTemplates\.read\(\)/);
+  assert.match(source, /task template followed by the underscored template name/);
+});
+
 test('important-person prompts distinguish roles from useful context', () => {
   assert.match(source, /Family, friend, partner, healthcare provider/);
   assert.match(source, /Lives nearby; calls every Sunday; helps with appointments/);
