@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Coverage isolation, dependency floors, and the last unmarked policy test **COMPLETED**
+- Full coverage no longer collects `tests/development_tools/` in the host pytest process. Those tests run with `development_tools/pytest.ini`, and their coverage is combined into the main data. Development-tools-only coverage remains `python development_tools/tests/run_test_coverage.py --dev-tools-only`.
+- Raised the urllib3 floor to 2.8.0 and pinned oauthlib at 4.0.0 or newer so the four pip-audit findings are covered.
+- The policy test `test_run_tests_isolates_environment_before_core_imports` now inherits the unit category marker from its module.
+
 ### 2026-10-06 - Website browser coverage joins standard test gates **COMPLETED**
 - Browser behavior coverage now spans 121 passing Node tests, with expanded check-in, insight, integration, message, notebook, settings, and task scenarios.
 - A serial pytest bridge runs every `website/*.test.mjs` file in the normal suite, `audit --full`, and the nightly suite; PR and push checks retain a dedicated website job with Node.js 20.
@@ -114,16 +119,6 @@ Guidelines:
 - An SMTP timeout after the message body is written returns `unconfirmed`. Check-ins, reminders, and scheduled messages stop there instead of sending another copy. The body watch logs a failed write and raises it again. It stays off the error decorator so recovery cannot write the body twice.
 - A dropped connection before the body is sent is still retried once.
 - Each LM Studio call carries its own failure reason, including invalid JSON. Command fallbacks still log that reason.
-
-### 2026-09-30 - Mail retries, command failures stay unparsed, empty inbox stays quiet **COMPLETED**
-- A dropped SMTP connection is retried once with the same Message-ID. The sync bridge stays open long enough for that second attempt.
-- When command interpretation fails, the reply is `ACTION: unknown` and the log includes why the model call failed. Chat still uses a conversational fallback.
-- A missing website inbox loads as an empty inbox. It is no longer logged as a file error.
-
-### 2026-09-30 - One-time jobs end, and recovery stays a leaf **COMPLETED**
-- A finished scheduled message is removed. Cleanup and conflict checks read the user and category from the keyword arguments `schedule` actually stores.
-- File recovery builds an empty chat file from a leaf module, so error handling and profile loading no longer import each other.
-- Both helpers are in the function registry. The scheduler test checks each job callable before reading it, so Pyright is clean on that file.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

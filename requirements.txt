@@ -12,13 +12,14 @@ PyNaCl>=1.6.2  # For Discord webhook signature verification (ed25519); pip-audit
 
 # AI/ML dependencies  
 requests>=2.33.0  # For LM Studio HTTP API calls (pip-audit floor)
-urllib3>=2.7.0  # Transitive; explicit floor for CVE fixes
+urllib3>=2.8.0  # Transitive; floor for CVE-2026-97689, CVE-2026-97688, and proxy TLS context mix-up (2.7.0)
 msgpack>=1.2.1  # Transitive (CacheControl/pip-audit); GHSA-6v7p-g79w-8964 DoS fix
 idna>=3.15  # Transitive (requests); CVE-2026-45409 / GHSA-65pc-fj4g-8rjx DoS in encode(); pip-audit floor
 pyasn1>=0.6.4  # Transitive (google-auth); pip-audit floor for PYSEC-2026-3455/3456/3457
 pydantic>=2.7.0  # For JSON schema validation and parsing
 google-auth>=2.29.0  # Google Health OAuth token refresh
 google-auth-oauthlib>=1.2.0  # Google Health OAuth connect flow
+oauthlib>=4.0.0  # Transitive (requests-oauthlib); PYSEC-2026-4114 / CVE-2026-49265 PKCE timing fix
 cryptography>=50.0.0  # Fernet encryption for Google Health tokens at rest; pip-audit floor CVE-2026-69247
 
 # UI dependencies

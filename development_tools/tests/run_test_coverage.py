@@ -73,9 +73,11 @@ from development_tools.tests.coverage_outcome_classification import (
 )
 from development_tools.tests.coverage_pytest_argv import (
     build_dev_tools_coverage_pytest_cmd as _build_dev_tools_coverage_pytest_cmd,
+    build_isolated_tools_coverage_pytest_cmd as _build_isolated_tools_coverage_pytest_cmd,
     build_main_coverage_pytest_cmd as _build_main_coverage_pytest_cmd,
     build_no_parallel_coverage_pytest_cmd as _build_no_parallel_coverage_pytest_cmd,
     build_no_parallel_test_args as _build_no_parallel_test_args_fn,
+    partition_coverage_pytest_paths as _partition_coverage_pytest_paths,
 )
 from development_tools.tests.coverage_shard_merge import (
     detect_expected_parallel_workers as _detect_expected_parallel_workers_fn,
@@ -1012,8 +1014,9 @@ class CoverageMetricsRegenerator:
                     str(tf.relative_to(self.project_root)) for tf in test_files_to_run
                 ]
 
-        # Unified Tier 3 (V5): main run includes tests/development_tools/; dev-tools coverage
-        # JSON is derived from the same coverage.json (see _write_dev_tools_coverage_json_from_main).
+        # Host pytest must not collect tests/development_tools/. That conftest
+        # requires development_tools/pytest.ini, so those tests run in a second
+        # process and their coverage data is combined into coverage.json.
 
         # Store coverage.json in development_tools/tests/jsons/ instead of root
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
@@ -1141,6 +1144,25 @@ class CoverageMetricsRegenerator:
 
             # Parallel: exclude no_parallel/e2e (serial track later); omit JSON until combine.
             # Serial: write JSON directly. Matches run_tests.py marker exclusions.
+            # Development-tools tests are removed here and run later with their pytest.ini.
+            path_split = _partition_coverage_pytest_paths(
+                test_filter_args,
+                default_test_path=self.test_directory,
+            )
+            skip_host_pytest = (
+                not path_split.use_host_default and not path_split.host_paths
+            )
+            host_filter_args = (
+                [] if path_split.use_host_default else list(path_split.host_paths)
+            )
+            tools_paths = list(path_split.tools_paths)
+            tools_return_code = None
+            tools_test_results: dict[str, Any] = {}
+            if tools_paths and logger:
+                logger.info(
+                    "Development-tools tests will run separately with "
+                    f"development_tools/pytest.ini ({len(tools_paths)} path(s))"
+                )
             cmd = _build_main_coverage_pytest_cmd(
                 executable=sys.executable,
                 parallel=self.parallel,
@@ -1148,9 +1170,11 @@ class CoverageMetricsRegenerator:
                 cov_args=cov_args,
                 coverage_config_path=self.coverage_config_path,
                 maxfail=self.maxfail,
-                test_filter_args=test_filter_args,
+                test_filter_args=host_filter_args,
                 coverage_json_output=None if self.parallel else coverage_output,
-                default_test_path="tests/",
+                default_test_path=self.test_directory,
+                extra_args=path_split.host_extra_args,
+                skip_default_path=skip_host_pytest,
             )
             if self.parallel and logger:
                 logger.info(
@@ -1249,15 +1273,25 @@ class CoverageMetricsRegenerator:
                 with open(
                     stdout_log_path, "w", encoding="utf-8", buffering=1
                 ) as stdout_file:
-                    result = self._run_pytest_wait(
-                        cmd,
-                        timeout=pytest_timeout,
-                        stdout=stdout_file,
-                        stderr=subprocess.STDOUT,  # Merge stderr into stdout
-                        text=True,
-                        cwd=self.project_root,
-                        env=env,
-                    )
+                    if skip_host_pytest:
+                        stdout_file.write(
+                            "Host pytest skipped because this selection only contains "
+                            "development-tools tests. Those tests run with "
+                            "development_tools/pytest.ini in a separate process.\n"
+                        )
+                        result = subprocess.CompletedProcess(
+                            cmd, returncode=0, stdout="", stderr=""
+                        )
+                    else:
+                        result = self._run_pytest_wait(
+                            cmd,
+                            timeout=pytest_timeout,
+                            stdout=stdout_file,
+                            stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                            text=True,
+                            cwd=self.project_root,
+                            env=env,
+                        )
                 # Read the captured output for processing
                 result.stdout = stdout_log_path.read_text(
                     encoding="utf-8", errors="ignore"
@@ -1978,6 +2012,31 @@ class CoverageMetricsRegenerator:
             }
             no_parallel_return_code = None
             no_parallel_output = ""
+            if tools_paths:
+                tools_run = self._run_isolated_tools_coverage(
+                    tools_paths=tools_paths,
+                    cov_args=cov_args,
+                    pytest_timeout=pytest_timeout,
+                )
+                tools_return_code = tools_run.get("return_code")
+                tools_test_results = (
+                    tools_run.get("results")
+                    if isinstance(tools_run.get("results"), dict)
+                    else {}
+                )
+                if tools_return_code not in (None, 0):
+                    no_parallel_return_code = self._fold_tools_pytest_failure(
+                        no_parallel_test_results,
+                        no_parallel_return_code,
+                        tools_return_code,
+                        tools_test_results,
+                    )
+                    if logger:
+                        logger.error(
+                            "Development-tools coverage pytest failed "
+                            f"(exit code {tools_return_code}). "
+                            f"See {tools_run.get('log_file')}"
+                        )
             if self.parallel and pytest_ran:
                 if logger:
                     logger.debug(
@@ -1990,8 +2049,10 @@ class CoverageMetricsRegenerator:
                     cov_args=cov_args,
                     coverage_config_path=self.coverage_config_path,
                     maxfail=self.maxfail,
-                    test_filter_args=test_filter_args,
+                    test_filter_args=host_filter_args,
                     test_directory=self.test_directory,
+                    extra_args=path_split.host_extra_args,
+                    skip_default_path=skip_host_pytest,
                 )
 
                 # Use separate coverage data file for no_parallel tests
@@ -2180,6 +2241,13 @@ class CoverageMetricsRegenerator:
                 no_parallel_test_results = self._parse_pytest_test_results(
                     no_parallel_output
                 )
+                if tools_return_code not in (None, 0):
+                    no_parallel_return_code = self._fold_tools_pytest_failure(
+                        no_parallel_test_results,
+                        no_parallel_return_code,
+                        tools_return_code,
+                        tools_test_results,
+                    )
                 no_parallel_zero_tests_exit = (
                     no_parallel_result.returncode == 5
                     and not no_parallel_test_results.get("total_tests", 0)
@@ -2382,6 +2450,7 @@ class CoverageMetricsRegenerator:
                         if self.parallel and pytest_ran:
                             no_parallel_ok = bool(
                                 no_parallel_result.returncode == 0
+                                and tools_return_code in (None, 0)
                                 and no_parallel_test_results.get("total_tests", 0) > 0
                             )
                             no_parallel_coverage_present = bool(
@@ -2524,18 +2593,21 @@ class CoverageMetricsRegenerator:
                         and _project_root_parallel.stat().st_size > 0
                     )
                 )
+                tools_coverage_present = bool(self._tools_coverage_artifact_paths())
                 if not (
                     parallel_exists
                     or no_parallel_exists
                     or parallel_shard_files
                     or _has_coverage_fallback
+                    or tools_coverage_present
                 ):
                     if logger:
                         logger.warning(
                             "Skipping coverage combine: no coverage artifacts found "
                             f"(coverage_dir={coverage_dir}, parallel_exists={parallel_exists}, "
                             f"no_parallel_exists={no_parallel_exists}, shards={len(parallel_shard_files)}, "
-                            f"fallback={_has_coverage_fallback}). "
+                            f"fallback={_has_coverage_fallback}, "
+                            f"tools_coverage_present={tools_coverage_present}). "
                             "Check that COVERAGE_FILE/COVERAGE_DATA_DIR are set for pytest."
                         )
                         if parallel_shard_files:
@@ -2660,6 +2732,13 @@ class CoverageMetricsRegenerator:
                                 )
                                 log_fn(
                                     f"No_parallel coverage file not found: {no_parallel_coverage_file}"
+                                )
+
+                        for tools_dest in self._copy_tools_coverage_for_combine(coverage_dir):
+                            files_to_combine.append(tools_dest)
+                            if logger:
+                                logger.debug(
+                                    f"Included development-tools coverage file {tools_dest.name}"
                                 )
 
                         # Copy .coverage_parallel.<suffix> shards to .coverage.<suffix> so coverage combine
@@ -3428,6 +3507,9 @@ class CoverageMetricsRegenerator:
                                 logger.warning(
                                     f"Error regenerating coverage JSON: {json_error}"
                                 )
+
+            if tools_paths and not (self.parallel and pytest_ran):
+                self._combine_tools_coverage_for_serial(coverage_output)
 
             try:
                 if self.report_generator:
@@ -4819,6 +4901,256 @@ class CoverageMetricsRegenerator:
         from datetime import datetime
 
         return datetime.now().strftime("%Y-%m-%d")
+
+    def _fold_tools_pytest_failure(
+        self,
+        no_parallel_test_results: dict[str, Any],
+        no_parallel_return_code: int | None,
+        tools_return_code: int | None,
+        tools_test_results: dict[str, Any],
+    ) -> int | None:
+        """Record an isolated development-tools pytest failure on the serial track."""
+        tool_errors = list(tools_test_results.get("error_tests") or [])
+        tool_errors.extend(tools_test_results.get("failed_tests") or [])
+        if not tool_errors:
+            tool_errors = ["tests/development_tools"]
+        existing = list(no_parallel_test_results.get("error_tests") or [])
+        for node_id in tool_errors:
+            if node_id not in existing:
+                existing.append(node_id)
+        no_parallel_test_results["error_tests"] = existing
+        no_parallel_test_results["error_count"] = len(existing)
+        if no_parallel_return_code in (None, 0):
+            return tools_return_code
+        return no_parallel_return_code
+
+    def _tools_coverage_artifact_paths(self) -> list[Path]:
+        """Return non-empty ``.coverage_devtools*`` files from the coverage directory."""
+        coverage_dir = self.coverage_data_file.parent
+        found: list[Path] = []
+        if not coverage_dir.exists():
+            return found
+        for src in sorted(coverage_dir.glob(".coverage_devtools*")):
+            try:
+                if src.is_file() and src.stat().st_size > 0:
+                    found.append(src)
+            except OSError:
+                continue
+        return found
+
+    def _copy_tools_coverage_for_combine(self, coverage_dir: Path) -> list[Path]:
+        """Copy tools coverage data to ``.coverage.devtools*`` names for ``coverage combine``."""
+        copied: list[Path] = []
+        for src in self._tools_coverage_artifact_paths():
+            suffix = src.name.removeprefix(".coverage_devtools")
+            dest = coverage_dir / f".coverage.devtools{suffix}"
+            try:
+                if src.resolve() != dest.resolve():
+                    shutil.copy2(src, dest)
+                copied.append(dest)
+            except OSError as exc:
+                if logger:
+                    logger.warning(
+                        f"Failed to copy development-tools coverage file {src.name}: {exc}"
+                    )
+        return copied
+
+    def _combine_tools_coverage_for_serial(self, coverage_output: Path) -> None:
+        """Merge an isolated tools coverage file into the serial host coverage data."""
+        artifacts = self._tools_coverage_artifact_paths()
+        if not artifacts:
+            return
+        coverage_dir = self.coverage_data_file.parent
+        sources: list[Path] = []
+        host_data = self.coverage_data_file
+        try:
+            if host_data.exists() and host_data.stat().st_size > 0:
+                host_copy = coverage_dir / ".coverage.host"
+                shutil.copy2(host_data, host_copy)
+                sources.append(host_copy)
+        except OSError as exc:
+            if logger:
+                logger.warning(f"Failed to stage host coverage for tools merge: {exc}")
+        sources.extend(self._copy_tools_coverage_for_combine(coverage_dir))
+        if not sources:
+            return
+        combine_env = os.environ.copy()
+        combine_env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
+        if self.coverage_config_path.exists():
+            combine_env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
+        combine_cmd = [
+            sys.executable,
+            "-m",
+            "coverage",
+            "combine",
+            "--data-file",
+            str(self.coverage_data_file.resolve()),
+        ]
+        try:
+            combine_result = subprocess.run(
+                combine_cmd,
+                capture_output=True,
+                text=True,
+                cwd=coverage_dir,
+                env=combine_env,
+                timeout=60,
+            )
+            if combine_result.returncode != 0 and logger:
+                logger.warning(
+                    "Serial development-tools coverage combine exited with "
+                    f"{combine_result.returncode}: {combine_result.stderr.strip()}"
+                )
+                return
+            json_cmd = [
+                sys.executable,
+                "-m",
+                "coverage",
+                "json",
+                "-o",
+                str(coverage_output),
+                "--data-file",
+                str(self.coverage_data_file.resolve()),
+            ]
+            json_result = subprocess.run(
+                json_cmd,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=combine_env,
+                timeout=60,
+            )
+            if json_result.returncode != 0 and logger:
+                logger.warning(
+                    "Serial development-tools coverage json exited with "
+                    f"{json_result.returncode}: {json_result.stderr.strip()}"
+                )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            if logger:
+                logger.warning(
+                    f"Failed to merge development-tools coverage into the serial run: {exc}"
+                )
+
+    def _run_isolated_tools_coverage(
+        self,
+        *,
+        tools_paths: list[str],
+        cov_args: list[str],
+        pytest_timeout: int,
+    ) -> dict[str, Any]:
+        """Run development-tools tests with development_tools/pytest.ini."""
+        empty_results = {
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "test_summary": "",
+            "failed_tests": [],
+            "error_tests": [],
+            "total_tests": 0,
+        }
+        if not tools_paths:
+            return {
+                "return_code": None,
+                "output": "",
+                "results": empty_results,
+                "log_file": None,
+            }
+        coverage_dir = self.coverage_data_file.parent
+        coverage_dir.mkdir(parents=True, exist_ok=True)
+        for stale_name in (".coverage_devtools*", ".coverage.devtools*"):
+            for stale in coverage_dir.glob(stale_name):
+                try:
+                    if stale.is_file():
+                        stale.unlink()
+                except OSError as exc:
+                    if logger:
+                        logger.warning(
+                            f"Failed to remove stale coverage file {stale.name}: {exc}"
+                        )
+        tools_coverage_file = coverage_dir / ".coverage_devtools"
+        cmd = _build_isolated_tools_coverage_pytest_cmd(
+            executable=sys.executable,
+            parallel=self.parallel,
+            num_workers=str(self.num_workers),
+            cov_args=cov_args,
+            coverage_config_path=self.coverage_config_path,
+            maxfail=self.maxfail,
+            tools_paths=tools_paths,
+        )
+        env = os.environ.copy()
+        env = self._configure_test_logging_env(env)
+        env = self._ensure_python_path_in_env(env)
+        env["COVERAGE_DATA_DIR"] = str(coverage_dir)
+        env["COVERAGE_FILE"] = str(tools_coverage_file.resolve())
+        if self.coverage_config_path.exists():
+            env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
+        pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths("devtools")
+        env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+        cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
+        cmd.append(f"--basetemp={pytest_temp_base}")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self._rotate_log_files("pytest_devtools_stdout", max_versions=8)
+        tools_stdout_log = (
+            self.coverage_logs_dir / f"pytest_devtools_stdout_{timestamp}.log"
+        )
+        tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
+        if logger:
+            logger.info(
+                "Running development-tools coverage pytest with "
+                "development_tools/pytest.ini"
+            )
+        try:
+            with open(tools_stdout_log, "w", encoding="utf-8", buffering=1) as stdout_file:
+                result = self._run_pytest_wait(
+                    cmd,
+                    timeout=pytest_timeout,
+                    stdout=stdout_file,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                )
+            output = tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+            result.stdout = output
+            result.stderr = ""
+        except KeyboardInterrupt:
+            output = (
+                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+                if tools_stdout_log.exists()
+                else ""
+            )
+            result = subprocess.CompletedProcess(
+                cmd,
+                returncode=130,
+                stdout=output,
+                stderr="KeyboardInterrupt while waiting for development-tools pytest.",
+            )
+        except subprocess.TimeoutExpired:
+            output = (
+                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+                if tools_stdout_log.exists()
+                else ""
+            )
+            result = subprocess.CompletedProcess(
+                cmd,
+                returncode=1,
+                stdout=output,
+                stderr=(
+                    "Development-tools pytest timed out after "
+                    f"{pytest_timeout // 60} minutes"
+                ),
+            )
+        if logger:
+            logger.info(
+                f"Saved development-tools pytest output to {tools_stdout_log}"
+            )
+        parsed = self._parse_pytest_test_results(result.stdout or "")
+        return {
+            "return_code": result.returncode,
+            "output": result.stdout or "",
+            "results": parsed if isinstance(parsed, dict) else empty_results,
+            "log_file": tools_stdout_log,
+        }
 
     def run(self, dev_tools_only: bool = False) -> dict[str, Any]:
         """Run coverage collection, ignoring stray SIGINT until 5 Ctrl+C in 2s."""

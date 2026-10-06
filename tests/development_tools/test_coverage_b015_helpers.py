@@ -17,9 +17,11 @@ from development_tools.tests.coverage_domain_cache import (
 from development_tools.shared.mtime_cache import hash_file_sha256
 from development_tools.tests.coverage_pytest_argv import (
     build_dev_tools_coverage_pytest_cmd,
+    build_isolated_tools_coverage_pytest_cmd,
     build_main_coverage_pytest_cmd,
     build_no_parallel_coverage_pytest_cmd,
     build_no_parallel_test_args,
+    partition_coverage_pytest_paths,
 )
 from development_tools.tests.coverage_shard_merge import (
     domains_with_collapsed_coverage,
@@ -108,6 +110,54 @@ def test_build_no_parallel_and_dev_tools_pytest_cmds(tmp_path: Path) -> None:
     assert "-c" in dev
     assert "development_tools/pytest.ini" in dev
     assert "--confcutdir=tests/development_tools" in dev
+
+
+@pytest.mark.unit
+def test_partition_coverage_paths_keeps_tools_tests_out_of_host_pytest() -> None:
+    """Host coverage pytest must not collect tests/development_tools/."""
+    full_tree = partition_coverage_pytest_paths([], default_test_path="tests/")
+    assert full_tree.use_host_default is True
+    assert full_tree.host_paths == []
+    assert "tests/development_tools" in full_tree.tools_paths
+    assert "--ignore=tests/development_tools" in full_tree.host_extra_args
+
+    mixed = partition_coverage_pytest_paths(
+        [
+            "tests/unit/test_config.py",
+            "tests/development_tools/test_cli_interface.py",
+        ]
+    )
+    assert mixed.use_host_default is False
+    assert mixed.host_paths == ["tests/unit/test_config.py"]
+    assert mixed.tools_paths == ["tests/development_tools/test_cli_interface.py"]
+    assert mixed.host_extra_args == []
+
+    tools_only = partition_coverage_pytest_paths(
+        ["tests/development_tools/test_cli_interface.py"]
+    )
+    assert tools_only.host_paths == []
+    assert tools_only.use_host_default is False
+    assert tools_only.tools_paths == ["tests/development_tools/test_cli_interface.py"]
+
+
+@pytest.mark.unit
+def test_isolated_tools_coverage_cmd_uses_tools_pytest_ini(tmp_path: Path) -> None:
+    cov_cfg = tmp_path / "coverage.ini"
+    cov_cfg.write_text("[run]\n", encoding="utf-8")
+    cmd = build_isolated_tools_coverage_pytest_cmd(
+        executable="python",
+        parallel=False,
+        num_workers="auto",
+        cov_args=["--cov=development_tools"],
+        coverage_config_path=cov_cfg,
+        maxfail=10,
+        tools_paths=["tests/development_tools/test_cli_interface.py"],
+    )
+    assert "-c" in cmd
+    assert "development_tools/pytest.ini" in cmd
+    assert "--confcutdir=tests/development_tools" in cmd
+    assert "tests/development_tools/test_cli_interface.py" in cmd
+    assert "tests/" not in cmd
 
 
 @pytest.mark.unit
