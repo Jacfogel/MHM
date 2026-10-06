@@ -71,6 +71,47 @@ def _build_dir_path(line: str, indent: int, stack: list[str]) -> str | None:
     return None
 
 
+def _get_tree_file_name(line: str) -> str | None:
+    """Return a filename from a ``tree /F /A`` output line, if present."""
+    if _get_line_indent(line) is not None:
+        return None
+
+    if "|" in line:
+        file_name = line.rsplit("|", 1)[-1].strip()
+    elif line.startswith("    "):
+        file_name = line.strip()
+    else:
+        return None
+
+    if not file_name or file_name.startswith("("):
+        return None
+    return file_name
+
+
+def _is_sensitive_runtime_path(relative_path: str) -> bool:
+    """Return whether a path must never be included in generated documentation."""
+    normalized = relative_path.replace("\\", "/").strip("/")
+    if not normalized:
+        return False
+
+    parts = tuple(part for part in normalized.split("/") if part)
+    name = parts[-1].lower()
+    if name == ".env" or (name.startswith(".env.") and name != ".env.example"):
+        return True
+    if name.endswith((".flag", ".log", ".pid")):
+        return True
+    runtime_directories = {
+        ".cache",
+        ".pytest_cache",
+        ".pytest_runtime",
+        ".wrangler",
+        "__pycache__",
+        "data",
+        "logs",
+    }
+    return any(part.lower() in runtime_directories for part in parts)
+
+
 class DirectoryTreeGenerator:
     """Generates directory trees for documentation."""
 
@@ -100,6 +141,57 @@ class DirectoryTreeGenerator:
         paths_config = config.get_paths_config()
         self.docs_dir = paths_config.get("development_docs_dir", "development_docs")
 
+    def _get_git_visible_paths(self) -> tuple[set[str], set[str]] | None:
+        """Return Git-visible files and their parent directories.
+
+        Tracked files and untracked, non-ignored files are included. ``None`` is
+        returned outside a Git checkout. If Git cannot provide the manifest for
+        a checkout, an empty allowlist is returned so generation fails closed.
+        """
+        if not (self.project_root / ".git").exists():
+            return None
+
+        try:
+            result = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(self.project_root),
+                    "ls-files",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                    "-z",
+                ],
+                capture_output=True,
+                text=True,
+                shell=False,
+                cwd=self.project_root,
+            )
+        except OSError as exc:
+            if logger:
+                logger.error("Git manifest unavailable for directory tree: %s", exc)
+            return set(), set()
+
+        if result.returncode != 0:
+            if logger:
+                logger.error("Git manifest unavailable for directory tree")
+            return set(), set()
+
+        files: set[str] = set()
+        directories: set[str] = set()
+        for raw_path in result.stdout.split("\0"):
+            normalized = raw_path.strip().replace("\\", "/").strip("/")
+            if not normalized or _is_sensitive_runtime_path(normalized):
+                continue
+            files.add(normalized)
+            parent = Path(normalized).parent
+            while str(parent) not in {"", "."}:
+                directories.add(parent.as_posix())
+                parent = parent.parent
+
+        return files, directories
+
     def generate_directory_tree(self, output_file: str | None = None) -> str:
         """
         Generate a directory tree for documentation with placeholders for certain directories.
@@ -118,10 +210,20 @@ class DirectoryTreeGenerator:
         if output_file is None:
             output_file = f"{self.docs_dir}/DIRECTORY_TREE.md"
 
+        git_visible_paths = self._get_git_visible_paths()
+        visible_files: set[str] | None = None
+        visible_directories: set[str] | None = None
+        if git_visible_paths is not None:
+            visible_files, visible_directories = git_visible_paths
+
         # Run tree command (Windows: tree.com; avoid shell=True — Bandit B602)
         tree_exe = "tree.com" if os.name == "nt" else "tree"
         result = subprocess.run(
-            [tree_exe, "/F", "/A"], capture_output=True, text=True, shell=False
+            [tree_exe, "/F", "/A"],
+            capture_output=True,
+            text=True,
+            shell=False,
+            cwd=self.project_root,
         )
 
         if result.returncode != 0:
@@ -163,21 +265,30 @@ class DirectoryTreeGenerator:
                 dir_path = _build_dir_path(line, indent, path_stack)
 
             if dir_path:
-                dir_path.split("/")[-1]
-                candidate = self.project_root / dir_path
-                if should_exclude_file(candidate, context="development"):
+                if (
+                    _is_sensitive_runtime_path(dir_path)
+                    or should_exclude_file(Path(dir_path), context="development")
+                    or (
+                        visible_directories is not None
+                        and dir_path not in visible_directories
+                    )
+                ):
                     skip_exclusion_indent = indent if indent is not None else 0
                     continue
-            elif "|" in line:
-                stripped = line.strip()
-                if stripped and not stripped.startswith("("):
-                    candidate_parts = list(path_stack)
-                    candidate = (
-                        self.project_root.joinpath(*candidate_parts, stripped)
-                        if candidate_parts
-                        else self.project_root / stripped
-                    )
-                    if should_exclude_file(candidate, context="development"):
+            else:
+                file_name = _get_tree_file_name(line)
+                if file_name:
+                    relative_path = "/".join([*path_stack, file_name])
+                    if (
+                        _is_sensitive_runtime_path(relative_path)
+                        or should_exclude_file(
+                            Path(relative_path), context="development"
+                        )
+                        or (
+                            visible_files is not None
+                            and relative_path not in visible_files
+                        )
+                    ):
                         continue
 
             # Check if this line contains a directory we want to replace
@@ -211,7 +322,7 @@ class DirectoryTreeGenerator:
             "> **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator",
             "> **Audience**: Human developer and AI collaborators",
             "> **Purpose**: Visual representation of project directory structure",
-            "> **Status**: **ACTIVE** - Auto-generated from filesystem tree command",
+            "> **Status**: **ACTIVE** - Auto-generated from Git-visible project files",
             "",
         ]
 

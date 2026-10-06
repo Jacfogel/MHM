@@ -2,20 +2,16 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-05 13:59:00
+> **Last Generated**: 2026-10-06 11:54:14
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
-> **Status**: **ACTIVE** - Auto-generated from filesystem tree command
+> **Status**: **ACTIVE** - Auto-generated from Git-visible project files
 
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .cursorignore
-|   .env
 |   .env.example
-|   .gitattributes
-|   .gitignore
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -28,96 +24,12 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
-|   run_mhm.py
-|   run_tests.py
-|   test_message_response_0cb74e67-d9a9-426b-b719-98276def944c_motivational.flag
 |   TODO.md
-|
-+---.agents
-|   \---skills
-|       +---source-command-ai-functionality-tests
-|       |       SKILL.md
-|       |
-|       +---source-command-audit
-|       |       SKILL.md
-|       |
-|       +---source-command-backup
-|       |       SKILL.md
-|       |
-|       +---source-command-close
-|       |       SKILL.md
-|       |
-|       +---source-command-docs
-|       |       SKILL.md
-|       |
-|       +---source-command-explore-options
-|       |       SKILL.md
-|       |
-|       +---source-command-full-audit
-|       |       SKILL.md
-|       |
-|       +---source-command-refactor
-|       |       SKILL.md
-|       |
-|       +---source-command-review
-|       |       SKILL.md
-|       |
-|       +---source-command-start
-|       |       SKILL.md
-|       |
-|       +---source-command-test
-|       |       SKILL.md
-|       |
-|       \---source-command-triage-issue
-|               SKILL.md
-|
-+---.cursor
-|   |   worktrees.json
-|   |
-|   +---commands
-|   |       ai-functionality-tests.md
-|   |       audit.md
-|   |       backup.md
-|   |       close.md
-|   |       docs.md
-|   |       explore-options.md
-|   |       full-audit.md
-|   |       refactor.md
-|   |       review.md
-|   |       start.md
-|   |       test.md
-|   |       triage-issue.md
-|   |
-|   +---plans
-|   |   |   conftest_refactor_plan_4aa2eb26.plan.md
-|   |   |   continue_v5_roadmap_314d28fc.plan.md
-|   |   |   dev_tools_v4_continuation_6131deb0.plan.md
-|   |   |   invalidation_backlog_continuation_330c8fc9.plan.md
-|   |   |   planning_documents_consolidation_f3a74815.plan.md
-|   |   |   reduce_dependency_risk_70688c22.plan.md
-|   |   |   unified_user_items_and_shared_helpers.plan.md
-|   |   |   v5_dev-tools_continuation_5ab62a62.plan.md
-|   |   |   v5_dev-tools_continuation_95e84204.plan.md
-|   |   |
-|   \---rules
-|           alpha-no-backward-compatibility.mdc
-|           communication-guidelines.mdc
-|           context.mdc
-|           core-guidelines.mdc
-|           critical.mdc
-|           dev_tools.mdc
-|           quality-standards.mdc
-|           testing-guidelines.mdc
-|           ui-guidelines.mdc
 |
 +---.github
 |   \---workflows
 |           logging-enforcement.yml
 |           nightly-tests.yml
-|
-+---.wrangler
-|   \---cache
-|           cf.json
 |
 +---ai
 |   |   SYSTEM_AI_GUIDE.md
@@ -327,7 +239,6 @@ C:.
 +---core
 |   |   admin_account_provisioning.py
 |   |   auto_cleanup.py
-|   |   backup_manager.py
 |   |   chat_interactions_document.py
 |   |   config.py
 |   |   delivery.py
@@ -376,10 +287,7 @@ C:.
 |   |   web_user_settings.py
 |   |   __init__.py
 |   |
-+---data
-    (data files)
 +---development_docs
-|   |   BACKUP_GUIDE.md
 |   |   CHANGELOG_DETAIL.md
 |   |   DIRECTORY_TREE.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
@@ -414,18 +322,14 @@ C:.
 |   |   run_dev_tools.py
 |   |   __init__.py
 |   |
-|   +---.cache
 |   +---ai_work
 |   |   |   analyze_ai_work.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---config
 |   |   |   analyze_config.py
 |   |   |   audit_tool_matrix.json
 |   |   |   config.py
-|   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
 |   |   |   ruff.toml
 |   |   |   sync_ruff_toml.py
@@ -434,8 +338,6 @@ C:.
 |   |   |
 |   |   +---jsons
     (JSON files created by development tools)
-|   +---data
-    (data files)
 |   +---docs
 |   |   |   analyze_ascii_compliance.py
 |   |   |   analyze_documentation.py
@@ -454,19 +356,11 @@ C:.
 |   |   |   generate_directory_tree.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---error_handling
 |   |   |   analyze_error_handling.py
 |   |   |   generate_error_handling_report.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---development_tools
-|   |   |   \---error_handling
-|   |   |       \---jsons
-    (JSON files created by development tools)
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---functions
 |   |   |   analyze_duplicate_functions.py
 |   |   |   analyze_facade_shims.py
@@ -481,8 +375,6 @@ C:.
 |   |   |   shared_function_scan.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---imports
 |   |   |   analyze_dependency_patterns.py
 |   |   |   analyze_dev_tools_import_boundaries.py
@@ -491,16 +383,12 @@ C:.
 |   |   |   generate_module_dependencies.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---legacy
 |   |   |   analyze_legacy_references.py
 |   |   |   fix_legacy_references.py
 |   |   |   generate_legacy_reference_report.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---reports
 |   |   |   analyze_system_signals.py
 |   |   |   decision_support.py
@@ -508,28 +396,16 @@ C:.
 |   |   |   quick_status.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
-|   |   +---logs
-    (log files)
 |   |   +---scopes
-|   |   |   +---dev_tools
-|   |   |   |   \---jsons
-    (JSON files created by development tools)
 |   |   |   \---full
 |   |   |       |   analysis_detailed_results.json
 |   |   |       |
-|   |   |       \---jsons
-    (JSON files created by development tools)
 |   +---shared
 |   |   |   audit_scope.py
 |   |   |   audit_signal_state.py
 |   |   |   audit_storage_scope.py
 |   |   |   audit_tiers.py
 |   |   |   audit_tool_matrix.py
-|   |   |   backup_inventory.py
-|   |   |   backup_policy_models.py
-|   |   |   backup_reports.py
 |   |   |   cache_dependency_paths.py
 |   |   |   cli_interface.py
 |   |   |   common.py
@@ -583,10 +459,7 @@ C:.
 |   |   |   analyze_vulture.py
 |   |   |   check_channel_loggers.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 |   +---tests
-|   |   |   .coverage
 |   |   |   analyze_test_coverage.py
 |   |   |   analyze_test_markers.py
 |   |   |   coverage.ini
@@ -609,8 +482,6 @@ C:.
 |   |   |   verify_process_cleanup.py
 |   |   |   __init__.py
 |   |   |
-|   |   +---jsons
-    (JSON files created by development tools)
 +---integrations
 |   |   __init__.py
 |   |
@@ -629,8 +500,6 @@ C:.
 |   |   |   user_settings.py
 |   |   |   __init__.py
 |   |   |
-+---logs
-    (log files)
 +---messages
 |   |   message_analytics.py
 |   |   message_data_manager.py
@@ -1022,6 +891,7 @@ C:.
 |   +---integration
 |   |   |   test_account_lifecycle.py
 |   |   |   test_account_management.py
+|   |   |   test_browser_javascript_suite.py
 |   |   |   test_error_handling_improvements.py
 |   |   |   test_health_scheduler_job.py
 |   |   |   test_notebook_validation_integration.py
@@ -1032,24 +902,12 @@ C:.
 |   |   |   test_task_reminder_integration.py
 |   |   |   test_user_creation.py
 |   |   |
-|   |   +---data
-    (data files)
 |   +---notebook
 |   |       __init__.py
 |   |
 |   +---test_helpers
+|   |   |   website_javascript.py
 |   |   |   __init__.py
-|   |   |
-|   |   +---fixtures
-|   |   |   \---google_health
-|   |   |           active_zone_response.json
-|   |   |           active_zone_rollup_response.json
-|   |   |           daily_hrv_response.json
-|   |   |           daily_hr_response.json
-|   |   |           sleep_response.json
-|   |   |           steps_response.json
-|   |   |           steps_rollup_response.json
-|   |   |           token_response.json
 |   |   |
 |   |   +---test_support
 |   |   |   |   conftest_cleanup.py
@@ -1287,6 +1145,7 @@ C:.
 |   |   |   test_user_preferences.py
 |   |   |   test_validation.py
 |   |   |   test_webhook_handler_gap_coverage.py
+|   |   |   test_website_javascript_runner.py
 |   |   |   test_website_pages.py
 |   |   |   test_web_account_service.py
 |   |   |   test_web_assets.py
@@ -1345,6 +1204,7 @@ C:.
 |   +---dialogs
     (log files)
 |   +---generated
+|   |   |
 |   +---widgets
 |   |   |   category_selection_widget.py
 |   |   |   channel_selection_widget.py
@@ -1384,11 +1244,14 @@ C:.
 |   |   index.html
 |   |   insights.html
 |   |   insights.js
+|   |   insights.test.mjs
 |   |   integrations.html
 |   |   integrations.js
+|   |   integrations.test.mjs
 |   |   login.html
 |   |   messages.html
 |   |   messages.js
+|   |   messages.test.mjs
 |   |   mhm-logo.png
 |   |   notes.html
 |   |   notes.js
@@ -1411,11 +1274,6 @@ C:.
 |   |   worker.test.mjs
 |   |   wrangler.jsonc
 |   |
-|   +---.wrangler
-|   |   +---cache
-|   |   |       wrangler-account.json
-|   |   |
-|   |   \---tmp
 |   \---fonts
 |           inter-latin-ext.woff2
 |           inter-latin.woff2

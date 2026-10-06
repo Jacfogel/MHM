@@ -686,11 +686,8 @@ class TestUIAppIntegrationExtended:
                                 app = MHMManagerUI()
                                 app.current_user = "test-user"
                                 
-                                # Mock UserContext at the request-action owner.
-                                with patch('ui.request_actions.UserContext') as mock_user_context:
-                                    mock_context_instance = MagicMock()
-                                    mock_user_context.return_value = mock_context_instance
-                                    
+                                # Guard against reintroducing process-wide account switching.
+                                with patch('ui.request_actions.UserContext', create=True) as mock_user_context:
                                     with patch('ui.request_actions.get_flags_dir') as mock_flags_dir, \
                                          patch('ui.request_actions.get_user_data') as mock_get_user_data, \
                                          patch('ui.request_actions._poll_response_file', return_value={}):
@@ -709,8 +706,7 @@ class TestUIAppIntegrationExtended:
                                             / "test_message_request_test-user_motivational.flag"
                                         )
                                         assert request_file.exists()
-                                        # [OK] VERIFY REAL BEHAVIOR: Should call set_user_id (may be called multiple times for context switching)
-                                        assert mock_context_instance.set_user_id.call_count >= 1
+                                        mock_user_context.assert_not_called()
 
     @pytest.mark.behavior
     @pytest.mark.ui

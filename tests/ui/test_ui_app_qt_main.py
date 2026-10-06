@@ -344,6 +344,98 @@ class TestMHMManagerUI:
 
         assert result is False, "Should return False when service not running"
         mock_msgbox.warning.assert_called()
+
+    def test_send_checkin_prompt_starts_background_request(self, qapp):
+        """Check-in response polling must not run on the UI thread."""
+        from ui.ui_app_qt import MHMManagerUI
+
+        with patch("ui.ui_app_qt.Ui_ui_app_mainwindow") as mock_ui, \
+            patch("ui.ui_app_qt.QTimer"), \
+            patch("ui.ui_app_qt.Path") as mock_path:
+            mock_ui_instance = Mock()
+            mock_ui.return_value = mock_ui_instance
+            mock_path.return_value.exists.return_value = True
+            mock_ui_instance.pushButton_send_checkin_prompt.text.return_value = (
+                "Send Check-in Prompt"
+            )
+            ui = MHMManagerUI()
+            ui.current_user = "test-user"
+
+            with patch(
+                "ui.ui_app_qt.request_actions.validate_selected_user",
+                return_value=True,
+            ), patch(
+                "ui.ui_app_qt.request_actions.validate_service_running",
+                return_value=True,
+            ), patch(
+                "ui.ui_app_qt.request_actions.create_checkin_prompt_request"
+            ) as create_request, patch(
+                "ui.ui_app_qt._RequestActionWorker"
+            ) as worker_class, patch(
+                "ui.ui_app_qt.QThread"
+            ) as thread_class, patch(
+                "ui.ui_app_qt.os.getenv", return_value="0"
+            ):
+                ui.send_checkin_prompt()
+
+        worker_class.assert_called_once_with(create_request, "test-user")
+        create_request.assert_not_called()
+        thread_class.return_value.start.assert_called_once_with()
+        mock_ui_instance.pushButton_send_checkin_prompt.setEnabled.assert_called_with(
+            False
+        )
+        mock_ui_instance.pushButton_send_checkin_prompt.setText.assert_called_with(
+            "Sending..."
+        )
+        assert ui._checkin_prompt_in_flight is True
+
+    def test_request_action_worker_emits_completion_when_action_fails(self, qapp):
+        """A failed background action must still unlock its owning UI control."""
+        from ui.ui_app_qt import _RequestActionWorker
+
+        action = Mock(side_effect=RuntimeError("request failed"))
+        outcomes = []
+        worker = _RequestActionWorker(action, "test-user")
+        worker.finished.connect(outcomes.append)
+
+        worker.run()
+
+        action.assert_called_once_with("test-user")
+        assert outcomes == [None]
+
+    def test_checkin_prompt_completion_restores_button(self, qapp):
+        """Completing a background check-in request restores the UI state."""
+        from ui import request_actions
+        from ui.ui_app_qt import MHMManagerUI, QMessageBox
+
+        with patch("ui.ui_app_qt.Ui_ui_app_mainwindow") as mock_ui, \
+            patch("ui.ui_app_qt.QTimer"), \
+            patch("ui.ui_app_qt.Path") as mock_path:
+            mock_ui_instance = Mock()
+            mock_ui.return_value = mock_ui_instance
+            mock_path.return_value.exists.return_value = True
+            ui = MHMManagerUI()
+            ui._checkin_prompt_in_flight = True
+            ui._checkin_prompt_thread = Mock()
+            ui._checkin_prompt_worker = Mock()
+            ui._checkin_prompt_button_default_text = "Send Check-in Prompt"
+            outcome = request_actions.RequestActionOutcome("info", "Done", "Sent")
+
+            with patch(
+                "ui.ui_app_qt.request_actions.show_request_action_outcome"
+            ) as show_outcome:
+                ui._on_checkin_prompt_request_finished(outcome)
+
+        show_outcome.assert_called_once_with(ui, outcome, message_box=QMessageBox)
+        assert ui._checkin_prompt_thread is None
+        assert ui._checkin_prompt_worker is None
+        assert ui._checkin_prompt_in_flight is False
+        mock_ui_instance.pushButton_send_checkin_prompt.setEnabled.assert_called_with(
+            True
+        )
+        mock_ui_instance.pushButton_send_checkin_prompt.setText.assert_called_with(
+            "Send Check-in Prompt"
+        )
     
     @pytest.mark.no_parallel
     def test_refresh_user_list_loads_users(self, test_data_dir, qapp):

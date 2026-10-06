@@ -20,7 +20,6 @@ logger = _lazy_dependencies.get_component_logger("ui")
 get_flags_dir = _lazy_dependencies.get_flags_dir
 get_user_data = _lazy_dependencies.get_user_data
 now_timestamp_full = _lazy_dependencies.now_timestamp_full
-UserContext = _lazy_dependencies.UserContext
 
 
 def _load_attr(module_name: str, attr_name: str):
@@ -284,59 +283,54 @@ def create_test_message_request(
         logger.error("Empty category provided")
         return None
 
-    original_user = UserContext().get_user_id()
-    try:
-        UserContext().set_user_id(user_id)
-        logger.info(
-            f"Admin Panel: Creating test message request for user {user_id}, category {category}"
-        )
+    logger.info(
+        f"Admin Panel: Creating test message request for user {user_id}, category {category}"
+    )
 
-        base_dir = get_flags_dir()
-        request_file = base_dir / f"test_message_request_{user_id}_{category}.flag"
-        response_file = base_dir / f"test_message_response_{user_id}_{category}.flag"
-        with contextlib.suppress(Exception):
-            if response_file.exists():
-                os.remove(response_file)
-        test_request = {
-            "user_id": user_id,
-            "category": category,
-            "timestamp": now_timestamp_full(),
-            "source": "admin_panel",
-        }
+    base_dir = get_flags_dir()
+    request_file = base_dir / f"test_message_request_{user_id}_{category}.flag"
+    response_file = base_dir / f"test_message_response_{user_id}_{category}.flag"
+    with contextlib.suppress(Exception):
+        if response_file.exists():
+            os.remove(response_file)
+    test_request = {
+        "user_id": user_id,
+        "category": category,
+        "timestamp": now_timestamp_full(),
+        "source": "admin_panel",
+    }
 
-        with open(request_file, "w") as f:
-            json.dump(test_request, f, indent=2)
-        logger.info(f"Admin Panel: Test message request file created: {request_file}")
+    with open(request_file, "w") as f:
+        json.dump(test_request, f, indent=2)
+    logger.info(f"Admin Panel: Test message request file created: {request_file}")
 
-        actual_message = "Message will be selected from your collection"
-        response_data = _poll_response_file(
-            response_file, attempts=_test_message_poll_attempts(category)
-        )
-        actual_message = response_data.get("message", actual_message)
+    actual_message = "Message will be selected from your collection"
+    response_data = _poll_response_file(
+        response_file, attempts=_test_message_poll_attempts(category)
+    )
+    actual_message = response_data.get("message", actual_message)
 
-        prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
-        preferences = prefs_result.get("preferences", {})
-        channel_name = preferences.get("channel", {}).get("type", "unknown")
-        actual_message = _truncate_for_dialog(actual_message)
+    prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
+    preferences = prefs_result.get("preferences", {})
+    channel_name = preferences.get("channel", {}).get("type", "unknown")
+    actual_message = _truncate_for_dialog(actual_message)
 
-        _schedule_stale_request_cleanup(request_file)
-        return RequestActionOutcome(
-            level="info",
-            title="Test Message Sent",
-            message=(
-                f"Test {category} message sent to {user_id} via {channel_name}.\n\n"
-                f"Message: {actual_message}"
-                + (
-                    "\n\n(AI-generated messages can take up to a minute; the window stays responsive while waiting.)"
-                    if _test_message_poll_attempts(category) > 30
-                    else ""
-                )
-            ),
-            request_file=request_file,
-            data={"message": actual_message, "channel_name": channel_name},
-        )
-    finally:
-        UserContext().set_user_id(original_user if original_user else None)
+    _schedule_stale_request_cleanup(request_file)
+    return RequestActionOutcome(
+        level="info",
+        title="Test Message Sent",
+        message=(
+            f"Test {category} message sent to {user_id} via {channel_name}.\n\n"
+            f"Message: {actual_message}"
+            + (
+                "\n\n(AI-generated messages can take up to a minute; the window stays responsive while waiting.)"
+                if _test_message_poll_attempts(category) > 30
+                else ""
+            )
+        ),
+        request_file=request_file,
+        data={"message": actual_message, "channel_name": channel_name},
+    )
 
 
 @handle_errors("creating check-in prompt request", default_return=None)

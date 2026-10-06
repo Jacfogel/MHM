@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-05 13:58:36
+> **Last Generated**: 2026-10-06 11:53:49
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 301
-- **Functions Found**: 3120
-- **Methods Found**: 1595
+- **Functions Found**: 3121
+- **Methods Found**: 1596
 - **Classes Found**: 278
-- **Total Items**: 4715
-- **Functions Documented**: 2767
-- **Methods Documented**: 1417
+- **Total Items**: 4717
+- **Functions Documented**: 2768
+- **Methods Documented**: 1418
 - **Classes Documented**: 211
-- **Total Documented**: 4184
+- **Total Documented**: 4186
 - **Template-Generated**: 64
-- **Last Updated**: 2026-10-05
+- **Last Updated**: 2026-10-06
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (897)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (548)
+### **User Interface Functions** (549)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (28)
@@ -4762,7 +4762,8 @@ Automatically suppresses noisy third-party library logging.
 Routes ERROR and CRITICAL messages from asyncio, discord, and aiohttp
 to the errors.log file instead of app.log.
 - [OK] `shouldRollover(self, record)` - Determine if rollover should occur based on both time and size.
-Prevents rollover for files that are too small or too recently created.
+Size limits remain authoritative even for newly created files. Time-based
+rollover still ignores files that are too small or too recent.
 - [OK] `suppress_noisy_logging()` - Suppress excessive logging from third-party libraries.
 
 Sets logging level to WARNING for common noisy libraries to reduce log spam
@@ -4795,7 +4796,8 @@ Args:
   - [OK] `BackupDirectoryRotatingFileHandler._skip_rollover_for_small_or_recent_file(self, current_time, min_file_size, min_file_age_seconds)` - Return True when rollover should be skipped due to size/age checks.
   - [OK] `BackupDirectoryRotatingFileHandler.doRollover(self)` - Do a rollover, as described in __init__().
   - [OK] `BackupDirectoryRotatingFileHandler.shouldRollover(self, record)` - Determine if rollover should occur based on both time and size.
-Prevents rollover for files that are too small or too recently created.
+Size limits remain authoritative even for newly created files. Time-based
+rollover still ignores files that are too small or too recent.
 - [OK] `ComponentLogger` - Component-specific logger that writes to dedicated log files.
 
 Each component gets its own log file with appropriate rotation and formatting.
@@ -8066,11 +8068,12 @@ roughly chronological.
 #### `ui/ui_app_qt.py`
 **Functions:**
 - [OK] `__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
-- [OK] `__init__(self, user_id, category)` - Bind user and category for a background admin-panel test send.
+- [OK] `__init__(self, action)` - Bind an action and its arguments for background execution.
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `_copy_user_selection_state(window)` - Copy controller selection state onto shell attributes.
 - [OK] `_create_communication_manager()` - Create a communication manager without importing it at UI module load time.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
+- [OK] `_on_checkin_prompt_request_finished(self, outcome)` - Show the check-in result and restore its button on the UI thread.
 - [OK] `_on_test_message_request_finished(self, outcome)` - Show the result dialog and restore the send button on the UI thread.
 - [OK] `closeEvent(self, event)` - Handle window close event
 - [OK] `connect_signals(self)` - Connect UI signals to slots
@@ -8086,12 +8089,12 @@ roughly chronological.
 - [OK] `on_user_selected(self, user_display)` - Handle user selection with validation.
 - [OK] `refresh_user_list(self)` - Refresh the user list with validation.
 - [OK] `restart_service(self)` - Restart the MHM service
-- [OK] `run(self)` - Create the test-message request flag and poll until the service responds.
+- [OK] `run(self)` - Run the bound request action and emit its UI-neutral outcome.
 - [OK] `run_category_scheduler(self)` - Run scheduler for the selected user and category
 - [OK] `run_full_scheduler(self)` - Run the full scheduler for all users
 - [OK] `run_user_scheduler(self)` - Run scheduler for the selected user
 - [OK] `send_actual_test_message(self, category)` - Create a service-handled test-message request (background thread).
-- [OK] `send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
+- [OK] `send_checkin_prompt(self)` - Create a service-handled check-in prompt request in the background.
 - [OK] `send_task_reminder(self)` - Create a service-handled task reminder request.
 - [OK] `send_test_message(self)` - Send a test message to the selected user
 - [OK] `shutdown_ui_components(self)` - Shutdown UI components with validation.
@@ -8106,6 +8109,7 @@ Returns:
 - [OK] `MHMManagerUI` - Main MHM Management UI using PySide6
   - [OK] `MHMManagerUI.__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
   - [OK] `MHMManagerUI.__init__(self)` - Initialize the object.
+  - [OK] `MHMManagerUI._on_checkin_prompt_request_finished(self, outcome)` - Show the check-in result and restore its button on the UI thread.
   - [OK] `MHMManagerUI._on_test_message_request_finished(self, outcome)` - Show the result dialog and restore the send button on the UI thread.
   - [OK] `MHMManagerUI.closeEvent(self, event)` - Handle window close event
   - [OK] `MHMManagerUI.connect_signals(self)` - Connect UI signals to slots
@@ -8124,7 +8128,7 @@ Returns:
   - [OK] `MHMManagerUI.run_full_scheduler(self)` - Run the full scheduler for all users
   - [OK] `MHMManagerUI.run_user_scheduler(self)` - Run scheduler for the selected user
   - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Create a service-handled test-message request (background thread).
-  - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
+  - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Create a service-handled check-in prompt request in the background.
   - [OK] `MHMManagerUI.send_task_reminder(self)` - Create a service-handled task reminder request.
   - [OK] `MHMManagerUI.send_test_message(self)` - Send a test message to the selected user
   - [OK] `MHMManagerUI.shutdown_ui_components(self)` - Shutdown UI components with validation.
@@ -8135,9 +8139,9 @@ Returns:
   - [OK] `MHMManagerUI.stop_service(self)` - Stop the MHM service
   - [OK] `MHMManagerUI.update_service_status(self)` - Update the service status display
   - [OK] `MHMManagerUI.update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
-- [OK] `_TestMessageRequestWorker` - Run test-message flag + poll off the UI thread so the window stays responsive.
-  - [OK] `_TestMessageRequestWorker.__init__(self, user_id, category)` - Bind user and category for a background admin-panel test send.
-  - [OK] `_TestMessageRequestWorker.run(self)` - Create the test-message request flag and poll until the service responds.
+- [OK] `_RequestActionWorker` - Run a request action off the UI thread so response polling stays responsive.
+  - [OK] `_RequestActionWorker.__init__(self, action)` - Bind an action and its arguments for background execution.
+  - [OK] `_RequestActionWorker.run(self)` - Run the bound request action and emit its UI-neutral outcome.
 
 #### `ui/user_list_provider.py`
 **Functions:**

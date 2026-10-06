@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Desktop request actions preserve account context and UI responsiveness **COMPLETED**
+- Test-message requests no longer mutate the process-wide `UserContext`, preventing background polling from exposing or restoring the wrong active account.
+- Check-in prompt response polling now runs through the same background Qt worker pattern as test messages, with duplicate-send protection and button-state recovery.
+- Focused UI and behavior regression coverage verifies account isolation, background dispatch, and completion cleanup.
+- Directory-tree generation now starts from Git-tracked and non-ignored files instead of trusting an unfiltered filesystem listing.
+- `.env` variants, response flags, logs, data directories, process files, and runtime cache directories are always omitted, even if accidentally tracked.
+- Regression coverage verifies that ignored secret-like files stay out while normal project files and `.env.example` remain documented.
+
 ### 2026-10-06 - Coverage isolation, dependency floors, and the last unmarked policy test **COMPLETED**
 - Full coverage no longer collects `tests/development_tools/` in the host pytest process. Those tests run with `development_tools/pytest.ini`, and their coverage is combined into the main data. Development-tools-only coverage remains `python development_tools/tests/run_test_coverage.py --dev-tools-only`.
 - Raised the urllib3 floor to 2.8.0 and pinned oauthlib at 4.0.0 or newer so the four pip-audit findings are covered.
@@ -114,11 +122,6 @@ Guidelines:
 - JSON writes use unique temporary files and locked read-modify-write transactions. Failed sent-history writes return failure. A backed-up manual migration linked 83 legacy rows; seven check-ins and one task reminder remain intentionally non-reactable.
 - Note requests allow 128 KiB end to end, enough for a valid 10,000-character Unicode description.
 - All new transaction helpers use centralized error handling. Generated registries were refreshed, and the standard audit reports 100% error-handling coverage with no missing handlers, Phase 1/2 candidates, or registry watch items.
-
-### 2026-09-30 - Unconfirmed mail is not sent twice, model failures stay with the call **COMPLETED**
-- An SMTP timeout after the message body is written returns `unconfirmed`. Check-ins, reminders, and scheduled messages stop there instead of sending another copy. The body watch logs a failed write and raises it again. It stays off the error decorator so recovery cannot write the body twice.
-- A dropped connection before the body is sent is still retried once.
-- Each LM Studio call carries its own failure reason, including invalid JSON. Command fallbacks still log that reason.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

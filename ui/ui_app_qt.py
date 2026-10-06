@@ -63,25 +63,26 @@ def _copy_user_selection_state(window):
     window.current_user_categories = window.user_selection.current_user_categories
 
 
-class _TestMessageRequestWorker(QObject):
-    """Run test-message flag + poll off the UI thread so the window stays responsive."""
+class _RequestActionWorker(QObject):
+    """Run a request action off the UI thread so response polling stays responsive."""
 
     finished = Signal(object)
 
-    @handle_errors("initializing test message request worker", default_return=None)
-    def __init__(self, user_id: str, category: str):
-        """Bind user and category for a background admin-panel test send."""
+    @handle_errors("initializing background UI request worker", default_return=None)
+    def __init__(self, action, *args):
+        """Bind an action and its arguments for background execution."""
         super().__init__()
-        self.user_id = user_id
-        self.category = category
+        self.action = action
+        self.args = args
 
-    @handle_errors("running test message request worker", default_return=None)
+    @handle_errors("running background UI request", default_return=None)
     def run(self):
-        """Create the test-message request flag and poll until the service responds."""
-        outcome = request_actions.create_test_message_request(
-            self.user_id, self.category
-        )
-        self.finished.emit(outcome)
+        """Run the bound request action and emit its UI-neutral outcome."""
+        outcome = None
+        try:
+            outcome = self.action(*self.args)
+        finally:
+            self.finished.emit(outcome)
 
 
 class MHMManagerUI(QMainWindow):
@@ -118,7 +119,10 @@ class MHMManagerUI(QMainWindow):
             self.update_service_status()
         self._test_message_in_flight = False
         self._test_message_thread: QThread | None = None
-        self._test_message_worker: _TestMessageRequestWorker | None = None
+        self._test_message_worker: _RequestActionWorker | None = None
+        self._checkin_prompt_in_flight = False
+        self._checkin_prompt_thread: QThread | None = None
+        self._checkin_prompt_worker: _RequestActionWorker | None = None
 
     @handle_errors("resolving delegated UI action", re_raise=True)
     def __getattr__(self, name):
@@ -425,8 +429,10 @@ class MHMManagerUI(QMainWindow):
             return
 
         self._test_message_thread = QThread(self)
-        self._test_message_worker = _TestMessageRequestWorker(
-            self.current_user, category
+        self._test_message_worker = _RequestActionWorker(
+            request_actions.create_test_message_request,
+            self.current_user,
+            category,
         )
         self._test_message_worker.moveToThread(self._test_message_thread)
         self._test_message_thread.started.connect(self._test_message_worker.run)
@@ -456,10 +462,82 @@ class MHMManagerUI(QMainWindow):
 
     @handle_errors("sending check-in prompt", default_return=None)
     def send_checkin_prompt(self):
-        """Create a service-handled check-in prompt request."""
-        request_actions.send_checkin_prompt_request(
-            self, self.current_user, self.service_manager, message_box=QMessageBox
+        """Create a service-handled check-in prompt request in the background."""
+        if self._checkin_prompt_in_flight:
+            logger.info(
+                "Admin Panel: Ignoring duplicate check-in prompt click while send is in progress"
+            )
+            return
+        if not request_actions.validate_selected_user(
+            self, self.current_user, message_box=QMessageBox
+        ):
+            return
+        if not request_actions.validate_service_running(
+            self,
+            self.service_manager,
+            "Check-in prompts",
+            message_box=QMessageBox,
+        ):
+            return
+
+        button = self.ui.pushButton_send_checkin_prompt
+        self._checkin_prompt_button_default_text = button.text()
+        self._checkin_prompt_in_flight = True
+        button.setEnabled(False)
+        button.setText("Sending...")
+
+        if os.getenv("MHM_TESTING") == "1":
+            try:
+                outcome = request_actions.create_checkin_prompt_request(
+                    self.current_user
+                )
+                request_actions.show_request_action_outcome(
+                    self, outcome, message_box=QMessageBox
+                )
+            finally:
+                self._checkin_prompt_in_flight = False
+                button.setEnabled(True)
+                button.setText(self._checkin_prompt_button_default_text)
+            return
+
+        self._checkin_prompt_thread = QThread(self)
+        self._checkin_prompt_worker = _RequestActionWorker(
+            request_actions.create_checkin_prompt_request,
+            self.current_user,
         )
+        self._checkin_prompt_worker.moveToThread(self._checkin_prompt_thread)
+        self._checkin_prompt_thread.started.connect(self._checkin_prompt_worker.run)
+        self._checkin_prompt_worker.finished.connect(
+            self._on_checkin_prompt_request_finished
+        )
+        self._checkin_prompt_worker.finished.connect(self._checkin_prompt_thread.quit)
+        self._checkin_prompt_worker.finished.connect(
+            self._checkin_prompt_worker.deleteLater
+        )
+        self._checkin_prompt_thread.finished.connect(
+            self._checkin_prompt_thread.deleteLater
+        )
+        self._checkin_prompt_thread.start()
+
+    @handle_errors("finalizing check-in prompt request", default_return=None)
+    def _on_checkin_prompt_request_finished(self, outcome):
+        """Show the check-in result and restore its button on the UI thread."""
+        self._checkin_prompt_thread = None
+        self._checkin_prompt_worker = None
+        button = self.ui.pushButton_send_checkin_prompt
+        try:
+            request_actions.show_request_action_outcome(
+                self, outcome, message_box=QMessageBox
+            )
+        finally:
+            self._checkin_prompt_in_flight = False
+            button.setEnabled(True)
+            default_text = getattr(
+                self,
+                "_checkin_prompt_button_default_text",
+                "Send Check-in Prompt",
+            )
+            button.setText(default_text)
 
     @handle_errors("sending task reminder", default_return=None)
     def send_task_reminder(self):

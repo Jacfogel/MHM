@@ -85,6 +85,91 @@ C:\\TEST
         content = Path(output_file).read_text()
         assert "# Project Directory Tree" in content
         assert "**Generated**" in content or "Generated" in content
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_generation_uses_git_manifest_and_excludes_runtime_secrets(
+        self, mock_subprocess, tmp_path
+    ):
+        """Ignored and sensitive runtime files never enter generated docs."""
+        (tmp_path / ".git").mkdir()
+
+        def command_result(command, **_kwargs):
+            if command[0] == "git":
+                return MagicMock(
+                    returncode=0,
+                    stdout=(
+                        ".env\0.env.example\0leaked.flag\0README.md\0"
+                        ".wrangler/cache/cf.json\0logs/LOGGING_GUIDE.md\0"
+                        "runtime.log\0service.pid\0src/app.py\0"
+                    ),
+                )
+            return MagicMock(
+                returncode=0,
+                stdout=r"""Folder PATH listing
+C:\TEST
+|   .env
+|   .env.example
+|   ignored-secret.txt
+|   leaked.flag
+|   README.md
+|   runtime.log
+|   service.pid
++---.wrangler
+|   \---cache
+|           cf.json
++---data
+|       private.json
++---logs
+|       LOGGING_GUIDE.md
+\---src
+        app.py
+""",
+            )
+
+        mock_subprocess.side_effect = command_result
+
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        content = Path(output_file).read_text()
+
+        assert "README.md" in content
+        assert ".env.example" in content
+        assert "app.py" in content
+        assert "ignored-secret.txt" not in content
+        assert "|   .env\n" not in content
+        assert ".flag" not in content
+        assert ".log" not in content
+        assert ".pid" not in content
+        assert "+---.wrangler" not in content
+        assert "+---data" not in content
+        assert "+---logs" not in content
+
+        git_call = next(
+            call for call in mock_subprocess.call_args_list if call.args[0][0] == "git"
+        )
+        assert "--exclude-standard" in git_call.args[0]
+        assert git_call.kwargs["cwd"] == tmp_path.resolve()
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_git_manifest_failure_fails_closed(self, mock_subprocess, tmp_path):
+        """A Git failure must not fall back to documenting raw checkout files."""
+        (tmp_path / ".git").mkdir()
+        mock_subprocess.side_effect = [
+            MagicMock(returncode=1, stdout="", stderr="Git failed"),
+            MagicMock(
+                returncode=0,
+                stdout="C:\\TEST\n|   ignored-secret.txt\n|   README.md\n",
+            ),
+        ]
+
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        content = Path(output_file).read_text()
+
+        assert "ignored-secret.txt" not in content
+        assert "README.md" not in content
     
     @pytest.mark.unit
     @patch('subprocess.run')

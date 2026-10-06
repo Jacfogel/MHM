@@ -10,18 +10,18 @@ pytestmark = [pytest.mark.ui]
 
 
 @pytest.mark.ui
-def test_create_test_message_request_writes_flag_and_restores_user_context(tmp_path):
-    context = Mock()
-    context.get_user_id.return_value = "original-user"
-
+def test_create_test_message_request_writes_flag_without_mutating_user_context(
+    tmp_path,
+):
     with patch.object(request_actions, "get_flags_dir", return_value=tmp_path), \
         patch.object(request_actions, "now_timestamp_full", return_value="2026-06-06T00:00:00"), \
-        patch.object(request_actions, "UserContext", return_value=context), \
+        patch.object(request_actions, "UserContext", create=True) as context_factory, \
         patch.object(
             request_actions,
             "get_user_data",
             return_value={"preferences": {"channel": {"type": "discord"}}},
         ), \
+        patch.object(request_actions, "_poll_response_file", return_value={}), \
         patch.object(request_actions, "_schedule_stale_request_cleanup") as cleanup:
         outcome = request_actions.create_test_message_request(
             "test-user", "motivational"
@@ -32,8 +32,7 @@ def test_create_test_message_request_writes_flag_and_restores_user_context(tmp_p
     assert outcome.level == "info"
     assert outcome.request_file == request_file
     assert "via discord" in outcome.message
-    context.set_user_id.assert_any_call("test-user")
-    context.set_user_id.assert_called_with("original-user")
+    context_factory.assert_not_called()
     cleanup.assert_called_once_with(request_file)
 
 
