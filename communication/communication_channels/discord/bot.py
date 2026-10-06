@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import contextlib
 import queue
 import threading
@@ -40,6 +41,8 @@ from core import get_user_id_by_identifier  # noqa: F401  # patch surface for co
 
 discord_logger = get_component_logger("discord")
 logger = discord_logger
+
+_SEND_RESULT_TIMEOUT_SECONDS = 10.0
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -204,9 +207,25 @@ class DiscordBot(
 
     @handle_errors("running Discord bot in thread")
     def initialize__run_bot_in_thread(self):
-        self._loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._loop)
-        self._loop.run_until_complete(self.initialize__bot_main_loop())
+        loop = asyncio.new_event_loop()
+        self._loop = loop
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self.initialize__bot_main_loop())
+        finally:
+            if not loop.is_closed():
+                pending = [task for task in asyncio.all_tasks(loop) if not task.done()]
+                for task in pending:
+                    task.cancel()
+                if pending:
+                    loop.run_until_complete(
+                        asyncio.gather(*pending, return_exceptions=True)
+                    )
+                loop.run_until_complete(loop.shutdown_asyncgens())
+                loop.close()
+            asyncio.set_event_loop(None)
+            if self._loop is loop:
+                self._loop = None
 
     @handle_errors("running Discord bot main loop")
     async def initialize__bot_main_loop(self):
@@ -253,14 +272,35 @@ class DiscordBot(
         while True:
             try:
                 try:
-                    command, args = self._command_queue.get_nowait()
+                    item = self._command_queue.get_nowait()
+                    command, args = item[:2]
+                    response_future = (
+                        item[2]
+                        if len(item) == 3
+                        and isinstance(item[2], concurrent.futures.Future)
+                        else None
+                    )
                     if command == "send_message":
-                        if len(args) in (4, 5):
-                            result = await self._send_message_internal(*args)
-                        else:
-                            logger.error(f"Invalid send_message args: {args}")
+                        if response_future is not None and response_future.cancelled():
+                            continue
+                        try:
+                            if len(args) in (4, 5):
+                                result = await self._send_message_internal(*args)
+                            else:
+                                logger.error(f"Invalid send_message args: {args}")
+                                result = False
+                        except Exception as exc:
+                            logger.error(
+                                f"Discord queued send failed: {exc}", exc_info=True
+                            )
                             result = False
-                        self._result_queue.put(result)
+                        if response_future is not None:
+                            if not response_future.done():
+                                response_future.set_result(result)
+                        else:
+                            # Compatibility for internal callers that still enqueue
+                            # two-item commands. New sends use a per-request future.
+                            self._result_queue.put(result)
                     elif command == "stop":
                         logger.info("Discord bot received stop command")
                         return
@@ -464,7 +504,6 @@ class DiscordBot(
         import gc
         import aiohttp
 
-        gc.collect()
         for obj in gc.get_objects():
             if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
                 try:
@@ -539,15 +578,17 @@ class DiscordBot(
         custom_view = kwargs.get("view")
         if custom_view:
             args = (*args, custom_view)
-        self._command_queue.put(("send_message", args))
-        start_time = time.time()
-        while time.time() - start_time < 10:
-            try:
-                return self._result_queue.get_nowait()
-            except queue.Empty:
-                time.sleep(0.1)
-        logger.error(f"Timeout waiting for Discord message send to {recipient}")
-        return False
+        response_future: concurrent.futures.Future[bool] = concurrent.futures.Future()
+        self._command_queue.put(("send_message", args, response_future))
+        try:
+            return await asyncio.wait_for(
+                asyncio.wrap_future(response_future),
+                timeout=_SEND_RESULT_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            response_future.cancel()
+            logger.error(f"Timeout waiting for Discord message send to {recipient}")
+            return False
 
     @handle_errors("sending Discord DM", default_return=False)
     async def send_dm(self, user_id: str, message: str) -> bool:

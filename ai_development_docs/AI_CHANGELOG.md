@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Discord concurrency, error recovery, and test diagnostics hardened **COMPLETED**
+- Discord sends now use per-request futures without blocking the event loop, worker loops shut down cleanly, and connection-health probes close their sockets immediately.
+- Error recovery no longer repeats side effects by default or disables later operations through a process-lifetime retry counter; retries are explicit, bounded, and omit call arguments from retained context.
+- Test configuration now exposes ordinary warnings and fails on unhandled-thread, unraisable, unawaited-coroutine, and unclosed-resource defects, with focused Discord, health-route, and recovery regression coverage.
+- Verification is clean: the scoped Tier 3 runner reports zero failures or errors, the focused Discord run passes 91 tests, and Ruff and Pyright report no findings.
+
 ### 2026-10-06 - Desktop request actions preserve account context and UI responsiveness **COMPLETED**
 - Test-message requests no longer mutate the process-wide `UserContext`, preventing background polling from exposing or restoring the wrong active account.
 - Check-in prompt response polling now runs through the same background Qt worker pattern as test messages, with duplicate-send protection and button-state recovery.

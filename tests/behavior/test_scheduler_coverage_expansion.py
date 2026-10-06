@@ -1196,7 +1196,6 @@ class TestSchedulerLoopCoverage:
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
-    @pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
     @pytest.mark.slow
     def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop error handling when scheduling fails."""

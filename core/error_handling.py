@@ -416,8 +416,6 @@ class ErrorHandler:
             NetworkRecovery(),
             ConfigurationRecovery(),
         ]
-        self.error_count: dict[str, int] = {}
-        self.max_retries = 3
 
     def handle_error(
         self,
@@ -444,21 +442,6 @@ class ErrorHandler:
         # Log the error
         self._log_error(error, context)
 
-        # Check if we've exceeded retry limits
-        error_key = f"{type(error).__name__}:{operation}"
-        if self.error_count.get(error_key, 0) >= self.max_retries:
-            import os
-
-            if os.getenv("MHM_TESTING") == "1":
-                _safe_logger.debug(
-                    f"Maximum retries exceeded for {error_key} (expected in tests)"
-                )
-            else:
-                _safe_logger.error(f"Maximum retries exceeded for {error_key}")
-            if user_friendly:
-                self._show_user_error(error, context, "Maximum retries exceeded")
-            return False
-
         # Try recovery strategies
         for strategy in self.recovery_strategies:
             if strategy.can_handle(error):
@@ -471,9 +454,6 @@ class ErrorHandler:
                     )
                     return True
                 _safe_logger.warning(f"Recovery strategy {strategy.name} failed")
-
-        # Increment error count
-        self.error_count[error_key] = self.error_count.get(error_key, 0) + 1
 
         # Show user-friendly error if requested
         if user_friendly:
@@ -575,6 +555,7 @@ def handle_errors(
     user_friendly: bool = True,
     default_return=None,
     re_raise: bool = False,
+    retry_after_recovery: bool = False,
 ):
     """
     Decorator to automatically handle errors in functions.
@@ -585,6 +566,9 @@ def handle_errors(
         user_friendly: Whether to show user-friendly error messages
         default_return: Value to return if error occurs and can't be recovered
         re_raise: If True, log/handle the error then re-raise instead of returning default_return
+        retry_after_recovery: Re-run the wrapped function once after successful
+            recovery. This must be explicitly enabled because repeating a side
+            effect can duplicate messages, writes, or external requests.
     """
 
     def decorator(func: Callable) -> Callable:
@@ -597,23 +581,20 @@ def handle_errors(
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
                 op_name = operation or func.__name__
-                ctx = context or {}
+                ctx = dict(context or {})
 
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    # Add function context
-                    ctx.update(
-                        {
-                            "function": func.__name__,
-                            "args": str(args),
-                            "kwargs": str(kwargs),
-                        }
-                    )
+                    # Never retain arbitrary args/kwargs in error context: callers
+                    # may pass passwords, tokens, or personal data.
+                    ctx["function"] = func.__name__
 
                     # Try to handle the error
-                    if error_handler.handle_error(e, ctx, op_name, user_friendly):
-                        # If recovery was successful, try the operation again
+                    recovered = error_handler.handle_error(
+                        e, ctx, op_name, user_friendly
+                    )
+                    if recovered and retry_after_recovery:
                         try:
                             return await func(*args, **kwargs)
                         except Exception as e2:
@@ -633,23 +614,20 @@ def handle_errors(
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 op_name = operation or func.__name__
-                ctx = context or {}
+                ctx = dict(context or {})
 
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
-                    # Add function context
-                    ctx.update(
-                        {
-                            "function": func.__name__,
-                            "args": str(args),
-                            "kwargs": str(kwargs),
-                        }
-                    )
+                    # Never retain arbitrary args/kwargs in error context: callers
+                    # may pass passwords, tokens, or personal data.
+                    ctx["function"] = func.__name__
 
                     # Try to handle the error
-                    if error_handler.handle_error(e, ctx, op_name, user_friendly):
-                        # If recovery was successful, try the operation again
+                    recovered = error_handler.handle_error(
+                        e, ctx, op_name, user_friendly
+                    )
+                    if recovered and retry_after_recovery:
                         try:
                             return func(*args, **kwargs)
                         except Exception as e2:

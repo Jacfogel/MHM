@@ -228,6 +228,65 @@ class TestHandleErrorsDecorator:
             assert "test operation" in log_blob and "Test error" in log_blob
             assert "User Error:" in log_blob
 
+    @pytest.mark.unit
+    @pytest.mark.critical
+    def test_recovery_does_not_retry_side_effect_by_default(self):
+        """A successful recovery must not repeat an arbitrary wrapped operation."""
+        calls = []
+
+        @handle_errors("side effect", default_return="not repeated")
+        def side_effect():
+            calls.append("called")
+            raise ConnectionError("temporary network failure")
+
+        with patch.object(_error_handling_mod, "wait_for_network", return_value=True):
+            assert side_effect() == "not repeated"
+
+        assert calls == ["called"]
+
+    @pytest.mark.unit
+    @pytest.mark.regression
+    def test_recovery_retry_is_explicit_and_bounded(self):
+        """Idempotent operations can opt into exactly one post-recovery retry."""
+        calls = []
+
+        @handle_errors(
+            "idempotent read",
+            default_return="failed",
+            retry_after_recovery=True,
+        )
+        def idempotent_read():
+            calls.append("called")
+            if len(calls) == 1:
+                raise ConnectionError("temporary network failure")
+            return "recovered"
+
+        with patch.object(_error_handling_mod, "wait_for_network", return_value=True):
+            assert idempotent_read() == "recovered"
+
+        assert calls == ["called", "called"]
+
+    @pytest.mark.unit
+    @pytest.mark.regression
+    def test_error_context_does_not_retain_arguments_or_mutate_template(self):
+        """Sensitive call arguments stay out of reusable decorator context."""
+        template = {"component": "auth"}
+        captured = []
+
+        def capture(_error, context, _operation, _user_friendly=True):
+            captured.append(dict(context))
+            return False
+
+        @handle_errors("authenticate", context=template, default_return=False)
+        def authenticate(password):
+            raise ValueError(f"invalid password length: {len(password)}")
+
+        with patch.object(_error_handling_mod.error_handler, "handle_error", capture):
+            assert authenticate("secret-value") is False
+
+        assert template == {"component": "auth"}
+        assert captured == [{"component": "auth", "function": "authenticate"}]
+
 
 @pytest.mark.core
 class TestErrorHandlingFunctions:

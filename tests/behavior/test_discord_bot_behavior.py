@@ -9,9 +9,11 @@ import pytest
 import asyncio
 import time
 import socket
+import threading
 from unittest.mock import patch, MagicMock, AsyncMock
 import queue
 import core.config
+import communication.communication_channels.discord.bot as discord_bot_module
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
@@ -79,6 +81,21 @@ class TestDiscordBotBehavior:
         assert channel_type == ChannelType.ASYNC, "Discord bot should be ASYNC channel type"
 
     @pytest.mark.communication
+    @pytest.mark.regression
+    def test_discord_worker_closes_its_event_loop(self, test_data_dir):
+        """The Discord worker must release its Windows loop sockets on exit."""
+        bot = DiscordBot()
+        loop = asyncio.new_event_loop()
+
+        with patch("asyncio.new_event_loop", return_value=loop), patch.object(
+            bot, "initialize__bot_main_loop", new_callable=AsyncMock
+        ):
+            bot.initialize__run_bot_in_thread()
+
+        assert loop.is_closed()
+        assert bot._loop is None
+
+    @pytest.mark.communication
     def test_dns_resolution_check_actually_tests_connectivity(self, test_data_dir):
         """Test that DNS resolution check actually tests network connectivity"""
         bot = DiscordBot()
@@ -115,12 +132,15 @@ class TestDiscordBotBehavior:
         bot = DiscordBot()
         
         with patch('socket.create_connection') as mock_connect:
-            mock_connect.return_value = MagicMock()
+            connection = MagicMock()
+            mock_connect.return_value = connection
             
             result = bot._check_network_connectivity("discord.com", 443)
             
             assert result is True, "Network connectivity should succeed"
             assert mock_connect.called, "Socket connection should be attempted"
+            connection.__enter__.assert_called_once_with()
+            connection.__exit__.assert_called_once()
 
     @pytest.mark.communication
     def test_network_connectivity_fallback_tries_alternative_endpoints(self, test_data_dir):
@@ -226,36 +246,114 @@ class TestDiscordBotBehavior:
         assert bot.get_status() == ChannelStatus.STOPPED, "Status should be STOPPED"
 
     def _ready_bot_with_queued_send_result(self, mock_discord_bot, result=True):
-        """READY bot whose worker already posted a send result (no 10s empty-queue poll)."""
+        """READY bot with a thread that completes its next per-request future."""
         bot = DiscordBot()
         bot.bot = mock_discord_bot
         bot._set_status(ChannelStatus.READY)
-        bot._result_queue.put(result)
-        return bot
+        observed = {}
+
+        def complete_next_send():
+            try:
+                command, args, response_future = bot._command_queue.get(timeout=1)
+            except queue.Empty:
+                return
+            observed["command"] = command
+            observed["args"] = args
+            response_future.set_result(result)
+
+        worker = threading.Thread(target=complete_next_send, daemon=True)
+        worker.start()
+        return bot, worker, observed
 
     @pytest.mark.communication
     @pytest.mark.critical
     def test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot):
         """Test that send_message queues the send and returns the worker result."""
-        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, True)
+        bot, worker, observed = self._ready_bot_with_queued_send_result(
+            mock_discord_bot, True
+        )
 
         result = asyncio.run(bot.send_message("test_channel", "Test message"))
+        worker.join(timeout=1)
 
         assert result is True, "Queued send should return the worker success result"
-        command, args = bot._command_queue.get_nowait()
-        assert command == "send_message"
-        assert args[0] == "test_channel"
-        assert args[1] == "Test message"
+        assert observed["command"] == "send_message"
+        assert observed["args"][0] == "test_channel"
+        assert observed["args"][1] == "Test message"
 
     @pytest.mark.communication
     @pytest.mark.regression
     def test_discord_bot_send_message_handles_errors(self, test_data_dir, mock_discord_bot):
         """Test that send_message returns False when the worker reports failure."""
-        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, False)
+        bot, worker, _observed = self._ready_bot_with_queued_send_result(
+            mock_discord_bot, False
+        )
 
         result = asyncio.run(bot.send_message("test_channel", "Test message"))
+        worker.join(timeout=1)
 
         assert result is False, "Message sending should fail when the worker reports failure"
+
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.asyncio
+    async def test_discord_send_results_stay_correlated_for_overlapping_calls(
+        self, test_data_dir, mock_discord_bot
+    ):
+        """Each caller receives its own result when sends overlap."""
+        bot = DiscordBot()
+        bot.bot = mock_discord_bot
+        bot._set_status(ChannelStatus.READY)
+
+        async def send_internal(_recipient, message, *_args):
+            await asyncio.sleep(0.01)
+            return message == "succeeds"
+
+        with patch.object(bot, "_send_message_internal", side_effect=send_internal):
+            worker = asyncio.create_task(bot.initialize__process_command_queue())
+            try:
+                results = await asyncio.gather(
+                    bot.send_message("one", "fails"),
+                    bot.send_message("two", "succeeds"),
+                )
+            finally:
+                bot._command_queue.put(("stop", ()))
+                await worker
+
+        assert results == [False, True]
+
+    @pytest.mark.communication
+    @pytest.mark.regression
+    @pytest.mark.asyncio
+    async def test_timed_out_discord_send_cannot_poison_the_next_result(
+        self, test_data_dir, mock_discord_bot, monkeypatch
+    ):
+        """A cancelled queued request is skipped and cannot satisfy a later send."""
+        bot = DiscordBot()
+        bot.bot = mock_discord_bot
+        bot._set_status(ChannelStatus.READY)
+        monkeypatch.setattr(discord_bot_module, "_SEND_RESULT_TIMEOUT_SECONDS", 0.01)
+
+        assert await bot.send_message("old", "timed out") is False
+        timed_out_item = bot._command_queue.get_nowait()
+        assert timed_out_item[2].cancelled()
+        bot._command_queue.put(timed_out_item)
+        monkeypatch.setattr(discord_bot_module, "_SEND_RESULT_TIMEOUT_SECONDS", 0.5)
+
+        with patch.object(
+            bot, "_send_message_internal", new_callable=AsyncMock, return_value=True
+        ) as send_internal:
+            worker = asyncio.create_task(bot.initialize__process_command_queue())
+            try:
+                assert await bot.send_message("new", "current") is True
+            finally:
+                bot._command_queue.put(("stop", ()))
+                await worker
+
+        send_internal.assert_awaited_once()
+        await_args = send_internal.await_args
+        assert await_args is not None
+        assert await_args.args[:2] == ("new", "current")
 
     @pytest.mark.communication
     @pytest.mark.regression
@@ -625,15 +723,17 @@ class TestDiscordBotBehavior:
     @pytest.mark.regression
     def test_discord_bot_send_dm_actually_sends_direct_message(self, test_data_dir, mock_discord_bot):
         """Test that send_dm queues a send_message and returns the worker result."""
-        bot = self._ready_bot_with_queued_send_result(mock_discord_bot, True)
+        bot, worker, observed = self._ready_bot_with_queued_send_result(
+            mock_discord_bot, True
+        )
 
         result = asyncio.run(bot.send_dm("user123", "Test DM"))
+        worker.join(timeout=1)
 
         assert result is True, "Queued DM should return the worker success result"
-        command, args = bot._command_queue.get_nowait()
-        assert command == "send_message"
-        assert args[0] == "user123"
-        assert args[1] == "Test DM"
+        assert observed["command"] == "send_message"
+        assert observed["args"][0] == "user123"
+        assert observed["args"][1] == "Test DM"
 
 
 @pytest.mark.behavior
@@ -1043,7 +1143,6 @@ class TestDiscordBotIntegration:
 
     @pytest.mark.communication
     @pytest.mark.asyncio
-    @pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")
     async def test_cleanup_event_loop_safely_cancels_tasks(self, test_data_dir):
         """Test that cleanup event loop safely cancels tasks"""
         bot = DiscordBot()
@@ -1111,8 +1210,6 @@ class TestDiscordBotIntegration:
     @pytest.mark.communication
     def test_check_network_health_checks_bot_latency(self, test_data_dir):
         """Test that check network health checks bot latency"""
-        import warnings
-        
         bot = DiscordBot()
         
         # Create mock bot with good latency - use spec to avoid AsyncMock issues
@@ -1136,23 +1233,7 @@ class TestDiscordBotIntegration:
             result = bot._check_network_health()
             assert result is False, "Should return False with high latency"
         
-        # Clean up to avoid warnings - ensure no async operations are triggered
-        # Suppress warnings from async cleanup that might happen after event loop closes
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            # Suppress PytestUnraisableExceptionWarning from async cleanup
-            try:
-                PytestUnraisableExceptionWarning = getattr(
-                    __import__("pytest", fromlist=["PytestUnraisableExceptionWarning"]),
-                    "PytestUnraisableExceptionWarning",
-                    None,
-                )
-                if PytestUnraisableExceptionWarning is not None:
-                    warnings.simplefilter("ignore", PytestUnraisableExceptionWarning)
-            except ImportError:
-                # If pytest version doesn't have this, just ignore RuntimeWarning
-                pass
-            bot.bot = None
+        bot.bot = None
 
     @pytest.mark.communication
     @pytest.mark.critical

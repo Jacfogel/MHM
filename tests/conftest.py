@@ -41,10 +41,8 @@ import logging
 import warnings
 import re
 
-# CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
-# These warnings are emitted during module import, so they must be filtered before any other imports
-# Use simplefilter to catch all DeprecationWarnings, then add specific filters
-warnings.simplefilter("ignore", DeprecationWarning)
+# A few development-tool modules are intentionally loaded through importlib in
+# tests. Suppress only that known loader warning; keep other deprecations visible.
 warnings.filterwarnings(
     "ignore", message=".*__package__.*", category=DeprecationWarning
 )
@@ -153,8 +151,6 @@ warnings.filterwarnings(
     message=".*parameter 'timeout' of type 'float' is deprecated.*",
     category=DeprecationWarning,
 )
-warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
-warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
 # Suppress PytestCollectionWarning for development tools implementation classes
 # These classes (TestCoverageAnalyzer, TestCoverageReportGenerator) are implementation classes, not test classes
 # They start with "Test" which makes pytest try to collect them, but they have __init__ constructors
@@ -182,18 +178,7 @@ warnings.filterwarnings(
     "ignore", message=".*__package__.*", category=DeprecationWarning
 )
 
-# Suppress specific Discord library warnings more broadly
-warnings.filterwarnings("ignore", module="discord.player")
-warnings.filterwarnings("ignore", module="discord.http")
-warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning)
-warnings.filterwarnings(
-    "ignore", message=".*timeout.*deprecated.*", category=DeprecationWarning
-)
-
-# Additional comprehensive warning suppression
-# Suppress audioop deprecation warning from discord.player (Python 3.13 deprecation)
-# Note: This warning comes from discord library's use of deprecated audioop module
-# It will be fixed when discord.py updates, but we suppress it in tests for now
+# Suppress only the two known third-party Discord deprecations.
 warnings.filterwarnings(
     "ignore", message=".*audioop.*deprecated.*", category=DeprecationWarning
 )
@@ -206,31 +191,6 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.player")
 warnings.filterwarnings(
     "ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*"
-)
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.http")
-
-# Suppress aiohttp client session warnings
-warnings.filterwarnings(
-    "ignore", message=".*Unclosed client session.*", category=ResourceWarning
-)
-warnings.filterwarnings(
-    "ignore",
-    message=".*Task was destroyed but it is pending.*",
-    category=RuntimeWarning,
-)
-# Suppress unawaited coroutine warnings from Discord bot event handlers in test environments
-# This is expected when using mocks - the coroutines are created but never executed
-# The coroutine is registered with @bot.event but may not be awaited in test environments
-warnings.filterwarnings(
-    "ignore",
-    message=".*coroutine.*_on_ready_internal.*was never awaited.*",
-    category=RuntimeWarning,
-)
-warnings.filterwarnings(
-    "ignore",
-    message=".*coroutine.*was never awaited.*",
-    category=RuntimeWarning,
-    module="communication.communication_channels.discord.bot",
 )
 
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,

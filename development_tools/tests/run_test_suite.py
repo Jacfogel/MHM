@@ -27,7 +27,7 @@ from typing import Any
 
 DEFAULT_TEST_RUN = {
     "pytest_command": [sys.executable, "-m", "pytest"],
-    "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
+    "pytest_base_args": ["--tb=short", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
     # Keep the standalone runner aligned with the configured audit timeout.
@@ -163,7 +163,6 @@ def _append_pytest_runtime_options(
     worker_count: int | None = None,
 ) -> None:
     """Apply the same runtime isolation/verbosity defaults as run_tests.py."""
-    command.extend(["-W", "ignore::DeprecationWarning"])
     run_id = _suite_run_id()
     pytest_root = Path("tests/data/tmp/pytest_runner") / run_id
     parallel_basetemp = pytest_root / "parallel"

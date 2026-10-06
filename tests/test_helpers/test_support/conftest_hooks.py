@@ -832,6 +832,19 @@ def periodic_memory_cleanup(request):
 
     yield
 
+    # pytest-asyncio 1.3 can restore an idle policy loop without closing it on
+    # Windows.  Close that external fixture loop before a later asyncio.run()
+    # detaches it and turns it into an unraisable ResourceWarning.
+    import asyncio
+
+    policy = asyncio.get_event_loop_policy()
+    policy_local = getattr(policy, "_local", None)
+    policy_loop = getattr(policy_local, "_loop", None)
+    if policy_loop is not None and not policy_loop.is_running():
+        if not policy_loop.is_closed():
+            policy_loop.close()
+        asyncio.set_event_loop(None)
+
     _periodic_cleanup_test_count += 1
     test_count = _periodic_cleanup_test_count
 

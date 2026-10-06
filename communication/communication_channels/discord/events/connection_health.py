@@ -126,7 +126,13 @@ class DiscordConnectionHealthMixin:
             endpoints.insert(0, (hostname, port))
         for endpoint_hostname, endpoint_port in endpoints:
             try:
-                socket.create_connection((endpoint_hostname, endpoint_port), timeout=5)
+                # The connectivity probe only needs to complete the handshake.
+                # Close the socket immediately so repeated health checks do not
+                # leak descriptors or defer cleanup to the garbage collector.
+                with socket.create_connection(
+                    (endpoint_hostname, endpoint_port), timeout=5
+                ):
+                    pass
                 self._network_success_count = (
                     getattr(self, "_network_success_count", 0) + 1
                 )

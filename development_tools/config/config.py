@@ -707,7 +707,7 @@ SUITE_PROFILES: dict[str, dict[str, Any]] = {
 
 TEST_RUN_DEFAULTS: dict[str, Any] = {
     "pytest_command": ["{python}", "-m", "pytest"],
-    "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
+    "pytest_base_args": ["--tb=short", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
     # Interactive Tier 3 audits must remain bounded when pytest or a worker

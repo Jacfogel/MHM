@@ -36,7 +36,6 @@ def test_scripts_directory_excluded_from_test_discovery():
             "scripts",
             "--collect-only",
             "-q",
-            "--disable-warnings",
             "--basetemp",
             str(basetemp),
             "-o",
