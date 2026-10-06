@@ -426,6 +426,71 @@ class TestBackupDirectoryRotatingFileHandler:
         # Should not rollover because file is too recent
         assert not result, "Should not rollover recent files"
 
+    @pytest.mark.unit
+    def test_backup_handler_size_rollover_overrides_recent_file_guard(
+        self, temp_log_dir, monkeypatch
+    ):
+        """A recent log over maxBytes should rotate instead of growing unchecked."""
+        monkeypatch.delenv("DISABLE_LOG_ROTATION", raising=False)
+        log_file = temp_log_dir / "size-limited.log"
+        backup_dir = temp_log_dir / "backups"
+        max_bytes = 5 * 1024
+        log_file.write_text("x" * (max_bytes + 1024), encoding="utf-8")
+
+        handler = BackupDirectoryRotatingFileHandler(
+            str(log_file),
+            str(backup_dir),
+            maxBytes=max_bytes,
+            when="midnight",
+            interval=1,
+            backupCount=7,
+            encoding="utf-8",
+        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        first_record = logging.LogRecord(
+            name="test.size.rotation",
+            level=logging.ERROR,
+            pathname="test.py",
+            lineno=1,
+            msg="after-size-rollover",
+            args=(),
+            exc_info=None,
+        )
+
+        try:
+            assert handler.shouldRollover(first_record) is True
+            handler.emit(first_record)
+
+            oversized_record = logging.LogRecord(
+                name="test.size.rotation",
+                level=logging.ERROR,
+                pathname="test.py",
+                lineno=2,
+                msg="y" * (max_bytes + 1024),
+                args=(),
+                exc_info=None,
+            )
+            handler.emit(oversized_record)
+
+            second_record = logging.LogRecord(
+                name="test.size.rotation",
+                level=logging.ERROR,
+                pathname="test.py",
+                lineno=3,
+                msg="after-second-rollover",
+                args=(),
+                exc_info=None,
+            )
+            assert handler.shouldRollover(second_record) is True
+            handler.emit(second_record)
+        finally:
+            handler.close()
+
+        backups = list(backup_dir.glob("size-limited.log.*"))
+        assert len(backups) == 2
+        assert all(backup.stat().st_size >= max_bytes for backup in backups)
+        assert log_file.read_text(encoding="utf-8").strip() == "after-second-rollover"
+
 
 @pytest.mark.core
 class TestHeartbeatWarningFilter:

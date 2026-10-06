@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import gc
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -16,6 +18,45 @@ from communication.communication_channels.discord.bot import (
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.communication]
+
+
+@pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.communication
+async def test_main_loop_consumes_discord_startup_failure(monkeypatch):
+    """An offline Discord startup must not leave an unobserved task failure."""
+    import communication.communication_channels.discord.bot as bot_module
+    from core.error_handling import error_handler
+
+    discord_bot = DiscordBot()
+    client = MagicMock()
+    client.start = AsyncMock(side_effect=ConnectionError("discord offline"))
+    client.is_closed.return_value = False
+    client.close = AsyncMock()
+    discord_bot.bot = client
+    monkeypatch.setattr(bot_module, "DISCORD_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(error_handler, "handle_error", lambda *_args, **_kwargs: False)
+
+    loop = asyncio.get_running_loop()
+    previous_handler = loop.get_exception_handler()
+    unobserved_contexts: list[dict] = []
+    loop.set_exception_handler(
+        lambda _loop, context: unobserved_contexts.append(context)
+    )
+    try:
+        await discord_bot.initialize__bot_main_loop()
+        await asyncio.sleep(0)
+        gc.collect()
+        await asyncio.sleep(0)
+    finally:
+        loop.set_exception_handler(previous_handler)
+
+    client.start.assert_awaited_once_with("test-token")
+    client.close.assert_awaited_once()
+    assert not any(
+        context.get("message") == "Task exception was never retrieved"
+        for context in unobserved_contexts
+    )
 
 
 @pytest.mark.unit

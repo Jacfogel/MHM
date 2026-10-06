@@ -129,3 +129,68 @@ test('password recovery verifies the email code before sending the new password'
   });
     assert.deepEqual(navigation, ['home.html']);
 });
+
+test('social sign-in shows only available providers and uses provider-aware copy', async () => {
+  const listeners = new Map();
+  const nodes = new Map();
+  const socialButtons = new Map([
+    ['google', {
+      textContent: 'Continue with Google', dataset: { provider: 'google' },
+      hidden: true, disabled: true, addEventListener() {}, setAttribute() {}, removeAttribute() {},
+    }],
+    ['facebook', {
+      textContent: 'Continue with Facebook', dataset: { provider: 'facebook' },
+      hidden: true, disabled: true, addEventListener() {}, setAttribute() {}, removeAttribute() {},
+    }],
+  ]);
+  const document = {
+    title: '',
+    getElementById(id) {
+      if (!nodes.has(id)) {
+        nodes.set(id, {
+          value: '', hidden: ['social-login', 'social-hint', 'account-divider'].includes(id),
+          required: false, disabled: false, textContent: '', autocomplete: '',
+          classList: { add() {}, remove() {}, toggle() {} },
+          setAttribute() {}, removeAttribute() {}, focus() {},
+          addEventListener(type, listener) { listeners.set(`${id}:${type}`, listener); },
+        });
+      }
+      return nodes.get(id);
+    },
+    querySelectorAll(selector) {
+      return selector === '[data-provider]' ? [...socialButtons.values()] : [];
+    },
+    querySelector(selector) {
+      const match = selector.match(/^\[data-provider="(.+)"\]$/);
+      return match ? socialButtons.get(match[1]) || null : null;
+    },
+  };
+  const context = vm.createContext({
+    document,
+    Intl,
+    URLSearchParams,
+    location: { search: '?mode=create', assign() {} },
+    fetch: async () => Response.json({ providers: { google: true, facebook: false } }),
+    Response,
+    Error,
+  });
+
+  vm.runInContext(source, context);
+  await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(socialButtons.get('google').hidden, false);
+  assert.equal(socialButtons.get('google').disabled, false);
+  assert.equal(socialButtons.get('facebook').hidden, true);
+  assert.equal(nodes.get('social-login').hidden, false);
+  assert.equal(nodes.get('social-hint').hidden, false);
+  assert.equal(nodes.get('account-divider').hidden, false);
+  assert.equal(
+    nodes.get('social-hint').textContent,
+    'Google can create your account from the email on that profile. Or use a password below.'
+  );
+  assert.equal(
+    nodes.get('form-description').textContent,
+    'Create your MHM account with Google, or with a password. A password is saved only after your email code succeeds.'
+  );
+});

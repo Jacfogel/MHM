@@ -19,7 +19,7 @@ if (creating) {
   document.getElementById('confirm-password').required = true;
   password.autocomplete = 'new-password';
   document.getElementById('form-title').textContent = 'Start where you are.';
-  document.getElementById('form-description').textContent = 'Create your MHM account with Google or Facebook, or with a password. A password is saved only after your email code succeeds.';
+  document.getElementById('form-description').textContent = 'Create your MHM account with your email and a password. The password is saved only after your email code succeeds.';
   document.getElementById('email-hint').textContent = 'We’ll send your one-time verification code here.';
   document.getElementById('primary-action').textContent = 'Create my account →';
   document.getElementById('send-code').hidden = true;
@@ -156,20 +156,36 @@ document.getElementById('start-over').addEventListener('click', () => {
 });
 
 async function loadSocialProviders() {
+  const socialLogin = document.getElementById('social-login');
+  const socialHint = document.getElementById('social-hint');
+  const divider = document.getElementById('account-divider');
   try {
     const result = await api('/api/auth/oauth/providers');
     const available = Object.entries(result.providers || {}).filter(([, enabled]) => enabled);
+    const availableNames = [];
     for (const [provider] of available) {
       const button = document.querySelector(`[data-provider="${provider}"]`);
-      if (button) button.disabled = false;
+      if (button) {
+        button.disabled = false;
+        button.hidden = false;
+        availableNames.push(button.textContent.replace('Continue with ', ''));
+      }
     }
-    document.getElementById('social-hint').textContent = available.length
-      ? (creating
-        ? 'Google or Facebook can create your account from the email on that profile. Or use a password below.'
-        : 'Use a connected provider, or continue with email.')
-      : 'Social sign-in is being set up. Use email for now.';
+    if (!availableNames.length || resetting) return;
+    const providerList = availableNames.length === 1
+      ? availableNames[0]
+      : `${availableNames.slice(0, -1).join(', ')} or ${availableNames.at(-1)}`;
+    socialLogin.hidden = false;
+    socialHint.hidden = false;
+    divider.hidden = false;
+    socialHint.textContent = creating
+      ? `${providerList} can create your account from the email on that profile. Or use a password below.`
+      : `Use ${providerList}, or continue with email.`;
+    if (creating) {
+      document.getElementById('form-description').textContent = `Create your MHM account with ${providerList}, or with a password. A password is saved only after your email code succeeds.`;
+    }
   } catch (_) {
-    document.getElementById('social-hint').textContent = 'Social sign-in is unavailable right now. Use email instead.';
+    // Email and password remain fully usable when provider discovery fails.
   }
 }
 

@@ -31,10 +31,11 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-10-05 - Channel outages stay bounded and quiet **COMPLETED**
-- Equivalent failed deliveries occupy one retry slot, and retry callbacks no longer recursively enqueue another copy when a channel remains unavailable.
-- Successful, exhausted, and explicitly cleared deliveries release retry deduplication state so later legitimate sends remain possible.
-- Inbound email polling now distinguishes an empty inbox from a failed IMAP check, backs off from 1 to 15 minutes during an outage, resets to 30 seconds on recovery, and logs only outage transitions instead of a stack trace every cycle.
-- Real success/failure integration coverage replaces empty retry behavior tests; 69 email-polling and 127 retry-focused tests pass, and Ruff and Pyright are clean.
+- Equivalent failed deliveries occupy one retry slot; failure remains bounded, success/exhaustion releases deduplication state, and a later recovery drains the pending delivery.
+- Inbound email polling distinguishes an empty inbox from failure, backs off from 1 to 15 minutes during an outage, resets to 30 seconds on recovery, and logs only outage transitions.
+- Discord startup task failures are consumed by the normal error path, and the log size limit overrides the recent-file guard while preserving repeated same-day rollovers under unique backup names.
+- Expanded verification passes 161 communication tests and 108 logging tests plus Ruff, Pyright, `doc-sync`, and diff checks; planning now consistently marks website chat complete and the website guide no longer claims removed notebook group views.
+- Live account-flow smoke testing confirmed signed-out routing and led to provider-aware sign-in/create UI: only configured providers appear, copy names the actual choices, email-only fallback stays clean, and all 71 website script tests pass.
 
 ### 2026-10-04 - Task templates and bulk priority changes shipped **COMPLETED**
 - Website task settings can save, edit, and remove up to 20 validated personal templates; they appear in the website task picker alongside built-ins.

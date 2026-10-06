@@ -217,13 +217,21 @@ class DiscordBot(
         bot_task = asyncio.create_task(bot.start(DISCORD_BOT_TOKEN))
         command_task = asyncio.create_task(self.initialize__process_command_queue())
         try:
-            _done, pending = await asyncio.wait(
+            done, pending = await asyncio.wait(
                 [bot_task, command_task], return_when=asyncio.FIRST_COMPLETED
             )
             for task in pending:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
+            # Always consume the completed task result.  If discord.py fails
+            # during startup (for example while the network is unavailable),
+            # leaving the exception on ``bot_task`` produces asyncio's
+            # "Task exception was never retrieved" warning after this
+            # coroutine returns.  Awaiting the done tasks routes the failure
+            # through this method's normal error handling instead.
+            if done:
+                await asyncio.gather(*done)
         finally:
             if not bot.is_closed():
                 await bot.close()

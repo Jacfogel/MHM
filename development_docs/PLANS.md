@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-09-23
+> **Last Updated**: 2026-10-05
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -76,7 +76,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 | Trial and monthly subscription | **PLANNED** | Later | This file Section 7.3 | 30-day trial, then a monthly plan; alpha account stays comped |
-| Talk to MHM on the website | **PLANNED** | Later | This file Section 7.4 | Signed-in conversation page using the same message path as Discord and email |
+| Talk to MHM on the website | **COMPLETED** | Later | This file Section 7.4 | Signed-in conversation uses the shared Discord/email message path |
 
 ---
 
@@ -368,7 +368,7 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 
 ### 7.4 Talk to MHM on the website
 
-**Status**: **DONE**  
+**Status**: **COMPLETED**
 **Added**: 2026-09-23  
 **Completed**: 2026-09-24  
 **Priority**: Later

@@ -510,14 +510,20 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     def shouldRollover(self, record):
         """
         Determine if rollover should occur based on both time and size.
-        Prevents rollover for files that are too small or too recently created.
+        Size limits remain authoritative even for newly created files. Time-based
+        rollover still ignores files that are too small or too recent.
         """
-        # First check if file has meaningful content before considering rollover
-        # This prevents premature rollover of empty or tiny files
+        # A noisy outage can grow a new log very quickly. Check the configured
+        # hard size limit before applying the small/recent guards that exist for
+        # daily rotation.
+        file_size = 0
         if os.path.exists(self.baseFilename):
             try:
-                current_time = int(time.time())
                 file_size = os.path.getsize(self.baseFilename)
+                if self.maxBytes > 0 and file_size >= self.maxBytes:
+                    return True
+
+                current_time = int(time.time())
                 file_mtime = os.path.getmtime(self.baseFilename)
                 file_age_seconds = current_time - file_mtime
 
@@ -535,22 +541,15 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                     return False
 
             except OSError:
-                # If we can't check file stats, proceed with normal rollover checks
-                # This is safer than blocking rollover on stat errors
-                pass
+                # Preserve a size fallback when file metadata is temporarily
+                # unavailable (for example during Windows file contention).
+                if self.maxBytes > 0 and self.stream and hasattr(self.stream, "tell"):
+                    with contextlib.suppress(OSError):
+                        if self.stream.tell() >= self.maxBytes:
+                            return True
 
-        # Check time-based rollover first
-        if super().shouldRollover(record):
-            return True
-
-        # Check size-based rollover if maxBytes is set
-        if self.maxBytes > 0 and self.stream and hasattr(self.stream, "tell"):
-            try:
-                if self.stream.tell() >= self.maxBytes:
-                    return True
-            except OSError:
-                pass
-        return False
+        # Check time-based rollover after the small/recent guards.
+        return bool(super().shouldRollover(record))
 
     @handle_errors("performing log rollover")
     def doRollover(self):
@@ -577,6 +576,11 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         dfn = self.rotation_filename(self.baseFilename + "." + date_suffix)
         backup_name = f"{Path(self.baseFilename).name}.{date_suffix}"
         backup_path = str(Path(self.backup_dir) / backup_name)
+        if os.path.exists(backup_path):
+            sequence = 1
+            while os.path.exists(f"{backup_path}.{sequence}"):
+                sequence += 1
+            backup_path = f"{backup_path}.{sequence}"
 
         # Minimum file size threshold (5KB) - prevents rollover of files with minimal content
         # A single log line can be 200-300 bytes, so we need a reasonable threshold
@@ -586,11 +590,22 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
 
         # Try to handle the rollover with Windows-safe logic
         if os.path.exists(self.baseFilename):
-            should_skip = self._skip_rollover_for_small_or_recent_file(
-                current_time=current_time,
-                min_file_size=MIN_FILE_SIZE,
-                min_file_age_seconds=MIN_FILE_AGE_SECONDS,
-            )
+            size_limit_reached = False
+            with contextlib.suppress(OSError):
+                size_limit_reached = (
+                    self.maxBytes > 0
+                    and os.path.getsize(self.baseFilename) >= self.maxBytes
+                )
+
+            # The age/size guard protects daily rotation from creating tiny
+            # backups. It must not suppress a configured size rollover.
+            should_skip = False
+            if not size_limit_reached:
+                should_skip = self._skip_rollover_for_small_or_recent_file(
+                    current_time=current_time,
+                    min_file_size=MIN_FILE_SIZE,
+                    min_file_age_seconds=MIN_FILE_AGE_SECONDS,
+                )
             if should_skip:
                 return
             if not self._rotate_base_file_to_backup(

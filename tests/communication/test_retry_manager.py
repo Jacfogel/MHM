@@ -278,6 +278,42 @@ class TestRetryManager:
         assert retry_manager.get_queue_size() == 0
         assert retry_manager.queue_failed_message(**message_fields) is True
 
+    def test_outage_retries_stay_bounded_and_recover(self):
+        """Repeated outage failures keep one item and a later success recovers."""
+        send_callback = Mock(side_effect=[False, False, True])
+        retry_manager = RetryManager(send_callback=send_callback)
+        message_fields = {
+            "user_id": "test_user",
+            "category": "health",
+            "message": "Test message",
+            "recipient": "discord_user:test_user",
+            "channel_name": "discord",
+        }
+
+        assert retry_manager.queue_failed_message(**message_fields) is True
+        assert retry_manager.queue_failed_message(**message_fields) is False
+
+        for expected_attempt in (1, 2):
+            queued_message = retry_manager._failed_message_queue.get()
+            queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+            retry_manager._failed_message_queue.put(queued_message)
+
+            retry_manager._process_retry_queue()
+
+            assert send_callback.call_count == expected_attempt
+            assert retry_manager.get_queue_size() == 1
+            assert retry_manager.queue_failed_message(**message_fields) is False
+
+        queued_message = retry_manager._failed_message_queue.get()
+        queued_message.timestamp = datetime(2000, 1, 1, 0, 0, 0)
+        retry_manager._failed_message_queue.put(queued_message)
+
+        retry_manager._process_retry_queue()
+
+        assert send_callback.call_count == 3
+        assert retry_manager.get_queue_size() == 0
+        assert retry_manager.queue_failed_message(**message_fields) is True
+
     def test_process_retry_queue_message_not_ready(self, retry_manager):
         """Test processing retry queue when message is not ready for retry."""
         with patch("communication.core.retry_manager.logger"):

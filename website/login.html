@@ -7,7 +7,7 @@
   <title>Welcome to MHM — Log in or create account</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
   <link rel="stylesheet" href="styles.css?v=fonts-1" />
-  <script src="auth.js?v=setup-1" defer></script>
+  <script src="auth.js?v=providers-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -38,12 +38,12 @@
       <div id="entry-step">
         <h2 id="form-title">Welcome back.</h2>
         <p id="form-description" class="panel-description">Pick up where you left off with your email and password.</p>
-        <div class="social-login" id="social-login" aria-label="Social sign-in options">
-          <button class="social-button" type="button" data-provider="google" disabled>Continue with Google</button>
-          <button class="social-button" type="button" data-provider="facebook" disabled>Continue with Facebook</button>
+        <div class="social-login" id="social-login" aria-label="Social sign-in options" hidden>
+          <button class="social-button" type="button" data-provider="google" disabled hidden>Continue with Google</button>
+          <button class="social-button" type="button" data-provider="facebook" disabled hidden>Continue with Facebook</button>
         </div>
-        <p class="field-hint social-hint" id="social-hint">Social sign-in options appear when configured.</p>
-        <div class="account-divider" id="account-divider"><span>or use email</span></div>
+        <p class="field-hint social-hint" id="social-hint" hidden></p>
+        <div class="account-divider" id="account-divider" hidden><span>or use email</span></div>
         <form id="account-form">
           <div id="create-fields" hidden>
             <label for="preferred-name">Preferred name <span class="optional-label">Optional</span></label>
