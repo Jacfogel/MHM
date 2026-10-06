@@ -163,3 +163,10 @@ test('accounts that already have a support feature skip setup', async () => {
   assert.deepEqual(view.navigation, ['home.html']);
   assert.equal(view.nodes.get('setup-content').hidden, true);
 });
+
+test('setup locks the active step while it is being saved', () => {
+  assert.match(source, /const panel = current \? document\.getElementById\(current\.panel\) : null/);
+  assert.match(source, /if \(panel\) setPanelEnabled\(panel, !busy\)/);
+  assert.match(source, /setupForm\.setAttribute\('aria-busy', 'true'\)/);
+  assert.match(source, /setupForm\.removeAttribute\('aria-busy'\)/);
+});

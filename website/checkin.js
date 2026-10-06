@@ -12,10 +12,18 @@
   const answerField = document.getElementById('checkin-answer-field');
   const answer = document.getElementById('checkin-answer');
   const save = document.getElementById('checkin-save');
+  let sending = false;
 
   function showStatus(text, error = false) {
     status.textContent = text;
     status.classList.toggle('is-error', error);
+  }
+
+  function setBusy(busy) {
+    sending = busy;
+    if (busy) form.setAttribute('aria-busy', 'true');
+    else form.removeAttribute('aria-busy');
+    for (const control of form.querySelectorAll('button, input, select')) control.disabled = busy;
   }
 
   async function api(path, method = 'GET', payload) {
@@ -142,12 +150,16 @@
   }
 
   async function send(payload) {
+    if (sending) return;
+    setBusy(true);
     showStatus(payload.action === 'start' ? 'Starting your check-in…' : 'Saving…');
     try {
       show(await api('/api/checkins', 'POST', payload));
-      if (!form.hidden && !answerField.hidden) answer.focus();
     } catch (error) {
       showStatus(error.message, true);
+    } finally {
+      setBusy(false);
+      if (!form.hidden && !answerField.hidden) answer.focus();
     }
   }
 

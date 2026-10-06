@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Your notebook — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=fonts-1" />
-  <script src="script.js?v=dialog-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=workflow-polish-1" />
+  <script src="script.js?v=dialog-2" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=notes-12" defer></script>
+  <script src="notes.js?v=workflow-polish-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,7 +41,7 @@
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
         <div class="note-list-header"><div class="task-tabs" id="note-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><button id="notes-refresh" class="plain-button" type="button">Refresh notebook</button><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
-        <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong>No entries here yet.</strong></div>
+        <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong id="note-empty-title">No entries here yet.</strong><span id="note-empty-help"></span><button id="note-clear-filters" class="plain-button" type="button" hidden>Clear search and filters</button></div>
       </div>
     </section>
   </main>

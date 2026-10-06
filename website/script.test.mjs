@@ -82,7 +82,12 @@ test('a click outside an open dialog closes it', () => {
   const dialog = {
     open: true,
     closed: false,
+    preventClose: false,
     close() { this.closed = true; this.open = false; },
+    dispatchEvent(event) {
+      if (this.preventClose) event.preventDefault();
+      return !event.defaultPrevented;
+    },
     getBoundingClientRect() { return { left: 100, top: 100, right: 300, bottom: 400 }; },
   };
   vm.runInContext(source, vm.createContext({
@@ -92,6 +97,7 @@ test('a click outside an open dialog closes it', () => {
       addEventListener(type, listener, capture) { listeners[`${type}:${Boolean(capture)}`] = listener; },
     },
     window: { addEventListener() {} },
+    Event,
     WeakMap,
   }));
   const outside = { clientX: 10, clientY: 10 };
@@ -113,6 +119,11 @@ test('a click outside an open dialog closes it', () => {
   dialog.open = false;
   listeners['pointerdown:true'](outside);
   dialog.open = true;
+  listeners['click:false'](outside);
+  assert.equal(dialog.closed, false);
+
+  dialog.preventClose = true;
+  listeners['pointerdown:true'](outside);
   listeners['click:false'](outside);
   assert.equal(dialog.closed, false);
 });

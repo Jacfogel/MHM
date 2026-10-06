@@ -7,6 +7,7 @@ const status = document.getElementById('auth-status');
 const entry = document.getElementById('entry-step');
 const verification = document.getElementById('verify-step');
 const password = document.getElementById('password');
+const code = document.getElementById('code');
 let challenge = '';
 let busy = false;
 
@@ -73,15 +74,19 @@ async function api(path, data) {
   return result;
 }
 
-async function submit(button, operation) {
+async function submit(button, operation, pending = 'Connecting…') {
   if (busy) return;
   busy = true;
   button.disabled = true;
   button.setAttribute('aria-busy', 'true');
-  status.textContent = 'Connecting…';
+  status.textContent = pending;
   status.classList.remove('is-error');
   try { await operation(); }
-  catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+  catch (error) {
+    status.textContent = error.message;
+    status.classList.add('is-error');
+    if (!verification.hidden) code.focus();
+  }
   finally { busy = false; button.disabled = false; button.removeAttribute('aria-busy'); }
 }
 
@@ -106,7 +111,7 @@ async function requestEmailCode(values) {
     ? `Look for a code at ${values.email}. Your ${resetting ? 'new ' : ''}password is saved only after this verification succeeds.`
     : `Look for a code at ${values.email}. Codes are sent to the email saved on your MHM account.`;
   status.textContent = '';
-  document.getElementById('code').focus();
+  code.focus();
 }
 
 document.getElementById('account-form').addEventListener('submit', (event) => {
@@ -123,7 +128,7 @@ document.getElementById('account-form').addEventListener('submit', (event) => {
     }
     await api('/api/auth/password', { email: values.email, password: values.password });
     location.assign('home.html');
-  });
+  }, creating || resetting ? 'Emailing your code…' : 'Signing in…');
 });
 
 document.getElementById('send-code').addEventListener('click', () => {
@@ -132,17 +137,21 @@ document.getElementById('send-code').addEventListener('click', () => {
     document.getElementById('email').reportValidity();
     return;
   }
-  submit(document.getElementById('send-code'), () => requestEmailCode(values));
+  submit(document.getElementById('send-code'), () => requestEmailCode(values), 'Emailing your code…');
 });
 
 document.getElementById('verify-form').addEventListener('submit', (event) => {
   event.preventDefault();
   submit(document.getElementById('verify-code'), async () => {
-    const payload = { challenge, code: document.getElementById('code').value.trim() };
+    const payload = { challenge, code: code.value.trim() };
     if (creating || resetting) payload.password = password.value;
     await api('/api/auth/verify', payload);
     location.assign(creating ? 'setup.html' : 'home.html');
-  });
+  }, 'Checking your code…');
+});
+
+code.addEventListener('input', () => {
+  code.value = code.value.replace(/\D/g, '').slice(0, 6);
 });
 
 document.getElementById('start-over').addEventListener('click', () => {
@@ -150,7 +159,7 @@ document.getElementById('start-over').addEventListener('click', () => {
   challenge = '';
   verification.hidden = true;
   entry.hidden = false;
-  document.getElementById('code').value = '';
+  code.value = '';
   status.textContent = '';
   document.getElementById('email').focus();
 });
@@ -198,6 +207,6 @@ for (const button of document.querySelectorAll('[data-provider]')) {
     const result = await api(`/api/auth/oauth/${provider}/start?timezone=${timezone}`);
     if (!result.url) throw new Error(`${provider} sign-in is unavailable.`);
     location.assign(result.url);
-  }));
+  }, `Opening ${button.dataset.provider}…`));
 }
 loadSocialProviders();

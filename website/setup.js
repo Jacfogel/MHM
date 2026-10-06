@@ -558,8 +558,16 @@
     continueButton.disabled = busy;
     skipButton.disabled = busy;
     backButton.disabled = busy;
-    if (busy) continueButton.setAttribute('aria-busy', 'true');
-    else continueButton.removeAttribute('aria-busy');
+    const current = steps[plan[index]];
+    const panel = current ? document.getElementById(current.panel) : null;
+    if (panel) setPanelEnabled(panel, !busy);
+    if (busy) {
+      setupForm.setAttribute('aria-busy', 'true');
+      continueButton.setAttribute('aria-busy', 'true');
+    } else {
+      setupForm.removeAttribute('aria-busy');
+      continueButton.removeAttribute('aria-busy');
+    }
   }
 
   async function loadSetup() {

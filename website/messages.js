@@ -13,9 +13,14 @@
   const cancel = document.getElementById('message-cancel');
   const previewText = document.getElementById('message-preview-text');
   const previewMeta = document.getElementById('message-preview-meta');
+  const testButton = document.getElementById('message-test');
   const dayChoices = [['ALL', 'Every day'], ['MONDAY', 'Monday'], ['TUESDAY', 'Tuesday'], ['WEDNESDAY', 'Wednesday'], ['THURSDAY', 'Thursday'], ['FRIDAY', 'Friday'], ['SATURDAY', 'Saturday'], ['SUNDAY', 'Sunday']];
   let messages = [];
   let editing = null;
+  let loadedCategory = '';
+  let loadRequest = 0;
+  let saving = false;
+  let sessionEnded = false;
 
   function showStatus(message, error = false) {
     status.textContent = message;
@@ -80,13 +85,16 @@
   }
   function resetForm(periodNames = []) {
     editing = null; form.reset(); active.checked = true;
+    form.dataset.dirty = 'false';
     document.getElementById('message-form-title').textContent = 'Add a message'; cancel.hidden = true;
     renderChoices(periodNames);
     setExtraOpen(false);
     updatePreview();
   }
   function edit(message, periodNames) {
+    if (form.dataset.dirty === 'true' && !window.confirm('Discard this unsaved message and edit another one?')) return;
     editing = message; text.value = message.text; active.checked = message.active;
+    form.dataset.dirty = 'false';
     document.getElementById('message-form-title').textContent = 'Edit message'; cancel.hidden = false;
     renderChoices(periodNames, message.days, message.periods);
     setExtraOpen(true);
@@ -109,16 +117,19 @@
     }
   }
   async function load(selectedCategory = category.value) {
+    const request = ++loadRequest;
     try {
       const query = selectedCategory ? `?category=${encodeURIComponent(selectedCategory)}` : '';
       const result = await api(`/api/messages${query}`);
+      if (request !== loadRequest) return;
       if (!category.options.length) for (const name of result.categories) { const option = document.createElement('option'); option.value = name; option.textContent = name.replaceAll('_', ' '); category.append(option); }
-      category.value = result.category; messages = result.messages || []; workspace.hidden = false; resetForm(result.period_names); render(result.period_names); showStatus('');
+      category.value = result.category; loadedCategory = result.category; messages = result.messages || []; workspace.hidden = false; resetForm(result.period_names); render(result.period_names); showStatus('');
       form.dataset.periodNames = JSON.stringify(result.period_names || []);
-    } catch (error) { showStatus(error.message, true); }
+    } catch (error) { if (request === loadRequest) showStatus(error.message, true); }
   }
   async function deleteMessage(message) {
-    if (!window.confirm('Delete this personal message? This cannot be undone.')) return;
+    const draftWarning = form.dataset.dirty === 'true' ? ' Your unsaved message will also be discarded.' : '';
+    if (!window.confirm(`Delete this personal message? This cannot be undone.${draftWarning}`)) return;
     try { await api(`/api/messages/${encodeURIComponent(category.value)}/${encodeURIComponent(message.id)}`, 'DELETE', {}); await load(category.value); }
     catch (error) { showStatus(error.message, true); }
   }
@@ -126,15 +137,16 @@
     event.preventDefault();
     const payload = { text: text.value, active: active.checked, days: selected(daysBox), periods: selected(periodsBox) };
     const submit = form.querySelector('button[type="submit"]'); submit.disabled = true;
+    saving = true; category.disabled = true;
     try {
       if (editing) await api(`/api/messages/${encodeURIComponent(category.value)}/${encodeURIComponent(editing.id)}`, 'PATCH', payload);
       else await api(`/api/messages?category=${encodeURIComponent(category.value)}`, 'POST', payload);
       await load(category.value);
     } catch (error) { showStatus(error.message, true); }
-    finally { submit.disabled = false; }
+    finally { saving = false; category.disabled = false; submit.disabled = false; }
   });
   cancel.addEventListener('click', () => resetForm(JSON.parse(form.dataset.periodNames || '[]')));
-  form.addEventListener('input', updatePreview);
+  form.addEventListener('input', () => { form.dataset.dirty = 'true'; updatePreview(); });
   form.addEventListener('change', event => {
     if (event.target instanceof HTMLInputElement && event.target.type === 'checkbox') {
       const parent = event.target.closest('#message-days, #message-periods');
@@ -143,12 +155,34 @@
     updatePreview();
   });
   moreOptions.addEventListener('click', () => setExtraOpen(extraFields.hidden));
-  document.getElementById('message-test').addEventListener('click', async () => {
+  testButton.addEventListener('click', async () => {
+    if (testButton.disabled) return;
+    testButton.disabled = true;
+    testButton.setAttribute('aria-busy', 'true');
+    showStatus('Queueing a category test…');
     try {
       const result = await api('/api/actions', 'POST', { action: 'test_message', category: category.value });
       showStatus(result.message || 'Your test message was queued.');
     } catch (error) { showStatus(error.message, true); }
+    finally { testButton.disabled = false; testButton.removeAttribute('aria-busy'); }
   });
-  category.addEventListener('change', () => load(category.value));
+  category.addEventListener('change', () => {
+    const nextCategory = category.value;
+    if (form.dataset.dirty === 'true' && !window.confirm('Discard this unsaved message and change categories?')) {
+      category.value = loadedCategory;
+      return;
+    }
+    load(nextCategory);
+  });
+  window.addEventListener('mhm:before-logout', event => {
+    if (saving) {
+      showStatus('Wait for your message to finish saving, then log out.');
+      event.preventDefault();
+    } else if (form.dataset.dirty === 'true' && !window.confirm('You have an unsaved message. Log out and discard it?')) event.preventDefault();
+  });
+  window.addEventListener('mhm:signed-out', () => { sessionEnded = true; form.dataset.dirty = 'false'; });
+  window.addEventListener('beforeunload', event => {
+    if (!sessionEnded && form.dataset.dirty === 'true') { event.preventDefault(); event.returnValue = ''; }
+  });
   load();
 })();

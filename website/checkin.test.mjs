@@ -23,3 +23,10 @@ test('scale and yes or no questions offer a one-tap answer', () => {
 test('check-in prompts keep the line break before the next question', () => {
   assert.match(css, /#checkin-message \{ white-space: pre-wrap; \}/);
 });
+
+test('check-in actions stay single-flight while an answer is saving', () => {
+  assert.match(source, /if \(sending\) return/);
+  assert.match(source, /form\.setAttribute\('aria-busy', 'true'\)/);
+  assert.match(source, /form\.querySelectorAll\('button, input, select'\)/);
+  assert.match(source, /finally \{\s*setBusy\(false\)/);
+});

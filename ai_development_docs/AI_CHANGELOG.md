@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-05 - Website workflows preserve intent and prevent duplicate actions **COMPLETED**
+- Task, notebook, and scheduled-message drafts now warn before destructive navigation or dismissal; stale list, filter, category, and insight responses are ignored, with clearer contextual empty states and one-click notebook filter clearing.
+- Home chat restores failed sends, Home task actions retain a stable target, and task, message, check-in, insight, integration, setup, and account actions use busy locks to prevent duplicate or overlapping requests.
+- Google Health handles blocked popups and expired sessions consistently, while account and sign-in flows provide durable success feedback, specific progress states, normalized verification codes, and better focus recovery.
+- Browser asset versions and regression coverage were expanded, including new message, insight, and integration suites. All 92 browser-script tests pass, focused website Python suites pass with 84 tests in the largest run, and JavaScript syntax and diff checks are clean.
+
 ### 2026-10-05 - Channel outages stay bounded and quiet **COMPLETED**
 - Equivalent failed deliveries occupy one retry slot; failure remains bounded, success/exhaustion releases deduplication state, and a later recovery drains the pending delivery.
 - Inbound email polling distinguishes an empty inbox from failure, backs off from 1 to 15 minutes during an outage, resets to 30 seconds on recovery, and logs only outage transitions.
@@ -118,10 +124,6 @@ Guidelines:
 - A scheduled check-in reports failure when the send fails, and the check-in flow is cleared so the retry can send it. The website copy is stored after the channel accepts the message.
 - A failed scheduled send waits and retries a limited number of times, then the job is removed.
 
-### 2026-09-29 - Failed emails stay failed **COMPLETED**
-- A timed-out email now returns failure, so the scheduler can retry instead of marking the message sent.
-- The send waits up to 30 seconds for the server to accept the body.
-- The two empty chat files that were still plain lists are v2 envelopes. Chat loads only accept that envelope.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

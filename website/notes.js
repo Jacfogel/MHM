@@ -3,6 +3,9 @@
   const workspace = document.getElementById('notes-workspace');
   const list = document.getElementById('note-list');
   const empty = document.getElementById('note-empty');
+  const emptyTitle = document.getElementById('note-empty-title');
+  const emptyHelp = document.getElementById('note-empty-help');
+  const clearFilters = document.getElementById('note-clear-filters');
   const count = document.getElementById('notes-count');
   const createForm = document.getElementById('note-create-form');
   const entryKind = document.getElementById('entry-kind');
@@ -20,6 +23,10 @@
   let existingTags = [];
   let searchTimer;
   let itemId = 0;
+  let loadRequest = 0;
+  let createSaving = false;
+  let openNoteEditDirty = false;
+  let sessionEnded = false;
 
   function showStatus(message, error = false) {
     status.textContent = message;
@@ -163,6 +170,21 @@
     list.replaceChildren();
     count.textContent = `${notes.length} ${view} ${notes.length === 1 ? 'entry' : 'entries'}`;
     empty.hidden = notes.length !== 0;
+    const filtered = Boolean(search.value.trim() || tagFilter.value);
+    clearFilters.hidden = !filtered;
+    if (filtered) {
+      emptyTitle.textContent = 'No matching entries.';
+      emptyHelp.textContent = 'Try a different search or clear the filters.';
+    } else {
+      const copy = {
+        active: ['No active entries yet.', 'Save a note, journal entry, or list above.'],
+        pinned: ['Nothing pinned yet.', 'Pin an active entry to keep it close.'],
+        inbox: ['Your inbox is clear.', 'Entries waiting for review will appear here.'],
+        archived: ['No archived entries.', 'Entries you archive will stay available here.'],
+      }[view];
+      emptyTitle.textContent = copy[0];
+      emptyHelp.textContent = copy[1];
+    }
     for (const note of notes) {
       const article = document.createElement('article');
       article.className = `note-card${view === 'archived' ? ' is-archived' : ''}`;
@@ -221,12 +243,16 @@
   }
 
   async function load() {
+    const request = ++loadRequest;
+    const requestedView = view;
+    const requestedQuery = search.value.trim();
+    const requestedTag = tagFilter.value;
     try {
-      const query = search.value.trim();
-      const params = new URLSearchParams({ status: view });
-      if (query) params.set('q', query);
-      if (tagFilter.value) params.set('tag', tagFilter.value);
+      const params = new URLSearchParams({ status: requestedView });
+      if (requestedQuery) params.set('q', requestedQuery);
+      if (requestedTag) params.set('tag', requestedTag);
       const result = await api(`/api/notes?${params}`);
+      if (request !== loadRequest || requestedView !== view || requestedQuery !== search.value.trim() || requestedTag !== tagFilter.value) return;
       notes = result.notes || [];
       existingTags = result.tags || [];
       populateTagPicker(document.getElementById('note-existing-tag'), existingTags);
@@ -237,6 +263,7 @@
       showStatus('');
       render();
     } catch (error) {
+      if (request !== loadRequest || requestedView !== view || requestedQuery !== search.value.trim() || requestedTag !== tagFilter.value) return;
       workspace.hidden = error.status === 403;
       showStatus(error.message, true);
     }
@@ -259,6 +286,7 @@
   }
 
   function edit(note) {
+    openNoteEditDirty = false;
     const dialog = document.createElement('dialog');
     dialog.className = 'task-dialog';
     const heading = document.createElement('h2');
@@ -305,10 +333,20 @@
     save.type = 'submit';
     save.className = 'button';
     save.textContent = 'Save changes';
-    actions.append(button('Cancel', 'plain-button', () => dialog.close()), save);
+    actions.append(button('Cancel', 'plain-button', () => {
+      if (!openNoteEditDirty || window.confirm('Discard your unsaved notebook changes?')) {
+        openNoteEditDirty = false;
+        dialog.close();
+      }
+    }), save);
     form.append(actions);
     dialog.append(heading, form);
     document.body.append(dialog);
+    form.addEventListener('input', () => { openNoteEditDirty = true; });
+    form.addEventListener('change', () => { openNoteEditDirty = true; });
+    form.addEventListener('click', event => {
+      if (event.target.closest('.notebook-item-remove, .notebook-add-item')) openNoteEditDirty = true;
+    });
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const items = editItems ? collectListItems(editItems) : null;
@@ -325,6 +363,7 @@
           ...(editItems ? { items } : { description: body.value }),
         };
         await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', payload);
+        openNoteEditDirty = false;
         dialog.close();
         await load();
       } catch (error) {
@@ -332,7 +371,11 @@
         save.disabled = false;
       }
     });
-    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    dialog.addEventListener('cancel', event => {
+      if (openNoteEditDirty && !window.confirm('Discard your unsaved notebook changes?')) event.preventDefault();
+      else openNoteEditDirty = false;
+    });
+    dialog.addEventListener('close', () => { openNoteEditDirty = false; dialog.remove(); }, { once: true });
     if (dialog.showModal) dialog.showModal();
     else dialog.setAttribute('open', '');
     title.focus();
@@ -351,6 +394,7 @@
       return;
     }
     submit.disabled = true;
+    createSaving = true;
     showStatus(`Saving ${kind === 'journal_entry' ? 'journal entry' : kind}…`);
     try {
       await api('/api/notes', 'POST', {
@@ -368,9 +412,19 @@
     } catch (error) {
       showStatus(error.message, true);
     } finally {
+      createSaving = false;
       submit.disabled = false;
     }
   });
+
+  function hasNoteDraft() {
+    return Boolean(
+      document.getElementById('note-title').value.trim()
+      || document.getElementById('note-description').value.trim()
+      || document.getElementById('note-tags').value.trim()
+      || collectListItems(createItems).length
+    );
+  }
 
   entryKind.addEventListener('change', syncCreateMode);
   document.getElementById('entry-add-item').addEventListener('click', () => addListItem(createItems).focus());
@@ -386,6 +440,12 @@
     searchTimer = setTimeout(load, 250);
   });
   tagFilter.addEventListener('change', load);
+  clearFilters.addEventListener('click', () => {
+    search.value = '';
+    tagFilter.value = '';
+    load();
+    search.focus();
+  });
   document.getElementById('notes-refresh').addEventListener('click', load);
   window.addEventListener('focus', load);
   document.addEventListener('visibilitychange', () => {
@@ -400,6 +460,16 @@
     noteMoreOptions.textContent = open ? 'Fewer options' : 'More options';
   }
   noteMoreOptions.addEventListener('click', () => setNoteExtraOpen(noteExtraFields.hidden));
+  window.addEventListener('mhm:before-logout', event => {
+    if (createSaving) {
+      showStatus('Wait for your notebook entry to finish saving, then log out.');
+      event.preventDefault();
+    } else if ((hasNoteDraft() || openNoteEditDirty) && !window.confirm('You have unsaved notebook changes. Log out and discard them?')) event.preventDefault();
+  });
+  window.addEventListener('mhm:signed-out', () => { sessionEnded = true; openNoteEditDirty = false; });
+  window.addEventListener('beforeunload', event => {
+    if (!sessionEnded && (hasNoteDraft() || openNoteEditDirty)) { event.preventDefault(); event.returnValue = ''; }
+  });
   syncCreateMode();
   load();
 })();

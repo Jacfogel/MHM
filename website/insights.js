@@ -1,6 +1,10 @@
 (() => {
   const status = document.getElementById('insights-status');
   const content = document.getElementById('insights-content');
+  const days = document.getElementById('insights-days');
+  const refresh = document.getElementById('insights-refresh');
+  const checkinRequest = document.getElementById('checkin-request');
+  let loadRequest = 0;
 
   async function api(path, method = 'GET', payload) {
     const response = await fetch(path, {
@@ -8,7 +12,7 @@
       ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {}),
     });
     const result = await response.json().catch(() => ({}));
-    if (response.status === 401) { location.replace('login.html'); throw new Error('Please log in again.'); }
+    if (response.status === 401) { window.dispatchEvent(new Event('mhm:signed-out')); location.replace('login.html'); throw new Error('Please log in again.'); }
     if (!response.ok) throw new Error(result.error || 'MHM could not load this information.');
     return result;
   }
@@ -150,28 +154,48 @@
   }
 
   async function loadInsights() {
+    const request = ++loadRequest;
+    const requestedDays = days.value;
+    refresh.disabled = true;
+    content.setAttribute('aria-busy', 'true');
     status.textContent = 'Loading your insights…';
     status.classList.remove('is-error');
     try {
-      const data = await api(`/api/insights?days=${document.getElementById('insights-days').value}`);
+      const data = await api(`/api/insights?days=${requestedDays}`);
+      if (request !== loadRequest || requestedDays !== days.value) return;
       renderInsights(data);
       status.textContent = '';
-    } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+    } catch (error) {
+      if (request !== loadRequest || requestedDays !== days.value) return;
+      status.textContent = error.message;
+      status.classList.add('is-error');
+    } finally {
+      if (request === loadRequest) {
+        refresh.disabled = false;
+        content.removeAttribute('aria-busy');
+      }
+    }
   }
 
-  document.getElementById('insights-days').addEventListener('change', loadInsights);
-  document.getElementById('insights-refresh').addEventListener('click', loadInsights);
-  document.getElementById('checkin-request').addEventListener('click', async () => {
+  days.addEventListener('change', loadInsights);
+  refresh.addEventListener('click', loadInsights);
+  checkinRequest.addEventListener('click', async () => {
+    if (checkinRequest.disabled) return;
+    checkinRequest.disabled = true;
+    checkinRequest.setAttribute('aria-busy', 'true');
+    status.textContent = 'Queueing your check-in…';
+    status.classList.remove('is-error');
     try {
       const result = await api('/api/actions', 'POST', { action: 'checkin_prompt' });
       status.textContent = result.message || 'Your check-in was queued.';
       status.classList.remove('is-error');
     } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+    finally { checkinRequest.disabled = false; checkinRequest.removeAttribute('aria-busy'); }
   });
   api('/api/account').then(account => {
     const showCheckins = Boolean(account.checkins_enabled);
     document.getElementById('insights-checkin-answer').hidden = !showCheckins;
-    document.getElementById('checkin-request').hidden = !showCheckins;
+    checkinRequest.hidden = !showCheckins;
   }).catch(() => {});
   loadInsights();
 })();

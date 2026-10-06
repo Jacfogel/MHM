@@ -177,6 +177,7 @@
   let focusedTask = null;
   let suggestedSteps = [];
   let homeLoad = 0;
+  let focusActionBusy = false;
 
   function renderFocus(taskList, efforts, energy) {
     const withEffort = (taskList || []).map(task => ({ ...task, effort_minutes: efforts[task.id] }));
@@ -281,17 +282,28 @@
     };
   }
 
+  function setFocusBusy(busy) {
+    focusActionBusy = busy;
+    const actions = document.getElementById('home-task-actions');
+    if (actions) {
+      if (busy) actions.setAttribute('aria-busy', 'true');
+      else actions.removeAttribute('aria-busy');
+    }
+    const controls = document.querySelectorAll('#home-task-actions button, #home-task-break-save, #home-task-step-add');
+    controls.forEach(control => { control.disabled = busy; });
+  }
+
   async function runFocusAction(path, payload, pending) {
-    if (!focusedTask) return;
+    if (!focusedTask || focusActionBusy) return;
+    setFocusBusy(true);
+    const taskId = focusedTask.id;
     const taskStatus = document.getElementById('home-task-status');
-    const buttons = document.querySelectorAll('#home-task-actions button, #home-task-break-save, #home-task-step-add');
-    buttons.forEach(button => { button.disabled = true; });
     if (taskStatus) {
       taskStatus.textContent = pending;
       taskStatus.classList.remove('is-error');
     }
     try {
-      await api(`/api/tasks/${encodeURIComponent(focusedTask.id)}/${path}`, 'POST', payload);
+      await api(`/api/tasks/${encodeURIComponent(taskId)}/${path}`, 'POST', payload);
       await loadHome();
     } catch (error) {
       if (taskStatus) {
@@ -299,7 +311,7 @@
         taskStatus.classList.add('is-error');
       }
     } finally {
-      buttons.forEach(button => { button.disabled = false; });
+      setFocusBusy(false);
     }
   }
 
@@ -340,7 +352,9 @@
   const breakForm = document.getElementById('home-task-break-form');
   const breakSave = document.getElementById('home-task-break-save');
   if (breakButton && breakForm) breakButton.addEventListener('click', async () => {
-    if (!focusedTask) return;
+    if (!focusedTask || focusActionBusy) return;
+    setFocusBusy(true);
+    const taskId = focusedTask.id;
     breakForm.hidden = false;
     suggestedSteps = [];
     renderSuggestedSteps([]);
@@ -352,7 +366,7 @@
       taskStatus.classList.remove('is-error');
     }
     try {
-      const result = await api(`/api/tasks/${encodeURIComponent(focusedTask.id)}/breakdown`, 'POST', {});
+      const result = await api(`/api/tasks/${encodeURIComponent(taskId)}/breakdown`, 'POST', {});
       const steps = (result.steps || []).filter(step => typeof step === 'string' && step.trim());
       if (!steps.length) throw new Error('MHM could not find smaller steps for this.');
       renderSuggestedSteps(steps);
@@ -364,7 +378,7 @@
         taskStatus.classList.add('is-error');
       }
     } finally {
-      breakButton.disabled = false;
+      setFocusBusy(false);
     }
   });
   if (breakSave) breakSave.addEventListener('click', () => {
@@ -558,11 +572,13 @@
     const message = text.trim();
     if (!message || talkSend.disabled) return;
     const sentAt = new Date().toISOString();
-    turns.push({ role: 'you', text: message, at: sentAt });
+    const pendingTurn = { role: 'you', text: message, at: sentAt };
+    turns.push(pendingTurn);
     addBubble('you', message, sentAt);
     pinTalkToLatest();
     talkInput.value = '';
     talkSend.disabled = true;
+    talkSend.setAttribute('aria-busy', 'true');
     talkSuggestions.hidden = true;
     talkStatus.textContent = 'MHM is replying…';
     talkStatus.classList.remove('is-error');
@@ -576,11 +592,16 @@
       showSuggestions(result.suggestions);
       talkStatus.textContent = '';
     } catch (error) {
+      const pendingIndex = turns.indexOf(pendingTurn);
+      if (pendingIndex >= 0) turns.splice(pendingIndex, 1);
+      renderSaved(true);
       talkStatus.textContent = error.message;
       talkStatus.classList.add('is-error');
+      if (!talkInput.value.trim()) talkInput.value = message;
       showSuggestions([]);
     } finally {
       talkSend.disabled = false;
+      talkSend.removeAttribute('aria-busy');
       talkInput.focus();
     }
   }
@@ -595,7 +616,7 @@
       sendMessage(talkInput.value);
     });
     talkInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
         event.preventDefault();
         sendMessage(talkInput.value);
       }

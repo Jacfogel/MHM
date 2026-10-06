@@ -17,6 +17,7 @@ const MHMTaskInput = Object.freeze({
   const createForm = document.getElementById('task-create-form');
   const tabs = [...document.querySelectorAll('[data-task-view]')];
   const dueSoon = document.getElementById('task-due-soon');
+  const selectAll = document.getElementById('task-select-all');
   const selectedCount = document.getElementById('task-selected-count');
   const bulkPriorityControls = document.getElementById('task-bulk-priority-controls');
   const bulkPriority = document.getElementById('task-bulk-priority');
@@ -28,6 +29,10 @@ const MHMTaskInput = Object.freeze({
   let templates = [];
   let existingTags = [];
   let dueSoonCount = 0;
+  let loadRequest = 0;
+  let createSaving = false;
+  let openTaskEditDirty = false;
+  let sessionEnded = false;
   const selected = new Set();
   const quickReminderOptions = [
     ['5-10min', '5–10 minutes'], ['30min-1hour', '30–60 minutes'], ['1-2hour', '1–2 hours'],
@@ -155,10 +160,12 @@ const MHMTaskInput = Object.freeze({
     list.replaceChildren();
     count.textContent = `${tasks.length} ${view === 'active' ? 'active' : 'completed'} ${tasks.length === 1 ? 'task' : 'tasks'}`;
     summary.textContent = view === 'active' ? '' : 'You did these.';
-    dueSoon.textContent = `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
+    dueSoon.hidden = view !== 'active' || dueSoonCount === 0;
+    dueSoon.textContent = dueSoon.hidden ? '' : `${dueSoonCount} active ${dueSoonCount === 1 ? 'task is' : 'tasks are'} due in the next 7 days`;
     bulkPrimary.textContent = view === 'active' ? 'Complete selected' : 'Restore selected';
     bulkPriorityControls.hidden = view !== 'active';
     empty.hidden = tasks.length !== 0;
+    empty.querySelector('strong').textContent = view === 'active' ? 'No active tasks. You’re clear for now.' : 'No completed tasks yet.';
     const byId = new Map(tasks.map(task => [task.id, task]));
     const children = new Map();
     const tops = [];
@@ -212,8 +219,11 @@ const MHMTaskInput = Object.freeze({
   }
 
   async function load() {
+    const request = ++loadRequest;
+    const requestedView = view;
     try {
-      const result = await api(`/api/tasks?status=${view}`);
+      const result = await api(`/api/tasks?status=${requestedView}`);
+      if (request !== loadRequest || requestedView !== view) return;
       tasks = result.tasks || [];
       existingTags = result.tags || [];
       populateTagPicker(document.getElementById('task-existing-tag'), existingTags);
@@ -221,6 +231,7 @@ const MHMTaskInput = Object.freeze({
       selected.clear();
       workspace.hidden = false; showStatus(''); render();
     } catch (error) {
+      if (request !== loadRequest || requestedView !== view) return;
       workspace.hidden = error.status === 403;
       showStatus(error.message, true);
     }
@@ -253,6 +264,10 @@ const MHMTaskInput = Object.freeze({
   }
 
   function updateBulkActions() {
+    const allSelected = tasks.length > 0 && tasks.every(task => selected.has(task.id));
+    selectAll.disabled = tasks.length === 0;
+    selectAll.textContent = allSelected ? 'Clear selection' : 'Select all';
+    selectAll.setAttribute('aria-pressed', String(allSelected));
     selectedCount.textContent = `${selected.size} selected`;
     bulkPrimary.disabled = selected.size === 0;
     bulkDelete.disabled = selected.size === 0;
@@ -439,7 +454,7 @@ const MHMTaskInput = Object.freeze({
     });
     const reminderList = document.createElement('div'); reminderList.className = 'task-reminder-list';
     reminders.filter(item => item && item.kind === 'scheduled' && item.period).forEach(item => addReminderRow(reminderList, item.period));
-    fieldset.append(choices, reminderList, button('+ Add a custom reminder', 'plain-button', () => addReminderRow(reminderList)));
+    fieldset.append(choices, reminderList, button('+ Add a custom reminder', 'plain-button task-reminder-add', () => addReminderRow(reminderList)));
     parent.append(fieldset);
     return {
       readQuick: () => inputs.filter(item => item.checked).map(item => item.value),
@@ -448,6 +463,7 @@ const MHMTaskInput = Object.freeze({
   }
 
   function openEditor(task) {
+    openTaskEditDirty = false;
     const dialog = document.createElement('dialog'); dialog.className = 'task-dialog';
     const heading = document.createElement('h2'); heading.textContent = 'Edit task';
     const form = document.createElement('form'); form.className = 'task-edit-form';
@@ -476,9 +492,19 @@ const MHMTaskInput = Object.freeze({
     bindTagPicker(tags, existingTag);
     const reminders = reminderEditor(form, Array.isArray(task.reminders) ? task.reminders : []);
     const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
-    actions.append(button('Cancel', 'plain-button', () => dialog.close()));
+    actions.append(button('Cancel', 'plain-button', () => {
+      if (!openTaskEditDirty || window.confirm('Discard your unsaved task changes?')) {
+        openTaskEditDirty = false;
+        dialog.close();
+      }
+    }));
     const save = document.createElement('button'); save.type = 'submit'; save.className = 'button'; save.textContent = 'Save changes'; actions.append(save);
     form.append(actions); dialog.append(heading, form); document.body.append(dialog);
+    form.addEventListener('input', () => { openTaskEditDirty = true; });
+    form.addEventListener('change', () => { openTaskEditDirty = true; });
+    form.addEventListener('click', event => {
+      if (event.target.closest('.task-reminder-add, .task-reminder-remove')) openTaskEditDirty = true;
+    });
     form.addEventListener('submit', async event => {
       event.preventDefault(); save.disabled = true;
       try {
@@ -492,10 +518,14 @@ const MHMTaskInput = Object.freeze({
           reminder_periods: reminders.readScheduled(),
           quick_reminders: reminders.readQuick(),
         });
-        dialog.close(); await load();
+        openTaskEditDirty = false; dialog.close(); await load();
       } catch (error) { showStatus(error.message, true); save.disabled = false; }
     });
-    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    dialog.addEventListener('cancel', event => {
+      if (openTaskEditDirty && !window.confirm('Discard your unsaved task changes?')) event.preventDefault();
+      else openTaskEditDirty = false;
+    });
+    dialog.addEventListener('close', () => { openTaskEditDirty = false; dialog.remove(); }, { once: true });
     if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
     title.focus();
   }
@@ -531,9 +561,24 @@ const MHMTaskInput = Object.freeze({
     setExtraFieldsOpen(false);
   }
 
+  function hasTaskDraft() {
+    return Boolean(
+      document.getElementById('task-title').value.trim()
+      || document.getElementById('task-description').value.trim()
+      || document.getElementById('task-due-date').value
+      || document.getElementById('task-due-time').value
+      || document.getElementById('task-priority').value !== 'medium'
+      || document.getElementById('task-recurrence').value
+      || document.getElementById('task-tags').value.trim()
+      || document.querySelector('input[name="quick_reminders"]:checked')
+      || document.getElementById('task-reminder-list').children.length
+    );
+  }
+
   createForm.addEventListener('submit', async event => {
     event.preventDefault();
     const submit = createForm.querySelector('button[type="submit"]'); submit.disabled = true; showStatus('Adding task…');
+    createSaving = true;
     const form = new FormData(createForm);
     try {
       const recurrence = readRecurrence(createRecurrence, createRecurrenceInterval, createRecurrenceUnit);
@@ -548,7 +593,7 @@ const MHMTaskInput = Object.freeze({
       });
       resetCreateForm(); showStatus(''); await load();
     } catch (error) { showStatus(error.message, true); }
-    finally { submit.disabled = false; }
+    finally { createSaving = false; submit.disabled = false; }
   });
   document.getElementById('task-add-reminder').addEventListener('click', () => addReminderRow(document.getElementById('task-reminder-list')));
   document.getElementById('task-template').addEventListener('change', event => {
@@ -569,6 +614,12 @@ const MHMTaskInput = Object.freeze({
     document.getElementById('task-due-time').value = template.due_time || '';
   });
   bulkPrimary.addEventListener('click', () => runBulk(view === 'active' ? 'complete' : 'restore'));
+  selectAll.addEventListener('click', () => {
+    const allSelected = tasks.length > 0 && tasks.every(task => selected.has(task.id));
+    selected.clear();
+    if (!allSelected) tasks.forEach(task => selected.add(task.id));
+    render();
+  });
   bulkPriorityApply.addEventListener('click', () => runBulk('priority', { priority: bulkPriority.value }));
   bulkDelete.addEventListener('click', () => runBulk('delete'));
   for (const picker of document.querySelectorAll('input[type="date"], input[type="time"]')) {
@@ -578,6 +629,16 @@ const MHMTaskInput = Object.freeze({
     });
   }
   for (const tab of tabs) tab.addEventListener('click', () => { view = tab.dataset.taskView; tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab))); load(); });
+  window.addEventListener('mhm:before-logout', event => {
+    if (createSaving) {
+      showStatus('Wait for your task to finish saving, then log out.');
+      event.preventDefault();
+    } else if ((hasTaskDraft() || openTaskEditDirty) && !window.confirm('You have unsaved task changes. Log out and discard them?')) event.preventDefault();
+  });
+  window.addEventListener('mhm:signed-out', () => { sessionEnded = true; openTaskEditDirty = false; });
+  window.addEventListener('beforeunload', event => {
+    if (!sessionEnded && (hasTaskDraft() || openTaskEditDirty)) { event.preventDefault(); event.returnValue = ''; }
+  });
   loadTemplates();
   load();
 })();

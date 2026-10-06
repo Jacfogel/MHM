@@ -16,6 +16,7 @@ function node(extras = {}) {
     attributes: {},
     setAttribute(name, value) { this.attributes[name] = value; },
     getAttribute(name) { return this.attributes[name]; },
+    removeAttribute(name) { delete this.attributes[name]; },
     addEventListener(type, listener) { this.listeners = this.listeners || {}; this.listeners[type] = listener; },
     append(...children) { this.childNodes.push(...children); },
     replaceChildren(...children) { this.childNodes = children; },
@@ -349,4 +350,43 @@ test('home.js can load after app.js without a global status clash', async () => 
   });
   vm.runInContext(app, context);
   vm.runInContext(home, context);
+});
+
+test('failed chat sends restore the message for a quick retry', async () => {
+  const view = await page({
+    chat: true,
+    fetchImpl: async (url, options = {}) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/chat' && options.method === 'POST') throw new Error('Connection dropped.');
+      if (url === '/api/chat') return Response.json({ turns: [] });
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  const input = view.nodes.get('talk-input');
+  const send = view.nodes.get('talk-send');
+  input.value = 'Please help me plan today';
+  await view.nodes.get('talk-form').listeners.submit({ preventDefault() {} });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(input.value, 'Please help me plan today');
+  assert.equal(send.disabled, false);
+  assert.equal(send.getAttribute('aria-busy'), undefined);
+  assert.equal(view.nodes.get('talk-status').textContent, 'Connection dropped.');
+  const failedCopies = view.nodes.get('talk-log').childNodes
+    .flatMap(item => item.childNodes || [])
+    .filter(item => item.textContent === 'Please help me plan today');
+  assert.equal(failedCopies.length, 0);
+});
+
+test('chat enter shortcut does not submit while text composition is active', () => {
+  assert.match(source, /!event\.isComposing/);
+});
+
+test('home task actions share one busy lock', () => {
+  assert.match(source, /function setFocusBusy\(busy\)/);
+  assert.match(source, /if \(!focusedTask \|\| focusActionBusy\) return/);
+  assert.match(source, /actions\.setAttribute\('aria-busy', 'true'\)/);
+  assert.match(source, /const taskId = focusedTask\.id/);
 });

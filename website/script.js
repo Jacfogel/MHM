@@ -7,6 +7,10 @@ function pointerInside(dialog, event) {
   return event.clientX >= rect.left && event.clientX <= rect.right
     && event.clientY >= rect.top && event.clientY <= rect.bottom;
 }
+function requestDialogClose(dialog) {
+  const cancel = new Event('cancel', { cancelable: true });
+  if (dialog.dispatchEvent(cancel) && typeof dialog.close === 'function') dialog.close();
+}
 document.addEventListener('pointerdown', event => {
   for (const dialog of document.querySelectorAll('dialog')) {
     if (dialog.open) dialogPress.set(dialog, pointerInside(dialog, event));
@@ -15,7 +19,7 @@ document.addEventListener('pointerdown', event => {
 document.addEventListener('click', event => {
   for (const dialog of document.querySelectorAll('dialog')) {
     if (!dialog.open || dialogPress.get(dialog) !== false || pointerInside(dialog, event)) continue;
-    if (typeof dialog.close === 'function') dialog.close();
+    requestDialogClose(dialog);
   }
 });
 

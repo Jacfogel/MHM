@@ -7,9 +7,9 @@
   <title>Your tasks — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
   <link rel="stylesheet" href="styles.css?v=bulk-priority-1" />
-  <script src="script.js?v=dialog-1" defer></script>
+  <script src="script.js?v=dialog-2" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="tasks.js?v=bulk-priority-1" defer></script>
+  <script src="tasks.js?v=workflow-polish-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -55,7 +55,7 @@
           <button class="button" type="submit">Add task <span aria-hidden="true">→</span></button>
         </form>
         <div class="task-list-header"><div class="task-tabs" role="tablist" aria-label="Task views"><button type="button" role="tab" aria-selected="true" data-task-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-task-view="completed">Completed</button></div><span id="task-list-summary" class="task-list-summary"></span></div>
-        <div class="task-list-tools"><span id="task-due-soon" class="task-list-summary"></span><div id="task-bulk-actions" class="task-bulk-actions"><span id="task-selected-count">0 selected</span><span id="task-bulk-priority-controls" class="task-bulk-priority"><label for="task-bulk-priority">Priority</label><select id="task-bulk-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select><button id="task-bulk-priority-apply" class="plain-button" type="button" disabled>Apply</button></span><button id="task-bulk-primary" class="plain-button" type="button" disabled>Complete selected</button><button id="task-bulk-delete" class="plain-button task-delete" type="button" disabled>Delete selected</button></div></div>
+        <div class="task-list-tools"><span id="task-due-soon" class="task-list-summary" hidden></span><div id="task-bulk-actions" class="task-bulk-actions"><button id="task-select-all" class="plain-button" type="button" disabled>Select all</button><span id="task-selected-count">0 selected</span><span id="task-bulk-priority-controls" class="task-bulk-priority"><label for="task-bulk-priority">Priority</label><select id="task-bulk-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option><option value="critical">Critical</option></select><button id="task-bulk-priority-apply" class="plain-button" type="button" disabled>Apply</button></span><button id="task-bulk-primary" class="plain-button" type="button" disabled>Complete selected</button><button id="task-bulk-delete" class="plain-button task-delete" type="button" disabled>Delete selected</button></div></div>
         <div id="task-list" class="task-list"></div>
         <div id="task-empty" class="task-empty" hidden><strong>No tasks here yet.</strong></div>
       </div>

@@ -43,3 +43,29 @@ test('selected active tasks can receive one priority in bulk', async () => {
   assert.match(source, /bulkPriorityControls\.hidden = view !== 'active'/);
   assert.match(source, /action !== 'priority' && !window\.confirm/);
 });
+
+test('task list supports selecting or clearing every visible task', async () => {
+  const html = await readFile(new URL('./tasks.html', import.meta.url), 'utf8');
+  assert.match(html, /id="task-select-all"/);
+  assert.match(source, /tasks\.every\(task => selected\.has\(task\.id\)\)/);
+  assert.match(source, /allSelected \? 'Clear selection' : 'Select all'/);
+  assert.match(source, /tasks\.forEach\(task => selected\.add\(task\.id\)\)/);
+});
+
+test('task loading ignores responses for an older view', () => {
+  assert.match(source, /const request = \+\+loadRequest/);
+  assert.match(source, /if \(request !== loadRequest \|\| requestedView !== view\) return/);
+});
+
+test('due-soon summary stays quiet when it has nothing useful to say', () => {
+  assert.match(source, /dueSoon\.hidden = view !== 'active' \|\| dueSoonCount === 0/);
+});
+
+test('task drafts and changed edit dialogs are protected from accidental dismissal', () => {
+  assert.match(source, /function hasTaskDraft\(\)/);
+  assert.match(source, /Discard your unsaved task changes/);
+  assert.match(source, /mhm:before-logout/);
+  assert.match(source, /beforeunload/);
+  assert.match(source, /dialog\.addEventListener\('cancel'/);
+  assert.match(source, /task-reminder-add, \.task-reminder-remove/);
+});

@@ -11,7 +11,7 @@ async function page(logoutFetch = async () => Response.json({ ok: true }), searc
   const nodes = new Map();
   const document = {
     getElementById(id) {
-      if (!nodes.has(id)) nodes.set(id, { hidden: true, disabled: false, textContent: '', classList: { add() {}, remove() {} }, replaceChildren() {}, addEventListener(type, listener) { if (id === 'logout' && type === 'click') click = listener; } });
+      if (!nodes.has(id)) nodes.set(id, { hidden: true, disabled: false, textContent: '', attributes: {}, classList: { add() {}, remove() {} }, setAttribute(name, value) { this.attributes[name] = value; }, removeAttribute(name) { delete this.attributes[name]; }, replaceChildren() {}, addEventListener(type, listener) { if (id === 'logout' && type === 'click') click = listener; } });
       return nodes.get(id);
     },
   };
@@ -82,4 +82,11 @@ test('an unknown Discord failure explains the likely account-link conflict', asy
   const view = await page(undefined, '?discord=error');
   assert.match(view.nodes.get('app-status').textContent, /already linked to another MHM account/);
   assert.match(view.nodes.get('app-status').textContent, /administrator/);
+});
+
+test('account actions expose busy state and OAuth starts handle expired sessions', () => {
+  assert.match(source, /function setButtonBusy\(button, busy\)/);
+  assert.match(source, /button\.setAttribute\('aria-busy', 'true'\)/);
+  assert.match(source, /response\.status === 401\) \{ returnToLogin\(\); return; \}/);
+  assert.match(source, /await loadAccount\(\);\s*status\.textContent = `\$\{provider/);
 });

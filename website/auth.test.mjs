@@ -194,3 +194,11 @@ test('social sign-in shows only available providers and uses provider-aware copy
     'Create your MHM account with Google, or with a password. A password is saved only after your email code succeeds.'
   );
 });
+
+test('verification codes normalize pasted formatting and auth actions show specific progress', () => {
+  assert.match(source, /code\.value = code\.value\.replace\(\/\\D\/g, ''\)\.slice\(0, 6\)/);
+  assert.match(source, /Emailing your code…/);
+  assert.match(source, /Signing in…/);
+  assert.match(source, /Checking your code…/);
+  assert.match(source, /if \(!verification\.hidden\) code\.focus\(\)/);
+});

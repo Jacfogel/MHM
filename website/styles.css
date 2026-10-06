@@ -550,6 +550,7 @@ button[aria-busy="true"] { cursor: wait; }
 .task-delete { color: #a24848; }
 .task-empty { display: grid; gap: 5px; padding: 38px 20px; text-align: center; color: var(--muted); border: 1px dashed #cfc3df; border-radius: 16px; }
 .task-empty strong { color: var(--ink); font-family: var(--font-display); font-size: 1.15rem; }
+.task-empty .plain-button { justify-self: center; margin-top: 8px; }
 .task-dialog { width: min(560px, calc(100% - 32px)); padding: 28px; border: 1px solid var(--border); border-radius: 20px; background: var(--cream); color: var(--ink); box-shadow: var(--shadow); }
 .task-dialog::backdrop { background: rgba(30,36,83,.34); }
 .task-dialog h2 { font-size: 2rem; margin-bottom: 24px; }

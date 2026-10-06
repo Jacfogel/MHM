@@ -12,6 +12,11 @@ function returnToLogin() {
   if (accountContent) accountContent.hidden = true;
   location.replace('login.html');
 }
+function setButtonBusy(button, busy) {
+  button.disabled = busy;
+  if (busy) button.setAttribute('aria-busy', 'true');
+  else button.removeAttribute('aria-busy');
+}
 async function loadAccount() {
   if (!accountContent) return;
   try {
@@ -78,7 +83,7 @@ async function loadAccount() {
 }
 async function disconnectProvider(provider, button) {
   if (button.disabled || !window.confirm(`Disconnect ${provider} from your MHM account?`)) return;
-  button.disabled = true;
+  setButtonBusy(button, true);
   status.textContent = `Disconnecting ${provider}…`;
   status.classList.remove('is-error');
   try {
@@ -89,42 +94,45 @@ async function disconnectProvider(provider, button) {
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok) throw new Error(result.error || `${provider} could not be disconnected.`);
-    status.textContent = `${provider[0].toUpperCase()}${provider.slice(1)} was disconnected.`;
     await loadAccount();
-  } catch (error) { status.textContent = error.message; status.classList.add('is-error'); button.disabled = false; }
+    status.textContent = `${provider[0].toUpperCase()}${provider.slice(1)} was disconnected.`;
+    status.classList.remove('is-error');
+  } catch (error) { status.textContent = error.message; status.classList.add('is-error'); setButtonBusy(button, false); }
 }
 async function startOAuth(provider, button) {
   if (button.disabled) return;
-  button.disabled = true;
+  setButtonBusy(button, true);
   status.textContent = `Opening ${provider}…`;
   status.classList.remove('is-error');
   try {
     const response = await fetch(`/api/auth/oauth/${provider}/start`, { credentials: 'same-origin', cache: 'no-store' });
     const result = await response.json().catch(() => ({}));
+    if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) throw new Error(result.error || `${provider} connection is unavailable.`);
     location.assign(result.url);
   } catch (error) {
     status.textContent = error.message;
     status.classList.add('is-error');
-    button.disabled = false;
+    setButtonBusy(button, false);
   }
 }
 const connectDiscord = document.getElementById('connect-discord');
 if (connectDiscord) connectDiscord.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   if (button.disabled) return;
-  button.disabled = true;
+  setButtonBusy(button, true);
   status.textContent = 'Opening Discord…';
   status.classList.remove('is-error');
   try {
     const response = await fetch('/api/auth/discord/start', { credentials: 'same-origin', cache: 'no-store' });
     const result = await response.json().catch(() => ({}));
+    if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) throw new Error(result.error || 'Discord connection is unavailable.');
     location.assign(result.url);
   } catch (error) {
     status.textContent = error.message;
     status.classList.add('is-error');
-    button.disabled = false;
+    setButtonBusy(button, false);
   }
 });
 const disconnectDiscord = document.getElementById('disconnect-discord');
@@ -133,13 +141,13 @@ const logout = document.getElementById('logout');
 if (logout) logout.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   if (button.disabled || !window.dispatchEvent(new Event('mhm:before-logout', { cancelable: true }))) return;
-  button.disabled = true;
+  setButtonBusy(button, true);
   status.classList.remove('is-error');
   try {
     const response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
     if (!response.ok && response.status !== 401) throw new Error('Could not log out. Please try again.');
     returnToLogin();
-  } catch (error) { status.textContent = 'Could not log out. Please try again.'; status.classList.add('is-error'); button.disabled = false; }
+  } catch (error) { status.textContent = 'Could not log out. Please try again.'; status.classList.add('is-error'); setButtonBusy(button, false); }
 });
 const passwordForm = document.getElementById('password-form');
 if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
@@ -154,7 +162,8 @@ if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
     passwordStatus.classList.add('is-error');
     return;
   }
-  button.disabled = true;
+  setButtonBusy(button, true);
+  passwordForm.setAttribute('aria-busy', 'true');
   passwordStatus.textContent = 'Saving…';
   passwordStatus.classList.remove('is-error');
   try {
@@ -176,7 +185,7 @@ if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
   } catch (error) {
     passwordStatus.textContent = error.message;
     passwordStatus.classList.add('is-error');
-  } finally { button.disabled = false; }
+  } finally { setButtonBusy(button, false); passwordForm.removeAttribute('aria-busy'); }
 });
 const deleteForm = document.getElementById('delete-account-form');
 const deleteConfirm = document.getElementById('delete-confirm');
@@ -190,7 +199,8 @@ if (deleteConfirm && deleteButton) {
 if (deleteForm) deleteForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!deleteButton || deleteButton.disabled || deleteConfirm.value !== 'DELETE') return;
-  deleteButton.disabled = true;
+  setButtonBusy(deleteButton, true);
+  deleteForm.setAttribute('aria-busy', 'true');
   deleteStatus.textContent = 'Deleting your account…';
   deleteStatus.classList.remove('is-error');
   try {
@@ -207,7 +217,9 @@ if (deleteForm) deleteForm.addEventListener('submit', async (event) => {
   } catch (error) {
     deleteStatus.textContent = error.message;
     deleteStatus.classList.add('is-error');
+    setButtonBusy(deleteButton, false);
     deleteButton.disabled = deleteConfirm.value !== 'DELETE';
+    deleteForm.removeAttribute('aria-busy');
   }
 });
 if (accountContent) loadAccount();
