@@ -475,6 +475,78 @@ def test_get_source_file_mtimes_respects_shared_exclusions() -> None:
 
 
 @pytest.mark.unit
+def test_website_javascript_change_invalidates_browser_bridge() -> None:
+    """Website assets must invalidate the domain and select the Node bridge test."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        website_dir = temp_path / "website"
+        integration_dir = temp_path / "tests" / "integration"
+        website_dir.mkdir(parents=True, exist_ok=True)
+        integration_dir.mkdir(parents=True, exist_ok=True)
+
+        javascript_file = website_dir / "page.test.mjs"
+        javascript_file.write_text("// initial\n", encoding="utf-8")
+        (website_dir / "page.js").write_text("export {};\n", encoding="utf-8")
+        (website_dir / "page.html").write_text("<main></main>\n", encoding="utf-8")
+        (website_dir / "styles.css").write_text("main {}\n", encoding="utf-8")
+        (website_dir / "wrangler.jsonc").write_text("{}\n", encoding="utf-8")
+        (website_dir / "README.md").write_text("ignored\n", encoding="utf-8")
+
+        bridge = integration_dir / "test_browser_javascript_suite.py"
+        bridge.write_text(
+            "import pytest\n\n"
+            "pytestmark = [pytest.mark.integration, pytest.mark.website]\n\n"
+            "def test_bridge():\n"
+            "    assert True\n",
+            encoding="utf-8",
+        )
+
+        cache = _scratch_cache(temp_path)
+        cache.update_test_file_mapping(bridge)
+        for domain in cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
+            cache.cache_data.setdefault("source_files_mtime", {})[
+                domain
+            ] = cache.get_source_file_mtimes(domain)
+        cache._save_cache()
+
+        tracked = {
+            path.replace("\\", "/")
+            for path in cache.get_source_file_mtimes("website")
+        }
+        assert {
+            "website/page.test.mjs",
+            "website/page.js",
+            "website/page.html",
+            "website/styles.css",
+            "website/wrangler.jsonc",
+        } <= tracked
+        assert "website/README.md" not in tracked
+
+        cache._cached_changed_domains = None
+        assert cache.get_changed_domains() == set()
+
+        javascript_file.write_text("// changed\n", encoding="utf-8")
+        current_stat = javascript_file.stat()
+        os.utime(
+            javascript_file,
+            (current_stat.st_atime + 2, current_stat.st_mtime + 2),
+        )
+
+        cache._cached_changed_domains = None
+        changed_domains = cache.get_changed_domains()
+
+        assert changed_domains == {"website"}
+        assert cache.last_invalidation_reason == "source_domain_changed"
+        selected = {
+            path.relative_to(temp_path).as_posix()
+            for path in cache.get_test_files_to_run(changed_domains)
+        }
+        assert selected == {"tests/integration/test_browser_javascript_suite.py"}
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
 def test_test_file_set_removal_selective_invalidates_subset() -> None:
     """Removing a tracked test file should bust only implied domains when mapping is known."""
     temp_path = _make_local_scratch_dir()

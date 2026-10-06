@@ -235,6 +235,12 @@
           "ui"
         ]
       ],
+      "website": [
+        [],
+        [
+          "website"
+        ]
+      ],
       "tasks": [
         [],
         [
@@ -299,6 +305,7 @@
       "user": [],
       "ai": [],
       "ui": [],
+      "website": [],
       "notebook": [],
       "scheduler": [],
       "checkins": [],
@@ -341,6 +348,11 @@
         "widget",
         "qt",
         "pyside"
+      ],
+      "website": [
+        "website",
+        "browser",
+        "frontend"
       ],
       "user": [
         "user",

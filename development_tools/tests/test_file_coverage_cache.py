@@ -741,8 +741,9 @@ class TestFileCoverageCache:
         """
         Get current modification times for all source files in a domain.
 
-        Only tracks .py files (Python source files), ignoring documentation,
-        configuration, and log files.
+        Python domains track ``.py`` files. The standalone website domain tracks
+        browser source and test assets so its Node suite cannot be hidden by a
+        stale selective-test cache entry.
 
         Args:
             domain: Domain name (e.g., 'core')
@@ -755,19 +756,31 @@ class TestFileCoverageCache:
         if not source_dir.exists():
             return mtimes
 
-        for py_file in source_dir.rglob("*.py"):
+        source_patterns = ("*.py",)
+        if domain == "website":
+            source_patterns = ("*.js", "*.mjs", "*.html", "*.css", "*.jsonc")
+
+        source_files = (
+            source_file
+            for pattern in source_patterns
+            for source_file in source_dir.rglob(pattern)
+        )
+        for source_file in source_files:
             # Skip actual test files (files with test_ prefix) and cache directories
-            if py_file.name.startswith("test_") or ".coverage_cache" in py_file.parts:
+            if (
+                source_file.name.startswith("test_")
+                or ".coverage_cache" in source_file.parts
+            ):
                 continue
             try:
-                rel_path = str(py_file.relative_to(self.project_root))
+                rel_path = str(source_file.relative_to(self.project_root))
                 if should_exclude_file(
                     rel_path.replace("\\", "/"),
                     tool_type="analysis",
                     context="development",
                 ):
                     continue
-                mtime = py_file.stat().st_mtime
+                mtime = source_file.stat().st_mtime
                 mtimes[rel_path] = mtime
             except OSError:
                 continue

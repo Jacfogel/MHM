@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Website browser coverage joins standard test gates **COMPLETED**
+- Browser behavior coverage now spans 121 passing Node tests, with expanded check-in, insight, integration, message, notebook, settings, and task scenarios.
+- A serial pytest bridge runs every `website/*.test.mjs` file in the normal suite, `audit --full`, and the nightly suite; PR and push checks retain a dedicated website job with Node.js 20.
+- The audit cache now treats the standalone website as its own domain and invalidates browser coverage when JavaScript, HTML, CSS, or JSONC assets change.
+- The completed full audit is clean: 5,980 passed and 28 skipped, with zero failures or errors across the parallel and no-parallel tracks.
+
 ### 2026-10-05 - Website workflows preserve intent and prevent duplicate actions **COMPLETED**
 - Task, notebook, and scheduled-message drafts now warn before destructive navigation or dismissal; stale list, filter, category, and insight responses are ignored, with clearer contextual empty states and one-click notebook filter clearing.
 - Home chat restores failed sends, Home task actions retain a stable target, and task, message, check-in, insight, integration, setup, and account actions use busy locks to prevent duplicate or overlapping requests.
@@ -118,12 +124,6 @@ Guidelines:
 - A finished scheduled message is removed. Cleanup and conflict checks read the user and category from the keyword arguments `schedule` actually stores.
 - File recovery builds an empty chat file from a leaf module, so error handling and profile loading no longer import each other.
 - Both helpers are in the function registry. The scheduler test checks each job callable before reading it, so Pyright is clean on that file.
-
-### 2026-09-30 - Failed sends stay unsent **COMPLETED**
-- A task reminder is marked sent only after the channel accepts it. A failed email is retried, and the retry reuses the same Message-ID.
-- A scheduled check-in reports failure when the send fails, and the check-in flow is cleared so the retry can send it. The website copy is stored after the channel accepts the message.
-- A failed scheduled send waits and retries a limited number of times, then the job is removed.
-
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

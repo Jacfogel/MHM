@@ -120,6 +120,10 @@ If you need new helpers or fixtures, define them in the shared locations above r
 
 ## 4. Running Automated Tests
 
+Full-suite environments require Node.js 20 or newer. The serial pytest bridge
+at `tests/integration/test_browser_javascript_suite.py` runs every
+`website/*.test.mjs` file and converts Node failures into pytest failures.
+
 Preferred commands (via `run_tests.py`):
 
 - Run all tests (parallel by default, if configured):
@@ -208,6 +212,7 @@ Parallel execution:
 - Auto worker count: up to 6 workers (`cpu_count // 2`, minimum 2).
 - Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the full `tests/` tree (including `tests/development_tools/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). Scheduled in `.github/workflows/nightly-tests.yml`. POSIX pytest-timeout uses `signal` so hung tests abort at 300s; Windows keeps `thread`.
+- **Website browser suite**: The `no_parallel` pytest bridge runs every `website/*.test.mjs` file under Node.js, so the default runner, Tier 3/full audit, and nightly suite all enforce the same browser tests.
 - The separate `coverage` command runs pytest again with coverage collection; that is additional time beyond Tier 3 test-suite execution.
 - Use `--no-parallel` for:
   - Debugging flaky tests.

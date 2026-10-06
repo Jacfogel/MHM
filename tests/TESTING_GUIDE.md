@@ -261,6 +261,10 @@ In parallel execution mode (pytest-xdist):
 
 This section covers how to run automated tests in standard scenarios. It intentionally focuses on a few blessed entry points.
 
+Install Node.js 20 or newer before running the full suite. A serial pytest bridge
+executes every `website/*.test.mjs` browser test and reports Node failures as
+ordinary pytest failures.
+
 ### 4.1. Quick reference
 
 Common commands:
@@ -474,6 +478,7 @@ Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` 
 
 - **Scope**: Tier 3 runs the host `tests/` tree and `tests/development_tools/` as **two pytest invocations** (tools tests use `development_tools/pytest.ini` so they do not load host `tests/conftest.py`), using the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). GitHub Actions runs this daily via `.github/workflows/nightly-tests.yml`. POSIX runs use pytest-timeout's `signal` method so a hung test aborts at 300s instead of dumping stacks and sitting until the 60-minute phase budget. Windows keeps the `thread` method.
+- **Website browser suite**: `tests/integration/test_browser_javascript_suite.py` runs every `website/*.test.mjs` file through Node.js in the serial phase. This makes browser-test failures fail both `run_tests.py` and Tier 3/full-audit runs.
 - **Contention**: During `audit --full`, pytest runs concurrently with ruff, pyright, bandit, pip-audit, and legacy analysis. The Tier 3 runner caps workers at 4 to leave CPU headroom.
 - **Coverage**: Tier 3 test-suite execution does **not** collect coverage. The separate `coverage` command runs pytest again with `--cov`; budget extra time if you run both in one session.
 - **Caching**: Tier 3 may skip unchanged domains via the suite cache when source domains have not changed since the last full run.

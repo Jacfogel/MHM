@@ -8,6 +8,21 @@ on:
       - master
 
 jobs:
+  website-tests:
+    name: Website Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run website tests
+        run: node --test website/*.test.mjs
+
   static-logging-check:
     name: Static Logging Check
     runs-on: ubuntu-latest

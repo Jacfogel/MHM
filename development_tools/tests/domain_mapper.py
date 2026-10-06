@@ -7,8 +7,8 @@ This enables selective test execution: when source files in a domain change, onl
 covering that domain are re-run.
 
 **Taxonomy:** ``domain_mapper`` keys are **product domains** (top-level source areas: ``core``,
-``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``scheduler``,
-``checkins``, ``messages``, ``storage``, ``development_tools``).
+``communication``, ``ui``, ``website``, ``tasks``, ``ai``, ``user``, ``notebook``,
+``scheduler``, ``checkins``, ``messages``, ``storage``, ``development_tools``).
 That is separate from **suite category** markers (``unit``, ``integration``, ``behavior``, ``ui``)
 and from **quality** markers (e.g. ``critical``, ``smoke``). Per-domain ``source_to_test_mapping``
 marker lists may still include category or tier names for legacy cache behavior; they are not
@@ -43,6 +43,7 @@ def _default_domain_mapper_config() -> dict:
             "core": [["tests/core/"], ["core"]],
             "communication": [["tests/communication/"], ["communication"]],
             "ui": [["tests/ui/"], ["ui"]],
+            "website": [[], ["website"]],
             "tasks": [[], ["tasks"]],
             "ai": [["tests/ai/"], ["ai"]],
             "user": [[], ["user"]],
@@ -61,6 +62,7 @@ def _default_domain_mapper_config() -> dict:
             "user": [],
             "ai": [],
             "ui": [],
+            "website": [],
             "notebook": [],
             "scheduler": [],
             "checkins": [],
@@ -91,6 +93,7 @@ def _default_domain_mapper_config() -> dict:
             "ai": ["ai", "chatbot", "prompt", "context", "llm"],
             "tasks": ["task"],
             "ui": ["ui", "dialog", "widget", "qt", "pyside"],
+            "website": ["website", "browser", "frontend"],
             "user": ["user", "profile", "account", "preferences"],
             "notebook": ["notebook", "note", "journal", "list"],
             "scheduler": ["scheduler", "schedule", "reminder"],

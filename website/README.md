@@ -192,9 +192,15 @@ return to login; request failures allow retrying logout.
 
 ## Verification
 
+Node.js 20 or newer is required for the browser-side tests. The standard
+`run_tests.py` suite and `audit --full` execute these tests through pytest; use
+the direct Node command below when iterating on the website alone.
+
 ```powershell
-python -m pytest tests/unit/test_website_pages.py tests/unit/test_web_account_service.py tests/unit/test_web_user_settings.py tests/unit/test_web_tasks.py tests/unit/test_web_notes.py tests/unit/test_web_checkins.py tests/unit/test_web_gateway_runtime.py -q
-node --test website/worker.test.mjs website/app.test.mjs website/auth.test.mjs website/home.test.mjs website/setup.test.mjs website/settings.test.mjs website/tasks.test.mjs website/notes.test.mjs website/checkin.test.mjs website/script.test.mjs
+$websitePythonTests = Get-ChildItem tests/unit -Filter "test_web*.py" | Sort-Object Name | Select-Object -ExpandProperty FullName
+python -m pytest $websitePythonTests -q
+$websiteJavaScriptTests = Get-ChildItem website -Filter "*.test.mjs" | Sort-Object Name | Select-Object -ExpandProperty FullName
+node --test $websiteJavaScriptTests
 ```
 
 Tests inject isolated account and email adapters; they do not send real email or
