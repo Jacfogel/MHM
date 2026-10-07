@@ -9,7 +9,6 @@ Implementation using generated UI class (no QUiLoader).
 
 from typing import Any
 from collections.abc import Callable
-from pathlib import Path
 
 # PySide6 imports
 from PySide6.QtWidgets import QDialog, QMessageBox
@@ -36,7 +35,6 @@ from ui.period_row_management import (
 )
 from core.error_handling import handle_errors
 from storage.user_data_validation import _shared__title_case, validate_schedule_periods
-from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -363,49 +361,21 @@ class ScheduleEditorDialog(QDialog):
 
     @handle_errors("triggering rescheduling")
     def _trigger_rescheduling(self):
-        """Trigger rescheduling for this user and category when schedule changes."""
-        try:
-            import json
+        """Ask the running service to rebuild this category's send times."""
+        from core.service_requests import create_reschedule_request
 
-            # Create a reschedule request file that the service will pick up
-            request_data = {
-                "user_id": self.user_id,
-                "category": self.category,
-                "timestamp": now_timestamp_full(),
-                "source": "schedule_editor",
-            }
-
-            # Create the requests directory if it doesn't exist
-            # Use test data directory if in test environment, otherwise use production directory
-            import core.config
-
-            if (
-                hasattr(core.config, "BASE_DATA_DIR")
-                and core.config.BASE_DATA_DIR != "data"
-            ):
-                # We're in a test environment (BASE_DATA_DIR is patched to tests/data), use test data directory
-                requests_dir = Path(core.config.BASE_DATA_DIR) / "requests"
-            else:
-                # Production environment, use standard data directory
-                requests_dir = Path("data") / "requests"
-            requests_dir.mkdir(parents=True, exist_ok=True)
-
-            # Create a unique filename
-            timestamp_str = now_timestamp_filename()
-            filename = f"reschedule_{self.user_id}_{self.category}_{timestamp_str}.json"
-            request_file = requests_dir / filename
-
-            # Write the request file
-            with open(request_file, "w") as f:
-                json.dump(request_data, f, indent=2)
-
+        created = create_reschedule_request(
+            self.user_id, self.category, source="schedule_editor"
+        )
+        if created:
             logger.info(
                 f"Created reschedule request for user {self.user_id}, category {self.category}"
             )
-
-        except Exception as e:
-            logger.error(f"Error creating reschedule request: {e}")
-            # Don't fail the save operation if rescheduling fails
+        else:
+            logger.info(
+                f"Schedule saved for user {self.user_id}, category {self.category}; "
+                "the running service will pick it up on the next start if it is not already running."
+            )
 
     @handle_errors("accepting dialog")
     def accept(self):

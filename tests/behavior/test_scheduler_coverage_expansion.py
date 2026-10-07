@@ -585,8 +585,8 @@ class TestTimeManagement:
         mock_job = Mock()
         mock_job.job_func.args = [user_id, "motivational"]
         mock_job.next_run = schedule_datetime + timedelta(
-            minutes=30
-        )  # Within 2-hour window
+            minutes=2
+        )  # Inside the few-minute conflict gap
 
         with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
@@ -596,6 +596,20 @@ class TestTimeManagement:
 
             # Verify side effect
             assert result is True
+
+    @pytest.mark.behavior
+    @pytest.mark.scheduler
+    def test_is_time_conflict_allows_nearby_periods(self, scheduler_manager):
+        """Morning and check-in can both send when they are several minutes apart."""
+        user_id = "test-user"
+        schedule_datetime = now_datetime_full() + timedelta(hours=1)
+        mock_job = Mock()
+        mock_job.job_func.args = [user_id, "motivational"]
+        mock_job.next_run = schedule_datetime + timedelta(minutes=15)
+
+        with patch("scheduler.manager.schedule") as mock_schedule:
+            mock_schedule.jobs = [mock_job]
+            assert scheduler_manager.is_time_conflict(user_id, schedule_datetime) is False
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
@@ -761,7 +775,11 @@ class TestMessageHandling:
 
         mock_remove_job.assert_called_once_with(user_id, category)
         mock_retry.assert_called_once_with(
-            user_id=user_id, category=category, delay_minutes=10, retry_delay=30
+            user_id=user_id,
+            category=category,
+            delay_minutes=10,
+            retry_delay=30,
+            period_name=None,
         )
 
     @pytest.mark.behavior

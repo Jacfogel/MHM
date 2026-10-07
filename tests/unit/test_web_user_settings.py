@@ -707,3 +707,44 @@ def test_saved_settings_use_existing_v2_profile_and_schedule_storage(test_data_d
         == WINDOW
     )
     assert saved["context"]["preferred_name"] == "Web profile"
+
+
+def test_save_settings_reschedules_only_changed_schedule_categories(monkeypatch):
+    """A website schedule edit asks the running service to rebuild that category."""
+    from core.web_user_settings import save_settings
+
+    requested = []
+    morning = {"periods": {"Morning": {"start_time": "09:00", "end_time": "10:00"}}}
+    evening = {"periods": {"Evening": {"start_time": "19:00", "end_time": "23:00"}}}
+    previous = {"motivational": morning, "health": evening}
+
+    def fake_get_user_data(user_id, data_type):
+        assert user_id == "user-1"
+        assert data_type == "schedules"
+        return {"schedules": previous}
+
+    monkeypatch.setattr("core.get_user_data", fake_get_user_data)
+    monkeypatch.setattr("core.save_user_data_transaction", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        "core.service_requests.create_reschedule_request",
+        lambda user_id, category, source="schedule_runtime": requested.append(
+            (user_id, category, source)
+        )
+        or True,
+    )
+
+    changed = {
+        "motivational": {
+            "periods": {
+                "Morning": {"start_time": "09:00", "end_time": "10:00"},
+                "TestMotivation": {"start_time": "19:22", "end_time": "19:25"},
+            }
+        },
+        "health": evening,
+    }
+    assert save_settings("user-1", {"schedules": changed, "preferences": {}}) is True
+    assert requested == [("user-1", "motivational", "website_settings")]
+
+    requested.clear()
+    assert save_settings("user-1", {"preferences": {"channel": {"type": "email"}}}) is True
+    assert requested == []

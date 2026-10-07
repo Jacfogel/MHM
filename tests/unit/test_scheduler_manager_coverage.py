@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
@@ -480,3 +480,110 @@ class TestTaskRemindersModuleCoverage:
             selected = tr.select_task_by_weight(scheduler_manager, weights, tasks)
         assert selected is not None
         assert "stale-key" not in scheduler_manager._reminder_selection_state
+
+
+def _period(start_time, end_time):
+    return {"start_time": start_time, "end_time": end_time, "active": True}
+
+
+@pytest.mark.unit
+@pytest.mark.scheduler
+class TestRemainingWindowAndPeriodJobs:
+    def _random_time(self, scheduler_manager, now, periods, period_name):
+        with (
+            patch("scheduler.manager.now_datetime_full", return_value=now),
+            patch(
+                "scheduler.manager.get_schedule_time_periods",
+                return_value=periods,
+            ),
+            patch("scheduler.manager.random.randint", return_value=0),
+        ):
+            return scheduler_manager.get_random_time_within_period(
+                "user-1",
+                "motivational",
+                period_name,
+                "America/Regina",
+            )
+
+    def test_upcoming_period_stays_today(self, scheduler_manager):
+        result = self._random_time(
+            scheduler_manager,
+            datetime(2026, 10, 6, 19, 19, 0),
+            {"TestMotivation": _period("19:22", "19:25")},
+            "TestMotivation",
+        )
+        assert result == "2026-10-06 19:22"
+
+    def test_open_period_uses_the_remaining_window(self, scheduler_manager):
+        result = self._random_time(
+            scheduler_manager,
+            datetime(2026, 10, 6, 19, 23, 40),
+            {"evening": _period("19:00", "23:00")},
+            "evening",
+        )
+        assert result == "2026-10-06 19:24"
+
+    def test_ended_period_moves_to_tomorrow(self, scheduler_manager):
+        result = self._random_time(
+            scheduler_manager,
+            datetime(2026, 10, 6, 19, 30, 0),
+            {"TestMotivation": _period("19:22", "19:25")},
+            "TestMotivation",
+        )
+        assert result == "2026-10-07 19:22"
+
+    def test_sending_one_period_leaves_the_other_period(self, scheduler_manager):
+        from scheduler.manager import schedule
+
+        schedule.clear()
+        try:
+            schedule.every().day.at("10:15").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="motivational",
+                period_name="morning",
+            )
+            schedule.every().day.at("21:16").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="motivational",
+                period_name="evening",
+            )
+            scheduler_manager.handle_sending_scheduled_message(
+                "user-1", "motivational", period_name="morning"
+            )
+            remaining = [
+                job.job_func.keywords.get("period_name")
+                for job in schedule.jobs
+                if job.job_func is not None
+            ]
+            assert remaining == ["evening"]
+        finally:
+            schedule.clear()
+
+    def test_category_cleanup_removes_every_period_job(self, scheduler_manager):
+        from scheduler.manager import schedule
+
+        schedule.clear()
+        try:
+            schedule.every().day.at("10:15").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="motivational",
+                period_name="morning",
+            )
+            schedule.every().day.at("21:16").do(
+                scheduler_manager.handle_sending_scheduled_message,
+                user_id="user-1",
+                category="checkin",
+                period_name="checkin_time",
+            )
+            scheduler_manager.cleanup_old_tasks("user-1", "motivational")
+            remaining = [
+                job.job_func.keywords.get("category")
+                for job in schedule.jobs
+                if job.job_func is not None
+            ]
+            assert remaining == ["checkin"]
+        finally:
+            schedule.clear()

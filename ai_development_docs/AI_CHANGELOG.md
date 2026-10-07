@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Schedule saves keep every open period **COMPLETED**
+- Website schedule saves, and the desktop schedule editor, ask the running service to rebuild that category the same way other schedule edits do.
+- A period that still has time left today is scheduled inside the remaining window. It moves to tomorrow only after the window has ended.
+- Sending one period leaves the other periods in that category on the schedule.
+- Two sends conflict only when they are within five minutes, so neighboring windows such as morning and check-in can both go out.
+- Restart the running service so it loads this scheduler. After that, save the schedule again if you want today's remaining windows queued.
+- The period-window helper and the job-matching helpers now have docstrings and shared error handling, and the function registry includes them.
+
 ### 2026-10-06 - Error log limit, task routes, and task phrases **COMPLETED**
 - `errors.log` now has one shared handler with the configured size limit, so component errors can rotate the file instead of growing past it.
 - Website task handling is split into one method per action (list, create, update, complete, and the smaller task actions) with the same checks and responses.
@@ -124,12 +132,6 @@ Guidelines:
 - Email reply context is updated transactionally and must be stored before SMTP starts. Save failures are no longer reported as success.
 - IMAP duplicate and acknowledgement identity includes UIDVALIDITY, so a rebuilt mailbox cannot reuse an old UID as the same message.
 - Windows JSON locks use a crash-safe OS byte lock with same-thread re-entry. Focused verification passed 201 tests; Ruff, Pyright, and diff checks passed.
-
-### 2026-09-30 - Inbound mail stays attached to the right message **COMPLETED**
-- Incoming mail uses stable IMAP UIDs, processes the oldest unread batch first, and retries one temporary mailbox disconnect without changing the application's global network timeout.
-- A handled email is marked complete only after the server confirms `\\Seen`. If that acknowledgement fails, later polls retry it without sending the reply again.
-- Encoded subjects retain every fragment and declared charset. Pyright is clean after correcting the IMAP call and scheduler positional-argument lookup.
-- Focused email, message-processing, orchestrator, and scheduler suites passed; Ruff and diff checks passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

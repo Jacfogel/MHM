@@ -764,16 +764,53 @@ def build_settings_updates(documents, options, section, values):
     return {"account": account, "preferences": prefs, "schedules": schedules}
 
 
+@handle_errors(
+    "finding schedule categories to reschedule",
+    user_friendly=False,
+    default_return=[],
+)
+def _schedule_categories_to_reschedule(user_id, updates):
+    """Return schedule categories whose saved windows differ from disk."""
+    if not isinstance(updates, dict) or "schedules" not in updates:
+        return []
+    from core import get_user_data
+    from core.profile_v2_io import schedule_categories
+
+    new_map = schedule_categories(updates.get("schedules"))
+    if not new_map:
+        return []
+    loaded = get_user_data(user_id, "schedules")
+    previous = loaded.get("schedules") if isinstance(loaded, dict) else None
+    if not isinstance(previous, dict):
+        return [category for category in new_map if isinstance(category, str)]
+    old_map = schedule_categories(previous)
+    changed = [
+        category
+        for category, payload in new_map.items()
+        if isinstance(category, str) and old_map.get(category) != payload
+    ]
+    changed.extend(
+        category
+        for category in old_map
+        if isinstance(category, str) and category not in new_map
+    )
+    return changed
+
+
 @handle_errors("saving website settings", user_friendly=False, default_return=False)
 def save_settings(user_id, updates):
     """Persist validated settings and refresh dependent caches and defaults."""
     from core import save_user_data_transaction
     from core.schedule_runtime import clear_schedule_periods_cache
+    from core.service_requests import create_reschedule_request
     from messages.message_data_manager import ensure_user_message_files
 
+    categories_to_reschedule = _schedule_categories_to_reschedule(user_id, updates)
     if not save_user_data_transaction(user_id, updates, auto_create=False):
         return False
     clear_schedule_periods_cache(user_id)
+    for category in categories_to_reschedule:
+        create_reschedule_request(user_id, category, source="website_settings")
     if (
         updates.get("account", {}).get("features", {}).get("task_management")
         == "enabled"

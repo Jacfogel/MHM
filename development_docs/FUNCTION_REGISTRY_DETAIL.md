@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 17:49:43
+> **Last Generated**: 2026-10-06 23:17:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 302
-- **Functions Found**: 3143
-- **Methods Found**: 1608
+- **Functions Found**: 3148
+- **Methods Found**: 1611
 - **Classes Found**: 278
-- **Total Items**: 4751
-- **Functions Documented**: 2790
-- **Methods Documented**: 1430
+- **Total Items**: 4759
+- **Functions Documented**: 2795
+- **Methods Documented**: 1433
 - **Classes Documented**: 211
-- **Total Documented**: 4220
+- **Total Documented**: 4228
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-06
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (641)
+### **Core System Functions** (642)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (898)
@@ -5830,6 +5830,7 @@ its methods as routes.
 - [OK] `_custom_task_templates_for_settings(value)` - Return canonical browser-editable custom task-template definitions.
 - [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
 - [OK] `_legal_question_counts(always, sometimes, total_enabled, minimum, maximum)` - Return question counts that include every Always question and can vary.
+- [OK] `_schedule_categories_to_reschedule(user_id, updates)` - Return schedule categories whose saved windows differ from disk.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
 - [OK] `flag(key)` - Apply a validated website feature flag to the account document.
 - [OK] `periods(category)` - Return editable named periods for one schedule category.
@@ -6426,9 +6427,19 @@ account timezone (``account.timezone``).
 Args:
     delivery: Object that can send scheduled messages and task reminders.
 - [OK] `_create_standalone_scheduler_manager()` - Build a scheduler for standalone entry points using the configured delivery port.
-- [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
+- [OK] `_drop_sent_message_job(self, user_id, category, period_name)` - Remove the job that just finished without dropping sibling periods.
+- [OK] `_is_user_task_reminder_job(self, job, user_id)` - True when a job is a task reminder for this user.
+- [OK] `_message_job_matches_user_category(self, job_func, user_id, category)` - True for a message job registered for this user and category.
+- [OK] `_period_window(tz, day, start_time, end_time)` - Return the timezone-aware start and end of a period on one calendar day.
+
+pytz needs ``localize()`` on a naive datetime. Passing ``tzinfo=`` directly
+can attach the wrong offset.
+- [OK] `_remove_user_message_job(self, user_id, category, period_name)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
-- [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
+
+When ``period_name`` is set, only that period is removed. Other periods
+in the same category stay on the schedule.
+- [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay, period_name)` - Schedule a one-time retry for deferred scheduled sends.
 - [OK] `_schedule_user_jobs(self, user_id)` - Schedule daily categories, check-ins, and task reminders for one user.
 
 Returns how many daily category/check-in jobs were requested.
@@ -6466,8 +6477,9 @@ Args:
     end_time: End time in HH:MM format (e.g., "18:00")
 Returns:
     Random time in HH:MM format
-- [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
+- [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral, period_name)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
+Other periods in the same category stay scheduled.
 - [OK] `handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 
 ``task_identifier`` is the task record's canonical ``id`` (or a value that
@@ -6539,9 +6551,15 @@ Args:
 
 Args:
     delivery: Object that can send scheduled messages and task reminders.
-  - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
+  - [OK] `SchedulerManager._drop_sent_message_job(self, user_id, category, period_name)` - Remove the job that just finished without dropping sibling periods.
+  - [OK] `SchedulerManager._is_user_task_reminder_job(self, job, user_id)` - True when a job is a task reminder for this user.
+  - [OK] `SchedulerManager._message_job_matches_user_category(self, job_func, user_id, category)` - True for a message job registered for this user and category.
+  - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category, period_name)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
-  - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
+
+When ``period_name`` is set, only that period is removed. Other periods
+in the same category stay on the schedule.
+  - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay, period_name)` - Schedule a one-time retry for deferred scheduled sends.
   - [OK] `SchedulerManager._schedule_user_jobs(self, user_id)` - Schedule daily categories, check-ins, and task reminders for one user.
 
 Returns how many daily category/check-in jobs were requested.
@@ -6577,8 +6595,9 @@ Args:
     end_time: End time in HH:MM format (e.g., "18:00")
 Returns:
     Random time in HH:MM format
-  - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
+  - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral, period_name)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
+Other periods in the same category stay scheduled.
   - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 
 ``task_identifier`` is the task record's canonical ``id`` (or a value that
@@ -7627,7 +7646,7 @@ Args:
 **Functions:**
 - [OK] `__init__(self, parent, user_id, category, on_save)` - Initialize the object.
 - [OK] `_after_add_period(self, period_widget)` - Set creation order and resort after adding a period (for add_period_row_to_layout).
-- [OK] `_trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
+- [OK] `_trigger_rescheduling(self)` - Ask the running service to rebuild this category's send times.
 - [OK] `accept(self)` - Override accept to prevent automatic dialog closing.
 - [OK] `add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
 - [OK] `cancel(self)` - Cancel the dialog.
@@ -7659,7 +7678,7 @@ Returns:
 - [OK] `ScheduleEditorDialog` - Dialog for editing schedules.
   - [OK] `ScheduleEditorDialog.__init__(self, parent, user_id, category, on_save)` - Initialize the object.
   - [OK] `ScheduleEditorDialog._after_add_period(self, period_widget)` - Set creation order and resort after adding a period (for add_period_row_to_layout).
-  - [OK] `ScheduleEditorDialog._trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
+  - [OK] `ScheduleEditorDialog._trigger_rescheduling(self)` - Ask the running service to rebuild this category's send times.
   - [OK] `ScheduleEditorDialog.accept(self)` - Override accept to prevent automatic dialog closing.
   - [OK] `ScheduleEditorDialog.add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
   - [OK] `ScheduleEditorDialog.cancel(self)` - Cancel the dialog.

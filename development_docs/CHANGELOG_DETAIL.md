@@ -32,6 +32,15 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Schedule saves keep every open period
+- **Website and desktop reschedule**: [web_user_settings.py](../core/web_user_settings.py) `save_settings` compares the saved schedule with the previous one and writes a reschedule flag for each changed category. [schedule_editor_dialog.py](../ui/dialogs/schedule_editor_dialog.py) now uses the same flag (`create_reschedule_request`) instead of a request file the service never read. [manager.py](../scheduler/manager.py) `reset_and_reschedule_daily_messages` removes the category's existing send jobs, including task reminders when the tasks category is rebuilt, before it queues the new times.
+- **Remaining window**: `get_random_time_within_period` picks a future minute inside a window that has not ended. A window that has already ended is scheduled for the next day. The old 30-minute lookahead, which moved a whole window to tomorrow when its start was soon, is gone.
+- **One send, one period**: `handle_sending_scheduled_message` records `period_name` and removes only that period's job. Morning no longer cancels evening.
+- **Short conflict gap**: `is_time_conflict` treats times within five minutes as a conflict. Neighboring periods can both be queued.
+- **Tests**: Remaining-window, sibling-period, category cleanup, nearby-period, and website reschedule coverage.
+- **Impact**: Restart the running service so today's scheduler uses these rules. Save the schedule once after the restart to queue windows that are still open today.
+- **Audit follow-up**: The nested `window_on` helper is now `_period_window` in [manager.py](../scheduler/manager.py), with a docstring and `@handle_errors`. `_message_job_matches_user_category`, `_is_user_task_reminder_job`, and `_drop_sent_message_job` use the same decorator. The function registry was regenerated so those helpers and `_schedule_categories_to_reschedule` are listed.
+
 ### 2026-10-06 - Error log limit, task routes, and task phrases
 - **Error log rotation**: Component loggers were each opening `errors.log` without `LOG_MAX_BYTES`, and those extra handles blocked Windows from renaming the file. [logger.py](../core/logger.py) now attaches one shared size-limited handler for component, third-party, and bootstrap errors. A failed truncate no longer counts as a successful rollover. Component log files also receive `LOG_MAX_BYTES`. Logging guides describe the shared handler.
 - **Website tasks**: [web_tasks.py](../core/web_tasks.py) `tasks_api` is a short dispatcher. List, create, update, delete, complete, restore, snooze, skip, breakdown, subtasks, detach, and simplify each have their own method, with the same validation messages and responses.

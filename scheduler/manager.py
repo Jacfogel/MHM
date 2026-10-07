@@ -46,6 +46,24 @@ suppress_noisy_logging()
 
 logger = get_component_logger("scheduler")
 scheduler_logger = logger
+# schedule.every().day.at uses minute precision. Keep sends a few minutes apart
+# so neighboring windows, such as morning and check-in, can both fire.
+MESSAGE_CONFLICT_WINDOW = timedelta(minutes=5)
+
+
+@handle_errors("building a schedule period window", default_return=None)
+def _period_window(tz, day, start_time, end_time):
+    """Return the timezone-aware start and end of a period on one calendar day.
+
+    pytz needs ``localize()`` on a naive datetime. Passing ``tzinfo=`` directly
+    can attach the wrong offset.
+    """
+    return (
+        tz.localize(datetime.combine(day, start_time)),
+        tz.localize(datetime.combine(day, end_time)),
+    )
+
+
 _scheduler_delivery_factory: Callable[[], SchedulerDeliveryPort] | None = None
 
 
@@ -229,6 +247,11 @@ class SchedulerManager:
 
         # Handle different categories appropriately
         if category == "tasks":
+            schedule.jobs = [
+                job
+                for job in schedule.jobs
+                if not self._is_user_task_reminder_job(job, active_user_id)
+            ]
             # For tasks, check if task management is enabled and schedule task reminders
             try:
                 # Get user account data
@@ -264,18 +287,9 @@ class SchedulerManager:
     def is_job_for_category(self, job, user_id, category):
         """Determines if a job is scheduled for a specific user and category."""
         if job is None:
-            # Check all jobs for this user and category
             for existing_job in schedule.jobs:
-                job_func = existing_job.job_func
-                if not job_func:
-                    continue
-                # Check if this is a daily scheduler job for this user/category
-                if (
-                    hasattr(job_func, "func")
-                    and job_func.func == self.schedule_daily_message_job
-                    and hasattr(job_func, "keywords")
-                    and job_func.keywords.get("user_id") == user_id
-                    and job_func.keywords.get("category") == category
+                if self._message_job_matches_user_category(
+                    existing_job.job_func, user_id, category
                 ):
                     logger.debug(
                         f"Found existing daily job for user {user_id}, category {category}"
@@ -285,12 +299,36 @@ class SchedulerManager:
                 f"No existing daily job found for user {user_id}, category {category}"
             )
             return False
-        else:
-            # Check specific job
-            job_func = job.job_func
-            if not job_func:
-                return False
-            return bool(hasattr(job_func, "func") and job_func.func == self.schedule_daily_message_job and hasattr(job_func, "keywords") and job_func.keywords.get("user_id") == user_id and job_func.keywords.get("category") == category)
+        return self._message_job_matches_user_category(
+            getattr(job, "job_func", None), user_id, category
+        )
+
+    @handle_errors("matching a message job to a user category", default_return=False)
+    def _message_job_matches_user_category(self, job_func, user_id, category) -> bool:
+        """True for a message job registered for this user and category."""
+        if job_func is None or not hasattr(job_func, "func"):
+            return False
+        if job_func.func not in (
+            self.schedule_daily_message_job,
+            self.handle_sending_scheduled_message,
+        ):
+            return False
+        return scheduled_job_user_and_category(job_func) == (user_id, category)
+
+    @handle_errors("matching a task reminder job to a user", default_return=False)
+    def _is_user_task_reminder_job(self, job, user_id) -> bool:
+        """True when a job is a task reminder for this user."""
+        job_func = getattr(job, "job_func", None)
+        if (
+            job_func is None
+            or getattr(job_func, "func", None) != self.handle_task_reminder
+        ):
+            return False
+        keywords = getattr(job_func, "keywords", None)
+        if isinstance(keywords, dict):
+            return keywords.get("user_id") == user_id
+        args = getattr(job_func, "args", None)
+        return isinstance(args, (list, tuple)) and bool(args) and args[0] == user_id
 
     @handle_errors(
         "scheduling category, check-in, and reminder jobs for a user", re_raise=True
@@ -575,6 +613,7 @@ class SchedulerManager:
                         self.handle_sending_scheduled_message,
                         user_id=user_id,
                         category=category,
+                        period_name=period_name,
                     )
                     logger.info(
                         f"Successfully scheduled {category} message for user {user_id}, period {period_name} "
@@ -656,6 +695,7 @@ class SchedulerManager:
                 self.handle_sending_scheduled_message,
                 user_id=user_id,
                 category="checkin",
+                period_name=period_name,
             )
             logger.info(
                 f"Successfully scheduled check-in for user {user_id} at {time_part} "
@@ -740,6 +780,7 @@ class SchedulerManager:
                         self.handle_sending_scheduled_message,
                         user_id=user_id,
                         category=category,
+                        period_name=selected_period,
                     )
                     logger.info(
                         f"Successfully scheduled {category} message for user {user_id} at {time_part} "
@@ -803,7 +844,6 @@ class SchedulerManager:
                 else:
                     job_time_for_compare = job_time
 
-                # Increase conflict window to 2 hours to prevent multiple messages at similar times
                 try:
                     if (
                         abs(
@@ -811,7 +851,7 @@ class SchedulerManager:
                                 job_time_for_compare - schedule_dt_for_compare
                             ).total_seconds()
                         )
-                        < 7200
+                        < MESSAGE_CONFLICT_WINDOW.total_seconds()
                     ):
                         return True
                 except TypeError as e:
@@ -865,31 +905,58 @@ class SchedulerManager:
         period_start_time = start_dt.time()
         period_end_time = end_dt.time()
 
-        # Create timezone-aware datetime objects for today.
-        # IMPORTANT: with pytz, never pass tzinfo=tz directly; always localize a naive datetime.
-        start_datetime = tz.localize(
-            datetime.combine(now_datetime.date(), period_start_time)
+        # pytz needs localize() on a naive datetime, which _period_window does.
+        window = _period_window(
+            tz, now_datetime.date(), period_start_time, period_end_time
         )
-        end_datetime = tz.localize(
-            datetime.combine(now_datetime.date(), period_end_time)
-        )
+        if window is None:
+            return None
+        start_datetime, end_datetime = window
+        moved_to_tomorrow = False
+        # A window that has already ended cannot send today.
+        if end_datetime <= now_datetime:
+            window = _period_window(
+                tz,
+                now_datetime.date() + timedelta(days=1),
+                period_start_time,
+                period_end_time,
+            )
+            if window is None:
+                return None
+            start_datetime, end_datetime = window
+            moved_to_tomorrow = True
 
-        # If the period has already ended today, schedule for tomorrow
-        if end_datetime <= now_datetime or start_datetime <= now_datetime + timedelta(minutes=30):
-            start_datetime += timedelta(days=1)
-            end_datetime += timedelta(days=1)
+        # schedule.every().day.at only fires on a future minute. Use the rest of
+        # today's window when any of that minute range is still ahead.
+        next_open_minute = (now_datetime + timedelta(minutes=1)).replace(
+            second=0, microsecond=0
+        )
+        if start_datetime < next_open_minute:
+            start_datetime = next_open_minute
+        if start_datetime > end_datetime:
+            if moved_to_tomorrow:
+                logger.error("Invalid time range calculated.")
+                return None
+            window = _period_window(
+                tz,
+                now_datetime.date() + timedelta(days=1),
+                period_start_time,
+                period_end_time,
+            )
+            if window is None:
+                return None
+            start_datetime, end_datetime = window
 
         total_seconds = (end_datetime - start_datetime).total_seconds()
-        if total_seconds <= 0:
+        if total_seconds < 0:
             logger.error("Invalid time range calculated.")
             return None
 
         random_seconds = random.randint(0, int(total_seconds))
         random_datetime = start_datetime + timedelta(seconds=random_seconds)
-
-        # Final safety check - ensure the time is in the future
         if random_datetime <= now_datetime:
-            random_datetime += timedelta(days=1)
+            logger.error("Calculated schedule time is not in the future.")
+            return None
 
         random_time_str = format_timestamp(random_datetime, TIMESTAMP_MINUTE)
         logger.info(f"Scheduled random time: {random_time_str}")
@@ -937,10 +1004,12 @@ class SchedulerManager:
         retry_attempts=3,
         retry_delay=30,
         allow_deferral=True,
+        period_name=None,
     ):
         """
         Handles the sending of scheduled messages with retries.
         This is a one-time job that removes itself after execution.
+        Other periods in the same category stay scheduled.
         """
         if self.delivery is None:
             logger.error("Delivery interface is not initialized.")
@@ -969,20 +1038,21 @@ class SchedulerManager:
                         logger.info(
                             f"Message sent successfully for user {user_id}, category {category}."
                         )
-                    # Remove this job after the send is finished so it stays a one-time job
-                    self._remove_user_message_job(user_id, category)
+                    # Remove this period's job after the send so it stays one-time.
+                    self._drop_sent_message_job(user_id, category, period_name)
                     return  # Exit after the send is finished
 
                 if status == "deferred":
                     logger.info(
                         f"Deferred scheduled message for user {user_id}, category {category}; scheduling one-time retry in 10 minutes."
                     )
-                    self._remove_user_message_job(user_id, category)
+                    self._drop_sent_message_job(user_id, category, period_name)
                     self._schedule_deferred_message_retry(
                         user_id=user_id,
                         category=category,
                         delay_minutes=10,
                         retry_delay=retry_delay,
+                        period_name=period_name,
                     )
                     return
 
@@ -990,7 +1060,7 @@ class SchedulerManager:
                     logger.info(
                         f"Skipping scheduled message for user {user_id}, category {category}: no eligible message content."
                     )
-                    self._remove_user_message_job(user_id, category)
+                    self._drop_sent_message_job(user_id, category, period_name)
                     return
 
                 next_id = getattr(send_status, "message_id", None)
@@ -1011,11 +1081,19 @@ class SchedulerManager:
                 time.sleep(retry_delay)
 
         # Remove job even if it failed after all retries
-        self._remove_user_message_job(user_id, category)
+        self._drop_sent_message_job(user_id, category, period_name)
+
+    @handle_errors("removing the sent period job", default_return=None)
+    def _drop_sent_message_job(self, user_id, category, period_name):
+        """Remove the job that just finished without dropping sibling periods."""
+        if period_name is None:
+            self._remove_user_message_job(user_id, category)
+            return
+        self._remove_user_message_job(user_id, category, period_name)
 
     @handle_errors("scheduling deferred message retry", default_return=False)
     def _schedule_deferred_message_retry(
-        self, user_id, category, delay_minutes=10, retry_delay=30
+        self, user_id, category, delay_minutes=10, retry_delay=30, period_name=None
     ) -> bool:
         """Schedule a one-time retry for deferred scheduled sends."""
         retry_dt = now_datetime_full() + timedelta(minutes=delay_minutes)
@@ -1027,6 +1105,7 @@ class SchedulerManager:
             retry_attempts=1,
             retry_delay=retry_delay,
             allow_deferral=False,
+            period_name=period_name,
         )
         logger.info(
             f"Scheduled deferred retry for user {user_id}, category {category} at {retry_time} (allow_deferral=False)."
@@ -1034,10 +1113,13 @@ class SchedulerManager:
         return True
 
     @handle_errors("removing user message job")
-    def _remove_user_message_job(self, user_id, category):
+    def _remove_user_message_job(self, user_id, category, period_name=None):
         """
         Removes user message jobs from the scheduler after execution.
         This makes user message jobs effectively one-time jobs.
+
+        When ``period_name`` is set, only that period is removed. Other periods
+        in the same category stay on the schedule.
         """
         try:
             # Find and remove jobs for this user and category
@@ -1047,12 +1129,22 @@ class SchedulerManager:
                 if not job_func:
                     continue
                 identity = scheduled_job_user_and_category(job_func)
-                if (
+                if not (
                     hasattr(job_func, "func")
                     and job_func.func == self.handle_sending_scheduled_message
                     and identity == (user_id, category)
                 ):
-                    jobs_to_remove.append(job)
+                    continue
+                if period_name is not None:
+                    keywords = getattr(job_func, "keywords", None)
+                    job_period = (
+                        keywords.get("period_name")
+                        if isinstance(keywords, dict)
+                        else None
+                    )
+                    if job_period != period_name:
+                        continue
+                jobs_to_remove.append(job)
 
             # Remove the jobs
             for job in jobs_to_remove:
