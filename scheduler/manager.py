@@ -64,6 +64,20 @@ def _period_window(tz, day, start_time, end_time):
     )
 
 
+@handle_errors("checking whether a category may send automatically", default_return=False)
+def _automated_category_allowed(user_id: str, category: str) -> bool:
+    """Return whether this category may be scheduled and sent.
+
+    Check-ins use their own feature switch. Every other scheduled category
+    waits until automated messages are enabled.
+    """
+    if category == "checkin":
+        return True
+    from messages.message_data_manager import is_automated_messages_enabled
+
+    return bool(is_automated_messages_enabled(user_id))
+
+
 _scheduler_delivery_factory: Callable[[], SchedulerDeliveryPort] | None = None
 
 
@@ -275,9 +289,14 @@ class SchedulerManager:
         elif category == "checkin":
             # For check-ins, use the standard scheduling
             self.schedule_daily_message_job(user_id=active_user_id, category=category)
-        else:
+        elif _automated_category_allowed(active_user_id, category):
             # For regular message categories, use the standard scheduling
             self.schedule_daily_message_job(user_id=active_user_id, category=category)
+        else:
+            logger.info(
+                f"Automated messages are disabled for user {active_user_id}; "
+                f"cleared {category} without scheduling."
+            )
 
         logger.info(
             f"Scheduler reset and rescheduled daily messages for active user: {active_user_id}, category: {category}."
@@ -346,7 +365,11 @@ class SchedulerManager:
         if isinstance(categories, list):
             for category in categories:
                 try:
-                    self.schedule_daily_message_job(user_id, category)
+                    scheduled_category = self.schedule_daily_message_job(
+                        user_id, category
+                    )
+                    if scheduled_category is False:
+                        continue
                     scheduled += 1
                     log(
                         f"Scheduled messages for user {user_id}, category {category}"
@@ -485,7 +508,18 @@ class SchedulerManager:
         """
         Schedules daily messages immediately for the specified user and category.
         Schedules one message per active period in the category.
+
+        Returns False when automated messages are disabled for a non-check-in
+        category. Those jobs are removed and nothing new is queued.
         """
+        if not _automated_category_allowed(user_id, category):
+            logger.info(
+                f"Automated messages are disabled for user {user_id}; "
+                f"not scheduling {category}."
+            )
+            self.cleanup_old_tasks(user_id, category)
+            return False
+
         logger.info(
             f"Scheduling daily messages immediately for user {user_id}, category {category}."
         )
@@ -1013,6 +1047,14 @@ class SchedulerManager:
         """
         if self.delivery is None:
             logger.error("Delivery interface is not initialized.")
+            return
+
+        if not _automated_category_allowed(user_id, category):
+            logger.info(
+                f"Skipping scheduled message for user {user_id}, category {category}: "
+                "automated messages are disabled."
+            )
+            self._drop_sent_message_job(user_id, category, period_name)
             return
 
         attempt = 0

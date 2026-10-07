@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 23:17:58
+> **Last Generated**: 2026-10-06 23:54:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 88.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 302
-- **Functions Found**: 3148
+- **Functions Found**: 3149
 - **Methods Found**: 1611
 - **Classes Found**: 278
-- **Total Items**: 4759
-- **Functions Documented**: 2795
+- **Total Items**: 4760
+- **Functions Documented**: 2796
 - **Methods Documented**: 1433
 - **Classes Documented**: 211
-- **Total Documented**: 4228
+- **Total Documented**: 4229
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-06
 
@@ -6426,6 +6426,10 @@ account timezone (``account.timezone``).
 
 Args:
     delivery: Object that can send scheduled messages and task reminders.
+- [OK] `_automated_category_allowed(user_id, category)` - Return whether this category may be scheduled and sent.
+
+Check-ins use their own feature switch. Every other scheduled category
+waits until automated messages are enabled.
 - [OK] `_create_standalone_scheduler_manager()` - Build a scheduler for standalone entry points using the configured delivery port.
 - [OK] `_drop_sent_message_job(self, user_id, category, period_name)` - Remove the job that just finished without dropping sibling periods.
 - [OK] `_is_user_task_reminder_job(self, job, user_id)` - True when a job is a task reminder for this user.
@@ -6513,6 +6517,9 @@ For each reminder period, pick one random task and schedule it at a random time 
 - [OK] `schedule_checkin_at_exact_time(self, user_id, period_name)` - Schedule a check-in at the exact time specified in the period.
 - [OK] `schedule_daily_message_job(self, user_id, category)` - Schedules daily messages immediately for the specified user and category.
 Schedules one message per active period in the category.
+
+Returns False when automated messages are disabled for a non-check-in
+category. Those jobs are removed and nothing new is queued.
 - [OK] `schedule_message_at_random_time(self, user_id, category)` - Schedules a message at a random time within the user's preferred time periods.
 - [OK] `schedule_message_for_period(self, user_id, category, period_name)` - Schedules a message at a random time within a specific period for a user and category.
 - [OK] `schedule_new_user(self, user_id)` - Schedule a newly created user immediately.
@@ -6621,6 +6628,9 @@ For each reminder period, pick one random task and schedule it at a random time 
   - [OK] `SchedulerManager.schedule_checkin_at_exact_time(self, user_id, period_name)` - Schedule a check-in at the exact time specified in the period.
   - [OK] `SchedulerManager.schedule_daily_message_job(self, user_id, category)` - Schedules daily messages immediately for the specified user and category.
 Schedules one message per active period in the category.
+
+Returns False when automated messages are disabled for a non-check-in
+category. Those jobs are removed and nothing new is queued.
   - [OK] `SchedulerManager.schedule_message_at_random_time(self, user_id, category)` - Schedules a message at a random time within the user's preferred time periods.
   - [OK] `SchedulerManager.schedule_message_for_period(self, user_id, category, period_name)` - Schedules a message at a random time within a specific period for a user and category.
   - [OK] `SchedulerManager.schedule_new_user(self, user_id)` - Schedule a newly created user immediately.

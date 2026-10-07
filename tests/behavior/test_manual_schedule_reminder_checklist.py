@@ -137,16 +137,19 @@ def test_scheduled_message_not_scheduled_for_wrong_day():
     scheduler.cleanup_old_tasks = MagicMock()
     scheduler.schedule_message_for_period = MagicMock()
 
-    with patch(
-        "scheduler.manager.get_schedule_time_periods",
-        return_value={
-            "Morning": {
-                "active": True,
-                "days": [other_day],
-                "start_time": "08:00",
-                "end_time": "12:00",
-            }
-        },
+    with (
+        patch(
+            "scheduler.manager.get_schedule_time_periods",
+            return_value={
+                "Morning": {
+                    "active": True,
+                    "days": [other_day],
+                    "start_time": "08:00",
+                    "end_time": "12:00",
+                }
+            },
+        ),
+        patch("scheduler.manager._automated_category_allowed", return_value=True),
     ):
         SchedulerManager.schedule_daily_message_job(scheduler, "user-1", "motivational")
 

@@ -284,7 +284,9 @@ class TestMessageScheduling:
                 scheduler_manager, "schedule_message_for_period"
             ) as mock_schedule_period, patch.object(
                 scheduler_manager, "cleanup_old_tasks"
-            ) as mock_cleanup:
+            ) as mock_cleanup, patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ):
                 # Test real behavior: function should schedule active periods
                 scheduler_manager.schedule_daily_message_job(user_id, category)
 
@@ -306,7 +308,9 @@ class TestMessageScheduling:
 
             with patch.object(
                 scheduler_manager, "schedule_message_for_period"
-            ) as mock_schedule_period:
+            ) as mock_schedule_period, patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ):
                 # Test real behavior: function should handle empty periods gracefully
                 scheduler_manager.schedule_daily_message_job(user_id, category)
 
@@ -715,7 +719,10 @@ class TestMessageHandling:
         category = "motivational"
 
         # Test real behavior: function should send message successfully
-        scheduler_manager.handle_sending_scheduled_message(user_id, category)
+        with patch(
+            "scheduler.manager._automated_category_allowed", return_value=True
+        ):
+            scheduler_manager.handle_sending_scheduled_message(user_id, category)
 
         # Verify side effect: communication manager should be called
         scheduler_manager.delivery.handle_message_sending.assert_called_once_with(
@@ -738,7 +745,12 @@ class TestMessageHandling:
             MessageSendResult.sent(user_id, category),  # Second call succeeds
         ]
 
-        with patch("time.sleep") as mock_sleep:  # Don't actually sleep during tests
+        with (
+            patch("time.sleep") as mock_sleep,
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ),
+        ):  # Don't actually sleep during tests
             # Test real behavior: function should retry and eventually succeed
             scheduler_manager.handle_sending_scheduled_message(
                 user_id, category, retry_attempts=2, retry_delay=1
@@ -764,6 +776,9 @@ class TestMessageHandling:
         )
 
         with (
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ),
             patch.object(
                 scheduler_manager, "_remove_user_message_job"
             ) as mock_remove_job,

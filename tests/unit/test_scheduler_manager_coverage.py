@@ -89,6 +89,9 @@ class TestResetAndRescheduleDailyMessages:
         user_id = "user-1"
         with (
             patch("scheduler.manager.schedule") as mock_schedule,
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ),
             patch.object(
                 scheduler_manager, "schedule_daily_message_job"
             ) as mock_daily,
@@ -100,6 +103,25 @@ class TestResetAndRescheduleDailyMessages:
             mock_daily.assert_called_once_with(
                 user_id=user_id, category="motivational"
             )
+
+    def test_disabled_message_category_is_cleared_without_rescheduling(
+        self, scheduler_manager
+    ):
+        user_id = "user-1"
+        with (
+            patch("scheduler.manager.schedule") as mock_schedule,
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=False
+            ),
+            patch.object(
+                scheduler_manager, "schedule_daily_message_job"
+            ) as mock_daily,
+        ):
+            mock_schedule.jobs = []
+            scheduler_manager.reset_and_reschedule_daily_messages(
+                "motivational", user_id
+            )
+            mock_daily.assert_not_called()
 
 
 @pytest.mark.unit
@@ -200,9 +222,14 @@ class TestSchedulerManagerUncoveredPaths:
         scheduler_manager.delivery.handle_message_sending.return_value = (
             MessageSendResult.skipped("user-1", "motivational")
         )
-        with patch.object(
-            scheduler_manager, "_remove_user_message_job"
-        ) as mock_remove:
+        with (
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ),
+            patch.object(
+                scheduler_manager, "_remove_user_message_job"
+            ) as mock_remove,
+        ):
             scheduler_manager.handle_sending_scheduled_message(
                 "user-1", "motivational"
             )
@@ -332,6 +359,9 @@ class TestSchedulerManagerUncoveredPaths:
                         "end_time": "20:00",
                     }
                 },
+            ),
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
             ),
             patch.object(scheduler_manager, "cleanup_old_tasks"),
             patch.object(
@@ -549,9 +579,12 @@ class TestRemainingWindowAndPeriodJobs:
                 category="motivational",
                 period_name="evening",
             )
-            scheduler_manager.handle_sending_scheduled_message(
-                "user-1", "motivational", period_name="morning"
-            )
+            with patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ):
+                scheduler_manager.handle_sending_scheduled_message(
+                    "user-1", "motivational", period_name="morning"
+                )
             remaining = [
                 job.job_func.keywords.get("period_name")
                 for job in schedule.jobs

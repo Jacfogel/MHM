@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Disabled automated messages stay quiet
+- **Scheduler gate**: [manager.py](../scheduler/manager.py) `_automated_category_allowed` checks `automated_messages` before a category is scheduled or sent. `schedule_daily_message_job` removes that category's jobs and queues nothing new. `handle_sending_scheduled_message` drops a job that is already queued. `reset_and_reschedule_daily_messages` clears a disabled category without putting it back. Check-ins still use the check-ins switch, and task reminders still use task management.
+- **Tests**: Disabled category scheduling, send skipping, check-in scheduling, and reschedule coverage.
+- **Impact**: An account with automated messages turned off no longer gets health, profile, or other category mail. Restart the running service so jobs already sitting in the current process are dropped.
+
 ### 2026-10-06 - Schedule saves keep every open period
 - **Website and desktop reschedule**: [web_user_settings.py](../core/web_user_settings.py) `save_settings` compares the saved schedule with the previous one and writes a reschedule flag for each changed category. [schedule_editor_dialog.py](../ui/dialogs/schedule_editor_dialog.py) now uses the same flag (`create_reschedule_request`) instead of a request file the service never read. [manager.py](../scheduler/manager.py) `reset_and_reschedule_daily_messages` removes the category's existing send jobs, including task reminders when the tasks category is rebuilt, before it queues the new times.
 - **Remaining window**: `get_random_time_within_period` picks a future minute inside a window that has not ended. A window that has already ended is scheduled for the next day. The old 30-minute lookahead, which moved a whole window to tomorrow when its start was soon, is gone.

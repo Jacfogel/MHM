@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Disabled automated messages stay quiet **COMPLETED**
+- Category messages are no longer scheduled or sent when automated messages are disabled. A job already queued for that account is dropped instead of sent.
+- Check-ins and task reminders still follow their own switches.
+- Restart the running service so an account that is already disabled stops receiving the messages queued by the current process.
+
 ### 2026-10-06 - Schedule saves keep every open period **COMPLETED**
 - Website schedule saves, and the desktop schedule editor, ask the running service to rebuild that category the same way other schedule edits do.
 - A period that still has time left today is scheduled inside the remaining window. It moves to tomorrow only after the window has ended.
@@ -126,12 +131,6 @@ Guidelines:
 - Unix file locks remove their `.lock` sidecar on release, so user directories no longer keep `account.json.lock` and similar files.
 - The frozen-clock lock test times only its body, so session cleanup cannot trip the 5-second limit.
 - Unix lock tests restore the real `fcntl` module before reload, so a busy-lock stand-in cannot make later JSON reads return `{}`.
-
-### 2026-09-30 - Delivery and reply state fail safely **COMPLETED**
-- Channels accept only explicit success or `unconfirmed`; unexpected truthy results remain failed and retryable.
-- Email reply context is updated transactionally and must be stored before SMTP starts. Save failures are no longer reported as success.
-- IMAP duplicate and acknowledgement identity includes UIDVALIDITY, so a rebuilt mailbox cannot reuse an old UID as the same message.
-- Windows JSON locks use a crash-safe OS byte lock with same-thread re-entry. Focused verification passed 201 tests; Ruff, Pyright, and diff checks passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

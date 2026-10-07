@@ -52,6 +52,9 @@ def test_scheduler_handles_scheduled_message_with_slim_delivery(monkeypatch):
         lambda user_id, category: removed_jobs.append((user_id, category)),
     )
 
+    monkeypatch.setattr(
+        "scheduler.manager._automated_category_allowed", lambda user_id, category: True
+    )
     scheduler.handle_sending_scheduled_message(
         "user-1",
         "motivational",
