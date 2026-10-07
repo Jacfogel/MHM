@@ -197,6 +197,7 @@ class TestLoggerFileOperationsBehavior:
         assert isinstance(handler, BackupDirectoryRotatingFileHandler), "Should be correct type"
         assert handler.backup_dir == str(backup_dir), "Should have correct backup directory"
         assert backup_dir.exists(), "Backup directory should be created"
+        handler.close()
     
     @pytest.mark.behavior
     def test_get_log_file_info_real_behavior(self, temp_log_dir):

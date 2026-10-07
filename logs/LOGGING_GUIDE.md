@@ -245,7 +245,7 @@ Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAY
 
 ## 6. Log Rotation, Backups, and Archival
 
-Rotation is implemented by `BackupDirectoryRotatingFileHandler` in `core/logger.py`. All component loggers (including `main`, `discord`, `scheduler`, `message`, `communication_manager`, etc.) use this handler, so every component log file is rotated when it meets the size/age and midnight rules below.
+Rotation is implemented by `BackupDirectoryRotatingFileHandler` in `core/logger.py`. All component loggers (including `main`, `discord`, `scheduler`, `message`, `communication_manager`, etc.) use this handler, so every component log file is rotated when it meets the size/age and midnight rules below. `errors.log` is the exception to "one handler per logger": every component, third-party, and bootstrap logger attaches the same handler. One open handle is what lets the size limit rename the file on Windows.
 
 - When a log file reaches `LOG_MAX_BYTES` or at midnight (and meets minimum size 5KB and age 1 hour), it is rotated.
 - Rotated files are moved to `LOG_BACKUP_DIR` (default `logs/backups/`) with a date suffix (e.g. `app.log.2026-02-06`).

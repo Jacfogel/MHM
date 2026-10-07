@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 11:53:49
+> **Last Generated**: 2026-10-06 17:49:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 301
-- **Functions Found**: 3121
-- **Methods Found**: 1596
+### **Function Documentation Coverage: 88.8% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 302
+- **Functions Found**: 3143
+- **Methods Found**: 1608
 - **Classes Found**: 278
-- **Total Items**: 4717
-- **Functions Documented**: 2768
-- **Methods Documented**: 1418
+- **Total Items**: 4751
+- **Functions Documented**: 2790
+- **Methods Documented**: 1430
 - **Classes Documented**: 211
-- **Total Documented**: 4186
+- **Total Documented**: 4220
 - **Template-Generated**: 64
 - **Last Updated**: 2026-10-06
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (620)
+### **Core System Functions** (641)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (897)
+### **Communication Functions** (898)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -3248,18 +3248,15 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
 - [OK] `_extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
 - [OK] `_extract_profile_entities_rule_based(self, intent, match, message, entities)` - Extract field and value for an update_profile command.
-- [OK] `_extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
 - [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
-- [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
+- [OK] `_extract_task_entities(self, title)` - Extract task-related entities from a task title.
 - [OK] `_extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
 - [OK] `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
-- [OK] `_extract_task_urls(self, title)` - Strip web links from a create-task title and return them separately.
 - [OK] `_extract_update_entities(self, update_text)` - Extract update entities from update text
 - [OK] `_is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
-- [OK] `_normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
 - [OK] `_parse_create_list_title_and_items(content)` - Split list-create text into title and item strings.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
@@ -3271,8 +3268,6 @@ Separator priority matches notebook help / phone UX:
 1. newline (multi-line body)
 2. `|` (documented in NOTEBOOK_HELP_TEXT)
 3. `:` (existing shorthand)
-- [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
-- [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
 - [OK] `_short_note_title(self, text)` - Use the full capture as title when short; otherwise keep the first words.
 - [OK] `_strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
@@ -3310,17 +3305,14 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
   - [OK] `EnhancedCommandParser._extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
   - [OK] `EnhancedCommandParser._extract_profile_entities_rule_based(self, intent, match, message, entities)` - Extract field and value for an update_profile command.
-  - [OK] `EnhancedCommandParser._extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
   - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
-  - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
+  - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from a task title.
   - [OK] `EnhancedCommandParser._extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_name_from_context(self, message)` - Extract task name from natural language context
-  - [OK] `EnhancedCommandParser._extract_task_urls(self, title)` - Strip web links from a create-task title and return them separately.
   - [OK] `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
   - [OK] `EnhancedCommandParser._is_inline_note_capture(self, message)` - True when the message is a capture phrase such as 'jot down' or 'remember that'.
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
   - [OK] `EnhancedCommandParser._match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
-  - [OK] `EnhancedCommandParser._normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
   - [OK] `EnhancedCommandParser._parse_create_list_title_and_items(content)` - Split list-create text into title and item strings.
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
@@ -3332,8 +3324,6 @@ Separator priority matches notebook help / phone UX:
 1. newline (multi-line body)
 2. `|` (documented in NOTEBOOK_HELP_TEXT)
 3. `:` (existing shorthand)
-  - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
-  - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
   - [OK] `EnhancedCommandParser._short_note_title(self, text)` - Use the full capture as title when short; otherwise keep the first words.
   - [OK] `EnhancedCommandParser._strip_optional_pipe_prefix(text)` - Allow optional `|` after an entry ref (help shows `!append EntryRef | text`).
@@ -3858,6 +3848,15 @@ Returns an early InteractionResponse or a converted message for continued parsin
 **Functions:**
 - [OK] `dispatch_structured_command(user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers.
 
+#### `communication/message_processing/task_phrase_parser.py`
+**Functions:**
+- [OK] `extract_recurrence_entities(title)` - Extract recurrence fields from natural task text.
+- [OK] `extract_task_entities(title)` - Extract task-related entities from a task title.
+- [OK] `extract_task_urls(title)` - Strip web links from a create-task title and return them separately.
+- [OK] `normalize_task_title(title)` - Normalize whitespace and dangling connectors after entity extraction.
+- [OK] `recurrence_unit_to_pattern(unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
+- [OK] `remove_task_phrase(title, phrase)` - Remove a parsed metadata phrase from a task title.
+
 #### `communication/message_processing/user_suggestions.py`
 **Functions:**
 - [MISSING] `add_suggestion(text)` - No description
@@ -4134,7 +4133,7 @@ Args:
 
 Returns:
     True if error was recovered from, False otherwise
-- [OK] `handle_errors(operation, context, user_friendly, default_return, re_raise)` - Decorator to automatically handle errors in functions.
+- [OK] `handle_errors(operation, context, user_friendly, default_return, re_raise, retry_after_recovery)` - Decorator to automatically handle errors in functions.
 
 Args:
     operation: Description of the operation (defaults to function name)
@@ -4142,6 +4141,9 @@ Args:
     user_friendly: Whether to show user-friendly error messages
     default_return: Value to return if error occurs and can't be recovered
     re_raise: If True, log/handle the error then re-raise instead of returning default_return
+    retry_after_recovery: Re-run the wrapped function once after successful
+        recovery. This must be explicitly enabled because repeating a side
+        effect can duplicate messages, writes, or external requests.
 - [OK] `handle_file_error(error, file_path, operation, user_id, category)` - Convenience function for handling file-related errors.
 - [OK] `handle_network_error(error, operation, user_id)` - Convenience function for handling network errors.
 - [OK] `handle_validation_error(error, field, operation, user_id)` - Convenience function for handling validation errors.
@@ -4624,15 +4626,23 @@ to keep test output clean when verbose logging is disabled.
 
 Args:
     name: Component name (e.g., 'discord', 'ai')
+- [OK] `_attach_shared_errors_handler(logger, log_paths)` - Attach the shared errors.log handler and drop stale closed copies.
+- [OK] `_build_errors_file_handler(errors_path, backup_dir)` - Build one size-limited errors.log handler for a resolved path.
 - [OK] `_combined_message(self, record)` - Return logger message plus exception text for noise matching.
 - [OK] `_copy_locked_log_to_backup(self, backup_path, min_file_size)` - Fallback path for locked files: copy to backup and truncate original if safe.
 - [OK] `_create_errors_file_handler(log_paths)` - Build a rotating ERROR-level handler targeting errors.log.
+- [OK] `_ensure_cached_component_errors_handler(component_logger)` - Replace a closed shared errors handler on an already-built component logger.
+- [OK] `_errors_handler_is_open(handler)` - Return True when the handler still has an open stream.
 - [OK] `_finalize_rollover_stream(self, current_time, backup_path, dfn)` - Reopen the active stream and restore files when post-rotation verification fails.
 - [OK] `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
+- [OK] `_get_shared_errors_file_handler(log_paths)` - Return the process-wide errors.log handler for this path.
 - [OK] `_is_dev_tools_run()` - True when entry point or env indicates development tools (audit, scripts, etc.).
+- [OK] `_is_errors_log_handler(handler)` - Return True when a handler writes to a file named errors.log.
 - [OK] `_is_testing_environment()` - Check if we're running in a testing environment.
 - [OK] `_log(self, level, message)` - Internal logging method with structured data support.
-- [OK] `_logger_has_errors_file_handler(logger)` - Return True when logger already writes to an errors.log file handler.
+- [OK] `_logger_has_errors_file_handler(logger)` - Return True when logger already writes to an open errors.log handler.
+- [OK] `_lookup_open_shared_errors_handler(log_paths)` - Return the open shared errors.log handler for this path, if one exists.
+- [OK] `_resolve_errors_log_target(log_paths)` - Return the errors.log path and backup directory for this process.
 - [OK] `_restore_rotated_file_if_needed(self, dfn)` - Restore rotated temp file back to the active log path when backup move fails.
 - [OK] `_rotate_base_file_to_backup(self, dfn, backup_path, min_file_size)` - Move or copy current log file into backup storage.
 - [OK] `_skip_rollover_for_small_or_recent_file(self, current_time, min_file_size, min_file_age_seconds)` - Return True when rollover should be skipped due to size/age checks.
@@ -5762,12 +5772,25 @@ its methods as routes.
 #### `core/web_tasks.py`
 **Functions:**
 - [OK] `__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
+- [OK] `_add_task_subtasks(self, request, uid, task_id)` - Add one to five smaller steps onto a task.
+- [OK] `_clean_completion(self, value)` - Validate optional completion date, time, and notes.
+- [OK] `_clean_quick_reminders(self, value)` - Validate the canonical relative reminder choices.
+- [OK] `_clean_reminder_periods(self, value)` - Validate and normalize scheduled reminder periods from the browser.
+- [OK] `_complete_task(self, request, uid, task_id)` - Complete one active task from optional completion details.
+- [OK] `_create_task(self, request, uid)` - Create one task from a validated website payload.
+- [OK] `_delete_task(self, _request, uid, task_id)` - Delete one task belonging to the signed-in user.
+- [OK] `_detach_task_step(self, request, uid, task_id)` - Turn one smaller step into its own task.
+- [OK] `_list_tasks(self, request, uid)` - Return the signed-in user's active, completed, or combined task list.
+- [OK] `_require_task(self, uid, identifier)` - Resolve a task identifier or raise the route's not-found response.
+- [OK] `_restore_task(self, request, uid, task_id)` - Restore one completed task, optionally with its smaller steps.
+- [OK] `_simplify_task(self, request, uid, task_id)` - Replace a task title with a smaller next step.
+- [OK] `_skip_task_occurrence(self, request, uid, task_id)` - Skip the current occurrence of a repeating task.
+- [OK] `_snooze_task(self, request, uid, task_id)` - Snooze one task reminder to a supported time.
+- [OK] `_suggest_task_breakdown(self, request, uid, task_id)` - Suggest smaller steps for one task.
+- [OK] `_task_response(self, uid, task_id, action_message)` - Return the browser task view, plus an action message when one exists.
+- [OK] `_update_task(self, request, uid, task_id)` - Apply a partial update to one active task.
 - [OK] `apply_actions()` - Return the requested task identifiers successfully changed in bulk.
-- [OK] `clean_completion(value)` - Validate optional completion date, time, and notes.
-- [OK] `clean_quick_reminders(value)` - Validate the canonical relative reminder choices.
-- [OK] `clean_reminder_periods(value)` - Validate and normalize scheduled reminder periods from the browser.
 - [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
-- [OK] `find(identifier)` - Resolve a task identifier or raise the route's not-found response.
 - [OK] `register_task_routes(app, gateway)` - Register all task endpoints on a gateway application.
 - [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
 - [OK] `task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
@@ -5778,6 +5801,23 @@ its methods as routes.
 **Classes:**
 - [OK] `WebTaskRoutes` - Handle the task route family using gateway infrastructure.
   - [OK] `WebTaskRoutes.__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
+  - [OK] `WebTaskRoutes._add_task_subtasks(self, request, uid, task_id)` - Add one to five smaller steps onto a task.
+  - [OK] `WebTaskRoutes._clean_completion(self, value)` - Validate optional completion date, time, and notes.
+  - [OK] `WebTaskRoutes._clean_quick_reminders(self, value)` - Validate the canonical relative reminder choices.
+  - [OK] `WebTaskRoutes._clean_reminder_periods(self, value)` - Validate and normalize scheduled reminder periods from the browser.
+  - [OK] `WebTaskRoutes._complete_task(self, request, uid, task_id)` - Complete one active task from optional completion details.
+  - [OK] `WebTaskRoutes._create_task(self, request, uid)` - Create one task from a validated website payload.
+  - [OK] `WebTaskRoutes._delete_task(self, _request, uid, task_id)` - Delete one task belonging to the signed-in user.
+  - [OK] `WebTaskRoutes._detach_task_step(self, request, uid, task_id)` - Turn one smaller step into its own task.
+  - [OK] `WebTaskRoutes._list_tasks(self, request, uid)` - Return the signed-in user's active, completed, or combined task list.
+  - [OK] `WebTaskRoutes._require_task(self, uid, identifier)` - Resolve a task identifier or raise the route's not-found response.
+  - [OK] `WebTaskRoutes._restore_task(self, request, uid, task_id)` - Restore one completed task, optionally with its smaller steps.
+  - [OK] `WebTaskRoutes._simplify_task(self, request, uid, task_id)` - Replace a task title with a smaller next step.
+  - [OK] `WebTaskRoutes._skip_task_occurrence(self, request, uid, task_id)` - Skip the current occurrence of a repeating task.
+  - [OK] `WebTaskRoutes._snooze_task(self, request, uid, task_id)` - Snooze one task reminder to a supported time.
+  - [OK] `WebTaskRoutes._suggest_task_breakdown(self, request, uid, task_id)` - Suggest smaller steps for one task.
+  - [OK] `WebTaskRoutes._task_response(self, uid, task_id, action_message)` - Return the browser task view, plus an action message when one exists.
+  - [OK] `WebTaskRoutes._update_task(self, request, uid, task_id)` - Apply a partial update to one active task.
   - [OK] `WebTaskRoutes.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
   - [OK] `WebTaskRoutes.task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
   - [OK] `WebTaskRoutes.task_view(task)` - Return the stable, browser-safe task shape used by the website.

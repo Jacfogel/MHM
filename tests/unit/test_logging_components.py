@@ -6,6 +6,17 @@ from pathlib import Path
 import pytest
 
 
+def _reload_logger_module():
+    """Close shared error-log handles before importing a fresh logger module."""
+    logger_module = sys.modules.get("core.logger")
+    if logger_module is not None:
+        for handler in list(getattr(logger_module, "_shared_errors_handlers", {}).values()):
+            with contextlib.suppress(Exception):
+                handler.close()
+        getattr(logger_module, "_shared_errors_handlers", {}).clear()
+        del sys.modules["core.logger"]
+
+
 pytestmark = [pytest.mark.core]
 
 @pytest.mark.unit
@@ -20,8 +31,7 @@ def test_component_logger_propagate_and_handlers(tmp_path, monkeypatch):
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
     # Force re-import to honor env changes
-    if 'core.logger' in sys.modules:
-        del sys.modules['core.logger']
+    _reload_logger_module()
     from core.logger import get_component_logger
 
     comp = get_component_logger('discord')
@@ -57,8 +67,7 @@ def test_errors_routed_to_tests_logs_in_verbose_mode(tmp_path, monkeypatch):
     logs_dir = tmp_path / "logs"
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
-    if 'core.logger' in sys.modules:
-        del sys.modules['core.logger']
+    _reload_logger_module()
     from core.logger import get_component_logger
 
     comp = get_component_logger('ai')
@@ -84,8 +93,7 @@ def test_consolidated_logging_mode(tmp_path, monkeypatch):
     logs_dir.mkdir()
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
-    if 'core.logger' in sys.modules:
-        del sys.modules['core.logger']
+    _reload_logger_module()
     from core.logger import get_component_logger
 
     comp = get_component_logger('ai')
@@ -120,8 +128,7 @@ def test_error_handler_dual_writes_to_errors_log(tmp_path, monkeypatch):
     logs_dir.mkdir()
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
-    if "core.logger" in sys.modules:
-        del sys.modules["core.logger"]
+    _reload_logger_module()
     from core.logger import setup_error_handler_logging
 
     error_logger = logging.getLogger("mhm.error_handler")
@@ -165,8 +172,7 @@ def test_communication_manager_logger_uses_dedicated_sink(tmp_path, monkeypatch)
     logs_dir.mkdir()
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
-    if "core.logger" in sys.modules:
-        del sys.modules["core.logger"]
+    _reload_logger_module()
     from core import logger as logger_mod
 
     logger_mod._component_loggers.clear()
@@ -196,8 +202,7 @@ def test_bootstrap_raw_loggers_dual_write_to_errors_log(tmp_path, monkeypatch):
     logs_dir.mkdir()
     monkeypatch.setenv("LOGS_DIR", str(logs_dir))
 
-    if "core.logger" in sys.modules:
-        del sys.modules["core.logger"]
+    _reload_logger_module()
     from core.logger import setup_error_handler_logging
 
     for name in ("mhm.network_probe", "mhm.time_utilities", "mhm.config"):

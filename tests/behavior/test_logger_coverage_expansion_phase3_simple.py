@@ -249,6 +249,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
         
         # Verify backup directory was created
         assert backup_dir.exists()
+        handler.close()
 
     def test_heartbeat_warning_filter_simple(self, tmp_path):
         """Test HeartbeatWarningFilter basic functionality"""
@@ -436,6 +437,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
         # Verify handler was created successfully
         assert handler is not None
         assert handler.backup_dir == str(backup_dir)
+        handler.close()
 
     def test_logger_integration_with_multiple_components_simple(self, tmp_path):
         """Test logger integration with multiple components"""

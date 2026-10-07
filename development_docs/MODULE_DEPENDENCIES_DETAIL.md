@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 11:53:51
+> **Last Generated**: 2026-10-06 17:49:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 299
-- **Total Imports Found**: 2676
-- **Dependencies Documented**: 299 (100% coverage)
-- **Standard Library Imports**: 769 (28.7%)
+- **Files Scanned**: 300
+- **Total Imports Found**: 2689
+- **Dependencies Documented**: 300 (100% coverage)
+- **Standard Library Imports**: 772 (28.7%)
 - **Third-Party Imports**: 234 (8.7%)
-- **Local Imports**: 1673 (62.5%)
+- **Local Imports**: 1683 (62.6%)
 - **Last Updated**: 2026-10-06
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 769 imports (28.7%)
+- **Standard Library**: 772 imports (28.7%)
 - **Third-Party**: 234 imports (8.7%)
-- **Local**: 1673 imports (62.5%)
+- **Local**: 1683 imports (62.6%)
 
 ## Module Dependencies by Directory
 
@@ -1813,6 +1813,7 @@
   - **Standard Library**:
     - `__future__ (annotations)`
     - `asyncio`
+    - `concurrent.futures`
     - `contextlib`
     - `gc`
     - `queue`
@@ -2893,12 +2894,12 @@
     - `communication.command_handlers.interaction_handlers (get_all_handlers)`
     - `communication.command_handlers.shared_types (ParsedCommand)`
     - `communication.message_processing.intent_validation (canonicalize_intent_name, is_valid_intent)`
+    - `communication.message_processing.task_phrase_parser (extract_task_entities)` (NEW)
     - `core.config (AI_AI_ENHANCED_CONFIDENCE_THRESHOLD, AI_AI_PARSING_BASE_CONFIDENCE, AI_AI_PARSING_PARTIAL_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT, AI_RULE_BASED_FALLBACK_THRESHOLD, AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
     - `core.tags (normalize_tags, parse_tags_from_text)` (NEW)
-    - `tasks.task_link_helpers (extract_urls_from_text, parse_link_remainder, restore_url_case)` (NEW)
+    - `tasks.task_link_helpers (parse_link_remainder, restore_url_case)` (NEW)
     - `tasks.task_reference (is_pronoun_task_identifier)` (NEW)
     - `tasks.task_reminder_snooze (normalize_snooze_option)` (NEW)
   - **Standard Library**:
@@ -2916,7 +2917,7 @@
   - `communication/message_processing/structured_command_dispatcher.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, core.config, core.error_handling, core.logger, core.natural_language_defaults, core.tags, tasks.task_link_helpers, tasks.task_reference, tasks.task_reminder_snooze
+- Added: ai.chat.chatbot, communication.message_processing.task_phrase_parser, core.config, core.error_handling, core.logger, core.tags, tasks.task_link_helpers, tasks.task_reference, tasks.task_reminder_snooze
 - Removed: ai/prompts/command_registry.py, communication/message_processing/action_request_adapter.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/structured_command_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3421,6 +3422,29 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `communication/message_processing/task_phrase_parser.py`
+- **Purpose**: Communication channel implementation for task_phrase_parser
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
+    - `core.tags (parse_tags_from_text)` (NEW)
+    - `tasks.task_link_helpers (extract_urls_from_text, restore_url_case)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `communication/message_processing/command_parser.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.tags, tasks.task_link_helpers
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `communication/message_processing/user_suggestions.py`
 - **Purpose**: Communication channel implementation for user_suggestions
 - **Dependencies**:
@@ -3833,6 +3857,7 @@
   - `communication/message_processing/prefix_command_processor.py`
   - `communication/message_processing/response_enhancer.py`
   - `communication/message_processing/structured_command_dispatcher.py`
+  - `communication/message_processing/task_phrase_parser.py`
   - `communication/message_processing/user_suggestions.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
@@ -4309,6 +4334,7 @@
   - `communication/message_processing/prefix_command_processor.py`
   - `communication/message_processing/response_enhancer.py`
   - `communication/message_processing/structured_command_dispatcher.py`
+  - `communication/message_processing/task_phrase_parser.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
   - `core/admin_account_provisioning.py`
@@ -4436,7 +4462,7 @@
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/natural_language_handler.py`
-  - `communication/message_processing/command_parser.py`
+  - `communication/message_processing/task_phrase_parser.py`
   - `core/web_user_settings.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reminder_snooze.py`
@@ -4822,6 +4848,7 @@
   - `communication/communication_channels/discord/ui/create_item_ui.py`
   - `communication/message_processing/command_parser.py`
   - `communication/message_processing/flows/note_flow.py`
+  - `communication/message_processing/task_phrase_parser.py`
   - `core/web_notes.py`
   - `core/web_tasks.py`
   - `storage/user_data_registry.py`
@@ -6720,6 +6747,7 @@
     - `urllib.parse (urlparse)`
 - **Used by**:
   - `communication/message_processing/command_parser.py`
+  - `communication/message_processing/task_phrase_parser.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
   - `tasks/task_service.py`

@@ -81,6 +81,10 @@ Key modules (names may vary slightly, but responsibilities are stable):
   - Turns raw text into parsed commands/intents.  
   - Understands both explicit commands (e.g., `/tasks`) and natural language.
 
+- `communication/message_processing/task_phrase_parser.py`  
+  - Pulls due dates, times, priority, tags, links, and recurrence out of a task phrase.  
+  - `communication/message_processing/command_parser.py` calls it while building a create-task command.
+
 - `communication/message_processing/interaction_manager.py`  
   - Central entry point for user messages from any channel.  
   - Routes parsed commands to the correct interaction handlers.  

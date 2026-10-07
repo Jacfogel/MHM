@@ -83,386 +83,569 @@ class WebTaskRoutes:
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def tasks_api(self, request):
         """Handle authenticated website task routes through the task service."""
-        uid, _ = await self.gateway.authenticated_account(request)
+        uid, _account = await self.gateway.authenticated_account(request)
+        task_id = request.match_info.get("task_id")
+        action = request.match_info.get("action")
+        if request.method == "GET":
+            return await self._list_tasks(request, uid)
+        if request.method == "POST" and not task_id:
+            return await self._create_task(request, uid)
+        if not task_id:
+            raise web.HTTPBadRequest(text="A task ID is required.")
+        handler = {
+            ("POST", "complete"): self._complete_task,
+            ("POST", "restore"): self._restore_task,
+            ("POST", "snooze"): self._snooze_task,
+            ("POST", "skip"): self._skip_task_occurrence,
+            ("POST", "breakdown"): self._suggest_task_breakdown,
+            ("POST", "subtasks"): self._add_task_subtasks,
+            ("POST", "detach"): self._detach_task_step,
+            ("POST", "simplify"): self._simplify_task,
+            ("PATCH", None): self._update_task,
+            ("DELETE", None): self._delete_task,
+        }.get((request.method, action))
+        if handler is None:
+            raise web.HTTPMethodNotAllowed(
+                request.method, {"GET", "POST", "PATCH", "DELETE"}
+            )
+        return await handler(request, uid, task_id)
+
+    # ERROR_HANDLING_EXCLUDE: Lookup helper raises an intentional HTTP response.
+    def _require_task(self, uid, identifier):
+        """Resolve a task identifier or raise the route's not-found response."""
+        from tasks.task_data_manager import get_task_by_id
+
+        task = get_task_by_id(uid, identifier)
+        if not task:
+            raise web.HTTPNotFound(text="That task could not be found.")
+        return task
+
+    # ERROR_HANDLING_EXCLUDE: Route response builder raises the route's not-found response.
+    def _task_response(self, uid, task_id, action_message=""):
+        """Return the browser task view, plus an action message when one exists."""
+        task = self.task_view(self._require_task(uid, task_id))
+        if action_message:
+            return web.json_response({"task": task, "message": action_message})
+        return web.json_response({"task": task})
+
+    # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+    def _clean_reminder_periods(self, value):
+        """Validate and normalize scheduled reminder periods from the browser."""
         from core.time_utilities import parse_date_only, parse_time_only_minute
+
+        if value is None:
+            return []
+        if not isinstance(value, list) or len(value) > 20:
+            raise web.HTTPBadRequest(text="Add at most 20 scheduled reminders.")
+        cleaned = []
+        for period in value:
+            if (
+                not isinstance(period, dict)
+                or set(period) - {"date", "start_time", "end_time"}
+                or not {"date", "start_time"}.issubset(period)
+            ):
+                raise web.HTTPBadRequest(
+                    text="Each reminder needs a date and time; end time is optional."
+                )
+            date = period["date"]
+            start = period["start_time"]
+            end = period.get("end_time") or None
+            if (
+                not isinstance(date, str)
+                or parse_date_only(date) is None
+                or not isinstance(start, str)
+                or parse_time_only_minute(start) is None
+                or (
+                    end is not None
+                    and (
+                        not isinstance(end, str)
+                        or parse_time_only_minute(end) is None
+                        or start >= end
+                    )
+                )
+            ):
+                raise web.HTTPBadRequest(
+                    text=(
+                        "Reminder dates and times must be valid, and an optional "
+                        "end must be after the reminder time."
+                    )
+                )
+            cleaned.append({"date": date, "start_time": start, "end_time": end})
+        return cleaned
+
+    # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+    def _clean_quick_reminders(self, value):
+        """Validate the canonical relative reminder choices."""
+        quick_reminder_values = {
+            "5-10min",
+            "30min-1hour",
+            "1-2hour",
+            "1-2day",
+            "3-5day",
+            "1-2week",
+        }
+        if value is None:
+            return []
+        if (
+            not isinstance(value, list)
+            or len(value) > len(quick_reminder_values)
+            or len(set(value)) != len(value)
+            or any(item not in quick_reminder_values for item in value)
+        ):
+            raise web.HTTPBadRequest(text="Choose valid relative reminders.")
+        return value
+
+    # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
+    def _clean_completion(self, value):
+        """Validate optional completion date, time, and notes."""
+        from core.time_utilities import parse_date_only, parse_time_only_minute
+
+        if value in (None, {}):
+            return None
+        if not isinstance(value, dict) or set(value) != {
+            "completion_date",
+            "completion_time",
+            "completion_notes",
+        }:
+            raise web.HTTPBadRequest(text="Please submit valid completion details.")
+        completion_date = value["completion_date"]
+        completion_time = value["completion_time"]
+        completion_notes = value["completion_notes"]
+        if (
+            not isinstance(completion_date, str)
+            or parse_date_only(completion_date) is None
+            or not isinstance(completion_time, str)
+            or parse_time_only_minute(completion_time) is None
+            or not isinstance(completion_notes, str)
+            or len(completion_notes) > 5000
+        ):
+            raise web.HTTPBadRequest(
+                text="Use a valid completion date, time, and notes."
+            )
+        return {
+            "completion_date": completion_date,
+            "completion_time": completion_time,
+            "completion_notes": completion_notes,
+        }
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _list_tasks(self, request, uid):
+        """Return the signed-in user's active, completed, or combined task list."""
+        from core.tags import get_user_tags
         from tasks.task_service import (
-            complete_task,
-            create_task,
-            delete_task,
             get_tasks_due_soon,
             load_active_tasks,
             load_completed_tasks,
-            restore_task,
-            update_task,
         )
-        from tasks.task_data_manager import get_task_by_id
-        task_id = request.match_info.get("task_id")
-        action = request.match_info.get("action")
-        quick_reminder_values = {
-            "5-10min", "30min-1hour", "1-2hour", "1-2day", "3-5day", "1-2week"
-        }
 
-        # ERROR_HANDLING_EXCLUDE: Lookup helper raises an intentional HTTP response.
-        def find(identifier):
-            """Resolve a task identifier or raise the route's not-found response."""
-            task = get_task_by_id(uid, identifier)
-            if not task:
-                raise web.HTTPNotFound(text="That task could not be found.")
-            return task
-
-        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
-        def clean_reminder_periods(value):
-            """Validate and normalize scheduled reminder periods from the browser."""
-            if value is None:
-                return []
-            if not isinstance(value, list) or len(value) > 20:
-                raise web.HTTPBadRequest(text="Add at most 20 scheduled reminders.")
-            cleaned = []
-            for period in value:
-                if (
-                    not isinstance(period, dict)
-                    or set(period) - {"date", "start_time", "end_time"}
-                    or not {"date", "start_time"}.issubset(period)
-                ):
-                    raise web.HTTPBadRequest(text="Each reminder needs a date and time; end time is optional.")
-                date = period["date"]
-                start = period["start_time"]
-                end = period.get("end_time") or None
-                if (
-                    not isinstance(date, str) or parse_date_only(date) is None
-                    or not isinstance(start, str) or parse_time_only_minute(start) is None
-                    or (end is not None and (not isinstance(end, str) or parse_time_only_minute(end) is None or start >= end))
-                ):
-                    raise web.HTTPBadRequest(text="Reminder dates and times must be valid, and an optional end must be after the reminder time.")
-                cleaned.append({"date": date, "start_time": start, "end_time": end})
-            return cleaned
-
-        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
-        def clean_quick_reminders(value):
-            """Validate the canonical relative reminder choices."""
-            if value is None:
-                return []
-            if (
-                not isinstance(value, list)
-                or len(value) > len(quick_reminder_values)
-                or len(set(value)) != len(value)
-                or any(item not in quick_reminder_values for item in value)
-            ):
-                raise web.HTTPBadRequest(text="Choose valid relative reminders.")
-            return value
-
-        # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
-        def clean_completion(value):
-            """Validate optional completion date, time, and notes."""
-            if value in (None, {}):
-                return None
-            if not isinstance(value, dict) or set(value) != {
-                "completion_date", "completion_time", "completion_notes"
-            }:
-                raise web.HTTPBadRequest(text="Please submit valid completion details.")
-            completion_date = value["completion_date"]
-            completion_time = value["completion_time"]
-            completion_notes = value["completion_notes"]
-            if (
-                not isinstance(completion_date, str)
-                or parse_date_only(completion_date) is None
-                or not isinstance(completion_time, str)
-                or parse_time_only_minute(completion_time) is None
-                or not isinstance(completion_notes, str)
-                or len(completion_notes) > 5000
-            ):
-                raise web.HTTPBadRequest(text="Use a valid completion date, time, and notes.")
-            return {
-                "completion_date": completion_date,
-                "completion_time": completion_time,
-                "completion_notes": completion_notes,
-            }
-
-        if request.method == "GET":
-            status = request.query.get("status", "active")
-            if status not in {"active", "completed", "all"}:
-                raise web.HTTPBadRequest(text="Choose active, completed, or all tasks.")
-            active = await asyncio.to_thread(load_active_tasks, uid)
-            completed = await asyncio.to_thread(load_completed_tasks, uid)
-            due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
-            from core.tags import get_user_tags
-
-            saved_tags = await asyncio.to_thread(get_user_tags, uid)
-            selected = active if status == "active" else completed if status == "completed" else active + completed
-            tags = sorted(
-                {
-                    str(tag).strip()
-                    for tag in [
-                        *saved_tags,
-                        *[
-                            task_tag
-                            for task in active + completed
-                            for task_tag in (task.get("tags") or [])
-                        ],
-                    ]
-                    if str(tag).strip()
-                },
-                key=str.casefold,
-            )
-            return web.json_response({
+        status = request.query.get("status", "active")
+        if status not in {"active", "completed", "all"}:
+            raise web.HTTPBadRequest(text="Choose active, completed, or all tasks.")
+        active = await asyncio.to_thread(load_active_tasks, uid)
+        completed = await asyncio.to_thread(load_completed_tasks, uid)
+        due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
+        saved_tags = await asyncio.to_thread(get_user_tags, uid)
+        if status == "active":
+            selected = active
+        elif status == "completed":
+            selected = completed
+        else:
+            selected = active + completed
+        tags = sorted(
+            {
+                str(tag).strip()
+                for tag in [
+                    *saved_tags,
+                    *[
+                        task_tag
+                        for task in active + completed
+                        for task_tag in (task.get("tags") or [])
+                    ],
+                ]
+                if str(tag).strip()
+            },
+            key=str.casefold,
+        )
+        return web.json_response(
+            {
                 "tasks": [self.task_view(task) for task in selected],
                 "active_count": len(active),
                 "completed_count": len(completed),
                 "due_soon_count": len(due_soon),
                 "tags": tags,
-            })
-
-        if request.method == "POST" and not task_id:
-            data = await self.gateway.body(request)
-            allowed = {
-                "title", "description", "due_date", "due_time", "priority",
-                "recurrence_pattern", "recurrence_interval", "repeat_after_completion",
-                "tags", "reminder_periods", "quick_reminders",
             }
-            if set(data) - allowed:
-                raise web.HTTPBadRequest(text="Please submit only supported task fields.")
-            title = data.get("title")
-            if not isinstance(title, str) or not title.strip():
-                raise web.HTTPBadRequest(text="Give your task a title.")
-            description = data.get("description", "")
-            if not isinstance(description, str) or len(description) > 10000:
-                raise web.HTTPBadRequest(text="Task descriptions must be 10,000 characters or fewer.")
-            tags = data.get("tags", [])
-            if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _create_task(self, request, uid):
+        """Create one task from a validated website payload."""
+        from core.time_utilities import parse_date_only, parse_time_only_minute
+        from tasks.task_schemas import VALID_PRIORITIES
+        from tasks.task_service import create_task
+        from tasks.task_tag_helpers import sanitize_task_tags
+
+        data = await self.gateway.body(request)
+        allowed = {
+            "title",
+            "description",
+            "due_date",
+            "due_time",
+            "priority",
+            "recurrence_pattern",
+            "recurrence_interval",
+            "repeat_after_completion",
+            "tags",
+            "reminder_periods",
+            "quick_reminders",
+        }
+        if set(data) - allowed:
+            raise web.HTTPBadRequest(text="Please submit only supported task fields.")
+        title = data.get("title")
+        if not isinstance(title, str) or not title.strip():
+            raise web.HTTPBadRequest(text="Give your task a title.")
+        description = data.get("description", "")
+        if not isinstance(description, str) or len(description) > 10000:
+            raise web.HTTPBadRequest(
+                text="Task descriptions must be 10,000 characters or fewer."
+            )
+        tags = data.get("tags", [])
+        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+            raise web.HTTPBadRequest(text="Tags must be a list of words.")
+        tags = sanitize_task_tags(tags)
+        reminder_periods = self._clean_reminder_periods(data.get("reminder_periods", []))
+        quick_reminders = self._clean_quick_reminders(data.get("quick_reminders", []))
+        due_date = data.get("due_date")
+        if due_date == "":
+            due_date = None
+        if due_date is not None and (
+            not isinstance(due_date, str) or parse_date_only(due_date) is None
+        ):
+            raise web.HTTPBadRequest(text="Due dates must use YYYY-MM-DD.")
+        due_time = data.get("due_time")
+        if due_time == "":
+            due_time = None
+        if due_time is not None and (
+            not isinstance(due_time, str) or parse_time_only_minute(due_time) is None
+        ):
+            raise web.HTTPBadRequest(text="Due times must use HH:MM.")
+        if quick_reminders and not due_date:
+            raise web.HTTPBadRequest(text="Relative reminders need a due date.")
+        priority = data.get("priority", "medium")
+        if not isinstance(priority, str) or priority.lower() not in VALID_PRIORITIES:
+            raise web.HTTPBadRequest(text="Choose a valid priority.")
+        pattern = data.get("recurrence_pattern") or None
+        if pattern is not None and pattern not in {
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly",
+        }:
+            raise web.HTTPBadRequest(text="Choose a valid repeat pattern.")
+        interval = data.get("recurrence_interval", 1)
+        if type(interval) is not int or not 1 <= interval <= 365:
+            raise web.HTTPBadRequest(text="Repeat intervals must be between 1 and 365.")
+        repeat_after = data.get("repeat_after_completion", True)
+        if type(repeat_after) is not bool:
+            raise web.HTTPBadRequest(
+                text="Choose whether repeats count from completion."
+            )
+        created_id = await asyncio.to_thread(
+            create_task,
+            uid,
+            title=title.strip(),
+            description=description,
+            due_date=due_date,
+            due_time=due_time,
+            priority=priority.lower(),
+            recurrence_pattern=pattern,
+            recurrence_interval=interval,
+            repeat_after_completion=repeat_after,
+            tags=tags,
+            reminder_periods=reminder_periods,
+            quick_reminders=quick_reminders,
+        )
+        if not created_id:
+            raise web.HTTPServiceUnavailable(
+                text="MHM could not create that task. Please try again."
+            )
+        return web.json_response(
+            {"task": self.task_view(self._require_task(uid, created_id))}, status=201
+        )
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _complete_task(self, request, uid, task_id):
+        """Complete one active task from optional completion details."""
+        from tasks.task_service import complete_task
+
+        completion_data = self._clean_completion(await self.gateway.body(request))
+        if not await asyncio.to_thread(complete_task, uid, task_id, completion_data):
+            raise web.HTTPNotFound(text="That active task could not be completed.")
+        return self._task_response(uid, task_id)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _restore_task(self, request, uid, task_id):
+        """Restore one completed task, optionally with its smaller steps."""
+        from tasks.task_service import restore_task
+
+        data = await self.gateway.body(request)
+        if set(data) - {"restore_steps"} or (
+            "restore_steps" in data and type(data["restore_steps"]) is not bool
+        ):
+            raise web.HTTPBadRequest(
+                text="Choose whether to bring the smaller steps back."
+            )
+        if not await asyncio.to_thread(
+            restore_task, uid, task_id, data.get("restore_steps") is True
+        ):
+            raise web.HTTPNotFound(text="That completed task could not be restored.")
+        return self._task_response(uid, task_id)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _snooze_task(self, request, uid, task_id):
+        """Snooze one task reminder to a supported time."""
+        from tasks.task_reminder_snooze import snooze_task_reminder
+
+        data = await self.gateway.body(request)
+        option = data.get("option")
+        custom_when = data.get("custom_when")
+        if (
+            set(data) - {"option", "custom_when"}
+            or option not in {"1_hour", "tonight", "next_week", "custom"}
+            or (
+                custom_when is not None
+                and (not isinstance(custom_when, str) or len(custom_when) > 200)
+            )
+            or (option == "custom" and not str(custom_when or "").strip())
+        ):
+            raise web.HTTPBadRequest(
+                text="Choose one hour, tonight, next week, or enter a custom reminder time."
+            )
+        result = await asyncio.to_thread(
+            snooze_task_reminder,
+            uid,
+            task_id,
+            option,
+            custom_when=str(custom_when or "").strip() or None,
+        )
+        if not result or not result.success:
+            raise web.HTTPBadRequest(
+                text=(result.message if result else "That reminder could not be snoozed.")
+            )
+        return self._task_response(uid, task_id, result.message)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _skip_task_occurrence(self, request, uid, task_id):
+        """Skip the current occurrence of a repeating task."""
+        from tasks.task_occurrence_skip import skip_task_occurrence
+
+        if await self.gateway.body(request):
+            raise web.HTTPBadRequest(
+                text="Skipping this occurrence does not need any other details."
+            )
+        result = await asyncio.to_thread(skip_task_occurrence, uid, task_id)
+        if not result or not result.success:
+            raise web.HTTPBadRequest(
+                text=(
+                    result.message
+                    if result
+                    else "That task occurrence could not be skipped."
+                )
+            )
+        return self._task_response(uid, task_id, result.message)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _suggest_task_breakdown(self, request, uid, task_id):
+        """Suggest smaller steps for one task."""
+        from tasks.task_breakdown import suggest_breakdown
+
+        if await self.gateway.body(request):
+            raise web.HTTPBadRequest(
+                text="Breaking a task down does not need any other details."
+            )
+        result = await asyncio.to_thread(suggest_breakdown, uid, task_id)
+        if not result or result.unavailable:
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    result.message
+                    if result
+                    else "MHM could not suggest smaller steps just now. Please try again."
+                )
+            )
+        if not result.success:
+            raise web.HTTPBadRequest(text=result.message)
+        return web.json_response({"steps": result.steps})
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _add_task_subtasks(self, request, uid, task_id):
+        """Add one to five smaller steps onto a task."""
+        from tasks.task_breakdown import add_task_subtasks
+
+        data = await self.gateway.body(request)
+        titles = data.get("titles")
+        if (
+            set(data) != {"titles"}
+            or not isinstance(titles, list)
+            or not 1 <= len(titles) <= 5
+            or any(
+                not isinstance(title, str) or not title.strip() or len(title.strip()) > 120
+                for title in titles
+            )
+        ):
+            raise web.HTTPBadRequest(text="Choose between 1 and 5 smaller steps.")
+        result = await asyncio.to_thread(add_task_subtasks, uid, task_id, titles)
+        if not result or not result.success:
+            raise web.HTTPBadRequest(
+                text=(result.message if result else "Those steps could not be added.")
+            )
+        return self._task_response(uid, task_id, result.message)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _detach_task_step(self, request, uid, task_id):
+        """Turn one smaller step into its own task."""
+        from tasks.task_breakdown import detach_task_step
+
+        if await self.gateway.body(request):
+            raise web.HTTPBadRequest(
+                text="Making a step its own task does not need any other details."
+            )
+        result = await asyncio.to_thread(detach_task_step, uid, task_id)
+        if not result or not result.success:
+            raise web.HTTPBadRequest(
+                text=(result.message if result else "That step could not be separated.")
+            )
+        return self._task_response(uid, task_id, result.message)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _simplify_task(self, request, uid, task_id):
+        """Replace a task title with a smaller next step."""
+        from tasks.task_simplify import simplify_task
+
+        data = await self.gateway.body(request)
+        new_title = data.get("new_title")
+        if (
+            set(data) != {"new_title"}
+            or not isinstance(new_title, str)
+            or not new_title.strip()
+            or len(new_title.strip()) > 500
+        ):
+            raise web.HTTPBadRequest(text="Enter a smaller next step for this task.")
+        result = await asyncio.to_thread(simplify_task, uid, task_id, new_title.strip())
+        if not result or not result.success or result.needs_title:
+            raise web.HTTPBadRequest(
+                text=(result.message if result else "That task could not be simplified.")
+            )
+        return self._task_response(uid, task_id, result.message)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _update_task(self, request, uid, task_id):
+        """Apply a partial update to one active task."""
+        from core.time_utilities import parse_date_only, parse_time_only_minute
+        from tasks.task_schemas import VALID_PRIORITIES
+        from tasks.task_service import update_task
+
+        data = await self.gateway.body(request)
+        allowed = {
+            "title",
+            "description",
+            "due_date",
+            "due_time",
+            "priority",
+            "recurrence_pattern",
+            "recurrence_interval",
+            "repeat_after_completion",
+            "tags",
+            "reminder_periods",
+            "quick_reminders",
+        }
+        if not data or set(data) - allowed:
+            raise web.HTTPBadRequest(text="Please submit supported task changes.")
+        if "title" in data and (
+            not isinstance(data["title"], str) or not data["title"].strip()
+        ):
+            raise web.HTTPBadRequest(text="Give your task a title.")
+        if "description" in data and (
+            not isinstance(data["description"], str) or len(data["description"]) > 10000
+        ):
+            raise web.HTTPBadRequest(
+                text="Task descriptions must be 10,000 characters or fewer."
+            )
+        if "tags" in data:
+            if not isinstance(data["tags"], list) or any(
+                not isinstance(tag, str) for tag in data["tags"]
+            ):
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             from tasks.task_tag_helpers import sanitize_task_tags
-            tags = sanitize_task_tags(tags)
-            reminder_periods = clean_reminder_periods(data.get("reminder_periods", []))
-            quick_reminders = clean_quick_reminders(data.get("quick_reminders", []))
-            due_date = data.get("due_date")
-            if due_date == "":
-                due_date = None
-            if due_date is not None and (not isinstance(due_date, str) or parse_date_only(due_date) is None):
-                raise web.HTTPBadRequest(text="Due dates must use YYYY-MM-DD.")
-            due_time = data.get("due_time")
-            if due_time == "":
-                due_time = None
-            if due_time is not None and (not isinstance(due_time, str) or parse_time_only_minute(due_time) is None):
-                raise web.HTTPBadRequest(text="Due times must use HH:MM.")
-            if quick_reminders and not due_date:
-                raise web.HTTPBadRequest(text="Relative reminders need a due date.")
-            priority = data.get("priority", "medium")
-            from tasks.task_schemas import VALID_PRIORITIES
-            if not isinstance(priority, str) or priority.lower() not in VALID_PRIORITIES:
-                raise web.HTTPBadRequest(text="Choose a valid priority.")
-            pattern = data.get("recurrence_pattern") or None
-            if pattern is not None and pattern not in {"daily", "weekly", "monthly", "yearly"}:
-                raise web.HTTPBadRequest(text="Choose a valid repeat pattern.")
-            interval = data.get("recurrence_interval", 1)
-            if type(interval) is not int or not 1 <= interval <= 365:
-                raise web.HTTPBadRequest(text="Repeat intervals must be between 1 and 365.")
-            repeat_after = data.get("repeat_after_completion", True)
-            if type(repeat_after) is not bool:
-                raise web.HTTPBadRequest(text="Choose whether repeats count from completion.")
-            created_id = await asyncio.to_thread(
-                create_task,
-                uid,
-                title=title.strip(), description=description,
-                due_date=due_date, due_time=due_time, priority=priority.lower(),
-                recurrence_pattern=pattern, recurrence_interval=interval,
-                repeat_after_completion=repeat_after,
-                tags=tags, reminder_periods=reminder_periods,
-                quick_reminders=quick_reminders,
+
+            data["tags"] = sanitize_task_tags(data["tags"])
+        if "reminder_periods" in data:
+            data["reminder_periods"] = self._clean_reminder_periods(
+                data["reminder_periods"]
             )
-            if not created_id:
-                raise web.HTTPServiceUnavailable(text="MHM could not create that task. Please try again.")
-            return web.json_response({"task": self.task_view(find(created_id))}, status=201)
-
-        if not task_id:
-            raise web.HTTPBadRequest(text="A task ID is required.")
-        action_message = ""
-        if action == "complete" and request.method == "POST":
-            completion_data = clean_completion(await self.gateway.body(request))
-            if not await asyncio.to_thread(
-                complete_task, uid, task_id, completion_data
+        if "quick_reminders" in data:
+            data["quick_reminders"] = self._clean_quick_reminders(data["quick_reminders"])
+        for key, parser, message in (
+            ("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."),
+            ("due_time", parse_time_only_minute, "Due times must use HH:MM."),
+        ):
+            if key in data and data[key] not in (None, "") and (
+                not isinstance(data[key], str) or parser(data[key]) is None
             ):
-                raise web.HTTPNotFound(text="That active task could not be completed.")
-        elif action == "restore" and request.method == "POST":
-            data = await self.gateway.body(request)
-            if set(data) - {"restore_steps"} or (
-                "restore_steps" in data and type(data["restore_steps"]) is not bool
-            ):
-                raise web.HTTPBadRequest(
-                    text="Choose whether to bring the smaller steps back."
-                )
-            if not await asyncio.to_thread(
-                restore_task, uid, task_id, data.get("restore_steps") is True
-            ):
-                raise web.HTTPNotFound(text="That completed task could not be restored.")
-        elif action == "snooze" and request.method == "POST":
-            data = await self.gateway.body(request)
-            option = data.get("option")
-            custom_when = data.get("custom_when")
-            if (
-                set(data) - {"option", "custom_when"}
-                or option not in {"1_hour", "tonight", "next_week", "custom"}
-                or (
-                    custom_when is not None
-                    and (not isinstance(custom_when, str) or len(custom_when) > 200)
-                )
-                or (option == "custom" and not str(custom_when or "").strip())
-            ):
-                raise web.HTTPBadRequest(
-                    text="Choose one hour, tonight, next week, or enter a custom reminder time."
-                )
-            from tasks.task_reminder_snooze import snooze_task_reminder
-
-            result = await asyncio.to_thread(
-                snooze_task_reminder,
-                uid,
-                task_id,
-                option,
-                custom_when=str(custom_when or "").strip() or None,
-            )
-            if not result or not result.success:
-                raise web.HTTPBadRequest(
-                    text=(result.message if result else "That reminder could not be snoozed.")
-                )
-            action_message = result.message
-        elif action == "skip" and request.method == "POST":
-            if await self.gateway.body(request):
-                raise web.HTTPBadRequest(text="Skipping this occurrence does not need any other details.")
-            from tasks.task_occurrence_skip import skip_task_occurrence
-
-            result = await asyncio.to_thread(skip_task_occurrence, uid, task_id)
-            if not result or not result.success:
-                raise web.HTTPBadRequest(
-                    text=(result.message if result else "That task occurrence could not be skipped.")
-                )
-            action_message = result.message
-        elif action == "breakdown" and request.method == "POST":
-            if await self.gateway.body(request):
-                raise web.HTTPBadRequest(text="Breaking a task down does not need any other details.")
-            from tasks.task_breakdown import suggest_breakdown
-
-            result = await asyncio.to_thread(suggest_breakdown, uid, task_id)
-            if not result or result.unavailable:
-                raise web.HTTPServiceUnavailable(
-                    text=(
-                        result.message
-                        if result
-                        else "MHM could not suggest smaller steps just now. Please try again."
-                    )
-                )
-            if not result.success:
-                raise web.HTTPBadRequest(text=result.message)
-            return web.json_response({"steps": result.steps})
-        elif action == "subtasks" and request.method == "POST":
-            data = await self.gateway.body(request)
-            titles = data.get("titles")
-            if (
-                set(data) != {"titles"}
-                or not isinstance(titles, list)
-                or not 1 <= len(titles) <= 5
-                or any(
-                    not isinstance(title, str) or not title.strip() or len(title.strip()) > 120
-                    for title in titles
-                )
-            ):
-                raise web.HTTPBadRequest(text="Choose between 1 and 5 smaller steps.")
-            from tasks.task_breakdown import add_task_subtasks
-
-            result = await asyncio.to_thread(add_task_subtasks, uid, task_id, titles)
-            if not result or not result.success:
-                raise web.HTTPBadRequest(
-                    text=(result.message if result else "Those steps could not be added.")
-                )
-            action_message = result.message
-        elif action == "detach" and request.method == "POST":
-            if await self.gateway.body(request):
-                raise web.HTTPBadRequest(
-                    text="Making a step its own task does not need any other details."
-                )
-            from tasks.task_breakdown import detach_task_step
-
-            result = await asyncio.to_thread(detach_task_step, uid, task_id)
-            if not result or not result.success:
-                raise web.HTTPBadRequest(
-                    text=(result.message if result else "That step could not be separated.")
-                )
-            action_message = result.message
-        elif action == "simplify" and request.method == "POST":
-            data = await self.gateway.body(request)
-            new_title = data.get("new_title")
-            if (
-                set(data) != {"new_title"}
-                or not isinstance(new_title, str)
-                or not new_title.strip()
-                or len(new_title.strip()) > 500
-            ):
-                raise web.HTTPBadRequest(text="Enter a smaller next step for this task.")
-            from tasks.task_simplify import simplify_task
-
-            result = await asyncio.to_thread(
-                simplify_task, uid, task_id, new_title.strip()
-            )
-            if not result or not result.success or result.needs_title:
-                raise web.HTTPBadRequest(
-                    text=(result.message if result else "That task could not be simplified.")
-                )
-            action_message = result.message
-        elif action is None and request.method == "PATCH":
-            data = await self.gateway.body(request)
-            allowed = {"title", "description", "due_date", "due_time", "priority", "recurrence_pattern", "recurrence_interval", "repeat_after_completion", "tags", "reminder_periods", "quick_reminders"}
-            if not data or set(data) - allowed:
-                raise web.HTTPBadRequest(text="Please submit supported task changes.")
-            if "title" in data and (not isinstance(data["title"], str) or not data["title"].strip()):
-                raise web.HTTPBadRequest(text="Give your task a title.")
-            if "description" in data and (not isinstance(data["description"], str) or len(data["description"]) > 10000):
-                raise web.HTTPBadRequest(text="Task descriptions must be 10,000 characters or fewer.")
-            if "tags" in data:
-                if not isinstance(data["tags"], list) or any(not isinstance(tag, str) for tag in data["tags"]):
-                    raise web.HTTPBadRequest(text="Tags must be a list of words.")
-                from tasks.task_tag_helpers import sanitize_task_tags
-                data["tags"] = sanitize_task_tags(data["tags"])
-            if "reminder_periods" in data:
-                data["reminder_periods"] = clean_reminder_periods(data["reminder_periods"])
-            if "quick_reminders" in data:
-                data["quick_reminders"] = clean_quick_reminders(data["quick_reminders"])
-            for key, parser, message in (("due_date", parse_date_only, "Due dates must use YYYY-MM-DD."), ("due_time", parse_time_only_minute, "Due times must use HH:MM.")):
-                if key in data and data[key] not in (None, "") and (not isinstance(data[key], str) or parser(data[key]) is None):
-                    raise web.HTTPBadRequest(text=message)
-                if key in data and data[key] == "":
-                    data[key] = None
-            current_task = find(task_id)
-            resulting_due_date = data.get("due_date", (current_task.get("due") or {}).get("date"))
-            if "quick_reminders" in data:
-                resulting_quick = data["quick_reminders"]
-            else:
-                resulting_quick = [
-                    reminder.get("value")
-                    for reminder in current_task.get("reminders", [])
-                    if isinstance(reminder, dict) and reminder.get("kind") == "quick"
-                ]
-            if resulting_quick and not resulting_due_date:
-                raise web.HTTPBadRequest(text="Relative reminders need a due date.")
-            if "priority" in data:
-                from tasks.task_schemas import VALID_PRIORITIES
-                if not isinstance(data["priority"], str) or data["priority"].lower() not in VALID_PRIORITIES:
-                    raise web.HTTPBadRequest(text="Choose a valid priority.")
-                data["priority"] = data["priority"].lower()
-            if "recurrence_pattern" in data and data["recurrence_pattern"] not in (None, "", "daily", "weekly", "monthly", "yearly"):
-                raise web.HTTPBadRequest(text="Choose a valid repeat pattern.")
-            if "recurrence_interval" in data and (type(data["recurrence_interval"]) is not int or not 1 <= data["recurrence_interval"] <= 365):
-                raise web.HTTPBadRequest(text="Repeat intervals must be between 1 and 365.")
-            if "repeat_after_completion" in data and type(data["repeat_after_completion"]) is not bool:
-                raise web.HTTPBadRequest(text="Choose whether repeats count from completion.")
-            if not await asyncio.to_thread(update_task, uid, task_id, data):
-                raise web.HTTPNotFound(text="That active task could not be updated.")
-        elif action is None and request.method == "DELETE":
-            if not await asyncio.to_thread(delete_task, uid, task_id):
-                raise web.HTTPNotFound(text="That task could not be deleted.")
-            return web.json_response({"ok": True})
-        else:
-            raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH", "DELETE"})
-        return web.json_response(
-            {"task": self.task_view(find(task_id)), **({"message": action_message} if action_message else {})}
+                raise web.HTTPBadRequest(text=message)
+            if key in data and data[key] == "":
+                data[key] = None
+        current_task = self._require_task(uid, task_id)
+        resulting_due_date = data.get(
+            "due_date", (current_task.get("due") or {}).get("date")
         )
+        if "quick_reminders" in data:
+            resulting_quick = data["quick_reminders"]
+        else:
+            resulting_quick = [
+                reminder.get("value")
+                for reminder in current_task.get("reminders", [])
+                if isinstance(reminder, dict) and reminder.get("kind") == "quick"
+            ]
+        if resulting_quick and not resulting_due_date:
+            raise web.HTTPBadRequest(text="Relative reminders need a due date.")
+        if "priority" in data:
+            if (
+                not isinstance(data["priority"], str)
+                or data["priority"].lower() not in VALID_PRIORITIES
+            ):
+                raise web.HTTPBadRequest(text="Choose a valid priority.")
+            data["priority"] = data["priority"].lower()
+        if "recurrence_pattern" in data and data["recurrence_pattern"] not in (
+            None,
+            "",
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly",
+        ):
+            raise web.HTTPBadRequest(text="Choose a valid repeat pattern.")
+        if "recurrence_interval" in data and (
+            type(data["recurrence_interval"]) is not int
+            or not 1 <= data["recurrence_interval"] <= 365
+        ):
+            raise web.HTTPBadRequest(text="Repeat intervals must be between 1 and 365.")
+        if "repeat_after_completion" in data and type(
+            data["repeat_after_completion"]
+        ) is not bool:
+            raise web.HTTPBadRequest(
+                text="Choose whether repeats count from completion."
+            )
+        if not await asyncio.to_thread(update_task, uid, task_id, data):
+            raise web.HTTPNotFound(text="That active task could not be updated.")
+        return self._task_response(uid, task_id)
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def _delete_task(self, _request, uid, task_id):
+        """Delete one task belonging to the signed-in user."""
+        from tasks.task_service import delete_task
+
+        if not await asyncio.to_thread(delete_task, uid, task_id):
+            raise web.HTTPNotFound(text="That task could not be deleted.")
+        return web.json_response({"ok": True})
 
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.

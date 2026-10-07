@@ -101,7 +101,7 @@ Do not introduce new logging environment variables without updating:
 
 Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers in `core/logger.py`:
 
-- Time-based (midnight) and size-based rotation ensure logs don't grow unbounded.  
+- Time-based (midnight) and size-based rotation ensure logs don't grow unbounded. `errors.log` uses one shared handler (`LOG_MAX_BYTES`) across component, third-party, and bootstrap loggers so the live file can rotate.  
 - Rotated files are moved into `LOG_BACKUP_DIR` (e.g. `logs/backups/`) with a date suffix.  
 - Backups older than 7 days are compressed and moved to `LOG_ARCHIVE_DIR` (e.g. `logs/archive/`) as `.gz`; archives older than 30 days are removed.
 

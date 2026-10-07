@@ -2773,20 +2773,37 @@ class TestUserFactory:
 
     @staticmethod
     def get_test_user_id_by_label(fixture_label: str, test_data_dir: str) -> str | None:
-        """Get a canonical user ID from an ephemeral fixture label."""
+        """Get the newest user ID for an ephemeral fixture label.
+
+        Factory creates always write a new user directory. Repeated test runs
+        leave older copies in the worker data folder, so the first directory
+        name is not the user the current test just created.
+        """
         try:
             users_dir = os.path.join(test_data_dir, "users")
-            if os.path.exists(users_dir):
-                for entry in os.listdir(users_dir):
-                    user_dir = os.path.join(users_dir, entry)
-                    account_file = os.path.join(user_dir, "account.json")
-                    if not os.path.exists(account_file):
-                        continue
-                    account_data = TestUserFactory._read_test_json_file(account_file)
-                    if TestUserFactory._account_fixture_label(account_data) == fixture_label:
-                        return entry
+            if not os.path.exists(users_dir):
+                return None
 
-            return None
+            newest_id: str | None = None
+            newest_key = ""
+            for entry in os.listdir(users_dir):
+                account_file = os.path.join(users_dir, entry, "account.json")
+                if not os.path.exists(account_file):
+                    continue
+                account_data = TestUserFactory._read_test_json_file(account_file)
+                if TestUserFactory._account_fixture_label(account_data) != fixture_label:
+                    continue
+                created_at = account_data.get("created_at")
+                created_key = created_at if isinstance(created_at, str) else ""
+                try:
+                    modified = os.path.getmtime(account_file)
+                except OSError:
+                    modified = 0.0
+                sort_key = f"{created_key}|{modified:020.6f}"
+                if newest_id is None or sort_key >= newest_key:
+                    newest_id = entry
+                    newest_key = sort_key
+            return newest_id
 
         except Exception as e:
             logger.error(f"Error getting test user ID for {fixture_label}: {e}")

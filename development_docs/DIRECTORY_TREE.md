@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 11:54:14
+> **Last Generated**: 2026-10-06 17:50:09
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -218,6 +218,7 @@ C:.
 |   |   |   prefix_command_processor.py
 |   |   |   response_enhancer.py
 |   |   |   structured_command_dispatcher.py
+|   |   |   task_phrase_parser.py
 |   |   |   user_suggestions.py
 |   |   |   __init__.py
 |   |   |
@@ -1028,9 +1029,12 @@ C:.
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_core_ids.py
 |   |   |   test_dialog_helpers.py
+|   |   |   test_discord_account_flow.py
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_bot_helpers.py
 |   |   |   test_discord_interaction_views.py
+|   |   |   test_discord_message_handler.py
+|   |   |   test_discord_webhook_tunnel.py
 |   |   |   test_email_bot_body_extraction.py
 |   |   |   test_email_bot_gap_coverage.py
 |   |   |   test_email_reply_loop.py

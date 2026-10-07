@@ -152,6 +152,7 @@ class TestLoggerCoverageExpansion:
         assert handler.backup_dir == self.backup_dir, "Should have correct backup directory"
         assert handler.base_filename == self.log_file, "Should have correct base filename"
         assert os.path.exists(self.backup_dir), "Should create backup directory"
+        handler.close()
     
     def test_backup_directory_rotating_file_handler_rollover_real_behavior(self):
         """Test log file rollover with real behavior."""
@@ -183,6 +184,7 @@ class TestLoggerCoverageExpansion:
             with open(backup_file, encoding='utf-8') as f:
                 content = f.read()
                 assert "Test log content" in content, "Backup should contain original content"
+        handler.close()
     
     def test_backup_directory_rotating_file_handler_rollover_disabled_real_behavior(self):
         """Test rollover when disabled."""
@@ -206,6 +208,7 @@ class TestLoggerCoverageExpansion:
         # Assert - Should not create backup files
         backup_files = os.listdir(self.backup_dir)
         assert len(backup_files) == 0, "Should not create backup files when disabled"
+        handler.close()
     
     def test_heartbeat_warning_filter_real_behavior(self):
         """Test heartbeat warning filter with real behavior."""
@@ -479,6 +482,7 @@ class TestLoggerCoverageExpansion:
         backup_files = os.listdir(self.backup_dir)
         # The exact count may vary depending on implementation, but should be reasonable
         assert len(backup_files) <= 5, f"Should not exceed reasonable backup count: {len(backup_files)}"
+        handler.close()
     
     def test_logger_encoding_handling_real_behavior(self):
         """Test logger encoding handling with real behavior."""
@@ -540,7 +544,7 @@ class TestLoggerCoverageExpansion:
             shutil.rmtree(self.backup_dir)
         
         # Act - Create handler (should create backup directory)
-        BackupDirectoryRotatingFileHandler(
+        handler = BackupDirectoryRotatingFileHandler(
             self.log_file,
             backup_dir=self.backup_dir,
             when='midnight',
@@ -551,6 +555,7 @@ class TestLoggerCoverageExpansion:
         # Assert - Backup directory should be created
         assert os.path.exists(self.backup_dir), "Should create backup directory"
         assert os.path.isdir(self.backup_dir), "Should create directory, not file"
+        handler.close()
     
     def test_logger_formatter_real_behavior(self):
         """Test logger formatter with real behavior."""

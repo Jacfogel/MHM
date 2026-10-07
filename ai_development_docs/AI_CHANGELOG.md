@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-06 - Error log limit, task routes, and task phrases **COMPLETED**
+- `errors.log` now has one shared handler with the configured size limit, so component errors can rotate the file instead of growing past it.
+- Website task handling is split into one method per action (list, create, update, complete, and the smaller task actions) with the same checks and responses.
+- Due dates, times, priority, tags, links, and recurrence are read in `task_phrase_parser.py`. The command parser calls that module when it builds a task.
+- The three shared-handler helpers are covered by the error decorator, logger tests close their files, and the task-phrase guide uses the full parser path.
+- Size-rollover tests clear leftover backups, and fixture-label lookup uses the newest user so a second audit does not count old check-ins or old log files.
+- Restart MHM so the running process picks up the shared error log. The current oversized `errors.log` rotates on the next error after that restart.
+
 ### 2026-10-06 - Discord concurrency, error recovery, and test diagnostics hardened **COMPLETED**
 - Discord sends now use per-request futures without blocking the event loop, worker loops shut down cleanly, and connection-health probes close their sockets immediately.
 - Error recovery no longer repeats side effects by default or disables later operations through a process-lifetime retry counter; retries are explicit, bounded, and omit call arguments from retained context.
@@ -122,12 +130,6 @@ Guidelines:
 - A handled email is marked complete only after the server confirms `\\Seen`. If that acknowledgement fails, later polls retry it without sending the reply again.
 - Encoded subjects retain every fragment and declared charset. Pyright is clean after correcting the IMAP call and scheduler positional-argument lookup.
 - Focused email, message-processing, orchestrator, and scheduler suites passed; Ruff and diff checks passed.
-
-### 2026-09-30 - Website delivery records stay exact and concurrent-safe **COMPLETED**
-- Scheduled messages are copied to Home only after an accepted or unconfirmed handoff. Sent history and the website row share one exact delivery ID; repeated text no longer redirects reactions to the newest copy.
-- JSON writes use unique temporary files and locked read-modify-write transactions. Failed sent-history writes return failure. A backed-up manual migration linked 83 legacy rows; seven check-ins and one task reminder remain intentionally non-reactable.
-- Note requests allow 128 KiB end to end, enough for a valid 10,000-character Unicode description.
-- All new transaction helpers use centralized error handling. Generated registries were refreshed, and the standard audit reports 100% error-handling coverage with no missing handlers, Phase 1/2 candidates, or registry watch items.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

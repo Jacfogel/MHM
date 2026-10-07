@@ -239,7 +239,18 @@ class ComponentLogger:
         ):
             self.logger.setLevel(logging.WARNING)
 
-        # Ensure no duplicate handlers
+        # Drop discarded handlers. Keep the live shared errors.log handler open
+        # so other component loggers can keep writing to the same file.
+        shared_errors_handler = None
+        with contextlib.suppress(Exception):
+            shared_errors_handler = _lookup_open_shared_errors_handler(
+                _get_log_paths_for_environment()
+            )
+        for existing in list(self.logger.handlers):
+            if existing is shared_errors_handler:
+                continue
+            with contextlib.suppress(Exception):
+                existing.close()
         self.logger.handlers.clear()
         # Prevent propagation to root so component logs don't appear in app.log
         self.logger.propagate = False
@@ -346,6 +357,7 @@ class ComponentLogger:
         file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
             backup_dir=log_paths["backup_dir"],
+            maxBytes=config.LOG_MAX_BYTES,
             when="midnight",
             interval=1,
             backupCount=backup_count,  # Keep consistent number of backups
@@ -361,57 +373,12 @@ class ComponentLogger:
         # Add main component file handler
         self.logger.addHandler(file_handler)
 
-        # Also add a dedicated errors handler so ERROR/CRITICAL messages go to errors log
-        try:
-            errors_formatter = formatter
-            # In test verbose mode (level 1 or 2), route errors to tests/logs as well to avoid writing to real logs
-            errors_log_path = log_paths["errors_file"]
-            verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-            if os.getenv("MHM_TESTING") == "1" and verbose_logs in ("1", "2"):
-                # Use configurable test logs directory
-                tests_logs_dir = log_paths["base_dir"] or os.getenv(
-                    "TEST_LOGS_DIR", str(Path("tests") / "logs")
-                )
-                try:
-                    os.makedirs(tests_logs_dir, exist_ok=True)
-                    errors_log_path = str(
-                        Path(tests_logs_dir) / Path(log_paths["errors_file"]).name
-                    )
-                except Exception:
-                    pass
-            errors_backup_dir = log_paths["backup_dir"]
-            if os.getenv("MHM_TESTING") == "1" and verbose_logs in ("1", "2"):
-                # Use configurable test logs directory
-                tests_logs_dir = log_paths["base_dir"] or os.getenv(
-                    "TEST_LOGS_DIR", str(Path("tests") / "logs")
-                )
-                errors_backup_dir = str(Path(tests_logs_dir) / "backups")
-                with contextlib.suppress(Exception):
-                    os.makedirs(errors_backup_dir, exist_ok=True)
-
-            # Use consistent backupCount from config
-            import core.config as config
-
-            backup_count = getattr(config, "LOG_BACKUP_COUNT", 7)
-            if backup_count < 7:
-                backup_count = 7
-
-            errors_handler = BackupDirectoryRotatingFileHandler(
-                errors_log_path,
-                backup_dir=errors_backup_dir,
-                when="midnight",
-                interval=1,
-                backupCount=backup_count,
-                encoding="utf-8",
-            )
-            errors_handler.suffix = "%Y-%m-%d"
-            errors_handler.namer = lambda name: name.replace(".log", "") + ".log"
-            errors_handler.setFormatter(errors_formatter)
-            errors_handler.setLevel(logging.ERROR)
-            self.logger.addHandler(errors_handler)
-        except Exception:
-            # Failsafe: don't break logging if errors handler can't be added
-            pass
+        # ERROR and CRITICAL also go to the one shared errors.log handler.
+        # A separate handle per component left maxBytes at 0 and kept the file
+        # locked on Windows, so the live error log grew past its size limit.
+        # Failsafe: don't break logging if the errors handler can't be added.
+        with contextlib.suppress(Exception):
+            _attach_shared_errors_handler(self.logger, log_paths)
 
     @handle_errors("logging debug message")
     def debug(self, message: str, **kwargs):
@@ -715,6 +682,9 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 print(f"Info: Successfully truncated original log file: {self.baseFilename}")
             except Exception as truncate_error:
                 print(f"Warning: Could not truncate original log file: {truncate_error}")
+                with contextlib.suppress(Exception):
+                    self.stream = self._open()
+                return False
             return True
         except (PermissionError, OSError) as copy_error:
             print(f"Warning: Could not backup log file {self.baseFilename}: {copy_error}")
@@ -1058,6 +1028,11 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     # Enforce canonical component names (aliases share one file + logger)
     component_name = COMPONENT_NAME_ALIASES.get(component_name, component_name)
 
+    if component_name in _component_loggers:
+        cached_logger = _component_loggers[component_name]
+        _ensure_cached_component_errors_handler(cached_logger)
+        return cached_logger
+
     if component_name not in _component_loggers:
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
@@ -1211,35 +1186,146 @@ def setup_logging():
         logger.debug("Logging system reinitialized")
 
 
+# One open handle per errors.log path. Component, third-party, and bootstrap
+# loggers attach this same handler so size rotation can rename the file.
+_shared_errors_handlers: dict[str, logging.Handler] = {}
+
+
+@handle_errors("checking errors log handler", default_return=False)
+def _is_errors_log_handler(handler: logging.Handler) -> bool:
+    """Return True when a handler writes to a file named errors.log."""
+    base = getattr(handler, "baseFilename", "") or ""
+    return bool(base) and Path(base).name == "errors.log"
+
+
+@handle_errors("checking errors handler stream", default_return=False)
+def _errors_handler_is_open(handler: logging.Handler) -> bool:
+    """Return True when the handler still has an open stream."""
+    stream = getattr(handler, "stream", None)
+    return stream is not None and not getattr(stream, "closed", False)
+
+
+@handle_errors("resolving errors log target", user_friendly=False, re_raise=True)
+def _resolve_errors_log_target(log_paths: dict[str, str]) -> tuple[str, str]:
+    """Return the errors.log path and backup directory for this process."""
+    errors_log_path = log_paths["errors_file"]
+    errors_backup_dir = log_paths["backup_dir"]
+    verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+    if os.getenv("MHM_TESTING") == "1" and verbose_logs in ("1", "2"):
+        tests_logs_dir = log_paths["base_dir"] or os.getenv(
+            "TEST_LOGS_DIR", str(Path("tests") / "logs")
+        )
+        with contextlib.suppress(Exception):
+            os.makedirs(tests_logs_dir, exist_ok=True)
+            errors_log_path = str(
+                Path(tests_logs_dir) / Path(log_paths["errors_file"]).name
+            )
+        errors_backup_dir = str(Path(tests_logs_dir) / "backups")
+        with contextlib.suppress(Exception):
+            os.makedirs(errors_backup_dir, exist_ok=True)
+    return errors_log_path, errors_backup_dir
+
+
 @handle_errors("creating errors file handler", user_friendly=False, re_raise=True)
 def _create_errors_file_handler(log_paths: dict[str, str]) -> logging.Handler:
     """Build a rotating ERROR-level handler targeting errors.log."""
+    errors_path, backup_dir = _resolve_errors_log_target(log_paths)
+    return _build_errors_file_handler(errors_path, backup_dir)
+
+
+@handle_errors("building errors file handler", user_friendly=False, re_raise=True)
+def _build_errors_file_handler(errors_path: str, backup_dir: str) -> logging.Handler:
+    """Build one size-limited errors.log handler for a resolved path."""
     import core.config as config
 
-    error_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    if _is_testing_environment():
+        error_formatter = PytestContextLogFormatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    else:
+        error_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     error_handler = BackupDirectoryRotatingFileHandler(
-        log_paths["errors_file"],
-        log_paths["backup_dir"],
+        errors_path,
+        backup_dir,
         maxBytes=config.LOG_MAX_BYTES,
         backupCount=config.LOG_BACKUP_COUNT,
         when="midnight",
         interval=1,
         encoding="utf-8",
     )
+    error_handler.suffix = "%Y-%m-%d"
+    error_handler.namer = lambda name: name.replace(".log", "") + ".log"
     error_handler.setFormatter(error_formatter)
-    error_handler.setLevel(logging.ERROR)  # Only ERROR and CRITICAL
+    error_handler.setLevel(logging.ERROR)
+    error_handler.addFilter(DiscordReconnectNoiseFilter())
     return error_handler
+
+
+@handle_errors("looking up shared errors file handler", default_return=None)
+def _lookup_open_shared_errors_handler(
+    log_paths: dict[str, str],
+) -> logging.Handler | None:
+    """Return the open shared errors.log handler for this path, if one exists."""
+    errors_path, _backup_dir = _resolve_errors_log_target(log_paths)
+    key = os.path.normcase(os.path.abspath(errors_path))
+    existing = _shared_errors_handlers.get(key)
+    if existing is not None and _errors_handler_is_open(existing):
+        return existing
+    return None
+
+
+@handle_errors("getting shared errors file handler", default_return=None)
+def _get_shared_errors_file_handler(log_paths: dict[str, str]) -> logging.Handler | None:
+    """Return the process-wide errors.log handler for this path."""
+    errors_path, backup_dir = _resolve_errors_log_target(log_paths)
+    key = os.path.normcase(os.path.abspath(errors_path))
+    existing = _shared_errors_handlers.get(key)
+    if existing is not None and _errors_handler_is_open(existing):
+        return existing
+    handler = _build_errors_file_handler(errors_path, backup_dir)
+    _shared_errors_handlers[key] = handler
+    return handler
+
+
+@handle_errors("attaching shared errors file handler", default_return=None)
+def _attach_shared_errors_handler(
+    logger: logging.Logger, log_paths: dict[str, str]
+) -> None:
+    """Attach the shared errors.log handler and drop stale closed copies."""
+    handler = _get_shared_errors_file_handler(log_paths)
+    if handler is None:
+        return
+    for existing in list(logger.handlers):
+        if (
+            existing is not handler
+            and _is_errors_log_handler(existing)
+            and not _errors_handler_is_open(existing)
+        ):
+            logger.removeHandler(existing)
+    if handler not in logger.handlers:
+        logger.addHandler(handler)
+
+
+@handle_errors("refreshing cached component errors handler", default_return=None)
+def _ensure_cached_component_errors_handler(component_logger: Any) -> None:
+    """Replace a closed shared errors handler on an already-built component logger."""
+    if os.getenv("TEST_CONSOLIDATED_LOGGING") == "1" and _is_testing_environment():
+        return
+    logger = getattr(component_logger, "logger", None)
+    if not isinstance(logger, logging.Logger):
+        return
+    _attach_shared_errors_handler(logger, _get_log_paths_for_environment())
 
 
 @handle_errors("checking errors file handler", default_return=False)
 def _logger_has_errors_file_handler(logger: logging.Logger) -> bool:
-    """Return True when logger already writes to an errors.log file handler."""
+    """Return True when logger already writes to an open errors.log handler."""
     for handler in logger.handlers:
-        base = getattr(handler, "baseFilename", "") or ""
-        if base and Path(base).name == "errors.log":
+        if _is_errors_log_handler(handler) and _errors_handler_is_open(handler):
             return True
     return False
 
@@ -1257,10 +1343,7 @@ def setup_third_party_error_logging():
         return
 
     try:
-        # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
-        error_handler = _create_errors_file_handler(log_paths)
-        error_handler.addFilter(DiscordReconnectNoiseFilter())
 
         # Set up error logging for third-party libraries
         third_party_loggers = [
@@ -1275,8 +1358,7 @@ def setup_third_party_error_logging():
 
         for logger_name in third_party_loggers:
             logger = logging.getLogger(logger_name)
-            # Add error handler to route ERROR/CRITICAL to errors.log
-            logger.addHandler(error_handler)
+            _attach_shared_errors_handler(logger, log_paths)
             # Set level to ERROR to capture only errors
             logger.setLevel(logging.ERROR)
             # Prevent propagation to root logger to avoid duplicates in app.log
@@ -1308,8 +1390,6 @@ def setup_error_handler_logging():
         if errors_dir:
             os.makedirs(errors_dir, exist_ok=True)
 
-        # Attach a shared errors.log handler only when at least one logger needs it
-        errors_handler = None
         # (logger_name, propagate) - error_handler keeps stderr and must not
         # also flood app.log; other bootstrap loggers still use root for
         # non-ERROR traffic.
@@ -1322,10 +1402,7 @@ def setup_error_handler_logging():
 
         for logger_name, propagate in bootstrap_loggers:
             target = logging.getLogger(logger_name)
-            if not _logger_has_errors_file_handler(target):
-                if errors_handler is None:
-                    errors_handler = _create_errors_file_handler(log_paths)
-                target.addHandler(errors_handler)
+            _attach_shared_errors_handler(target, log_paths)
             target.propagate = propagate
 
     except Exception as e:

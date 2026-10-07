@@ -220,7 +220,8 @@ class TestComponentLogger:
             
             for handler in logger.logger.handlers:
                 handler.flush()
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -237,7 +238,8 @@ class TestComponentLogger:
             
             for handler in logger.logger.handlers:
                 handler.flush()
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -254,7 +256,8 @@ class TestComponentLogger:
             
             for handler in logger.logger.handlers:
                 handler.flush()
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -271,7 +274,8 @@ class TestComponentLogger:
             
             for handler in logger.logger.handlers:
                 handler.flush()
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -288,7 +292,8 @@ class TestComponentLogger:
             
             for handler in logger.logger.handlers:
                 handler.flush()
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -312,9 +317,11 @@ class TestComponentLogger:
             for handler in logger.logger.handlers:
                 handler.flush()
             
-            # Close handlers to ensure data is written
+            # Close the component file handler. Leave the shared errors.log
+            # handler open so later tests can still rotate that one file.
             for handler in logger.logger.handlers:
-                handler.close()
+                if Path(getattr(handler, "baseFilename", "")).name != "errors.log":
+                    handler.close()
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
@@ -331,6 +338,94 @@ class TestComponentLogger:
             # Remove handlers from logger object to avoid cross-test handler leakage.
             for handler in list(logger.logger.handlers):
                 logger.logger.removeHandler(handler)
+
+    @pytest.mark.unit
+    def test_shared_errors_log_rotates_at_size_limit(self, tmp_path, monkeypatch):
+        """Component loggers share one errors.log handler that rotates at LOG_MAX_BYTES."""
+        import core.config as config
+
+        init_func = ComponentLogger.__init__
+        while hasattr(init_func, "__wrapped__"):
+            init_func = init_func.__wrapped__
+        logger_globals = init_func.__globals__
+        monkeypatch.delenv("DISABLE_LOG_ROTATION", raising=False)
+        monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
+        log_dir = tmp_path / "logs"
+        log_dir.mkdir()
+        backup_dir = log_dir / "backups"
+        backup_dir.mkdir()
+        max_bytes = 8 * 1024
+        errors_file = log_dir / "errors.log"
+        monkeypatch.setattr(config, "LOG_MAX_BYTES", max_bytes, raising=False)
+
+        def log_paths():
+            return {
+                "base_dir": str(log_dir),
+                "backup_dir": str(backup_dir),
+                "archive_dir": str(log_dir / "archive"),
+                "main_file": str(log_dir / "app.log"),
+                "discord_file": str(log_dir / "discord.log"),
+                "ai_file": str(log_dir / "ai.log"),
+                "user_activity_file": str(log_dir / "user_activity.log"),
+                "errors_file": str(errors_file),
+                "communication_manager_file": str(log_dir / "communication_manager.log"),
+                "email_file": str(log_dir / "email.log"),
+                "ui_file": str(log_dir / "ui.log"),
+                "file_ops_file": str(log_dir / "file_ops.log"),
+                "scheduler_file": str(log_dir / "scheduler.log"),
+                "google_health_file": str(log_dir / "google_health.log"),
+                "schedule_utilities_file": str(log_dir / "schedule_utilities.log"),
+                "analytics_file": str(log_dir / "analytics.log"),
+                "message_file": str(log_dir / "message.log"),
+                "backup_file": str(log_dir / "backup.log"),
+                "checkin_dynamic_file": str(log_dir / "checkin_dynamic.log"),
+                "ai_dev_tools_file": str(log_dir / "ai_dev_tools.log"),
+            }
+
+        monkeypatch.setitem(
+            logger_globals, "_get_log_paths_for_environment", log_paths
+        )
+        cache_key = os.path.normcase(os.path.abspath(errors_file))
+        logger_globals["_shared_errors_handlers"].pop(cache_key, None)
+        payload = "x" * (max_bytes + 50)
+        first = ComponentLogger("errors_limit_scheduler", str(log_dir / "scheduler.log"))
+        second = ComponentLogger("errors_limit_discord", str(log_dir / "discord.log"))
+        shared = None
+        try:
+            first_errors = [
+                handler
+                for handler in first.logger.handlers
+                if Path(getattr(handler, "baseFilename", "")).name == "errors.log"
+            ]
+            second_errors = [
+                handler
+                for handler in second.logger.handlers
+                if Path(getattr(handler, "baseFilename", "")).name == "errors.log"
+            ]
+            assert len(first_errors) == 1
+            assert first_errors[0] is second_errors[0]
+            shared = first_errors[0]
+            assert isinstance(shared, BackupDirectoryRotatingFileHandler)
+            assert shared.maxBytes == max_bytes
+            first.error(payload)
+            second.error(payload)
+            shared.flush()
+        finally:
+            for component in (first, second):
+                for handler in list(component.logger.handlers):
+                    if handler is not shared:
+                        handler.flush()
+                        handler.close()
+                    component.logger.removeHandler(handler)
+            if shared is not None:
+                shared.flush()
+                shared.close()
+            logger_globals["_shared_errors_handlers"].pop(cache_key, None)
+
+        backups = list(backup_dir.glob("errors.log.*"))
+        assert len(backups) == 1
+        assert payload in backups[0].read_text(encoding="utf-8")
+        assert errors_file.read_text(encoding="utf-8").count(payload) == 1
 
 
 @pytest.mark.core
@@ -362,6 +457,7 @@ class TestBackupDirectoryRotatingFileHandler:
         
         assert handler.backup_dir == backup_dir, "Should set backup directory"
         assert handler.base_filename == log_file, "Should set base filename"
+        handler.close()
     
     @pytest.mark.unit
     def test_backup_handler_should_rollover_small_file(self, temp_log_dir):
@@ -393,6 +489,7 @@ class TestBackupDirectoryRotatingFileHandler:
         
         result = handler.shouldRollover(record)
         assert not result, "Should not rollover small files"
+        handler.close()
     
     @pytest.mark.unit
     def test_backup_handler_should_rollover_recent_file(self, temp_log_dir):
@@ -425,6 +522,7 @@ class TestBackupDirectoryRotatingFileHandler:
         result = handler.shouldRollover(record)
         # Should not rollover because file is too recent
         assert not result, "Should not rollover recent files"
+        handler.close()
 
     @pytest.mark.unit
     def test_backup_handler_size_rollover_overrides_recent_file_guard(
@@ -434,6 +532,9 @@ class TestBackupDirectoryRotatingFileHandler:
         monkeypatch.delenv("DISABLE_LOG_ROTATION", raising=False)
         log_file = temp_log_dir / "size-limited.log"
         backup_dir = temp_log_dir / "backups"
+        backup_dir.mkdir(exist_ok=True)
+        for stale_backup in backup_dir.glob("size-limited.log.*"):
+            stale_backup.unlink(missing_ok=True)
         max_bytes = 5 * 1024
         log_file.write_text("x" * (max_bytes + 1024), encoding="utf-8")
 
