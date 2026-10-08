@@ -15,6 +15,7 @@ import ssl
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import timedelta
 from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import urlencode, urlsplit
@@ -24,6 +25,13 @@ import aiohttp
 from aiohttp import web
 
 from core import config
+from core.billing import (
+    StripeAPIError,
+    StripeBillingClient,
+    StripeWebhookError,
+    account_billing_summary,
+    local_status_for_stripe,
+)
 from core.error_handling import (
     CommunicationError,
     ConfigurationError,
@@ -32,6 +40,12 @@ from core.error_handling import (
     handle_errors,
 )
 from core.logger import get_component_logger
+from core.time_utilities import (
+    TIMESTAMP_FULL,
+    format_timestamp,
+    now_datetime_full,
+    parse_timestamp_full,
+)
 from core.web_assets import register_asset_routes
 from core.web_chat import register_chat_routes
 from core.web_checkins import register_checkin_routes
@@ -158,6 +172,39 @@ class MHMAccounts:
         from core import get_user_data
 
         return get_user_data(uid, "account").get("account") or {}
+
+    @handle_errors("finding website billing account", user_friendly=False)
+    def by_billing_reference(self, customer_id="", subscription_id=""):
+        """Return the unique account matching a Stripe object identifier."""
+        matches = [
+            (uid, account)
+            for uid, account in self.all()
+            if (customer_id and account.get("stripe_customer_id") == customer_id)
+            or (
+                subscription_id
+                and account.get("stripe_subscription_id") == subscription_id
+            )
+        ]
+        return matches[0] if len(matches) == 1 else None
+
+
+    @handle_errors(
+        "saving website billing state", user_friendly=False, default_return=False
+    )
+    def update_billing(self, uid, updates):
+        """Persist only the allow-listed Stripe subscription fields."""
+        from core import update_user_account
+
+        allowed = {
+            "trial_ends_at",
+            "subscription_status",
+            "stripe_customer_id",
+            "stripe_subscription_id",
+            "billing_grace_ends_at",
+        }
+        patch = {key: value for key, value in updates.items() if key in allowed}
+        return bool(patch) and bool(update_user_account(uid, patch, auto_create=False))
+
 
     @handle_errors("finding website OAuth account", user_friendly=False)
     def by_oauth(self, provider, subject):
@@ -603,7 +650,6 @@ async def _fetch_discord_identity(code, *, client_id, client_secret, redirect_ur
     return discord_user_id, username[:100]
 
 
-
 class WebGateway:
     """Website routes for one gateway process.
 
@@ -635,6 +681,7 @@ class WebGateway:
         health_connecting,
         discord_identity,
         oauth_identity,
+        billing,
     ):
         """Remember the account store and in-memory session state for this process."""
         self.accounts = accounts
@@ -657,8 +704,8 @@ class WebGateway:
         self.health_connecting = health_connecting
         self.discord_identity = discord_identity
         self.oauth_identity = oauth_identity
+        self.billing = billing
         self.root = Path(__file__).resolve().parent.parent / "website"
-
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def discord_redirect_uri(self):
@@ -668,12 +715,10 @@ class WebGateway:
         ).strip()
         return configured or f"{self.origin}/api/auth/discord/callback"
 
-
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def discord_available(self):
         """Return whether the Discord OAuth credentials are configured."""
         return bool(config.DISCORD_APPLICATION_ID and config.DISCORD_CLIENT_SECRET)
-
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def oauth_provider_config(self, provider):
@@ -732,7 +777,6 @@ class WebGateway:
             raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
         self.limits[key] = (count + 1, expires)
 
-
     # ERROR_HANDLING_EXCLUDE: This is the central request error boundary by design.
     @web.middleware
     async def guard(self, request, handler):
@@ -744,7 +788,8 @@ class WebGateway:
                     request.headers.get("X-MHM-Proxy-Secret", ""), self.proxy_secret
                 ):
                     raise web.HTTPForbidden(text="This request cannot be accepted.")
-                if request.method != "GET":
+                is_stripe_webhook = request.path == "/api/billing/webhook"
+                if request.method != "GET" and not is_stripe_webhook:
                     if request.headers.get("Origin") != self.origin:
                         raise web.HTTPForbidden(
                             text="Please sign in through the MHM website."
@@ -778,7 +823,6 @@ class WebGateway:
             response.headers["Cache-Control"] = "no-store"
         return response
 
-
     # ERROR_HANDLING_EXCLUDE: Request parsing is protected by the gateway middleware.
     async def body(self, request):
         """Parse a request body as a JSON object or return a safe HTTP error."""
@@ -792,7 +836,6 @@ class WebGateway:
             raise web.HTTPBadRequest(text="Please check the form and try again.")
         return data
 
-
     # ERROR_HANDLING_EXCLUDE: Pure validation helper used inside guarded routes.
     def valid_password(self, value):
         """Accept long passphrases without brittle composition requirements."""
@@ -800,7 +843,6 @@ class WebGateway:
             isinstance(value, str)
             and PASSWORD_MIN_LENGTH <= len(value) <= PASSWORD_MAX_LENGTH
         )
-
 
     # ERROR_HANDLING_EXCLUDE: Session creation runs inside guarded routes.
     def start_session(self, uid, email, response, *, auth_method):
@@ -826,7 +868,6 @@ class WebGateway:
             path="/api/",
         )
         return response
-
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def password_login(self, request):
@@ -859,7 +900,6 @@ class WebGateway:
             )
         response = web.json_response({"ok": True})
         return self.start_session(existing[0], email, response, auth_method="password")
-
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def password_setup(self, request):
@@ -992,7 +1032,6 @@ class WebGateway:
         )
         return web.json_response({"challenge": token})
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def verify(self, request):
         """Verify a one-time code, create accounts when requested, and start a session."""
@@ -1090,7 +1129,6 @@ class WebGateway:
             raise web.HTTPUnauthorized(text="Please log in to continue.")
         return session[0], current
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def account(self, request):
         """Return the signed-in account summary used by website pages."""
@@ -1137,6 +1175,9 @@ class WebGateway:
                 "messages_enabled": flags["messages_enabled"],
                 "tasks_enabled": flags["tasks_enabled"],
                 "checkins_enabled": flags["checkins_enabled"],
+                "billing": account_billing_summary(
+                    current, configured=self.billing.checkout_configured()
+                ),
                 "oauth": {
                     provider: {
                         "available": self.oauth_provider_config(provider) is not None,
@@ -1152,6 +1193,206 @@ class WebGateway:
             }
         )
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def billing_checkout(self, request):
+        """Create a Stripe-hosted monthly subscription Checkout Session."""
+        uid, current = await self.authenticated_account(request)
+        await self.body(request)
+        if not self.billing.checkout_configured():
+            raise web.HTTPServiceUnavailable(
+                text="Subscriptions are not available yet. Please try again later."
+            )
+        if str(current.get("subscription_status") or "comped") == "comped":
+            raise web.HTTPConflict(
+                text="This account already has complimentary access."
+            )
+        if current.get("stripe_subscription_id") and str(
+            current.get("subscription_status")
+        ) in {"trialing", "active", "past_due"}:
+            raise web.HTTPConflict(
+                text="This account already has a subscription. Use Manage billing instead."
+            )
+        trial_end = parse_timestamp_full(str(current.get("trial_ends_at") or ""))
+        try:
+            session = await self.billing.create_checkout_session(
+                user_id=uid,
+                email=str(current.get("email") or ""),
+                customer_id=str(current.get("stripe_customer_id") or ""),
+                success_url=self.website_redirect("/app.html", billing="success"),
+                cancel_url=self.website_redirect("/app.html", billing="cancelled"),
+                trial_end=trial_end,
+            )
+        except StripeAPIError as exc:
+            logger.error(f"Stripe Checkout session failed: {type(exc).__name__}")
+            raise web.HTTPServiceUnavailable(
+                text="Billing could not open. Please try again shortly."
+            ) from None
+        url = str(session.get("url") or "")
+        if not url.startswith("https://"):
+            raise web.HTTPServiceUnavailable(
+                text="Billing could not open. Please try again shortly."
+            )
+        return web.json_response({"url": url})
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def billing_portal(self, request):
+        """Open Stripe's hosted subscription-management portal."""
+        _uid, current = await self.authenticated_account(request)
+        await self.body(request)
+        customer_id = str(current.get("stripe_customer_id") or "")
+        if not customer_id:
+            raise web.HTTPConflict(text="Start a subscription before managing billing.")
+        try:
+            session = await self.billing.create_portal_session(
+                customer_id=customer_id,
+                return_url=self.website_redirect("/app.html"),
+            )
+        except StripeAPIError as exc:
+            logger.error(f"Stripe Portal session failed: {type(exc).__name__}")
+            raise web.HTTPServiceUnavailable(
+                text="Billing could not open. Please try again shortly."
+            ) from None
+        url = str(session.get("url") or "")
+        if not url.startswith("https://"):
+            raise web.HTTPServiceUnavailable(
+                text="Billing could not open. Please try again shortly."
+            )
+        return web.json_response({"url": url})
+
+    @handle_errors(
+        "resolving Stripe webhook account", user_friendly=False, re_raise=True
+    )
+    async def _billing_target(self, event_type, payload):
+        """Resolve a signed Stripe event to exactly one canonical MHM account."""
+        if event_type == "checkout.session.completed":
+            uid = str(payload.get("client_reference_id") or "")
+            current = await asyncio.to_thread(self.accounts.get, uid) if uid else {}
+            return (uid, current) if current else None
+        metadata = payload.get("metadata") or {}
+        uid = (
+            str(metadata.get("mhm_user_id") or "") if isinstance(metadata, dict) else ""
+        )
+        if uid:
+            current = await asyncio.to_thread(self.accounts.get, uid)
+            if current:
+                saved_customer = str(current.get("stripe_customer_id") or "")
+                event_customer = str(payload.get("customer") or "")
+                if (
+                    not saved_customer
+                    or not event_customer
+                    or saved_customer == event_customer
+                ):
+                    return uid, current
+        customer_id = str(payload.get("customer") or "")
+        subscription = payload.get("subscription")
+        subscription_id = (
+            str(subscription or "") if isinstance(subscription, str) else ""
+        )
+        if not subscription_id:
+            subscription_id = (
+                str(payload.get("id") or "")
+                if event_type.startswith("customer.subscription.")
+                else ""
+            )
+        finder = getattr(self.accounts, "by_billing_reference", None)
+        if finder is None:
+            return None
+        return await asyncio.to_thread(finder, customer_id, subscription_id)
+
+    # ERROR_HANDLING_EXCLUDE: Signature validation and guarded persistence are explicit.
+    async def billing_webhook(self, request):
+        """Apply authenticated Stripe subscription lifecycle events."""
+        try:
+            raw = await request.read()
+            event = self.billing.verify_webhook(
+                raw, request.headers.get("Stripe-Signature", "")
+            )
+        except StripeWebhookError:
+            raise web.HTTPBadRequest(
+                text="The Stripe webhook signature is invalid."
+            ) from None
+        event_type = str(event.get("type") or "")
+        payload = (event.get("data") or {}).get("object") or {}
+        if not isinstance(payload, dict):
+            raise web.HTTPBadRequest(text="The Stripe webhook payload is invalid.")
+        handled = {
+            "checkout.session.completed",
+            "customer.subscription.created",
+            "customer.subscription.updated",
+            "customer.subscription.deleted",
+            "invoice.paid",
+            "invoice.payment_succeeded",
+            "invoice.payment_failed",
+        }
+        if event_type not in handled:
+            return web.json_response({"received": True})
+        target = await self._billing_target(event_type, payload)
+        if not target:
+            logger.warning(f"Stripe event {event_type} did not match an MHM account")
+            return web.json_response({"received": True})
+        uid, current = target
+        customer_id = str(payload.get("customer") or "")
+        subscription_value = payload.get("subscription")
+        subscription_id = (
+            str(subscription_value) if isinstance(subscription_value, str) else ""
+        )
+        if event_type.startswith("customer.subscription."):
+            subscription_id = str(payload.get("id") or subscription_id)
+        updates = {
+            "stripe_customer_id": customer_id
+            or str(current.get("stripe_customer_id") or ""),
+            "stripe_subscription_id": subscription_id
+            or str(current.get("stripe_subscription_id") or ""),
+        }
+        if event_type == "checkout.session.completed":
+            current_trial_end = parse_timestamp_full(
+                str(current.get("trial_ends_at") or "")
+            )
+            updates["subscription_status"] = (
+                "active"
+                if payload.get("payment_status") == "paid"
+                else (
+                    "trialing"
+                    if current_trial_end and now_datetime_full() < current_trial_end
+                    else "active"
+                )
+            )
+            updates["billing_grace_ends_at"] = ""
+        elif event_type in {
+            "customer.subscription.created",
+            "customer.subscription.updated",
+        }:
+            updates["subscription_status"] = local_status_for_stripe(
+                str(payload.get("status") or "")
+            )
+            if updates["subscription_status"] in {"active", "trialing"}:
+                updates["billing_grace_ends_at"] = ""
+            elif updates["subscription_status"] == "past_due" and not current.get(
+                "billing_grace_ends_at"
+            ):
+                grace_days = max(0, int(config.BILLING_GRACE_PERIOD_DAYS))
+                updates["billing_grace_ends_at"] = format_timestamp(
+                    now_datetime_full() + timedelta(days=grace_days), TIMESTAMP_FULL
+                )
+        elif event_type == "customer.subscription.deleted":
+            updates["subscription_status"] = "canceled"
+            updates["billing_grace_ends_at"] = ""
+        elif event_type in {"invoice.paid", "invoice.payment_succeeded"}:
+            updates["subscription_status"] = "active"
+            updates["billing_grace_ends_at"] = ""
+        elif event_type == "invoice.payment_failed":
+            updates["subscription_status"] = "past_due"
+            if not current.get("billing_grace_ends_at"):
+                grace_days = max(0, int(config.BILLING_GRACE_PERIOD_DAYS))
+                updates["billing_grace_ends_at"] = format_timestamp(
+                    now_datetime_full() + timedelta(days=grace_days), TIMESTAMP_FULL
+                )
+        updater = getattr(self.accounts, "update_billing", None)
+        if updater is None or not await asyncio.to_thread(updater, uid, updates):
+            raise web.HTTPServiceUnavailable(
+                text="Billing state could not be saved. Stripe will retry this event."
+            )
+        return web.json_response({"received": True})
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def account_connections(self, request):
@@ -1229,7 +1470,6 @@ class WebGateway:
             headers={"Content-Disposition": 'attachment; filename="mhm-data.json"'},
         )
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def account_delete(self, request):
         """Permanently delete the signed-in account after an explicit confirmation."""
@@ -1255,7 +1495,6 @@ class WebGateway:
         response.del_cookie(COOKIE, path="/api/")
         return response
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def oauth_providers(self, request):
         """Report which optional social sign-in providers are configured."""
@@ -1267,7 +1506,6 @@ class WebGateway:
                 }
             }
         )
-
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def oauth_start(self, request):
@@ -1311,7 +1549,6 @@ class WebGateway:
         return web.json_response(
             {"url": f"{OAUTH_AUTHORIZE_URLS[provider]}?{urlencode(query)}"}
         )
-
 
     # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
     async def oauth_callback(self, request):
@@ -1462,7 +1699,6 @@ class WebGateway:
             logger.error(f"Website {provider} sign-in failed")
             return web.HTTPFound(self.website_redirect(return_path, social="error"))
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def discord_start(self, request):
         """Create a short-lived Discord OAuth state and authorization URL."""
@@ -1493,7 +1729,6 @@ class WebGateway:
             }
         )
         return web.json_response({"url": f"{DISCORD_AUTHORIZE_URL}?{query}"})
-
 
     # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
     async def discord_callback(self, request):
@@ -1635,7 +1870,6 @@ class WebGateway:
         response.del_cookie(COOKIE, path="/api/")
         return response
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def setup_complete(self, request):
         """Record that website first-run setup is finished, even with no features on."""
@@ -1645,6 +1879,8 @@ class WebGateway:
                 text="MHM could not save that setup is finished. Please try again."
             )
         return web.json_response({"needs_setup": False})
+
+
 def create_web_app(
     *,
     accounts=None,
@@ -1654,6 +1890,7 @@ def create_web_app(
     clock=time.monotonic,
     discord_identity=None,
     oauth_identity=None,
+    billing=None,
 ):
     """Construct an injectable gateway; tests use isolated account and email adapters."""
     accounts = accounts or MHMAccounts()
@@ -1694,6 +1931,7 @@ def create_web_app(
     health_connecting = set()
     discord_identity = discord_identity or _fetch_discord_identity
     oauth_identity = oauth_identity or _fetch_oauth_identity
+    billing = billing or StripeBillingClient.from_config()
 
     gateway = WebGateway(
         accounts=accounts,
@@ -1716,6 +1954,7 @@ def create_web_app(
         health_connecting=health_connecting,
         discord_identity=discord_identity,
         oauth_identity=oauth_identity,
+        billing=billing,
     )
     app = web.Application(middlewares=[gateway.guard], client_max_size=MAX_WEB_REQUEST_BYTES)
     app.router.add_post("/api/auth/password", gateway.password_login)
@@ -1733,6 +1972,9 @@ def create_web_app(
     app.router.add_post("/api/account/connections", gateway.account_connections)
     app.router.add_get("/api/account/export", gateway.account_export)
     app.router.add_post("/api/account/delete", gateway.account_delete)
+    app.router.add_post("/api/billing/checkout", gateway.billing_checkout)
+    app.router.add_post("/api/billing/portal", gateway.billing_portal)
+    app.router.add_post("/api/billing/webhook", gateway.billing_webhook)
     register_settings_routes(app, gateway)
     register_health_routes(app, gateway)
 

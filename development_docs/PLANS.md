@@ -75,7 +75,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
-| Trial and monthly subscription | **PLANNED** | Later | This file Section 7.3 | 30-day trial, then a monthly plan; alpha account stays comped |
+| Trial and monthly subscription | **IMPLEMENTED** | 2026-10-07 | This file Section 7.3 | 30-day trial, Stripe-hosted monthly plan, webhook status, and delivery gating; proactive channel notices remain a follow-up |
 | Talk to MHM on the website | **COMPLETED** | Later | This file Section 7.4 | Signed-in conversation uses the shared Discord/email message path |
 
 ---
@@ -346,11 +346,11 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 
 ### 7.3 Trial and monthly subscription
 
-**Status**: **PLANNED**  
+**Status**: **IMPLEMENTED**
 **Added**: 2026-09-22  
 **Priority**: Later
 
-**Use / fit**: New accounts get 30 days of the full service, then a monthly subscription. Nothing in the repo bills anyone today. The existing alpha account keeps working without a charge.
+**Use / fit**: New accounts get 30 days of the full service, then a monthly subscription. Stripe hosts payment collection, and pre-billing accounts keep working without a charge.
 
 **Scaffold** (in order):
 
@@ -362,7 +362,13 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 
 **Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing. The monthly price is not set yet.
 
-**When to start**: after the service is ready for people other than the alpha user. Do not gate the current personal account on this work.
+**Implemented 2026-10-07**: account fields, a 30-day trial for new accounts,
+Stripe-hosted Checkout and Customer Portal sessions, signed snapshot webhooks,
+three-day configurable payment grace, account-page status/actions, and runtime
+gates for scheduled messages, check-ins, and task reminders. Pre-billing accounts
+default to `comped`, preserving alpha access. Automatic one-time channel notices
+before expiry and when pausing remain a follow-up; the website currently provides
+the live status and action.
 
 ---
 

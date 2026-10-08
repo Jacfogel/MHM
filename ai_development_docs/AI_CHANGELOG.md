@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-07 - Stripe trial billing and onboarding shipped **COMPLETED**
+- New accounts receive a persisted 30-day trial and can start a CA$8.99 CAD monthly Stripe subscription through hosted Checkout; signed webhooks, Customer Portal sessions, and a three-day failed-payment grace period keep local entitlement state synchronized without storing card details.
+- Scheduled messages, check-ins, and task reminders stop after trial/grace expiry or cancellation, while legacy accounts remain complimentary.
+- Onboarding now explains the free-to-paid transition and offers Subscribe now or Continue with free trial. Account navigation opens the Account settings panel instead of Profile.
+- Fixed the account-envelope allowlist that initially replaced new trial fields with complimentary defaults. Test-mode Stripe objects and the public Worker route are deployed and verified; focused checks pass 27 Python billing/storage tests and 123 browser tests, with broader backend and scheduler checks also green.
+
 ### 2026-10-06 - Disabled automated messages stay quiet **COMPLETED**
 - Category messages are no longer scheduled or sent when automated messages are disabled. A job already queued for that account is dropped instead of sent.
 - Check-ins and task reminders still follow their own switches.
@@ -126,11 +132,6 @@ Guidelines:
 - Account identity now uses canonical UUIDs and optional contact identifiers; preferred names remain display-only.
 - Removed the compatibility field from schemas, persistence, lookups, indexes, admin/UI flows, prompts, and test fixtures.
 - Existing account files require the documented backup, migration, and index-rebuild step before normal reads.
-
-### 2026-10-01 - Linux locks clean up after themselves **COMPLETED**
-- Unix file locks remove their `.lock` sidecar on release, so user directories no longer keep `account.json.lock` and similar files.
-- The frozen-clock lock test times only its body, so session cleanup cannot trip the 5-second limit.
-- Unix lock tests restore the real `fcntl` module before reload, so a busy-lock stand-in cannot make later JSON reads return `{}`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

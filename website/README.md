@@ -5,6 +5,10 @@
 Marketing site, password and social login/create-account page, signed-in home,
 first-run setup, account settings, task workspace, notebook, personal message
 library, and private insights.
+New website-created accounts receive a 30-day trial. Account settings shows the
+remaining trial, opens Stripe-hosted Checkout for the single monthly plan, and
+uses Stripe's hosted Customer Portal for billing management. MHM stores Stripe
+customer/subscription identifiers and lifecycle status, never card details.
 The Python gateway uses the **same account store as MHM**. It never stores browser
 passwords in plaintext or creates a separate website database. Passwords are
 stored as salted scrypt hashes in the canonical account document.
@@ -124,6 +128,16 @@ To enable live accounts:
    Set its `MHM_API_SECRET` secret to match `WEB_PROXY_SECRET` using
    `npx wrangler secret put MHM_API_SECRET`. Never put it in client JavaScript.
 4. Deploy the Worker, then test creation and login with a controlled email.
+
+To enable monthly billing, create one recurring monthly Price in Stripe and set
+`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python
+gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
+webhook for `checkout.session.completed`, `customer.subscription.created`,
+`customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`,
+`invoice.payment_succeeded`, and `invoice.payment_failed`. Configure Stripe's
+Customer Portal so subscribers can update payment details and cancel. The optional
+`BILLING_GRACE_PERIOD_DAYS` defaults to 3. Existing accounts without billing fields
+are treated as complimentary accounts; new accounts get the trial explicitly.
 
 Keep `global_fetch_strictly_public` enabled in `wrangler.jsonc`. The website and
 gateway share the `jacfogel.com` zone; this flag makes gateway requests use the

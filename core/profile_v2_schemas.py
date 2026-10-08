@@ -199,12 +199,26 @@ class AccountV2EnvelopeModel(BaseModel):
     oauth_identities: dict[str, str] = Field(default_factory=dict)
     timezone: str = ""
     created_at: str = ""
+    trial_ends_at: str = ""
+    subscription_status: Literal[
+        "trialing", "active", "past_due", "canceled", "comped"
+    ] = "comped"
+    stripe_customer_id: str = ""
+    stripe_subscription_id: str = ""
+    billing_grace_ends_at: str = ""
     features: FeaturesV2Model = Field(default_factory=FeaturesV2Model)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("created_at")
     @classmethod
     def _validate_created_at(cls, value: str) -> str:
+        if not value:
+            return value
+        return _validate_full_timestamp(value)
+
+    @field_validator("trial_ends_at", "billing_grace_ends_at")
+    @classmethod
+    def _validate_optional_billing_timestamp(cls, value: str) -> str:
         if not value:
             return value
         return _validate_full_timestamp(value)

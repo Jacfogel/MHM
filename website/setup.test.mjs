@@ -42,7 +42,10 @@ function snapshot() {
   };
 }
 
-async function page({ account = { preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true } } = {}) {
+async function page({ account = {
+  preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true,
+  billing: { status: 'trialing', trial_days_remaining: 30, checkout_available: true, customer_exists: false, subscription_exists: false },
+}, userAgent = '', platform = '', maxTouchPoints = 0 } = {}) {
   const nodes = new Map([
     ['setup-status', node()],
     ['setup-content', node()],
@@ -59,6 +62,7 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
     ['step-task-windows', node()],
     ['step-checkin-questions', node()],
     ['step-checkin-windows', node()],
+    ['step-billing', node()],
     ['preferred-name', node({ value: '' })],
     ['timezone', node({ value: '' })],
     ['enable-messages', node({ checked: false })],
@@ -72,10 +76,13 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
     ['task-windows', node()],
     ['checkin-questions', node()],
     ['checkin-windows', node()],
+    ['setup-billing-status', node()],
+    ['setup-subscribe', node()],
     ['setup-form', node()],
   ]);
   const requests = [];
   const navigation = [];
+  const timers = [];
   let current = snapshot();
   const context = vm.createContext({
     document: {
@@ -85,11 +92,14 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
     },
     window: { dispatchEvent() {} },
     Event,
+    URL,
     URLSearchParams,
+    navigator: { userAgent, platform, maxTouchPoints },
     crypto: { randomUUID() { return String(Math.random()); } },
     history: { replaceState() {} },
     Intl: { DateTimeFormat() { return { resolvedOptions() { return { timeZone: 'America/Regina' }; } }; } },
     location: { search: '', pathname: '/setup.html', replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
+    setTimeout(callback) { timers.push(callback); return timers.length; },
     fetch: async (url, options = {}) => {
       requests.push({ url, method: options.method || 'GET', body: options.body });
       if (url === '/api/account') return Response.json(account);
@@ -105,6 +115,8 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
       }
       if (url === '/api/tasks') return Response.json({ ok: true }, { status: 201 });
       if (url === '/api/account/setup-complete') return Response.json({ ok: true });
+      if (url === '/api/auth/discord/start?next=/setup.html') return Response.json({ url: 'https://discord.com/oauth2/authorize?client_id=123&state=secure-state' });
+      if (url === '/api/billing/checkout') return Response.json({ url: 'https://checkout.stripe.test/session' });
       return Response.json({ error: 'missing' }, { status: 404 });
     },
     Response,
@@ -117,6 +129,14 @@ async function page({ account = { preferred_name: 'Brook', timezone: 'America/Re
   }, async skip() {
     await nodes.get('setup-skip').listeners.click();
     for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
+  }, async subscribe() {
+    await nodes.get('setup-subscribe').listeners.click();
+    for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
+  }, async connectDiscord() {
+    await nodes.get('setup-connect-discord').listeners.click();
+    for (let i = 0; i < 4; i += 1) await new Promise(resolve => setImmediate(resolve));
+  }, runTimers() {
+    for (const callback of timers.splice(0)) callback();
   } };
 }
 
@@ -137,6 +157,9 @@ test('first-run walks name, delivery, support choices, and a first task', async 
   await view.continue();
   assert.equal(view.nodes.get('step-task-windows').hidden, false);
   await view.skip();
+  assert.equal(view.nodes.get('step-billing').hidden, false);
+  assert.match(view.nodes.get('setup-billing-status').textContent, /30 days remaining/);
+  await view.continue();
   const settingsPosts = view.requests.filter(request => request.url === '/api/settings' && request.method === 'POST').map(request => JSON.parse(request.body));
   assert.equal(settingsPosts.find(post => post.section === 'profile').values.preferred_name, 'River');
   assert.equal(settingsPosts.filter(post => post.section === 'delivery').length, 2);
@@ -146,6 +169,58 @@ test('first-run walks name, delivery, support choices, and a first task', async 
   const task = view.requests.find(request => request.url === '/api/tasks');
   assert.deepEqual(JSON.parse(task.body), { title: 'Drink water' });
   assert.deepEqual(view.navigation, ['home.html']);
+});
+
+test('billing is the final setup step and can open Stripe checkout immediately', async () => {
+  const view = await page();
+  await view.continue();
+  await view.continue();
+  view.nodes.get('enable-messages').checked = false;
+  view.nodes.get('enable-tasks').checked = false;
+  view.nodes.get('enable-checkins').checked = false;
+  await view.continue();
+
+  assert.equal(view.nodes.get('step-billing').hidden, false);
+  assert.equal(view.nodes.get('setup-subscribe').hidden, false);
+  assert.equal(view.nodes.get('setup-continue').textContent, 'Continue with free trial →');
+
+  await view.subscribe();
+
+  const posts = view.requests.filter(request => request.method === 'POST').map(request => request.url);
+  assert.ok(posts.indexOf('/api/account/setup-complete') < posts.indexOf('/api/billing/checkout'));
+  assert.deepEqual(view.navigation, ['https://checkout.stripe.test/session']);
+});
+
+test('Discord setup opens the Android app with a browser fallback', async () => {
+  const view = await page({ userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 9)' });
+  await view.continue();
+  await view.connectDiscord();
+
+  assert.equal(view.navigation.length, 1);
+  assert.match(view.navigation[0], /^intent:\/\/-\/oauth2\/authorize\?client_id=123&state=secure-state#Intent;/);
+  assert.match(view.navigation[0], /scheme=discord;package=com\.discord;/);
+  assert.match(view.navigation[0], /S\.browser_fallback_url=https%3A%2F%2Fdiscord\.com%2Foauth2%2Fauthorize/);
+});
+
+test('Discord setup opens the iOS app and falls back to the browser', async () => {
+  const view = await page({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)' });
+  await view.continue();
+  await view.connectDiscord();
+
+  assert.deepEqual(view.navigation, ['discord://-/oauth2/authorize?client_id=123&state=secure-state']);
+  view.runTimers();
+  assert.deepEqual(view.navigation, [
+    'discord://-/oauth2/authorize?client_id=123&state=secure-state',
+    'https://discord.com/oauth2/authorize?client_id=123&state=secure-state',
+  ]);
+});
+
+test('Discord setup keeps desktop authorization in the browser', async () => {
+  const view = await page({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' });
+  await view.continue();
+  await view.connectDiscord();
+
+  assert.deepEqual(view.navigation, ['https://discord.com/oauth2/authorize?client_id=123&state=secure-state']);
 });
 
 test('setup stays open when support features are all off even without needs_setup', async () => {

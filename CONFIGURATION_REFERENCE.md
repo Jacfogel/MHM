@@ -127,6 +127,14 @@ Optional social login credentials are `GOOGLE_OAUTH_CLIENT_ID`,
 `FACEBOOK_OAUTH_*` values. Blank redirect URIs default to
 `${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`.
 
+Stripe monthly billing uses `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and
+`STRIPE_WEBHOOK_SECRET` on the gateway. The Stripe webhook URL is
+`${WEB_PUBLIC_ORIGIN}/api/billing/webhook`; use snapshot events for Checkout,
+subscription changes/deletion, and invoice paid/payment-failed events.
+`BILLING_GRACE_PERIOD_DAYS` defaults to `3`. If the Stripe values are blank,
+existing service behavior remains available for complimentary accounts and the
+website does not offer Checkout.
+
 ---
 
 ## 5. Channel credentials

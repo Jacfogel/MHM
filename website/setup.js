@@ -22,10 +22,11 @@
     'task-windows': { label: 'Task times', panel: 'step-task-windows', skip: true },
     'checkin-questions': { label: 'Questions', panel: 'step-checkin-questions', skip: false },
     'checkin-windows': { label: 'Check-in times', panel: 'step-checkin-windows', skip: true },
+    billing: { label: 'Free trial', panel: 'step-billing', skip: false },
   };
   let settings;
   let account;
-  let plan = ['you', 'discord', 'features'];
+  let plan = ['you', 'discord', 'features', 'billing'];
   let index = 0;
 
   function returnToLogin() {
@@ -55,6 +56,58 @@
   function showStatus(message, error = false) {
     status.textContent = message;
     status.classList.toggle('is-error', error);
+  }
+
+  function openDiscordAuthorization(webUrl) {
+    const device = typeof navigator === 'undefined' ? {} : navigator;
+    const userAgent = String(device.userAgent || '');
+    const isAndroid = /Android/i.test(userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent)
+      || (device.platform === 'MacIntel' && Number(device.maxTouchPoints) > 1);
+    if (!isAndroid && !isIOS) {
+      location.assign(webUrl);
+      return;
+    }
+
+    let authorization;
+    try {
+      authorization = new URL(webUrl);
+    } catch (_) {
+      location.assign(webUrl);
+      return;
+    }
+    if (authorization.protocol !== 'https:'
+      || authorization.hostname !== 'discord.com'
+      || !['/oauth2/authorize', '/api/oauth2/authorize'].includes(authorization.pathname)) {
+      location.assign(webUrl);
+      return;
+    }
+
+    const appRoute = `-/oauth2/authorize${authorization.search}`;
+    if (isAndroid) {
+      try {
+        location.assign(`intent://${appRoute}#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`);
+      } catch (_) {
+        location.assign(webUrl);
+      }
+      return;
+    }
+
+    let usedFallback = false;
+    const useBrowserFallback = () => {
+      if (!document.hidden && !usedFallback) {
+        usedFallback = true;
+        location.assign(webUrl);
+      }
+    };
+    setTimeout(() => {
+      useBrowserFallback();
+    }, 1200);
+    try {
+      location.assign(`discord://${appRoute}`);
+    } catch (_) {
+      useBrowserFallback();
+    }
   }
 
   function el(tag, text, props = {}) {
@@ -89,6 +142,7 @@
     if (chosen.messages) next.push('message-categories', 'message-windows');
     if (chosen.tasks) next.push('task-create', 'task-windows');
     if (chosen.checkins) next.push('checkin-questions', 'checkin-windows');
+    next.push('billing');
     plan = next;
   }
 
@@ -359,6 +413,7 @@
     if (plan[index] === 'task-windows') renderTaskWindows();
     if (plan[index] === 'checkin-questions') renderCheckinQuestions();
     if (plan[index] === 'checkin-windows') renderCheckinWindows();
+    if (plan[index] === 'billing') renderBillingStep();
     const discordLinked = Boolean(account && account.discord_linked);
     const discordAvailable = Boolean(account && account.discord_available);
     const connectDiscord = document.getElementById('setup-connect-discord');
@@ -373,6 +428,7 @@
     }
     continueButton.textContent = plan[index] === 'discord' && !discordLinked
       ? 'Use email instead'
+      : plan[index] === 'billing' ? 'Continue with free trial →'
       : index === plan.length - 1 ? 'Finish →' : 'Continue →';
     skipButton.hidden = !current.skip;
     skipButton.textContent = plan[index].endsWith('windows') ? 'Keep these windows' : 'Skip this step';
@@ -532,6 +588,41 @@
     await saveSection('checkins', { ...settings.sections.checkins, enabled: true, periods });
   }
 
+  function renderBillingStep() {
+    const billing = account && account.billing ? account.billing : {};
+    const billingStatus = document.getElementById('setup-billing-status');
+    const subscribe = document.getElementById('setup-subscribe');
+    const days = Number(billing.trial_days_remaining || 30);
+    subscribe.hidden = true;
+    if (billing.status === 'comped') {
+      billingStatus.textContent = 'This account has complimentary access, so no subscription is needed.';
+      return;
+    }
+    if (billing.subscription_exists || billing.customer_exists) {
+      billingStatus.textContent = `You are subscribed. Your ${days}-day free trial continues before the first CA$8.99 CAD payment.`;
+      return;
+    }
+    billingStatus.textContent = `Your free trial is active with ${days} day${days === 1 ? '' : 's'} remaining.`;
+    subscribe.hidden = !billing.checkout_available;
+    if (!billing.checkout_available) billingStatus.textContent += ' Secure subscription setup is temporarily unavailable.';
+  }
+
+  async function subscribeFromSetup() {
+    const subscribe = document.getElementById('setup-subscribe');
+    if (!subscribe || subscribe.disabled) return;
+    setBusy(true);
+    showStatus('Opening secure Stripe checkout…');
+    try {
+      await api('/api/account/setup-complete', 'POST', {});
+      const result = await api('/api/billing/checkout', 'POST', {});
+      if (!result.url) throw new Error('Secure billing could not open.');
+      location.assign(result.url);
+    } catch (error) {
+      showStatus(error.message, true);
+      setBusy(false);
+    }
+  }
+
   const actions = {
     you: saveYou,
     discord: saveDiscordChoice,
@@ -542,6 +633,7 @@
     'task-windows': saveTaskWindows,
     'checkin-questions': saveCheckinQuestions,
     'checkin-windows': saveCheckinWindows,
+    billing: async () => {},
   };
 
   function accountNeedsSetup(account, currentSettings) {
@@ -672,12 +764,15 @@
     try {
       const result = await api('/api/auth/discord/start?next=/setup.html');
       if (!result.url) throw new Error('Discord connection is unavailable.');
-      location.assign(result.url);
+      openDiscordAuthorization(result.url);
     } catch (error) {
       showStatus(error.message, true);
       connectDiscord.disabled = false;
     }
   });
+
+  const subscribe = document.getElementById('setup-subscribe');
+  if (subscribe) subscribe.addEventListener('click', subscribeFromSetup);
 
   for (const id of ['enable-messages', 'enable-tasks', 'enable-checkins']) {
     document.getElementById(id).addEventListener('change', () => {

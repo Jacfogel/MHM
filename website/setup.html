@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Get started — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=fonts-1" />
+  <link rel="stylesheet" href="styles.css?v=billing-setup-1" />
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="setup.js?v=workflow-polish-1" defer></script>
+  <script src="setup.js?v=billing-setup-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -89,6 +89,19 @@
           <h2>When should check-ins arrive?</h2>
           <p class="panel-description">A morning window is ready. Change it, add another, or keep it.</p>
           <div id="checkin-windows"></div>
+        </div>
+        <div id="step-billing" hidden>
+          <h2>Your first 30 days are free.</h2>
+          <p class="panel-description">Use every part of MHM during your trial. After 30 days, continued service is CA$8.99 CAD per month. Cancel anytime.</p>
+          <div class="setup-billing-summary">
+            <strong>No charge today</strong>
+            <span>CA$8.99 CAD/month when your free trial ends.</span>
+          </div>
+          <p id="setup-billing-status" class="form-status" role="status" aria-live="polite"></p>
+          <div class="billing-actions">
+            <button id="setup-subscribe" class="button" type="button">Subscribe now →</button>
+          </div>
+          <p class="field-hint">Subscribing now securely saves your payment method with Stripe. Your trial continues, and you will not be charged until it ends. You can also continue without subscribing yet.</p>
         </div>
         <div class="setup-actions">
           <button class="plain-button" id="setup-back" type="button" hidden>Back</button>

@@ -66,13 +66,9 @@ def test_signed_in_pages_keep_workspaces_separate_and_linked():
     signed_in_hrefs = {"home.html", "app.html", "tasks.html", "notes.html", "messages.html", "insights.html"}
     assert "checkin.html" in home.hrefs
     assert "checkin.html" in insights.hrefs
-    assert signed_in_hrefs <= home.hrefs
-    assert signed_in_hrefs <= checkin.hrefs
-    assert signed_in_hrefs <= account.hrefs
-    assert signed_in_hrefs <= tasks.hrefs
-    assert signed_in_hrefs <= notebook.hrefs
-    assert signed_in_hrefs <= insights.hrefs
-    assert signed_in_hrefs <= messages.hrefs
+    for page in (home, checkin, account, tasks, notebook, insights, messages):
+        linked_paths = {urlsplit(href).path for href in page.hrefs}
+        assert signed_in_hrefs <= linked_paths
     assert "logout" in home.ids & checkin.ids & account.ids & tasks.ids & notebook.ids & insights.ids & messages.ids
     assert 'aria-current="page">Home</a>' in (WEBSITE / "home.html").read_text(encoding="utf-8")
 
@@ -242,6 +238,9 @@ def test_login_and_account_pages_expose_password_and_provider_controls():
         "new-password",
         "new-password-confirm",
         "social-connections",
+        "billing-status",
+        "start-subscription",
+        "manage-billing",
     } <= settings.ids
 
 
@@ -318,8 +317,8 @@ def test_policy_pages_are_readable_and_cross_linked(page_name):
     html = (WEBSITE / page_name).read_text(encoding="utf-8")
     assert {"index.html", "privacy.html", "terms.html", "data.html"} <= page.hrefs
     assert "<h1>" in html
-    if page_name == "terms.html":
-        assert "Last updated September 22, 2026." in html
+    if page_name in {"privacy.html", "terms.html"}:
+        assert "Last updated October 7, 2026." in html
     else:
         assert "Last updated September 24, 2026." in html
     assert any(source.startswith("script.js") for source in page.scripts)

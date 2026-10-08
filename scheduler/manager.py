@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from core import get_all_user_ids
+from core.billing import has_service_access
 from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
 from core.time_utilities import (
@@ -71,6 +72,9 @@ def _automated_category_allowed(user_id: str, category: str) -> bool:
     Check-ins use their own feature switch. Every other scheduled category
     waits until automated messages are enabled.
     """
+    account = get_user_data(user_id, "account").get("account") or {}
+    if not has_service_access(account):
+        return False
     if category == "checkin":
         return True
     from messages.message_data_manager import is_automated_messages_enabled
@@ -1052,7 +1056,7 @@ class SchedulerManager:
         if not _automated_category_allowed(user_id, category):
             logger.info(
                 f"Skipping scheduled message for user {user_id}, category {category}: "
-                "automated messages are disabled."
+                "automated messages are disabled or billing access has ended."
             )
             self._drop_sent_message_job(user_id, category, period_name)
             return

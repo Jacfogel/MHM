@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 23:55:12
+> **Last Generated**: 2026-10-07 18:09:43
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -240,6 +240,7 @@ C:.
 +---core
 |   |   admin_account_provisioning.py
 |   |   auto_cleanup.py
+|   |   billing.py
 |   |   chat_interactions_document.py
 |   |   config.py
 |   |   delivery.py
@@ -995,6 +996,8 @@ C:.
 |   |   |   test_auto_cleanup_logic.py
 |   |   |   test_auto_cleanup_paths.py
 |   |   |   test_backup_manager_helpers.py
+|   |   |   test_billing.py
+|   |   |   test_billing_delivery_gate.py
 |   |   |   test_channel_orchestrator.py
 |   |   |   test_channel_orchestrator_message_selection.py
 |   |   |   test_checkin_analysis_shared.py
@@ -1153,6 +1156,7 @@ C:.
 |   |   |   test_website_pages.py
 |   |   |   test_web_account_service.py
 |   |   |   test_web_assets.py
+|   |   |   test_web_billing.py
 |   |   |   test_web_chat.py
 |   |   |   test_web_checkins.py
 |   |   |   test_web_gateway_runtime.py

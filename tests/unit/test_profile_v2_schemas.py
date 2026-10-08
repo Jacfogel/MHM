@@ -301,6 +301,30 @@ def test_account_extra_reads_metadata_overflow():
 
 @pytest.mark.unit
 @pytest.mark.storage
+def test_account_billing_fields_remain_first_class_during_v2_wrap():
+    inner = {
+        "user_id": "user-1",
+        "created_at": "2026-10-07 17:00:00",
+        "trial_ends_at": "2026-11-06 17:00:00",
+        "subscription_status": "trialing",
+        "stripe_customer_id": "",
+        "stripe_subscription_id": "",
+        "billing_grace_ends_at": "",
+    }
+
+    wrapped = wrap_profile_document_for_save("account", inner)
+    loaded = prepare_profile_raw_on_load("account", wrapped)
+
+    assert wrapped["trial_ends_at"] == "2026-11-06 17:00:00"
+    assert wrapped["subscription_status"] == "trialing"
+    assert loaded["trial_ends_at"] == "2026-11-06 17:00:00"
+    assert loaded["subscription_status"] == "trialing"
+    assert "trial_ends_at" not in wrapped["metadata"]
+    assert "subscription_status" not in wrapped["metadata"]
+
+
+@pytest.mark.unit
+@pytest.mark.storage
 def test_preferences_natural_language_defaults_survive_wrap_and_load():
     inner = {
         "categories": ["motivational"],

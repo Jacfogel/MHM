@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 23:54:39
+> **Last Generated**: 2026-10-07 18:09:10
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.8% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 302
-- **Functions Found**: 3149
-- **Methods Found**: 1611
-- **Classes Found**: 278
-- **Total Items**: 4760
-- **Functions Documented**: 2796
-- **Methods Documented**: 1433
-- **Classes Documented**: 211
-- **Total Documented**: 4229
-- **Template-Generated**: 64
-- **Last Updated**: 2026-10-06
+- **Files Scanned**: 303
+- **Functions Found**: 3168
+- **Methods Found**: 1625
+- **Classes Found**: 281
+- **Total Items**: 4793
+- **Functions Documented**: 2813
+- **Methods Documented**: 1445
+- **Classes Documented**: 214
+- **Total Documented**: 4258
+- **Template-Generated**: 66
+- **Last Updated**: 2026-10-07
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (642)
+### **Core System Functions** (661)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (898)
@@ -3965,6 +3965,32 @@ This is separate from production data cleanup.
 - [OK] `should_run_cleanup(interval_days)` - Check if cleanup should run based on last cleanup time.
 - [OK] `update_cleanup_timestamp()` - Update the cleanup tracker file with current timestamp.
 
+#### `core/billing.py`
+**Functions:**
+- [OK] `__init__(self)` - Special Python method
+- [MISSING] `_post(self, path, fields)` - No description
+- [OK] `account_billing_summary(account)` - Build the non-sensitive billing view returned to the signed-in website.
+- [OK] `billing_status(account)` - Return a safe local status; accounts without one retain complimentary access.
+- [OK] `checkout_configured(self)` - Return whether Checkout has both required Stripe identifiers.
+- [OK] `create_checkout_session(self)` - Create one hosted monthly-subscription Checkout Session.
+- [OK] `create_portal_session(self)` - Create a short-lived Stripe Customer Portal session.
+- [OK] `from_config(cls)` - Build a Stripe client from the configured secret values.
+- [OK] `has_service_access(account)` - Whether automated MHM deliveries are currently entitled to run.
+- [OK] `local_status_for_stripe(status)` - Map Stripe's richer subscription lifecycle to MHM's access states.
+- [OK] `new_account_billing(created_at)` - Return the explicit 30-day billing state for a new account.
+- [OK] `verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
+**Classes:**
+- [OK] `StripeAPIError` - Raised when Stripe cannot create a hosted billing session.
+- [OK] `StripeBillingClient` - Minimal async client for Stripe-hosted Checkout, Portal, and webhooks.
+  - [OK] `StripeBillingClient.__init__(self)` - Special Python method
+  - [MISSING] `StripeBillingClient._post(self, path, fields)` - No description
+  - [OK] `StripeBillingClient.checkout_configured(self)` - Return whether Checkout has both required Stripe identifiers.
+  - [OK] `StripeBillingClient.create_checkout_session(self)` - Create one hosted monthly-subscription Checkout Session.
+  - [OK] `StripeBillingClient.create_portal_session(self)` - Create a short-lived Stripe Customer Portal session.
+  - [OK] `StripeBillingClient.from_config(cls)` - Build a Stripe client from the configured secret values.
+  - [OK] `StripeBillingClient.verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
+- [OK] `StripeWebhookError` - Raised when a webhook payload is invalid or unauthenticated.
+
 #### `core/chat_interactions_document.py`
 **Functions:**
 - [OK] `build_chat_interactions_document(interactions)` - Wrap interaction rows in the v2 chat-interactions envelope.
@@ -4993,6 +5019,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [MISSING] `_validate_dob(cls, value)` - No description
 - [OK] `_validate_envelope(model_cls, data)` - Validate ``data`` against a profile v2 envelope model and return JSON-safe output.
 - [OK] `_validate_full_timestamp(value)` - Require canonical full timestamp strings for v2 envelope metadata fields.
+- [MISSING] `_validate_optional_billing_timestamp(cls, value)` - No description
 - [MISSING] `_validate_optional_timestamps(cls, value)` - No description
 - [MISSING] `_validate_tags(cls, value)` - No description
 - [MISSING] `_validate_timestamp(cls, value)` - No description
@@ -5016,6 +5043,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
   - [OK] `AccountV2EnvelopeModel._normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
   - [OK] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - Require updated_at on an account envelope to be a full timestamp.
   - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
+  - [MISSING] `AccountV2EnvelopeModel._validate_optional_billing_timestamp(cls, value)` - No description
 - [MISSING] `CategoryScheduleV2Model` - No description
 - [MISSING] `ChannelV2Model` - No description
   - [OK] `ChannelV2Model._normalize_contact(self)` - Strip contact and drop invalid email contacts.
@@ -5554,8 +5582,9 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_account_service.py`
 **Functions:**
-- [OK] `__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity)` - Remember the account store and in-memory session state for this process.
+- [OK] `__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
 - [OK] `_account_features(account)` - Return the feature-flag map from an account envelope or nested document.
+- [OK] `_billing_target(self, event_type, payload)` - Resolve a signed Stripe event to exactly one canonical MHM account.
 - [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
 - [OK] `_fetch_discord_identity(code)` - Exchange a Discord OAuth code and return the verified user identity.
 - [OK] `_fetch_oauth_identity(provider, code)` - Exchange an authorization code and read a verified provider identity.
@@ -5572,7 +5601,11 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
 - [OK] `all(self)` - Return account documents paired with their canonical user IDs.
 - [OK] `authenticated_account(self, request)` - Resolve an active account from the request session cookie.
+- [OK] `billing_checkout(self, request)` - Create a Stripe-hosted monthly subscription Checkout Session.
+- [OK] `billing_portal(self, request)` - Open Stripe's hosted subscription-management portal.
+- [OK] `billing_webhook(self, request)` - Apply authenticated Stripe subscription lifecycle events.
 - [OK] `body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
+- [OK] `by_billing_reference(self, customer_id, subscription_id)` - Return the unique account matching a Stripe object identifier.
 - [OK] `by_email(self, email)` - Return the unique account matching an email address, if one exists.
 - [OK] `by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
 - [OK] `clear_open_checkin()` - Drop an in-progress check-in so the next login starts fresh.
@@ -5609,6 +5642,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
 - [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
+- [OK] `update_billing(self, uid, updates)` - Persist only the allow-listed Stripe subscription fields.
 - [OK] `valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
 - [OK] `verify(self, request)` - Verify a one-time code, create accounts when requested, and start a session.
 - [OK] `website_redirect(self, path)` - Build a same-origin website redirect with encoded query parameters.
@@ -5616,6 +5650,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [MISSING] `Challenge` - No description
 - [OK] `MHMAccounts` - Use product persistence; never maintain a separate website account database.
   - [OK] `MHMAccounts.all(self)` - Return account documents paired with their canonical user IDs.
+  - [OK] `MHMAccounts.by_billing_reference(self, customer_id, subscription_id)` - Return the unique account matching a Stripe object identifier.
   - [OK] `MHMAccounts.by_email(self, email)` - Return the unique account matching an email address, if one exists.
   - [OK] `MHMAccounts.by_oauth(self, provider, subject)` - Return the unique account linked to one provider subject.
   - [OK] `MHMAccounts.create(self, email, preferred_name, timezone, password_hash)` - Create an MHM account after website email verification succeeds.
@@ -5630,18 +5665,23 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
   - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
   - [OK] `MHMAccounts.unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
+  - [OK] `MHMAccounts.update_billing(self, uid, updates)` - Persist only the allow-listed Stripe subscription fields.
 - [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
 - [OK] `WebGateway` - Website routes for one gateway process.
 
 Session, challenge, and rate-limit state live here and are discarded when
 the process stops. ``create_web_app`` builds this object and registers
 its methods as routes.
-  - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity)` - Remember the account store and in-memory session state for this process.
+  - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
+  - [OK] `WebGateway._billing_target(self, event_type, payload)` - Resolve a signed Stripe event to exactly one canonical MHM account.
   - [OK] `WebGateway.account(self, request)` - Return the signed-in account summary used by website pages.
   - [OK] `WebGateway.account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
   - [OK] `WebGateway.account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
   - [OK] `WebGateway.account_export(self, request)` - Download a JSON copy of the signed-in user's stored MHM data.
   - [OK] `WebGateway.authenticated_account(self, request)` - Resolve an active account from the request session cookie.
+  - [OK] `WebGateway.billing_checkout(self, request)` - Create a Stripe-hosted monthly subscription Checkout Session.
+  - [OK] `WebGateway.billing_portal(self, request)` - Open Stripe's hosted subscription-management portal.
+  - [OK] `WebGateway.billing_webhook(self, request)` - Apply authenticated Stripe subscription lifecycle events.
   - [OK] `WebGateway.body(self, request)` - Parse a request body as a JSON object or return a safe HTTP error.
   - [OK] `WebGateway.discord_available(self)` - Return whether the Discord OAuth credentials are configured.
   - [OK] `WebGateway.discord_callback(self, request)` - Validate the Discord callback and link the identity to the active account.

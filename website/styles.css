@@ -573,7 +573,7 @@ button[aria-busy="true"] { cursor: wait; }
 .history-row:last-child { border-bottom: 0; }
 .history-row span { color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
 .health-card { min-height: 0; }
-.health-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 22px; }
+.health-actions, .billing-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 22px; }
 .danger-button { color: #a24848; }
 .task-support-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
 .task-support-actions .plain-button { text-align: left; }
@@ -675,6 +675,9 @@ button[aria-busy="true"] { cursor: wait; }
 .setup-choice span { display: grid; gap: 4px; }
 .setup-choice strong { font-size: 1rem; }
 .setup-choice span span { color: var(--muted); font-size: .875rem; font-weight: 400; }
+.setup-billing-summary { display: grid; gap: 5px; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--soft); }
+.setup-billing-summary strong { color: var(--purple-dark); font-size: 1.1rem; }
+.setup-billing-summary span { color: var(--muted); }
 .setup-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 8px; }
 @media (max-width: 760px) {
   .today-panel { grid-template-columns: 1fr; }

@@ -296,6 +296,9 @@ class TestSchedulerManagerUncoveredPaths:
             failed,
         ]
         with (
+            patch(
+                "scheduler.manager._automated_category_allowed", return_value=True
+            ),
             patch.object(scheduler_manager, "_remove_user_message_job") as mock_remove,
             patch("scheduler.manager.time.sleep") as sleep,
         ):

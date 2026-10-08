@@ -51,6 +51,11 @@ _CONTEXT_ACCOUNT_LEAK_KEYS = frozenset(
         "password_hash",
         "oauth_identities",
         "timezone",
+        "trial_ends_at",
+        "subscription_status",
+        "stripe_customer_id",
+        "stripe_subscription_id",
+        "billing_grace_ends_at",
         "features",
     }
 )
@@ -295,6 +300,11 @@ _ACCOUNT_V2_KEYS = frozenset(
         "oauth_identities",
         "timezone",
         "created_at",
+        "trial_ends_at",
+        "subscription_status",
+        "stripe_customer_id",
+        "stripe_subscription_id",
+        "billing_grace_ends_at",
         "features",
         "metadata",
     }

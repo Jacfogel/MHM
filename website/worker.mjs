@@ -5,6 +5,8 @@ const routes = new Map([
   ['/api/account/connections', 'POST'], ['/api/account/export', 'GET'],
   ['/api/account/delete', 'POST'],
   ['/api/account/setup-complete', 'POST'],
+  ['/api/billing/checkout', 'POST'], ['/api/billing/portal', 'POST'],
+  ['/api/billing/webhook', 'POST'],
   ['/api/auth/oauth/providers', 'GET'],
   ['/api/auth/discord/start', 'GET'], ['/api/auth/discord/callback', 'GET'],
   ['/api/settings', ['GET', 'POST']],
@@ -63,7 +65,8 @@ export default {
     if (!methods) return error('Page not found.', 404);
     const method = request.method;
     if (!(Array.isArray(methods) ? methods : [methods]).includes(method)) return error('This method is not supported.', 405);
-    if (method !== 'GET' && request.headers.get('Origin') !== url.origin) {
+    const stripeWebhook = url.pathname === '/api/billing/webhook';
+    if (method !== 'GET' && !stripeWebhook && request.headers.get('Origin') !== url.origin) {
       return error('Please sign in through the MHM website.', 403);
     }
     if (!env.MHM_API_ORIGIN || !env.MHM_API_SECRET || env.MHM_API_SECRET.length < 32) {
@@ -75,7 +78,7 @@ export default {
         return error('Email sign-in is not available yet. Please try again later.', 503);
       }
       const headers = new Headers();
-      for (const name of ['Content-Type', 'Cookie', 'Origin']) {
+      for (const name of ['Content-Type', 'Cookie', 'Origin', 'Stripe-Signature']) {
         const value = request.headers.get(name);
         if (value) headers.set(name, value);
       }
@@ -90,7 +93,7 @@ export default {
           const { done, value } = await reader.read();
           if (done) break;
           size += value.byteLength;
-          const maxBody = url.pathname === '/api/settings' ? 32768 : url.pathname.startsWith('/api/tasks') ? 8192 : url.pathname.startsWith('/api/notes') ? 131072 : 4096;
+          const maxBody = stripeWebhook ? 65536 : url.pathname === '/api/settings' ? 32768 : url.pathname.startsWith('/api/tasks') ? 8192 : url.pathname.startsWith('/api/notes') ? 131072 : 4096;
           if (size > maxBody) {
             await reader.cancel();
             return error('This request is too large.', 413);

@@ -42,6 +42,12 @@ WEB_PROXY_SECRET = os.getenv("WEB_PROXY_SECRET", "")
 WEB_GATEWAY_ENABLED = os.getenv("WEB_GATEWAY_ENABLED", "true").lower() in {"1", "true", "yes"}
 WEB_GATEWAY_HOST = os.getenv("WEB_GATEWAY_HOST", "127.0.0.1")
 WEB_GATEWAY_PORT = int(os.getenv("WEB_GATEWAY_PORT", "8080"))
+# Stripe-hosted monthly billing. All three are server-side secrets/configuration;
+# only hosted session URLs are returned to the browser.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+BILLING_GRACE_PERIOD_DAYS = int(os.getenv("BILLING_GRACE_PERIOD_DAYS", "3"))
 # Optional browser sign-in providers. Redirect URIs default to the matching
 # callback below WEB_PUBLIC_ORIGIN when left blank.
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")

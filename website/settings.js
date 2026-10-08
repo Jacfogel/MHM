@@ -72,6 +72,10 @@ const MHMSettingsInput = Object.freeze({
     const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     MHMSettingsInput.scrollToSection(document.getElementById('settings'), reducedMotion);
   }
+  window.addEventListener('hashchange', () => {
+    const section = location.hash.replace('#', '');
+    if (section === 'account' || section === 'integrations' || Object.hasOwn(titles, section)) selectPanel(section, true);
+  });
   document.getElementById('settings-nav').addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button || !document.getElementById('settings-nav').contains(button)) return;

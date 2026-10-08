@@ -3,6 +3,7 @@ const accountContent = document.getElementById('account-content');
 let accountSessionEnded = false;
 const discordResult = new URLSearchParams(location.search).get('discord');
 const socialResult = new URLSearchParams(location.search).get('social');
+const billingResult = new URLSearchParams(location.search).get('billing');
 window.addEventListener('mhm:signed-out', () => {
   accountSessionEnded = true;
   if (accountContent) accountContent.hidden = true;
@@ -17,6 +18,59 @@ function setButtonBusy(button, busy) {
   if (busy) button.setAttribute('aria-busy', 'true');
   else button.removeAttribute('aria-busy');
 }
+function renderBilling(billing) {
+  const message = document.getElementById('billing-status');
+  const subscribe = document.getElementById('start-subscription');
+  const manage = document.getElementById('manage-billing');
+  if (!message || !subscribe || !manage || !billing) return;
+  subscribe.hidden = true;
+  manage.hidden = true;
+  const days = Number(billing.trial_days_remaining || 0);
+  if (billing.status === 'comped') {
+    message.textContent = 'Your account has complimentary access.';
+  } else if (billing.status === 'trialing') {
+    message.textContent = days > 0
+      ? `Your free trial has ${days} day${days === 1 ? '' : 's'} remaining.`
+      : 'Your free trial has ended. Subscribe to keep scheduled support active.';
+    if (billing.subscription_exists || billing.customer_exists) manage.hidden = false;
+    else if (billing.checkout_available) subscribe.hidden = false;
+  } else if (billing.status === 'active') {
+    message.textContent = 'Your monthly MHM subscription is active.';
+    manage.hidden = !billing.customer_exists;
+  } else if (billing.status === 'past_due') {
+    message.textContent = billing.access_active
+      ? 'Your latest payment needs attention. Scheduled support remains active during the short grace period.'
+      : 'Scheduled support is paused because the latest payment was not completed.';
+    manage.hidden = !billing.customer_exists;
+  } else {
+    message.textContent = 'Scheduled support is paused. Subscribe to start it again.';
+    if (billing.checkout_available) subscribe.hidden = false;
+    manage.hidden = !billing.customer_exists;
+  }
+  if (!billing.checkout_available && !billing.customer_exists && billing.status !== 'comped') {
+    message.textContent += ' Billing is not available yet; please contact MHM support.';
+  }
+}
+async function openBilling(endpoint, button) {
+  if (!button || button.disabled) return;
+  setButtonBusy(button, true);
+  status.textContent = 'Opening secure billing…';
+  status.classList.remove('is-error');
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }, body: '{}',
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.status === 401) { returnToLogin(); return; }
+    if (!response.ok || !result.url) throw new Error(result.error || 'Billing could not open.');
+    location.assign(result.url);
+  } catch (error) {
+    status.textContent = error.message;
+    status.classList.add('is-error');
+    setButtonBusy(button, false);
+  }
+}
 async function loadAccount() {
   if (!accountContent) return;
   try {
@@ -29,6 +83,7 @@ async function loadAccount() {
     if (accountName) accountName.textContent = account.preferred_name || 'there';
     const accountEmail = document.getElementById('account-email');
     if (accountEmail) accountEmail.textContent = account.email;
+    renderBilling(account.billing);
     const passwordHeading = document.getElementById('password-heading');
     if (passwordHeading) {
       passwordHeading.textContent = account.password_set ? 'Change your password.' : 'Set a password.';
@@ -40,7 +95,9 @@ async function loadAccount() {
     }
     accountContent.hidden = false;
     const socialProvider = socialResult && socialResult.endsWith('-connected') ? socialResult.slice(0, -10) : '';
-    status.textContent = socialProvider ? `${socialProvider[0].toUpperCase()}${socialProvider.slice(1)} is connected to your MHM account.`
+    status.textContent = billingResult === 'success' ? 'Your secure checkout is complete. Billing status may take a moment to update.'
+      : billingResult === 'cancelled' ? 'Checkout was canceled. Your plan has not changed.'
+      : socialProvider ? `${socialProvider[0].toUpperCase()}${socialProvider.slice(1)} is connected to your MHM account.`
       : socialResult === 'in-use' ? 'That social account is already connected to another MHM account.'
         : socialResult === 'error' ? 'That social account could not be connected. Please try again.'
           : discordResult === 'connected' ? 'Discord is connected to your MHM account.'
@@ -81,6 +138,10 @@ async function loadAccount() {
     document.getElementById('connected-signins').hidden = socialCount === 0;
   } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
 }
+const startSubscription = document.getElementById('start-subscription');
+if (startSubscription) startSubscription.addEventListener('click', event => openBilling('/api/billing/checkout', event.currentTarget));
+const manageBilling = document.getElementById('manage-billing');
+if (manageBilling) manageBilling.addEventListener('click', event => openBilling('/api/billing/portal', event.currentTarget));
 async function disconnectProvider(provider, button) {
   if (button.disabled || !window.confirm(`Disconnect ${provider} from your MHM account?`)) return;
   setButtonBusy(button, true);

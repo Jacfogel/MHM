@@ -61,6 +61,24 @@ test('proxy forwards authenticated address, body, cookies and response cookie', 
     assert.match(response.headers.get('Set-Cookie'), /HttpOnly/);
   } finally { globalThis.fetch = originalFetch; }
 });
+test('Stripe webhooks bypass browser Origin checks but preserve their signature', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (target, options) => {
+    assert.equal(target.href, 'https://gateway.example/api/billing/webhook');
+    assert.equal(options.headers.get('Stripe-Signature'), 't=1000,v1=signed');
+    assert.equal(options.headers.get('X-MHM-Proxy-Secret'), env.MHM_API_SECRET);
+    assert.equal(new TextDecoder().decode(options.body), '{"id":"evt_1"}');
+    return Response.json({ received: true });
+  };
+  try {
+    const request = new Request(url + '/api/billing/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Stripe-Signature': 't=1000,v1=signed' },
+      body: '{"id":"evt_1"}',
+    });
+    assert.equal((await worker.fetch(request, env)).status, 200);
+  } finally { globalThis.fetch = originalFetch; }
+});
 test('unreachable and invalid origins show a recoverable error', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => { throw new Error('unreachable'); };

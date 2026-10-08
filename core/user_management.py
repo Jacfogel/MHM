@@ -86,6 +86,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     user_id = str(uuid.uuid4())
     created_ts = now_timestamp_full()
 
+    from core.billing import new_account_billing
+
     account_data = {
         "user_id": user_id,
         "account_status": "active",
@@ -97,6 +99,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         "oauth_identities": user_data.get("oauth_identities", {}),
         "created_at": created_ts,
         "updated_at": created_ts,
+        **new_account_billing(created_ts),
         "features": {
             "automated_messages": (
                 "enabled" if user_data.get("messages_enabled", False) else "disabled"

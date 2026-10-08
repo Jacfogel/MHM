@@ -11,6 +11,7 @@ from typing import Any
 import pytz
 
 from core.error_handling import handle_errors
+from core.billing import has_service_access
 from core.logger import get_component_logger
 from core.time_utilities import (
     DATE_ONLY,
@@ -45,6 +46,15 @@ def handle_task_reminder(
     delivery = getattr(scheduler_manager, "delivery", None)
     if delivery is None:
         logger.error("Delivery interface is not initialized.")
+        return
+
+    from core import get_user_data
+
+    account = get_user_data(user_id, "account").get("account") or {}
+    if not has_service_access(account):
+        logger.info(
+            f"Skipping task reminder for user {user_id}: billing access has ended"
+        )
         return
 
     attempt = 0
@@ -176,8 +186,16 @@ def schedule_all_task_reminders(scheduler_manager: Any, user_id: str) -> None:
     priority/due-date logic and scheduled at a random time within that period.
     """
     try:
+        from core import get_user_data
         from core.schedule_runtime import get_schedule_time_periods
         from tasks import are_tasks_enabled, load_active_tasks
+
+        account = get_user_data(user_id, "account").get("account") or {}
+        if not has_service_access(account):
+            logger.debug(
+                f"Task reminders not scheduled for user {user_id}: billing access has ended"
+            )
+            return
 
         if not are_tasks_enabled(user_id):
             logger.debug(f"Tasks not enabled for user {user_id}")

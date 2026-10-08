@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-06 23:54:43
+> **Last Generated**: 2026-10-07 18:09:14
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 300
-- **Total Imports Found**: 2690
-- **Dependencies Documented**: 300 (100% coverage)
-- **Standard Library Imports**: 770 (28.6%)
-- **Third-Party Imports**: 234 (8.7%)
-- **Local Imports**: 1686 (62.7%)
-- **Last Updated**: 2026-10-06
+- **Files Scanned**: 301
+- **Total Imports Found**: 2714
+- **Dependencies Documented**: 301 (100% coverage)
+- **Standard Library Imports**: 781 (28.8%)
+- **Third-Party Imports**: 235 (8.7%)
+- **Local Imports**: 1698 (62.6%)
+- **Last Updated**: 2026-10-07
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 770 imports (28.6%)
-- **Third-Party**: 234 imports (8.7%)
-- **Local**: 1686 imports (62.7%)
+- **Standard Library**: 781 imports (28.8%)
+- **Third-Party**: 235 imports (8.7%)
+- **Local**: 1698 imports (62.6%)
 
 ## Module Dependencies by Directory
 
@@ -3618,6 +3618,40 @@
 **Enhanced Purpose**: Automatic cache cleanup and maintenance
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/billing.py`
+- **Purpose**: Core system module for billing
+- **Dependencies**:
+  - **Local**:
+    - `core (config)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `asyncio`
+    - `collections.abc (Callable)`
+    - `datetime (datetime, timedelta)`
+    - `hashlib`
+    - `hmac`
+    - `json`
+    - `math`
+    - `time`
+    - `typing (Any)`
+  - **Third-party**:
+    - `aiohttp`
+- **Used by**:
+  - `core/user_management.py`
+  - `core/web_account_service.py`
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.time_utilities
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/chat_interactions_document.py`
 - **Purpose**: Core system module for chat_interactions_document
 - **Dependencies**:
@@ -3863,6 +3897,7 @@
   - `communication/reminders/reminder_dispatcher.py`
   - `core/admin_account_provisioning.py`
   - `core/auto_cleanup.py`
+  - `core/billing.py`
   - `core/config.py`
   - `core/file_auditor.py`
   - `core/file_locking.py`
@@ -4339,6 +4374,7 @@
   - `communication/reminders/reminder_dispatcher.py`
   - `core/admin_account_provisioning.py`
   - `core/auto_cleanup.py`
+  - `core/billing.py`
   - `core/file_auditor.py`
   - `core/file_locking.py`
   - `core/file_operations.py`
@@ -4924,6 +4960,7 @@
   - `communication/message_processing/flows/task_flow.py`
   - `communication/message_processing/user_suggestions.py`
   - `core/auto_cleanup.py`
+  - `core/billing.py`
   - `core/chat_interactions_document.py`
   - `core/error_handling.py`
   - `core/file_operations.py`
@@ -5054,6 +5091,7 @@
 - **Purpose**: Centralized user data access and management
 - **Dependencies**:
   - **Local**:
+    - `core.billing (new_account_billing)` (NEW)
     - `core.config (_normalize_path, core.config)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -5075,7 +5113,7 @@
   - `storage/user_data_summaries.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.schedule_document_defaults, core.time_utilities
+- Added: core.billing, core.config, core.error_handling, core.logger, core.schedule_document_defaults, core.time_utilities
 - Removed: core/service.py, core/user_lookup.py, integrations/google_health/sync_manager.py, storage/user_data_index.py, storage/user_data_summaries.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5089,10 +5127,11 @@
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
     - `communication.message_processing.flows.flow_constants (FLOW_CHECKIN)` (NEW)
     - `core (config, create_new_user, get_all_user_ids, get_user_data, save_user_data_transaction, update_user_account)` (NEW)
+    - `core.billing (StripeAPIError, StripeBillingClient, StripeWebhookError, account_billing_summary, local_status_for_stripe)` (NEW)
     - `core.error_handling (CommunicationError, ConfigurationError, DataError, ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.web_assets (register_asset_routes)` (NEW)
     - `core.web_chat (register_chat_routes)` (NEW)
     - `core.web_checkins (register_checkin_routes)` (NEW)
@@ -5112,6 +5151,7 @@
     - `base64`
     - `collections.abc (Callable)`
     - `dataclasses (dataclass)`
+    - `datetime (timedelta)`
     - `email.message (EmailMessage)`
     - `hashlib`
     - `json`
@@ -5130,7 +5170,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.error_handling, core.logger, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_tasks, core.web_user_settings, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
+- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.billing, core.error_handling, core.logger, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_tasks, core.web_user_settings, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
 - Removed: collections.abc, core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5788,7 +5828,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_messages.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_messages.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, scheduler/manager.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6000,6 +6040,7 @@
 - **Dependencies**:
   - **Local**:
     - `core (get_all_user_ids, get_user_data)` (NEW)
+    - `core.billing (has_service_access)` (NEW)
     - `core.config (BASE_DATA_DIR, get_user_data_dir)` (NEW)
     - `core.delivery (SchedulerDeliveryPort)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -6029,7 +6070,7 @@
   - `scheduler/__init__.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, messages.message_data_manager, scheduler, scheduler.user_timezone, tasks, user.user_context
+- Added: core, core.billing, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, messages.message_data_manager, scheduler, scheduler.user_timezone, tasks, user.user_context
 - Removed: collections.abc, core/service.py, scheduler/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6064,7 +6105,8 @@
 - **Purpose**: Module for scheduler/task_reminders.py
 - **Dependencies**:
   - **Local**:
-    - `core (get_all_user_ids)` (NEW)
+    - `core (get_all_user_ids, get_user_data)` (NEW)
+    - `core.billing (has_service_access)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
@@ -6085,7 +6127,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler.user_timezone, tasks, tasks.task_data_handlers, tasks.task_reminder_snooze
+- Added: core, core.billing, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler.user_timezone, tasks, tasks.task_data_handlers, tasks.task_reminder_snooze
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
