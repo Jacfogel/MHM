@@ -592,8 +592,14 @@
     const billing = account && account.billing ? account.billing : {};
     const billingStatus = document.getElementById('setup-billing-status');
     const subscribe = document.getElementById('setup-subscribe');
+    const chargeHeading = document.getElementById('setup-billing-charge-heading');
+    const chargeDetail = document.getElementById('setup-billing-charge-detail');
+    const chargeHint = document.getElementById('setup-billing-charge-hint');
     const days = Number(billing.trial_days_remaining || 30);
     subscribe.hidden = true;
+    chargeHeading.textContent = 'No charge today';
+    chargeDetail.textContent = 'CA$8.99 CAD/month when your free trial ends.';
+    chargeHint.textContent = 'Subscribing now securely saves your payment method with Stripe. Your trial continues, and you will not be charged until it ends. You can also continue without subscribing yet.';
     if (billing.status === 'comped') {
       billingStatus.textContent = 'This account has complimentary access, so no subscription is needed.';
       return;
@@ -604,6 +610,11 @@
     }
     billingStatus.textContent = `Your free trial is active with ${days} day${days === 1 ? '' : 's'} remaining.`;
     subscribe.hidden = !billing.checkout_available;
+    if (!billing.checkout_defers_charge) {
+      chargeHeading.textContent = 'Billing starts when you subscribe';
+      chargeDetail.textContent = 'CA$8.99 CAD/month begins immediately because fewer than 48 hours remain in your trial.';
+      chargeHint.textContent = 'Stripe securely saves your payment method and charges the first CA$8.99 CAD payment when you confirm. You can also continue without subscribing yet.';
+    }
     if (!billing.checkout_available) billingStatus.textContent += ' Secure subscription setup is temporarily unavailable.';
   }
 

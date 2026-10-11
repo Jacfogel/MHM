@@ -310,6 +310,8 @@ def test_account_billing_fields_remain_first_class_during_v2_wrap():
         "stripe_customer_id": "",
         "stripe_subscription_id": "",
         "billing_grace_ends_at": "",
+        "billing_processed_event_ids": ["evt_1"],
+        "billing_notice_keys": ["trial-ending:2026-11-06 17:00:00"],
     }
 
     wrapped = wrap_profile_document_for_save("account", inner)
@@ -319,8 +321,14 @@ def test_account_billing_fields_remain_first_class_during_v2_wrap():
     assert wrapped["subscription_status"] == "trialing"
     assert loaded["trial_ends_at"] == "2026-11-06 17:00:00"
     assert loaded["subscription_status"] == "trialing"
+    assert loaded["billing_processed_event_ids"] == ["evt_1"]
+    assert loaded["billing_notice_keys"] == [
+        "trial-ending:2026-11-06 17:00:00"
+    ]
     assert "trial_ends_at" not in wrapped["metadata"]
     assert "subscription_status" not in wrapped["metadata"]
+    assert "billing_processed_event_ids" not in wrapped["metadata"]
+    assert "billing_notice_keys" not in wrapped["metadata"]
 
 
 @pytest.mark.unit

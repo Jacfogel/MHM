@@ -56,6 +56,8 @@ _CONTEXT_ACCOUNT_LEAK_KEYS = frozenset(
         "stripe_customer_id",
         "stripe_subscription_id",
         "billing_grace_ends_at",
+        "billing_processed_event_ids",
+        "billing_notice_keys",
         "features",
     }
 )
@@ -305,6 +307,8 @@ _ACCOUNT_V2_KEYS = frozenset(
         "stripe_customer_id",
         "stripe_subscription_id",
         "billing_grace_ends_at",
+        "billing_processed_event_ids",
+        "billing_notice_keys",
         "features",
         "metadata",
     }

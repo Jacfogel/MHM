@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-07 18:09:10
+> **Last Generated**: 2026-10-10 12:11:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.8% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 303
-- **Functions Found**: 3168
-- **Methods Found**: 1625
+### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 304
+- **Functions Found**: 3177
+- **Methods Found**: 1632
 - **Classes Found**: 281
-- **Total Items**: 4793
-- **Functions Documented**: 2813
-- **Methods Documented**: 1445
+- **Total Items**: 4809
+- **Functions Documented**: 2822
+- **Methods Documented**: 1452
 - **Classes Documented**: 214
-- **Total Documented**: 4258
+- **Total Documented**: 4274
 - **Template-Generated**: 66
-- **Last Updated**: 2026-10-07
+- **Last Updated**: 2026-10-10
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (661)
+### **Core System Functions** (668)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (898)
+### **Communication Functions** (899)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -2922,6 +2922,7 @@ Returns:
 - [OK] `initialize_channels_from_config__initialize_channels_async(self)` - Async method to initialize all configured channels
 - [OK] `receive_messages(self)` - Receive messages from all communication channels
 - [OK] `run_event_loop()` - Run the managed event loop forever on a dedicated thread.
+- [OK] `send_account_notice(self, user_id, message)` - Send one account notice through the preferred channel and website inbox.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
 - [OK] `send_message(self, channel_name, recipient, message)` - Send message via specified channel using unified interface
 - [OK] `send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
@@ -3021,6 +3022,7 @@ Returns:
     bool: True if successful, False if failed
   - [OK] `CommunicationManager.initialize_channels_from_config__initialize_channels_async(self)` - Async method to initialize all configured channels
   - [OK] `CommunicationManager.receive_messages(self)` - Receive messages from all communication channels
+  - [OK] `CommunicationManager.send_account_notice(self, user_id, message)` - Send one account notice through the preferred channel and website inbox.
   - [OK] `CommunicationManager.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
   - [OK] `CommunicationManager.send_message(self, channel_name, recipient, message)` - Send message via specified channel using unified interface
   - [OK] `CommunicationManager.send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
@@ -3968,6 +3970,7 @@ This is separate from production data cleanup.
 #### `core/billing.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
+- [OK] `_get(self, path)` - Read one Stripe object through the authenticated API boundary.
 - [MISSING] `_post(self, path, fields)` - No description
 - [OK] `account_billing_summary(account)` - Build the non-sensitive billing view returned to the signed-in website.
 - [OK] `billing_status(account)` - Return a safe local status; accounts without one retain complimentary access.
@@ -3978,18 +3981,26 @@ This is separate from production data cleanup.
 - [OK] `has_service_access(account)` - Whether automated MHM deliveries are currently entitled to run.
 - [OK] `local_status_for_stripe(status)` - Map Stripe's richer subscription lifecycle to MHM's access states.
 - [OK] `new_account_billing(created_at)` - Return the explicit 30-day billing state for a new account.
+- [OK] `retrieve_subscription(self, subscription_id)` - Return Stripe's current Subscription state for entitlement reconciliation.
 - [OK] `verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
 **Classes:**
 - [OK] `StripeAPIError` - Raised when Stripe cannot create a hosted billing session.
 - [OK] `StripeBillingClient` - Minimal async client for Stripe-hosted Checkout, Portal, and webhooks.
   - [OK] `StripeBillingClient.__init__(self)` - Special Python method
+  - [OK] `StripeBillingClient._get(self, path)` - Read one Stripe object through the authenticated API boundary.
   - [MISSING] `StripeBillingClient._post(self, path, fields)` - No description
   - [OK] `StripeBillingClient.checkout_configured(self)` - Return whether Checkout has both required Stripe identifiers.
   - [OK] `StripeBillingClient.create_checkout_session(self)` - Create one hosted monthly-subscription Checkout Session.
   - [OK] `StripeBillingClient.create_portal_session(self)` - Create a short-lived Stripe Customer Portal session.
   - [OK] `StripeBillingClient.from_config(cls)` - Build a Stripe client from the configured secret values.
+  - [OK] `StripeBillingClient.retrieve_subscription(self, subscription_id)` - Return Stripe's current Subscription state for entitlement reconciliation.
   - [OK] `StripeBillingClient.verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
 - [OK] `StripeWebhookError` - Raised when a webhook payload is invalid or unauthenticated.
+
+#### `core/billing_notices.py`
+**Functions:**
+- [OK] `pending_billing_notice(account)` - Return the next unsent billing notice identity and customer-facing text.
+- [OK] `process_billing_notices(delivery)` - Deliver and persist each account's next one-time billing notice.
 
 #### `core/chat_interactions_document.py`
 **Functions:**
@@ -4059,6 +4070,7 @@ Raises:
 - [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Send a scheduled or manual category message.
 - [OK] `handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a task reminder.
 - [OK] `matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
+- [OK] `send_account_notice(self, user_id, message)` - Send a billing or account lifecycle notice through the user's channel.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
 **Classes:**
 - [OK] `MessageSendOutcome` - Result shape returned by delivery sends.
@@ -4066,6 +4078,7 @@ Raises:
 - [OK] `SchedulerDeliveryPort` - Delivery operations the scheduler needs.
   - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache, message_id)` - Send a scheduled or manual category message.
   - [OK] `SchedulerDeliveryPort.handle_task_reminder(self, user_id, task_identifier, message_id)` - Send a task reminder.
+  - [OK] `SchedulerDeliveryPort.send_account_notice(self, user_id, message)` - Send a billing or account lifecycle notice through the user's channel.
 - [OK] `ServiceRequestDeliveryPort` - Delivery operations needed by file-flag service requests.
   - [OK] `ServiceRequestDeliveryPort.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
   - [OK] `ServiceRequestDeliveryPort.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
@@ -5582,15 +5595,17 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `core/web_account_service.py`
 **Functions:**
-- [OK] `__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
+- [OK] `__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, billing_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
 - [OK] `_account_features(account)` - Return the feature-flag map from an account envelope or nested document.
-- [OK] `_billing_target(self, event_type, payload)` - Resolve a signed Stripe event to exactly one canonical MHM account.
+- [OK] `_billing_subscription_id(self, event_type, payload)` - Return the Subscription identifier carried by a supported snapshot event.
+- [OK] `_billing_target(self, event_type, payload, subscription)` - Resolve a signed Stripe event to exactly one canonical MHM account.
 - [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
 - [OK] `_fetch_discord_identity(code)` - Exchange a Discord OAuth code and return the verified user identity.
 - [OK] `_fetch_oauth_identity(provider, code)` - Exchange an authorization code and read a verified provider identity.
 - [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
+- [OK] `_reconciled_billing_update(self, current, subscription)` - Map Stripe's current Subscription object to one idempotent local patch.
 - [OK] `_setup_completed(account)` - True after the website first-run has been finished.
 - [OK] `_setup_flags(account)` - Return website first-run flags from one account document.
 - [OK] `_signed_in_path(account)` - Return Home, setup, or Account after a successful website sign-in.
@@ -5672,8 +5687,10 @@ Returns None if path resolution fails (caller treats as no users dir).
 Session, challenge, and rate-limit state live here and are discarded when
 the process stops. ``create_web_app`` builds this object and registers
 its methods as routes.
-  - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
-  - [OK] `WebGateway._billing_target(self, event_type, payload)` - Resolve a signed Stripe event to exactly one canonical MHM account.
+  - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, billing_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
+  - [OK] `WebGateway._billing_subscription_id(self, event_type, payload)` - Return the Subscription identifier carried by a supported snapshot event.
+  - [OK] `WebGateway._billing_target(self, event_type, payload, subscription)` - Resolve a signed Stripe event to exactly one canonical MHM account.
+  - [OK] `WebGateway._reconciled_billing_update(self, current, subscription)` - Map Stripe's current Subscription object to one idempotent local patch.
   - [OK] `WebGateway.account(self, request)` - Return the signed-in account summary used by website pages.
   - [OK] `WebGateway.account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
   - [OK] `WebGateway.account_delete(self, request)` - Permanently delete the signed-in account after an explicit confirmation.
@@ -6537,6 +6554,7 @@ Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises T
 - [OK] `log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
 - [OK] `perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
 This runs automatically at 02:00 daily via the scheduler.
+- [OK] `process_billing_notices(self)` - Deliver one-time trial and payment notices through the scheduler port.
 - [OK] `process_category_schedule(user_id, category)` - Process schedule for a specific user and category.
 - [OK] `process_user_schedules(user_id)` - Process schedules for a specific user.
 - [OK] `reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
@@ -6658,6 +6676,7 @@ Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises T
   - [OK] `SchedulerManager.log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
   - [OK] `SchedulerManager.perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
 This runs automatically at 02:00 daily via the scheduler.
+  - [OK] `SchedulerManager.process_billing_notices(self)` - Deliver one-time trial and payment notices through the scheduler port.
   - [OK] `SchedulerManager.reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
   - [OK] `SchedulerManager.run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
   - [OK] `SchedulerManager.run_full_daily_scheduler(self)` - Runs the full daily scheduler process - same as system startup.

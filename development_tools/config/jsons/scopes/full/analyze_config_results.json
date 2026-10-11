@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_config - Development Tools",
-  "last_generated": "2026-10-07 18:25:37",
-  "timestamp": "2026-10-07T18:25:37",
+  "last_generated": "2026-10-10 20:52:05",
+  "timestamp": "2026-10-10T20:52:05",
   "tool_name": "analyze_config",
   "domain": "config",
   "source": "python development_tools/config/analyze_config.py",

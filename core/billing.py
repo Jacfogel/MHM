@@ -15,6 +15,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -33,6 +34,7 @@ logger = get_component_logger("main")
 TRIAL_DAYS = 30
 DEFAULT_GRACE_DAYS = 3
 WEBHOOK_TOLERANCE_SECONDS = 300
+CHECKOUT_TRIAL_MINIMUM_SECONDS = 2 * 86400
 SUBSCRIPTION_STATUSES = {"trialing", "active", "past_due", "canceled", "comped"}
 
 
@@ -111,6 +113,12 @@ def account_billing_summary(
         "customer_exists": bool(account.get("stripe_customer_id")),
         "subscription_exists": bool(account.get("stripe_subscription_id")),
         "checkout_available": configured,
+        "checkout_defers_charge": bool(
+            status == "trialing"
+            and trial_end is not None
+            and trial_end.timestamp()
+            >= current.timestamp() + CHECKOUT_TRIAL_MINIMUM_SECONDS
+        ),
     }
 
 
@@ -203,6 +211,37 @@ class StripeBillingClient:
         except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as exc:
             raise StripeAPIError("Stripe could not be reached") from exc
 
+    async def _get(self, path: str) -> dict[str, Any]:
+        """Read one Stripe object through the authenticated API boundary."""
+        if not self.secret_key:
+            raise StripeAPIError("Stripe billing is not configured")
+        timeout = aiohttp.ClientTimeout(total=15)
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(
+                    f"{self.api_origin}{path}",
+                    auth=aiohttp.BasicAuth(self.secret_key, ""),
+                    headers={"Accept": "application/json"},
+                ) as response:
+                    payload = await response.json(content_type=None)
+                    if response.status >= 400 or not isinstance(payload, dict):
+                        raise StripeAPIError("Stripe rejected the billing request")
+                    return payload
+        except StripeAPIError:
+            raise
+        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as exc:
+            raise StripeAPIError("Stripe could not be reached") from exc
+
+    @handle_errors(
+        "retrieving Stripe subscription", user_friendly=False, re_raise=True
+    )
+    async def retrieve_subscription(self, subscription_id: str) -> dict[str, Any]:
+        """Return Stripe's current Subscription state for entitlement reconciliation."""
+        normalized = str(subscription_id or "").strip()
+        if not normalized.startswith("sub_"):
+            raise StripeAPIError("Stripe subscription identifier is invalid")
+        return await self._get(f"/v1/subscriptions/{quote(normalized, safe='')}")
+
     @handle_errors(
         "creating Stripe Checkout session", user_friendly=False, re_raise=True
     )
@@ -236,7 +275,11 @@ class StripeBillingClient:
             fields.append(("customer_email", email))
         # Stripe requires a future trial_end. Inside 48 hours, start billing now
         # rather than asking Stripe to accept an invalid near-past timestamp.
-        if trial_end and trial_end.timestamp() >= self.wall_clock() + (2 * 86400):
+        if (
+            trial_end
+            and trial_end.timestamp()
+            >= self.wall_clock() + CHECKOUT_TRIAL_MINIMUM_SECONDS
+        ):
             fields.append(
                 ("subscription_data[trial_end]", str(int(trial_end.timestamp())))
             )

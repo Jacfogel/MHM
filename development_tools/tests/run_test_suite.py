@@ -807,10 +807,29 @@ def _aggregate(phases: list[PhaseResult]) -> dict[str, Any]:
     else:
         state = "clean"
     by_name = {phase.name: phase for phase in phases}
+    parallel_phase = by_name.get("parallel", phases[0])
+    no_parallel_phase = by_name.get("no_parallel")
     return {
         "state": state,
-        "parallel": _track_from_phase(by_name.get("parallel", phases[0])),
-        "no_parallel": _track_from_phase(by_name.get("no_parallel", phases[-1])),
+        "parallel": _track_from_phase(parallel_phase),
+        "no_parallel": (
+            _track_from_phase(no_parallel_phase)
+            if no_parallel_phase is not None
+            else {
+                "state": "skipped",
+                "classification": "skipped",
+                "classification_reason": "not_run_after_parallel_interruption",
+                "actionable_context": "",
+                "log_file": None,
+                "return_code_hex": None,
+                "return_code": None,
+                "passed_count": 0,
+                "failed_count": 0,
+                "error_count": 0,
+                "skipped_count": 0,
+                "failed_node_ids": [],
+            }
+        ),
         "failed_node_ids": failed_nodes,
     }
 

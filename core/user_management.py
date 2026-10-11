@@ -100,6 +100,8 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         "created_at": created_ts,
         "updated_at": created_ts,
         **new_account_billing(created_ts),
+        "billing_processed_event_ids": [],
+        "billing_notice_keys": [],
         "features": {
             "automated_messages": (
                 "enabled" if user_data.get("messages_enabled", False) else "disabled"

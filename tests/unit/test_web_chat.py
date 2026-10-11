@@ -1,5 +1,6 @@
 """Website chat sends through the shared handler as the website channel."""
 
+import uuid
 from types import SimpleNamespace
 from typing import cast
 
@@ -68,7 +69,8 @@ async def test_chat_route_registration_reports_and_reraises_errors(monkeypatch):
 
 
 class Accounts:
-    def __init__(self):
+    def __init__(self, user_id="existing"):
+        self.user_id = user_id
         self.user = {
             "test_label": "river",
             "email": "river@example.com",
@@ -76,7 +78,11 @@ class Accounts:
         }
 
     def by_email(self, email):
-        return ("existing", self.user) if email.casefold() == self.user["email"] else None
+        return (
+            (self.user_id, self.user)
+            if email.casefold() == self.user["email"]
+            else None
+        )
 
     def email_exists(self, email):
         return email.casefold() == self.user["email"]
@@ -91,6 +97,7 @@ class Accounts:
 @pytest_asyncio.fixture
 async def chat_gateway(monkeypatch):
     captured = {}
+    user_id = f"web-chat-{uuid.uuid4().hex}"
 
     def reply(user_id, message, channel_type):
         captured.update(user_id=user_id, message=message, channel_type=channel_type)
@@ -107,7 +114,7 @@ async def chat_gateway(monkeypatch):
     sent = []
     async with web_client(
         create_web_app(
-            accounts=Accounts(),
+            accounts=Accounts(user_id),
             mailer=lambda email, code: sent.append(code),
             origin=ORIGIN,
             proxy_secret="",
@@ -130,7 +137,7 @@ async def chat_gateway(monkeypatch):
                 headers={"Origin": ORIGIN},
             )
         ).status == 200
-        yield client, captured
+        yield client, captured, user_id
 
 
 def test_chat_payload_keeps_plain_text_and_unique_suggestions():
@@ -170,7 +177,7 @@ def test_website_chat_reply_uses_the_website_channel(monkeypatch):
 
 
 async def test_signed_in_chat_returns_the_reply_and_suggestions(chat_gateway):
-    client, captured = chat_gateway
+    client, captured, user_id = chat_gateway
     response = await client.post(
         "/api/chat",
         json={"message": "  help me add a task  "},
@@ -182,7 +189,7 @@ async def test_signed_in_chat_returns_the_reply_and_suggestions(chat_gateway):
     assert body["suggestions"] == ["show my tasks", "cancel"]
     assert body["completed"] is False
     assert captured["channel_type"] == "website"
-    assert captured["user_id"] == "existing"
+    assert captured["user_id"] == user_id
     assert captured["message"] == "help me add a task"
     inbox = await (await client.get("/api/chat")).json()
     assert [turn["text"] for turn in inbox["turns"]] == ["help me add a task", "I can help with that."]
@@ -463,7 +470,7 @@ def test_predefined_send_also_keeps_a_website_copy(monkeypatch):
 
 
 async def test_chat_inbox_returns_website_deliveries(chat_gateway, monkeypatch):
-    client, _captured = chat_gateway
+    client, _captured, _user_id = chat_gateway
     monkeypatch.setattr(
         "communication.communication_channels.website.inbox.list_website_messages",
         lambda user_id: [{"id": "one", "text": "A reminder", "category": "tasks", "created_at": ""}],
@@ -473,7 +480,7 @@ async def test_chat_inbox_returns_website_deliveries(chat_gateway, monkeypatch):
 
 
 async def test_chat_reaction_uses_the_scheduled_delivery(chat_gateway, monkeypatch):
-    client, _captured = chat_gateway
+    client, _captured, user_id = chat_gateway
     seen = {}
 
     def remember(user_id, discord_message_id, kind, delivery_id=""):
@@ -492,7 +499,7 @@ async def test_chat_reaction_uses_the_scheduled_delivery(chat_gateway, monkeypat
         "reply": "I won't send that message again.",
     }
     assert seen == {
-        "user": "existing",
+        "user": user_id,
         "discord_message_id": "",
         "kind": "down",
         "delivery_id": "delivery-1",
@@ -506,7 +513,7 @@ async def test_chat_reaction_uses_the_scheduled_delivery(chat_gateway, monkeypat
 
 
 async def test_chat_rejects_empty_extra_fields_and_signed_out_requests(chat_gateway):
-    client, _captured = chat_gateway
+    client, _captured, _user_id = chat_gateway
     assert (
         await client.post("/api/chat", json={"message": "   "}, headers={"Origin": ORIGIN})
     ).status == 400

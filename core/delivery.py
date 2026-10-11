@@ -47,6 +47,11 @@ class SchedulerDeliveryPort(Protocol):
         """Send a task reminder."""
         ...
 
+    # ERROR_HANDLING_EXCLUDE: Protocol method declaration; concrete delivery implementations handle errors.
+    def send_account_notice(self, user_id: str, message: str) -> bool:
+        """Send a billing or account lifecycle notice through the user's channel."""
+        ...
+
 
 @runtime_checkable
 class ServiceRequestDeliveryPort(SchedulerDeliveryPort, Protocol):

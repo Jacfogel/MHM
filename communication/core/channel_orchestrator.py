@@ -1357,6 +1357,31 @@ class CommunicationManager:
             user_id, messaging_service, recipient
         )
 
+    @handle_errors("sending account lifecycle notice", default_return=False)
+    def send_account_notice(self, user_id: str, message: str) -> bool:
+        """Send one account notice through the preferred channel and website inbox."""
+        preferences = get_user_data(user_id, "preferences").get("preferences") or {}
+        messaging_service = str((preferences.get("channel") or {}).get("type") or "website")
+        sent = False
+        if messaging_service != "website":
+            recipient = self.get_recipient_for_service(
+                user_id, messaging_service, preferences
+            )
+            if recipient:
+                result = self.send_message_sync(
+                    messaging_service,
+                    recipient,
+                    message,
+                    user_id=user_id,
+                    category="billing",
+                )
+                sent = result is True or result == CHANNEL_SEND_UNCONFIRMED
+
+        from communication.communication_channels.website.inbox import deliver_to_website
+
+        website_stored = deliver_to_website(user_id, message, "billing")
+        return bool(sent or website_stored)
+
     @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(
         self,

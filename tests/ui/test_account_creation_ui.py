@@ -36,42 +36,6 @@ from core import save_user_data, get_user_data
 from core.file_operations import get_user_file_path
 
 
-def _resolve_user_id_with_retry(
-    fixture_label: str,
-    test_data_dir: str | None = None,
-    attempts: int = 200,
-    delay: float = 0.05,
-):
-    """Resolve a fixture label to a canonical user id."""
-    from tests.test_helpers.test_utilities import TestUserFactory
-    from core.file_locking import safe_json_read
-    import time
-
-    for attempt in range(attempts):
-        user_id = TestUserFactory.get_test_user_id_by_label(
-            fixture_label, test_data_dir
-        ) if test_data_dir else None
-        if user_id:
-            return user_id
-
-        # Fallback for parallel runs where user index writes can lag.
-        if test_data_dir:
-            users_dir = Path(test_data_dir) / "users"
-            if users_dir.exists():
-                for account_file in users_dir.glob("*/account.json"):
-                    account = safe_json_read(str(account_file), default={})
-                    metadata = account.get("metadata", {})
-                    account_fixture_label = str(
-                        metadata.get("fixture_label", "")
-                    ).strip()
-                    if account_fixture_label.casefold() == fixture_label.casefold():
-                        return account_file.parent.name
-
-        if attempt < attempts - 1:
-            time.sleep(delay)
-    return None
-
-
 def _wait_for_account_features(
     user_id: str,
     expected_features: dict[str, str],
@@ -1179,10 +1143,8 @@ class TestAccountCreationErrorHandling:
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of invalid data during account creation."""
         import uuid
-        from pathlib import Path
         from core.file_locking import safe_json_read
         from core.config import get_user_data_dir, get_user_file_path
-        from storage.user_data_operations import rebuild_user_index
 
         user_id = f"test-invalid-data-{uuid.uuid4().hex[:8]}"
 
@@ -1202,34 +1164,26 @@ class TestAccountCreationErrorHandling:
 
         # [OK] VERIFY REAL BEHAVIOR: User directory should be created even with invalid data
         if result.get("account") is True:
-            resolved_user_id = _resolve_user_id_with_retry(
-                user_id,
-                test_data_dir=test_data_dir,
-                attempts=100,
-                delay=0.02,
-            )
+            # This test writes with a canonical id directly; it does not create a
+            # TestUserFactory fixture label. Resolving it as a label repeatedly
+            # scans every accumulated account in the worker and can exceed the
+            # five-minute pytest timeout late in a parallel suite.
+            resolved_user_id = user_id
             users_dir = Path(test_data_dir) / "users"
-            candidate_user_dirs = []
-
-            # Prefer runtime-resolved path since save/load code uses core.config resolution.
-            candidate_user_dirs.append(Path(get_user_data_dir(user_id)))
-
-            if resolved_user_id:
-                candidate_user_dirs.append(users_dir / resolved_user_id)
-            candidate_user_dirs.append(users_dir / user_id)
-
-            # Also accept any user directory whose account contains the canonical id.
-            if users_dir.exists():
-                for account_file in users_dir.glob("*/account.json"):
-                    account_data = safe_json_read(str(account_file), default={})
-                    account_user_id = str(account_data.get("user_id", "")).strip()
-                    if (
-                        account_user_id == user_id
-                        or (resolved_user_id and account_user_id == resolved_user_id)
-                    ):
-                        candidate_user_dirs.append(account_file.parent)
-
             runtime_account_file = Path(get_user_file_path(user_id, "account"))
+            candidate_account_files = [
+                runtime_account_file,
+                Path(get_user_data_dir(user_id)) / "account.json",
+                users_dir / user_id / "account.json",
+            ]
+            if resolved_user_id:
+                candidate_account_files.extend(
+                    [
+                        Path(get_user_file_path(resolved_user_id, "account")),
+                        users_dir / resolved_user_id / "account.json",
+                    ]
+                )
+            candidate_account_files = list(dict.fromkeys(candidate_account_files))
             lookup_candidates = [
                 candidate
                 for candidate in [resolved_user_id, user_id]
@@ -1237,22 +1191,13 @@ class TestAccountCreationErrorHandling:
             ]
 
             def _account_persisted() -> bool:
-                # Re-scan user account files to handle delayed index/account flush under worker churn.
-                if users_dir.exists():
-                    for account_file in users_dir.glob("*/account.json"):
-                        account_data = safe_json_read(str(account_file), default={})
-                        account_user_id = str(account_data.get("user_id", "")).strip()
-                        if (
-                            account_user_id == user_id
-                            or (resolved_user_id and account_user_id == resolved_user_id)
-                        ):
-                            candidate_user_dirs.append(account_file.parent)
-
-                if runtime_account_file.exists():
-                    return True
-
-                if any(path.exists() for path in candidate_user_dirs):
-                    return True
+                expected_ids = {user_id, resolved_user_id}
+                for account_file in candidate_account_files:
+                    if not account_file.exists():
+                        continue
+                    account_data = safe_json_read(str(account_file), default={})
+                    if str(account_data.get("user_id", "")).strip() in expected_ids:
+                        return True
 
                 for lookup_id in lookup_candidates:
                     account_result = get_user_data(
@@ -1267,17 +1212,11 @@ class TestAccountCreationErrorHandling:
             account_persisted = wait_until(
                 _account_persisted, timeout_seconds=4.0, poll_seconds=0.05
             )
-            if not account_persisted:
-                # One explicit rebuild helps when index/account visibility lags in xdist runs.
-                rebuild_user_index()
-                account_persisted = wait_until(
-                    _account_persisted, timeout_seconds=4.0, poll_seconds=0.05
-                )
 
             assert account_persisted, (
                 "Account save should persist either a discoverable user directory or readable account data "
                 f"(user_id={user_id}, resolved_user_id={resolved_user_id}, runtime_account_file={runtime_account_file}, "
-                f"candidate_dirs={len(candidate_user_dirs)}, result={result})"
+                f"candidate_files={len(candidate_account_files)}, result={result})"
             )
 
     @pytest.mark.ui

@@ -30,6 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-10 - Billing follow-up checks restored **COMPLETED**
+- Fixed the order-dependent development-tools classifier failure by preserving complete error-handling defaults when a worker loads partial external configuration and returning isolated nested settings to each caller.
+- Fixed the Tier 3 xdist interruption caused by an account-creation test repeatedly scanning every accumulated account until the five-minute timeout killed its worker. The test now checks only the canonical account paths, and an unstarted no-parallel track is reported as skipped instead of inheriting the parallel crash.
+- Made the website-chat gateway tests use a fresh account ID per test so retained xdist inbox data cannot duplicate conversation turns in a later run; removed an advisory link to an absent optional coverage snapshot.
+- Fixed the remaining Pyright optional-value error in the billing portal test and regenerated the function registry/module references for the new billing functions.
+- Verification: the repaired six-worker main track passes 5,931 tests with 1 skip using the former crash seed; the development-tools track passes 1,661 tests; focused config/error-handling tests pass 63 tests; Pyright reports 0 errors and Ruff is clean. The user-requested full audit was stopped and not rerun.
+
+### 2026-10-09 - Stripe post-launch hardening **COMPLETED**
+- Stripe webhooks now persist processed event IDs and reconcile each handled event against the current Subscription, so duplicate or delayed invoice events cannot regress access. Invoice events can resolve an account from Subscription metadata even if they arrive before Checkout completion.
+- Hourly one-time notices warn before trial expiry and when trial, failed-payment grace, or cancellation pauses scheduled support. Delivery uses the account's preferred channel and keeps a website inbox copy.
+- Onboarding now says when a near-expiry trial will be charged immediately. Live-mode cutover, canary, restart, and rollback steps are documented without changing production credentials.
+- Verification: 36 focused billing/storage tests, 95 scheduler/delivery tests, and 127 browser tests pass.
+
 ### 2026-10-07 - Stripe trial billing and onboarding shipped **COMPLETED**
 - New accounts receive a persisted 30-day trial and can start a CA$8.99 CAD monthly Stripe subscription through hosted Checkout; signed webhooks, Customer Portal sessions, and a three-day failed-payment grace period keep local entitlement state synchronized without storing card details.
 - Scheduled messages, check-ins, and task reminders stop after trial/grace expiry or cancellation, while legacy accounts remain complimentary.
@@ -121,17 +134,6 @@ Guidelines:
 - Self-service settings and authenticated insights endpoints moved into `core/web_settings.py`; the existing settings transformation helpers remain in `core/web_user_settings.py` and setup completion is shared without duplication.
 - Google Health integration endpoints moved into `core/web_health.py`, and allowlisted public asset/font routes moved into `core/web_assets.py`; URLs, health actions, responses, route order, and file allowlists are unchanged.
 - Focused ownership and behavior coverage accompanies both new route owners; all 127 web-service tests pass, Ruff and Pyright are clean, and the complete suite passes with 5,981 passed and 28 skipped.
-
-### 2026-10-02 - Website routes extracted and test fixtures aligned **COMPLETED**
-- Check-in and notebook endpoints moved from the oversized `WebGateway` into focused route modules; the account service now delegates their registration and reuses the notebook serializer.
-- Route-family initialization and registration use centralized, re-raising error handling, with focused coverage for routing, validation, lifecycle behavior, and error reporting.
-- Behavior tests resolve factory-only labels through `TestUserFactory`, so analytics, AI-envelope, conversation, and user-context coverage no longer depends on the retired production username lookup.
-- Generated function/dependency documentation was refreshed. The normal full suite passes: 5,966 passed, 28 skipped, with zero failures or errors.
-
-### 2026-10-01 - Internal account username compatibility field retired **COMPLETED**
-- Account identity now uses canonical UUIDs and optional contact identifiers; preferred names remain display-only.
-- Removed the compatibility field from schemas, persistence, lookups, indexes, admin/UI flows, prompts, and test fixtures.
-- Existing account files require the documented backup, migration, and index-rebuild step before normal reads.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

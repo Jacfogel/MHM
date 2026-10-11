@@ -36,6 +36,54 @@ class TestChannelOrchestratorHelpers:
         setattr(CommunicationManager, "_initialized", False)  # noqa: B010
         self.manager = CommunicationManager()
 
+    def test_account_notice_uses_preferred_channel_and_keeps_website_copy(self):
+        """Billing notices use the saved channel while remaining visible on the website."""
+        preferences = {"channel": {"type": "email"}}
+        with (
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": preferences},
+            ),
+            patch.object(
+                self.manager,
+                "get_recipient_for_service",
+                return_value="person@example.com",
+            ),
+            patch.object(self.manager, "send_message_sync", return_value=True) as send,
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website",
+                return_value=True,
+            ) as deliver,
+        ):
+            assert self.manager.send_account_notice("u1", "Billing update") is True
+
+        send.assert_called_once_with(
+            "email",
+            "person@example.com",
+            "Billing update",
+            user_id="u1",
+            category="billing",
+        )
+        deliver.assert_called_once_with("u1", "Billing update", "billing")
+
+    def test_account_notice_with_website_preference_skips_external_channel(self):
+        """Website-only accounts store the notice without attempting another channel."""
+        with (
+            patch(
+                "communication.core.channel_orchestrator.get_user_data",
+                return_value={"preferences": {"channel": {"type": "website"}}},
+            ),
+            patch.object(self.manager, "send_message_sync") as send,
+            patch(
+                "communication.communication_channels.website.inbox.deliver_to_website",
+                return_value=True,
+            ) as deliver,
+        ):
+            assert self.manager.send_account_notice("u1", "Billing update") is True
+
+        send.assert_not_called()
+        deliver.assert_called_once_with("u1", "Billing update", "billing")
+
     def test_ai_message_skips_website_copy_when_send_fails(self):
         """A failed personalized send must not leave a website inbox row."""
         with (

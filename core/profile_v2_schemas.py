@@ -206,6 +206,8 @@ class AccountV2EnvelopeModel(BaseModel):
     stripe_customer_id: str = ""
     stripe_subscription_id: str = ""
     billing_grace_ends_at: str = ""
+    billing_processed_event_ids: list[str] = Field(default_factory=list)
+    billing_notice_keys: list[str] = Field(default_factory=list)
     features: FeaturesV2Model = Field(default_factory=FeaturesV2Model)
     metadata: dict[str, Any] = Field(default_factory=dict)
 

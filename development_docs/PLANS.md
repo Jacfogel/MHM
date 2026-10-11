@@ -75,7 +75,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
-| Trial and monthly subscription | **IMPLEMENTED** | 2026-10-07 | This file Section 7.3 | 30-day trial, Stripe-hosted monthly plan, webhook status, and delivery gating; proactive channel notices remain a follow-up |
+| Trial and monthly subscription | **IMPLEMENTED** | 2026-10-09 | This file Section 7.3 | 30-day trial, Stripe-hosted monthly plan, replay-safe reconciled webhooks, delivery gating, and one-time billing notices |
 | Talk to MHM on the website | **COMPLETED** | Later | This file Section 7.4 | Signed-in conversation uses the shared Discord/email message path |
 
 ---
@@ -360,15 +360,17 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 4. Mark the existing personal alpha account `comped` so daily use does not depend on billing.
 5. The website shows days left in the trial, then a subscribe link. Send one notice before the trial ends and one when sends are paused, on whatever channel that user already uses.
 
-**Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing. The monthly price is not set yet.
+**Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing.
 
 **Implemented 2026-10-07**: account fields, a 30-day trial for new accounts,
 Stripe-hosted Checkout and Customer Portal sessions, signed snapshot webhooks,
 three-day configurable payment grace, account-page status/actions, and runtime
 gates for scheduled messages, check-ins, and task reminders. Pre-billing accounts
 default to `comped`, preserving alpha access. Automatic one-time channel notices
-before expiry and when pausing remain a follow-up; the website currently provides
-the live status and action.
+before expiry and when pausing were added on 2026-10-09, along with replay-safe
+event tracking, current-Subscription reconciliation for out-of-order Stripe events,
+and explicit live-mode cutover/rollback guidance. The onboarding billing step also
+explains when less than 48 hours remain and Checkout must charge immediately.
 
 ---
 

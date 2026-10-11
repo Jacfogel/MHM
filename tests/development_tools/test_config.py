@@ -171,6 +171,30 @@ class TestConfigHelperFunctions:
             # If config file doesn't exist, empty list is expected (default behavior)
 
     @pytest.mark.unit
+    def test_error_handling_partial_config_keeps_defaults_isolated(self):
+        """Partial external settings preserve every operation category and cannot leak."""
+        get_config = config.get_error_handling_config
+        function_globals = get_config.__globals__
+        previous_get_external_value = function_globals["_get_external_value"]
+        function_globals["_get_external_value"] = (
+            lambda key, default=None: {
+                "phase1_keywords": {"file_io": ["custom_read"]}
+            }
+            if key == "error_handling"
+            else default
+        )
+        try:
+            first = get_config()
+            assert first["phase1_keywords"]["file_io"] == ["custom_read"]
+            assert "validate" in first["phase1_keywords"]["validation"]
+
+            first["phase1_keywords"]["validation"].append("leaked")
+            second = get_config()
+            assert "leaked" not in second["phase1_keywords"]["validation"]
+        finally:
+            function_globals["_get_external_value"] = previous_get_external_value
+
+    @pytest.mark.unit
     def test_get_analyze_functions_config_returns_dict(self):
         """Test that get_analyze_functions_config() returns a dict."""
         result = config.get_analyze_functions_config()

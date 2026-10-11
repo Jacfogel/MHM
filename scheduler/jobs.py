@@ -17,6 +17,8 @@ def register_system_daily_jobs(scheduler_manager) -> None:
     logger.info(
         "Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)"
     )
+    schedule.every().hour.do(scheduler_manager.process_billing_notices)
+    logger.info("Scheduled hourly trial and billing lifecycle notice check")
 
     try:
         from scheduler.health_sync_jobs import register_health_sync_jobs

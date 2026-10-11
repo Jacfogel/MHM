@@ -44,7 +44,7 @@ function snapshot() {
 
 async function page({ account = {
   preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true,
-  billing: { status: 'trialing', trial_days_remaining: 30, checkout_available: true, customer_exists: false, subscription_exists: false },
+  billing: { status: 'trialing', trial_days_remaining: 30, checkout_available: true, checkout_defers_charge: true, customer_exists: false, subscription_exists: false },
 }, userAgent = '', platform = '', maxTouchPoints = 0 } = {}) {
   const nodes = new Map([
     ['setup-status', node()],
@@ -78,6 +78,9 @@ async function page({ account = {
     ['checkin-windows', node()],
     ['setup-billing-status', node()],
     ['setup-subscribe', node()],
+    ['setup-billing-charge-heading', node()],
+    ['setup-billing-charge-detail', node()],
+    ['setup-billing-charge-hint', node()],
     ['setup-form', node()],
   ]);
   const requests = [];
@@ -189,6 +192,25 @@ test('billing is the final setup step and can open Stripe checkout immediately',
   const posts = view.requests.filter(request => request.method === 'POST').map(request => request.url);
   assert.ok(posts.indexOf('/api/account/setup-complete') < posts.indexOf('/api/billing/checkout'));
   assert.deepEqual(view.navigation, ['https://checkout.stripe.test/session']);
+});
+
+test('near-expiry setup explains that subscribing charges immediately', async () => {
+  const view = await page({
+    account: {
+      preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true,
+      billing: { status: 'trialing', trial_days_remaining: 1, checkout_available: true, checkout_defers_charge: false, customer_exists: false, subscription_exists: false },
+    },
+  });
+  await view.continue();
+  await view.continue();
+  view.nodes.get('enable-messages').checked = false;
+  view.nodes.get('enable-tasks').checked = false;
+  view.nodes.get('enable-checkins').checked = false;
+  await view.continue();
+
+  assert.equal(view.nodes.get('setup-billing-charge-heading').textContent, 'Billing starts when you subscribe');
+  assert.match(view.nodes.get('setup-billing-charge-detail').textContent, /begins immediately/);
+  assert.match(view.nodes.get('setup-billing-charge-hint').textContent, /charges the first CA\$8\.99 CAD payment/);
 });
 
 test('Discord setup opens the Android app with a browser fallback', async () => {

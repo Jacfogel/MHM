@@ -74,7 +74,20 @@ def test_account_summary_reports_rounded_up_trial_days_without_ids():
     assert summary["trial_days_remaining"] == 2
     assert summary["customer_exists"] is True
     assert summary["checkout_available"] is True
+    assert summary["checkout_defers_charge"] is False
     assert "stripe_customer_id" not in summary
+
+
+def test_account_summary_reports_when_checkout_preserves_the_trial():
+    summary = account_billing_summary(
+        {
+            "subscription_status": "trialing",
+            "trial_ends_at": "2026-10-10 12:00:00",
+        },
+        configured=True,
+        now=datetime(2026, 10, 7, 12, 0, 0),
+    )
+    assert summary["checkout_defers_charge"] is True
 
 
 def _signature(secret: str, timestamp: int, payload: bytes) -> str:
@@ -124,3 +137,18 @@ async def test_checkout_reuses_customer_and_carries_trial_and_mhm_identity(monke
     assert captured["fields"]["client_reference_id"] == "user-1"
     assert captured["fields"]["subscription_data[metadata][mhm_user_id]"] == "user-1"
     assert "subscription_data[trial_end]" in captured["fields"]
+
+
+@pytest.mark.asyncio
+async def test_subscription_retrieval_uses_an_encoded_stripe_resource_path(monkeypatch):
+    captured = {}
+    client = StripeBillingClient(secret_key="sk_test")
+
+    async def fake_get(path):
+        captured["path"] = path
+        return {"id": "sub_1", "status": "active"}
+
+    monkeypatch.setattr(client, "_get", fake_get)
+    subscription = await client.retrieve_subscription("sub_1")
+    assert subscription["status"] == "active"
+    assert captured["path"] == "/v1/subscriptions/sub_1"

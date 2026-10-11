@@ -139,6 +139,33 @@ Customer Portal so subscribers can update payment details and cancel. The option
 `BILLING_GRACE_PERIOD_DAYS` defaults to 3. Existing accounts without billing fields
 are treated as complimentary accounts; new accounts get the trial explicitly.
 
+### Live-mode cutover and rollback
+
+Do the live cutover as one controlled change. Never mix test-mode and live-mode
+Stripe objects.
+
+1. In Stripe live mode, create the recurring **CA$8.99 CAD monthly** Price and
+   configure the Customer Portal cancellation and payment-method options.
+2. Create a live snapshot-event webhook for the public URL and the seven events
+   listed above. Keep the live signing secret with that endpoint.
+3. Back up the current `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and
+   `STRIPE_WEBHOOK_SECRET`, then replace all three with the matching live-mode
+   values in one maintenance window.
+4. Restart the running MHM service. A configuration-file edit alone does not
+   update the gateway or scheduler process.
+5. Confirm the public webhook still rejects an invalid signature with HTTP 400.
+   Then use one controlled customer account to complete Checkout, verify the
+   Stripe event deliveries return HTTP 200, and confirm MHM shows the active
+   subscription and opens the Customer Portal.
+6. Cancel the canary subscription in the portal and confirm Stripe's deletion
+   event changes MHM to canceled and prevents newly scheduled activity. Restore
+   the canary only after this end-to-end check succeeds.
+
+For rollback, restore the backed-up three test-mode values together (or blank all
+three to disable new Checkout sessions), restart MHM, and confirm the account page
+no longer offers an unintended live Checkout. Rolling back credentials does not
+cancel live Stripe subscriptions; manage those separately in Stripe.
+
 Keep `global_fetch_strictly_public` enabled in `wrangler.jsonc`. The website and
 gateway share the `jacfogel.com` zone; this flag makes gateway requests use the
 public Cloudflare path, matching requests that successfully reach the tunnel

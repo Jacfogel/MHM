@@ -135,6 +135,12 @@ subscription changes/deletion, and invoice paid/payment-failed events.
 existing service behavior remains available for complimentary accounts and the
 website does not offer Checkout.
 
+The secret key, Price, and webhook signing secret must all belong to the same
+Stripe mode. Test-mode values cannot be mixed with live-mode values. Restart the
+running MHM service after changing any Stripe value; the gateway reads them at
+process startup. Use the cutover and rollback checklist in
+[website/README.md](website/README.md#live-mode-cutover-and-rollback).
+
 ---
 
 ## 5. Channel credentials

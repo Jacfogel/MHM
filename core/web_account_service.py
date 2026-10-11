@@ -71,6 +71,7 @@ SCRYPT_R = 8
 SCRYPT_P = 1
 OAUTH_STATE_TTL = 600
 OAUTH_PROVIDERS = ("google", "facebook")
+MAX_BILLING_EVENT_IDS = 100
 OAUTH_AUTHORIZE_URLS = {
     "google": "https://accounts.google.com/o/oauth2/v2/auth",
     "facebook": "https://www.facebook.com/dialog/oauth",
@@ -201,6 +202,8 @@ class MHMAccounts:
             "stripe_customer_id",
             "stripe_subscription_id",
             "billing_grace_ends_at",
+            "billing_processed_event_ids",
+            "billing_notice_keys",
         }
         patch = {key: value for key, value in updates.items() if key in allowed}
         return bool(patch) and bool(update_user_account(uid, patch, auto_create=False))
@@ -676,6 +679,7 @@ class WebGateway:
         health_lock,
         discord_link_lock,
         oauth_link_lock,
+        billing_lock,
         discord_states,
         oauth_states,
         health_connecting,
@@ -699,6 +703,7 @@ class WebGateway:
         self.health_lock = health_lock
         self.discord_link_lock = discord_link_lock
         self.oauth_link_lock = oauth_link_lock
+        self.billing_lock = billing_lock
         self.discord_states = discord_states
         self.oauth_states = oauth_states
         self.health_connecting = health_connecting
@@ -1262,13 +1267,14 @@ class WebGateway:
     @handle_errors(
         "resolving Stripe webhook account", user_friendly=False, re_raise=True
     )
-    async def _billing_target(self, event_type, payload):
+    async def _billing_target(self, event_type, payload, subscription=None):
         """Resolve a signed Stripe event to exactly one canonical MHM account."""
         if event_type == "checkout.session.completed":
             uid = str(payload.get("client_reference_id") or "")
             current = await asyncio.to_thread(self.accounts.get, uid) if uid else {}
             return (uid, current) if current else None
-        metadata = payload.get("metadata") or {}
+        subscription = subscription if isinstance(subscription, dict) else {}
+        metadata = subscription.get("metadata") or payload.get("metadata") or {}
         uid = (
             str(metadata.get("mhm_user_id") or "") if isinstance(metadata, dict) else ""
         )
@@ -1276,18 +1282,22 @@ class WebGateway:
             current = await asyncio.to_thread(self.accounts.get, uid)
             if current:
                 saved_customer = str(current.get("stripe_customer_id") or "")
-                event_customer = str(payload.get("customer") or "")
+                event_customer = str(
+                    subscription.get("customer") or payload.get("customer") or ""
+                )
                 if (
                     not saved_customer
                     or not event_customer
                     or saved_customer == event_customer
                 ):
                     return uid, current
-        customer_id = str(payload.get("customer") or "")
-        subscription = payload.get("subscription")
-        subscription_id = (
-            str(subscription or "") if isinstance(subscription, str) else ""
+        customer_id = str(
+            subscription.get("customer") or payload.get("customer") or ""
         )
+        subscription_value = payload.get("subscription")
+        subscription_id = str(subscription.get("id") or "")
+        if not subscription_id and isinstance(subscription_value, str):
+            subscription_id = subscription_value
         if not subscription_id:
             subscription_id = (
                 str(payload.get("id") or "")
@@ -1298,6 +1308,48 @@ class WebGateway:
         if finder is None:
             return None
         return await asyncio.to_thread(finder, customer_id, subscription_id)
+
+    @handle_errors(
+        "extracting Stripe event subscription", user_friendly=False, default_return=""
+    )
+    def _billing_subscription_id(self, event_type, payload):
+        """Return the Subscription identifier carried by a supported snapshot event."""
+        if event_type.startswith("customer.subscription."):
+            return str(payload.get("id") or "")
+        direct = payload.get("subscription")
+        if isinstance(direct, str):
+            return direct
+        parent = payload.get("parent")
+        if isinstance(parent, dict):
+            details = parent.get("subscription_details")
+            if isinstance(details, dict) and isinstance(details.get("subscription"), str):
+                return str(details["subscription"])
+        return ""
+
+    @handle_errors(
+        "building reconciled Stripe billing update", user_friendly=False, re_raise=True
+    )
+    def _reconciled_billing_update(self, current, subscription):
+        """Map Stripe's current Subscription object to one idempotent local patch."""
+        status = local_status_for_stripe(str(subscription.get("status") or ""))
+        updates = {
+            "stripe_customer_id": str(subscription.get("customer") or "")
+            or str(current.get("stripe_customer_id") or ""),
+            "stripe_subscription_id": str(subscription.get("id") or "")
+            or str(current.get("stripe_subscription_id") or ""),
+            "subscription_status": status,
+        }
+        if status in {"active", "trialing", "canceled"}:
+            updates["billing_grace_ends_at"] = ""
+        elif status == "past_due":
+            existing_grace = str(current.get("billing_grace_ends_at") or "")
+            updates["billing_grace_ends_at"] = existing_grace
+            if not existing_grace:
+                grace_days = max(0, int(config.BILLING_GRACE_PERIOD_DAYS))
+                updates["billing_grace_ends_at"] = format_timestamp(
+                    now_datetime_full() + timedelta(days=grace_days), TIMESTAMP_FULL
+                )
+        return updates
 
     # ERROR_HANDLING_EXCLUDE: Signature validation and guarded persistence are explicit.
     async def billing_webhook(self, request):
@@ -1312,6 +1364,9 @@ class WebGateway:
                 text="The Stripe webhook signature is invalid."
             ) from None
         event_type = str(event.get("type") or "")
+        event_id = str(event.get("id") or "").strip()
+        if not event_id:
+            raise web.HTTPBadRequest(text="The Stripe webhook event is invalid.")
         payload = (event.get("data") or {}).get("object") or {}
         if not isinstance(payload, dict):
             raise web.HTTPBadRequest(text="The Stripe webhook payload is invalid.")
@@ -1326,72 +1381,43 @@ class WebGateway:
         }
         if event_type not in handled:
             return web.json_response({"received": True})
-        target = await self._billing_target(event_type, payload)
-        if not target:
-            logger.warning(f"Stripe event {event_type} did not match an MHM account")
+        subscription_id = self._billing_subscription_id(event_type, payload)
+        if not subscription_id:
+            logger.warning(f"Stripe event {event_type} did not include a subscription")
             return web.json_response({"received": True})
-        uid, current = target
-        customer_id = str(payload.get("customer") or "")
-        subscription_value = payload.get("subscription")
-        subscription_id = (
-            str(subscription_value) if isinstance(subscription_value, str) else ""
-        )
-        if event_type.startswith("customer.subscription."):
-            subscription_id = str(payload.get("id") or subscription_id)
-        updates = {
-            "stripe_customer_id": customer_id
-            or str(current.get("stripe_customer_id") or ""),
-            "stripe_subscription_id": subscription_id
-            or str(current.get("stripe_subscription_id") or ""),
-        }
-        if event_type == "checkout.session.completed":
-            current_trial_end = parse_timestamp_full(
-                str(current.get("trial_ends_at") or "")
+        try:
+            subscription = await self.billing.retrieve_subscription(subscription_id)
+        except StripeAPIError as exc:
+            logger.error(
+                f"Stripe subscription reconciliation failed: {type(exc).__name__}"
             )
-            updates["subscription_status"] = (
-                "active"
-                if payload.get("payment_status") == "paid"
-                else (
-                    "trialing"
-                    if current_trial_end and now_datetime_full() < current_trial_end
-                    else "active"
-                )
-            )
-            updates["billing_grace_ends_at"] = ""
-        elif event_type in {
-            "customer.subscription.created",
-            "customer.subscription.updated",
-        }:
-            updates["subscription_status"] = local_status_for_stripe(
-                str(payload.get("status") or "")
-            )
-            if updates["subscription_status"] in {"active", "trialing"}:
-                updates["billing_grace_ends_at"] = ""
-            elif updates["subscription_status"] == "past_due" and not current.get(
-                "billing_grace_ends_at"
-            ):
-                grace_days = max(0, int(config.BILLING_GRACE_PERIOD_DAYS))
-                updates["billing_grace_ends_at"] = format_timestamp(
-                    now_datetime_full() + timedelta(days=grace_days), TIMESTAMP_FULL
-                )
-        elif event_type == "customer.subscription.deleted":
-            updates["subscription_status"] = "canceled"
-            updates["billing_grace_ends_at"] = ""
-        elif event_type in {"invoice.paid", "invoice.payment_succeeded"}:
-            updates["subscription_status"] = "active"
-            updates["billing_grace_ends_at"] = ""
-        elif event_type == "invoice.payment_failed":
-            updates["subscription_status"] = "past_due"
-            if not current.get("billing_grace_ends_at"):
-                grace_days = max(0, int(config.BILLING_GRACE_PERIOD_DAYS))
-                updates["billing_grace_ends_at"] = format_timestamp(
-                    now_datetime_full() + timedelta(days=grace_days), TIMESTAMP_FULL
-                )
-        updater = getattr(self.accounts, "update_billing", None)
-        if updater is None or not await asyncio.to_thread(updater, uid, updates):
             raise web.HTTPServiceUnavailable(
-                text="Billing state could not be saved. Stripe will retry this event."
-            )
+                text="Billing state could not be reconciled. Stripe will retry this event."
+            ) from None
+
+        async with self.billing_lock:
+            target = await self._billing_target(event_type, payload, subscription)
+            if not target:
+                logger.warning(f"Stripe event {event_type} did not match an MHM account")
+                return web.json_response({"received": True})
+            uid, current = target
+            processed = [
+                value
+                for value in (current.get("billing_processed_event_ids") or [])
+                if isinstance(value, str) and value
+            ]
+            if event_id in processed:
+                return web.json_response({"received": True, "duplicate": True})
+            updates = self._reconciled_billing_update(current, subscription)
+            updates["billing_processed_event_ids"] = [
+                *processed[-(MAX_BILLING_EVENT_IDS - 1) :],
+                event_id,
+            ]
+            updater = getattr(self.accounts, "update_billing", None)
+            if updater is None or not await asyncio.to_thread(updater, uid, updates):
+                raise web.HTTPServiceUnavailable(
+                    text="Billing state could not be saved. Stripe will retry this event."
+                )
         return web.json_response({"received": True})
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -1926,6 +1952,7 @@ def create_web_app(
     health_lock = asyncio.Lock()
     discord_link_lock = asyncio.Lock()
     oauth_link_lock = asyncio.Lock()
+    billing_lock = asyncio.Lock()
     discord_states = {}
     oauth_states = {}
     health_connecting = set()
@@ -1949,6 +1976,7 @@ def create_web_app(
         health_lock=health_lock,
         discord_link_lock=discord_link_lock,
         oauth_link_lock=oauth_link_lock,
+        billing_lock=billing_lock,
         discord_states=discord_states,
         oauth_states=oauth_states,
         health_connecting=health_connecting,

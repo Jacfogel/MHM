@@ -69,6 +69,15 @@ class Accounts:
 class Billing:
     def __init__(self):
         self.checkout = None
+        self.portal = None
+        self.subscriptions = {
+            "sub_1": {
+                "id": "sub_1",
+                "customer": "cus_1",
+                "status": "active",
+                "metadata": {"mhm_user_id": "trial-user"},
+            }
+        }
         self.verifier = StripeBillingClient(
             webhook_secret="whsec_test", wall_clock=lambda: 1000
         )
@@ -81,7 +90,11 @@ class Billing:
         return {"url": "https://checkout.stripe.com/c/pay/test"}
 
     async def create_portal_session(self, **kwargs):
+        self.portal = kwargs
         return {"url": "https://billing.stripe.com/p/session/test"}
+
+    async def retrieve_subscription(self, subscription_id):
+        return dict(self.subscriptions[subscription_id])
 
     def verify_webhook(self, payload, signature):
         return self.verifier.verify_webhook(payload, signature)
@@ -147,13 +160,35 @@ async def test_signed_in_trial_can_open_checkout_and_sees_safe_billing_summary()
         await context.__aexit__(None, None, None)
 
 
+async def test_subscribed_account_can_open_customer_portal():
+    accounts, billing = Accounts(), Billing()
+    accounts.users["trial-user"].update(
+        {
+            "subscription_status": "active",
+            "stripe_customer_id": "cus_1",
+            "stripe_subscription_id": "sub_1",
+        }
+    )
+    context, client = await signed_in_client(accounts, billing)
+    try:
+        response = await client.post(
+            "/api/billing/portal", json={}, headers={"Origin": ORIGIN}
+        )
+        assert response.status == 200
+        assert (await response.json())["url"].startswith("https://billing.stripe.com/")
+        assert billing.portal is not None
+        assert billing.portal["customer_id"] == "cus_1"
+    finally:
+        await context.__aexit__(None, None, None)
+
+
 def signed_payload(event):
     payload = json.dumps(event, separators=(",", ":")).encode()
     digest = hmac.new(b"whsec_test", b"1000." + payload, hashlib.sha256).hexdigest()
     return payload, f"t=1000,v1={digest}"
 
 
-async def test_signed_webhooks_activate_then_mark_failed_payment_past_due():
+async def test_signed_webhooks_reconcile_current_state_and_ignore_replays():
     accounts, billing = Accounts(), Billing()
     app = create_web_app(
         accounts=accounts,
@@ -185,6 +220,19 @@ async def test_signed_webhooks_activate_then_mark_failed_payment_past_due():
         assert response.status == 200
         assert accounts.users["trial-user"]["subscription_status"] == "active"
         assert accounts.users["trial-user"]["stripe_customer_id"] == "cus_1"
+        assert accounts.users["trial-user"]["billing_processed_event_ids"] == [
+            "evt_checkout"
+        ]
+
+        duplicate = await client.post(
+            "/api/billing/webhook",
+            data=completed,
+            headers={"Content-Type": "application/json", "Stripe-Signature": signature},
+        )
+        assert duplicate.status == 200
+        assert (await duplicate.json())["duplicate"] is True
+
+        billing.subscriptions["sub_1"]["status"] = "past_due"
 
         failed, signature = signed_payload(
             {
@@ -202,6 +250,109 @@ async def test_signed_webhooks_activate_then_mark_failed_payment_past_due():
         assert accounts.users["trial-user"]["subscription_status"] == "past_due"
         assert accounts.users["trial-user"]["billing_grace_ends_at"]
 
+        grace_end = accounts.users["trial-user"]["billing_grace_ends_at"]
+        repeated_failure, repeated_signature = signed_payload(
+            {
+                "id": "evt_failed_again",
+                "type": "invoice.payment_failed",
+                "data": {"object": {"customer": "cus_1", "subscription": "sub_1"}},
+            }
+        )
+        response = await client.post(
+            "/api/billing/webhook",
+            data=repeated_failure,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": repeated_signature,
+            },
+        )
+        assert response.status == 200
+        assert accounts.users["trial-user"]["billing_grace_ends_at"] == grace_end
+
+        billing.subscriptions["sub_1"]["status"] = "active"
+        recovered, recovered_signature = signed_payload(
+            {
+                "id": "evt_recovered",
+                "type": "invoice.paid",
+                "data": {"object": {"customer": "cus_1", "subscription": "sub_1"}},
+            }
+        )
+        response = await client.post(
+            "/api/billing/webhook",
+            data=recovered,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": recovered_signature,
+            },
+        )
+        assert response.status == 200
+        assert accounts.users["trial-user"]["subscription_status"] == "active"
+        assert accounts.users["trial-user"]["billing_grace_ends_at"] == ""
+
+        delayed_failure, delayed_signature = signed_payload(
+            {
+                "id": "evt_delayed_failure",
+                "type": "invoice.payment_failed",
+                "data": {"object": {"customer": "cus_1", "subscription": "sub_1"}},
+            }
+        )
+        response = await client.post(
+            "/api/billing/webhook",
+            data=delayed_failure,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": delayed_signature,
+            },
+        )
+        assert response.status == 200
+        assert accounts.users["trial-user"]["subscription_status"] == "active"
+        assert accounts.users["trial-user"]["billing_grace_ends_at"] == ""
+        assert grace_end
+
+        billing.subscriptions["sub_1"]["status"] = "canceled"
+        canceled, canceled_signature = signed_payload(
+            {
+                "id": "evt_canceled",
+                "type": "customer.subscription.deleted",
+                "data": {
+                    "object": {
+                        "id": "sub_1",
+                        "customer": "cus_1",
+                        "status": "canceled",
+                        "metadata": {"mhm_user_id": "trial-user"},
+                    }
+                },
+            }
+        )
+        response = await client.post(
+            "/api/billing/webhook",
+            data=canceled,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": canceled_signature,
+            },
+        )
+        assert response.status == 200
+        assert accounts.users["trial-user"]["subscription_status"] == "canceled"
+
+        delayed_paid, delayed_paid_signature = signed_payload(
+            {
+                "id": "evt_delayed_paid",
+                "type": "invoice.paid",
+                "data": {"object": {"customer": "cus_1", "subscription": "sub_1"}},
+            }
+        )
+        response = await client.post(
+            "/api/billing/webhook",
+            data=delayed_paid,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": delayed_paid_signature,
+            },
+        )
+        assert response.status == 200
+        assert accounts.users["trial-user"]["subscription_status"] == "canceled"
+
         bad = await client.post(
             "/api/billing/webhook",
             data=failed,
@@ -211,3 +362,37 @@ async def test_signed_webhooks_activate_then_mark_failed_payment_past_due():
             },
         )
         assert bad.status == 400
+
+
+async def test_invoice_parent_subscription_can_resolve_account_before_checkout_event():
+    accounts, billing = Accounts(), Billing()
+    app = create_web_app(
+        accounts=accounts,
+        billing=billing,
+        mailer=lambda _email, _code: None,
+        origin=ORIGIN,
+        proxy_secret="",
+    )
+    event, signature = signed_payload(
+        {
+            "id": "evt_invoice_first",
+            "type": "invoice.paid",
+            "data": {
+                "object": {
+                    "customer": "cus_1",
+                    "parent": {
+                        "subscription_details": {"subscription": "sub_1"}
+                    },
+                }
+            },
+        }
+    )
+    async with web_client(app) as client:
+        response = await client.post(
+            "/api/billing/webhook",
+            data=event,
+            headers={"Content-Type": "application/json", "Stripe-Signature": signature},
+        )
+        assert response.status == 200
+    assert accounts.users["trial-user"]["subscription_status"] == "active"
+    assert accounts.users["trial-user"]["stripe_subscription_id"] == "sub_1"

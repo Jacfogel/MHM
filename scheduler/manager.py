@@ -14,6 +14,7 @@ from typing import Any
 
 from core import get_all_user_ids
 from core.billing import has_service_access
+from core.billing_notices import process_billing_notices
 from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
 from core.time_utilities import (
@@ -166,6 +167,8 @@ class SchedulerManager:
             self.clear_all_accumulated_jobs()
 
             scheduler_jobs.register_system_daily_jobs(self)
+
+            self.process_billing_notices()
 
             # Schedule messages for all users immediately on startup (one-time only)
             self.schedule_all_users_immediately()
@@ -492,6 +495,8 @@ class SchedulerManager:
         # Check if weekly backup is needed (before everything else, so it runs before archival at 02:00)
         self.check_and_perform_weekly_backup()
 
+        self.process_billing_notices()
+
         # Clear all accumulated jobs first to prevent job accumulation
         self.clear_all_accumulated_jobs()
 
@@ -506,6 +511,11 @@ class SchedulerManager:
         logger.info(
             f"Full daily scheduler complete: {active_jobs} total active jobs scheduled"
         )
+
+    @handle_errors("processing billing lifecycle notices", default_return=0)
+    def process_billing_notices(self) -> int:
+        """Deliver one-time trial and payment notices through the scheduler port."""
+        return process_billing_notices(self.delivery)
 
     @handle_errors("scheduling daily message job")
     def schedule_daily_message_job(self, user_id, category):

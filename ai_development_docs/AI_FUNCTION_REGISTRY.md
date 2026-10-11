@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-07 18:09:10
+> **Last Generated**: 2026-10-10 12:11:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 88.8% [!] GOOD**
-- **Total Functions**: 3168
-- **Total Methods**: 1625
-- **Documented**: 4258/4793
-- **Files Scanned**: 303
+### **Documentation Coverage: 88.9% [!] GOOD**
+- **Total Functions**: 3177
+- **Total Methods**: 1632
+- **Documented**: 4274/4809
+- **Files Scanned**: 304
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (98 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (100 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (24 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -58,7 +58,7 @@ UI Operations Decision Tree:
 Core System Decision Tree:
 +-- `core/service.py` - Main service (75 functions)
 +-- `core/config.py` - Configuration (23 functions)
-`-- `scheduler/manager.py` - Scheduling (84/85 functions)```
+`-- `scheduler/manager.py` - Scheduling (86/87 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
 
@@ -207,11 +207,11 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (38 files, 443 functions)
 - `checkins/` -  (7 files, 154 functions)
-- `communication/` - Communication channels and message processing (98 files, 1547 functions)
-- `core/` - System utilities and data management (48 files, 906 functions)
+- `communication/` - Communication channels and message processing (98 files, 1549 functions)
+- `core/` - System utilities and data management (49 files, 918 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)
-- `scheduler/` -  (9 files, 119 functions)
+- `scheduler/` -  (9 files, 121 functions)
 - `storage/` -  (16 files, 144 functions)
 - `tasks/` - Task management system (16 files, 188 functions)
 - `ui/` - User interface components (44 files, 1010 functions)

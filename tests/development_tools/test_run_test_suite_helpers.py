@@ -558,7 +558,23 @@ def test_run_suite_skips_no_parallel_after_interrupted_parallel(monkeypatch, tmp
     )
 
     assert calls == ["parallel"]
-    assert result["details"]["tier3_test_outcome"]["state"] == "crashed"
+    outcome = result["details"]["tier3_test_outcome"]
+    assert outcome["state"] == "crashed"
+    assert outcome["parallel"]["classification"] == "crashed"
+    assert outcome["no_parallel"] == {
+        "state": "skipped",
+        "classification": "skipped",
+        "classification_reason": "not_run_after_parallel_interruption",
+        "actionable_context": "",
+        "log_file": None,
+        "return_code_hex": None,
+        "return_code": None,
+        "passed_count": 0,
+        "failed_count": 0,
+        "error_count": 0,
+        "skipped_count": 0,
+        "failed_node_ids": [],
+    }
 
 
 @pytest.mark.unit

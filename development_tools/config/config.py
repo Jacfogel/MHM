@@ -251,6 +251,10 @@ ERROR_HANDLING = {
         "file_io": ["open", "read", "write", "save", "load", "os.remove", "shutil.move"],
         "network": ["send", "receive", "connect", "request", "http", "api", "discord", "email"],
         "user_data": ["user_data", "profile", "account", "preferences", "task", "schedule", "checkin"],
+        "validation": ["validate", "check", "verify", "invalid", "missing", "required"],
+        "scheduling": ["schedule", "task", "reminder", "scheduler"],
+        "configuration": ["config", "setting", "option"],
+        "ui": ["ui", "dialog", "widget", "button", "qt", "pyqt"],
         "ai": ["generate", "process", "analyze", "classify", "chatbot", "lm_studio"],
         "entry_point": ["main", "run", "start", "handle", "on_"],
     },
@@ -505,7 +509,10 @@ def get_error_handling_config():
     """Get error handling configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value("error_handling", None)
     if external_config:
-        result = ERROR_HANDLING.copy()
+        # Nested settings must remain isolated. A shallow copy lets one caller or
+        # test mutate the process-wide defaults and makes parallel results depend
+        # on collection/execution order.
+        result = copy.deepcopy(ERROR_HANDLING)
         # Deep merge for nested dicts
         if "generic_exceptions" in external_config and "generic_exceptions" in result:
             result["generic_exceptions"].update(
@@ -530,7 +537,7 @@ def get_error_handling_config():
             if key not in ("generic_exceptions", "critical_function_keywords", "phase1_keywords"):
                 result[key] = value
         return result
-    return ERROR_HANDLING
+    return copy.deepcopy(ERROR_HANDLING)
 
 
 def get_audit_config():
