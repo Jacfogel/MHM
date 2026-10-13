@@ -290,69 +290,41 @@ class WebNotesRoutes:
                 raise web.HTTPBadRequest(
                     text="List entries are edited through their list items."
                 )
-            if "title" in data and not await asyncio.to_thread(
-                notes.set_entry_title, uid, note_id, data["title"]
-            ):
-                raise web.HTTPServiceUnavailable(
-                    text=(
-                        "MHM could not finish saving those changes. Refresh the entry "
-                        "to see its current version, then try again."
-                    )
-                )
-            if "description" in data and not await asyncio.to_thread(
-                notes.set_entry_body, uid, note_id, data["description"]
-            ):
-                raise web.HTTPServiceUnavailable(
-                    text=(
-                        "MHM could not finish saving those changes. Refresh the entry "
-                        "to see its current version, then try again."
-                    )
-                )
-            if "items" in data and not await asyncio.to_thread(
-                notes.set_list_items, uid, note_id, data["items"]
-            ):
-                raise web.HTTPServiceUnavailable(
-                    text=(
-                        "MHM could not finish saving those list changes. Refresh the "
-                        "entry to see its current version, then try again."
-                    )
-                )
-            if "tags" in data:
-                current = find(note_id, include_archived=False)
-                if not await asyncio.to_thread(
-                    notes.remove_tags, uid, note_id, list(current.tags)
-                ):
-                    raise web.HTTPServiceUnavailable(
-                        text=(
-                            "MHM could not finish saving those tag changes. Refresh "
-                            "the entry to see its current tags, then try again."
-                        )
-                    )
-                if data["tags"] and not await asyncio.to_thread(
-                    notes.add_tags, uid, note_id, data["tags"]
-                ):
-                    raise web.HTTPServiceUnavailable(
-                        text=(
-                            "MHM could not finish saving those tag changes. Refresh "
-                            "the entry to see its current tags, then try again."
-                        )
-                    )
             if "pinned" in data and type(data["pinned"]) is not bool:
                 raise web.HTTPBadRequest(
                     text="Choose whether the entry is pinned."
                 )
-            if "pinned" in data and not await asyncio.to_thread(
-                notes.pin_entry, uid, note_id, data["pinned"]
-            ):
-                raise web.HTTPServiceUnavailable(
-                    text=(
+            updated = await asyncio.to_thread(
+                notes.update_entry,
+                uid,
+                note_id,
+                data,
+            )
+            if not updated:
+                if "tags" in data:
+                    message = (
+                        "MHM could not finish saving those tag changes. Refresh the "
+                        "entry to see its current tags, then try again."
+                    )
+                elif "items" in data:
+                    message = (
+                        "MHM could not finish saving those list changes. Refresh the "
+                        "entry to see its current version, then try again."
+                    )
+                elif "pinned" in data:
+                    message = (
                         "MHM could not save that pin change. Refresh your notebook "
                         "to check the entry, then try again."
                     )
+                else:
+                    message = (
+                        "MHM could not finish saving those changes. Refresh the entry "
+                        "to see its current version, then try again."
+                    )
+                raise web.HTTPServiceUnavailable(
+                    text=message
                 )
-            return web.json_response(
-                {"note": note_view(find(note_id, include_archived=False))}
-            )
+            return web.json_response({"note": note_view(updated)})
         raise web.HTTPMethodNotAllowed(request.method, {"GET", "POST", "PATCH"})
 
 

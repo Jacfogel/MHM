@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-13 - Notebook saves, user paths, and audit status hardened **COMPLETED**
+- Notebook PATCH requests now validate and persist the complete edited entry in one save, preventing partial title, body, checklist, or tag changes when a later operation fails.
+- Account reads reuse canonical user-ID validation, resolved data paths must stay inside the users root, and debug logs record requested data types instead of personal record payloads.
+- Static-analysis summaries now require fresh successful results from Ruff, Pyright, Bandit, pip-audit, and Vulture before reporting `CLEAN`; stale, missing, or incomplete evidence is labeled explicitly.
+- Focused regression coverage passes 101 tests. The clean Tier 3 full audit passes 7,610 parallel and 123 no-parallel tests, reports 80.4% coverage and documentation sync PASS, and records zero findings from all five static-analysis tools.
+
 ### 2026-10-12 - User-facing failures explain recovery **COMPLETED**
 - Website account, billing, and task failures now distinguish the failed action, state what remains unchanged or retained, and give a concrete retry, refresh, alternative, or escalation step.
 - Task routes distinguish stale state from temporary service failure; browser network failures no longer expose raw diagnostics, and failed task drafts/edits remain available.
@@ -123,12 +129,6 @@ Guidelines:
 - The desktop/admin app now manages the same custom templates, prefills new tasks from built-in or personal templates, and changes priority for multiple selected active tasks.
 - Custom-template validation now uses `ValidationError`, reference helpers use shared error handling, and the analyzers report zero undocumented functions, zero missing handlers, and zero Phase 1 or Phase 2 findings.
 - Focused Python, Qt, and browser-script coverage verifies storage, validation, lookup, prefills, multi-select updates, endpoint exposure, and settings controls; Ruff and Pyright are clean. The complete suite passed after the template work with 6,053 passed and 28 skipped; the desktop parity run passes 688 UI/shared-task tests with 27 expected skips, and all 70 website script tests pass.
-
-### 2026-10-04 - AI responses and Tier 3 tests hardened **COMPLETED**
-- Response cleanup removes prompt/template leaks and letter signoffs, blocks unsupported action claims, and produces concise grounded replies for common direct requests; all seven reported personalized-response failures are fixed.
-- Command-mode replies are normalized to structured output, ambiguous task creation asks for a title, and chat-mode text cannot claim an action executed when it did not.
-- AI fixtures and the full-suite runner now isolate test identities, data, and logs; the retired production `internal_username` field was backed up, removed from the final account, and cleared from the rebuilt index.
-- Generated registries are current with zero missing entries for `response_postprocess.py`. Verification passed 65 helper tests, 149 broader response tests, all 78 manually reviewed live AI tests, and the complete suite with 6,045 passed, 28 skipped, zero failures, and zero errors.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

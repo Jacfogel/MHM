@@ -409,6 +409,43 @@ class TestNotebookDataManagerGapCoverage:
         assert repinned is not None
         assert repinned.pinned is False
 
+    def test_update_entry_validates_and_saves_combined_changes_once(self, monkeypatch):
+        original = _note(
+            "15151515-1515-1515-1515-151515151515",
+            "Original",
+            description="Before",
+            tags=["old"],
+        )
+        saved = []
+        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [original])
+
+        def save_once(user_id, entry, all_entries):
+            saved.append((user_id, entry, all_entries))
+            return entry
+
+        monkeypatch.setattr(ndm, "_save_updated_entry", save_once)
+
+        updated = ndm.update_entry(
+            "user-1",
+            str(original.id),
+            {
+                "title": "Updated",
+                "description": "After",
+                "tags": ["New", "new"],
+                "pinned": True,
+            },
+        )
+
+        assert updated is not None
+        assert updated.title == "Updated"
+        assert updated.description == "After"
+        assert updated.tags == ["new"]
+        assert updated.pinned is True
+        assert len(saved) == 1
+        assert saved[0][2][0] is updated
+        assert original.title == "Original"
+        assert original.tags == ["old"]
+
     def test_mutation_wrappers_return_none_for_missing_refs(self, monkeypatch):
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
         assert ndm.add_tags("user-1", "missing-ref", ["x"]) is None

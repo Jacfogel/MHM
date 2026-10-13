@@ -58,6 +58,14 @@ def test_static_analysis_sections_render_in_generated_reports(temp_project_copy)
                 ],
             },
         },
+        "analyze_bandit": {
+            "summary": {"total_issues": 0, "files_affected": 0, "status": "PASS"},
+            "details": {"tool_available": True},
+        },
+        "analyze_vulture": {
+            "summary": {"total_issues": 0, "files_affected": 0, "status": "PASS"},
+            "details": {"tool_available": True},
+        },
         "analyze_function_registry": {
             "summary": {"total_issues": 0, "files_affected": 0, "status": "PASS"},
             "details": {"coverage": "100.00%", "missing": {"count": 0, "files": {}}},
@@ -96,3 +104,47 @@ def test_static_analysis_sections_render_in_generated_reports(temp_project_copy)
     assert "Top Pyright Error Files: a.py (2)" in consolidated_doc
     assert "Top Pyright Warning Files: b.py (1)" in consolidated_doc
     assert "Top pip-audit packages: pip (1, no fixed version reported)" in consolidated_doc
+
+
+@pytest.mark.unit
+def test_static_analysis_summary_requires_current_known_results(temp_project_copy):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    tool_names = {
+        "analyze_ruff",
+        "analyze_pyright",
+        "analyze_bandit",
+        "analyze_pip_audit",
+        "analyze_vulture",
+    }
+    payloads = {
+        tool_name: {
+            "summary": {
+                "total_issues": 0,
+                "files_affected": 0,
+                "status": "PASS",
+            },
+            "details": {"tool_available": True},
+        }
+        for tool_name in tool_names
+    }
+    service._load_tool_data = lambda tool, *_args, **_kwargs: payloads.get(tool, {})
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    cached_doc = service._generate_ai_status_document()
+    assert "NOT CURRENT (run `audit --full`)" in cached_doc
+    assert "Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: CLEAN" not in cached_doc
+
+    service._tools_run_in_current_tier = tool_names
+    current_doc = service._generate_ai_status_document()
+    assert "Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: CLEAN" in current_doc
+
+    payloads["analyze_bandit"]["summary"]["status"] = "UNKNOWN"
+    unknown_doc = service._generate_ai_status_document()
+    assert "NOT CURRENT (run `audit --full`)" in unknown_doc
+    assert "Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: CLEAN" not in unknown_doc
+
+    payloads["analyze_bandit"]["summary"]["status"] = "FAIL"
+    failed_doc = service._generate_ai_status_document()
+    assert "INCOMPLETE (one or more tools did not pass)" in failed_doc
+    assert "Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: CLEAN" not in failed_doc

@@ -1046,11 +1046,19 @@ def print_configuration_report():
 def get_user_data_dir(user_id: str) -> str:
     """Get the data directory for a specific user."""
     try:
-        if not user_id:
+        from storage.user_data_validation import is_valid_user_id
+
+        if not is_valid_user_id(user_id):
             logger.error(f"Invalid user_id: {user_id}")
-            # Return empty string to prevent creating files in root
             return ""
-        return str(Path(BASE_DATA_DIR) / "users" / user_id)
+        users_root = Path(BASE_DATA_DIR) / "users"
+        user_dir = users_root / user_id
+        try:
+            user_dir.resolve(strict=False).relative_to(users_root.resolve(strict=False))
+        except ValueError:
+            logger.error(f"User data path escapes users directory: {user_id}")
+            return ""
+        return str(user_dir)
     except Exception as e:
         logger.error(f"Error getting user data directory for user {user_id}: {e}")
         return ""
@@ -1092,7 +1100,13 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         "conversation_history": "conversation_history.json",
         "tags": "tags.json",
     }
-    return str(Path(user_dir) / file_mapping.get(file_type, f"{file_type}.json"))
+    file_path = Path(user_dir) / file_mapping.get(file_type, f"{file_type}.json")
+    try:
+        file_path.resolve(strict=False).relative_to(Path(user_dir).resolve(strict=False))
+    except ValueError:
+        logger.error(f"User file path escapes user directory: {file_type}")
+        return ""
+    return str(file_path)
 
 
 @handle_errors("ensuring user directory exists", default_return=False)

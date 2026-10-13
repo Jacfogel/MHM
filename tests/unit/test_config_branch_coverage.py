@@ -195,6 +195,8 @@ class TestConfigBranchCoverage:
 
     def test_get_user_data_dir_invalid_and_exception_paths(self):
         assert config.get_user_data_dir("") == ""
+        assert config.get_user_data_dir("../u1") == ""
+        assert config.get_user_data_dir("nested/u1") == ""
 
         with patch("core.config.Path", side_effect=RuntimeError("path failed")):
             assert config.get_user_data_dir("u1") == ""
@@ -202,6 +204,10 @@ class TestConfigBranchCoverage:
     def test_get_user_file_path_invalid_user_dir(self):
         with patch("core.config.get_user_data_dir", return_value=""):
             assert config.get_user_file_path("u1", "account") == ""
+
+    def test_get_user_file_path_rejects_escape_from_user_directory(self):
+        with patch("core.config.get_user_data_dir", return_value="data/users/u1"):
+            assert config.get_user_file_path("u1", "../../escape") == ""
 
     def test_ensure_user_directory_auto_create_disabled(self):
         with patch.object(config, "AUTO_CREATE_USER_DIRS", False):

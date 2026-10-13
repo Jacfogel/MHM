@@ -326,6 +326,7 @@ def test_static_analysis_snapshot_defaults_and_normalizes(temp_project_copy: Pat
     snapshot = service._get_static_analysis_snapshot()
 
     assert snapshot["analyze_ruff"]["available"] is True
+    assert snapshot["analyze_ruff"]["current"] is False
     assert snapshot["analyze_ruff"]["summary"]["total_issues"] == 3
     assert snapshot["analyze_pyright"]["summary"]["total_issues"] == 0
     assert snapshot["analyze_bandit"]["available"] is False

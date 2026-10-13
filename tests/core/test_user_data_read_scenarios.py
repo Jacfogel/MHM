@@ -88,7 +88,28 @@ class TestGetUserDataReadPath:
         assert get_user_data("", "preferences") == {}
         assert get_user_data("   ", "preferences") == {}
         assert get_user_data("x" * 101, "preferences") == {}
+        assert get_user_data("../outside", "preferences") == {}
+        assert get_user_data("nested/user", "preferences") == {}
+        assert get_user_data(r"..\outside", "preferences") == {}
         assert get_user_data(None, "preferences") == {}  # type: ignore[arg-type]
+
+    def test_get_user_data_debug_log_does_not_include_payload(
+        self, mock_user_data, monkeypatch
+    ):
+        import storage.user_data_read as user_data_read
+
+        messages = []
+        monkeypatch.setattr(
+            user_data_read.logger,
+            "debug",
+            lambda message: messages.append(str(message)),
+        )
+        uid = mock_user_data["user_id"]
+        account = get_user_data(uid, "account").get("account") or {}
+
+        assert account["email"]
+        assert not any(account["email"] in message for message in messages)
+        assert any("returning data types" in message for message in messages)
 
     def test_get_user_data_rejects_unknown_data_types(self, mock_user_data):
         uid = mock_user_data["user_id"]

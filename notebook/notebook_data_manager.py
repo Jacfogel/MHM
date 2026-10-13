@@ -286,6 +286,123 @@ def list_recent(
 
 
 # Update operations
+@handle_errors("updating entry")
+def update_entry(
+    user_id: str, ref: str, changes: dict[str, Any]
+) -> Entry | None:
+    """Validate and persist a set of entry changes in one save operation."""
+    allowed = {"title", "description", "items", "tags", "pinned"}
+    if (
+        not user_id
+        or not isinstance(changes, dict)
+        or not changes
+        or set(changes) - allowed
+    ):
+        logger.error("Entry updates require a user, a reference, and supported fields.")
+        return None
+
+    entries = load_entries(user_id)
+    entry = _find_entry_by_ref(entries, ref)
+    if not entry or not _is_entry_active(entry):
+        logger.error(f"Active entry not found for ref '{ref}'")
+        return None
+
+    values = entry.model_dump()
+
+    if "title" in changes:
+        title = changes["title"]
+        if not isinstance(title, str) or not is_valid_entry_title(title):
+            logger.error("A valid entry title is required.")
+            return None
+        values["title"] = title.strip()
+
+    if "description" in changes:
+        description = changes["description"]
+        if (
+            entry.kind == "list"
+            or not isinstance(description, str)
+            or not is_valid_string_length(
+                description,
+                MAX_BODY_LENGTH,
+                field_name="Entry description",
+                allow_none=False,
+            )
+        ):
+            logger.error("A valid description is required for a non-list entry.")
+            return None
+        values["description"] = description
+
+    if "items" in changes:
+        items = changes["items"]
+        if entry.kind != "list" or not isinstance(items, list) or not 1 <= len(items) <= 50:
+            logger.error("List entries require between 1 and 50 valid items.")
+            return None
+        updated_items: list[ListItem] = []
+        now_ts = now_timestamp_full()
+        existing_items = entry.items or []
+        for index, value in enumerate(items):
+            if (
+                not isinstance(value, dict)
+                or set(value) != {"text", "done"}
+                or not isinstance(value["text"], str)
+                or not value["text"].strip()
+                or len(value["text"]) > 500
+                or type(value["done"]) is not bool
+            ):
+                logger.error("Each list item needs text and a valid completion state.")
+                return None
+            if index < len(existing_items):
+                item_values = existing_items[index].model_dump()
+                item_values.update(
+                    {
+                        "text": value["text"].strip(),
+                        "done": value["done"],
+                        "order": index,
+                        "updated_at": now_ts,
+                    }
+                )
+                updated_items.append(ListItem.model_validate(item_values))
+            else:
+                updated_items.append(
+                    ListItem(
+                        text=value["text"].strip(),
+                        done=value["done"],
+                        order=index,
+                    )
+                )
+        values["items"] = [item.model_dump() for item in updated_items]
+
+    if "tags" in changes:
+        tags = changes["tags"]
+        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+            logger.error("Tags must be a list of strings.")
+            return None
+        values["tags"] = normalize_tags(tags)
+
+    if "pinned" in changes:
+        if type(changes["pinned"]) is not bool:
+            logger.error("Pinned must be a boolean.")
+            return None
+        values["pinned"] = changes["pinned"]
+
+    try:
+        updated_entry = Entry.model_validate(values)
+    except ValidationError as error:
+        logger.error(f"Entry update validation failed: {error}")
+        return None
+
+    updated_entries = list(entries)
+    entry_index = next(
+        (index for index, candidate in enumerate(entries) if candidate is entry),
+        None,
+    )
+    if entry_index is None:
+        logger.error(f"Entry disappeared before update for ref '{ref}'")
+        return None
+    updated_entries[entry_index] = updated_entry
+    return _save_updated_entry(user_id, updated_entry, updated_entries)
+
+
 @handle_errors("appending to entry description")
 def append_to_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
     """Appends text to an entry's description (command surface retains legacy name)."""

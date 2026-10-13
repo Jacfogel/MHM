@@ -99,6 +99,23 @@ async def notes_gateway(monkeypatch):
         callback(entry)
         return entry
 
+    def update_entry(uid, ref, changes):
+        def apply(entry):
+            for key, value in changes.items():
+                if key == "items":
+                    value = [
+                        SimpleNamespace(
+                            id=uuid4(),
+                            text=item["text"],
+                            done=item["done"],
+                            order=index,
+                        )
+                        for index, item in enumerate(value)
+                    ]
+                setattr(entry, key, value)
+
+        return update(uid, ref, apply)
+
     def archive(uid, ref, archived=True):
         entry = find(uid, ref)
         if not entry:
@@ -119,6 +136,7 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "remove_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", [tag for tag in entry.tags if tag not in tags])))
     monkeypatch.setattr(manager, "add_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", list(dict.fromkeys([*entry.tags, *tags])))))
     monkeypatch.setattr(manager, "pin_entry", lambda uid, ref, pinned: update(uid, ref, lambda entry: setattr(entry, "pinned", pinned)))
+    monkeypatch.setattr(manager, "update_entry", update_entry)
     monkeypatch.setattr(manager, "archive_entry", archive)
     monkeypatch.setattr(shared_tags, "get_user_tags", lambda uid: ["work", "personal"])
     entries.extend([
@@ -327,7 +345,7 @@ async def test_notebook_edit_failure_explains_how_to_verify_current_version(
 
     entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
     entry_id = entries[0]["id"]
-    monkeypatch.setattr(manager, "set_entry_title", lambda *args, **kwargs: None)
+    monkeypatch.setattr(manager, "update_entry", lambda *args, **kwargs: None)
 
     response = await notes_gateway.patch(
         f"/api/notes/{entry_id}",
@@ -348,7 +366,7 @@ async def test_notebook_tag_removal_failure_is_not_reported_as_saved(
 
     entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
     entry_id = entries[0]["id"]
-    monkeypatch.setattr(manager, "remove_tags", lambda *args, **kwargs: None)
+    monkeypatch.setattr(manager, "update_entry", lambda *args, **kwargs: None)
 
     response = await notes_gateway.patch(
         f"/api/notes/{entry_id}",
@@ -360,3 +378,62 @@ async def test_notebook_tag_removal_failure_is_not_reported_as_saved(
     message = (await response.json())["error"]
     assert "tag changes" in message
     assert "current tags" in message
+
+
+async def test_notebook_patch_saves_all_changes_in_one_operation(
+    notes_gateway, monkeypatch
+):
+    import notebook.notebook_data_manager as manager
+
+    entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
+    list_entry = next(entry for entry in entries if entry["kind"] == "list")
+    original_update = manager.update_entry
+    calls = []
+
+    def tracked_update(uid, ref, changes):
+        calls.append((uid, ref, dict(changes)))
+        return original_update(uid, ref, changes)
+
+    monkeypatch.setattr(manager, "update_entry", tracked_update)
+    monkeypatch.setattr(
+        manager,
+        "set_entry_title",
+        lambda *args, **kwargs: pytest.fail("legacy title save was called"),
+    )
+    monkeypatch.setattr(
+        manager,
+        "set_list_items",
+        lambda *args, **kwargs: pytest.fail("legacy item save was called"),
+    )
+    monkeypatch.setattr(
+        manager,
+        "remove_tags",
+        lambda *args, **kwargs: pytest.fail("legacy tag removal was called"),
+    )
+    monkeypatch.setattr(
+        manager,
+        "add_tags",
+        lambda *args, **kwargs: pytest.fail("legacy tag addition was called"),
+    )
+    monkeypatch.setattr(
+        manager,
+        "pin_entry",
+        lambda *args, **kwargs: pytest.fail("legacy pin save was called"),
+    )
+
+    changes = {
+        "title": "Updated groceries",
+        "items": [{"text": "Oats", "done": True}],
+        "tags": ["errands"],
+        "pinned": True,
+    }
+    response = await notes_gateway.patch(
+        f"/api/notes/{list_entry['id']}",
+        json=changes,
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 200
+    assert len(calls) == 1
+    assert calls[0][1] == list_entry["id"]
+    assert calls[0][2] == changes

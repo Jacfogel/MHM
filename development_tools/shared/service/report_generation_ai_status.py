@@ -778,34 +778,69 @@ class AIStatusDocumentMixin:
             if isinstance(static_analysis, dict)
             else False
         )
+        static_tools = (
+            "analyze_ruff",
+            "analyze_pyright",
+            "analyze_bandit",
+            "analyze_pip_audit",
+            "analyze_vulture",
+        )
+        static_statuses = {
+            tool_name: str(
+                static_analysis.get(tool_name, {})
+                .get("summary", {})
+                .get("status", "UNKNOWN")
+            ).upper()
+            for tool_name in static_tools
+        }
+        static_current = all(
+            bool(static_analysis.get(tool_name, {}).get("current", False))
+            for tool_name in static_tools
+        )
+        static_statuses_known = all(
+            status in {"PASS", "WARN", "FAIL", "CLEAN"}
+            for status in static_statuses.values()
+        )
         ruff_total = to_int(ruff_summary.get("total_issues")) or 0
         pyright_total = to_int(pyright_summary.get("total_issues")) or 0
         bandit_total = to_int(bandit_summary.get("total_issues")) or 0
         pip_audit_total = to_int(pip_audit_summary.get("total_issues")) or 0
         vulture_total = to_int(vulture_summary.get("total_issues")) or 0
-        static_ready = (
+        static_data_ready = (
             ruff_available
             and pyright_available
             and bandit_available
             and pip_audit_available
             and vulture_available
+            and static_current
+            and static_statuses_known
         )
-        if not static_ready:
+        static_checks_passed = all(
+            status in {"PASS", "CLEAN"} for status in static_statuses.values()
+        )
+        static_issue_total = (
+            ruff_total
+            + pyright_total
+            + bandit_total
+            + pip_audit_total
+            + vulture_total
+        )
+        if not static_data_ready:
             lines.append(
-                "- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: UNAVAILABLE"
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: "
+                "NOT CURRENT (run `audit --full`)"
             )
-        elif (
-            ruff_total > 0
-            or pyright_total > 0
-            or bandit_total > 0
-            or pip_audit_total > 0
-            or vulture_total > 0
-        ):
+        elif static_issue_total > 0:
             lines.append(
                 f"- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: "
-                f"{ruff_total + pyright_total + bandit_total + pip_audit_total + vulture_total} issue(s) "
+                f"{static_issue_total} issue(s) "
                 f"(ruff={ruff_total}, pyright={pyright_total}, bandit={bandit_total}, "
                 f"pip-audit={pip_audit_total}, vulture={vulture_total})"
+            )
+        elif not static_checks_passed:
+            lines.append(
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit/vulture)**: "
+                "INCOMPLETE (one or more tools did not pass)"
             )
         else:
             lines.append(

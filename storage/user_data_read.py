@@ -31,6 +31,7 @@ from storage.user_data_registry import (
     _get_user_data__load_schedules,
 )
 from storage.user_data_registry import clear_user_caches as _registry_clear_user_caches
+from storage.user_data_validation import is_valid_user_id
 
 logger = get_component_logger("main")
 
@@ -208,11 +209,8 @@ def get_user_data(
     Returns:
         Dict[str, Any]: User data dictionary, empty dict if failed
     """
-    if not user_id or not isinstance(user_id, str):
+    if not is_valid_user_id(user_id):
         logger.error(f"Invalid user_id: {user_id}")
-        return {}
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
         return {}
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
 
@@ -233,10 +231,6 @@ def get_user_data(
                 logger.debug(f"[TEST] Missing loaders detected: {missing}")
     except Exception:
         pass
-
-    if len(user_id) < 1 or len(user_id) > 100:
-        logger.error(f"Invalid user_id length: {len(user_id)}")
-        return {}
 
     try:
         if auto_create is False:
@@ -468,7 +462,7 @@ def get_user_data(
     except Exception:
         pass
 
-    logger.debug(f"get_user_data returning: {result}")
+    logger.debug(f"get_user_data returning data types: {sorted(result)}")
     try:
         if auto_create is False and isinstance(result, dict):
             try:

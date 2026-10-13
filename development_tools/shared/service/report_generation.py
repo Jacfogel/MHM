@@ -224,6 +224,7 @@ class ReportGenerationMixin(
     def _get_static_analysis_snapshot(self) -> dict[str, dict[str, Any]]:
         """Load normalized summary/details for static analysis tools (ruff, pyright, bandit, pip-audit, vulture)."""
         result: dict[str, dict[str, Any]] = {}
+        tools_run_in_tier = getattr(self, "_tools_run_in_current_tier", set())
         for tool_name in (
             "analyze_ruff",
             "analyze_pyright",
@@ -234,9 +235,10 @@ class ReportGenerationMixin(
             tool_data = self._load_tool_data(
                 tool_name, "static_checks", log_source=False
             )
-            if not isinstance(tool_data, dict):
+            if not isinstance(tool_data, dict) or not tool_data:
                 result[tool_name] = {
                     "available": False,
+                    "current": False,
                     "summary": {
                         "total_issues": 0,
                         "files_affected": 0,
@@ -254,6 +256,7 @@ class ReportGenerationMixin(
             tool_available = bool(details.get("tool_available", True))
             result[tool_name] = {
                 "available": tool_available,
+                "current": tool_name in tools_run_in_tier,
                 "summary": {
                     "total_issues": self._coerce_int(summary.get("total_issues"), 0),
                     "files_affected": self._coerce_int(
