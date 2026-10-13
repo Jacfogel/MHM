@@ -259,6 +259,140 @@ async def test_task_routes_require_authentication_and_reject_unknown_fields(task
     assert (await client.get("/api/tasks?status=unknown")).status == 400
 
 
+async def test_task_mutation_failures_explain_state_and_recovery(
+    task_gateway, monkeypatch
+):
+    import tasks.task_breakdown as breakdown_module
+    import tasks.task_reminder_snooze as snooze_module
+    import tasks.task_service as service
+    import tasks.task_simplify as simplify_module
+
+    client, active, _ = task_gateway
+    created = await client.post(
+        "/api/tasks",
+        json={"title": "Keep the original task"},
+        headers={"Origin": ORIGIN},
+    )
+    task_id = (await created.json())["task"]["id"]
+
+    monkeypatch.setattr(service, "create_task", lambda _uid, **_values: None)
+    creation = await client.post(
+        "/api/tasks",
+        json={"title": "Do not add this task"},
+        headers={"Origin": ORIGIN},
+    )
+    assert creation.status == 503
+    assert (await creation.json())["error"] == (
+        "That task was not added. Please wait a moment and try again."
+    )
+
+    monkeypatch.setattr(service, "update_task", lambda _uid, _task_id, _data: False)
+    update = await client.patch(
+        f"/api/tasks/{task_id}",
+        json={"title": "Unsaved title"},
+        headers={"Origin": ORIGIN},
+    )
+    assert update.status == 503
+    assert (await update.json())["error"] == (
+        "Your task changes were not saved. The original task is unchanged. "
+        "Check your connection and try again."
+    )
+
+    monkeypatch.setattr(
+        service, "complete_task", lambda _uid, _task_id, _completion: False
+    )
+    completion = await client.post(
+        f"/api/tasks/{task_id}/complete",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert completion.status == 503
+    assert (await completion.json())["error"] == (
+        "MHM could not confirm that task was completed. Refresh your task list "
+        "before trying again."
+    )
+
+    active[0]["status"] = "completed"
+    stale_completion = await client.post(
+        f"/api/tasks/{task_id}/complete",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert stale_completion.status == 409
+    assert (await stale_completion.json())["error"] == (
+        "That task is no longer active. Refresh your task list to see its current "
+        "status."
+    )
+    active[0]["status"] = "active"
+
+    stale_restore = await client.post(
+        f"/api/tasks/{task_id}/restore",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert stale_restore.status == 409
+    assert (await stale_restore.json())["error"] == (
+        "That task is already active. Refresh your task list."
+    )
+
+    monkeypatch.setattr(
+        snooze_module,
+        "snooze_task_reminder",
+        lambda _uid, _task_id, _option, custom_when=None: None,
+    )
+    snooze = await client.post(
+        f"/api/tasks/{task_id}/snooze",
+        json={"option": "1_hour"},
+        headers={"Origin": ORIGIN},
+    )
+    assert snooze.status == 503
+    assert (await snooze.json())["error"] == (
+        "MHM could not confirm that reminder was snoozed. Refresh the task before "
+        "trying again."
+    )
+
+    monkeypatch.setattr(
+        simplify_module,
+        "simplify_task",
+        lambda _uid, _task_id, _new_title: None,
+    )
+    simplify = await client.post(
+        f"/api/tasks/{task_id}/simplify",
+        json={"new_title": "Open the instructions"},
+        headers={"Origin": ORIGIN},
+    )
+    assert simplify.status == 503
+    assert (await simplify.json())["error"] == (
+        "The task title was not changed. Refresh the task before trying again."
+    )
+
+    monkeypatch.setattr(
+        breakdown_module,
+        "suggest_breakdown",
+        lambda _uid, _task_id: None,
+    )
+    breakdown = await client.post(
+        f"/api/tasks/{task_id}/breakdown",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert breakdown.status == 503
+    assert (await breakdown.json())["error"] == (
+        "MHM could not suggest smaller steps right now. The task was not changed. "
+        "You can type a step yourself or try again later."
+    )
+
+    monkeypatch.setattr(service, "delete_task", lambda _uid, _task_id: False)
+    deletion = await client.delete(
+        f"/api/tasks/{task_id}", json={}, headers={"Origin": ORIGIN}
+    )
+    assert deletion.status == 503
+    assert (await deletion.json())["error"] == (
+        "MHM could not confirm that task was deleted. Refresh your task list before "
+        "trying again."
+    )
+
+
 async def test_task_bulk_actions(task_gateway):
     client, _, _ = task_gateway
     ids = []

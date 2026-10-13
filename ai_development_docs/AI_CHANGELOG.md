@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-12 - User-facing failures explain recovery **COMPLETED**
+- Website account, billing, and task failures now distinguish the failed action, state what remains unchanged or retained, and give a concrete retry, refresh, alternative, or escalation step.
+- Task routes distinguish stale state from temporary service failure; browser network failures no longer expose raw diagnostics, and failed task drafts/edits remain available.
+- Discord's Create menu now gives unlinked accounts, unavailable forms, and failed task/note submissions a specific recovery path; deferred note failures always receive a reply.
+- Website notebook failures now distinguish stale entries from temporary save/state-change failures, retain failed drafts, hide raw network details, and tell users when to refresh before retrying an uncertain operation.
+- Both Pyright warnings were cleared with explicit async-mock call narrowing. Generated documentation and audit reports now show zero registry gaps and Pyright PASS with zero warnings.
+- Focused verification passes 44 account/billing gateway tests, 10 task-route tests, 24 account/task browser tests, 34 website page/asset tests, 22 Discord Create UI tests, 17 notebook route tests, and 13 notebook browser tests; the complete browser-script bridge, Ruff, and Pyright are clean.
+
 ### 2026-10-10 - Billing follow-up checks restored **COMPLETED**
 - Fixed the order-dependent development-tools classifier failure by preserving complete error-handling defaults when a worker loads partial external configuration and returning isolated nested settings to each caller.
 - Fixed the Tier 3 xdist interruption caused by an account-creation test repeatedly scanning every accumulated account until the five-minute timeout killed its worker. The test now checks only the canonical account paths, and an unstarted no-parallel track is reported as skipped instead of inheriting the parallel crash.
@@ -121,19 +129,6 @@ Guidelines:
 - Command-mode replies are normalized to structured output, ambiguous task creation asks for a title, and chat-mode text cannot claim an action executed when it did not.
 - AI fixtures and the full-suite runner now isolate test identities, data, and logs; the retired production `internal_username` field was backed up, removed from the final account, and cleared from the rebuilt index.
 - Generated registries are current with zero missing entries for `response_postprocess.py`. Verification passed 65 helper tests, 149 broader response tests, all 78 manually reviewed live AI tests, and the complete suite with 6,045 passed, 28 skipped, zero failures, and zero errors.
-
-### 2026-10-02 - Website route families extracted **COMPLETED**
-- Reusable scheduled-message CRUD endpoints moved from the oversized `WebGateway` into `core/web_messages.py` without changing their URLs, validation, account ownership, or responses.
-- The account service delegates message route registration, with centralized startup error reporting and focused route-owner tests.
-- Website chat send, inbox, and reaction endpoints moved from the oversized `WebGateway` into `core/web_chat.py`, beside the existing conversation reply helpers.
-- The account service delegates chat route registration while preserving the existing URLs, authentication, throttling, persistence, and response behavior.
-- Route initialization and registration use centralized, re-raising error handling with focused regression coverage.
-- Task CRUD, bulk actions, templates, effort estimates, and the shared export serializer moved into `core/web_tasks.py`; all existing task URLs and behavior remain unchanged.
-- `WebGateway` is roughly 570 lines smaller, and the former highest-complexity route now has a focused owner backed by the existing task lifecycle suite.
-- The complete suite passes: 5,974 passed, 28 skipped, with zero failures, errors, or warnings.
-- Self-service settings and authenticated insights endpoints moved into `core/web_settings.py`; the existing settings transformation helpers remain in `core/web_user_settings.py` and setup completion is shared without duplication.
-- Google Health integration endpoints moved into `core/web_health.py`, and allowlisted public asset/font routes moved into `core/web_assets.py`; URLs, health actions, responses, route order, and file allowlists are unchanged.
-- Focused ownership and behavior coverage accompanies both new route owners; all 127 web-service tests pass, Ruff and Pyright are clean, and the complete suite passes with 5,981 passed and 28 skipped.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -351,6 +351,66 @@ async def test_account_delete_requires_delete_and_removes_the_account(gateway, m
     assert (await client.get("/api/account")).status == 401
 
 
+async def test_account_action_failures_explain_unchanged_state_and_recovery(
+    gateway, monkeypatch
+):
+    client, accounts, sent, _ = gateway
+    accounts.users["existing"]["oauth_identities"] = {
+        "google": "google-subject",
+        "facebook": "facebook-subject",
+    }
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+
+    accounts.set_password = lambda _uid, _password_hash: False
+    password = await client.post(
+        "/api/auth/password/setup",
+        json={"password": "a replacement password phrase"},
+        headers={"Origin": ORIGIN},
+    )
+    assert password.status == 503
+    assert (await password.json())["error"] == (
+        "Your password was not changed. Please wait a moment and try again."
+    )
+
+    accounts.unlink_oauth = lambda _uid, _provider: False
+    disconnect = await client.post(
+        "/api/account/connections",
+        json={"provider": "google"},
+        headers={"Origin": ORIGIN},
+    )
+    assert disconnect.status == 503
+    assert (await disconnect.json())["error"] == (
+        "That account is still connected. Please wait a moment and try again."
+    )
+
+    monkeypatch.setattr(
+        "storage.user_data_operations.export_user_data",
+        lambda _uid, _export_format: None,
+    )
+    export = await client.get("/api/account/export")
+    assert export.status == 503
+    assert (await export.json())["error"] == (
+        "MHM could not prepare your data download. Your data was not changed. "
+        "Please wait a moment and try again."
+    )
+
+    monkeypatch.setattr(
+        "storage.user_data_backup.delete_user_completely",
+        lambda _uid, create_backup=False: False,
+    )
+    deletion = await client.post(
+        "/api/account/delete",
+        json={"confirmation": "DELETE"},
+        headers={"Origin": ORIGIN},
+    )
+    assert deletion.status == 503
+    assert (await deletion.json())["error"] == (
+        "Your account was not deleted. Please wait a moment and try again. "
+        "If this keeps happening, contact your MHM administrator."
+    )
+
+
 async def test_insights_are_authenticated_bounded_and_json_safe(gateway, monkeypatch):
     from checkins.checkin_analytics import CheckinAnalytics
 

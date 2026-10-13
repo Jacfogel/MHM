@@ -65,7 +65,7 @@ test('a failed request re-enables the button after the browser clears currentTar
   });
   await view.logout();
   assert.equal(view.nodes.get('logout').disabled, false);
-  assert.match(view.nodes.get('app-status').textContent, /Please try again/);
+  assert.match(view.nodes.get('app-status').textContent, /Check your connection and try again/);
   assert.equal(view.nodes.get('account-content').hidden, false);
   await view.logout();
   assert.deepEqual(view.navigation, ['login.html']);
@@ -89,4 +89,13 @@ test('account actions expose busy state and OAuth starts handle expired sessions
   assert.match(source, /button\.setAttribute\('aria-busy', 'true'\)/);
   assert.match(source, /response\.status === 401\) \{ returnToLogin\(\); return; \}/);
   assert.match(source, /await loadAccount\(\);\s*status\.textContent = `\$\{provider/);
+});
+
+test('account action fallbacks explain recovery and unchanged state', () => {
+  assert.match(source, /Your current access has not changed/);
+  assert.match(source, /Your subscription has not changed/);
+  assert.match(source, /is still connected\. Please wait a moment and try again/);
+  assert.match(source, /Your password was not changed/);
+  assert.match(source, /Your account was not deleted/);
+  assert.match(source, /Check your connection, then refresh the page/);
 });

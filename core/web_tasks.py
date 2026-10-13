@@ -117,7 +117,9 @@ class WebTaskRoutes:
 
         task = get_task_by_id(uid, identifier)
         if not task:
-            raise web.HTTPNotFound(text="That task could not be found.")
+            raise web.HTTPNotFound(
+                text="That task is no longer available. Refresh your task list."
+            )
         return task
 
     # ERROR_HANDLING_EXCLUDE: Route response builder raises the route's not-found response.
@@ -366,7 +368,7 @@ class WebTaskRoutes:
         )
         if not created_id:
             raise web.HTTPServiceUnavailable(
-                text="MHM could not create that task. Please try again."
+                text="That task was not added. Please wait a moment and try again."
             )
         return web.json_response(
             {"task": self.task_view(self._require_task(uid, created_id))}, status=201
@@ -377,9 +379,22 @@ class WebTaskRoutes:
         """Complete one active task from optional completion details."""
         from tasks.task_service import complete_task
 
+        current_task = self._require_task(uid, task_id)
+        if current_task.get("status") != "active":
+            raise web.HTTPConflict(
+                text=(
+                    "That task is no longer active. Refresh your task list to see its "
+                    "current status."
+                )
+            )
         completion_data = self._clean_completion(await self.gateway.body(request))
         if not await asyncio.to_thread(complete_task, uid, task_id, completion_data):
-            raise web.HTTPNotFound(text="That active task could not be completed.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not confirm that task was completed. Refresh your task "
+                    "list before trying again."
+                )
+            )
         return self._task_response(uid, task_id)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -394,10 +409,20 @@ class WebTaskRoutes:
             raise web.HTTPBadRequest(
                 text="Choose whether to bring the smaller steps back."
             )
+        current_task = self._require_task(uid, task_id)
+        if current_task.get("status") != "completed":
+            raise web.HTTPConflict(
+                text="That task is already active. Refresh your task list."
+            )
         if not await asyncio.to_thread(
             restore_task, uid, task_id, data.get("restore_steps") is True
         ):
-            raise web.HTTPNotFound(text="That completed task could not be restored.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not confirm that task was restored. Refresh your task "
+                    "list before trying again."
+                )
+            )
         return self._task_response(uid, task_id)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -427,10 +452,15 @@ class WebTaskRoutes:
             option,
             custom_when=str(custom_when or "").strip() or None,
         )
-        if not result or not result.success:
-            raise web.HTTPBadRequest(
-                text=(result.message if result else "That reminder could not be snoozed.")
+        if not result:
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not confirm that reminder was snoozed. Refresh the task "
+                    "before trying again."
+                )
             )
+        if not result.success:
+            raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -443,14 +473,15 @@ class WebTaskRoutes:
                 text="Skipping this occurrence does not need any other details."
             )
         result = await asyncio.to_thread(skip_task_occurrence, uid, task_id)
-        if not result or not result.success:
-            raise web.HTTPBadRequest(
+        if not result:
+            raise web.HTTPServiceUnavailable(
                 text=(
-                    result.message
-                    if result
-                    else "That task occurrence could not be skipped."
+                    "MHM could not confirm that occurrence was skipped. Refresh the "
+                    "task before trying again."
                 )
             )
+        if not result.success:
+            raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -468,7 +499,10 @@ class WebTaskRoutes:
                 text=(
                     result.message
                     if result
-                    else "MHM could not suggest smaller steps just now. Please try again."
+                    else (
+                        "MHM could not suggest smaller steps right now. The task was "
+                        "not changed. You can type a step yourself or try again later."
+                    )
                 )
             )
         if not result.success:
@@ -493,10 +527,14 @@ class WebTaskRoutes:
         ):
             raise web.HTTPBadRequest(text="Choose between 1 and 5 smaller steps.")
         result = await asyncio.to_thread(add_task_subtasks, uid, task_id, titles)
-        if not result or not result.success:
-            raise web.HTTPBadRequest(
-                text=(result.message if result else "Those steps could not be added.")
+        if not result:
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "Those steps were not added. Refresh the task before trying again."
+                )
             )
+        if not result.success:
+            raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -509,10 +547,15 @@ class WebTaskRoutes:
                 text="Making a step its own task does not need any other details."
             )
         result = await asyncio.to_thread(detach_task_step, uid, task_id)
-        if not result or not result.success:
-            raise web.HTTPBadRequest(
-                text=(result.message if result else "That step could not be separated.")
+        if not result:
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not confirm that step became its own task. Refresh the "
+                    "task list before trying again."
+                )
             )
+        if not result.success:
+            raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -530,10 +573,15 @@ class WebTaskRoutes:
         ):
             raise web.HTTPBadRequest(text="Enter a smaller next step for this task.")
         result = await asyncio.to_thread(simplify_task, uid, task_id, new_title.strip())
-        if not result or not result.success or result.needs_title:
-            raise web.HTTPBadRequest(
-                text=(result.message if result else "That task could not be simplified.")
+        if not result:
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "The task title was not changed. Refresh the task before trying "
+                    "again."
+                )
             )
+        if not result.success or result.needs_title:
+            raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -594,6 +642,13 @@ class WebTaskRoutes:
             if key in data and data[key] == "":
                 data[key] = None
         current_task = self._require_task(uid, task_id)
+        if current_task.get("status") != "active":
+            raise web.HTTPConflict(
+                text=(
+                    "That task is no longer active, so these changes were not saved. "
+                    "Refresh your task list."
+                )
+            )
         resulting_due_date = data.get(
             "due_date", (current_task.get("due") or {}).get("date")
         )
@@ -635,7 +690,12 @@ class WebTaskRoutes:
                 text="Choose whether repeats count from completion."
             )
         if not await asyncio.to_thread(update_task, uid, task_id, data):
-            raise web.HTTPNotFound(text="That active task could not be updated.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "Your task changes were not saved. The original task is unchanged. "
+                    "Check your connection and try again."
+                )
+            )
         return self._task_response(uid, task_id)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -643,8 +703,14 @@ class WebTaskRoutes:
         """Delete one task belonging to the signed-in user."""
         from tasks.task_service import delete_task
 
+        self._require_task(uid, task_id)
         if not await asyncio.to_thread(delete_task, uid, task_id):
-            raise web.HTTPNotFound(text="That task could not be deleted.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not confirm that task was deleted. Refresh your task "
+                    "list before trying again."
+                )
+            )
         return web.json_response({"ok": True})
 
 

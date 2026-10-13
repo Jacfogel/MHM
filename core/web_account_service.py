@@ -936,7 +936,10 @@ class WebGateway:
         encoded = await asyncio.to_thread(_password_hash, password)
         if not await asyncio.to_thread(self.accounts.set_password, uid, encoded):
             raise web.HTTPServiceUnavailable(
-                text="Your password could not be saved. Please try again."
+                text=(
+                    "Your password was not changed. Please wait a moment and try "
+                    "again."
+                )
             )
         for key in [
             key
@@ -1104,7 +1107,10 @@ class WebGateway:
                 encoded = await asyncio.to_thread(_password_hash, password)
                 if not await asyncio.to_thread(self.accounts.set_password, uid, encoded):
                     raise web.HTTPServiceUnavailable(
-                        text="Your password could not be saved. Please try again."
+                        text=(
+                            "Your password was not changed. Please wait a moment and "
+                            "try again."
+                        )
                     )
                 for key in [
                     key for key, session in self.sessions.items() if session[0] == uid
@@ -1230,12 +1236,18 @@ class WebGateway:
         except StripeAPIError as exc:
             logger.error(f"Stripe Checkout session failed: {type(exc).__name__}")
             raise web.HTTPServiceUnavailable(
-                text="Billing could not open. Please try again shortly."
+                text=(
+                    "Secure checkout is temporarily unavailable. Your current access "
+                    "has not changed. Please wait a moment and try again."
+                )
             ) from None
         url = str(session.get("url") or "")
         if not url.startswith("https://"):
             raise web.HTTPServiceUnavailable(
-                text="Billing could not open. Please try again shortly."
+                text=(
+                    "Secure checkout is temporarily unavailable. Your current access "
+                    "has not changed. Please wait a moment and try again."
+                )
             )
         return web.json_response({"url": url})
 
@@ -1255,12 +1267,18 @@ class WebGateway:
         except StripeAPIError as exc:
             logger.error(f"Stripe Portal session failed: {type(exc).__name__}")
             raise web.HTTPServiceUnavailable(
-                text="Billing could not open. Please try again shortly."
+                text=(
+                    "Billing management is temporarily unavailable. Your subscription "
+                    "has not changed. Please wait a moment and try again."
+                )
             ) from None
         url = str(session.get("url") or "")
         if not url.startswith("https://"):
             raise web.HTTPServiceUnavailable(
-                text="Billing could not open. Please try again shortly."
+                text=(
+                    "Billing management is temporarily unavailable. Your subscription "
+                    "has not changed. Please wait a moment and try again."
+                )
             )
         return web.json_response({"url": url})
 
@@ -1445,7 +1463,12 @@ class WebGateway:
         else:
             ok = await asyncio.to_thread(self.accounts.unlink_oauth, uid, provider)
         if not ok:
-            raise web.HTTPServiceUnavailable(text="That account could not be disconnected.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "That account is still connected. Please wait a moment and try "
+                    "again."
+                )
+            )
         return web.json_response({"ok": True, "provider": provider})
 
 
@@ -1457,7 +1480,12 @@ class WebGateway:
 
         exported = await asyncio.to_thread(export_user_data, uid, "json")
         if not exported:
-            raise web.HTTPServiceUnavailable(text="Your data export could not be prepared.")
+            raise web.HTTPServiceUnavailable(
+                text=(
+                    "MHM could not prepare your data download. Your data was not "
+                    "changed. Please wait a moment and try again."
+                )
+            )
         from tasks.task_service import load_active_tasks, load_completed_tasks
         from notebook.notebook_data_manager import list_recent
 
@@ -1512,7 +1540,10 @@ class WebGateway:
         )
         if not deleted:
             raise web.HTTPServiceUnavailable(
-                text="Your account could not be deleted. Please try again."
+                text=(
+                    "Your account was not deleted. Please wait a moment and try again. "
+                    "If this keeps happening, contact your MHM administrator."
+                )
             )
         for key, session in list(self.sessions.items()):
             if session and session[0] == uid:

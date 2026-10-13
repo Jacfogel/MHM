@@ -81,6 +81,15 @@ function allText(node) {
   return [node.textContent, ...node.childNodes.flatMap(allText)].filter(Boolean).join(' ');
 }
 
+function findByText(node, text) {
+  if (node.textContent === text) return node;
+  for (const child of node.childNodes || []) {
+    const match = findByText(child, text);
+    if (match) return match;
+  }
+  return null;
+}
+
 async function page(fetchImpl, { confirm = () => true } = {}) {
   const ids = [
     'notes-status', 'notes-workspace', 'note-list', 'note-empty', 'note-empty-title',
@@ -197,6 +206,52 @@ test('creating a note sends normalized fields and reloads the notebook', async (
   });
   assert.equal(screen.nodes.get('notes-count').textContent, '1 active entry');
   assert.equal(screen.nodes.get('entry-create-submit').disabled, false);
+});
+
+test('a failed note create keeps the draft and explains how to avoid a duplicate', async () => {
+  const screen = await page(async request => {
+    if (request.method === 'POST') {
+      return Response.json(
+        { error: 'MHM could not complete this request. Please try again.' },
+        { status: 503 },
+      );
+    }
+    return Response.json(noteResult());
+  });
+  screen.nodes.get('note-title').value = 'Keep this draft';
+  screen.nodes.get('note-description').value = 'Important details';
+
+  await screen.nodes.get('note-create-form').listeners.submit({ preventDefault() {} });
+
+  assert.equal(screen.nodes.get('note-title').value, 'Keep this draft');
+  assert.equal(screen.nodes.get('note-description').value, 'Important details');
+  assert.equal(screen.nodes.get('entry-create-submit').disabled, false);
+  assert.match(screen.nodes.get('notes-status').textContent, /could not confirm that your note was saved/i);
+  assert.match(screen.nodes.get('notes-status').textContent, /draft is still here/i);
+  assert.match(screen.nodes.get('notes-status').textContent, /Refresh the notebook to check/i);
+});
+
+test('a notebook load network failure gives a safe retry action', async () => {
+  const screen = await page(async () => { throw new Error('Failed to fetch'); });
+
+  assert.match(screen.nodes.get('notes-status').textContent, /could not load your notebook/i);
+  assert.match(screen.nodes.get('notes-status').textContent, /entries were not changed/i);
+  assert.match(screen.nodes.get('notes-status').textContent, /use Refresh/i);
+  assert.doesNotMatch(screen.nodes.get('notes-status').textContent, /Failed to fetch/);
+});
+
+test('an uncertain archive result tells the user to verify the current section', async () => {
+  const screen = await page(async request => {
+    if (request.method === 'POST') throw new Error('connection reset');
+    return Response.json(noteResult([savedNote()]));
+  });
+  const archive = findByText(screen.nodes.get('note-list'), 'Archive');
+
+  await archive.listeners.click();
+
+  assert.match(screen.nodes.get('notes-status').textContent, /could not confirm that this entry was archived/i);
+  assert.match(screen.nodes.get('notes-status').textContent, /check its current section before trying again/i);
+  assert.doesNotMatch(screen.nodes.get('notes-status').textContent, /connection reset/);
 });
 
 test('a stale notebook search cannot replace newer search results', async () => {

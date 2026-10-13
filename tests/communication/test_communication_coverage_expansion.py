@@ -563,8 +563,42 @@ class TestCreateItemUi:
                 original_message="create task from modal",
             )
         interaction.response.send_message.assert_awaited_once_with(
-            "Account not found. Link your Discord account first.", ephemeral=True
+            "I couldn't find an MHM account linked to this Discord profile. "
+            "Use `/account` to create or link one, then try again.",
+            ephemeral=True,
         )
+
+    @pytest.mark.asyncio
+    async def test_submit_task_form_failure_explains_recovery(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _submit_task_form,
+        )
+
+        interaction = AsyncMock()
+        interaction.response.is_done = MagicMock(return_value=False)
+        with patch(
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
+            return_value="user-1",
+        ), patch(
+            "communication.communication_channels.discord.ui.create_item_ui._run_handler",
+            return_value=None,
+        ), patch(
+            "communication.communication_channels.discord.ui.create_item_ui.deliver_handler_response",
+            new_callable=AsyncMock,
+        ) as mock_deliver:
+            await _submit_task_form(
+                interaction,
+                None,
+                intent="create_task",
+                entities={"title": "Call dentist"},
+                original_message="create task from modal",
+            )
+
+        call_args = mock_deliver.await_args
+        assert call_args is not None
+        response = call_args.args[1]
+        assert "couldn't save that task" in response.message.lower()
+        assert "`create task ...`" in response.message
 
     @pytest.mark.asyncio
     async def test_submit_task_form_success(self):
@@ -724,8 +758,79 @@ class TestCreateItemUi:
         ):
             await callback(interaction)
         interaction.response.send_message.assert_awaited_once_with(
-            "Account not found.", ephemeral=True
+            "I couldn't find an MHM account linked to this Discord profile. "
+            "Use `/account` to create or link one, then try again.",
+            ephemeral=True,
         )
+
+    @pytest.mark.asyncio
+    async def test_modal_button_callback_unavailable_form_explains_recovery(self):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _bind_modal_button_callback,
+        )
+
+        callback = _bind_modal_button_callback(
+            "custom task", None, lambda _uid, _bot: None
+        )
+        interaction = AsyncMock()
+        with patch(
+            "communication.communication_channels.discord.ui.create_item_ui._internal_user_id",
+            return_value="user-1",
+        ):
+            await callback(interaction)
+
+        message = interaction.response.send_message.await_args.args[0]
+        assert "form is unavailable" in message.lower()
+        assert "`create`" in message
+
+    @pytest.mark.parametrize(
+        ("item_name", "command_example"),
+        [
+            ("quick note", "quick note ..."),
+            ("note", "create note titled ..."),
+        ],
+    )
+    def test_create_failure_response_names_recovery_command(
+        self, item_name, command_example
+    ):
+        from communication.communication_channels.discord.ui.create_item_ui import (
+            _create_failure_response,
+        )
+
+        response = _create_failure_response(item_name, command_example)
+
+        assert f"couldn't save that {item_name}" in response.message.lower()
+        assert f"`{command_example}`" in response.message
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("builder_name", "item_name", "command_example"),
+        [
+            ("_build_quick_note_modal", "quick note", "quick note ..."),
+            ("_build_new_note_modal", "note", "create note titled ..."),
+        ],
+    )
+    async def test_note_modal_handler_failure_delivers_recovery(
+        self, builder_name, item_name, command_example
+    ):
+        from communication.communication_channels.discord.ui import create_item_ui
+
+        modal = getattr(create_item_ui, builder_name)("user-1", None)
+        interaction = AsyncMock()
+        with patch.object(
+            create_item_ui, "_internal_user_id", return_value="user-1"
+        ), patch.object(
+            create_item_ui, "_run_handler", return_value=None
+        ), patch.object(
+            create_item_ui, "deliver_handler_response", new_callable=AsyncMock
+        ) as mock_deliver:
+            await modal.on_submit(interaction)
+
+        call_args = mock_deliver.await_args
+        assert call_args is not None
+        response = call_args.args[1]
+        assert f"couldn't save that {item_name}" in response.message.lower()
+        assert f"`{command_example}`" in response.message
 
     @pytest.mark.asyncio
     async def test_modal_button_callback_opens_modal(self):

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-10 12:11:03
+> **Last Generated**: 2026-10-12 19:45:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 304
-- **Functions Found**: 3177
+- **Functions Found**: 3178
 - **Methods Found**: 1632
 - **Classes Found**: 281
-- **Total Items**: 4809
-- **Functions Documented**: 2822
+- **Total Items**: 4810
+- **Functions Documented**: 2823
 - **Methods Documented**: 1452
 - **Classes Documented**: 214
-- **Total Documented**: 4274
+- **Total Documented**: 4275
 - **Template-Generated**: 66
-- **Last Updated**: 2026-10-10
+- **Last Updated**: 2026-10-12
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (668)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (899)
+### **Communication Functions** (900)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -2379,6 +2379,7 @@ Args:
 - [OK] `_build_quick_note_modal(user_id, discord_bot)` - Return a Discord modal for capturing a quick note.
 - [OK] `_build_task_modal(user_id, discord_bot)` - Return a task create modal, optionally prefilled from a template.
 - [OK] `_build_template_task_modal(user_id, discord_bot, template_id)` - Return a task modal prefilled from a built-in template.
+- [OK] `_create_failure_response(item_name, command_example)` - Return actionable recovery text when a create-hub handler fails.
 - [OK] `_modal_field_values(interaction)` - Read text-input values from a modal-submit interaction payload.
 - [OK] `_run_handler(user_id, intent, entities, original_message)` - Run a create-hub command handler intent and return its response.
 - [OK] `_submit_task_form(modal_interaction, discord_bot)` - Defer and run a create-task intent after a modal submit.

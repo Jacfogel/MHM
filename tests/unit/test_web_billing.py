@@ -9,7 +9,7 @@ import pytest
 from aiohttp import CookieJar
 from aiohttp.test_utils import TestClient, TestServer
 
-from core.billing import StripeBillingClient
+from core.billing import StripeAPIError, StripeBillingClient
 from core.web_account_service import create_web_app
 
 pytestmark = [pytest.mark.unit, pytest.mark.user, pytest.mark.asyncio]
@@ -178,6 +178,51 @@ async def test_subscribed_account_can_open_customer_portal():
         assert (await response.json())["url"].startswith("https://billing.stripe.com/")
         assert billing.portal is not None
         assert billing.portal["customer_id"] == "cus_1"
+    finally:
+        await context.__aexit__(None, None, None)
+
+
+async def test_billing_failures_explain_unchanged_state_and_recovery():
+    accounts, billing = Accounts(), Billing()
+    context, client = await signed_in_client(accounts, billing)
+    try:
+        async def fail_checkout(**_kwargs):
+            raise StripeAPIError("private checkout diagnostic")
+
+        billing.create_checkout_session = fail_checkout
+        checkout = await client.post(
+            "/api/billing/checkout", json={}, headers={"Origin": ORIGIN}
+        )
+        assert checkout.status == 503
+        checkout_message = (await checkout.json())["error"]
+        assert checkout_message == (
+            "Secure checkout is temporarily unavailable. Your current access has not "
+            "changed. Please wait a moment and try again."
+        )
+        assert "private checkout diagnostic" not in checkout_message
+
+        accounts.users["trial-user"].update(
+            {
+                "subscription_status": "active",
+                "stripe_customer_id": "cus_1",
+                "stripe_subscription_id": "sub_1",
+            }
+        )
+
+        async def fail_portal(**_kwargs):
+            raise StripeAPIError("private portal diagnostic")
+
+        billing.create_portal_session = fail_portal
+        portal = await client.post(
+            "/api/billing/portal", json={}, headers={"Origin": ORIGIN}
+        )
+        assert portal.status == 503
+        portal_message = (await portal.json())["error"]
+        assert portal_message == (
+            "Billing management is temporarily unavailable. Your subscription has "
+            "not changed. Please wait a moment and try again."
+        )
+        assert "private portal diagnostic" not in portal_message
     finally:
         await context.__aexit__(None, None, None)
 

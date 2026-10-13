@@ -63,7 +63,12 @@ async function openBilling(endpoint, button) {
     });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok || !result.url) throw new Error(result.error || 'Billing could not open.');
+    if (!response.ok || !result.url) {
+      const fallback = endpoint.endsWith('/checkout')
+        ? 'Secure checkout is temporarily unavailable. Your current access has not changed. Please wait a moment and try again.'
+        : 'Billing management is temporarily unavailable. Your subscription has not changed. Please wait a moment and try again.';
+      throw new Error(result.error || fallback);
+    }
     location.assign(result.url);
   } catch (error) {
     status.textContent = error.message;
@@ -76,7 +81,7 @@ async function loadAccount() {
   try {
     const response = await fetch('/api/account', { credentials: 'same-origin', cache: 'no-store' });
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error('Your account could not load. Please refresh to try again.');
+    if (!response.ok) throw new Error('Your account details could not load. Check your connection, then refresh the page.');
     const account = await response.json();
     if (accountSessionEnded) return;
     const accountName = document.getElementById('account-name');
@@ -154,7 +159,7 @@ async function disconnectProvider(provider, button) {
     });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || `${provider} could not be disconnected.`);
+    if (!response.ok) throw new Error(result.error || `${provider} is still connected. Please wait a moment and try again.`);
     await loadAccount();
     status.textContent = `${provider[0].toUpperCase()}${provider.slice(1)} was disconnected.`;
     status.classList.remove('is-error');
@@ -206,9 +211,9 @@ if (logout) logout.addEventListener('click', async (event) => {
   status.classList.remove('is-error');
   try {
     const response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
-    if (!response.ok && response.status !== 401) throw new Error('Could not log out. Please try again.');
+    if (!response.ok && response.status !== 401) throw new Error('MHM could not confirm that you were logged out. Check your connection and try again.');
     returnToLogin();
-  } catch (error) { status.textContent = 'Could not log out. Please try again.'; status.classList.add('is-error'); setButtonBusy(button, false); }
+  } catch (error) { status.textContent = 'MHM could not confirm that you were logged out. Check your connection and try again.'; status.classList.add('is-error'); setButtonBusy(button, false); }
 });
 const passwordForm = document.getElementById('password-form');
 if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
@@ -234,7 +239,7 @@ if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || 'Your password could not be saved.');
+    if (!response.ok) throw new Error(result.error || 'Your password was not changed. Please wait a moment and try again.');
     first.value = '';
     confirmation.value = '';
     current.value = '';
@@ -272,7 +277,7 @@ if (deleteForm) deleteForm.addEventListener('submit', async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || 'Your account could not be deleted.');
+    if (!response.ok) throw new Error(result.error || 'Your account was not deleted. Please wait a moment and try again. If this keeps happening, contact your MHM administrator.');
     window.dispatchEvent(new Event('mhm:signed-out'));
     location.replace('login.html');
   } catch (error) {

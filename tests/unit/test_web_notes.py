@@ -278,3 +278,85 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     )
     assert archived.status == 200
     assert (await archived.json())["note"]["pinned"] is False
+
+
+async def test_notebook_create_failure_reports_nothing_was_added(
+    notes_gateway, monkeypatch
+):
+    import notebook.notebook_data_manager as manager
+
+    monkeypatch.setattr(manager, "create_note", lambda uid, **values: None)
+
+    response = await notes_gateway.post(
+        "/api/notes",
+        json={"kind": "note", "title": "Keep this draft"},
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 503
+    message = (await response.json())["error"]
+    assert "Nothing was added" in message
+    assert "try again" in message.lower()
+
+
+async def test_notebook_archive_failure_reports_previous_section(
+    notes_gateway, monkeypatch
+):
+    import notebook.notebook_data_manager as manager
+
+    entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
+    entry_id = entries[0]["id"]
+    monkeypatch.setattr(manager, "archive_entry", lambda *args, **kwargs: None)
+
+    response = await notes_gateway.post(
+        f"/api/notes/{entry_id}/archive",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 503
+    message = (await response.json())["error"]
+    assert "not archived" in message
+    assert "still in active notes" in message
+
+
+async def test_notebook_edit_failure_explains_how_to_verify_current_version(
+    notes_gateway, monkeypatch
+):
+    import notebook.notebook_data_manager as manager
+
+    entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
+    entry_id = entries[0]["id"]
+    monkeypatch.setattr(manager, "set_entry_title", lambda *args, **kwargs: None)
+
+    response = await notes_gateway.patch(
+        f"/api/notes/{entry_id}",
+        json={"title": "Updated title"},
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 503
+    message = (await response.json())["error"]
+    assert "could not finish saving" in message
+    assert "Refresh the entry" in message
+
+
+async def test_notebook_tag_removal_failure_is_not_reported_as_saved(
+    notes_gateway, monkeypatch
+):
+    import notebook.notebook_data_manager as manager
+
+    entries = (await (await notes_gateway.get("/api/notes")).json())["notes"]
+    entry_id = entries[0]["id"]
+    monkeypatch.setattr(manager, "remove_tags", lambda *args, **kwargs: None)
+
+    response = await notes_gateway.patch(
+        f"/api/notes/{entry_id}",
+        json={"tags": ["updated"]},
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 503
+    message = (await response.json())["error"]
+    assert "tag changes" in message
+    assert "current tags" in message

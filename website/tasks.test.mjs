@@ -265,6 +265,25 @@ test('failed task creation preserves the draft and restores the submit action', 
   assert.equal(screen.nodes.get('tasks-status').classList.contains('is-error'), true);
 });
 
+test('a network failure keeps the task draft and gives a concrete retry step', async () => {
+  const screen = await tasksPage(async request => {
+    if (request.path === '/api/task-templates') return Response.json({ templates: [] });
+    if (request.method === 'POST') throw new Error('raw browser network failure');
+    return Response.json(taskResult());
+  });
+  screen.nodes.get('task-title').value = 'Keep this network draft';
+
+  await screen.nodes.get('task-create-form').listeners.submit({ preventDefault() {} });
+
+  assert.equal(screen.nodes.get('task-title').value, 'Keep this network draft');
+  assert.equal(screen.submit.disabled, false);
+  assert.equal(
+    screen.nodes.get('tasks-status').textContent,
+    'That task was not added. Your draft is still here. Check your connection and try again.',
+  );
+  assert.doesNotMatch(screen.nodes.get('tasks-status').textContent, /raw browser/);
+});
+
 test('editing a task sends changes and recovers cleanly from a failed request', async () => {
   const screen = await tasksPage(async request => {
     if (request.path === '/api/task-templates') return Response.json({ templates: [] });
@@ -387,4 +406,14 @@ test('task drafts and changed edit dialogs are protected from accidental dismiss
   assert.match(source, /beforeunload/);
   assert.match(source, /dialog\.addEventListener\('cancel'/);
   assert.match(source, /task-reminder-add, \.task-reminder-remove/);
+});
+
+test('task fallbacks explain retained state and the next recovery step', () => {
+  assert.match(source, /Task templates could not load\. You can still create a task without one/);
+  assert.match(source, /Your task changes were not saved\. The edit window is still open/);
+  assert.match(source, /could not confirm that task was completed\. Refresh your task list/);
+  assert.match(source, /could not confirm that reminder was snoozed\. Refresh the task/);
+  assert.match(source, /The task was not changed\. You can type a step yourself/);
+  assert.match(source, /could not confirm that task was deleted\. Refresh your task list/);
+  assert.match(source, /unchanged\. Refresh the list and try those tasks again/);
 });

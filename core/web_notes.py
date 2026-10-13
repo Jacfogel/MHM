@@ -71,7 +71,12 @@ class WebNotesRoutes:
                     entry.short_id or ""
                 ).casefold() == identifier.casefold():
                     return entry
-            raise web.HTTPNotFound(text="That note could not be found.")
+            raise web.HTTPNotFound(
+                text=(
+                    "That entry is no longer available here. Refresh your notebook "
+                    "to see its current location."
+                )
+            )
 
         # ERROR_HANDLING_EXCLUDE: Validation helper raises intentional HTTP responses.
         def clean_list_items(value):
@@ -216,8 +221,15 @@ class WebNotesRoutes:
                     tags=tags,
                 )
             if not entry:
-                raise web.HTTPBadRequest(
-                    text="MHM could not create that entry."
+                entry_name = {
+                    "journal_entry": "journal entry",
+                    "list": "list",
+                }.get(kind, "note")
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        f"MHM could not save that {entry_name}. Nothing was added. "
+                        "Please try again."
+                    )
                 )
             return web.json_response({"note": note_view(entry)}, status=201)
 
@@ -228,7 +240,13 @@ class WebNotesRoutes:
             if not await asyncio.to_thread(
                 notes.archive_entry, uid, note_id, action == "archive"
             ):
-                raise web.HTTPNotFound(text="That note could not be updated.")
+                previous_section = "active notes" if action == "archive" else "the archive"
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        f"That entry was not {action}d. It is still in "
+                        f"{previous_section}. Refresh your notebook, then try again."
+                    )
+                )
             return web.json_response(
                 {"note": note_view(find(note_id, include_archived=True))}
             )
@@ -275,27 +293,49 @@ class WebNotesRoutes:
             if "title" in data and not await asyncio.to_thread(
                 notes.set_entry_title, uid, note_id, data["title"]
             ):
-                raise web.HTTPNotFound(
-                    text="That entry could not be updated."
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        "MHM could not finish saving those changes. Refresh the entry "
+                        "to see its current version, then try again."
+                    )
                 )
             if "description" in data and not await asyncio.to_thread(
                 notes.set_entry_body, uid, note_id, data["description"]
             ):
-                raise web.HTTPNotFound(text="That note could not be updated.")
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        "MHM could not finish saving those changes. Refresh the entry "
+                        "to see its current version, then try again."
+                    )
+                )
             if "items" in data and not await asyncio.to_thread(
                 notes.set_list_items, uid, note_id, data["items"]
             ):
-                raise web.HTTPNotFound(text="That list could not be updated.")
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        "MHM could not finish saving those list changes. Refresh the "
+                        "entry to see its current version, then try again."
+                    )
+                )
             if "tags" in data:
                 current = find(note_id, include_archived=False)
-                await asyncio.to_thread(
+                if not await asyncio.to_thread(
                     notes.remove_tags, uid, note_id, list(current.tags)
-                )
+                ):
+                    raise web.HTTPServiceUnavailable(
+                        text=(
+                            "MHM could not finish saving those tag changes. Refresh "
+                            "the entry to see its current tags, then try again."
+                        )
+                    )
                 if data["tags"] and not await asyncio.to_thread(
                     notes.add_tags, uid, note_id, data["tags"]
                 ):
-                    raise web.HTTPNotFound(
-                        text="That note could not be updated."
+                    raise web.HTTPServiceUnavailable(
+                        text=(
+                            "MHM could not finish saving those tag changes. Refresh "
+                            "the entry to see its current tags, then try again."
+                        )
                     )
             if "pinned" in data and type(data["pinned"]) is not bool:
                 raise web.HTTPBadRequest(
@@ -304,7 +344,12 @@ class WebNotesRoutes:
             if "pinned" in data and not await asyncio.to_thread(
                 notes.pin_entry, uid, note_id, data["pinned"]
             ):
-                raise web.HTTPNotFound(text="That note could not be updated.")
+                raise web.HTTPServiceUnavailable(
+                    text=(
+                        "MHM could not save that pin change. Refresh your notebook "
+                        "to check the entry, then try again."
+                    )
+                )
             return web.json_response(
                 {"note": note_view(find(note_id, include_archived=False))}
             )

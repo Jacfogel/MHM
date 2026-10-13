@@ -60,16 +60,21 @@
     });
   }
 
-  async function api(path, method = 'GET', payload) {
-    const response = await fetch(path, {
-      method,
-      credentials: 'same-origin',
-      cache: 'no-store',
-      ...(payload === undefined ? {} : {
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }),
-    });
+  async function api(path, method = 'GET', payload, recoveryMessage = 'MHM could not update your notebook. Please try again.') {
+    let response;
+    try {
+      response = await fetch(path, {
+        method,
+        credentials: 'same-origin',
+        cache: 'no-store',
+        ...(payload === undefined ? {} : {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
+      });
+    } catch {
+      throw new Error(recoveryMessage);
+    }
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) {
       window.dispatchEvent(new Event('mhm:signed-out'));
@@ -77,7 +82,11 @@
       throw new Error('Please log in again.');
     }
     if (!response.ok) {
-      const error = new Error(result.error || 'MHM could not update your notebook. Please try again.');
+      const serverMessage = result.error;
+      const message = !serverMessage || serverMessage === 'MHM could not complete this request. Please try again.'
+        ? recoveryMessage
+        : serverMessage;
+      const error = new Error(message);
       error.status = response.status;
       throw error;
     }
@@ -251,7 +260,12 @@
       const params = new URLSearchParams({ status: requestedView });
       if (requestedQuery) params.set('q', requestedQuery);
       if (requestedTag) params.set('tag', requestedTag);
-      const result = await api(`/api/notes?${params}`);
+      const result = await api(
+        `/api/notes?${params}`,
+        'GET',
+        undefined,
+        'MHM could not load your notebook. Your entries were not changed. Check your connection, then use Refresh.',
+      );
       if (request !== loadRequest || requestedView !== view || requestedQuery !== search.value.trim() || requestedTag !== tagFilter.value) return;
       notes = result.notes || [];
       existingTags = result.tags || [];
@@ -271,7 +285,12 @@
 
   async function archive(note, action) {
     try {
-      await api(`/api/notes/${encodeURIComponent(note.id)}/${action}`, 'POST', {});
+      await api(
+        `/api/notes/${encodeURIComponent(note.id)}/${action}`,
+        'POST',
+        {},
+        `MHM could not confirm that this entry was ${action}d. Refresh the notebook to check its current section before trying again.`,
+      );
       await load();
     } catch (error) {
       showStatus(error.message, true);
@@ -280,7 +299,12 @@
 
   async function pin(note, pinned) {
     try {
-      await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', { pinned });
+      await api(
+        `/api/notes/${encodeURIComponent(note.id)}`,
+        'PATCH',
+        { pinned },
+        'MHM could not confirm that pin change. Refresh the notebook to check the entry before trying again.',
+      );
       await load();
     } catch (error) { showStatus(error.message, true); }
   }
@@ -362,7 +386,12 @@
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
           ...(editItems ? { items } : { description: body.value }),
         };
-        await api(`/api/notes/${encodeURIComponent(note.id)}`, 'PATCH', payload);
+        await api(
+          `/api/notes/${encodeURIComponent(note.id)}`,
+          'PATCH',
+          payload,
+          'MHM could not confirm those changes were saved. The editor is still open; check your connection and try saving again.',
+        );
         openNoteEditDirty = false;
         dialog.close();
         await load();
@@ -397,12 +426,18 @@
     createSaving = true;
     showStatus(`Saving ${kind === 'journal_entry' ? 'journal entry' : kind}…`);
     try {
-      await api('/api/notes', 'POST', {
-        kind,
-        title: String(form.get('title') || '').trim(),
-        tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
-        ...(kind === 'list' ? { items } : { description: String(form.get('description') || '') }),
-      });
+      const itemName = kind === 'journal_entry' ? 'journal entry' : kind;
+      await api(
+        '/api/notes',
+        'POST',
+        {
+          kind,
+          title: String(form.get('title') || '').trim(),
+          tags: String(form.get('tags') || '').split(',').map(tag => tag.trim()).filter(Boolean),
+          ...(kind === 'list' ? { items } : { description: String(form.get('description') || '') }),
+        },
+        `MHM could not confirm that your ${itemName} was saved. Your draft is still here. Refresh the notebook to check before submitting again.`,
+      );
       createForm.reset();
       createItems.replaceChildren();
       setNoteExtraOpen(false);

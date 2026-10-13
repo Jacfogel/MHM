@@ -34,6 +34,10 @@ CREATE_HUB_FIELD_DETAILS = "create_hub_f_details"
 CREATE_HUB_FIELD_DUE = "create_hub_f_due"
 CREATE_HUB_FIELD_TAGS = "create_hub_f_tags"
 CREATE_HUB_TIMEOUT_SECONDS = 600
+ACCOUNT_LINK_RECOVERY_MESSAGE = (
+    "I couldn't find an MHM account linked to this Discord profile. "
+    "Use `/account` to create or link one, then try again."
+)
 
 
 @handle_errors("parsing modal tags", default_return=[])
@@ -87,7 +91,7 @@ def entities_from_shared_fields(
 @handle_errors("running handler for create hub action", default_return=None)
 def _run_handler(
     user_id: str, intent: str, entities: dict[str, Any], original_message: str
-) -> InteractionResponse:
+) -> InteractionResponse | None:
     """Run a create-hub command handler intent and return its response."""
     return run_discord_handler_intent(
         user_id,
@@ -97,6 +101,22 @@ def _run_handler(
         missing_handler_message=(
             "I could not run that action right now. Try typing the command instead."
         ),
+    )
+
+
+@handle_errors(
+    "building create hub recovery response",
+    default_return=InteractionResponse(
+        "I couldn't save that item. Open `create` and try again.", True
+    ),
+)
+def _create_failure_response(item_name: str, command_example: str) -> InteractionResponse:
+    """Return actionable recovery text when a create-hub handler fails."""
+    logger.warning(f"Discord create hub failed to save {item_name}")
+    return InteractionResponse(
+        f"I couldn't save that {item_name}. Open `create` and try again, "
+        f"or type `{command_example}` in chat.",
+        True,
     )
 
 
@@ -115,16 +135,13 @@ async def _submit_task_form(
     internal_id = _internal_user_id(modal_interaction)
     if not internal_id:
         await modal_interaction.response.send_message(
-            "Account not found. Link your Discord account first.", ephemeral=True
+            ACCOUNT_LINK_RECOVERY_MESSAGE, ephemeral=True
         )
         return
     await modal_interaction.response.defer(ephemeral=True)
     response = _run_handler(internal_id, intent, entities, original_message)
     if response is None:
-        response = InteractionResponse(
-            "I could not create that right now. Please try typing the command instead.",
-            True,
-        )
+        response = _create_failure_response("task", "create task ...")
     await deliver_handler_response(
         modal_interaction, response, discord_bot, ephemeral=True
     )
@@ -199,12 +216,16 @@ def _bind_modal_button_callback(
     async def callback(interaction: discord.Interaction) -> None:
         internal_id = _internal_user_id(interaction)
         if not internal_id:
-            await interaction.response.send_message("Account not found.", ephemeral=True)
+            await interaction.response.send_message(
+                ACCOUNT_LINK_RECOVERY_MESSAGE, ephemeral=True
+            )
             return
         modal = modal_builder(internal_id, discord_bot)
         if modal is None:
             await interaction.response.send_message(
-                "Could not open that form. Please try again.", ephemeral=True
+                "That form is unavailable right now. Run `create` to open a fresh "
+                "menu, then try again.",
+                ephemeral=True,
             )
             return
         await interaction.response.send_modal(modal)
@@ -361,7 +382,7 @@ def _build_quick_note_modal(
             internal_id = _internal_user_id(modal_interaction)
             if not internal_id:
                 await modal_interaction.response.send_message(
-                    "Account not found. Link your Discord account first.", ephemeral=True
+                    ACCOUNT_LINK_RECOVERY_MESSAGE, ephemeral=True
                 )
                 return
             await modal_interaction.response.defer(ephemeral=True)
@@ -372,6 +393,8 @@ def _build_quick_note_modal(
             response = _run_handler(
                 internal_id, "create_quick_note", entities, "quick note from modal"
             )
+            if response is None:
+                response = _create_failure_response("quick note", "quick note ...")
             await deliver_handler_response(
                 modal_interaction, response, discord_bot, ephemeral=True
             )
@@ -414,7 +437,7 @@ def _build_new_note_modal(
             internal_id = _internal_user_id(modal_interaction)
             if not internal_id:
                 await modal_interaction.response.send_message(
-                    "Account not found. Link your Discord account first.", ephemeral=True
+                    ACCOUNT_LINK_RECOVERY_MESSAGE, ephemeral=True
                 )
                 return
             await modal_interaction.response.defer(ephemeral=True)
@@ -426,6 +449,8 @@ def _build_new_note_modal(
             response = _run_handler(
                 internal_id, "create_note", entities, "create note from modal"
             )
+            if response is None:
+                response = _create_failure_response("note", "create note titled ...")
             await deliver_handler_response(
                 modal_interaction, response, discord_bot, ephemeral=True
             )

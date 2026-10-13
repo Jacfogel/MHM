@@ -81,16 +81,38 @@ const MHMTaskInput = Object.freeze({
     status.classList.toggle('is-error', error);
   }
 
+  function taskRequestFailure(path, method) {
+    if (path === '/api/task-templates' && method === 'GET') return 'Task templates could not load. You can still create a task without one, or reload the page.';
+    if (method === 'GET') return 'Your tasks could not load. Check your connection, then reload the page.';
+    if (path === '/api/tasks' && method === 'POST') return 'That task was not added. Your draft is still here. Check your connection and try again.';
+    if (method === 'PATCH') return 'Your task changes were not saved. The edit window is still open. Check your connection and try again.';
+    if (method === 'DELETE') return 'MHM could not confirm that task was deleted. Refresh your task list before trying again.';
+    if (path.endsWith('/complete')) return 'MHM could not confirm that task was completed. Refresh your task list before trying again.';
+    if (path.endsWith('/restore')) return 'MHM could not confirm that task was restored. Refresh your task list before trying again.';
+    if (path.endsWith('/snooze')) return 'MHM could not confirm that reminder was snoozed. Refresh the task before trying again.';
+    if (path.endsWith('/skip')) return 'MHM could not confirm that occurrence was skipped. Refresh the task before trying again.';
+    if (path.endsWith('/breakdown')) return 'MHM could not suggest smaller steps right now. The task was not changed. You can type a step yourself or try again later.';
+    if (path.endsWith('/subtasks')) return 'Those steps were not added. Refresh the task before trying again.';
+    if (path.endsWith('/detach')) return 'MHM could not confirm that step became its own task. Refresh the task list before trying again.';
+    if (path.endsWith('/simplify')) return 'The task title was not changed. Refresh the task before trying again.';
+    return 'MHM could not confirm those task changes. Refresh your task list before trying again.';
+  }
+
   async function api(path, method = 'GET', payload) {
-    const response = await fetch(path, {
-      method,
-      credentials: 'same-origin',
-      cache: 'no-store',
-      ...(payload === undefined ? {} : {
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }),
-    });
+    let response;
+    try {
+      response = await fetch(path, {
+        method,
+        credentials: 'same-origin',
+        cache: 'no-store',
+        ...(payload === undefined ? {} : {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
+      });
+    } catch (_) {
+      throw new Error(taskRequestFailure(path, method));
+    }
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) {
       window.dispatchEvent(new Event('mhm:signed-out'));
@@ -98,7 +120,7 @@ const MHMTaskInput = Object.freeze({
       throw new Error('Please log in again.');
     }
     if (!response.ok) {
-      const error = new Error(result.error || 'MHM could not update your tasks. Please try again.');
+      const error = new Error(result.error || taskRequestFailure(path, method));
       error.status = response.status;
       throw error;
     }
@@ -285,7 +307,7 @@ const MHMTaskInput = Object.freeze({
     try {
       const result = await api(`/api/tasks/bulk/${action}`, 'POST', payload);
       await load();
-      showStatus(result.failed && result.failed.length ? `${result.changed.length} updated; ${result.failed.length} could not be changed.` : `${result.changed.length} ${result.changed.length === 1 ? 'task' : 'tasks'} updated.`);
+      showStatus(result.failed && result.failed.length ? `${result.changed.length} updated; ${result.failed.length} unchanged. Refresh the list and try those tasks again.` : `${result.changed.length} ${result.changed.length === 1 ? 'task' : 'tasks'} updated.`);
     } catch (error) { showStatus(error.message, true); }
   }
 
