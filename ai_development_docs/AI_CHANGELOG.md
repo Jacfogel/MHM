@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-16 - Social sign-in connectivity and home history fixed **COMPLETED**
+- Live Google sign-in failures were traced to the headless gateway running with outbound HTTPS blocked (`WinError 5`/`WinError 10013`). The restricted process was replaced with a normally networked service; Google provider discovery, authorization startup, client credentials, and the production callback now validate successfully.
+- Home shows the most recent six conversation turns or every turn from the last 48 hours, whichever is greater. Each More click expands by another six turns or another 48 hours, whichever reveals more, and disappears when the full retained conversation is visible.
+- The cache-busted website update was deployed to `mhm.jacfogel.com`. All 135 browser tests and all 40 website account-service tests pass.
+
 ### 2026-10-16 - Private logging and self-contained installs hardened **COMPLETED**
 - Runtime logs no longer record user-authored message bodies; communication, AI, service, and response-tracking paths retain only safe operational metadata, backed by a static privacy regression guard.
 - Package metadata now declares the runtime, UI, and development dependencies, includes shipped resources, styles, fonts, and website assets, and consistently supports Python 3.11 across metadata, CI, type checking, and setup documentation.
@@ -120,12 +125,6 @@ Guidelines:
 - Full coverage no longer collects `tests/development_tools/` in the host pytest process. Those tests run with `development_tools/pytest.ini`, and their coverage is combined into the main data. Development-tools-only coverage remains `python development_tools/tests/run_test_coverage.py --dev-tools-only`.
 - Raised the urllib3 floor to 2.8.0 and pinned oauthlib at 4.0.0 or newer so the four pip-audit findings are covered.
 - The policy test `test_run_tests_isolates_environment_before_core_imports` now inherits the unit category marker from its module.
-
-### 2026-10-06 - Website browser coverage joins standard test gates **COMPLETED**
-- Browser behavior coverage now spans 121 passing Node tests, with expanded check-in, insight, integration, message, notebook, settings, and task scenarios.
-- A serial pytest bridge runs every `website/*.test.mjs` file in the normal suite, `audit --full`, and the nightly suite; PR and push checks retain a dedicated website job with Node.js 20.
-- The audit cache now treats the standalone website as its own domain and invalidates browser coverage when JavaScript, HTML, CSS, or JSONC assets change.
-- The completed full audit is clean: 5,980 passed and 28 skipped, with zero failures or errors across the parallel and no-parallel tracks.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

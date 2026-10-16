@@ -405,9 +405,10 @@
   const talkSuggestions = document.getElementById('talk-suggestions');
   let speakerName = '';
   let turns = [];
-  let historyWindows = 1;
+  let historyPages = 1;
   let conversationOpened = false;
   const WINDOW_MS = 48 * 60 * 60 * 1000;
+  const MIN_TURNS_PER_PAGE = 6;
 
   function savedTurns() {
     return turns;
@@ -430,19 +431,17 @@
   }
 
   function visibleTurns() {
-    const cutoff = Date.now() - historyWindows * WINDOW_MS;
-    return savedTurns().filter(turn => {
+    const saved = savedTurns();
+    const cutoff = Date.now() - historyPages * WINDOW_MS;
+    const countStart = Math.max(0, saved.length - historyPages * MIN_TURNS_PER_PAGE);
+    return saved.filter((turn, index) => {
       const time = turnTime(turn);
-      return time === null || time >= cutoff;
+      return index >= countStart || time === null || time >= cutoff;
     });
   }
 
   function hasOlderTurns() {
-    const cutoff = Date.now() - historyWindows * WINDOW_MS;
-    return savedTurns().some(turn => {
-      const time = turnTime(turn);
-      return time !== null && time < cutoff;
-    });
+    return visibleTurns().length < savedTurns().length;
   }
 
   async function loadConversation() {
@@ -551,7 +550,7 @@
       more.className = 'plain-button talk-more';
       more.textContent = 'More';
       more.addEventListener('click', () => {
-        historyWindows += 1;
+        historyPages += 1;
         renderSaved(false);
       });
       talkLog.append(more);

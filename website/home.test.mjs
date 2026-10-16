@@ -302,6 +302,65 @@ test('a scheduled message in the chat can ask for more like it', async () => {
   assert.equal(view.nodes.get('talk-status').textContent, "I'll send more messages like that.");
 });
 
+test('home chat shows at least the six most recent turns when the 48-hour window is empty', async () => {
+  const oldTurns = Array.from({ length: 8 }, (_, index) => ({
+    role: index % 2 ? 'mhm' : 'you',
+    text: `Old turn ${index + 1}`,
+    created_at: new Date(Date.now() - (10 - index) * 24 * 60 * 60 * 1000).toISOString(),
+  }));
+  const view = await page({
+    chat: true,
+    fetchImpl: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/chat') return Response.json({ turns: oldTurns });
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  const log = view.nodes.get('talk-log');
+  assert.deepEqual(
+    log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).map(item => item.childNodes.find(child => oldTurns.some(turn => turn.text === child.textContent))?.textContent),
+    oldTurns.slice(-6).map(turn => turn.text),
+  );
+  const more = log.childNodes.find(item => item.textContent === 'More');
+  assert.ok(more);
+  await more.listeners.click();
+  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 8);
+  assert.equal(log.childNodes.some(item => item.textContent === 'More'), false);
+});
+
+test('home chat keeps every turn from 48 hours and More reveals older turns', async () => {
+  const recentTurns = Array.from({ length: 8 }, (_, index) => ({
+    role: index % 2 ? 'mhm' : 'you',
+    text: `Recent turn ${index + 1}`,
+    created_at: new Date(Date.now() - (8 - index) * 60 * 60 * 1000).toISOString(),
+  }));
+  const olderTurns = [
+    { role: 'you', text: 'Older turn 1', created_at: new Date(Date.now() - 80 * 60 * 60 * 1000).toISOString() },
+    { role: 'mhm', text: 'Older turn 2', created_at: new Date(Date.now() - 70 * 60 * 60 * 1000).toISOString() },
+  ];
+  const view = await page({
+    chat: true,
+    fetchImpl: async (url) => {
+      if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
+      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
+      if (url === '/api/chat') return Response.json({ turns: [...olderTurns, ...recentTurns] });
+      return Response.json({ error: 'missing' }, { status: 404 });
+    },
+  });
+  const log = view.nodes.get('talk-log');
+  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 8);
+  const more = log.childNodes.find(item => item.textContent === 'More');
+  assert.ok(more);
+  await more.listeners.click();
+  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 10);
+  assert.equal(log.childNodes.some(item => item.textContent === 'More'), false);
+});
+
 test('a long task due today is not called the easiest one', async () => {
   const today = new Date();
   const pad = value => String(value).padStart(2, '0');

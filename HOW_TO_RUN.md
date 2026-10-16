@@ -57,7 +57,7 @@ Copy-Item .env.example .env
 
 **Note**: The `.env` file is in `.cursorignore` for security (contains API keys and passwords).
 
-### 1.5. Step 5: Launch the Application
+### 1.4. Step 5: Launch the Application
 ```powershell
 # For human users (UI interface)
 python run_mhm.py
@@ -71,7 +71,7 @@ python run_headless_service.py start
   after startup. Open `http://localhost:8080`; use `python run_headless_service.py
   stop` to stop everything, or `status` to check the service.
 
-### 1.6. Launcher logging vs terminal output (policy)
+### 1.5. Launcher logging vs terminal output (policy)
 
 **Hybrid convention:** launcher scripts use **structured logging** (`setup_logging()` + component loggers) **and** selective **`print`** for humans running commands in a terminal.
 
