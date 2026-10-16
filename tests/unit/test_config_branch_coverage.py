@@ -206,7 +206,7 @@ class TestConfigBranchCoverage:
             assert config.get_user_file_path("u1", "account") == ""
 
     def test_get_user_file_path_rejects_escape_from_user_directory(self):
-        with patch("core.config.get_user_data_dir", return_value="data/users/u1"):
+        with patch("core.config.get_user_data_dir", return_value="sandbox/u1"):
             assert config.get_user_file_path("u1", "../../escape") == ""
 
     def test_ensure_user_directory_auto_create_disabled(self):

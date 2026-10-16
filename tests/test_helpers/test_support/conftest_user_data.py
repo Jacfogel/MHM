@@ -952,7 +952,7 @@ def update_user_index_for_test(test_data_dir):
 
 
 def _test_data_root() -> Path:
-    """Repository test-data root. Real accounts live in data/users, never here."""
+    """Repository test-data root. Real accounts live outside this tree."""
     return (Path(project_root) / "tests" / "data").resolve()
 
 
@@ -967,7 +967,8 @@ def _clear_user_store(data_dir: Path) -> None:
     """Remove accounts and user_index.json under one test data directory.
 
     Parallel workers each own tests/data/xdist_<worker>/. Those directories are
-    test data, including UUID account folders. Production accounts stay in data/users.
+    test data, including UUID account folders. Production accounts stay outside
+    this tree.
     """
     data_dir = Path(data_dir)
     if not _is_test_data_path(data_dir):

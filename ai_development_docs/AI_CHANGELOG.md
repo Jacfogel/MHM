@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-16 - Nightly policy checks match the test tree **COMPLETED**
+- Nightly failures since October 13 were policy scans, not product failures. The escape-path test no longer names the production users directory, and cleanup comments no longer do either.
+- Worker user-store cleanup tests now carry the `user` domain marker, so the slow domain-marker scan passes in the nightly suite.
+
 ### 2026-10-16 - Social sign-in connectivity and home history fixed **COMPLETED**
 - Live Google sign-in failures were traced to the headless gateway running with outbound HTTPS blocked (`WinError 5`/`WinError 10013`). The restricted process was replaced with a normally networked service; Google provider discovery, authorization startup, client credentials, and the production callback now validate successfully.
 - Home shows the most recent six conversation turns or every turn from the last 48 hours, whichever is greater. Each More click expands by another six turns or another 48 hours, whichever reveals more, and disappears when the full retained conversation is visible.
@@ -120,11 +124,6 @@ Guidelines:
 - Directory-tree generation now starts from Git-tracked and non-ignored files instead of trusting an unfiltered filesystem listing.
 - `.env` variants, response flags, logs, data directories, process files, and runtime cache directories are always omitted, even if accidentally tracked.
 - Regression coverage verifies that ignored secret-like files stay out while normal project files and `.env.example` remain documented.
-
-### 2026-10-06 - Coverage isolation, dependency floors, and the last unmarked policy test **COMPLETED**
-- Full coverage no longer collects `tests/development_tools/` in the host pytest process. Those tests run with `development_tools/pytest.ini`, and their coverage is combined into the main data. Development-tools-only coverage remains `python development_tools/tests/run_test_coverage.py --dev-tools-only`.
-- Raised the urllib3 floor to 2.8.0 and pinned oauthlib at 4.0.0 or newer so the four pip-audit findings are covered.
-- The policy test `test_run_tests_isolates_environment_before_core_imports` now inherits the unit category marker from its module.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

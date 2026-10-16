@@ -10,7 +10,7 @@ from tests.test_helpers.test_support.conftest_user_data import (
     _remove_new_user_dirs,
 )
 
-pytestmark = [pytest.mark.unit]
+pytestmark = [pytest.mark.unit, pytest.mark.user]
 
 
 def _probe(name: str) -> Path:
