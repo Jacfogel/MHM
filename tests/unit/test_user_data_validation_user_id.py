@@ -1,8 +1,8 @@
-"""Unit tests for storage.user_data_validation.is_valid_user_id."""
+"""Unit tests for the canonical storage.user_id predicate."""
 
 import pytest
 
-from storage.user_data_validation import is_valid_user_id
+from storage.user_id import is_valid_user_id
 
 
 pytestmark = [pytest.mark.storage]

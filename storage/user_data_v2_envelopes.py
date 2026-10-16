@@ -1,6 +1,5 @@
 """
-Canonical v2 on-disk **envelope** validation dispatcher and compatibility re-exports.
-``validate_v2_document`` orchestration.
+Canonical v2 on-disk envelope validation dispatcher.
 
 Task and notebook persistence models live in ``tasks.task_schemas`` and
 ``notebook.notebook_schemas``. Message and check-in persistence models live in
@@ -12,32 +11,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from storage.user_data_v2_base import (
-    SCHEMA_VERSION,
-    ItemKind,
-    SourceModel,
-    generate_short_id,
-)
-from checkins.checkin_schemas import (
-    CheckinCollectionV2Model,
-    CheckinV2Model,
-    validate_checkins_v2_document,
-)
+from checkins.checkin_schemas import validate_checkins_v2_document
 from messages.message_schemas import (
-    MessageDeliveryCollectionV2Model,
-    MessageDeliveryV2Model,
-    MessageTemplateCollectionV2Model,
-    MessageTemplateV2Model,
-    ScheduleModel,
     validate_deliveries_v2_document,
     validate_messages_v2_document,
 )
-from notebook.notebook_schemas import NotebookCollectionV2Model, NotebookV2Model
 from notebook.notebook_validation import validate_notebook_v2_document
-from tasks.task_schemas import (
-    TaskCollectionV2Model,
-    TaskV2Model,
-)
 from tasks.task_validation import validate_tasks_v2_document
 from core.profile_v2_schemas import (
     validate_account_v2_document,
@@ -47,26 +26,6 @@ from core.profile_v2_schemas import (
     validate_schedules_v2_document,
     validate_tags_v2_document,
 )
-
-# Re-exports so ``from storage.user_data_v2_envelopes import â€¦`` stays stable; task/notebook models live in domain packages.
-__all__ = [
-    "SCHEMA_VERSION",
-    "ItemKind",
-    "SourceModel",
-    "ScheduleModel",
-    "CheckinV2Model",
-    "MessageTemplateV2Model",
-    "MessageDeliveryV2Model",
-    "CheckinCollectionV2Model",
-    "MessageTemplateCollectionV2Model",
-    "MessageDeliveryCollectionV2Model",
-    "TaskV2Model",
-    "TaskCollectionV2Model",
-    "NotebookV2Model",
-    "NotebookCollectionV2Model",
-    "generate_short_id",
-    "validate_v2_document",
-]
 
 # error_handling_exclude: This validation API returns Pydantic errors as data.
 def validate_v2_document(document_type: str, data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:

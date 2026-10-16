@@ -9,6 +9,7 @@ This file provides:
 - Dedicated testing log configuration
 """
 
+import contextlib
 import pytest
 import os
 import sys  # noqa: F401 -- used in collection hooks (sys.modules) and debug logging (sys.executable, sys.version, sys.path)
@@ -228,12 +229,18 @@ collect_ignore_glob = [
 ]
 
 
+@pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
-    """Recover worker cwd if a parallel temp directory was removed mid-run."""
+    """Recover worker cwd and basetemp if a parallel temp directory was removed mid-run."""
     try:
         Path.cwd()
     except FileNotFoundError:
         os.chdir(project_root)
+    basetemp = getattr(getattr(item, "config", None), "option", None)
+    basetemp_value = getattr(basetemp, "basetemp", None)
+    if basetemp_value:
+        with contextlib.suppress(OSError):
+            Path(basetemp_value).mkdir(parents=True, exist_ok=True)
 
 
 # CRITICAL: Set up logging isolation BEFORE importing any core modules

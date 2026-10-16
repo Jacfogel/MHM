@@ -14,8 +14,8 @@ from core.profile_v2_io import ensure_profile_envelope, schedule_categories
 from storage.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
-    is_valid_user_id,
 )
+from storage.user_id import is_valid_user_id
 from core.profile_v2_schemas import (
     validate_account_v2_document,
     validate_preferences_v2_document,
@@ -115,9 +115,22 @@ def _save_user_data__validate_data(
             logger.error(f"New-user validation failed: {errors}")
             return invalid_types, result
     if not is_new_user:
+        current_types = [
+            data_type
+            for data_type in valid_types
+            if data_type in {"account", "preferences", "context", "schedules"}
+        ]
+        current_documents = (
+            get_user_data(user_id, current_types) if current_types else {}
+        )
         for dt in valid_types:
             logger.debug(f"Validating {dt} for existing user {user_id}")
-            ok, errors = validate_user_update(user_id, dt, data_updates[dt])
+            ok, errors = validate_user_update(
+                user_id,
+                dt,
+                data_updates[dt],
+                current_data=current_documents.get(dt, {}),
+            )
             if not ok and dt == "account":
                 try:
                     upd = data_updates.get(dt, {})

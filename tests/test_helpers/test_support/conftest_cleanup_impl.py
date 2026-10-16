@@ -93,25 +93,35 @@ def _clear_pytest_runner_directory_contents(
         except Exception:
             pass
 
-    grace_seconds = 30 * 60
+    # Longer than a Tier 3 suite. A run directory's own mtime is set when
+    # it is created, while worker folders under it stay active for the whole
+    # run, so recency has to include those children.
+    grace_seconds = 3 * 60 * 60
     now_ts = time.time()
+
+    def _latest_mtime(path: Path, depth: int = 2) -> float | None:
+        try:
+            latest = path.stat().st_mtime
+        except OSError:
+            return None
+        if depth <= 0 or not path.is_dir():
+            return latest
+        try:
+            children = list(path.iterdir())
+        except OSError:
+            return latest
+        for grandchild in children:
+            child_mtime = _latest_mtime(grandchild, depth - 1)
+            if child_mtime is not None and child_mtime > latest:
+                latest = child_mtime
+        return latest
+
     for child in runner_dir.iterdir():
         if not child.is_dir():
             continue
-        name = child.name
-        if not (
-            name.startswith("devtools_pytest_tmp_")
-            or name.startswith("mhm_pytest_tmp_")  # legacy prefix
-            or name.startswith("repro_")
-            or name.startswith("pytest-")
-        ):
-            continue
-        try:
-            age_seconds = now_ts - child.stat().st_mtime
-            if age_seconds <= grace_seconds:
-                keep.add(name)
-        except Exception:
-            keep.add(name)
+        latest = _latest_mtime(child)
+        if latest is None or (now_ts - latest) <= grace_seconds:
+            keep.add(child.name)
 
     _clear_directory_contents(runner_dir, keep_dir_names=keep)
 

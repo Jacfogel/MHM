@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-12 19:46:20
+> **Last Generated**: 2026-10-14 22:06:52
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,18 +12,18 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 302
-- **Total Imports**: 2726
-- **Standard Library**: 786 (28.8%)
-- **Third-Party**: 235 (8.6%)
-- **Local Imports**: 1705 (62.5%)
+- **Files Scanned**: 303
+- **Total Imports**: 2716
+- **Standard Library**: 784 (28.9%)
+- **Third-Party**: 235 (8.7%)
+- **Local Imports**: 1697 (62.5%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, token_crypto
+  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, token_crypto, user_id
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
   - core/file_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, error_handling, file_locking, time_utilities (+4 more)
@@ -46,7 +46,7 @@ AI System Dependencies:
 ### Need Communication Channel Coverage?
 Communication Dependencies:
 - Channel Infrastructure
-  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
+  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_id
   - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
 - Specific Channels

@@ -411,7 +411,7 @@ class TestUserDataHandlersConvenienceFunctions:
         result = get_user_data(user_id, "account", auto_create=False)
         assert result == {}, "Should return empty dict for nonexistent user with auto_create=False"
 
-    def test_get_user_data_with_metadata(self, test_data_dir):
+    def test_get_user_data_include_metadata(self, test_data_dir):
         """Test get_user_data with include_metadata=True."""
         user_id = "test_metadata"
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)

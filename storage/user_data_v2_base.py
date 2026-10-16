@@ -13,14 +13,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticCustomError
 
 from core.error_handling import handle_errors
-from core.ids import generate_short_id
 from core.time_utilities import parse_timestamp_full
 
 SCHEMA_VERSION = 2
 
 ItemKind = Literal["task", "note", "list", "journal_entry"]
 
-# Explicit public surface so generate_short_id remains a documented re-export from core.ids.
 __all__ = [
     "SCHEMA_VERSION",
     "ItemKind",
@@ -28,7 +26,6 @@ __all__ = [
     "BaseItemModel",
     "validate_optional_v2_timestamp",
     "v2_schema_validation_error",
-    "generate_short_id",
 ]
 
 

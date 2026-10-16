@@ -117,32 +117,6 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-@handle_errors("validating user id", default_return=False)
-def is_valid_user_id(user_id: str | None) -> bool:
-    """
-    Validate user_id for filesystem paths, task handlers, updates, and command handlers.
-
-    Rules: non-empty string after strip, length at most 100, characters limited to
-    ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
-    """
-    if user_id is None:
-        logger.warning("user_id must not be None")
-        return False
-    if not isinstance(user_id, str):
-        logger.warning(f"user_id must be a string, got {type(user_id).__name__}")
-        return False
-    if not user_id.strip():
-        logger.warning("user_id must not be empty")
-        return False
-    if len(user_id) > 100:
-        logger.warning(f"user_id exceeds maximum length 100 (len={len(user_id)})")
-        return False
-    if not user_id.replace("_", "").replace("-", "").isalnum():
-        logger.warning(f"user_id contains invalid characters: {user_id!r}")
-        return False
-    return True
-
-
 # ---------------------------------------------------------------------------
 # General string validation helpers
 # ---------------------------------------------------------------------------
@@ -346,9 +320,13 @@ def _shared__title_case(text: str) -> str:
 
 @handle_errors("validating user update", default_return=(False, ["Validation failed"]))
 def validate_user_update(
-    user_id: str, data_type: str, updates: dict[str, Any]
+    user_id: str,
+    data_type: str,
+    updates: dict[str, Any],
+    *,
+    current_data: dict[str, Any],
 ) -> tuple[bool, list[str]]:
-    """Validate partial updates to an existing user's data."""
+    """Validate partial updates against the caller's current document snapshot."""
     logger.debug(
         f"Validating user update for user {user_id}, data_type: {data_type}, fields: {list(updates.keys())}"
     )
@@ -362,12 +340,7 @@ def validate_user_update(
     if data_type == "account":
         # Account validation uses v2 envelope models.
         try:
-            try:
-                from storage.user_data_read import get_user_data
-
-                current_account = get_user_data(user_id, "account").get("account", {})
-            except Exception:
-                current_account = {}
+            current_account = current_data
 
             # Merge updates with current account for validation
             merged_account = current_account.copy()
@@ -401,25 +374,7 @@ def validate_user_update(
     elif data_type == "preferences":
         # Preferences validation uses v2 envelope models.
         try:
-            # Retry in case of race conditions with file reads in parallel execution
-            import time
-
-            current_preferences = {}
-            for attempt in range(3):
-                try:
-                    from storage.user_data_read import get_user_data
-
-                    current_preferences = get_user_data(user_id, "preferences").get(
-                        "preferences", {}
-                    )
-                    if (
-                        current_preferences or attempt == 2
-                    ):  # Accept empty on last attempt
-                        break
-                except Exception:
-                    pass
-                if attempt < 2:
-                    time.sleep(0.05)  # Brief delay before retry
+            current_preferences = current_data
 
             merged_preferences = (
                 current_preferences.copy()
@@ -460,12 +415,7 @@ def validate_user_update(
     elif data_type == "schedules":
         # Schedules validation uses v2 envelope models.
         try:
-            try:
-                from storage.user_data_read import get_user_data
-
-                current_raw = get_user_data(user_id, "schedules").get("schedules", {})
-            except Exception:
-                current_raw = {}
+            current_raw = current_data
 
             from core.profile_v2_io import ensure_profile_envelope, schedule_categories
             from core.profile_v2_schemas import validate_schedules_v2_document
@@ -658,7 +608,10 @@ def validate_new_user_data(
     if (
         context.get("date_of_birth")
         and not validate_user_update(
-            user_id, "context", {"date_of_birth": context["date_of_birth"]}
+            user_id,
+            "context",
+            {"date_of_birth": context["date_of_birth"]},
+            current_data={},
         )[0]
     ):
         errors.append("Invalid date_of_birth format")

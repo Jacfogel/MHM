@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-12 19:45:51
+> **Last Generated**: 2026-10-14 22:06:19
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 302
-- **Total Imports Found**: 2726
-- **Dependencies Documented**: 302 (100% coverage)
-- **Standard Library Imports**: 786 (28.8%)
-- **Third-Party Imports**: 235 (8.6%)
-- **Local Imports**: 1705 (62.5%)
-- **Last Updated**: 2026-10-12
+- **Files Scanned**: 303
+- **Total Imports Found**: 2716
+- **Dependencies Documented**: 303 (100% coverage)
+- **Standard Library Imports**: 784 (28.9%)
+- **Third-Party Imports**: 235 (8.7%)
+- **Local Imports**: 1697 (62.5%)
+- **Last Updated**: 2026-10-14
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 786 imports (28.8%)
-- **Third-Party**: 235 imports (8.6%)
-- **Local**: 1705 imports (62.5%)
+- **Standard Library**: 784 imports (28.9%)
+- **Third-Party**: 235 imports (8.7%)
+- **Local**: 1697 imports (62.5%)
 
 ## Module Dependencies by Directory
 
@@ -1293,7 +1293,7 @@
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `storage.user_data_validation (is_valid_user_id)`
+    - `storage.user_id (is_valid_user_id)` (NEW)
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
 - **Used by**:
@@ -1310,7 +1310,7 @@
   - `communication/command_handlers/schedule_handler.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: core.error_handling, core.logger, storage.user_id
 - Removed: communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/create_menu_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3706,6 +3706,7 @@
   - **Local**:
     - `core.error_handling (handle_configuration_error, handle_errors)` (NEW)
     - `integrations.google_health.token_crypto (is_valid_fernet_key)`
+    - `storage.user_id (is_valid_user_id)` (NEW)
   - **Standard Library**:
     - `contextlib`
     - `logging`
@@ -3767,7 +3768,7 @@
   - `ui/request_actions.py`
 
 **Dependency Changes**:
-- Added: core.error_handling
+- Added: core.error_handling, storage.user_id
 - Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/prompts/manager.py, communication/command_handlers/health_handler.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhooks/server.py, communication/communication_channels/discord/webhooks/tunnel.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/flows/flow_state.py, communication/message_processing/interaction_manager.py, communication/message_processing/response_enhancer.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/file_operations.py, core/logger.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/sync_manager.py, integrations/google_health/user_settings.py, messages/message_data_manager.py, messages/message_reactions.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_breakdown.py, ui/request_actions.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4273,12 +4274,14 @@
   - `communication/command_handlers/notebook_handler.py`
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/flows/note_flow.py`
-  - `storage/user_data_v2_base.py`
+  - `messages/message_data_manager.py`
+  - `tasks/task_data_handlers.py`
+  - `tasks/task_data_manager.py`
   - `tasks/task_service.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/flows/note_flow.py, storage/user_data_v2_base.py, tasks/task_service.py
+- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/flows/note_flow.py, messages/message_data_manager.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5557,7 +5560,7 @@
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `integrations.google_health.schemas (AUTH_FILENAME, DAILY_SUMMARIES_FILENAME, DailySummariesCollectionModel, GoogleHealthAuthModel, HEALTH_SIGNALS_FILENAME, HealthSignalsCollectionModel, SYNC_STATE_FILENAME, SyncStateModel, empty_auth_document, empty_daily_summaries_document, empty_health_signals_document, empty_sync_state_document)` (NEW)
     - `integrations.google_health.token_crypto (prepare_auth_for_storage, prepare_auth_for_use)` (NEW)
-    - `storage.user_data_validation (is_valid_user_id)` (NEW)
+    - `storage.user_id (is_valid_user_id)` (NEW)
     - `storage.user_item_storage (ensure_user_subdir, get_user_subdir_path, load_user_json_file, save_user_json_file)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -5571,7 +5574,7 @@
   - `integrations/google_health/user_settings.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.time_utilities, integrations.google_health.schemas, integrations.google_health.token_crypto, storage.user_data_validation, storage.user_item_storage
+- Added: core.error_handling, core.logger, core.time_utilities, integrations.google_health.schemas, integrations.google_health.token_crypto, storage.user_id, storage.user_item_storage
 - Removed: core/health_context_builder.py, core/health_signals.py, integrations/google_health/auth.py, integrations/google_health/sync_manager.py, integrations/google_health/user_settings.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5822,10 +5825,11 @@
     - `core.config (DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.file_operations (determine_file_path, load_json_data, save_json_data, update_json_data)` (NEW)
+    - `core.ids (generate_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_datetime_utc, now_timestamp_filename, now_timestamp_full, parse_timestamp_full, timestamp_sort_key_from_dict)` (NEW)
     - `messages.message_schemas (MessageTemplateV2Model)` (NEW)
-    - `storage.user_data_v2_base (SCHEMA_VERSION, generate_short_id)` (NEW)
+    - `storage.user_data_v2_base (SCHEMA_VERSION)` (NEW)
   - **Standard Library**:
     - `contextlib`
     - `datetime (datetime, timedelta, timezone)`
@@ -5858,7 +5862,7 @@
   - `ui/widgets/category_selection_widget.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
+- Added: core, core.config, core.error_handling, core.file_operations, core.ids, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
 - Removed: ai/context/phraser.py, ai/context/service.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, core/service.py, core/web_messages.py, core/web_user_settings.py, messages/message_analytics.py, messages/message_reactions.py, messages/message_service.py, scheduler/manager.py, storage/user_data_summaries.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6374,7 +6378,7 @@
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `storage/user_data_read.py`
-- **Purpose**: Core system module with heavy core dependencies
+- **Purpose**: Module for storage/user_data_read.py
 - **Dependencies**:
   - **Local**:
     - `core.config (get_user_data_dir, get_user_file_path)` (NEW)
@@ -6383,9 +6387,9 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.profile_v2_io (ensure_profile_envelope)` (NEW)
     - `core.profile_v2_schemas (validate_account_v2_document, validate_preferences_v2_document, validate_schedules_v2_document)` (NEW)
-    - `storage.user_data_registry (USER_DATA_LOADERS, _get_user_data__load_account, _get_user_data__load_context, _get_user_data__load_preferences, _get_user_data__load_schedules, clear_user_caches, get_available_data_types, register_data_loader, register_default_loaders)` (NEW)
+    - `storage.user_data_registry (USER_DATA_LOADERS, clear_user_caches, get_available_data_types, register_default_loaders)` (NEW)
+    - `storage.user_id (is_valid_user_id)` (NEW)
   - **Standard Library**:
-    - `importlib`
     - `os`
     - `typing (Any)`
     - `uuid`
@@ -6398,12 +6402,11 @@
   - `storage/user_data_index.py`
   - `storage/user_data_summaries.py`
   - `storage/user_data_user_info.py`
-  - `storage/user_data_validation.py`
   - `storage/user_data_write.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.profile_v2_schemas, storage.user_data_registry
-- Removed: core/__init__.py, core/schedule_document_defaults.py, core/service.py, core/user_lookup.py, core/user_management.py, storage/user_data_index.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_validation.py, storage/user_data_write.py
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.profile_v2_schemas, storage.user_data_registry, storage.user_id
+- Removed: core/__init__.py, core/schedule_document_defaults.py, core/service.py, core/user_lookup.py, core/user_management.py, storage/user_data_index.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6511,7 +6514,6 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.ids (generate_short_id)` (NEW)
     - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -6531,14 +6533,12 @@
   - `messages/message_schemas.py`
   - `storage/user_data_index.py`
   - `storage/user_data_summaries.py`
-  - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_handlers.py`
-  - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.ids, core.time_utilities
-- Removed: checkins/checkin_data_manager.py, checkins/checkin_schemas.py, core/chat_interactions_document.py, core/file_operations.py, core/profile_v2_io.py, core/profile_v2_schemas.py, integrations/google_health/schemas.py, messages/message_data_manager.py, messages/message_schemas.py, storage/user_data_index.py, storage/user_data_summaries.py, storage/user_data_v2_envelopes.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py
+- Added: core.error_handling, core.time_utilities
+- Removed: checkins/checkin_data_manager.py, checkins/checkin_schemas.py, core/chat_interactions_document.py, core/file_operations.py, core/profile_v2_io.py, core/profile_v2_schemas.py, integrations/google_health/schemas.py, messages/message_data_manager.py, messages/message_schemas.py, storage/user_data_index.py, storage/user_data_summaries.py, tasks/task_data_handlers.py, tasks/task_schemas.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6548,13 +6548,10 @@
 - **Purpose**: Module for storage/user_data_v2_envelopes.py
 - **Dependencies**:
   - **Local**:
-    - `checkins.checkin_schemas (CheckinCollectionV2Model, CheckinV2Model, validate_checkins_v2_document)` (NEW)
+    - `checkins.checkin_schemas (validate_checkins_v2_document)` (NEW)
     - `core.profile_v2_schemas (validate_account_v2_document, validate_chat_interactions_v2_document, validate_context_v2_document, validate_preferences_v2_document, validate_schedules_v2_document, validate_tags_v2_document)` (NEW)
-    - `messages.message_schemas (MessageDeliveryCollectionV2Model, MessageDeliveryV2Model, MessageTemplateCollectionV2Model, MessageTemplateV2Model, ScheduleModel, validate_deliveries_v2_document, validate_messages_v2_document)` (NEW)
-    - `notebook.notebook_schemas (NotebookCollectionV2Model, NotebookV2Model)` (NEW)
+    - `messages.message_schemas (validate_deliveries_v2_document, validate_messages_v2_document)` (NEW)
     - `notebook.notebook_validation (validate_notebook_v2_document)` (NEW)
-    - `storage.user_data_v2_base (ItemKind, SCHEMA_VERSION, SourceModel, generate_short_id)` (NEW)
-    - `tasks.task_schemas (TaskCollectionV2Model, TaskV2Model)` (NEW)
     - `tasks.task_validation (validate_tasks_v2_document)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -6564,7 +6561,7 @@
   - `storage/user_data_summaries.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_schemas, core.profile_v2_schemas, messages.message_schemas, notebook.notebook_schemas, notebook.notebook_validation, storage.user_data_v2_base, tasks.task_schemas, tasks.task_validation
+- Added: checkins.checkin_schemas, core.profile_v2_schemas, messages.message_schemas, notebook.notebook_validation, tasks.task_validation
 - Removed: storage/user_data_index.py, storage/user_data_summaries.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6582,18 +6579,13 @@
     - `core.profile_v2_schemas (validate_account_v2_document, validate_preferences_v2_document, validate_schedules_v2_document)` (NEW)
     - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
     - `messages.message_data_manager (get_message_categories)` (NEW)
-    - `storage.user_data_read (get_user_data)` (NEW)
   - **Standard Library**:
     - `os`
     - `re`
-    - `time`
     - `typing (Any)`
 - **Used by**:
-  - `communication/command_handlers/base_handler.py`
   - `core/web_user_settings.py`
-  - `integrations/google_health/data_handlers.py`
   - `storage/user_data_write.py`
-  - `tasks/task_data_handlers.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/channel_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
@@ -6603,8 +6595,8 @@
   - `ui/widgets/category_selection_widget.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.profile_v2_io, core.profile_v2_schemas, core.time_utilities, messages.message_data_manager, storage.user_data_read
-- Removed: communication/command_handlers/base_handler.py, core/web_user_settings.py, integrations/google_health/data_handlers.py, storage/user_data_write.py, tasks/task_data_handlers.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/widgets/category_selection_widget.py
+- Added: core.config, core.error_handling, core.logger, core.profile_v2_io, core.profile_v2_schemas, core.time_utilities, messages.message_data_manager
+- Removed: core/web_user_settings.py, storage/user_data_write.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6625,7 +6617,8 @@
     - `storage.user_data_operations (UserDataManager, update_user_index)` (NEW)
     - `storage.user_data_read (get_user_data)` (NEW)
     - `storage.user_data_registry (clear_user_caches, get_available_data_types)` (NEW)
-    - `storage.user_data_validation (is_valid_user_id, validate_new_user_data, validate_user_update)` (NEW)
+    - `storage.user_data_validation (validate_new_user_data, validate_user_update)` (NEW)
+    - `storage.user_id (is_valid_user_id)` (NEW)
   - **Standard Library**:
     - `contextlib`
     - `os`
@@ -6635,8 +6628,26 @@
   - `core/user_management.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.profile_v2_schemas, core.schedule_document_defaults, messages.message_data_manager, storage.user_data_operations, storage.user_data_read, storage.user_data_registry, storage.user_data_validation
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.profile_v2_schemas, core.schedule_document_defaults, messages.message_data_manager, storage.user_data_operations, storage.user_data_read, storage.user_data_registry, storage.user_data_validation, storage.user_id
 - Removed: core/natural_language_defaults.py, core/user_management.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `storage/user_id.py`
+- **Purpose**: Module for storage/user_id.py
+- **Dependencies**: None (no imports)
+- **Used by**:
+  - `communication/command_handlers/base_handler.py`
+  - `core/config.py`
+  - `integrations/google_health/data_handlers.py`
+  - `storage/user_data_read.py`
+  - `storage/user_data_write.py`
+  - `tasks/task_data_handlers.py`
+
+**Dependency Changes**:
+- Removed: communication/command_handlers/base_handler.py, core/config.py, integrations/google_health/data_handlers.py, storage/user_data_read.py, storage/user_data_write.py, tasks/task_data_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6718,10 +6729,11 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (generate_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_timestamp_full, parse_timestamp_full)` (NEW)
-    - `storage.user_data_v2_base (SCHEMA_VERSION, generate_short_id)`
-    - `storage.user_data_validation (is_valid_user_id)`
+    - `storage.user_data_v2_base (SCHEMA_VERSION)`
+    - `storage.user_id (is_valid_user_id)` (NEW)
     - `storage.user_item_storage (ensure_user_subdir, get_user_subdir_path, load_user_json_file, save_user_json_file)`
     - `tasks.task_schemas (TASKS_V2_FILENAME, TaskV2Model)`
   - **Standard Library**:
@@ -6746,7 +6758,7 @@
   - `ui/dialogs/task_edit_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.time_utilities
+- Added: core.error_handling, core.ids, core.logger, core.time_utilities, storage.user_id
 - Removed: ai/context/phraser.py, communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_list_ui.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, communication/reminders/reminder_dispatcher.py, core/web_tasks.py, scheduler/task_reminders.py, tasks/task_breakdown.py, tasks/task_data_manager.py, tasks/task_occurrence_skip.py, tasks/task_reference.py, tasks/task_reminder_snooze.py, tasks/task_service.py, tasks/task_simplify.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6759,12 +6771,12 @@
   - **Local**:
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (generate_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.tags (add_user_tag, ensure_tags_initialized, get_user_tags, remove_user_tag)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `scheduler.user_timezone (user_local_now_naive)` (NEW)
-    - `storage.user_data_v2_base (generate_short_id)`
     - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_task_lists)`
     - `tasks.task_link_helpers (sanitize_task_links)` (NEW)
     - `tasks.task_tag_helpers (sanitize_task_tags)` (NEW)
@@ -6781,7 +6793,7 @@
   - `tasks/task_simplify.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.tags, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone, tasks.task_link_helpers, tasks.task_tag_helpers
+- Added: core, core.error_handling, core.ids, core.logger, core.tags, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone, tasks.task_link_helpers, tasks.task_tag_helpers
 - Removed: core/web_tasks.py, tasks/task_breakdown.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_simplify.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6950,14 +6962,13 @@
   - `communication/message_processing/flows/task_flow.py`
   - `core/file_operations.py`
   - `core/web_tasks.py`
-  - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_service.py`
   - `tasks/task_validation.py`
 
 **Dependency Changes**:
 - Added: core.logger, core.time_utilities, tasks.task_link_helpers, tasks.task_tag_helpers
-- Removed: communication/message_processing/flows/task_flow.py, core/file_operations.py, core/web_tasks.py, storage/user_data_v2_envelopes.py, tasks/task_data_handlers.py, tasks/task_service.py, tasks/task_validation.py
+- Removed: communication/message_processing/flows/task_flow.py, core/file_operations.py, core/web_tasks.py, tasks/task_data_handlers.py, tasks/task_service.py, tasks/task_validation.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

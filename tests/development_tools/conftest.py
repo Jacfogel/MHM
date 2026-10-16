@@ -27,7 +27,17 @@ def _patch_windows_mkdir_mode() -> None:
     def _devtools_safe_mkdir(self, mode=0o777, parents=False, exist_ok=False):
         if mode == 0o700:
             mode = 0o777
-        return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+        try:
+            return original_mkdir(self, mode=mode, parents=parents, exist_ok=exist_ok)
+        except FileNotFoundError:
+            path_str = str(self).replace("\\", "/")
+            if not parents and (
+                "/pytest_runner/" in path_str
+                or "/tests/data/tmp_pytest_runtime/" in path_str
+                or "/tests/data/tmp/" in path_str
+            ):
+                return original_mkdir(self, mode=mode, parents=True, exist_ok=exist_ok)
+            raise
 
     Path.mkdir = _devtools_safe_mkdir
 
@@ -67,12 +77,18 @@ _dev_tools_test_start_times = {}
 _test_logger = logging.getLogger("development_tools.tests")
 
 
+@pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
     """Log when a development_tools test starts with timestamp (DEBUG level only)."""
     try:
         Path.cwd()
     except FileNotFoundError:
         os.chdir(_project_root)
+    basetemp = getattr(getattr(item, "config", None), "option", None)
+    basetemp_value = getattr(basetemp, "basetemp", None)
+    if basetemp_value:
+        with contextlib.suppress(OSError):
+            Path(basetemp_value).mkdir(parents=True, exist_ok=True)
     test_id = item.nodeid
     start_time = datetime.now()
     _dev_tools_test_start_times[test_id] = start_time

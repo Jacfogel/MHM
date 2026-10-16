@@ -82,6 +82,47 @@
   ],
   "removed_inventory": [
     {
+      "id": "user_data_validation_user_id_reexport",
+      "removed_at": "2026-10-14",
+      "search_terms": [
+        "from storage.user_data_validation import is_valid_user_id",
+        "storage.user_data_validation.is_valid_user_id"
+      ],
+      "replacement": "Import is_valid_user_id directly from storage.user_id",
+      "notes": "Migrated task, integration, command-handler, and test callers to the dependency-free canonical predicate and removed the validation-module re-export."
+    },
+    {
+      "id": "validate_user_update_implicit_current_data_read",
+      "removed_at": "2026-10-14",
+      "search_terms": [
+        "_load_current_update_document",
+        "_current_update_document",
+        "_CURRENT_DATA_UNSET"
+      ],
+      "replacement": "Call validate_user_update with an explicit current_data document snapshot",
+      "notes": "Removed the compatibility fallback that imported the read path and retried file reads. Save and direct validation callers now own current-state loading explicitly."
+    },
+    {
+      "id": "user_data_metadata_wrapper",
+      "removed_at": "2026-10-14",
+      "search_terms": [
+        "get_user_data_with_metadata"
+      ],
+      "replacement": "get_user_data(..., include_metadata=True)",
+      "notes": "Removed the one-line read facade and migrated tests to the canonical configurable read API."
+    },
+    {
+      "id": "user_data_schema_reexports",
+      "removed_at": "2026-10-14",
+      "search_terms": [
+        "from storage.user_data_v2_base import generate_short_id",
+        "compatibility re-exports",
+        "documented re-export from core.ids"
+      ],
+      "replacement": "Import generate_short_id from core.ids and schema models from their owning domain modules; use storage.user_data_v2_envelopes only for validate_v2_document",
+      "notes": "Removed cross-module model and ID re-exports from the v2 storage helpers and migrated all active callers to the owning modules."
+    },
+    {
       "id": "account_internal_username_compatibility_field",
       "removed_at": "2026-10-01",
       "search_terms": [

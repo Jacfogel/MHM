@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-12 19:45:42
+> **Last Generated**: 2026-10-14 22:06:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 304
-- **Functions Found**: 3178
+- **Files Scanned**: 305
+- **Functions Found**: 3181
 - **Methods Found**: 1632
 - **Classes Found**: 281
-- **Total Items**: 4810
-- **Functions Documented**: 2823
+- **Total Items**: 4813
+- **Functions Documented**: 2826
 - **Methods Documented**: 1452
 - **Classes Documented**: 214
-- **Total Documented**: 4275
+- **Total Documented**: 4278
 - **Template-Generated**: 66
-- **Last Updated**: 2026-10-12
+- **Last Updated**: 2026-10-14
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -6835,14 +6835,21 @@ indexed; contact identifiers are optional keys.
 #### `storage/user_data_read.py`
 **Functions:**
 - [OK] `_apply_fields_filter(data, data_type, fields)` - Return *data* narrowed to the requested field selection for *data_type*.
+- [OK] `_default_loaders_are_missing()` - Return whether any registered data type lacks a callable loader.
 - [OK] `_finalize_get_user_data_payload(user_id, data_type, data)` - Apply field filtering, optional validation/normalization, schedules shape, and metadata.
+- [OK] `_load_requested_document(user_id, data_type)` - Load one requested document and return it with its registry metadata.
+- [OK] `_requested_data_types(data_types)` - Normalize the public ``data_types`` argument to a new list.
+- [OK] `_user_read_is_allowed(user_id)` - Return whether the requested read may access or create user documents.
+
+A user directory must already exist for every read. Non-creating reads also
+require the canonical account document, matching ``get_all_user_ids``'s
+definition of an existing user without importing the user-management layer.
 - [OK] `clear_user_caches(user_id)` - Clear user data caches (delegate to registry).
 - [OK] `ensure_unique_ids(data)` - Ensure all messages have unique canonical IDs.
 - [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
 
 Returns:
     Dict[str, Any]: User data dictionary, empty dict if failed
-- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
 - [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
 
 #### `storage/user_data_registry.py`
@@ -6961,10 +6968,6 @@ Args:
 
 Returns:
     True if string length is valid, False otherwise
-- [OK] `is_valid_user_id(user_id)` - Validate user_id for filesystem paths, task handlers, updates, and command handlers.
-
-Rules: non-empty string after strip, length at most 100, characters limited to
-ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
 - [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
 - [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
 
@@ -6979,7 +6982,7 @@ Args:
 Returns:
     Tuple of (is_valid, list_of_error_messages)
 - [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
-- [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
+- [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates against the caller's current document snapshot.
 
 #### `storage/user_data_write.py`
 **Functions:**
@@ -7002,6 +7005,10 @@ Returns:
 - [MISSING] `update_user_context(user_id, updates)` - No description
 - [MISSING] `update_user_preferences(user_id, updates)` - No description
 - [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
+
+#### `storage/user_id.py`
+**Functions:**
+- [OK] `is_valid_user_id(user_id)` - Return whether *user_id* is safe for use as one filesystem path segment.
 
 #### `storage/user_item_storage.py`
 **Functions:**

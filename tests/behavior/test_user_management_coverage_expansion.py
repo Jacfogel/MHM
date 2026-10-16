@@ -987,39 +987,47 @@ class TestUserManagementIntegration:
         
         results = []
         errors = []
+
+        def mock_path(user_id, file_type):
+            return os.path.join(self.test_user_dir, f"{file_type}.json")
         
         def user_operation(thread_id):
             try:
-                with patch('storage.user_data_registry.get_user_file_path') as mock_get_path:
-                    def mock_path(user_id, file_type):
-                        return os.path.join(self.test_user_dir, f"{file_type}.json")
-                    mock_get_path.side_effect = mock_path
-                    
-                    with patch('storage.user_data_registry.ensure_user_directory'), \
-                         patch('storage.user_data_registry.save_json_data'), \
-                         patch('storage.user_data_registry.load_json_data', return_value=test_account), \
-                         patch('storage.user_data_registry.validate_account_v2_document') as mock_validate:
-                        mock_validate.return_value = (test_account, [])
+                # Perform operations while the owning test holds the shared
+                # registry patches. Starting/stopping the same module patch in
+                # overlapping threads restores values out of order and can leak
+                # a MagicMock into later tests.
+                for _i in range(10):
+                    _get_user_data__load_account(self.test_user_id)
+                    _save_user_data__save_account(self.test_user_id, test_account)
 
-                        # Perform operations
-                        for _i in range(10):
-                            _get_user_data__load_account(self.test_user_id)
-                            _save_user_data__save_account(self.test_user_id, test_account)
-
-                        results.append(True)
+                results.append(True)
             except Exception as e:
                 errors.append(e)
-        
-        # Create multiple threads
-        threads = []
-        for i in range(5):
-            thread = threading.Thread(target=user_operation, args=(i,))
-            threads.append(thread)
-            thread.start()
-        
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
+
+        with patch(
+            'storage.user_data_registry.get_user_file_path', side_effect=mock_path
+        ), patch(
+            'storage.user_data_registry.ensure_user_directory'
+        ), patch(
+            'storage.user_data_registry.save_json_data'
+        ), patch(
+            'storage.user_data_registry.load_json_data', return_value=test_account
+        ), patch(
+            'storage.user_data_registry.validate_account_v2_document',
+            return_value=(test_account, []),
+        ):
+            # Create multiple threads. The patches are shared read-only test
+            # doubles; only the production cache operations run concurrently.
+            threads = []
+            for i in range(5):
+                thread = threading.Thread(target=user_operation, args=(i,))
+                threads.append(thread)
+                thread.start()
+
+            # Wait for all threads to complete before restoring module globals.
+            for thread in threads:
+                thread.join()
         
         # Assert
         assert len(errors) == 0, f"Should not have threading errors: {errors}"

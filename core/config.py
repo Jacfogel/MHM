@@ -1046,7 +1046,7 @@ def print_configuration_report():
 def get_user_data_dir(user_id: str) -> str:
     """Get the data directory for a specific user."""
     try:
-        from storage.user_data_validation import is_valid_user_id
+        from storage.user_id import is_valid_user_id
 
         if not is_valid_user_id(user_id):
             logger.error(f"Invalid user_id: {user_id}")

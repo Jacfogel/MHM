@@ -21,7 +21,8 @@ from core.time_utilities import (
     parse_timestamp_full,
 )
 from messages.message_schemas import MessageTemplateV2Model
-from storage.user_data_v2_base import SCHEMA_VERSION, generate_short_id
+from core.ids import generate_short_id
+from storage.user_data_v2_base import SCHEMA_VERSION
 import contextlib
 import importlib
 

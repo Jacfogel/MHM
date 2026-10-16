@@ -30,6 +30,18 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-15 - Audit reruns stay scoped after setup errors **COMPLETED**
+- Class-based JUnit results now map back to the real test file, so a few setup errors no longer force the next full audit to rerun every domain from the last suite.
+- Pytest exit code 1 with setup errors is recorded as test failures. Session cleanup keeps a live `pytest_runner` tree, including worker folders that are still in use.
+- Parallel workers now delete the test accounts they create. Each worker clears its own `tests/data/xdist_<worker>/` store at session start and end, and each test removes user directories it added. Missed user lookups were rereading about 3,000 leftover accounts and taking about 26 seconds. Listing those directories uses `os.listdir`, so a test that replaces `Path.iterdir` cannot fail teardown.
+- The audit already running when this landed still uses the previous behavior. The following audit can shrink to the files that actually failed, and its workers start by deleting the leftover accounts.
+
+### 2026-10-14 - User-data reads simplified and compatibility facades removed **COMPLETED**
+- Split `get_user_data` into explicit request, existence-policy, loader, and payload-finalization phases; removed test-only loader healing and broad exception-driven fallbacks. The existence and document-load boundaries now use standard error decorators with safe defaults.
+- Moved canonical user-ID validation into dependency-free `storage/user_id.py`; all callers now import it directly, eliminating both dependency cycles and the temporary validation-module re-export.
+- Existing-user saves load current documents once and pass required snapshots into update validation. The implicit compatibility reader, metadata wrapper, and v2 schema/ID re-exports were removed.
+- Regenerated the function registry with all five missing entries and no stale rows. Focused checks pass 14 read-path and 27 runner tests; Ruff is clean. The standalone changed-domain suite recorded 524 passes, zero failures, and zero errors before its 1,800-second limit; timeouts now report `pytest_timeout` instead of a generic crash reason. A threaded registry test now owns its patches outside worker threads, preventing leaked mocks that caused four order-dependent Tier 3 failures; the contaminating module plus all four regressions pass 50 tests.
+
 ### 2026-10-13 - Notebook saves, user paths, and audit status hardened **COMPLETED**
 - Notebook PATCH requests now validate and persist the complete edited entry in one save, preventing partial title, body, checklist, or tag changes when a later operation fails.
 - Account reads reuse canonical user-ID validation, resolved data paths must stay inside the users root, and debug logs record requested data types instead of personal record payloads.
@@ -114,21 +126,6 @@ Guidelines:
 - Home chat restores failed sends, Home task actions retain a stable target, and task, message, check-in, insight, integration, setup, and account actions use busy locks to prevent duplicate or overlapping requests.
 - Google Health handles blocked popups and expired sessions consistently, while account and sign-in flows provide durable success feedback, specific progress states, normalized verification codes, and better focus recovery.
 - Browser asset versions and regression coverage were expanded, including new message, insight, and integration suites. All 92 browser-script tests pass, focused website Python suites pass with 84 tests in the largest run, and JavaScript syntax and diff checks are clean.
-
-### 2026-10-05 - Channel outages stay bounded and quiet **COMPLETED**
-- Equivalent failed deliveries occupy one retry slot; failure remains bounded, success/exhaustion releases deduplication state, and a later recovery drains the pending delivery.
-- Inbound email polling distinguishes an empty inbox from failure, backs off from 1 to 15 minutes during an outage, resets to 30 seconds on recovery, and logs only outage transitions.
-- Discord startup task failures are consumed by the normal error path, and the log size limit overrides the recent-file guard while preserving repeated same-day rollovers under unique backup names.
-- Expanded verification passes 161 communication tests and 108 logging tests plus Ruff, Pyright, `doc-sync`, and diff checks; planning now consistently marks website chat complete and the website guide no longer claims removed notebook group views.
-- Live account-flow smoke testing confirmed signed-out routing and led to provider-aware sign-in/create UI: only configured providers appear, copy names the actual choices, email-only fallback stays clean, and all 71 website script tests pass.
-
-### 2026-10-04 - Task templates and bulk priority changes shipped **COMPLETED**
-- Website task settings can save, edit, and remove up to 20 validated personal templates; they appear in the website task picker alongside built-ins.
-- `task template <name_with_underscores>` and template listing resolve only the active account's custom templates, while malformed saved definitions cannot disrupt built-ins.
-- Selected active website tasks can now receive one validated priority through the account-scoped bulk endpoint and hosted-site proxy.
-- The desktop/admin app now manages the same custom templates, prefills new tasks from built-in or personal templates, and changes priority for multiple selected active tasks.
-- Custom-template validation now uses `ValidationError`, reference helpers use shared error handling, and the analyzers report zero undocumented functions, zero missing handlers, and zero Phase 1 or Phase 2 findings.
-- Focused Python, Qt, and browser-script coverage verifies storage, validation, lookup, prefills, multi-select updates, endpoint exposure, and settings controls; Ruff and Pyright are clean. The complete suite passed after the template work with 6,053 passed and 28 skipped; the desktop parity run passes 688 UI/shared-task tests with 27 expected skips, and all 70 website script tests pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

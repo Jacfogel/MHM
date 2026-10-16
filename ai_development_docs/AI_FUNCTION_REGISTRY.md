@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-12 19:45:42
+> **Last Generated**: 2026-10-14 22:06:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 88.9% [!] GOOD**
-- **Total Functions**: 3178
+- **Total Functions**: 3181
 - **Total Methods**: 1632
-- **Documented**: 4275/4810
-- **Files Scanned**: 304
+- **Documented**: 4278/4813
+- **Files Scanned**: 305
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -171,7 +171,7 @@ Core System Decision Tree:
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
-- `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
+- `storage/user_data_validation.py` - 3/11 functions undocumented (73% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `ai/fallback/conversational.py` - 2/7 functions undocumented (71% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
@@ -194,8 +194,8 @@ Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::main()` - Complexity: 2820
 2. [OK] `run_tests.py::run_command()` - Complexity: 2212
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1898
-4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
-5. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1431
+4. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1431
+5. [OK] `core/web_account_service.py::oauth_callback()` - Complexity: 1005
 
 
 ### **Pattern Recognition**
@@ -212,7 +212,7 @@ Most complex functions (may need refactoring):
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)
 - `scheduler/` -  (9 files, 121 functions)
-- `storage/` -  (16 files, 144 functions)
+- `storage/` -  (17 files, 147 functions)
 - `tasks/` - Task management system (16 files, 188 functions)
 - `ui/` - User interface components (44 files, 1010 functions)
 - `user/` - User context and preferences (5 files, 52 functions)

@@ -94,7 +94,7 @@ def test_completed_checkin_survives_reload(test_data_dir):
 @pytest.mark.file_io
 def test_notebook_entry_survives_reload(test_data_dir):
     from notebook.notebook_data_handlers import load_entries
-    from storage.user_data_v2_base import generate_short_id
+    from core.ids import generate_short_id
 
     user_id = _user("restart_note", test_data_dir)
     entry = create_note(user_id, title="Restart note", description="keep me")

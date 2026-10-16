@@ -1,17 +1,16 @@
 """
-Read path for user data: get_user_data, get_user_data_with_metadata, caches, ID helpers.
+Read path for user data: get_user_data, caches, and ID helpers.
 
 Uses storage.user_data_registry for loaders and cache clearing.
 """
 
-import importlib
 import os
 import uuid
 from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import get_user_file_path
+from core.config import get_user_data_dir, get_user_file_path
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.profile_v2_io import ensure_profile_envelope
 from core.profile_v2_schemas import (
@@ -22,16 +21,11 @@ from core.profile_v2_schemas import (
 
 from storage.user_data_registry import (
     USER_DATA_LOADERS,
-    register_data_loader,
     register_default_loaders,
     get_available_data_types,
-    _get_user_data__load_account,
-    _get_user_data__load_preferences,
-    _get_user_data__load_context,
-    _get_user_data__load_schedules,
 )
 from storage.user_data_registry import clear_user_caches as _registry_clear_user_caches
-from storage.user_data_validation import is_valid_user_id
+from storage.user_id import is_valid_user_id
 
 logger = get_component_logger("main")
 
@@ -194,6 +188,92 @@ def load_and_ensure_ids(user_id: str) -> None:
     logger.debug(f"Ensured message ids are unique for user '{user_id}'")
 
 
+# ERROR_HANDLING_EXCLUDE: pure registry-state inspection.
+def _default_loaders_are_missing() -> bool:
+    """Return whether any registered data type lacks a callable loader."""
+    return any(
+        not isinstance(info, dict) or not callable(info.get("loader"))
+        for info in USER_DATA_LOADERS.values()
+    )
+
+
+# ERROR_HANDLING_EXCLUDE: pure request normalization.
+def _requested_data_types(data_types: str | list[str]) -> list[str]:
+    """Normalize the public ``data_types`` argument to a new list."""
+    if data_types == "all":
+        return list(USER_DATA_LOADERS)
+    if isinstance(data_types, str):
+        return [data_types]
+    return list(data_types)
+
+
+@handle_errors("checking whether user data may be read", default_return=False)
+def _user_read_is_allowed(user_id: str, *, auto_create: bool) -> bool:
+    """Return whether the requested read may access or create user documents.
+
+    A user directory must already exist for every read. Non-creating reads also
+    require the canonical account document, matching ``get_all_user_ids``'s
+    definition of an existing user without importing the user-management layer.
+    """
+    user_dir = get_user_data_dir(user_id)
+    if not user_dir or not os.path.isdir(user_dir):
+        logger.debug(
+            f"get_user_data: user directory missing for {user_id}; returning empty"
+        )
+        return False
+    if auto_create:
+        return True
+    account_path = get_user_file_path(user_id, "account")
+    if not account_path or not os.path.isfile(account_path):
+        logger.debug(
+            f"get_user_data: account missing for {user_id} with auto_create=False; returning empty"
+        )
+        return False
+    return True
+
+
+@handle_errors("loading a requested user document", default_return=(None, {}))
+def _load_requested_document(
+    user_id: str,
+    data_type: str,
+    *,
+    auto_create: bool,
+) -> tuple[Any, dict[str, Any]]:
+    """Load one requested document and return it with its registry metadata."""
+    loader_info = USER_DATA_LOADERS.get(data_type)
+    if not isinstance(loader_info, dict) or not callable(loader_info.get("loader")):
+        logger.warning(f"No loader registered for data type: {data_type}")
+        return None, {}
+
+    file_type = loader_info.get("file_type")
+    if not isinstance(file_type, str) or not file_type:
+        logger.warning(f"No file type registered for data type: {data_type}")
+        return None, loader_info
+
+    file_path = get_user_file_path(user_id, file_type)
+    loader = loader_info["loader"]
+    loader_name = getattr(loader, "__name__", repr(loader))
+    if not auto_create and (not file_path or not os.path.isfile(file_path)):
+        data = None
+    else:
+        data = loader(user_id, auto_create=auto_create)
+
+    # A concurrent delete must not leak a cached document through a
+    # non-creating read.
+    if not auto_create and (not file_path or not os.path.isfile(file_path)):
+        data = None
+
+    if not data:
+        log = logger.debug if os.getenv("MHM_TESTING") == "1" else logger.warning
+        log(
+            f"No data returned for {data_type} "
+            f"(user={user_id}, path={file_path}, loader={loader_name})"
+        )
+    elif isinstance(data, dict):
+        logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
+    return data, loader_info
+
+
 @handle_errors("getting user data", default_return={})
 def get_user_data(
     user_id: str,
@@ -214,75 +294,14 @@ def get_user_data(
         return {}
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
 
-    try:
-        if any((not info.get("loader")) for info in USER_DATA_LOADERS.values()):
-            register_default_loaders()
-    except Exception:
-        pass
+    if _default_loaders_are_missing():
+        register_default_loaders()
+    if not _user_read_is_allowed(user_id, auto_create=auto_create):
+        return {}
 
-    try:
-        if os.getenv("MHM_TESTING") == "1":
-            loader_state = {
-                k: bool(v.get("loader")) for k, v in USER_DATA_LOADERS.items()
-            }
-            missing = [k for k, v in USER_DATA_LOADERS.items() if not v.get("loader")]
-            logger.debug(f"[TEST] USER_DATA_LOADERS state: {loader_state}")
-            if missing:
-                logger.debug(f"[TEST] Missing loaders detected: {missing}")
-    except Exception:
-        pass
-
-    try:
-        if auto_create is False:
-            from core.config import get_user_data_dir as _get_user_data_dir
-            if not os.path.exists(_get_user_data_dir(user_id)):
-                logger.debug(
-                    f"get_user_data: user directory missing for {user_id} with auto_create=False; returning empty"
-                )
-                return {}
-            try:
-                _gaui = importlib.import_module("core.user_management").get_all_user_ids
-                known_ids = set(_gaui())
-                if user_id not in known_ids:
-                    logger.debug(
-                        f"get_user_data: user {user_id} not in index with auto_create=False; returning empty"
-                    )
-                    return {}
-            except Exception as index_error:
-                logger.debug(f"Index check failed for user {user_id}: {index_error}")
-        elif auto_create is True:
-            from core.config import get_user_data_dir as _get_user_data_dir
-            user_dir = _get_user_data_dir(user_id)
-            if not os.path.exists(user_dir):
-                try:
-                    _gaui = importlib.import_module(
-                        "core.user_management"
-                    ).get_all_user_ids
-                    known_ids = set(_gaui())
-                    if user_id not in known_ids:
-                        logger.debug(
-                            f"get_user_data: user {user_id} not in index and directory missing with auto_create=True; returning empty"
-                        )
-                        return {}
-                except Exception:
-                    pass
-    except Exception:
-        pass
-
-    if data_types == "all":
-        data_types = list(USER_DATA_LOADERS.keys())
-    elif isinstance(data_types, str):
-        data_types = [data_types]
-
+    requested_types = _requested_data_types(data_types)
     available_types = get_available_data_types()
-    try:
-        if os.getenv("MHM_TESTING") == "1":
-            logger.debug(
-                f"[TEST] get_user_data request types={data_types}; available={available_types}"
-            )
-    except Exception:
-        pass
-    invalid_types = [dt for dt in data_types if dt not in available_types]
+    invalid_types = [dt for dt in requested_types if dt not in available_types]
     if invalid_types:
         logger.error(
             f"Invalid data types requested: {invalid_types}. Valid types: {available_types}"
@@ -291,61 +310,12 @@ def get_user_data(
 
     result: dict[str, Any] = {}
 
-    for data_type in data_types:
-        loader_info = USER_DATA_LOADERS.get(data_type)
-        if not loader_info or not loader_info["loader"]:
-            logger.warning(f"No loader registered for data type: {data_type}")
-            continue
-        file_path = get_user_file_path(user_id, loader_info["file_type"])
-        loader_name = getattr(
-            loader_info["loader"], "__name__", repr(loader_info["loader"])
+    for data_type in requested_types:
+        data, loader_info = _load_requested_document(
+            user_id,
+            data_type,
+            auto_create=auto_create,
         )
-        try:
-            if os.getenv("MHM_TESTING") == "1":
-                logger.debug(
-                    f"[TEST] Loading {data_type} for {user_id} path={file_path} via={loader_name} auto_create={auto_create}"
-                )
-        except Exception:
-            pass
-        try:
-            if auto_create is False and not os.path.exists(file_path):
-                data = None
-            else:
-                data = loader_info["loader"](user_id, auto_create=auto_create)
-        except Exception as load_error:
-            logger.warning(
-                f"Failed to load {data_type} for user {user_id}: {load_error}"
-            )
-            data = None
-        if auto_create is False:
-            try:
-                from core.config import get_user_data_dir as _get_user_data_dir
-                user_dir_exists = os.path.exists(_get_user_data_dir(user_id))
-            except Exception:
-                user_dir_exists = False
-            try:
-                _gaui = importlib.import_module(
-                    "core.user_management"
-                ).get_all_user_ids
-                known_ids = set(_gaui())
-                if user_id not in known_ids:
-                    data = None
-            except Exception:
-                pass
-            if not user_dir_exists or not os.path.exists(file_path):
-                data = None
-        if not data:
-            if os.getenv("MHM_TESTING") == "1":
-                logger.debug(
-                    f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
-                )
-            else:
-                logger.warning(
-                    f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
-                )
-        elif isinstance(data, dict):
-            logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
-
         data = _finalize_get_user_data_payload(
             user_id,
             data_type,
@@ -359,145 +329,5 @@ def get_user_data(
         if data is not None:
             result[data_type] = data
 
-    try:
-        # Partial field requests must not be back-filled with full documents (parallel
-        # suite flakes when a transient empty load triggered test-only healing).
-        if os.getenv("MHM_TESTING") == "1" and auto_create and fields is None:
-            try:
-                from core.config import get_user_data_dir as _get_user_data_dir
-                if not os.path.exists(_get_user_data_dir(user_id)):
-                    raise RuntimeError("skip_assembly_nonexistent_user")
-            except Exception:
-                raise
-            requested_types = set(data_types) if isinstance(data_types, list) else set()
-            expected_keys = ["account", "preferences", "context", "schedules"]
-            for key in expected_keys:
-                needs_key = (not result.get(key)) and (
-                    (not requested_types) or (key in requested_types)
-                )
-                if needs_key:
-                    try:
-                        entry = USER_DATA_LOADERS.get(key)
-                        loader = (
-                            entry.get("loader") if isinstance(entry, dict) else None
-                        )
-                        if loader is None:
-                            healing = {
-                                "account": (_get_user_data__load_account, "account"),
-                                "preferences": (
-                                    _get_user_data__load_preferences,
-                                    "preferences",
-                                ),
-                                "context": (
-                                    _get_user_data__load_context,
-                                    "user_context",
-                                ),
-                                "schedules": (
-                                    _get_user_data__load_schedules,
-                                    "schedules",
-                                ),
-                            }.get(key)
-                            if healing is not None:
-                                func, ftype = healing
-                                try:
-                                    register_data_loader(key, func, ftype)
-                                    entry = USER_DATA_LOADERS.get(key)
-                                    loader = (
-                                        entry.get("loader")
-                                        if isinstance(entry, dict)
-                                        else func
-                                    )
-                                except Exception:
-                                    loader = func
-                        if loader is not None:
-                            loaded_val = loader(user_id, True)
-                            if loaded_val is not None:
-                                entry_info = USER_DATA_LOADERS.get(key)
-                                if not isinstance(entry_info, dict):
-                                    entry_info = {}
-                                finalized_asm = _finalize_get_user_data_payload(
-                                    user_id,
-                                    key,
-                                    loaded_val,
-                                    fields=None,
-                                    normalize_on_read=normalize_on_read,
-                                    include_metadata=include_metadata,
-                                    loader_info=entry_info,
-                                )
-                                if finalized_asm is not None:
-                                    result[key] = finalized_asm
-                                continue
-                    except Exception:
-                        pass
-                    try:
-                        from core.config import get_user_file_path as _get_user_file_path
-                        from core.file_operations import load_json_data as _load_json
-                        file_map = {
-                            "account": "account",
-                            "preferences": "preferences",
-                            "context": "context",
-                            "schedules": "schedules",
-                        }
-                        ftype = file_map.get(key)
-                        if ftype is not None:
-                            fpath = _get_user_file_path(user_id, ftype)
-                            data_from_file = _load_json(fpath)
-                            if data_from_file is not None:
-                                entry_info = USER_DATA_LOADERS.get(key)
-                                if not isinstance(entry_info, dict):
-                                    entry_info = {}
-                                finalized_asm = _finalize_get_user_data_payload(
-                                    user_id,
-                                    key,
-                                    data_from_file,
-                                    fields=None,
-                                    normalize_on_read=normalize_on_read,
-                                    include_metadata=include_metadata,
-                                    loader_info=entry_info,
-                                )
-                                if finalized_asm is not None:
-                                    result[key] = finalized_asm
-                    except Exception:
-                        pass
-    except Exception:
-        pass
-
     logger.debug(f"get_user_data returning data types: {sorted(result)}")
-    try:
-        if auto_create is False and isinstance(result, dict):
-            try:
-                _gaui = importlib.import_module(
-                    "core.user_management"
-                ).get_all_user_ids
-                known_ids = set(_gaui())
-                if user_id not in known_ids:
-                    logger.debug(
-                        f"get_user_data final-guard: {user_id} not in index; returning empty under auto_create=False"
-                    )
-                    return {}
-            except Exception:
-                pass
-            filtered: dict[str, Any] = {}
-            for dt_key, dt_val in result.items():
-                try:
-                    loader_info = USER_DATA_LOADERS.get(dt_key, {})
-                    ftype = loader_info.get("file_type")
-                    if not ftype:
-                        continue
-                    fpath = get_user_file_path(user_id, ftype)
-                    if os.path.exists(fpath):
-                        filtered[dt_key] = dt_val
-                except Exception:
-                    continue
-            result = filtered
-    except Exception:
-        pass
     return result
-
-
-@handle_errors("getting user data with metadata", default_return={})
-def get_user_data_with_metadata(
-    user_id: str, data_types: str | list[str] = "all"
-) -> dict[str, Any]:
-    """Get user data with file metadata using centralized system."""
-    return get_user_data(user_id, data_types, include_metadata=True)

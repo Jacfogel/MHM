@@ -98,9 +98,16 @@ class PhaseResult:
             return "crashed"
         if self.return_code not in (0, 5) and self.counts.get("total", 0) == 0:
             return "crashed"
-        if self.counts.get("errors", 0) > 0:
+        # Pytest exit code 1 with setup errors is a finished test run. Only
+        # non-standard exits (usage errors, interrupts) stay crashes, so the
+        # suite cache can record the failed files instead of every domain.
+        if self.counts.get("errors", 0) > 0 and self.return_code not in (0, 1, 5):
             return "crashed"
-        if self.counts.get("failed", 0) > 0 or self.return_code not in (0, 5):
+        if (
+            self.counts.get("failed", 0) > 0
+            or self.counts.get("errors", 0) > 0
+            or self.return_code not in (0, 5)
+        ):
             return "failed"
         return "passed"
 
@@ -279,12 +286,51 @@ def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
             process.terminate()
 
 
+def _junit_case_file_and_node(classname: str, name: str) -> tuple[str | None, str]:
+    """Map a JUnit classname to a test file and a pytest node id.
+
+    Classnames look like ``tests.unit.test_checkin_view.TestCheckinView``.
+    The class segment is not a path. Treating the whole classname as a file
+    made failed-domain tracking miss the real test, so the next audit reran
+    every domain from the previous suite.
+    """
+    test_name = name or "unknown"
+    dotted = (classname or "").strip()
+    if not dotted:
+        if "::" in test_name:
+            return test_name.split("::", 1)[0], test_name
+        return None, test_name
+
+    parts = [part for part in dotted.split(".") if part]
+    file_index: int | None = None
+    for index in range(len(parts), 0, -1):
+        candidate = "/".join(parts[:index]) + ".py"
+        if Path(candidate).is_file():
+            file_index = index
+            break
+
+    class_parts: list[str] = []
+    if file_index is None:
+        module_parts = list(parts)
+        while module_parts and module_parts[-1][:1].isupper():
+            class_parts.append(module_parts.pop())
+        class_parts.reverse()
+        file_parts = module_parts or parts
+        file_rel = "/".join(file_parts) + ".py"
+    else:
+        file_rel = "/".join(parts[:file_index]) + ".py"
+        class_parts = parts[file_index:]
+
+    node = file_rel
+    if class_parts:
+        node += "::" + "::".join(class_parts)
+    node += f"::{test_name}"
+    return file_rel, node
+
+
 def _test_file_rel_from_case(classname: str, name: str) -> str | None:
-    if classname:
-        return f"{classname.replace('.', '/')}.py"
-    if "::" in name:
-        return name.split("::", 1)[0]
-    return None
+    file_rel, _node = _junit_case_file_and_node(classname, name)
+    return file_rel
 
 
 def _parse_junit_by_test_file(xml_path: Path) -> dict[str, dict[str, Any]]:
@@ -319,8 +365,7 @@ def _parse_junit_by_test_file(xml_path: Path) -> dict[str, dict[str, Any]]:
                 counts["errors"] += 1
             else:
                 counts["failed"] += 1
-            node_class = classname.replace(".", "/")
-            node = f"{node_class}.py::{name}" if node_class else name
+            _file_rel, node = _junit_case_file_and_node(classname, name)
             entry["failed_node_ids"].append(node)
         else:
             counts["passed"] += 1
@@ -380,9 +425,9 @@ def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
     for case in root.findall(".//testcase"):
         if case.find("failure") is None and case.find("error") is None:
             continue
-        classname = (case.get("classname") or "").replace(".", "/")
+        classname = case.get("classname") or ""
         name = case.get("name") or "unknown"
-        node = f"{classname}.py::{name}" if classname else name
+        _file_rel, node = _junit_case_file_and_node(classname, name)
         failed_nodes.append(node)
     return counts, sorted(set(failed_nodes))
 
@@ -771,21 +816,30 @@ def _run_phase(
 
 def _track_from_phase(phase: PhaseResult) -> dict[str, Any]:
     classification = phase.classification
-    reason = {
-        "passed": "pytest_passed",
-        "failed": "pytest_failed",
-        "crashed": "pytest_crashed_or_interrupted",
-        "skipped": "no_tests_collected_for_marker",
-    }.get(classification, "unknown")
+    timed_out = phase.interrupted and phase.return_code == 124
+    reason = (
+        "pytest_timeout"
+        if timed_out
+        else {
+            "passed": "pytest_passed",
+            "failed": "pytest_failed",
+            "crashed": "pytest_crashed_or_interrupted",
+            "skipped": "no_tests_collected_for_marker",
+        }.get(classification, "unknown")
+    )
+    actionable_context = ""
+    if timed_out:
+        actionable_context = (
+            "The pytest phase exceeded its configured timeout; inspect partial "
+            "counts and slow or hanging tests before increasing the limit."
+        )
+    elif classification in {"failed", "crashed"}:
+        actionable_context = "Inspect pytest output and JUnit XML for failing tests."
     return {
         "state": classification,
         "classification": classification,
         "classification_reason": reason,
-        "actionable_context": (
-            "Inspect pytest output and JUnit XML for failing tests."
-            if classification in {"failed", "crashed"}
-            else ""
-        ),
+        "actionable_context": actionable_context,
         "log_file": phase.junit_xml,
         "return_code_hex": hex(phase.return_code) if isinstance(phase.return_code, int) else None,
         "return_code": phase.return_code,

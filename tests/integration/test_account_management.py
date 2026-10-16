@@ -263,7 +263,9 @@ def test_account_management_validation():
                 'email': 'test@example.com',
                 'channel': {'type': 'email'}
             }
-            is_valid, errors = validate_user_update('test-user', 'account', valid_updates)
+            is_valid, errors = validate_user_update(
+                "test-user", "account", valid_updates, current_data={}
+            )
             
             if is_valid:
                 logging.getLogger("mhm_tests").info("Account validation: Valid updates accepted")
@@ -280,7 +282,9 @@ def test_account_management_validation():
             invalid_updates = {
                 'account_status': 'invalid'
             }
-            is_valid, errors = validate_user_update('test-user', 'account', invalid_updates)
+            is_valid, errors = validate_user_update(
+                "test-user", "account", invalid_updates, current_data={}
+            )
             
             if not is_valid:
                 logging.getLogger("mhm_tests").info("Account validation: Invalid updates correctly rejected")
@@ -298,7 +302,9 @@ def test_account_management_validation():
                 'categories': ['motivational'],
                 'channel': {'type': 'email'}
             }
-            is_valid, errors = validate_user_update('test-user', 'preferences', valid_prefs)
+            is_valid, errors = validate_user_update(
+                "test-user", "preferences", valid_prefs, current_data={}
+            )
             
             if is_valid:
                 logging.getLogger("mhm_tests").info("Preferences validation: Valid updates accepted")

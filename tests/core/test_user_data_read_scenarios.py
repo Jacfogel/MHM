@@ -16,8 +16,9 @@ from core.file_operations import load_json_data
 from core import clear_user_caches, get_user_data
 from storage.user_data_operations import update_user_index
 from storage.user_data_read import (
+    _load_requested_document,
+    _user_read_is_allowed,
     ensure_unique_ids,
-    get_user_data_with_metadata,
     load_and_ensure_ids,
 )
 
@@ -55,7 +56,7 @@ class TestEnsureUniqueIds:
 @pytest.mark.storage
 @pytest.mark.fast
 class TestGetUserDataFieldsPolicy:
-    """Field-filtered get_user_data must not be expanded by test-only assembly."""
+    """Empty loader results must remain empty without test-only assembly."""
 
     def test_get_user_data_fields_not_backfilled_when_loader_empty(
         self, mock_user_data, monkeypatch
@@ -77,6 +78,63 @@ class TestGetUserDataFieldsPolicy:
         clear_user_caches(uid)
         result = get_user_data(uid, "preferences", fields="channel")
         assert result == {}
+
+    def test_get_user_data_does_not_heal_empty_loader_in_test_mode(
+        self, mock_user_data, monkeypatch
+    ):
+        """A loader result is authoritative even while the test environment is active."""
+        import storage.user_data_registry as reg
+
+        uid = mock_user_data["user_id"]
+        clear_user_caches(uid)
+
+        def _empty_preferences(_user_id: str, auto_create: bool = True):
+            return None
+
+        monkeypatch.setitem(
+            reg.USER_DATA_LOADERS["preferences"],
+            "loader",
+            _empty_preferences,
+        )
+        assert get_user_data(uid, "preferences") == {}
+
+    def test_user_read_permission_failure_returns_false(self, monkeypatch):
+        """Unexpected path-resolution failures must deny the read safely."""
+        import storage.user_data_read as user_data_read
+
+        def _raise_path_error(_user_id: str):
+            raise OSError("path lookup failed")
+
+        monkeypatch.setattr(user_data_read, "get_user_data_dir", _raise_path_error)
+
+        assert _user_read_is_allowed("test-user", auto_create=True) is False
+
+    def test_requested_document_loader_failure_returns_empty_result(self, monkeypatch):
+        """Unexpected loader failures must not escape the read boundary."""
+        import storage.user_data_read as user_data_read
+
+        def _raise_loader_error(_user_id: str, *, auto_create: bool = True):
+            raise OSError("loader failed")
+
+        monkeypatch.setattr(
+            user_data_read,
+            "USER_DATA_LOADERS",
+            {
+                "failing": {
+                    "loader": _raise_loader_error,
+                    "file_type": "preferences",
+                }
+            },
+        )
+        monkeypatch.setattr(
+            user_data_read,
+            "get_user_file_path",
+            lambda _user_id, _file_type: "unused.json",
+        )
+
+        assert _load_requested_document(
+            "test-user", "failing", auto_create=True
+        ) == (None, {})
 
 
 @pytest.mark.integration
@@ -148,9 +206,9 @@ class TestGetUserDataReadPath:
         )
         assert mapped["preferences"] == {"channel": {"type": "email"}}
 
-    def test_get_user_data_with_metadata_attaches_file_info(self, mock_user_data):
+    def test_get_user_data_include_metadata_attaches_file_info(self, mock_user_data):
         uid = mock_user_data["user_id"]
-        result = get_user_data_with_metadata(uid, "account")
+        result = get_user_data(uid, "account", include_metadata=True)
         account = result.get("account")
         assert isinstance(account, dict)
         meta = account.get("_metadata")

@@ -8,6 +8,7 @@ import os
 import json
 import shutil
 import pytest
+from pathlib import Path
 from unittest.mock import patch
 
 from tests.conftest import (
@@ -591,6 +592,10 @@ def cleanup_tmp_at_session_end():
         tmp_dir = tests_data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
+                # pytest_runner holds the live xdist basetemp. Deleting it at
+                # session end races workers that are still setting up tests.
+                if child.name in {"pytest_runner", "pytest_cache"}:
+                    continue
                 if child.is_dir():
                     shutil.rmtree(child, ignore_errors=True)
                 else:
@@ -946,67 +951,111 @@ def update_user_index_for_test(test_data_dir):
 #         yield
 
 
-# --- CLEANUP FIXTURE: Remove test users from tests/data/users/ after all tests (NEVER touches real user data) ---
-def _cleanup_test_user_artifacts() -> None:
-    """Remove test users from tests/data/users/ after all tests."""
-    # Clear all user caches to prevent state pollution between test runs
+def _test_data_root() -> Path:
+    """Repository test-data root. Real accounts live in data/users, never here."""
+    return (Path(project_root) / "tests" / "data").resolve()
+
+
+def _is_test_data_path(path: Path) -> bool:
+    """True when path is tests/data or a directory inside it."""
+    resolved = Path(path).resolve()
+    root = _test_data_root()
+    return resolved == root or root in resolved.parents
+
+
+def _clear_user_store(data_dir: Path) -> None:
+    """Remove accounts and user_index.json under one test data directory.
+
+    Parallel workers each own tests/data/xdist_<worker>/. Those directories are
+    test data, including UUID account folders. Production accounts stay in data/users.
+    """
+    data_dir = Path(data_dir)
+    if not _is_test_data_path(data_dir):
+        return
     try:
         from core import clear_user_caches
 
-        clear_user_caches()  # Clear all caches
+        clear_user_caches()
     except Exception:
-        pass  # Ignore errors during cleanup
-
-    # Only clean up test directories, NEVER real user data
-    for base_dir in ["tests/data/users"]:
-        abs_dir = os.path.abspath(base_dir)
-        if os.path.exists(abs_dir):
-            for item in os.listdir(abs_dir):
-                # Clean up ONLY test directories (test-*, test_*, testuser*)
-                # NEVER clean up UUID directories - these are real users!
-                if (
-                    item.startswith("test-")
-                    or item.startswith("test_")
-                    or item.startswith("testuser")
-                ):
-                    item_path = os.path.join(abs_dir, item)
-                    try:
-                        if os.path.isdir(item_path):
-                            shutil.rmtree(item_path)
-                        else:
-                            os.remove(item_path)
-                    except Exception:
-                        pass
-
-    # Additional cleanup: Remove ALL directories in tests/data/users/ for complete isolation
-    # This ensures no test data persists between test runs
-    test_users_dir = os.path.abspath("tests/data/users")
-    if os.path.exists(test_users_dir):
-        for item in os.listdir(test_users_dir):
-            item_path = os.path.join(test_users_dir, item)
+        pass
+    users_dir = data_dir / "users"
+    if users_dir.is_dir():
+        for child in list(users_dir.iterdir()):
             try:
-                if os.path.isdir(item_path):
-                    shutil.rmtree(item_path)
+                if child.is_dir():
+                    shutil.rmtree(child, ignore_errors=True)
                 else:
-                    os.remove(item_path)
-            except Exception:
+                    child.unlink(missing_ok=True)
+            except OSError:
                 pass
+    for name in ("user_index.json", "user_index.json.lock"):
+        index_path = data_dir / name
+        with contextlib.suppress(OSError):
+            if index_path.is_file():
+                index_path.unlink()
 
-    # Also clean up the user index file to prevent stale entries
-    test_data_dir = os.path.abspath("tests/data")
-    user_index_file = os.path.join(test_data_dir, "user_index.json")
-    if os.path.exists(user_index_file):
-        with contextlib.suppress(Exception):
-            os.remove(user_index_file)
+
+def _user_dir_names(users_dir: Path) -> set[str]:
+    if not users_dir.is_dir():
+        return set()
+    try:
+        # os.listdir, not Path.iterdir: some tests replace Path.iterdir and
+        # that patch is still in place while this fixture tears down.
+        return set(os.listdir(users_dir))
+    except OSError:
+        return set()
+
+
+def _remove_new_user_dirs(data_dir: Path, existing_names: set[str]) -> None:
+    """Delete user directories created after existing_names was captured."""
+    data_dir = Path(data_dir)
+    if not _is_test_data_path(data_dir):
+        return
+    users_dir = data_dir / "users"
+    for name in _user_dir_names(users_dir) - existing_names:
+        child = users_dir / name
+        try:
+            if child.is_dir():
+                shutil.rmtree(child, ignore_errors=True)
+            elif child.exists():
+                child.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+# --- CLEANUP FIXTURE: Remove test users after tests (NEVER touches real user data) ---
+def _cleanup_test_user_artifacts() -> None:
+    """Remove accounts from this process's test data directory."""
+    _clear_user_store(tests_data_dir)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def remove_users_created_during_test():
+    """Drop accounts this test created so later tests do not scan them.
+
+    Users that already existed (module or class fixtures) stay in place.
+    """
+    users_dir = tests_data_dir / "users"
+    existing = _user_dir_names(users_dir)
+    yield
+    _remove_new_user_dirs(tests_data_dir, existing)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_users_after_session():
-    """Remove test users from tests/data/users/ after all tests. NEVER touches real user data."""
-    yield  # Run all tests first
+    """Remove test users from this process's store. NEVER touches real user data.
 
+    Each xdist worker has its own tests/data/xdist_<worker>/ tree. Workers used to
+    return without cleaning, so UUID accounts piled up across audits and every
+    missed user lookup reread them. A worker may clear only its own store.
+    """
     if os.environ.get("PYTEST_XDIST_WORKER"):
+        _clear_user_store(tests_data_dir)
+        yield
+        _clear_user_store(tests_data_dir)
         return
+
+    yield  # Run all tests first
 
     _cleanup_test_user_artifacts()
     base_test_data_dir = str(tests_data_dir)

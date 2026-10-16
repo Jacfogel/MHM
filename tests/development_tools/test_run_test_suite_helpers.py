@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any, cast
 
@@ -137,11 +138,45 @@ def test_phase_classification_and_aggregate_states(tmp_path: Path):
         junit_xml=str(tmp_path / "crashed.xml"),
     )
 
+    setup_errors = runner.PhaseResult(
+        name="parallel",
+        command=[],
+        return_code=1,
+        duration_seconds=0.1,
+        counts={"total": 3, "passed": 1, "failed": 0, "errors": 2, "skipped": 0},
+        failed_node_ids=["tests/unit/test_checkin_view.py::TestCheckinView::test_one"],
+        output_tail="",
+        junit_xml=str(tmp_path / "errors.xml"),
+    )
+
     assert passed.classification == "passed"
     assert failed.classification == "failed"
+    assert setup_errors.classification == "failed"
     assert crashed.classification == "crashed"
     assert runner._aggregate([passed, failed])["state"] == "test_failures"
+    assert runner._aggregate([setup_errors])["state"] == "test_failures"
     assert runner._aggregate([crashed])["state"] == "crashed"
+
+
+@pytest.mark.unit
+def test_timeout_track_reports_timeout_instead_of_generic_crash(tmp_path: Path):
+    timed_out = runner.PhaseResult(
+        name="parallel",
+        command=["pytest"],
+        return_code=124,
+        duration_seconds=30.0,
+        counts={"total": 7, "passed": 7, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="",
+        junit_xml=str(tmp_path / "parallel.xml"),
+        interrupted=True,
+    )
+
+    track = runner._track_from_phase(timed_out)
+
+    assert track["classification"] == "crashed"
+    assert track["classification_reason"] == "pytest_timeout"
+    assert "exceeded its configured timeout" in track["actionable_context"]
 
 
 @pytest.mark.unit
@@ -311,6 +346,31 @@ def test_parse_junit_by_test_file_groups_counts(tmp_path: Path):
     assert by_file["tests/unit/test_alpha.py"]["counts"]["total"] == 2
     assert by_file["tests/unit/test_alpha.py"]["counts"]["failed"] == 1
     assert "tests/unit/test_alpha.py::test_two" in by_file["tests/unit/test_alpha.py"]["failed_node_ids"]
+
+
+@pytest.mark.unit
+def test_parse_junit_maps_class_cases_to_existing_test_file(tmp_path: Path):
+    xml = tmp_path / "results.xml"
+    xml.write_text(
+        """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite tests="1" failures="0" errors="1" skipped="0">
+    <testcase classname="tests.unit.test_checkin_view.TestCheckinView" name="test_cancel_checkin_button_handler_with_valid_user">
+      <error message="FileNotFoundError"/>
+    </testcase>
+  </testsuite>
+</testsuites>
+""",
+        encoding="utf-8",
+    )
+    counts, nodes = runner._parse_junit(xml)
+    assert counts["errors"] == 1
+    assert nodes == [
+        "tests/unit/test_checkin_view.py::TestCheckinView::test_cancel_checkin_button_handler_with_valid_user"
+    ]
+    by_file = runner._parse_junit_by_test_file(xml)
+    assert "tests/unit/test_checkin_view.py" in by_file
+    assert Path("tests/unit/test_checkin_view.py").is_file()
 
 
 @pytest.mark.unit
@@ -681,3 +741,24 @@ def test_invoke_pytest_returns_structured_result_when_timeout_cleanup_stalls(
     assert result.return_code == 124
     assert result.output_tail == "drained output"
     assert process.kill_calls == 1
+
+
+@pytest.mark.unit
+def test_runner_cleanup_keeps_active_worker_dir_and_drops_stale_runs(tmp_path: Path):
+    from tests.test_helpers.test_support.conftest_cleanup_impl import (
+        _clear_pytest_runner_directory_contents,
+    )
+
+    runner_dir = tmp_path / "pytest_runner"
+    live_worker = runner_dir / "20261015_005651" / "parallel" / "popen-gw4"
+    live_worker.mkdir(parents=True)
+    stale = runner_dir / "20200101_000000"
+    stale.mkdir()
+    old_ts = time.time() - (4 * 60 * 60)
+    os.utime(stale, (old_ts, old_ts))
+    os.utime(runner_dir / "20261015_005651", (old_ts, old_ts))
+
+    _clear_pytest_runner_directory_contents(runner_dir, active_basetemp=None)
+
+    assert live_worker.is_dir()
+    assert not stale.exists()

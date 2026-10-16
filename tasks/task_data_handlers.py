@@ -8,7 +8,7 @@ from typing import Any, cast
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from storage.user_data_validation import is_valid_user_id
+from storage.user_id import is_valid_user_id
 from storage.user_item_storage import (
     ensure_user_subdir,
     get_user_subdir_path,
@@ -17,7 +17,8 @@ from storage.user_item_storage import (
 )
 
 from core.time_utilities import now_timestamp_full, parse_timestamp_full
-from storage.user_data_v2_base import SCHEMA_VERSION, generate_short_id
+from core.ids import generate_short_id
+from storage.user_data_v2_base import SCHEMA_VERSION
 from tasks.task_schemas import TASKS_V2_FILENAME, TaskV2Model
 
 logger = get_component_logger("main")

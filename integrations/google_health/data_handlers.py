@@ -12,7 +12,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
-from storage.user_data_validation import is_valid_user_id
+from storage.user_id import is_valid_user_id
 from storage.user_item_storage import (
     ensure_user_subdir,
     get_user_subdir_path,

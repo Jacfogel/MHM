@@ -32,7 +32,7 @@ from notebook.notebook_data_manager import (
     get_entry,
     pin_entry,
 )
-from storage.user_data_v2_base import generate_short_id
+from core.ids import generate_short_id
 from tasks import load_active_tasks
 from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import TestUserFactory

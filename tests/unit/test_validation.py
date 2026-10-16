@@ -214,16 +214,33 @@ class TestUserUpdateValidation:
             "account_status": "active"
         }
         
-        # Mock get_user_data to return existing account
-        with patch('storage.user_data_read.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                "account": {"email": "existing@example.com"}
-            }
-            
-            is_valid, errors = validate_user_update(user_id, 'account', updates)
-            
-            assert is_valid is True, f"Account update should be valid, got errors: {errors}"
-            assert len(errors) == 0, f"Should have no errors, got: {errors}"
+        is_valid, errors = validate_user_update(
+            user_id,
+            "account",
+            updates,
+            current_data={"email": "existing@example.com"},
+        )
+
+        assert is_valid is True, f"Account update should be valid, got errors: {errors}"
+        assert len(errors) == 0, f"Should have no errors, got: {errors}"
+
+    @pytest.mark.unit
+    @pytest.mark.user
+    def test_validate_user_update_uses_current_document(self):
+        """Update validation merges changes into the supplied current document."""
+        is_valid, errors = validate_user_update(
+            "test-user",
+            "account",
+            {"email": "new@example.com"},
+            current_data={
+                "user_id": "test-user",
+                "email": "old@example.com",
+                "account_status": "active",
+            },
+        )
+
+        assert is_valid is True
+        assert errors == []
     
     @pytest.mark.unit
     @pytest.mark.user
@@ -236,18 +253,14 @@ class TestUserUpdateValidation:
         }
         
         # Account identity is the canonical UUID, so no display label is required.
-        with patch('storage.user_data_read.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                "account": {"email": "old@example.com"}  # No test_label
-            }
-            
-            # Mock get_user_file_path to simulate existing account file
-            with patch.object(core.config, 'get_user_file_path') as mock_file_path:
-                mock_file_path.return_value = os.path.join(test_data_dir, "users", user_id, "account.json")
-                
-                is_valid, errors = validate_user_update(user_id, 'account', updates)
-                
-                assert is_valid is True, f"Account update should be valid with Pydantic validation, got errors: {errors}"
+        is_valid, errors = validate_user_update(
+            user_id,
+            "account",
+            updates,
+            current_data={"email": "old@example.com"},
+        )
+
+        assert is_valid is True, f"Account update should be valid with Pydantic validation, got errors: {errors}"
     
     @pytest.mark.unit
     @pytest.mark.user
@@ -259,17 +272,16 @@ class TestUserUpdateValidation:
             "account_status": "invalid_status"
         }
         
-        # Mock get_user_data to return existing account
-        with patch('storage.user_data_read.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                "account": {"email": "existing@example.com"}
-            }
-            
-            is_valid, errors = validate_user_update(user_id, 'account', updates)
-            
-            # Pydantic validation provides different error messages than old validation
-            assert is_valid is False, "Account update should be invalid"
-            assert "Input should be 'active', 'inactive' or 'suspended'" in errors[0]
+        is_valid, errors = validate_user_update(
+            user_id,
+            "account",
+            updates,
+            current_data={"email": "existing@example.com"},
+        )
+
+        # Pydantic validation provides different error messages than old validation
+        assert is_valid is False, "Account update should be invalid"
+        assert "Input should be 'active', 'inactive' or 'suspended'" in errors[0]
     
     @pytest.mark.unit
     @pytest.mark.user
@@ -281,17 +293,16 @@ class TestUserUpdateValidation:
             "email": "invalid-email"
         }
         
-        # Mock get_user_data to return existing account
-        with patch('storage.user_data_read.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                "account": {"email": "existing@example.com"}
-            }
-            
-            is_valid, errors = validate_user_update(user_id, 'account', updates)
-            
-            # Pydantic validation normalizes invalid emails to empty string instead of failing
-            # The test expectation was based on old validation logic
-            assert is_valid is True, f"Account update should be valid with Pydantic validation, got errors: {errors}"
+        is_valid, errors = validate_user_update(
+            user_id,
+            "account",
+            updates,
+            current_data={"email": "existing@example.com"},
+        )
+
+        # Pydantic validation normalizes invalid emails to empty string instead of failing
+        # The test expectation was based on old validation logic
+        assert is_valid is True, f"Account update should be valid with Pydantic validation, got errors: {errors}"
     
     @pytest.mark.unit
     @pytest.mark.user
@@ -308,7 +319,9 @@ class TestUserUpdateValidation:
         with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
             
-            is_valid, errors = validate_user_update(user_id, 'preferences', updates)
+            is_valid, errors = validate_user_update(
+                user_id, "preferences", updates, current_data={}
+            )
             
             assert is_valid is True, f"Preferences update should be valid, got errors: {errors}"
             assert len(errors) == 0, f"Should have no errors, got: {errors}"
@@ -327,7 +340,9 @@ class TestUserUpdateValidation:
         with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
 
-            is_valid, errors = validate_user_update(user_id, 'preferences', updates)
+            is_valid, errors = validate_user_update(
+                user_id, "preferences", updates, current_data={}
+            )
 
             # Pydantic validation now correctly validates category membership
             assert is_valid is False, "Preferences update should be invalid with invalid categories, got valid"
@@ -343,7 +358,9 @@ class TestUserUpdateValidation:
             "channel": {"type": "invalid_channel"}
         }
         
-        is_valid, errors = validate_user_update(user_id, 'preferences', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "preferences", updates, current_data={}
+        )
         
         # Pydantic validation provides different error messages than old validation
         assert is_valid is False, "Preferences update should be invalid"
@@ -360,7 +377,9 @@ class TestUserUpdateValidation:
             "custom_fields": {"health_conditions": ["diabetes"]}
         }
         
-        is_valid, errors = validate_user_update(user_id, 'context', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "context", updates, current_data={}
+        )
         
         assert is_valid is True, f"Context update should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
@@ -375,7 +394,9 @@ class TestUserUpdateValidation:
             "date_of_birth": "1990/01/01"  # Wrong format
         }
         
-        is_valid, errors = validate_user_update(user_id, 'context', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "context", updates, current_data={}
+        )
         
         assert is_valid is False, "Context update should be invalid"
         assert "date_of_birth must be in YYYY-MM-DD format" in errors
@@ -390,7 +411,9 @@ class TestUserUpdateValidation:
             "custom_fields": "not_a_dict"
         }
         
-        is_valid, errors = validate_user_update(user_id, 'context', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "context", updates, current_data={}
+        )
         
         assert is_valid is False, "Context update should be invalid"
         assert "custom_fields must be a dictionary" in errors
@@ -414,7 +437,9 @@ class TestUserUpdateValidation:
             }
         }
         
-        is_valid, errors = validate_user_update(user_id, 'schedules', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "schedules", updates, current_data={}
+        )
         
         assert is_valid is True, f"Schedules update should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
@@ -438,7 +463,9 @@ class TestUserUpdateValidation:
             }
         }
         
-        is_valid, errors = validate_user_update(user_id, 'schedules', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "schedules", updates, current_data={}
+        )
         
         # Pydantic validation normalizes invalid times to "00:00" instead of failing
         # The test expectation was based on old validation logic
@@ -463,7 +490,9 @@ class TestUserUpdateValidation:
             }
         }
         
-        is_valid, errors = validate_user_update(user_id, 'schedules', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "schedules", updates, current_data={}
+        )
         
         # Pydantic validation doesn't validate time order like old validation did
         # The test expectation was based on old validation logic
@@ -488,7 +517,9 @@ class TestUserUpdateValidation:
             }
         }
         
-        is_valid, errors = validate_user_update(user_id, 'schedules', updates)
+        is_valid, errors = validate_user_update(
+            user_id, "schedules", updates, current_data={}
+        )
         
         # Pydantic validation filters invalid days instead of failing
         # The test expectation was based on old validation logic
@@ -527,11 +558,9 @@ class TestUserUpdateValidation:
             },
         }
 
-        with patch(
-            "storage.user_data_read.get_user_data",
-            return_value={"schedules": polluted_current},
-        ):
-            is_valid, errors = validate_user_update(user_id, "schedules", updates)
+        is_valid, errors = validate_user_update(
+            user_id, "schedules", updates, current_data=polluted_current
+        )
 
         assert is_valid is True, f"Envelope metadata should be stripped before validation: {errors}"
 
@@ -1193,13 +1222,19 @@ class TestValidationIntegration:
             assert is_valid is True, f"New user validation failed: {errors}"
             
             # Test individual component validations
-            account_valid, account_errors = validate_user_update(user_id, 'account', data_updates['account'])
+            account_valid, account_errors = validate_user_update(
+                user_id, "account", data_updates["account"], current_data={}
+            )
             assert account_valid is True, f"Account validation failed: {account_errors}"
             
-            prefs_valid, prefs_errors = validate_user_update(user_id, 'preferences', data_updates['preferences'])
+            prefs_valid, prefs_errors = validate_user_update(
+                user_id, "preferences", data_updates["preferences"], current_data={}
+            )
             assert prefs_valid is True, f"Preferences validation failed: {prefs_errors}"
             
-            context_valid, context_errors = validate_user_update(user_id, 'context', data_updates['context'])
+            context_valid, context_errors = validate_user_update(
+                user_id, "context", data_updates["context"], current_data={}
+            )
             assert context_valid is True, f"Context validation failed: {context_errors}"
             
             personalization_valid, personalization_errors = validate_personalization_data(data_updates['context'])
