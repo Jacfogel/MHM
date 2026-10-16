@@ -6,12 +6,12 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from core.resource_paths import shipped_resource_path
 from storage.user_data_write import update_user_preferences
 from tasks.task_time_parsing import parse_time_string
 
@@ -47,7 +47,7 @@ def _load_builtin_defaults_dict() -> dict[str, Any]:
     if _BUILTIN_DEFAULTS_DICT_CACHE is not None:
         return _BUILTIN_DEFAULTS_DICT_CACHE
 
-    resource_path = Path(__file__).parent.parent / "resources" / _RESOURCE_FILENAME
+    resource_path = shipped_resource_path(_RESOURCE_FILENAME)
     try:
         with open(resource_path, encoding="utf-8") as handle:
             raw = json.load(handle)

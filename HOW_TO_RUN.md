@@ -24,24 +24,25 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 1.2. Step 2: Install Dependencies
-```powershell
-# Make sure your virtual environment is activated (you should see (.venv) in your prompt)
-pip install -r requirements.txt
-```
-
-### 1.3. Step 3: Install the Project in Editable Mode
-Editable installation keeps the `core`, `communication`, `ui`, and `tasks` packages on the
-Python path so you never need manual `sys.path` tweaks.
+### 1.2. Step 2: Install MHM and Its Dependencies
+Editable installation keeps the application packages on the Python path and installs the
+runtime dependencies declared by the project. Python 3.11 or newer is required.
 
 ```powershell
-pip install -e .
+# Headless service and browser gateway
+python -m pip install -e .
 
-# If you want the optional UI dependencies in one step
-pip install -e .[ui]
+# Desktop UI
+python -m pip install -e ".[ui]"
+
+# Contributor tools and desktop UI
+python -m pip install -e ".[dev,ui]"
 ```
 
-### 1.4. Step 4: Configure Environment (Optional)
+`requirements.txt` remains the auditable, all-in-one dependency inventory used by the
+development tooling; it is not required in addition to the editable install above.
+
+### 1.3. Step 3: Configure Environment (Optional)
 The system uses sensible defaults, but you can customize settings in `.env`.
 
 For the canonical list of settings, what they do, and common failure modes, see:
@@ -139,7 +140,7 @@ gateway configuration, and account creation behavior.
 
 If you run the development tools full audit on this or another PC:
 
-- **Dependencies**: `pip install -r requirements.txt` installs everything needed, including `pytest-cov` for coverage. No extra steps are required.
+- **Dependencies**: `python -m pip install -e ".[dev,ui]"` installs the application, desktop UI, and audit tools, including `pytest-cov`.
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
 - **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
 
@@ -202,14 +203,14 @@ Make sure your virtual environment is activated. You should see `(.venv)` at the
 ### 6.2. Import errors
 Try reinstalling dependencies in your virtual environment:
 ```powershell
-pip install -r requirements.txt
+python -m pip install -e ".[ui]" --force-reinstall
 ```
 
 ### 6.3. Environment variable issues
 Ensure your `.env` file (if used) is correctly configured and that you restarted the app after changes.
 
 ### 6.4. Python version problems
-MHM expects a reasonably recent Python 3 version (for example 3.11). If you see syntax errors on valid code, check your Python version:
+MHM requires Python 3.11 or newer. If you see syntax errors on valid code, check your Python version:
 ```powershell
 python --version
 ```
@@ -217,7 +218,7 @@ python --version
 ### 6.5. Development tools audit fails with "unrecognized arguments: --cov"
 The full audit needs `pytest-cov` for coverage. Install or refresh dependencies:
 ```powershell
-pip install -r requirements.txt
+python -m pip install -e ".[dev,ui]"
 ```
 Then run `python development_tools/run_development_tools.py audit --full` again.
 
@@ -238,7 +239,7 @@ If `.\.venv\Scripts\Activate.ps1` fails:
 ```powershell
 deactivate
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+python -m pip install -e ".[ui]" --force-reinstall
 ```
 
 **Q: Can I run the service without the admin panel?**

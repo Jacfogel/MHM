@@ -287,7 +287,11 @@ class DiscordBot(
                             if len(args) in (4, 5):
                                 result = await self._send_message_internal(*args)
                             else:
-                                logger.error(f"Invalid send_message args: {args}")
+                                logger.error(
+                                    "Invalid queued send_message arguments",
+                                    argument_count=len(args),
+                                    argument_types=[type(value).__name__ for value in args],
+                                )
                                 result = False
                         except Exception as exc:
                             logger.error(
@@ -564,7 +568,7 @@ class DiscordBot(
             logger.error(f"Invalid recipient: {recipient}")
             return False
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid Discord message", message_type=type(message).__name__)
             return False
         if not self.is_ready():
             logger.error("Discord bot is not ready to send messages")
@@ -596,7 +600,7 @@ class DiscordBot(
             logger.error(f"Invalid user_id: {user_id}")
             return False
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid Discord DM message", message_type=type(message).__name__)
             return False
         return await self.send_message(user_id, message)
 

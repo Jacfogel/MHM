@@ -58,7 +58,7 @@ class MessageRouteClassifier:
     def route_message(self, message: str) -> RoutingResult:
         """Classify a message and return routing metadata."""
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid message for routing", message_type=type(message).__name__)
             return RoutingResult(MessageType.UNKNOWN)
 
         message_stripped = message.strip()
@@ -72,7 +72,7 @@ class MessageRouteClassifier:
     def _route_prefixed_command(self, message: str, prefix: str) -> RoutingResult:
         """Classify a slash or bang command with validation."""
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid prefixed message", message_type=type(message).__name__)
             return RoutingResult(MessageType.UNKNOWN)
 
         lowered = message.lower()

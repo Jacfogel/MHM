@@ -400,6 +400,20 @@ class ComponentLogger:
         """Log error message with optional structured data."""
         self._log(logging.ERROR, message, **kwargs)
 
+    @handle_errors("logging exception")
+    def exception(self, message: str, *, redact_exception: bool = False, **kwargs):
+        """Log the active traceback, optionally replacing its exception message."""
+        if redact_exception:
+            active = sys.exc_info()
+            if active[0] is not None and active[2] is not None:
+                sanitized = RuntimeError("Exception message redacted")
+                kwargs["exc_info"] = (RuntimeError, sanitized, active[2])
+            else:
+                kwargs["exc_info"] = True
+        else:
+            kwargs["exc_info"] = True
+        self._log(logging.ERROR, message, **kwargs)
+
     @handle_errors("logging critical message")
     def critical(self, message: str, **kwargs):
         """Log critical message with optional structured data."""
@@ -408,6 +422,11 @@ class ComponentLogger:
     @handle_errors("internal logging method")
     def _log(self, level: int, message: str, **kwargs):
         """Internal logging method with structured data support."""
+        logging_kwargs = {
+            key: kwargs.pop(key)
+            for key in ("exc_info", "stack_info", "stacklevel")
+            if key in kwargs
+        }
         if kwargs:
             # Add structured data to message
             structured_data = json.dumps(kwargs, default=str)
@@ -415,7 +434,7 @@ class ComponentLogger:
         else:
             full_message = message
 
-        self.logger.log(level, full_message)
+        self.logger.log(level, full_message, **logging_kwargs)
 
 
 class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
@@ -1017,6 +1036,10 @@ def get_component_logger(component_name: str) -> ComponentLogger:
 
                 def error(self, message: str, **kwargs):
                     """No-op error logging for test mode."""
+                    pass
+
+                def exception(self, message: str, **kwargs):
+                    """No-op exception logging for test mode."""
                     pass
 
                 def critical(self, message: str, **kwargs):

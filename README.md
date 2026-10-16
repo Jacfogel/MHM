@@ -244,7 +244,7 @@ If you see errors like "python is not recognized" or `ModuleNotFoundError`:
 3. Reinstall dependencies:
 
    ```powershell
-   pip install -r requirements.txt --force-reinstall
+   python -m pip install -e ".[dev,ui]" --force-reinstall
    ```
 
 ### 11.2. Service will not start

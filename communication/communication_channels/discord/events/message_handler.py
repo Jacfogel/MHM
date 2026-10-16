@@ -23,7 +23,11 @@ async def handle_discord_message(
 ) -> None:
     """Process inbound Discord messages through the interaction manager."""
     discord_logger.debug(
-        f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}"
+        "DISCORD_MESSAGE_RECEIVED",
+        author_id=str(message.author.id),
+        message_length=len(message.content),
+        channel_id=str(message.channel.id),
+        guild_id=str(message.guild.id) if message.guild else "DM",
     )
 
     if bot.bot and message.author == bot.bot.user:
@@ -154,7 +158,9 @@ async def _process_identified_user_message(
     from communication.message_processing.interaction_manager import handle_user_message
 
     discord_logger.info(
-        f"DISCORD_BOT: Calling handle_user_message for user {internal_user_id} with message: '{message.content[:50]}...'"
+        "DISCORD_BOT: Calling handle_user_message",
+        user_id=internal_user_id,
+        message_length=len(message.content),
     )
     response = handle_user_message(internal_user_id, message.content, "discord")
 

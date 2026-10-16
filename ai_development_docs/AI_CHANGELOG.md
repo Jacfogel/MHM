@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-16 - Private logging and self-contained installs hardened **COMPLETED**
+- Runtime logs no longer record user-authored message bodies; communication, AI, service, and response-tracking paths retain only safe operational metadata, backed by a static privacy regression guard.
+- Package metadata now declares the runtime, UI, and development dependencies, includes shipped resources, styles, fonts, and website assets, and consistently supports Python 3.11 across metadata, CI, type checking, and setup documentation.
+- Logger exception forwarding preserves traceback detail while supporting redacted exception messages. OAuth failures record safe stage, provider, correlation, and exception-type context without codes, state, tokens, or other secrets.
+- Shipped-resource path helpers use centralized fail-fast error handling with failure-path tests. The Tier 3 development-tools failure was fixed by classifying asset-only wheel packages outside product-code domains; the six-worker track passes 1,665 tests, the error-handling analyzer reports 100%, and Ruff and Pyright are clean.
+
 ### 2026-10-15 - Audit reruns stay scoped after setup errors **COMPLETED**
 - Class-based JUnit results now map back to the real test file, so a few setup errors no longer force the next full audit to rerun every domain from the last suite.
 - Pytest exit code 1 with setup errors is recorded as test failures. Session cleanup keeps a live `pytest_runner` tree, including worker folders that are still in use.
@@ -120,12 +126,6 @@ Guidelines:
 - A serial pytest bridge runs every `website/*.test.mjs` file in the normal suite, `audit --full`, and the nightly suite; PR and push checks retain a dedicated website job with Node.js 20.
 - The audit cache now treats the standalone website as its own domain and invalidates browser coverage when JavaScript, HTML, CSS, or JSONC assets change.
 - The completed full audit is clean: 5,980 passed and 28 skipped, with zero failures or errors across the parallel and no-parallel tracks.
-
-### 2026-10-05 - Website workflows preserve intent and prevent duplicate actions **COMPLETED**
-- Task, notebook, and scheduled-message drafts now warn before destructive navigation or dismissal; stale list, filter, category, and insight responses are ignored, with clearer contextual empty states and one-click notebook filter clearing.
-- Home chat restores failed sends, Home task actions retain a stable target, and task, message, check-in, insight, integration, setup, and account actions use busy locks to prevent duplicate or overlapping requests.
-- Google Health handles blocked popups and expired sessions consistently, while account and sign-in flows provide durable success feedback, specific progress states, normalized verification codes, and better focus recovery.
-- Browser asset versions and regression coverage were expanded, including new message, insight, and integration suites. All 92 browser-script tests pass, focused website Python suites pass with 84 tests in the largest run, and JavaScript syntax and diff checks are clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

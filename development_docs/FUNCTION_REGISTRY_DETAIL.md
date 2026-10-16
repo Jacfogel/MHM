@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-14 22:06:07
+> **Last Generated**: 2026-10-16 00:56:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 305
-- **Functions Found**: 3181
-- **Methods Found**: 1632
+- **Files Scanned**: 306
+- **Functions Found**: 3186
+- **Methods Found**: 1634
 - **Classes Found**: 281
-- **Total Items**: 4813
-- **Functions Documented**: 2826
-- **Methods Documented**: 1452
+- **Total Items**: 4820
+- **Functions Documented**: 2831
+- **Methods Documented**: 1454
 - **Classes Documented**: 214
-- **Total Documented**: 4278
+- **Total Documented**: 4285
 - **Template-Generated**: 66
-- **Last Updated**: 2026-10-14
+- **Last Updated**: 2026-10-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (668)
+### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (900)
@@ -4726,6 +4726,8 @@ Args:
 - [OK] `ensure_logs_directory()` - Ensure the logs directory structure exists.
 - [OK] `error(self, message)` - Log error message with optional structured data.
 - [OK] `error(self, message)` - No-op error logging for test mode.
+- [OK] `exception(self, message)` - Log the active traceback, optionally replacing its exception message.
+- [OK] `exception(self, message)` - No-op exception logging for test mode.
 - [OK] `filter(self, record)` - Filter Discord heartbeat warnings to prevent log spam.
 
 Args:
@@ -4865,6 +4867,7 @@ Args:
   - [OK] `ComponentLogger.critical(self, message)` - Log critical message with optional structured data.
   - [OK] `ComponentLogger.debug(self, message)` - Log debug message with optional structured data.
   - [OK] `ComponentLogger.error(self, message)` - Log error message with optional structured data.
+  - [OK] `ComponentLogger.exception(self, message)` - Log the active traceback, optionally replacing its exception message.
   - [OK] `ComponentLogger.info(self, message)` - Log info message with optional structured data.
   - [OK] `ComponentLogger.warning(self, message)` - Log warning message with optional structured data.
 - [OK] `DiscordReconnectNoiseFilter` - Keep transient discord.py reconnect/DNS failures out of errors.log.
@@ -4887,6 +4890,7 @@ Args:
   - [OK] `DummyComponentLogger.critical(self, message)` - No-op critical logging for test mode.
   - [OK] `DummyComponentLogger.debug(self, message)` - No-op debug logging for test mode.
   - [OK] `DummyComponentLogger.error(self, message)` - No-op error logging for test mode.
+  - [OK] `DummyComponentLogger.exception(self, message)` - No-op exception logging for test mode.
   - [OK] `DummyComponentLogger.info(self, message)` - No-op info logging for test mode.
   - [OK] `DummyComponentLogger.warning(self, message)` - No-op warning logging for test mode.
 - [OK] `ExcludeLoggerNamesFilter` - Filter to exclude records for specific logger name prefixes.
@@ -5085,6 +5089,12 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [MISSING] `TagsV2EnvelopeModel` - No description
   - [MISSING] `TagsV2EnvelopeModel._validate_tags(cls, value)` - No description
   - [MISSING] `TagsV2EnvelopeModel._validate_updated_at(cls, value)` - No description
+
+#### `core/resource_paths.py`
+**Functions:**
+- [OK] `shipped_resource_path()` - Return a path below the installed ``resources`` package.
+- [OK] `shipped_style_path(filename)` - Return one installed Qt style file.
+- [OK] `shipped_website_path()` - Return the root containing the installed browser assets.
 
 #### `core/response_tracking.py`
 **Functions:**

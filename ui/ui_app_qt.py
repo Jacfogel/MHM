@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QTimer, QObject, QThread, Signal
 
+from core.resource_paths import shipped_style_path
+
 
 def _load_attr(module_name: str, attr_name: str):
     """Load a project attribute through the UI lazy dependency boundary."""
@@ -146,7 +148,7 @@ class MHMManagerUI(QMainWindow):
     def load_theme(self):
         """Load and apply the QSS theme from the styles directory"""
         # Path to the QSS theme file
-        theme_path = Path(__file__).parent.parent / "styles" / "admin_theme.qss"
+        theme_path = shipped_style_path("admin_theme.qss")
 
         # Test code may monkeypatch Path with generic mocks. Guard against
         # non-pathlike objects so we never pass file-descriptor-like values to open().

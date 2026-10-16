@@ -76,7 +76,13 @@ def store_chat_interaction(
         "timestamp": now_timestamp_full(),
     }
     store_user_response(user_id, response_data, "chat_interaction")
-    logger.info(f"Stored chat_interaction response for user {user_id}: {response_data}")
+    logger.info(
+        "Stored chat interaction response",
+        user_id=user_id,
+        message_length=len(user_message),
+        response_length=len(ai_response),
+        context_used=context_used,
+    )
 
 
 @handle_errors("getting recent responses", default_return=[])

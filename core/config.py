@@ -13,6 +13,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from core.error_handling import handle_configuration_error, handle_errors
+from core.resource_paths import shipped_resource_path
 
 
 class ConfigValidationError(Exception):
@@ -96,11 +97,11 @@ USER_INFO_DIR_PATH = _normalize_path(
 )
 # Fix: Use forward slashes for cross-platform compatibility and avoid path normalization issues
 DEFAULT_MESSAGES_DIR_PATH = os.getenv(
-    "DEFAULT_MESSAGES_DIR_PATH", "resources/default_messages"
+    "DEFAULT_MESSAGES_DIR_PATH", str(shipped_resource_path("default_messages"))
 )
 if os.getenv("MHM_TESTING") == "1":
     # Force default messages dir during tests to avoid absolute path/env variance
-    DEFAULT_MESSAGES_DIR_PATH = "resources/default_messages"
+    DEFAULT_MESSAGES_DIR_PATH = str(shipped_resource_path("default_messages"))
 
 # LM Studio Configuration
 # SETUP INSTRUCTIONS:
@@ -130,7 +131,8 @@ LM_STUDIO_MODEL_LOAD_TIMEOUT = int(
 
 # AI System Prompt Configuration
 AI_SYSTEM_PROMPT_PATH = os.getenv(
-    "AI_SYSTEM_PROMPT_PATH", "resources/prompts/assistant_system_prompt.txt"
+    "AI_SYSTEM_PROMPT_PATH",
+    str(shipped_resource_path("prompts", "assistant_system_prompt.txt")),
 )
 AI_USE_CUSTOM_PROMPT = os.getenv("AI_USE_CUSTOM_PROMPT", "true").lower() == "true"
 

@@ -283,8 +283,11 @@ class EmailBot(BaseChannel):
         if sent is not True:
             logger.error(f"Email send failed to {recipient}")
             return False
-        message_preview = message[:50] + "..." if len(message) > 50 else message
-        logger.info(f"Email sent to {recipient} | Content: '{message_preview}'")
+        logger.info(
+            "Email sent",
+            recipient=recipient,
+            message_length=len(message),
+        )
         return True
 
     @handle_errors(

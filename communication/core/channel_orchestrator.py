@@ -760,11 +760,6 @@ class CommunicationManager:
             if success is True or (
                 isinstance(success, str) and success == CHANNEL_SEND_UNCONFIRMED
             ):
-                # Enhanced logging with message content and time period
-                message[:50] + "..." if len(message) > 50 else message
-                kwargs.get("time_period", "unknown")
-                kwargs.get("user_id", "unknown")
-                kwargs.get("category", "unknown")
                 outbound_id = getattr(channel, "last_outbound_message_id", None)
                 delivery_meta = kwargs.get("delivery_meta")
                 if (
@@ -835,7 +830,7 @@ class CommunicationManager:
         try:
             # Test logging
             test_message = f"Logging health check - {time.time()}"
-            logger.debug(test_message)
+            logger.debug("Built channel test message", message_length=len(test_message))
 
             # Force flush via component logger handlers only (avoid direct logging import in app code)
             for handler in logger.logger.handlers if hasattr(logger, "logger") else []:
@@ -1484,19 +1479,19 @@ class CommunicationManager:
                 )
                 if not stored:
                     logger.error(f"Sent message history could not be stored for user {user_id}, category {category}")
-                # Enhanced logging with message content
-                message_preview = (
-                    message_to_send[:50] + "..."
-                    if len(message_to_send) > 50
-                    else message_to_send
-                )
                 if success == CHANNEL_SEND_UNCONFIRMED:
                     logger.warning(
-                        f"AI-generated message for user {user_id}, category {category} was not confirmed by the server | Content: '{message_preview}'"
+                        "AI-generated message was not confirmed by the server",
+                        user_id=user_id,
+                        category=category,
+                        message_length=len(message_to_send),
                     )
                     return CHANNEL_SEND_UNCONFIRMED, message_to_send
                 logger.info(
-                    f"Sent AI-generated personalized message for user {user_id}, category {category} | Content: '{message_preview}'"
+                    "Sent AI-generated personalized message",
+                    user_id=user_id,
+                    category=category,
+                    message_length=len(message_to_send),
                 )
                 return True, message_to_send
             else:

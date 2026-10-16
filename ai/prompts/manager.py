@@ -9,12 +9,13 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT
+from core.resource_paths import shipped_resource_path
 
 # Route prompt manager logs to AI component
 prompt_logger = get_component_logger("ai")
 logger = prompt_logger
 
-_PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "resources" / "prompts"
+_PROMPTS_DIR = shipped_resource_path("prompts")
 _PRODUCT_AI_PROMPTS_DIR = _PROMPTS_DIR / "product_ai"
 _ASSISTANT_PROMPT_FILENAME = "assistant_system_prompt.txt"
 _COMMAND_PROMPT_FILENAME = "command.txt"

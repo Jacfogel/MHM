@@ -40,8 +40,8 @@ python -m venv .venv
 # Activate the virtual environment (each new shell)
 .venv\Scripts\activate
 
-# Install or refresh dependencies
-pip install -r requirements.txt
+# Install or refresh the project, UI, and contributor tools
+python -m pip install -e ".[dev,ui]"
 
 # Run the headless service (background core + bots)
 python run_headless_service.py start
@@ -118,7 +118,7 @@ Before starting significant work:
 ### 2.1. Why It Matters
 
 - Keeps the system Python installation clean and conflict free.  
-- Makes dependency management explicit through `requirements.txt`.  
+- Makes runtime and contributor dependencies explicit through `pyproject.toml`.
 - Reduces permission issues on Windows.  
 - Ensures others can reproduce your environment from scratch.
 
@@ -131,12 +131,11 @@ python -m venv .venv
 # Activate (each session)
 .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the project and contributor dependencies
+python -m pip install -e ".[dev,ui]"
 
-# Upgrade a package and refresh requirements
-pip install some_package --upgrade
-pip freeze > requirements.txt
+# After changing a dependency floor in pyproject.toml and requirements.txt
+python -m pip install -e ".[dev,ui]" --upgrade
 
 # Deactivate when you are done
 deactivate
@@ -148,7 +147,7 @@ deactivate
   - Confirm Python is installed and on PATH; see section 5. "Troubleshooting" in [HOW_TO_RUN.md](HOW_TO_RUN.md) if setup fails.
 
 - **Import errors after pulling recent changes**  
-  - Run `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.
+  - Run `python -m pip install -e ".[dev,ui]" --force-reinstall` inside `(.venv)`.
 
 - **Permission problems on Windows**  
   - Reopen PowerShell as Administrator if needed.  

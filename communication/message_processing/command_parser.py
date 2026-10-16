@@ -1078,7 +1078,9 @@ class EnhancedCommandParser:
 
         logger = get_component_logger("communication_manager")
         logger.info(
-            f"COMMAND_PARSER: Parsing message for user {user_id}: '{message[:50]}...'"
+            "COMMAND_PARSER: Parsing message",
+            user_id=user_id,
+            message_length=len(message),
         )
 
         if not message or not message.strip():
@@ -1109,7 +1111,9 @@ class EnhancedCommandParser:
             if looks_like_command:
                 # Message looks like a command but didn't match patterns - try AI parsing
                 logger.debug(
-                    f"Message '{message[:50]}...' has 0.0 confidence but contains command keywords, trying AI parsing"
+                    "Message has 0.0 rule confidence but contains command keywords; trying AI parsing",
+                    user_id=user_id,
+                    message_length=len(message),
                 )
                 ai_result = self._ai_enhanced_parse(message, user_id)
                 if ai_result.confidence >= AI_AI_ENHANCED_CONFIDENCE_THRESHOLD:
@@ -1289,7 +1293,10 @@ class EnhancedCommandParser:
                 timeout=AI_COMMAND_PARSING_TIMEOUT,
             )
 
-            logger.debug(f"AI response: {ai_response}")
+            logger.debug(
+                "AI command parse response received",
+                response_length=len(ai_response),
+            )
 
             # Try to parse AI response - support multiple formats:
             # 1. JSON format (legacy): {"action": "...", "details": {...}}

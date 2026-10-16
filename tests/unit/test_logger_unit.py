@@ -279,6 +279,50 @@ class TestComponentLogger:
             
             # Verify log file was created
             assert os.path.exists(log_file), "Should create log file"
+
+    @pytest.mark.unit
+    def test_component_logger_exception_forwards_traceback_and_structured_data(self):
+        """Exception logging preserves traceback details without flattening them into JSON."""
+        component_logger = object.__new__(ComponentLogger)
+        component_logger.logger = MagicMock()
+
+        try:
+            raise RuntimeError("provider unavailable")
+        except RuntimeError:
+            component_logger.exception(
+                "OAuth operation failed",
+                provider="google",
+                stage="identity_exchange",
+            )
+
+        args, kwargs = component_logger.logger.log.call_args
+        assert args[0] == logging.ERROR
+        assert "OAuth operation failed" in args[1]
+        assert '"provider": "google"' in args[1]
+        assert '"stage": "identity_exchange"' in args[1]
+        assert kwargs["exc_info"] is True
+
+    @pytest.mark.unit
+    def test_component_logger_can_redact_exception_message(self):
+        """Sensitive provider details can be removed while retaining traceback frames."""
+        component_logger = object.__new__(ComponentLogger)
+        component_logger.logger = MagicMock()
+
+        try:
+            raise RuntimeError("oauth-code=secret-value")
+        except RuntimeError:
+            component_logger.exception(
+                "OAuth operation failed",
+                redact_exception=True,
+                error_type="RuntimeError",
+            )
+
+        args, kwargs = component_logger.logger.log.call_args
+        assert "secret-value" not in args[1]
+        exc_type, exc, traceback = kwargs["exc_info"]
+        assert exc_type is RuntimeError
+        assert str(exc) == "Exception message redacted"
+        assert traceback is not None
     
     @pytest.mark.unit
     def test_component_logger_critical(self, temp_log_dir):

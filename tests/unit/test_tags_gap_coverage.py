@@ -33,7 +33,7 @@ class TestTagsGapCoverage:
         # Missing file branch.
         monkeypatch.setattr(
             tags_module,
-            "Path",
+            "shipped_resource_path",
             lambda *_args, **_kwargs: Path(test_data_dir) / "missing_default_tags.json",
         )
         assert tags_module._load_default_tags_from_resources() == []
@@ -41,7 +41,9 @@ class TestTagsGapCoverage:
         # Invalid format branch.
         default_file = Path(test_data_dir) / "default_tags_invalid.json"
         default_file.write_text(json.dumps({"unexpected": []}), encoding="utf-8")
-        monkeypatch.setattr(tags_module, "Path", lambda *_args, **_kwargs: default_file)
+        monkeypatch.setattr(
+            tags_module, "shipped_resource_path", lambda *_args, **_kwargs: default_file
+        )
         assert tags_module._load_default_tags_from_resources() == []
 
         # Exception branch.
@@ -49,12 +51,14 @@ class TestTagsGapCoverage:
         assert tags_module._load_default_tags_from_resources() == []
 
     def test_load_default_tags_invalid_format_and_json_error_via_real_path(self, test_data_dir, monkeypatch):
-        fake_module_dir = Path(test_data_dir) / "pkg" / "core"
-        resources_dir = fake_module_dir.parent / "resources"
+        resources_dir = Path(test_data_dir) / "resources"
         resources_dir.mkdir(parents=True, exist_ok=True)
 
-        # Point module __file__ so loader resolves resources/default_tags.json under test_data_dir.
-        monkeypatch.setattr(tags_module, "__file__", str(fake_module_dir / "tags.py"))
+        monkeypatch.setattr(
+            tags_module,
+            "shipped_resource_path",
+            lambda *_args, **_kwargs: resources_dir / "default_tags.json",
+        )
 
         default_file = resources_dir / "default_tags.json"
         default_file.write_text(json.dumps({"not_tags": []}), encoding="utf-8")

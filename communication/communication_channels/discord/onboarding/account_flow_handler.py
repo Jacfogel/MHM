@@ -302,7 +302,9 @@ class CreateAccountButton(discord.ui.Button):
                 logger.debug(f"Could not update original message: {e}")
         else:
             logger.warning(
-                f"Account creation incomplete for Discord user {self.parent_view.discord_user_id}: {response.message}"
+                "Account creation incomplete for Discord user",
+                discord_user_id=str(self.parent_view.discord_user_id),
+                response_length=len(response.message),
             )
 
 

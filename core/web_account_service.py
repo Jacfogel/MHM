@@ -40,6 +40,7 @@ from core.error_handling import (
     handle_errors,
 )
 from core.logger import get_component_logger
+from core.resource_paths import shipped_website_path
 from core.time_utilities import (
     TIMESTAMP_FULL,
     format_timestamp,
@@ -710,7 +711,7 @@ class WebGateway:
         self.discord_identity = discord_identity
         self.oauth_identity = oauth_identity
         self.billing = billing
-        self.root = Path(__file__).resolve().parent.parent / "website"
+        self.root = shipped_website_path()
 
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def discord_redirect_uri(self):
@@ -1628,6 +1629,7 @@ class WebGateway:
         code = values.get("code", "")
         if not provider_config or not isinstance(code, str) or not 1 <= len(code) <= 2048:
             return web.HTTPFound(self.website_redirect(return_path, social="unavailable"))
+        oauth_stage = "identity_exchange"
         try:
             identity = await self.oauth_identity(
                 provider,
@@ -1638,6 +1640,7 @@ class WebGateway:
             )
             if not isinstance(identity, OAuthIdentity):
                 raise ValidationError("OAuth identity was invalid")
+            oauth_stage = "account_resolution"
             linked_match = await asyncio.to_thread(
                 self.accounts.by_oauth, provider, identity.subject
             )
@@ -1678,6 +1681,7 @@ class WebGateway:
                 and not await asyncio.to_thread(self.accounts.email_exists, identity.email)
             ):
                 async with self.oauth_link_lock:
+                    oauth_stage = "account_creation"
                     linked_match = await asyncio.to_thread(
                         self.accounts.by_oauth, provider, identity.subject
                     )
@@ -1724,6 +1728,7 @@ class WebGateway:
                 )
             if not linked_match:
                 async with self.oauth_link_lock:
+                    oauth_stage = "identity_link"
                     # Recheck uniqueness after provider I/O and before the write.
                     linked_match = await asyncio.to_thread(
                         self.accounts.by_oauth, provider, identity.subject
@@ -1746,14 +1751,22 @@ class WebGateway:
             response = web.HTTPFound(
                 self.website_redirect(landing, social=f"{provider}-connected")
             )
+            oauth_stage = "session_start"
             return self.start_session(
                 target[0],
                 target[1].get("email", ""),
                 response,
                 auth_method="oauth",
             )
-        except Exception:
-            logger.error(f"Website {provider} sign-in failed")
+        except Exception as exc:
+            logger.exception(
+                "Website OAuth sign-in failed",
+                provider=provider,
+                stage=oauth_stage,
+                correlation_id=state_key[:12],
+                error_type=type(exc).__name__,
+                redact_exception=True,
+            )
             return web.HTTPFound(self.website_redirect(return_path, social="error"))
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.

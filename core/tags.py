@@ -16,6 +16,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors, ValidationError
 from core.config import get_user_data_dir, get_user_file_path
 from core.file_operations import load_json_data, save_json_data
+from core.resource_paths import shipped_resource_path
 
 logger = get_component_logger("main")
 
@@ -143,9 +144,7 @@ def _load_default_tags_from_resources() -> list[str]:
         List of default tag strings, empty list if file not found or invalid
     """
     try:
-        default_tags_file = (
-            Path(__file__).parent.parent / "resources" / "default_tags.json"
-        )
+        default_tags_file = shipped_resource_path("default_tags.json")
         if not default_tags_file.exists():
             logger.warning(f"Default tags file not found: {default_tags_file}")
             return []

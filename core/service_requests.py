@@ -165,7 +165,10 @@ def process_shutdown_request(
         elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
             logger.info("Shutdown requested by headless service manager")
         else:
-            logger.info(f"Shutdown request details: {content}")
+            logger.info(
+                "Shutdown request had an unrecognized marker",
+                content_length=len(content),
+            )
     except Exception as e:
         logger.warning(f"Could not read shutdown file: {e}")
     context.shutdown_callback()

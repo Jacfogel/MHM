@@ -34,7 +34,16 @@ PRODUCT_PACKAGE_ROOTS: frozenset[str] = frozenset(
 )
 
 _PREFIX_EXCLUDES: frozenset[str] = frozenset(
-    {"data", "scripts", "tests", "development_tools"}
+    {
+        "data",
+        "development_tools",
+        # Asset-only import packages used to include files in wheel installs.
+        "resources",
+        "scripts",
+        "styles",
+        "tests",
+        "website",
+    }
 )
 
 

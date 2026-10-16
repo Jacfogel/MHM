@@ -115,7 +115,7 @@ class DiscordRichDeliveryMixin:
             logger.error(f"Invalid recipient: {recipient}")
             return False
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid Discord message", message_type=type(message).__name__)
             return False
         if rich_data is not None and not isinstance(rich_data, dict):
             logger.error(f"Invalid rich_data: {type(rich_data)}")
@@ -176,9 +176,11 @@ class DiscordRichDeliveryMixin:
                 sent = await user.send(**kwargs)
                 await self._remember_outbound_message(sent, rich_data)
                 logger.info(
-                    f'Discord DM sent | {{"user_id": "{discord_user_id}", "message_length": {len(message)}, '
-                    f'"has_embed": {bool(embed)}, "has_components": {bool(view)}, '
-                    f'"message_preview": "{message[:50]}..."}}'
+                    "Discord DM sent",
+                    user_id=str(discord_user_id),
+                    message_length=len(message),
+                    has_embed=bool(embed),
+                    has_components=bool(view),
                 )
                 return True
             except Exception as exc:
@@ -204,9 +206,11 @@ class DiscordRichDeliveryMixin:
                 sent = await user.send(**kwargs)
                 await self._remember_outbound_message(sent, rich_data)
                 logger.info(
-                    f'Discord DM sent directly | {{"discord_user_id": "{discord_user_id}", '
-                    f'"message_length": {len(message)}, "has_embed": {bool(embed)}, '
-                    f'"has_components": {bool(view)}, "message_preview": "{message[:50]}..."}}'
+                    "Discord DM sent directly",
+                    discord_user_id=str(discord_user_id),
+                    message_length=len(message),
+                    has_embed=bool(embed),
+                    has_components=bool(view),
                 )
                 return True
             except Exception as exc:
@@ -263,7 +267,7 @@ class DiscordRichDeliveryMixin:
     ) -> discord.Embed | None:
         """Create a Discord embed from rich response data."""
         if not message or not isinstance(message, str) or not message.strip():
-            logger.error(f"Invalid message: {message}")
+            logger.error("Invalid Discord embed message", message_type=type(message).__name__)
             return None
         if not rich_data or not isinstance(rich_data, dict):
             logger.error(f"Invalid rich_data: {rich_data}")

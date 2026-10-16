@@ -138,12 +138,6 @@ class PredefinedMessageDispatcher:
         current_time_period = matching_periods[0] if matching_periods else None
         selected_message_content = str(message_to_send.get("text") or "")
         selected_message_id = str(message_to_send.get("id") or "")
-        message_preview = (
-            selected_message_content[:50] + "..."
-            if len(selected_message_content) > 50
-            else selected_message_content
-        )
-
         if success is True or success == CHANNEL_SEND_UNCONFIRMED:
             from communication.communication_channels.website.inbox import deliver_to_website
 
@@ -167,23 +161,43 @@ class PredefinedMessageDispatcher:
                 logger.error(f"Sent message history could not be stored for user {user_id}, category {category}")
             if success == CHANNEL_SEND_UNCONFIRMED:
                 logger.warning(
-                    f"Message to {recipient} was handed off but not confirmed | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
+                    "Message was handed off but not confirmed",
+                    recipient=recipient,
+                    user_id=user_id,
+                    category=category,
+                    period=current_time_period,
+                    message_length=len(selected_message_content),
                 )
                 return CHANNEL_SEND_UNCONFIRMED, selected_message_content
             logger.info(
-                f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
+                "Message sent successfully",
+                messaging_service=messaging_service,
+                recipient=recipient,
+                user_id=user_id,
+                category=category,
+                period=current_time_period,
+                message_length=len(selected_message_content),
             )
             return True, selected_message_content
 
         logger.error(
-            f"Message send failed via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
+            "Message send failed",
+            messaging_service=messaging_service,
+            recipient=recipient,
+            user_id=user_id,
+            category=category,
+            period=current_time_period,
+            message_length=len(selected_message_content),
         )
         return False, None
 
     @handle_errors("selecting weighted message", default_return="")
     def select_weighted_message(self, available_messages, matching_periods):
         if not available_messages or not isinstance(available_messages, list):
-            logger.error(f"Invalid available_messages: {available_messages}")
+            logger.error(
+                "Invalid available_messages value",
+                value_type=type(available_messages).__name__,
+            )
             return ""
 
         if not matching_periods or not isinstance(matching_periods, list):

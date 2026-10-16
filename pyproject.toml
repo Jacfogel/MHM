@@ -8,19 +8,68 @@ version = "0.1.0"
 description = "Management Hub Manager (MHM)"
 readme = "README.md"
 authors = [{ name = "MHM Contributors" }]
-requires-python = ">=3.10"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+  "aiohttp>=3.14.3",
+  "cryptography>=50.0.0",
+  "discord.py>=2.3.0",
+  "dnspython>=2.4.0",
+  "google-auth>=2.29.0",
+  "google-auth-oauthlib>=1.2.0",
+  "idna>=3.15",
+  "msgpack>=1.2.1",
+  "oauthlib>=4.0.0",
+  "psutil>=5.9.0",
+  "pyasn1>=0.6.4",
+  "pydantic>=2.7.0",
+  "PyNaCl>=1.6.2",
+  "python-dotenv>=1.2.2",
+  "pytz>=2023.3",
+  "requests>=2.33.0",
+  "schedule>=1.2.0",
+  "tzlocal>=5.3.1",
+  "urllib3>=2.8.0",
+]
 
 [project.optional-dependencies]
-ui = ["PySide6"]
+ui = [
+  "PyOpenGL>=3.1.7",
+  "PyOpenGL-accelerate>=3.1.7",
+  "PySide6>=6.5.0",
+]
+dev = [
+  "bandit[toml]>=1.7.0",
+  "black>=26.3.1",
+  "pip-audit>=2.6.0",
+  "py-spy>=0.4.1",
+  "pyright>=1.1.380",
+  "pytest>=9.0.3",
+  "pytest-asyncio>=1.2.0",
+  "pytest-cov>=4.1.0",
+  "pytest-mock>=3.14.0",
+  "pytest-randomly>=3.15.0",
+  "pytest-timeout>=2.1.0",
+  "pytest-xdist>=3.5.0",
+  "ruff>=0.1.0",
+  "vulture>=2.11",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["core*", "communication*", "ui*", "tasks*", "ai*", "notebook*", "scheduler*", "checkins*", "messages*", "storage*", "tests*", "development_tools*", "scripts*", "user*"]
-exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_development_docs*", "styles*", "tests/logs*", "tests/data*"]
+include = ["ai*", "checkins*", "communication*", "core*", "integrations*", "messages*", "notebook*", "resources*", "scheduler*", "storage*", "styles*", "tasks*", "ui*", "user*", "website*"]
+exclude = ["archive*", "development_docs*", "development_tools*", "logs*", "scripts*", "tests*"]
 
 [tool.setuptools.package-data]
 "ui.generated" = ["*.py"]
+resources = [
+  "*.json",
+  "default_checkin/*.json",
+  "default_messages/*.json",
+  "prompts/*.txt",
+  "prompts/product_ai/*.txt",
+]
+styles = ["*.qss"]
+website = ["*.css", "*.html", "*.js", "*.png", "fonts/*.txt", "fonts/*.woff2"]
 
 # Pyright SSOT: whole-repo / IDE baseline (`pyright --project pyproject.toml`). Pylance discovers [tool.pyright] automatically.
 # Former root and nested `development_tools/config/pyrightconfig.json` were removed; keep settings here only.
@@ -28,7 +77,7 @@ exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_developme
 typeCheckingMode = "basic"
 venvPath = "."
 venv = ".venv"
-pythonVersion = "3.12"
+pythonVersion = "3.11"
 reportReturnType = "none"
 reportArgumentType = "warning"
 reportOptionalMemberAccess = "warning"

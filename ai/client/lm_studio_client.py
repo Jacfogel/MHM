@@ -219,7 +219,9 @@ def complete_lm_studio_chat(
     if response.status_code != 200:
         failure = f"HTTP {response.status_code}"
         logger.warning(
-            f"LM Studio API error: HTTP {response.status_code} - {response.text}"
+            "LM Studio API returned an error",
+            status_code=response.status_code,
+            response_length=len(response.text),
         )
         return LmStudioCompletion(text=None, failure=failure)
 

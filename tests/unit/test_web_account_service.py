@@ -1,6 +1,7 @@
 """Browser auth checks with isolated accounts and captured email only."""
 
 from contextlib import asynccontextmanager
+from unittest.mock import MagicMock
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -860,6 +861,51 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
         assert calls[0][0:2] == (provider, "oauth-code")
         assert (await client.get("/api/account")).status == 200
+
+
+async def test_social_sign_in_failure_logs_stage_without_oauth_secrets(monkeypatch):
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+    logged = MagicMock()
+    monkeypatch.setattr(service.logger, "exception", logged)
+
+    async def identity(_provider, code, **_kwargs):
+        raise RuntimeError(f"provider rejected oauth code {code}")
+
+    app = service.create_web_app(
+        accounts=Accounts(),
+        mailer=lambda _email, _code: None,
+        origin=ORIGIN,
+        proxy_secret="",
+        oauth_identity=identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        authorize_url = (
+            await (await client.get("/api/auth/oauth/google/start")).json()
+        )["url"]
+        state = parse_qs(urlsplit(authorize_url).query)["state"][0]
+        secret_code = "oauth-code-must-not-be-logged"
+        callback = await client.get(
+            f"/api/auth/oauth/google/callback?code={secret_code}&state={state}",
+            allow_redirects=False,
+        )
+
+    assert callback.status == 302
+    assert callback.headers["Location"].endswith("/login.html?social=error")
+    logged.assert_called_once()
+    rendered_call = repr(logged.call_args)
+    assert secret_code not in rendered_call
+    assert state not in rendered_call
+    assert logged.call_args.kwargs == {
+        "provider": "google",
+        "stage": "identity_exchange",
+        "correlation_id": service.hashlib.sha256(state.encode()).hexdigest()[:12],
+        "error_type": "RuntimeError",
+        "redact_exception": True,
+    }
 
 
 async def test_social_sign_in_does_not_link_unverified_or_conflicting_identity(

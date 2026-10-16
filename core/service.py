@@ -218,7 +218,7 @@ class MHMService:
     @handle_errors("testing logging functionality", default_return=False)
     def _check_and_fix_logging__test_logging_functionality(self, test_message):
         """Test if logging functionality works by writing a test message and flushing handlers."""
-        logger.debug(test_message)
+        logger.debug("Built service test message", message_length=len(test_message))
 
         # Force flush all handlers to ensure messages are written
         root_logger = logging.getLogger()
