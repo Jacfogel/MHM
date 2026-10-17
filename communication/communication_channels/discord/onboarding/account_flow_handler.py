@@ -18,6 +18,102 @@ logger = get_component_logger("discord")
 _account_handler = AccountManagementHandler()
 
 
+class _ConfirmLinkModal(discord.ui.Modal, title="Enter Confirmation Code"):
+    """Collect and submit the confirmation code for a pending account link."""
+
+    code_input = discord.ui.TextInput(
+        label="Confirmation Code",
+        placeholder="Enter the 6-digit code from your email",
+        min_length=6,
+        max_length=6,
+        required=True,
+    )
+
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
+    def __init__(self, account_identifier: str, discord_user_id: str):
+        super().__init__(timeout=300)
+        self.account_identifier = account_identifier
+        self.discord_user_id = discord_user_id
+
+    @handle_errors(
+        "submitting confirmation code", context={"component": "discord"}
+    )
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        """Verify the supplied code and complete the pending account link."""
+        entered_code = self.code_input.value.strip()
+        if (
+            len(entered_code) != 6
+            or not entered_code.isascii()
+            or not entered_code.isdigit()
+        ):
+            await interaction.response.send_message(
+                "❌ Enter the 6-digit confirmation code from your email.",
+                ephemeral=True,
+            )
+            return
+
+        try:
+            parsed_command = ParsedCommand(
+                intent="link_account",
+                entities={
+                    "account_identifier": self.account_identifier,
+                    "confirmation_code": entered_code,
+                    "channel_identifier": self.discord_user_id,
+                    "channel_type": "discord",
+                },
+                confidence=1.0,
+                original_message="link account with confirmation code",
+            )
+            link_response = _account_handler.handle(
+                self.discord_user_id, parsed_command
+            )
+
+            await interaction.response.send_message(
+                link_response.message, ephemeral=True
+            )
+
+            if link_response.completed:
+                logger.info(
+                    "Linked MHM account to Discord user",
+                    discord_user_id=self.discord_user_id,
+                )
+        except Exception as error:
+            logger.exception(
+                "Error linking MHM account to Discord user",
+                redact_exception=True,
+                discord_user_id=self.discord_user_id,
+                error_type=type(error).__name__,
+            )
+            await interaction.response.send_message(
+                "❌ An error occurred while linking your account. Please try again.",
+                ephemeral=True,
+            )
+
+
+class _ConfirmLinkView(discord.ui.View):
+    """Expose a component interaction that is allowed to open the code modal."""
+
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
+    def __init__(self, account_identifier: str, discord_user_id: str):
+        super().__init__(timeout=300)
+        self.account_identifier = account_identifier
+        self.discord_user_id = discord_user_id
+
+    @discord.ui.button(
+        label="Enter confirmation code", style=discord.ButtonStyle.primary
+    )
+    @handle_errors(
+        "opening account link confirmation modal", context={"component": "discord"}
+    )
+    async def enter_confirmation_code(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
+        """Open the confirmation modal from a Discord component interaction."""
+        await interaction.response.send_modal(
+            _ConfirmLinkModal(self.account_identifier, self.discord_user_id)
+        )
+
+
 class FeatureSelectionView(discord.ui.View):
     """View for selecting account features during creation."""
 
@@ -444,72 +540,16 @@ async def start_account_linking_flow(
                 response = _account_handler.handle(discord_user_id, parsed_command)
 
                 if not response.completed:
-                    # Handler is requesting confirmation code - show modal for code input
+                    # A modal submission cannot open another modal directly. Return a
+                    # button so its component interaction can open the code modal.
                     if "confirmation_code_sent" in (response.rich_data or {}).get(
                         "type", ""
                     ):
-                        # Create a modal for confirmation code input
-                        class ConfirmLinkModal(
-                            discord.ui.Modal, title="Enter Confirmation Code"
-                        ):
-                            code_input = discord.ui.TextInput(
-                                label="Confirmation Code",
-                                placeholder="Enter the 6-digit code from your email",
-                                min_length=6,
-                                max_length=6,
-                                required=True,
-                            )
-
-                            @handle_errors(
-                                "submitting confirmation code",
-                                context={"component": "discord"},
-                            )
-                            async def on_submit(
-                                self, confirm_interaction: discord.Interaction
-                            ):
-                                entered_code = self.code_input.value.strip()
-
-                                # Use channel-agnostic handler for account linking (step 2: confirmation code)
-                                try:
-                                    parsed_command = ParsedCommand(
-                                        intent="link_account",
-                                        entities={
-                                            "account_identifier": account_identifier,
-                                            "confirmation_code": entered_code,
-                                            "channel_identifier": discord_user_id,
-                                            "channel_type": "discord",
-                                        },
-                                        confidence=1.0,
-                                        original_message=f"link account {account_identifier} {entered_code}",
-                                    )
-
-                                    link_response = _account_handler.handle(
-                                        discord_user_id, parsed_command
-                                    )
-
-                                    await confirm_interaction.response.send_message(
-                                        link_response.message, ephemeral=True
-                                    )
-
-                                    if link_response.completed:
-                                        logger.info(
-                                            f"Linked MHM account {account_identifier} to Discord user {discord_user_id}"
-                                        )
-                                except Exception as e:
-                                    logger.error(
-                                        f"Error linking account for Discord user {discord_user_id}: {e}"
-                                    )
-                                    await confirm_interaction.response.send_message(
-                                        "❌ An error occurred while linking your account. Please try again.",
-                                        ephemeral=True,
-                                    )
-
                         await modal_interaction.response.send_message(
-                            response.message, ephemeral=True
-                        )
-                        # Can't send modal via followup - need to send message with instructions instead
-                        await modal_interaction.followup.send(
-                            "Please use `/start` and select 'Link Account' again to enter your confirmation code.",
+                            response.message,
+                            view=_ConfirmLinkView(
+                                account_identifier, discord_user_id
+                            ),
                             ephemeral=True,
                         )
                     else:
@@ -522,9 +562,12 @@ async def start_account_linking_flow(
                     await modal_interaction.response.send_message(
                         response.message, ephemeral=True
                     )
-            except Exception as e:
-                logger.error(
-                    f"Error in account linking flow for Discord user {discord_user_id}: {e}"
+            except Exception as error:
+                logger.exception(
+                    "Error starting MHM account link for Discord user",
+                    redact_exception=True,
+                    discord_user_id=discord_user_id,
+                    error_type=type(error).__name__,
                 )
                 await modal_interaction.response.send_message(
                     "❌ An error occurred. Please try again.", ephemeral=True

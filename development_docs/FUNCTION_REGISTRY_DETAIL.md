@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-16 00:56:24
+> **Last Generated**: 2026-10-16 19:26:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 306
-- **Functions Found**: 3186
-- **Methods Found**: 1634
-- **Classes Found**: 281
-- **Total Items**: 4820
-- **Functions Documented**: 2831
-- **Methods Documented**: 1454
-- **Classes Documented**: 214
-- **Total Documented**: 4285
-- **Template-Generated**: 66
+- **Functions Found**: 3189
+- **Methods Found**: 1637
+- **Classes Found**: 282
+- **Total Items**: 4826
+- **Functions Documented**: 2835
+- **Methods Documented**: 1458
+- **Classes Documented**: 216
+- **Total Documented**: 4293
+- **Template-Generated**: 70
 - **Last Updated**: 2026-10-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (900)
+### **Communication Functions** (903)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -2164,6 +2164,8 @@ Returns:
 
 #### `communication/communication_channels/discord/onboarding/account_flow_handler.py`
 **Functions:**
+- [OK] `__init__(self, account_identifier, discord_user_id)` - Special Python method
+- [OK] `__init__(self, account_identifier, discord_user_id)` - Special Python method
 - [OK] `__init__(self, preferred_name, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
 
 Creates a Discord UI view with select menus and buttons for configuring
@@ -2213,9 +2215,10 @@ Args:
 - [MISSING] `callback(self, interaction)` - No description
 - [MISSING] `callback(self, interaction)` - No description
 - [OK] `callback(self, interaction)` - Create the account with selected features.
+- [OK] `enter_confirmation_code(self, interaction, button)` - Open the confirmation modal from a Discord component interaction.
+- [OK] `on_submit(self, interaction)` - Verify the supplied code and complete the pending account link.
 - [MISSING] `on_submit(self, modal_interaction)` - No description
 - [MISSING] `on_submit(self, modal_interaction)` - No description
-- [MISSING] `on_submit(self, confirm_interaction)` - No description
 - [OK] `on_timeout(self)` - Handle view timeout.
 - [OK] `start_account_creation_flow(interaction, discord_user_id, discord_username)` - Start the account creation flow via Discord modal.
 
@@ -2238,8 +2241,6 @@ features during account creation.
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
   - [MISSING] `CheckinFeatureSelect.callback(self, interaction)` - No description
-- [MISSING] `ConfirmLinkModal` - No description
-  - [MISSING] `ConfirmLinkModal.on_submit(self, confirm_interaction)` - No description
 - [OK] `CreateAccountButton` - Button to finalize account creation.
   - [OK] `CreateAccountButton.__init__(self, parent_view)` - Initialize the account creation button.
 
@@ -2291,6 +2292,12 @@ account creation. Limited to 25 options (Discord's maximum).
 Args:
     parent_view: The parent FeatureSelectionView to update when selection changes
   - [MISSING] `TimezoneSelect.callback(self, interaction)` - No description
+- [OK] `_ConfirmLinkModal` - Collect and submit the confirmation code for a pending account link.
+  - [OK] `_ConfirmLinkModal.__init__(self, account_identifier, discord_user_id)` - Special Python method
+  - [OK] `_ConfirmLinkModal.on_submit(self, interaction)` - Verify the supplied code and complete the pending account link.
+- [OK] `_ConfirmLinkView` - Expose a component interaction that is allowed to open the code modal.
+  - [OK] `_ConfirmLinkView.__init__(self, account_identifier, discord_user_id)` - Special Python method
+  - [OK] `_ConfirmLinkView.enter_confirmation_code(self, interaction, button)` - Open the confirmation modal from a Discord component interaction.
 
 #### `communication/communication_channels/discord/onboarding/welcome_handler.py`
 **Functions:**

@@ -3,6 +3,7 @@
 import asyncio
 import json
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from aiohttp import web
 import pytest
@@ -142,7 +143,14 @@ async def test_health_get_returns_the_existing_browser_safe_snapshot(monkeypatch
     }
 
 
-async def test_health_post_rejects_unknown_actions_before_mutation():
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"action": "unknown"},
+        {"action": "sync", "unexpected": True},
+    ],
+)
+async def test_health_post_rejects_invalid_payloads_before_mutation(payload):
     class Gateway:
         health_connecting = set()
         health_lock = asyncio.Lock()
@@ -151,13 +159,33 @@ async def test_health_post_rejects_unknown_actions_before_mutation():
             return "user-1", {}
 
         async def body(self, _request):
-            return {"action": "unknown"}
+            return payload
 
     with pytest.raises(web.HTTPBadRequest) as error:
-        await WebHealthRoutes(Gateway()).health_settings(
-            SimpleNamespace(method="POST")
-        )
+        await WebHealthRoutes(Gateway()).health_settings(SimpleNamespace(method="POST"))
     assert error.value.text == "Choose a valid Google Health action."
+
+
+async def test_health_post_reauthenticates_before_mutating(monkeypatch):
+    from integrations.google_health import user_settings
+
+    sync = MagicMock(return_value=True)
+    monkeypatch.setattr(user_settings, "sync_health_integration", sync)
+
+    class Gateway(_Gateway):
+        async def authenticated_account(self, _request):
+            self.auth_calls += 1
+            if self.auth_calls == 2:
+                raise web.HTTPUnauthorized(text="Sign in again.")
+            return "user-1", {}
+
+    gateway = Gateway("sync")
+    with pytest.raises(web.HTTPUnauthorized) as error:
+        await WebHealthRoutes(gateway).health_settings(SimpleNamespace(method="POST"))
+
+    assert error.value.text == "Sign in again."
+    sync.assert_not_called()
+    assert gateway.throttle_calls == [(("health", "user-1"), 12, 600)]
 
 
 @pytest.mark.parametrize(
@@ -186,7 +214,7 @@ async def test_health_mutations_return_a_fresh_snapshot(monkeypatch, action, mes
     assert payload["message"] == message
     assert payload["connected"] is True
     assert gateway.auth_calls == 2
-    assert gateway.throttle_calls == [(('health', 'user-1'), 12, 600)]
+    assert gateway.throttle_calls == [(("health", "user-1"), 12, 600)]
 
 
 async def test_health_enable_surfaces_validation_error(monkeypatch):
@@ -266,3 +294,18 @@ async def test_health_connect_releases_slot_from_completion_callback(monkeypatch
     assert "user-1" in gateway.health_connecting
     callbacks[0](True, "")
     assert "user-1" not in gateway.health_connecting
+
+
+async def test_register_health_routes_registers_get_and_post_handlers():
+    router = SimpleNamespace(add_get=MagicMock(), add_post=MagicMock())
+    app = SimpleNamespace(router=router)
+    gateway = object()
+
+    register_health_routes(app, gateway)
+
+    router.add_get.assert_called_once()
+    router.add_post.assert_called_once()
+    assert router.add_get.call_args.args[0] == "/api/health"
+    assert router.add_post.call_args.args[0] == "/api/health"
+    assert router.add_get.call_args.args[1].__self__.gateway is gateway
+    assert router.add_post.call_args.args[1].__self__.gateway is gateway
