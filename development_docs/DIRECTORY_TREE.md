@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 13:33:10
+> **Last Generated**: 2026-10-17 17:07:27
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -598,6 +598,7 @@ C:.
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
 |   |   task_effort.py
+|   |   task_focus.py
 |   |   task_link_helpers.py
 |   |   task_occurrence_skip.py
 |   |   task_reference.py
@@ -1129,6 +1130,7 @@ C:.
 |   |   |   test_task_edit_dialog_time_combos.py
 |   |   |   test_task_effort.py
 |   |   |   test_task_flow_date_parsing.py
+|   |   |   test_task_focus.py
 |   |   |   test_task_links.py
 |   |   |   test_task_occurrence_skip.py
 |   |   |   test_task_reference.py

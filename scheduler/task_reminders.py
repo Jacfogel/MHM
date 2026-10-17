@@ -224,7 +224,7 @@ def schedule_all_task_reminders(scheduler_manager: Any, user_id: str) -> None:
                 continue
 
             selected_task = scheduler_manager.select_task_for_reminder(
-                incomplete_tasks
+                incomplete_tasks, user_id=user_id
             )
             if not selected_task:
                 logger.debug(
@@ -390,9 +390,28 @@ def select_task_by_weight(
 
 @handle_errors("selecting task for reminder", default_return=None)
 def select_task_for_reminder(
-    scheduler_manager: Any, incomplete_tasks: list[dict[str, Any]]
+    scheduler_manager: Any,
+    incomplete_tasks: list[dict[str, Any]],
+    user_id: str | None = None,
 ) -> dict[str, Any] | None:
-    """Select a task for reminder using priority and due-date weighting."""
+    """Select a reminder task, using shared focus signals when a user is known."""
+    if user_id:
+        from tasks.task_focus import choose_task_focus_for_user
+
+        decision = choose_task_focus_for_user(
+            user_id,
+            incomplete_tasks,
+            random_value=random.random,
+        )
+        if decision is None:
+            return None
+        selected_task = decision.task
+        selected_task_id = str(selected_task.get("id") or "").strip() or "unknown"
+        logger.debug(
+            f"Selected task id {selected_task_id} for user {user_id}: {decision.reason}"
+        )
+        return selected_task
+
     edge_case_result = handle_task_selection_edge_cases(incomplete_tasks)
     if edge_case_result != "PROCEED":
         return edge_case_result

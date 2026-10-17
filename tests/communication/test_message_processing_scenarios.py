@@ -180,6 +180,25 @@ class TestGetUserSuggestionsScenarios:
             suggestions = get_user_suggestions(user_id)
         assert any('Work on "Open item" from your task list' in s for s in suggestions)
 
+    def test_low_energy_replaces_generic_help_with_selected_task(
+        self, test_data_dir, fixed_now
+    ):
+        user_id = _unique_user("suggest_gentle")
+        TestUserFactory.create_basic_user(
+            user_id, enable_checkins=False, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        create_task(user_id, title="Prepare the annual tax filing package")
+        with (
+            patch(
+                "communication.message_processing.user_suggestions.now_datetime_full",
+                return_value=fixed_now,
+            ),
+            patch("tasks.task_focus.task_focus_signals", return_value=(1, True)),
+        ):
+            suggestions = get_user_suggestions(user_id)
+        assert 'Break down "Prepare the annual tax filing package"' in suggestions
+        assert "Help with tasks" not in suggestions
+
     def test_multiple_tasks_includes_list_prompt(self, test_data_dir, fixed_now):
         user_id = _unique_user("suggest_multi")
         TestUserFactory.create_basic_user(
@@ -217,7 +236,7 @@ class TestGetUserSuggestionsScenarios:
         ):
             suggestions = get_user_suggestions(user_id)
         assert "Show my profile" in suggestions
-        assert "Help with tasks" in suggestions
+        assert "Help with tasks" not in suggestions
         assert len(suggestions) <= 5
 
     def test_categories_add_schedule_suggestions(self, test_data_dir, fixed_now):

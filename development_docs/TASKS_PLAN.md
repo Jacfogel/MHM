@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-09-15  
+> **Last Updated**: 2026-10-17
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -196,6 +196,34 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - Finishing or deleting the bigger task finishes or deletes its steps.
 - Restoring the bigger task leaves its steps finished unless you ask to bring them back.
 - The next occurrence of a repeating task still has those steps.
+
+---
+
+### 4.3 Adaptive focus and reminder pressure
+
+**Status**: ACTIVE
+**Priority**: High
+**Why it matters**: MHM should choose one useful next action consistently, respect genuinely urgent work, and reduce pressure when the user's current signals call for it.
+
+**Shipped (2026-10-17)**:
+- [x] Added one backend focus policy for scheduled task reminders and chat suggestions, based on priority, due proximity, time-of-day tags, reminder snoozes, subtasks, and a local effort estimate.
+- [x] Scheduled reminders use today's check-in energy and reliable Google Health message guidance. Low-energy selection prefers a short task or unfinished subtask only among tasks in the same urgency band.
+- [x] Overdue, critical, urgent, high-priority, and due-today work stays ahead of less urgent work even when it is larger.
+- [x] Reminder copy explains why the task remains the focus. Gentle mode lowers expectations and points to **Break it down**, which is now a primary first-row Discord action.
+- [x] Chat suggestions use the selected task or subtask instead of the generic `Help with tasks` suggestion.
+- [x] Missing or low-confidence energy/health data leaves the established reminder tone unchanged.
+
+**Next slices**:
+- [ ] Record bounded reminder-deferral history. After repeated snoozes or skips, prefer the next open subtask, offer **Break it down**, or offer to reconsider the due date instead of repeating identical copy.
+- [ ] Coordinate pressure across task reminders, motivational messages, and Google Health messages so `avoid_nagging_movement_prompts` and related guidance reduce message pressure as one policy.
+- [ ] Move the Home focus card onto the backend policy endpoint so website, chat, and scheduled reminders cannot drift as the policy evolves.
+- [ ] Decide whether the Discord action labels should become the plainer **Done**, **Snooze**, **Simplify**, and **Leave me alone** while preserving the current underlying actions.
+
+**Acceptance**:
+- The same user state produces the same urgency guardrails in Home, chat, and scheduled reminders.
+- Low energy changes effort preference and wording, never whether urgent work is disclosed.
+- Missing or unreliable wellness signals do not invent a mood or health state.
+- Repeated deferrals cause a useful change in action or copy rather than another identical prompt.
 
 ---
 

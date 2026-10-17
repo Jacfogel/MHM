@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-17 - Shared task focus reaches reminders and chat **COMPLETED**
+- Scheduled task reminders and chat suggestions now use one backend focus policy with urgency guardrails, snooze awareness, subtask preference, time-of-day fit, and effort estimates.
+- Reliable low-energy or health guidance makes reminder wording gentler and favors smaller work only among similarly urgent tasks; missing signals preserve the direct tone.
+- Reminders explain the selection and promote **Break it down**; generic `Help with tasks` suggestions are replaced by the selected task or step. Repeated deferrals and cross-category pressure coordination remain planned next slices.
+- The focused regression set passes 252 tests; the standard audit reports complete docstrings and 100% error-handling coverage, and Ruff and project-wide Pyright are clean.
+
 ### 2026-10-17 - Notebook persistence and reference safety hardened **COMPLETED**
 - Notebook logs retain only safe operational metadata, and the privacy guard now scans every Python runtime package.
 - Notebook creates and mutations use lock-scoped read-modify-write transactions; lists persist final completion states in one write, and concurrent edits no longer overwrite one another.
@@ -116,12 +122,6 @@ Guidelines:
 - The three shared-handler helpers are covered by the error decorator, logger tests close their files, and the task-phrase guide uses the full parser path.
 - Size-rollover tests clear leftover backups, and fixture-label lookup uses the newest user so a second audit does not count old check-ins or old log files.
 - Restart MHM so the running process picks up the shared error log. The current oversized `errors.log` rotates on the next error after that restart.
-
-### 2026-10-06 - Discord concurrency, error recovery, and test diagnostics hardened **COMPLETED**
-- Discord sends now use per-request futures without blocking the event loop, worker loops shut down cleanly, and connection-health probes close their sockets immediately.
-- Error recovery no longer repeats side effects by default or disables later operations through a process-lifetime retry counter; retries are explicit, bounded, and omit call arguments from retained context.
-- Test configuration now exposes ordinary warnings and fails on unhandled-thread, unraisable, unawaited-coroutine, and unclosed-resource defects, with focused Discord, health-route, and recovery regression coverage.
-- Verification is clean: the scoped Tier 3 runner reports zero failures or errors, the focused Discord run passes 91 tests, and Ruff and Pyright report no findings.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -340,6 +340,8 @@ class TestChannelOrchestratorHelpers:
         assert 'Test description' in message, "Should include description"
         assert '2024-01-01' in message, "Should include due date"
         assert 'High' in message, "Should include priority"
+        assert "**Task Reminder:**" in message
+        assert "gentle task reminder" not in message.lower()
 
     def test_create_task_reminder_message_with_priority_emoji(self):
         """Test _create_task_reminder_message includes priority emoji."""
@@ -378,6 +380,21 @@ class TestChannelOrchestratorHelpers:
         assert isinstance(message, str), "Should return string"
         assert 'Minimal Task' in message, "Should include task title"
         assert 'Untitled Task' not in message, "Should use provided title"
+
+    def test_create_task_reminder_message_uses_gentle_wording(self):
+        task = {
+            "title": "File taxes",
+            "priority": "high",
+            "due": {"date": "2026-10-17"},
+        }
+
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(
+            task, energy=1, gentle=True
+        )
+
+        assert "gentle task reminder" in message.lower()
+        assert "Why this one" in message
+        assert "Break it down" in message
 
     def test_create_task_reminder_message_invalid_input(self):
         """Test _create_task_reminder_message with invalid input."""

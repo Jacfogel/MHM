@@ -44,6 +44,11 @@ class TestTaskReminderView:
             "Skip",
             "Break it down",
         ]
+        break_button = next(
+            child for child in view.children if child.label == "Break it down"
+        )
+        assert break_button.row == 0
+        assert str(break_button.style).endswith("primary")
 
     @pytest.mark.asyncio
     async def test_snooze_choice_view_has_four_options_before_evening(self):

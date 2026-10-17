@@ -100,9 +100,16 @@ class TaskReminderDispatcher:
             return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
         from tasks.task_breakdown import next_open_step
+        from tasks.task_focus import task_focus_signals
 
         focus_step = next_open_step(user_id, task)
-        reminder_message = self.create_task_reminder_message(task, focus_step=focus_step)
+        energy, gentle = task_focus_signals(user_id)
+        reminder_message = self.create_task_reminder_message(
+            task,
+            focus_step=focus_step,
+            energy=energy,
+            gentle=gentle,
+        )
         display_title = str(
             (focus_step or task).get("title") or task.get("title") or "Untitled Task"
         )
@@ -192,7 +199,12 @@ class TaskReminderDispatcher:
 
     @handle_errors("creating task reminder message", default_return="Task reminder")
     def create_task_reminder_message(
-        self, task: dict, focus_step: dict | None = None
+        self,
+        task: dict,
+        focus_step: dict | None = None,
+        *,
+        energy: int | None = None,
+        gentle: bool = False,
     ) -> str:
         """Create a formatted task reminder message."""
         if not task or not isinstance(task, dict):
@@ -200,6 +212,7 @@ class TaskReminderDispatcher:
             return "Task reminder"
 
         from tasks.task_data_handlers import runtime_task_due_date
+        from tasks.task_focus import explain_task_focus
 
         shown = focus_step if isinstance(focus_step, dict) else task
         title = shown.get("title", "Untitled Task")
@@ -214,7 +227,8 @@ class TaskReminderDispatcher:
             "critical": "🚨",
         }.get(priority, "🟡")
 
-        message = f"💡 **Task Reminder:** {priority_emoji}\n\n"
+        heading = "A gentle task reminder" if gentle or energy in {1, 2} else "Task Reminder"
+        message = f"💡 **{heading}:** {priority_emoji}\n\n"
         message += f"**{title}**\n"
         if isinstance(focus_step, dict):
             parent_title = str(task.get("title") or "").strip()
@@ -227,6 +241,11 @@ class TaskReminderDispatcher:
         if due_date:
             message += f"📅 **Due:** {due_date}\n"
 
-        message += f"⚡ **Priority:** {priority.title()}"
+        message += f"⚡ **Priority:** {priority.title()}\n"
+        reason = explain_task_focus(shown, energy=energy)
+        if reason:
+            message += f"\n**Why this one:** {reason}"
+        if gentle or energy in {1, 2}:
+            message += "\n\nA smaller step is enough today—use **Break it down** if that would help."
 
         return message

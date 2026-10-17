@@ -1388,19 +1388,22 @@ class SchedulerManager:
 
     @handle_errors("selecting task for reminder", default_return=None)
     def select_task_for_reminder(
-        self, incomplete_tasks: list[dict[str, Any]]
+        self,
+        incomplete_tasks: list[dict[str, Any]],
+        user_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Select a task for reminder using priority-based and due date proximity weighting.
 
         Args:
             incomplete_tasks: List of incomplete tasks to choose from
+            user_id: Optional user whose energy and health guidance should apply
 
         Returns:
             Selected task dictionary
         """
         return scheduler_task_reminders.select_task_for_reminder(
-            self, incomplete_tasks
+            self, incomplete_tasks, user_id=user_id
         )
 
     @handle_errors("getting random time within task period")

@@ -2,14 +2,11 @@
 
 """Personalized user suggestions and response suggestion augmentation."""
 
-from datetime import datetime
-
 from core.error_handling import handle_errors
 from core.time_format_constants import DATE_DISPLAY_MONTH_DAY
 from core.time_utilities import (
     format_timestamp,
     now_datetime_full,
-    parse_date_and_time_minute,
     parse_date_only,
     parse_timestamp_full,
 )
@@ -29,27 +26,31 @@ def get_user_suggestions(user_id: str, context: str = "") -> list:
 
     try:
         from tasks import load_active_tasks
-        from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
+        from tasks.task_data_handlers import runtime_task_due_date
+        from tasks.task_focus import choose_task_focus_for_user
 
         tasks = load_active_tasks(user_id) or []
 
-        @handle_errors("parsing due date", default_return=None)
-        def parse_due(task: dict) -> datetime | None:
-            due_date = runtime_task_due_date(task)
-            due_time = runtime_task_due_time(task)
-            if not due_date:
-                return None
-            if due_time:
-                return parse_date_and_time_minute(due_date, due_time)
-            return parse_date_only(due_date)
-
         if tasks:
-            dated_tasks = [(task, parse_due(task)) for task in tasks]
-            dated_tasks.sort(key=lambda item: item[1] or datetime.max)
-            top_task, due_at = dated_tasks[0]
-            title = top_task.get("title") or "your top task"
+            decision = choose_task_focus_for_user(
+                user_id,
+                tasks,
+                now_dt=now,
+                random_value=lambda: 0.0,
+            )
+            top_task = decision.task if decision else tasks[0]
+            title = str(top_task.get("title") or "your top task")
+            due_date = runtime_task_due_date(top_task)
+            due_at = parse_date_only(due_date) if due_date else None
+            is_step = bool(str(top_task.get("parent_id") or "").strip())
 
-            if due_at:
+            if decision and is_step:
+                add_suggestion(
+                    f'Do the {decision.effort_minutes}-minute step "{title}"'
+                )
+            elif decision and decision.gentle and decision.effort_minutes > 15:
+                add_suggestion(f'Break down "{title}"')
+            elif due_at:
                 due_display = format_timestamp(due_at, DATE_DISPLAY_MONTH_DAY)
                 if due_at.date() < now.date():
                     add_suggestion(f'Catch up on "{title}" (was due {due_display})')
@@ -116,7 +117,6 @@ def get_user_suggestions(user_id: str, context: str = "") -> list:
         add_suggestion("Show my analytics")
 
     add_suggestion("Show my profile")
-    add_suggestion("Help with tasks")
 
     return suggestions
 

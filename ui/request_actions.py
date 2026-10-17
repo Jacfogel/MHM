@@ -435,7 +435,9 @@ def create_task_reminder_request(
         SchedulerManager = _load_attr("scheduler.manager", "SchedulerManager")
         temp_comm_manager = create_communication_manager()
         scheduler_manager = SchedulerManager(temp_comm_manager)
-        selected_task = scheduler_manager.select_task_for_reminder(incomplete_tasks)
+        selected_task = scheduler_manager.select_task_for_reminder(
+            incomplete_tasks, user_id=user_id
+        )
 
         if not selected_task:
             return RequestActionOutcome(

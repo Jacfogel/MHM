@@ -4,10 +4,10 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord task reminder delivery and task reminder action buttons  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-09-15  
-> **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`  
+> **Last Updated**: 2026-10-17
+> **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
-> **Automated tests**: `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`  
+> **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-task-reminder-flow)
 
 ## 1. Purpose
@@ -67,6 +67,33 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **THEN** it returns a Discord `View`  
 - **AND** the view uses `timeout=None`  
 - **AND** each button custom ID includes the internal user ID and task ID  
+- **AND** `Break it down` is a primary action on the first button row
+
+#### Scenario: Shared focus policy selects the reminder task
+
+- **GIVEN** a user has more than one active task
+- **WHEN** a scheduled task-reminder period selects one task
+- **THEN** selection uses the shared task-focus policy also used by chat suggestions
+- **AND** current reminder snoozes are respected
+- **AND** an open subtask is preferred over reminding on its parent as a whole
+- **AND** a genuinely urgent task is not hidden by an easier, less urgent task
+
+#### Scenario: Low energy changes effort preference but not urgency
+
+- **GIVEN** today's check-in has a reliable energy score of 1 or 2
+- **WHEN** several tasks have the same urgency band
+- **THEN** a short task or unfinished subtask receives an effort preference
+- **AND** overdue, critical, urgent, high-priority, or due-today work remains visible ahead of less urgent work
+
+#### Scenario: Reminder wording follows reliable guidance
+
+- **GIVEN** today's energy is low or reliable health guidance calls for a gentle tone
+- **WHEN** a task reminder is formatted
+- **THEN** its wording keeps expectations small and avoids productivity pressure
+- **AND** it explains why the task was selected without exposing raw health measurements
+- **AND** it points prominently to `Break it down`
+- **WHEN** no reliable energy or health signal exists
+- **THEN** the established direct reminder tone is preserved
 
 #### Scenario: Complete Task button
 

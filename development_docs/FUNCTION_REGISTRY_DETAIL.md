@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 13:32:23
+> **Last Generated**: 2026-10-17 17:06:41
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 306
-- **Functions Found**: 3190
+- **Files Scanned**: 307
+- **Functions Found**: 3199
 - **Methods Found**: 1637
-- **Classes Found**: 282
-- **Total Items**: 4827
-- **Functions Documented**: 2836
+- **Classes Found**: 284
+- **Total Items**: 4836
+- **Functions Documented**: 2845
 - **Methods Documented**: 1458
-- **Classes Documented**: 216
-- **Total Documented**: 4294
+- **Classes Documented**: 217
+- **Total Documented**: 4303
 - **Template-Generated**: 70
 - **Last Updated**: 2026-10-17
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (904)
+### **Communication Functions** (903)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (176)
+### **Task Management Functions** (186)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -3873,7 +3873,6 @@ Returns an early InteractionResponse or a converted message for continued parsin
 - [MISSING] `add_suggestion(text)` - No description
 - [MISSING] `augment_suggestions(parsed_command, response)` - No description
 - [OK] `get_user_suggestions(user_id, context)` - Get personalized suggestions for the user.
-- [MISSING] `parse_due(task)` - No description
 
 #### `communication/reminders/__init__.py`
 
@@ -6612,10 +6611,11 @@ Jobs are registered with keyword arguments, which ``schedule`` keeps on
 ``keywords``. Positional ``args`` are checked when keywords do not identify
 the job.
 - [MISSING] `scheduler_loop()` - No description
-- [OK] `select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
+- [OK] `select_task_for_reminder(self, incomplete_tasks, user_id)` - Select a task for reminder using priority-based and due date proximity weighting.
 
 Args:
     incomplete_tasks: List of incomplete tasks to choose from
+    user_id: Optional user whose energy and health guidance should apply
 
 Returns:
     Selected task dictionary
@@ -6718,10 +6718,11 @@ Args:
     user_id: The ID of the newly created user
   - [OK] `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
   - [OK] `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
-  - [OK] `SchedulerManager.select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
+  - [OK] `SchedulerManager.select_task_for_reminder(self, incomplete_tasks, user_id)` - Select a task for reminder using priority-based and due date proximity weighting.
 
 Args:
     incomplete_tasks: List of incomplete tasks to choose from
+    user_id: Optional user whose energy and health guidance should apply
 
 Returns:
     Selected task dictionary
@@ -6762,7 +6763,7 @@ priority/due-date logic and scheduled at a random time within that period.
 - [OK] `schedule_task_reminder_at_datetime(scheduler_manager, user_id, task_identifier, date_str, time_str)` - Schedule a one-time reminder for one task at a specific date and time.
 - [OK] `schedule_task_reminder_at_time(scheduler_manager, user_id, task_identifier, reminder_time)` - Schedule a daily reminder for one task at an HH:MM time.
 - [OK] `select_task_by_weight(scheduler_manager, task_weights, incomplete_tasks)` - Select a reminder candidate using weighted random selection.
-- [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks)` - Select a task for reminder using priority and due-date weighting.
+- [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks, user_id)` - Select a reminder task, using shared focus signals when a user is known.
 - [OK] `task_selection_key(task, index)` - Build a stable key for tracking reminder selection state.
 
 #### `scheduler/user_timezone.py`
@@ -7163,6 +7164,22 @@ A local guess fills a gap for this response only. Only a parsed model
 answer is cached, so a timeout or an unavailable model can be retried.
 - [OK] `local_task_minutes(task)` - Guess minutes from the title so Home can rank tasks without the model.
 - [OK] `parse_task_effort_lines(text, allowed_ids)` - Read `id minutes` lines and keep only ids from this request.
+
+#### `tasks/task_focus.py`
+**Functions:**
+- [OK] `_days_until_due(task, now_dt)` - Return calendar days until the task due date, or None without one.
+- [OK] `_focus_reason(ranked)` - Turn ranking evidence into a short, nonjudgmental explanation.
+- [OK] `_leaf_candidates(tasks, now_dt)` - Return unsnoozed open leaf tasks, falling back to eligible parents.
+- [MISSING] `_rank_task(task, now_dt, energy)` - No description
+- [OK] `_time_band(hour)` - Return the broad day period used by task time-of-day tags.
+- [OK] `_urgency(priority, days_until_due)` - Put tasks in broad bands so energy never hides genuinely urgent work.
+- [OK] `choose_task_focus(tasks)` - Choose one actionable task while preserving urgency guardrails.
+- [OK] `choose_task_focus_for_user(user_id, tasks)` - Choose a focus task with the user's reliable energy and health guidance.
+- [OK] `explain_task_focus(task)` - Explain a task's own urgency and effort without exposing health details.
+- [OK] `task_focus_signals(user_id)` - Return today's energy and whether reminders should avoid pressure.
+**Classes:**
+- [OK] `TaskFocusDecision` - A selected task plus the user-facing reason for selecting it.
+- [MISSING] `_RankedTask` - No description
 
 #### `tasks/task_link_helpers.py`
 **Functions:**

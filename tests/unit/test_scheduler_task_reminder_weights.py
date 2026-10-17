@@ -117,6 +117,19 @@ class TestTaskSelectionKeyAndWeightedPick:
         task = {"id": "solo"}
         assert tr.select_task_for_reminder(manager, [task]) == task
 
+    def test_select_task_for_known_user_uses_shared_focus_policy(self):
+        manager = MagicMock(_reminder_selection_state={})
+        selected = {"id": "shared", "title": "Shared focus"}
+        decision = MagicMock(task=selected, reason="Due today.")
+        with patch(
+            "tasks.task_focus.choose_task_focus_for_user", return_value=decision
+        ) as choose:
+            result = tr.select_task_for_reminder(
+                manager, [{"id": "candidate"}], user_id="user-1"
+            )
+        assert result == selected
+        choose.assert_called_once()
+
 
 @pytest.mark.unit
 @pytest.mark.scheduler

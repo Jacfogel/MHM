@@ -125,6 +125,7 @@ def get_task_reminder_view(
             label="More",
             style=discord.ButtonStyle.secondary,
             custom_id=f"task_more_{user_id}_{task_id}",
+            row=1,
         )
         @handle_errors("showing task reminder help", context={"component": "discord"})
         async def more_button(
@@ -185,9 +186,9 @@ def get_task_reminder_view(
 
         @discord.ui.button(
             label="Break it down",
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.primary,
             custom_id=f"task_simplify_{user_id}_{task_id}",
-            row=1,
+            row=0,
         )
         @handle_errors("suggesting smaller task steps", context={"component": "discord"})
         async def simplify_button(
