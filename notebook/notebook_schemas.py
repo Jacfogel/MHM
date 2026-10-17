@@ -95,8 +95,12 @@ class Entry(BaseModel):
         for tag in normalized:
             try:
                 validate_tag(tag)
-            except ValueError as e:
-                logger.warning(f"Invalid tag '{tag}' removed during validation: {e}")
+            except ValueError as exc:
+                logger.warning(
+                    "Invalid notebook tag removed during validation",
+                    tag_length=len(tag),
+                    exception_type=type(exc).__name__,
+                )
         return normalized
 
     @field_validator("items", mode="after")

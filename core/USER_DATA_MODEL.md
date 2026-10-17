@@ -187,12 +187,12 @@ For `kind: "task"` records in `tasks/tasks.json`:
 
 **Short IDs (no dash)**
 
-Persisted `short_id` values use [`core.ids.generate_short_id`](ids.py) (also re-exported from `storage.user_data_v2_base`): prefix + hex fragment, **no hyphen**, default length 6. Shared prefixes: tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`, plus `m`/`d`/`c` for message/delivery/checkin. Notebook entry references accept only `n`/`l`/`j` (and bare hex / UUID / title); a `t...` token is a valid shared short ID but not a notebook entry ref. User-facing confirmations should use the canonical form; dashed `n-...` / `t-...` display is obsolete.
+Persisted `short_id` values use [`core.ids.generate_short_id`](ids.py) (also re-exported from `storage.user_data_v2_base`): prefix + hex fragment, **no hyphen**, default length 6. Shared prefixes: tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`, plus `m`/`d`/`c` for message/delivery/checkin. Notebook entry references accept only `n`/`l`/`j` (and bare hex / UUID / title); a `t...` token is a valid shared short ID but not a notebook entry ref. A fragment or title that matches more than one entry is ambiguous and must not select an arbitrary entry; user-facing callers ask for an exact short ID. User-facing confirmations should use the canonical form; dashed `n-...` / `t-...` display is obsolete.
 
 Canonical v2 files:
 
 - `tasks/tasks.json`: versioned task collection with `tasks[]`. Active/completed state lives in each task's `status` and `completion`, not in separate storage files.
-- `notebook/entries.json`: versioned notebook collection with `entries[]` containing `note`, `list`, and `journal_entry` records. Notes and journals use `description` for their main text. Lists preserve list items in `items`.
+- `notebook/entries.json`: versioned notebook collection with `entries[]` containing `note`, `list`, and `journal_entry` records. Notes and journals use `description` for their main text. Lists preserve list items in `items`. Creates and mutations hold the file lock across the complete read-modify-write transaction, and list creation persists final item completion states in that single transaction.
 - `checkins.json`: versioned check-in collection with `checkins[]`. Individual answers live under `responses`, and `questions_asked` records the prompt set used at submission time.
 - `messages/<category>.json`: versioned message template collection with `messages[]`, `text`, `active`, and nested `schedule`.
 - `messages/sent_messages.json`: versioned delivery collection with `deliveries[]`, distinct from reusable templates.

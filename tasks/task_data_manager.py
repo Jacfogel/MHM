@@ -123,7 +123,13 @@ def create_task(
         logger.error("Valid user ID required for task creation")
         return None
     if not is_valid_task_title(title):
-        logger.error(f"Invalid or missing title: {title}")
+        title_type = type(title).__name__
+        title_length = len(title) if isinstance(title, str) else None
+        logger.error(
+            "Invalid or missing task title",
+            title_type=title_type,
+            title_length=title_length,
+        )
         return None
     if description is not None and not isinstance(description, str):
         logger.error(f"Invalid description type: {type(description)}")
@@ -138,7 +144,7 @@ def create_task(
         logger.error(f"Invalid priority type: {type(priority)}")
         return None
     if priority and not is_valid_priority(priority):
-        logger.warning(f"Using default priority 'medium' for task '{title}'")
+        logger.warning("Using default task priority", default_priority="medium")
         priority = "medium"
     if reminder_periods is not None and not isinstance(reminder_periods, list):
         logger.error(f"Invalid reminder_periods type: {type(reminder_periods)}")
@@ -202,7 +208,7 @@ def create_task(
     if not save_active_tasks(user_id, tasks):
         logger.error(f"Failed to save task for user {user_id}")
         return None
-    logger.info(f"Created task '{title}' for user {user_id} with ID {task_id}")
+    logger.info("Created task", user_id=user_id, task_id=task_id)
     if reminder_periods:
         schedule_task_reminders(user_id, task_id, reminder_periods)
     return task_id

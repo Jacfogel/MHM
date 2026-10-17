@@ -83,7 +83,15 @@ async def notes_gateway(monkeypatch):
 
     def make(kind="note", **values):
         prefix = {"note": "n", "journal_entry": "j", "list": "l"}[kind]
-        items = [SimpleNamespace(id=uuid4(), text=text, done=False, order=index) for index, text in enumerate(values.get("items", []))]
+        items = [
+            SimpleNamespace(
+                id=uuid4(),
+                text=item["text"] if isinstance(item, dict) else item,
+                done=item.get("done", False) if isinstance(item, dict) else False,
+                order=index,
+            )
+            for index, item in enumerate(values.get("items", []))
+        ]
         return SimpleNamespace(id=uuid4(), short_id=f"{prefix}{uuid4().hex[:5]}", kind=kind, title=values["title"], description=values.get("description"), items=items, tags=values.get("tags", []), pinned=False, status="active", submitted_at=None, created_at="2026-09-20 09:00:00", updated_at="2026-09-20 09:00:00")
 
     def list_recent(uid, n=5, include_archived=False):
@@ -218,6 +226,66 @@ async def test_journal_and_list_create_and_edit(notes_gateway):
         {"id": updated_list["items"][0]["id"], "text": "Fold laundry", "done": True, "order": 0},
         {"id": updated_list["items"][1]["id"], "text": "Long walk", "done": False, "order": 1},
     ]
+
+
+async def test_list_create_persists_final_items_in_one_operation(
+    notes_gateway, monkeypatch
+):
+    """Completed states are included in the creation write, with no repair save."""
+    import notebook.notebook_data_manager as manager
+
+    original_create = manager.create_list
+    calls = []
+
+    def tracked_create(uid, **values):
+        calls.append(values)
+        return original_create(uid, **values)
+
+    monkeypatch.setattr(manager, "create_list", tracked_create)
+    monkeypatch.setattr(
+        manager,
+        "set_list_items",
+        lambda *args, **kwargs: pytest.fail("second list save was called"),
+    )
+
+    response = await notes_gateway.post(
+        "/api/notes",
+        json={
+            "kind": "list",
+            "title": "One write",
+            "items": [{"text": "Already done", "done": True}],
+        },
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status == 201
+    assert calls == [
+        {
+            "title": "One write",
+            "items": [{"text": "Already done", "done": True}],
+            "tags": [],
+        }
+    ]
+    assert (await response.json())["note"]["items"][0]["done"] is True
+
+
+async def test_notes_get_loads_one_notebook_snapshot(notes_gateway, monkeypatch):
+    """One GET derives notes and tags from one worker-thread notebook read."""
+    import notebook.notebook_data_manager as manager
+
+    original_list_recent = manager.list_recent
+    calls = []
+
+    def tracked_list_recent(uid, n=5, include_archived=False):
+        calls.append((uid, n, include_archived))
+        return original_list_recent(uid, n=n, include_archived=include_archived)
+
+    monkeypatch.setattr(manager, "list_recent", tracked_list_recent)
+
+    response = await notes_gateway.get("/api/notes?status=active&tag=home")
+
+    assert response.status == 200
+    assert calls == [("existing", 1000, True)]
 
 
 @pytest.mark.parametrize(

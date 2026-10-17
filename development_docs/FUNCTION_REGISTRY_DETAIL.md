@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-16 19:26:03
+> **Last Generated**: 2026-10-17 13:32:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 306
-- **Functions Found**: 3189
+- **Functions Found**: 3190
 - **Methods Found**: 1637
 - **Classes Found**: 282
-- **Total Items**: 4826
-- **Functions Documented**: 2835
+- **Total Items**: 4827
+- **Functions Documented**: 2836
 - **Methods Documented**: 1458
 - **Classes Documented**: 216
-- **Total Documented**: 4293
+- **Total Documented**: 4294
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-16
+- **Last Updated**: 2026-10-17
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (903)
+### **Communication Functions** (904)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -1500,6 +1500,7 @@ Returns:
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for tag-style list handlers.
+- [OK] `_entry_failure_response(result, fallback)` - Ask for an exact ID when a notebook reference matched multiple entries.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
@@ -5822,7 +5823,7 @@ its methods as routes.
 **Functions:**
 - [OK] `__init__(self, gateway)` - Special Python method
 - [OK] `clean_list_items(value)` - Validate and normalize list item edits from the browser.
-- [OK] `find(identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
+- [OK] `find(entries, identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
 - [OK] `notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
 - [OK] `register_notes_routes(app, gateway)` - Register all notebook endpoints on a website gateway application.

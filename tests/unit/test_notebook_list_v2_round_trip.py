@@ -14,11 +14,11 @@ pytestmark = [pytest.mark.unit, pytest.mark.notebook]
 def test_create_list_then_v2_round_trip_preserves_shared_fields(monkeypatch):
     captured: list = []
 
-    def save(uid: str, entries: list) -> None:
-        captured[:] = list(entries)
+    def update_entries(uid: str, updater):
+        result = updater(captured)
+        return result
 
-    monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-    monkeypatch.setattr(ndm, "save_entries", save)
+    monkeypatch.setattr(ndm, "update_entries", update_entries)
 
     entry = ndm.create_list(
         "user-list-roundtrip-1",

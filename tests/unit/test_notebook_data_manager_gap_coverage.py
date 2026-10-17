@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from uuid import UUID
 
@@ -73,9 +74,49 @@ def _journal_entry(
     )
 
 
+def _install_transaction(monkeypatch, entries: list[Entry]) -> list[Entry]:
+    """Install an in-memory stand-in for the lock-scoped persistence helper."""
+    state = list(entries)
+
+    def update_entries(_user_id, updater):
+        return updater(state)
+
+    monkeypatch.setattr(ndm, "update_entries", update_entries)
+    return state
+
+
 @pytest.mark.unit
 @pytest.mark.notebook
 class TestNotebookDataManagerGapCoverage:
+    def test_invalid_persisted_entry_log_omits_private_content(self, monkeypatch):
+        import notebook.notebook_data_handlers as handlers
+
+        calls = []
+        monkeypatch.setattr(
+            handlers.logger,
+            "error",
+            lambda *args, **kwargs: calls.append((args, kwargs)),
+        )
+        secret = "private-journal-body-7f9c"
+
+        result = handlers._entries_from_payload(
+            {
+                "entries": [
+                    {
+                        "kind": "journal_entry",
+                        "title": "Private title",
+                        "description": secret,
+                    }
+                ]
+            },
+            user_id="user-1",
+        )
+
+        assert result == []
+        assert calls
+        assert secret not in repr(calls)
+        assert "Private title" not in repr(calls)
+
     def test_journal_entry_helper_is_distinct_from_note(self):
         j = _journal_entry(
             "77777777-7777-4777-8777-777777777777",
@@ -107,23 +148,22 @@ class TestNotebookDataManagerGapCoverage:
         entries[0].short_id = "nabcdef"
         assert ndm._find_entry_by_ref(entries, "nabcdef") == entries[0]
 
-    def test_find_entry_by_ref_multiple_short_id_match_returns_first(self):
+    def test_find_entry_by_ref_multiple_short_id_match_is_ambiguous(self):
         entries = [
             _note("aaaaaa11-1111-1111-1111-111111111111", "First"),
             _note("aaaaaa22-2222-2222-2222-222222222222", "Second"),
         ]
-        assert ndm._find_entry_by_ref(entries, "naaaaaa") == entries[0]
+        resolution = ndm._resolve_entry_by_ref(entries, "naaaaaa")
+        assert resolution.entry is None
+        assert resolution.ambiguous is True
+        assert resolution.match_count == 2
 
     def test_create_entry_rejects_missing_user_and_bad_kind(self):
         assert ndm.create_entry("", "note", title="T", description="B") is None
         assert ndm.create_entry("user-1", "invalid_kind", title="T", description="B") is None
 
     def test_create_entry_accepts_listitem_objects(self, monkeypatch):
-        saved_entries = []
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(
-            ndm, "save_entries", lambda user_id, entries: saved_entries.extend(entries)
-        )
+        saved_entries = _install_transaction(monkeypatch, [])
         item = ListItem(text="One", order=0)
 
         entry = ndm.create_entry(
@@ -138,14 +178,12 @@ class TestNotebookDataManagerGapCoverage:
         assert len(saved_entries) == 1
 
     def test_create_entry_rejects_invalid_list_item_dict(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
+        _install_transaction(monkeypatch, [])
         # Missing required text field for ListItem validation.
         assert ndm.create_entry("user-1", "list", title="Bad list", items=[{}]) is None
 
     def test_create_entry_ignores_items_for_non_list_kind(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
+        _install_transaction(monkeypatch, [])
         entry = ndm.create_entry(
             "user-1",
             "note",
@@ -157,8 +195,7 @@ class TestNotebookDataManagerGapCoverage:
         assert entry.items is None
 
     def test_create_list_default_and_blank_items_fallback(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
+        _install_transaction(monkeypatch, [])
 
         default_item_entry = ndm.create_list("user-1", "Default list", items=None)
         assert default_item_entry is not None
@@ -170,26 +207,25 @@ class TestNotebookDataManagerGapCoverage:
         assert (fallback_entry.items or [])[0].text == "New item"
 
     def test_create_note_wrapper(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
+        _install_transaction(monkeypatch, [])
         entry = ndm.create_note("user-1", title="Note wrapper", description="wrapped")
         assert entry is not None
         assert entry.kind == "note"
 
     def test_create_journal_wrapper(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
+        _install_transaction(monkeypatch, [])
         entry = ndm.create_journal(
             "user-1", title="Journal", description="Today was good"
         )
         assert entry is not None
         assert entry.kind == "journal_entry"
 
-    def test_save_updated_entry_helper(self, monkeypatch):
+    def test_mutate_entry_updates_timestamp(self, monkeypatch):
         note = _note("12121212-1212-1212-1212-121212121212", "Save helper")
         monkeypatch.setattr(ndm, "now_timestamp_full", lambda: "2026-02-01 01:02:03")
-        monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
-        result = ndm._save_updated_entry("user-1", note, [note])
+        _install_transaction(monkeypatch, [note])
+        result = ndm._mutate_entry("user-1", str(note.id), lambda entry: True)
+        assert result is not None
         assert result.updated_at == "2026-02-01 01:02:03"
 
     def test_append_to_entry_body_edge_paths(self, monkeypatch):
@@ -200,7 +236,7 @@ class TestNotebookDataManagerGapCoverage:
 
         assert ndm.append_to_entry_body("", str(note.id), "x") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [list_entry])
+        _install_transaction(monkeypatch, [list_entry])
         assert ndm.append_to_entry_body("user-1", str(list_entry.id), "x") is None
 
         too_long_note = _note(
@@ -208,11 +244,10 @@ class TestNotebookDataManagerGapCoverage:
             "Long body",
             description="x" * MAX_BODY_LENGTH,
         )
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [too_long_note])
+        _install_transaction(monkeypatch, [too_long_note])
         assert ndm.append_to_entry_body("user-1", str(too_long_note.id), "x") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [note])
-        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
+        _install_transaction(monkeypatch, [note])
         updated = ndm.append_to_entry_body("user-1", str(note.id), "new text")
         assert updated is not None
         assert updated.description == "new text"
@@ -225,14 +260,13 @@ class TestNotebookDataManagerGapCoverage:
 
         assert ndm.set_entry_body("", str(note.id), "new") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
+        _install_transaction(monkeypatch, [])
         assert ndm.set_entry_body("user-1", str(note.id), "new") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [list_entry])
+        _install_transaction(monkeypatch, [list_entry])
         assert ndm.set_entry_body("user-1", str(list_entry.id), "new") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [note])
-        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
+        _install_transaction(monkeypatch, [note])
         updated = ndm.set_entry_body("user-1", str(note.id), "new")
         assert updated is not None
         assert updated.description == "new"
@@ -245,8 +279,7 @@ class TestNotebookDataManagerGapCoverage:
         assert list_entry.items is not None
         original_first_id = list_entry.items[0].id
 
-        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [note, list_entry])
+        _install_transaction(monkeypatch, [note, list_entry])
 
         titled = ndm.set_entry_title("user-1", str(note.id), "  New title  ")
         assert titled is not None
@@ -328,24 +361,23 @@ class TestNotebookDataManagerGapCoverage:
         assert ndm.add_list_item("", str(list_entry.id), "x") is None
         assert ndm.add_list_item("user-1", str(list_entry.id), "   ") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
+        _install_transaction(monkeypatch, [])
         assert ndm.add_list_item("user-1", str(list_entry.id), "x") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [non_list])
+        _install_transaction(monkeypatch, [non_list])
         assert ndm.add_list_item("user-1", str(non_list.id), "x") is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [empty_items_list])
-        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
+        _install_transaction(monkeypatch, [empty_items_list])
         added = ndm.add_list_item("user-1", str(empty_items_list.id), "new")
         assert added is not None
         assert len(added.items or []) == 1
         assert (added.items or [])[0].text == "new"
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [non_list])
+        _install_transaction(monkeypatch, [non_list])
         assert ndm.toggle_list_item_done("user-1", str(non_list.id), 1) is None
         assert ndm.remove_list_item("user-1", str(non_list.id), 1) is None
 
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [list_entry])
+        _install_transaction(monkeypatch, [list_entry])
         assert ndm.toggle_list_item_done("user-1", str(list_entry.id), 999) is None
         assert ndm.remove_list_item("user-1", str(list_entry.id), 999) is None
 
@@ -372,8 +404,8 @@ class TestNotebookDataManagerGapCoverage:
             is_archived=True,
             updated_at="2026-01-02 12:00:00",
         )
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [first, second])
-        monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
+        state = _install_transaction(monkeypatch, [first, second])
+        monkeypatch.setattr(ndm, "load_entries", lambda user_id: state)
 
         found = ndm.get_entry("user-1", str(first.id))
         assert found is not None
@@ -416,14 +448,15 @@ class TestNotebookDataManagerGapCoverage:
             description="Before",
             tags=["old"],
         )
+        state = [original]
         saved = []
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [original])
 
-        def save_once(user_id, entry, all_entries):
-            saved.append((user_id, entry, all_entries))
-            return entry
+        def save_once(user_id, updater):
+            result = updater(state)
+            saved.append((user_id, result, list(state)))
+            return result
 
-        monkeypatch.setattr(ndm, "_save_updated_entry", save_once)
+        monkeypatch.setattr(ndm, "update_entries", save_once)
 
         updated = ndm.update_entry(
             "user-1",
@@ -446,8 +479,53 @@ class TestNotebookDataManagerGapCoverage:
         assert original.title == "Original"
         assert original.tags == ["old"]
 
+    def test_concurrent_updates_to_different_entries_are_preserved(
+        self, monkeypatch, tmp_path
+    ):
+        """Lock-scoped transactions prevent stale snapshots from losing edits."""
+        import core.tags as shared_tags
+        import notebook.notebook_data_handlers as handlers
+
+        monkeypatch.setattr(shared_tags, "ensure_tags_initialized", lambda _uid: None)
+        monkeypatch.setattr(handlers, "ensure_notebook_dirs", lambda _uid: tmp_path)
+        first = _note(
+            "16161616-1616-1616-1616-161616161616",
+            "First",
+            description="before first",
+        )
+        second = _note(
+            "17171717-1717-1717-1717-171717171717",
+            "Second",
+            description="before second",
+        )
+        handlers.save_entries("user-1", [first, second])
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [
+                pool.submit(
+                    ndm.update_entry,
+                    "user-1",
+                    str(first.id),
+                    {"description": "after first"},
+                ),
+                pool.submit(
+                    ndm.update_entry,
+                    "user-1",
+                    str(second.id),
+                    {"description": "after second"},
+                ),
+            ]
+            assert all(future.result() is not None for future in futures)
+
+        reloaded = handlers.load_entries("user-1")
+        descriptions = {str(entry.id): entry.description for entry in reloaded}
+        assert descriptions == {
+            str(first.id): "after first",
+            str(second.id): "after second",
+        }
+
     def test_mutation_wrappers_return_none_for_missing_refs(self, monkeypatch):
-        monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
+        _install_transaction(monkeypatch, [])
         assert ndm.add_tags("user-1", "missing-ref", ["x"]) is None
         assert ndm.remove_tags("user-1", "missing-ref", ["x"]) is None
         assert ndm.pin_entry("user-1", "missing-ref", pinned=True) is None

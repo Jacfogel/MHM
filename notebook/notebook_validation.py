@@ -104,7 +104,8 @@ def is_valid_entry_reference(ref: str) -> bool:
 
     if is_dashed_short_id(ref):
         logger.warning(
-            f"Entry reference uses obsolete dashed short-id format: {ref!r} (use no-dash form)"
+            "Entry reference uses obsolete dashed short-id format",
+            reference_length=len(ref),
         )
         return False
 
@@ -120,8 +121,7 @@ def is_valid_entry_reference(ref: str) -> bool:
             return True
         # Known non-notebook prefix (e.g. task ``t``) - wrong domain for notebook refs
         logger.warning(
-            f"Short ID prefix {prefix!r} is not valid for notebook entries "
-            f"(expected one of {sorted(NOTEBOOK_PREFIXES)})"
+            "Short ID prefix is not valid for notebook entries"
         )
         return False
 
@@ -132,7 +132,9 @@ def is_valid_entry_reference(ref: str) -> bool:
     )
     if too_short.match(ref):
         logger.warning(
-            f"Short ID fragment too short: {ref} (minimum {MIN_SHORT_ID_LENGTH} characters)"
+            "Notebook short ID fragment is too short",
+            reference_length=len(ref),
+            minimum_length=MIN_SHORT_ID_LENGTH,
         )
         return False
 
@@ -143,13 +145,13 @@ def is_valid_entry_reference(ref: str) -> bool:
             prefix = ref[0].lower()
             if is_known_prefix(prefix) and not is_notebook_prefix(prefix):
                 logger.warning(
-                    f"Short ID prefix {prefix!r} is not valid for notebook entries "
-                    f"(expected one of {sorted(NOTEBOOK_PREFIXES)})"
+                    "Short ID prefix is not valid for notebook entries"
                 )
                 return False
             if not is_notebook_prefix(prefix):
                 logger.warning(
-                    f"Invalid short ID prefix: {ref} (must be n, l, or j)"
+                    "Invalid notebook short ID prefix",
+                    reference_length=len(ref),
                 )
                 return False
 
@@ -174,7 +176,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
         return None
 
     if kind not in ENTRY_KIND_PREFIXES:
-        logger.warning(f"Invalid entry kind: {kind}")
+        logger.warning("Invalid notebook entry kind", kind_type=type(kind).__name__)
         return None
 
     return _core_format_short_id(entry_id, kind)
@@ -239,7 +241,7 @@ def is_valid_entry_kind(kind: str) -> bool:
 
     valid_kinds = ["note", "list", "journal_entry"]
     if kind.lower() not in valid_kinds:
-        logger.warning(f"Invalid entry kind: {kind}. Must be one of {valid_kinds}")
+        logger.warning("Invalid notebook entry kind")
         return False
 
     return True

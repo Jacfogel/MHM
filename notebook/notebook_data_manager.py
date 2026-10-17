@@ -5,6 +5,8 @@ Provides high-level API for managing notebook entries (notes, lists, journal).
 """
 
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from pydantic import ValidationError
@@ -19,7 +21,7 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from notebook.notebook_schemas import Entry, ListItem, EntryKind
-from notebook.notebook_data_handlers import load_entries, save_entries
+from notebook.notebook_data_handlers import load_entries, update_entries
 from notebook.notebook_validation import (
     is_valid_entry_reference,
     is_valid_entry_kind,
@@ -34,13 +36,13 @@ from storage.user_data_validation import is_valid_string_length
 logger = get_component_logger("main")
 
 
-# Helper to save changes to an entry and persist
-@handle_errors("saving updated entry")
-def _save_updated_entry(user_id: str, entry: Entry, all_entries: list[Entry]) -> Entry:
-    """Updates the entry's updated_at timestamp and saves all entries."""
-    entry.updated_at = now_timestamp_full()
-    save_entries(user_id, all_entries)
-    return entry
+@dataclass(frozen=True)
+class EntryReferenceResolution:
+    """Result of resolving a notebook reference without guessing on ambiguity."""
+
+    entry: Entry | None
+    ambiguous: bool = False
+    match_count: int = 0
 
 
 def _is_entry_active(entry: Entry) -> bool:
@@ -51,27 +53,39 @@ def _is_entry_archived(entry: Entry) -> bool:
     return entry.status == "archived"
 
 
-# Helper to find an entry by various references
-@handle_errors("finding entry by reference", default_return=None)
-def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
-    """Finds an entry by full UUID, persisted short_id, short ID fragment, or title."""
+# ERROR_HANDLING_EXCLUDE: Pure lookup helper with explicit invalid/ambiguous results.
+def _resolve_entry_by_ref(
+    entries: list[Entry], ref: str
+) -> EntryReferenceResolution:
+    """Resolve a UUID, short ID, or title only when it identifies one entry."""
     # Validate reference format
     if not is_valid_entry_reference(ref):
-        logger.warning(f"Invalid entry reference format: {ref}")
-        return None
+        logger.warning(
+            "Invalid notebook entry reference format",
+            reference_type=type(ref).__name__,
+        )
+        return EntryReferenceResolution(None)
 
     ref_lower = ref.lower().strip()
 
     # 1. Try full UUID
     for entry in entries:
         if str(entry.id) == ref:
-            return entry
+            return EntryReferenceResolution(entry, match_count=1)
 
     # 2. Exact match on persisted short_id (case-insensitive)
-    for entry in entries:
-        stored = getattr(entry, "short_id", None)
-        if isinstance(stored, str) and stored.strip().lower() == ref_lower:
-            return entry
+    exact_short_matches = [
+        entry
+        for entry in entries
+        if isinstance(getattr(entry, "short_id", None), str)
+        and str(entry.short_id).strip().lower() == ref_lower
+    ]
+    if len(exact_short_matches) == 1:
+        return EntryReferenceResolution(exact_short_matches[0], match_count=1)
+    if len(exact_short_matches) > 1:
+        return EntryReferenceResolution(
+            None, ambiguous=True, match_count=len(exact_short_matches)
+        )
 
     # 3. Prefixed/bare hex fragment → UUID hex startswith (notebook prefixes or bare hex only)
     parsed = parse_short_id(ref_lower)
@@ -79,7 +93,7 @@ def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
         prefix, short_fragment = parsed
         if prefix is not None and not is_notebook_prefix(prefix):
             # Wrong domain (e.g. task ``t``) - do not title-match
-            return None
+            return EntryReferenceResolution(None)
 
         matching_entries = [
             entry
@@ -87,24 +101,86 @@ def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
             if str(entry.id).lower().replace("-", "").startswith(short_fragment)
         ]
         if len(matching_entries) == 1:
-            return matching_entries[0]
+            return EntryReferenceResolution(matching_entries[0], match_count=1)
         if len(matching_entries) > 1:
             logger.warning(
-                f"Multiple entries found for short ID fragment '{ref}'. Returning first match."
+                "Ambiguous notebook short ID reference",
+                match_count=len(matching_entries),
             )
-            return matching_entries[0]
+            return EntryReferenceResolution(
+                None, ambiguous=True, match_count=len(matching_entries)
+            )
 
     # 4. Try title (case-insensitive, exact match first)
-    for entry in entries:
-        if entry.title and entry.title.lower() == ref_lower:
-            return entry
+    exact_title_matches = [
+        entry for entry in entries if entry.title and entry.title.lower() == ref_lower
+    ]
+    if len(exact_title_matches) == 1:
+        return EntryReferenceResolution(exact_title_matches[0], match_count=1)
+    if len(exact_title_matches) > 1:
+        return EntryReferenceResolution(
+            None, ambiguous=True, match_count=len(exact_title_matches)
+        )
 
     # 5. Try title (case-insensitive, contains match)
-    for entry in entries:
-        if entry.title and ref_lower in entry.title.lower():
-            return entry
+    partial_title_matches = [
+        entry for entry in entries if entry.title and ref_lower in entry.title.lower()
+    ]
+    if len(partial_title_matches) == 1:
+        return EntryReferenceResolution(partial_title_matches[0], match_count=1)
+    if len(partial_title_matches) > 1:
+        return EntryReferenceResolution(
+            None, ambiguous=True, match_count=len(partial_title_matches)
+        )
 
-    return None
+    return EntryReferenceResolution(None)
+
+
+# ERROR_HANDLING_EXCLUDE: Compatibility lookup delegates to the explicit resolver.
+def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
+    """Return a uniquely resolved entry, or None for missing/ambiguous references."""
+    return _resolve_entry_by_ref(entries, ref).entry
+
+
+@handle_errors(
+    "resolving notebook entry reference",
+    default_return=EntryReferenceResolution(None),
+)
+def resolve_entry_reference(user_id: str, ref: str) -> EntryReferenceResolution:
+    """Resolve a notebook reference and preserve ambiguity for user-facing callers."""
+    return _resolve_entry_by_ref(load_entries(user_id), ref)
+
+
+@handle_errors("mutating notebook entry", default_return=None)
+def _mutate_entry(
+    user_id: str,
+    ref: str,
+    mutation: Callable[[Entry], bool],
+    *,
+    active_only: bool = False,
+) -> Entry | None:
+    """Mutate one uniquely resolved entry in a lock-scoped transaction."""
+    # ERROR_HANDLING_EXCLUDE: Executed within update_entries' guarded transaction.
+    def apply(entries: list[Entry]) -> Entry | None:
+        """Resolve, mutate, validate, and return the updated entry."""
+        entry = _resolve_entry_by_ref(entries, ref).entry
+        if entry is None or (active_only and not _is_entry_active(entry)):
+            return None
+        candidate = entry.model_copy(deep=True)
+        if not mutation(candidate):
+            return None
+        candidate.updated_at = now_timestamp_full()
+        validated = Entry.model_validate(candidate.model_dump())
+        entry_index = next(
+            (index for index, candidate in enumerate(entries) if candidate is entry),
+            None,
+        )
+        if entry_index is None:
+            return None
+        entries[entry_index] = validated
+        return validated
+
+    return update_entries(user_id, apply)
 
 
 # Create operations
@@ -127,7 +203,7 @@ def create_entry(
 
     # Validate entry kind
     if not is_valid_entry_kind(kind):
-        logger.error(f"Invalid entry kind: {kind}")
+        logger.error("Invalid notebook entry kind", kind_type=type(kind).__name__)
         return None
 
     # Validate entry content
@@ -135,7 +211,7 @@ def create_entry(
         title=title, description=description, kind=kind
     )
     if not is_valid:
-        logger.error(f"Invalid entry content: {error_msg}")
+        logger.error("Invalid notebook entry content", entry_kind=kind)
         return None
 
     normalized_tags = normalize_tags(tags or [])
@@ -161,41 +237,67 @@ def create_entry(
                     # item_data might be a dict (from create_list) or already a ListItem
                     if isinstance(item_data, dict):
                         # Extract order if present, otherwise use index
-                        item_order = item_data.pop("order", i)
-                        list_items.append(ListItem(order=item_order, **item_data))
+                        item_values = dict(item_data)
+                        item_order = item_values.pop("order", i)
+                        list_items.append(ListItem(order=item_order, **item_values))
                     else:
                         # Already a ListItem or other type - convert
                         list_items.append(item_data)
-                except (ValidationError, TypeError, ValueError) as e:
-                    logger.error(f"Invalid list item data: {item_data} - {e}")
+                except (ValidationError, TypeError, ValueError) as exc:
+                    errors = getattr(exc, "errors", None)
+                    error_details = errors() if callable(errors) else None
+                    error_count = (
+                        len(error_details)
+                        if isinstance(error_details, (list, tuple))
+                        else 1
+                    )
+                    logger.error(
+                        "Invalid notebook list item",
+                        item_index=i,
+                        validation_error_count=error_count,
+                        exception_type=type(exc).__name__,
+                    )
                     return None
         entry_data["items"] = list_items
     elif items is not None:
         logger.warning(
-            f"Items provided for non-list entry kind '{kind}'. Ignoring items."
+            "Items provided for non-list notebook entry; ignoring items",
+            entry_kind=kind,
         )
 
     try:
         new_entry = Entry.model_validate(entry_data)
-    except ValidationError as e:
-        logger.error(f"Failed to validate new entry: {e} - Data: {entry_data}")
+    except ValidationError as exc:
+        logger.error(
+            "Failed to validate new notebook entry",
+            entry_kind=kind,
+            validation_error_count=len(exc.errors()),
+        )
         return None
-    except Exception as e:
-        logger.error(f"Unexpected error creating new entry: {e} - Data: {entry_data}")
+    except Exception as exc:
+        logger.error(
+            "Unexpected error creating notebook entry",
+            entry_kind=kind,
+            exception_type=type(exc).__name__,
+        )
         return None
 
-    all_entries = load_entries(user_id)
-    all_entries.append(new_entry)
-    save_entries(user_id, all_entries)
-    preview = (
-        (new_entry.description or "")[:30]
-        if new_entry.description
-        else str(new_entry.id)
-    )
+    # ERROR_HANDLING_EXCLUDE: Executed within update_entries' guarded transaction.
+    def append_entry(entries: list[Entry]) -> Entry:
+        """Append the already validated entry to the current locked snapshot."""
+        entries.append(new_entry)
+        return new_entry
+
+    saved_entry = update_entries(user_id, append_entry)
+    if saved_entry is None:
+        return None
     logger.info(
-        f"Created new {kind} entry '{new_entry.title or preview}' for user {user_id}."
+        "Created notebook entry",
+        entry_kind=kind,
+        entry_id=str(saved_entry.id),
+        user_id=user_id,
     )
-    return new_entry
+    return saved_entry
 
 
 @handle_errors("creating note")
@@ -216,17 +318,30 @@ def create_list(
     user_id: str,
     title: str,
     tags: list[str] | None = None,
-    items: list[str] | None = None,
+    items: list[str | dict[str, Any]] | None = None,
 ) -> Entry | None:
-    """Creates a list entry with initial items."""
+    """Create a list entry with final item text and completion state in one write."""
     if not items:
         # List must have at least one item - use a default placeholder
         items = ["New item"]
 
     list_items = []
-    for i, item_text in enumerate(items):
-        if item_text and item_text.strip():  # Only add non-empty items
-            list_items.append({"text": item_text.strip(), "order": i})
+    for i, item in enumerate(items):
+        if isinstance(item, str) and item.strip():
+            list_items.append({"text": item.strip(), "done": False, "order": i})
+        elif (
+            isinstance(item, dict)
+            and isinstance(item.get("text"), str)
+            and item["text"].strip()
+            and type(item.get("done", False)) is bool
+        ):
+            list_items.append(
+                {
+                    "text": item["text"].strip(),
+                    "done": item.get("done", False),
+                    "order": i,
+                }
+            )
 
     # Ensure at least one item (shouldn't happen if items was provided, but safety check)
     if not list_items:
@@ -301,106 +416,96 @@ def update_entry(
         logger.error("Entry updates require a user, a reference, and supported fields.")
         return None
 
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-    if not entry or not _is_entry_active(entry):
-        logger.error(f"Active entry not found for ref '{ref}'")
-        return None
+    # ERROR_HANDLING_EXCLUDE: Validation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Apply all validated field changes to the locked entry snapshot."""
+        if "title" in changes:
+            title = changes["title"]
+            if not isinstance(title, str) or not is_valid_entry_title(title):
+                logger.error("A valid entry title is required.")
+                return False
+            entry.title = title.strip()
 
-    values = entry.model_dump()
-
-    if "title" in changes:
-        title = changes["title"]
-        if not isinstance(title, str) or not is_valid_entry_title(title):
-            logger.error("A valid entry title is required.")
-            return None
-        values["title"] = title.strip()
-
-    if "description" in changes:
-        description = changes["description"]
-        if (
-            entry.kind == "list"
-            or not isinstance(description, str)
-            or not is_valid_string_length(
-                description,
-                MAX_BODY_LENGTH,
-                field_name="Entry description",
-                allow_none=False,
-            )
-        ):
-            logger.error("A valid description is required for a non-list entry.")
-            return None
-        values["description"] = description
-
-    if "items" in changes:
-        items = changes["items"]
-        if entry.kind != "list" or not isinstance(items, list) or not 1 <= len(items) <= 50:
-            logger.error("List entries require between 1 and 50 valid items.")
-            return None
-        updated_items: list[ListItem] = []
-        now_ts = now_timestamp_full()
-        existing_items = entry.items or []
-        for index, value in enumerate(items):
+        if "description" in changes:
+            description = changes["description"]
             if (
-                not isinstance(value, dict)
-                or set(value) != {"text", "done"}
-                or not isinstance(value["text"], str)
-                or not value["text"].strip()
-                or len(value["text"]) > 500
-                or type(value["done"]) is not bool
+                entry.kind == "list"
+                or not isinstance(description, str)
+                or not is_valid_string_length(
+                    description,
+                    MAX_BODY_LENGTH,
+                    field_name="Entry description",
+                    allow_none=False,
+                )
             ):
-                logger.error("Each list item needs text and a valid completion state.")
-                return None
-            if index < len(existing_items):
-                item_values = existing_items[index].model_dump()
-                item_values.update(
-                    {
-                        "text": value["text"].strip(),
-                        "done": value["done"],
-                        "order": index,
-                        "updated_at": now_ts,
-                    }
-                )
-                updated_items.append(ListItem.model_validate(item_values))
-            else:
-                updated_items.append(
-                    ListItem(
-                        text=value["text"].strip(),
-                        done=value["done"],
-                        order=index,
+                logger.error("A valid description is required for a non-list entry.")
+                return False
+            entry.description = description
+
+        if "items" in changes:
+            items = changes["items"]
+            if (
+                entry.kind != "list"
+                or not isinstance(items, list)
+                or not 1 <= len(items) <= 50
+            ):
+                logger.error("List entries require between 1 and 50 valid items.")
+                return False
+            updated_items: list[ListItem] = []
+            now_ts = now_timestamp_full()
+            existing_items = entry.items or []
+            for index, value in enumerate(items):
+                if (
+                    not isinstance(value, dict)
+                    or set(value) != {"text", "done"}
+                    or not isinstance(value["text"], str)
+                    or not value["text"].strip()
+                    or len(value["text"]) > 500
+                    or type(value["done"]) is not bool
+                ):
+                    logger.error(
+                        "Notebook list item has invalid text or completion state",
+                        item_index=index,
                     )
-                )
-        values["items"] = [item.model_dump() for item in updated_items]
+                    return False
+                if index < len(existing_items):
+                    item_values = existing_items[index].model_dump()
+                    item_values.update(
+                        {
+                            "text": value["text"].strip(),
+                            "done": value["done"],
+                            "order": index,
+                            "updated_at": now_ts,
+                        }
+                    )
+                    updated_items.append(ListItem.model_validate(item_values))
+                else:
+                    updated_items.append(
+                        ListItem(
+                            text=value["text"].strip(),
+                            done=value["done"],
+                            order=index,
+                        )
+                    )
+            entry.items = updated_items
 
-    if "tags" in changes:
-        tags = changes["tags"]
-        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
-            logger.error("Tags must be a list of strings.")
-            return None
-        values["tags"] = normalize_tags(tags)
+        if "tags" in changes:
+            tags = changes["tags"]
+            if not isinstance(tags, list) or any(
+                not isinstance(tag, str) for tag in tags
+            ):
+                logger.error("Tags must be a list of strings.")
+                return False
+            entry.tags = normalize_tags(tags)
 
-    if "pinned" in changes:
-        if type(changes["pinned"]) is not bool:
-            logger.error("Pinned must be a boolean.")
-            return None
-        values["pinned"] = changes["pinned"]
+        if "pinned" in changes:
+            if type(changes["pinned"]) is not bool:
+                logger.error("Pinned must be a boolean.")
+                return False
+            entry.pinned = changes["pinned"]
+        return True
 
-    try:
-        updated_entry = Entry.model_validate(values)
-    except ValidationError as error:
-        logger.error(f"Entry update validation failed: {error}")
-        return None
-
-    updated_entries = list(entries)
-    entry_index = next(
-        (index for index, candidate in enumerate(entries) if candidate is entry),
-        None,
-    )
-    if entry_index is None:
-        logger.error(f"Entry disappeared before update for ref '{ref}'")
-        return None
-    updated_entries[entry_index] = updated_entry
-    return _save_updated_entry(user_id, updated_entry, updated_entries)
+    return _mutate_entry(user_id, ref, apply, active_only=True)
 
 
 @handle_errors("appending to entry description")
@@ -419,34 +524,25 @@ def append_to_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
         )
         return None
 
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Validation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Append text to the locked entry snapshot."""
+        if entry.kind == "list":
+            logger.error(
+                "Cannot append to list entry description. Use add_list_item instead."
+            )
+            return False
+        current_desc = entry.description or ""
+        separator = "\n" if current_desc else ""
+        if len(current_desc) + len(separator) + len(text) > MAX_BODY_LENGTH:
+            logger.error(
+                f"Combined description length would exceed maximum of {MAX_BODY_LENGTH} characters"
+            )
+            return False
+        entry.description = f"{current_desc}{separator}{text}"
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    if entry.kind == "list":
-        logger.error(
-            "Cannot append to list entry description. Use add_list_item instead."
-        )
-        return None
-
-    # Check if combined length would exceed limit
-    current_desc = entry.description or ""
-    combined_length = len(current_desc) + len("\n") + len(text)
-    if combined_length > MAX_BODY_LENGTH:
-        logger.error(
-            f"Combined description length would exceed maximum of {MAX_BODY_LENGTH} characters"
-        )
-        return None
-
-    if entry.description:
-        entry.description = entry.description + "\n" + text
-    else:
-        entry.description = text
-
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("setting entry description")
@@ -465,21 +561,18 @@ def set_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
         )
         return None
 
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Validation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Replace text on the locked entry snapshot."""
+        if entry.kind == "list":
+            logger.error(
+                "Cannot set description for list entry. Use list item operations instead."
+            )
+            return False
+        entry.description = text
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    if entry.kind == "list":
-        logger.error(
-            "Cannot set description for list entry. Use list item operations instead."
-        )
-        return None
-
-    entry.description = text
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("setting entry title")
@@ -488,83 +581,107 @@ def set_entry_title(user_id: str, ref: str, title: str) -> Entry | None:
     if not user_id or not isinstance(title, str) or not title.strip() or not is_valid_entry_title(title):
         logger.error("A valid entry title is required.")
         return None
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-    entry.title = title.strip()
-    return _save_updated_entry(user_id, entry, entries)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Replace the title on the locked entry snapshot."""
+        entry.title = title.strip()
+        return True
+
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("adding tags to entry")
 def add_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
     """Adds tags to an entry."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
     normalized_tags = normalize_tags(tags)
-    for tag in normalized_tags:
-        if tag not in entry.tags:
-            entry.tags.append(tag)
 
-    return _save_updated_entry(user_id, entry, entries)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Add normalized tags to the locked entry snapshot."""
+        for tag in normalized_tags:
+            if tag not in entry.tags:
+                entry.tags.append(tag)
+        return True
+
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("removing tags from entry")
 def remove_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
     """Removes tags from an entry."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
     normalized_tags = normalize_tags(tags)
-    entry.tags = [t for t in entry.tags if t not in normalized_tags]
 
-    return _save_updated_entry(user_id, entry, entries)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Remove normalized tags from the locked entry snapshot."""
+        entry.tags = [tag for tag in entry.tags if tag not in normalized_tags]
+        return True
+
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("pinning entry")
 def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Entry | None:
     """Pins or unpins an entry."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Apply the active-entry pinning rule to the locked snapshot."""
+        entry.pinned = bool(pinned) if _is_entry_active(entry) else False
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    # Pinning is an active-entry quality. Archived entries stay unpinned even
-    # when reached through a non-website interface or older client.
-    entry.pinned = bool(pinned) if _is_entry_active(entry) else False
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("archiving entry")
 def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None:
     """Archives or unarchives an entry."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Apply archive state to the locked entry snapshot."""
+        entry.status = "archived" if archived else "active"
+        entry.archived_at = now_timestamp_full() if archived else None
+        if archived:
+            entry.pinned = False
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    entry.status = "archived" if archived else "active"
-    entry.archived_at = now_timestamp_full() if archived else None
-    if archived:
-        entry.pinned = False
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 # Search operations
+# ERROR_HANDLING_EXCLUDE: Pure selector over an already loaded notebook snapshot.
+def search_entries_from_snapshot(
+    entries: list[Entry], query: str, limit: int = 100
+) -> list[Entry]:
+    """Search one in-memory snapshot without performing additional file reads."""
+    query_lower = query.lower().strip()
+    matches = [
+        entry
+        for entry in entries
+        if _is_entry_active(entry)
+        and (
+            (entry.title and query_lower in entry.title.lower())
+            or (entry.description and query_lower in entry.description.lower())
+            or (
+                entry.kind == "list"
+                and entry.items
+                and any(query_lower in item.text.lower() for item in entry.items)
+            )
+        )
+    ]
+    try:
+        matches.sort(
+            key=lambda entry: (
+                (parse_timestamp_full(entry.updated_at) or datetime.min)
+                if isinstance(entry.updated_at, str)
+                else datetime.min
+            ),
+            reverse=True,
+        )
+    except Exception:
+        logger.warning("Failed to sort notebook search results")
+    return matches[:limit]
+
+
 @handle_errors("searching entries", default_return=[])
 def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
     """
@@ -579,53 +696,11 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
         logger.error("Search query cannot be empty.")
         return []
 
-    entries = load_entries(user_id)
-    query_lower = query.lower().strip()
-
-    matching_entries: list[Entry] = []
-    for entry in entries:
-        if not _is_entry_active(entry):
-            continue
-
-        # Check title
-        if entry.title and query_lower in entry.title.lower():
-            matching_entries.append(entry)
-            continue  # Skip other checks to avoid duplicates
-
-        # Check description
-        if entry.description and query_lower in entry.description.lower():
-            matching_entries.append(entry)
-            continue  # Skip other checks to avoid duplicates
-
-        # Check list items
-        if entry.kind == "list" and entry.items and any(
-            query_lower in item.text.lower() for item in entry.items
-        ):
-            matching_entries.append(entry)
-
-    # Remove duplicates by ID (preserves order)
-    seen_ids = set()
-    unique_matches = []
-    for entry in matching_entries:
-        if entry.id not in seen_ids:
-            seen_ids.add(entry.id)
-            unique_matches.append(entry)
-
-    # Sort by updated_at (handle timestamp parsing errors gracefully)
     try:
-        unique_matches.sort(
-            key=lambda e: (
-                (parse_timestamp_full(e.updated_at) or datetime.min)
-                if isinstance(e.updated_at, str)
-                else datetime.min
-            ),
-            reverse=True,
-        )
+        return search_entries_from_snapshot(load_entries(user_id), query, limit)
     except Exception:
-        # If sorting fails, just return unsorted results rather than failing completely
-        logger.warning("Failed to sort search results by timestamp, returning unsorted")
-
-    return unique_matches[:limit]
+        logger.warning("Failed to search notebook snapshot")
+        return []
 
 
 # List operations (for lists)
@@ -641,24 +716,18 @@ def add_list_item(user_id: str, ref: str, text: str) -> Entry | None:
         logger.error("List item text cannot be empty")
         return None
 
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Append a new item to the locked list snapshot."""
+        if entry.kind != "list":
+            logger.error("Notebook entry is not a list")
+            return False
+        if entry.items is None:
+            entry.items = []
+        entry.items.append(ListItem(text=text.strip(), order=len(entry.items)))
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    if entry.kind != "list":
-        logger.error(f"Entry '{ref}' is not a list entry.")
-        return None
-
-    if not entry.items:
-        entry.items = []
-
-    new_item = ListItem(text=text.strip(), order=len(entry.items))
-    entry.items.append(new_item)
-
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("toggling list item done")
@@ -666,57 +735,44 @@ def toggle_list_item_done(
     user_id: str, ref: str, item_index: int, done: bool = True
 ) -> Entry | None:
     """Marks a list item as done or undone."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Update one completion state in the locked list snapshot."""
+        if entry.kind != "list" or not entry.items:
+            logger.error("Notebook entry is not a list or has no items")
+            return False
+        normalized_index = normalize_list_item_index(item_index, len(entry.items))
+        if normalized_index is None:
+            logger.error("Invalid notebook list item index", item_index=item_index)
+            return False
+        entry.items[normalized_index].done = done
+        entry.items[normalized_index].updated_at = now_timestamp_full()
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    if entry.kind != "list" or not entry.items:
-        logger.error(f"Entry '{ref}' is not a list entry or has no items.")
-        return None
-
-    # Normalize item index (handles both 0-based and 1-based)
-    normalized_index = normalize_list_item_index(item_index, len(entry.items))
-    if normalized_index is None:
-        logger.error(f"Invalid item index {item_index} for list '{ref}'")
-        return None
-
-    entry.items[normalized_index].done = done
-    entry.items[normalized_index].updated_at = now_timestamp_full()
-
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("removing list item")
 def remove_list_item(user_id: str, ref: str, item_index: int) -> Entry | None:
     """Removes an item from a list entry."""
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Remove and reorder one item in the locked list snapshot."""
+        if entry.kind != "list" or not entry.items:
+            logger.error("Notebook entry is not a list or has no items")
+            return False
+        normalized_index = normalize_list_item_index(item_index, len(entry.items))
+        if normalized_index is None:
+            logger.error("Invalid notebook list item index", item_index=item_index)
+            return False
+        entry.items.pop(normalized_index)
+        now_ts = now_timestamp_full()
+        for index, item in enumerate(entry.items):
+            item.order = index
+            item.updated_at = now_ts
+        return True
 
-    if not entry:
-        logger.error(f"Entry not found for ref '{ref}'")
-        return None
-
-    if entry.kind != "list" or not entry.items:
-        logger.error(f"Entry '{ref}' is not a list entry or has no items.")
-        return None
-
-    # Normalize item index (handles both 0-based and 1-based)
-    normalized_index = normalize_list_item_index(item_index, len(entry.items))
-    if normalized_index is None:
-        logger.error(f"Invalid item index {item_index} for list '{ref}'")
-        return None
-
-    entry.items.pop(normalized_index)
-    # Reorder remaining items
-    now_ts = now_timestamp_full()
-    for i, item in enumerate(entry.items):
-        item.order = i
-        item.updated_at = now_ts
-
-    return _save_updated_entry(user_id, entry, entries)
+    return _mutate_entry(user_id, ref, apply)
 
 
 @handle_errors("replacing list items")
@@ -725,40 +781,56 @@ def set_list_items(user_id: str, ref: str, items: list[dict[str, Any]]) -> Entry
     if not user_id or not isinstance(items, list) or not 1 <= len(items) <= 50:
         logger.error("Lists require between 1 and 50 items.")
         return None
-    entries = load_entries(user_id)
-    entry = _find_entry_by_ref(entries, ref)
-    if not entry or entry.kind != "list":
-        logger.error(f"Entry '{ref}' is not a list entry.")
-        return None
-    updated_items: list[ListItem] = []
-    now_ts = now_timestamp_full()
-    for index, value in enumerate(items):
-        if not isinstance(value, dict) or not isinstance(value.get("text"), str) or not value["text"].strip() or type(value.get("done", False)) is not bool:
-            logger.error("Each list item needs text and a valid completion state.")
-            return None
-        if entry.items and index < len(entry.items):
-            item = entry.items[index]
-            item.text = value["text"].strip()
-            item.done = value.get("done", False)
-            item.order = index
-            item.updated_at = now_ts
-        else:
-            item = ListItem(text=value["text"], done=value.get("done", False), order=index)
-        updated_items.append(item)
-    entry.items = updated_items
-    return _save_updated_entry(user_id, entry, entries)
+    # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
+    def apply(entry: Entry) -> bool:
+        """Replace editable list items in the locked snapshot."""
+        if entry.kind != "list":
+            logger.error("Notebook entry is not a list")
+            return False
+        updated_items: list[ListItem] = []
+        now_ts = now_timestamp_full()
+        for index, value in enumerate(items):
+            if (
+                not isinstance(value, dict)
+                or not isinstance(value.get("text"), str)
+                or not value["text"].strip()
+                or type(value.get("done", False)) is not bool
+            ):
+                logger.error(
+                    "Notebook list item has invalid text or completion state",
+                    item_index=index,
+                )
+                return False
+            if entry.items and index < len(entry.items):
+                item = entry.items[index]
+                item.text = value["text"].strip()
+                item.done = value.get("done", False)
+                item.order = index
+                item.updated_at = now_ts
+            else:
+                item = ListItem(
+                    text=value["text"],
+                    done=value.get("done", False),
+                    order=index,
+                )
+            updated_items.append(item)
+        entry.items = updated_items
+        return True
+
+    return _mutate_entry(user_id, ref, apply)
 
 
 # Organization operations
-@handle_errors("listing pinned entries", default_return=[])
-def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
-    """Lists pinned entries (up to limit - pagination handled in handler)."""
-    entries = load_entries(user_id)
-    pinned = [e for e in entries if e.pinned and _is_entry_active(e)]
+# ERROR_HANDLING_EXCLUDE: Pure selector over an already loaded notebook snapshot.
+def list_pinned_from_snapshot(
+    entries: list[Entry], limit: int = 100
+) -> list[Entry]:
+    """Return active pinned entries from an in-memory snapshot."""
+    pinned = [entry for entry in entries if entry.pinned and _is_entry_active(entry)]
     pinned.sort(
-        key=lambda e: (
-            (parse_timestamp_full(e.updated_at) or datetime.min)
-            if isinstance(e.updated_at, str)
+        key=lambda entry: (
+            (parse_timestamp_full(entry.updated_at) or datetime.min)
+            if isinstance(entry.updated_at, str)
             else datetime.min
         ),
         reverse=True,
@@ -766,40 +838,40 @@ def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     return pinned[:limit]
 
 
-@handle_errors("listing inbox entries", default_return=[])
-def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
-    """Lists inbox entries (untagged, unarchived, recent) - up to limit (pagination handled in handler)."""
-    entries = load_entries(user_id)
+@handle_errors("listing pinned entries", default_return=[])
+def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
+    """Lists pinned entries (up to limit - pagination handled in handler)."""
+    return list_pinned_from_snapshot(load_entries(user_id), limit)
+
+
+# ERROR_HANDLING_EXCLUDE: Pure selector over an already loaded notebook snapshot.
+def list_inbox_from_snapshot(
+    entries: list[Entry], days: int = 30, limit: int = 100
+) -> list[Entry]:
+    """Return recent active untagged entries from an in-memory snapshot."""
     cutoff = now_datetime_full().timestamp() - (days * 24 * 60 * 60)
-
     inbox = []
-    for e in entries:
-        if _is_entry_active(e) and not e.tags:
-            # Parse timestamp string to compare
-            try:
-                parsed_updated_at = parse_timestamp_full(e.updated_at)
-                if parsed_updated_at is None:
-                    raise ValueError("invalid timestamp")
-
-                entry_timestamp = parsed_updated_at.timestamp()
-                if entry_timestamp >= cutoff:
-                    inbox.append(e)
-            except (ValueError, TypeError) as err:
-                logger.warning(
-                    f"Invalid timestamp format for entry {e.id}: {e.updated_at} - {err}"
-                )
-                # Include entry if timestamp parsing fails (better to show than hide)
-                inbox.append(e)
-
+    for entry in entries:
+        if not _is_entry_active(entry) or entry.tags:
+            continue
+        parsed_updated_at = parse_timestamp_full(entry.updated_at)
+        if parsed_updated_at is None or parsed_updated_at.timestamp() >= cutoff:
+            inbox.append(entry)
     inbox.sort(
-        key=lambda e: (
-            (parse_timestamp_full(e.updated_at) or datetime.min)
-            if isinstance(e.updated_at, str)
+        key=lambda entry: (
+            (parse_timestamp_full(entry.updated_at) or datetime.min)
+            if isinstance(entry.updated_at, str)
             else datetime.min
         ),
         reverse=True,
     )
     return inbox[:limit]
+
+
+@handle_errors("listing inbox entries", default_return=[])
+def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
+    """Lists inbox entries (untagged, unarchived, recent) - up to limit (pagination handled in handler)."""
+    return list_inbox_from_snapshot(load_entries(user_id), days, limit)
 
 
 @handle_errors("listing archived entries", default_return=[])

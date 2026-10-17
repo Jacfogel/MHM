@@ -17,6 +17,8 @@ from notebook import notebook_data_manager as data_manager
 from notebook.notebook_schemas import Entry
 
 MAX_NOTEBOOK_QUERY_RESULTS = 100
+AMBIGUOUS_ENTRY_REFERENCE = "ambiguous_reference"
+MISSING_ENTRY_REFERENCE = "not_found"
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,38 @@ class NotebookListResult:
     query: str | None = None
     filter_name: str | None = None
     filter_value: str | None = None
+
+
+@handle_errors(
+    "resolving notebook entry for command",
+    default_return=NotebookEntryResult(None, False, MISSING_ENTRY_REFERENCE),
+)
+def resolve_notebook_entry(user_id: str, entry_ref: str) -> NotebookEntryResult:
+    """Resolve one command reference without selecting an ambiguous match."""
+    resolution = data_manager.resolve_entry_reference(user_id, entry_ref)
+    if resolution.ambiguous:
+        return NotebookEntryResult(None, False, AMBIGUOUS_ENTRY_REFERENCE)
+    if resolution.entry is None:
+        return NotebookEntryResult(None, False, MISSING_ENTRY_REFERENCE)
+    return NotebookEntryResult(resolution.entry, True)
+
+
+# ERROR_HANDLING_EXCLUDE: Pure adapter used by guarded notebook operations.
+def _operation_result(
+    user_id: str, entry_ref: str, entry: Entry | None
+) -> NotebookEntryResult:
+    """Preserve ambiguity when a mutation could not produce an entry."""
+    if entry is not None:
+        return NotebookEntryResult(entry, True)
+    resolution = data_manager.resolve_entry_reference(user_id, entry_ref)
+    error = (
+        AMBIGUOUS_ENTRY_REFERENCE
+        if resolution.ambiguous
+        else MISSING_ENTRY_REFERENCE
+        if resolution.entry is None
+        else None
+    )
+    return NotebookEntryResult(None, False, error)
 
 
 @handle_errors("normalizing notebook tags", default_return=[])
@@ -219,7 +253,7 @@ def list_archived_entries(
 def add_entry_tags(user_id: str, entry_ref: str, tags: list[str]) -> NotebookEntryResult:
     """Add tags to a notebook entry."""
     entry = data_manager.add_tags(user_id, entry_ref, normalize_command_tags(tags))
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("removing notebook entry tags", default_return=NotebookEntryResult(None, False))
@@ -227,8 +261,10 @@ def remove_entry_tags(
     user_id: str, entry_ref: str, tags: list[str]
 ) -> NotebookEntryResult:
     """Remove tags from a notebook entry."""
-    entry = data_manager.remove_tags(user_id, entry_ref, normalize_command_tags(tags))
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    entry = data_manager.remove_tags(
+        user_id, entry_ref, normalize_command_tags(tags)
+    )
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("pinning notebook entry", default_return=NotebookEntryResult(None, False))
@@ -237,7 +273,7 @@ def pin_notebook_entry(
 ) -> NotebookEntryResult:
     """Pin or unpin a notebook entry."""
     entry = data_manager.pin_entry(user_id, entry_ref, pinned)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("archiving notebook entry", default_return=NotebookEntryResult(None, False))
@@ -246,28 +282,28 @@ def archive_notebook_entry(
 ) -> NotebookEntryResult:
     """Archive or unarchive a notebook entry."""
     entry = data_manager.archive_entry(user_id, entry_ref, archived)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("appending notebook entry body", default_return=NotebookEntryResult(None, False))
 def append_entry_body(user_id: str, entry_ref: str, text: str) -> NotebookEntryResult:
     """Append text to an entry body."""
     entry = data_manager.append_to_entry_body(user_id, entry_ref, text)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("replacing notebook entry body", default_return=NotebookEntryResult(None, False))
 def replace_entry_body(user_id: str, entry_ref: str, text: str) -> NotebookEntryResult:
     """Replace an entry body."""
     entry = data_manager.set_entry_body(user_id, entry_ref, text)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("adding notebook list item", default_return=NotebookEntryResult(None, False))
 def add_item_to_list(user_id: str, entry_ref: str, item_text: str) -> NotebookEntryResult:
     """Add an item to a notebook list entry."""
     entry = data_manager.add_list_item(user_id, entry_ref, item_text)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("setting notebook list item done", default_return=NotebookEntryResult(None, False))
@@ -276,14 +312,14 @@ def set_list_item_done(
 ) -> NotebookEntryResult:
     """Set a notebook list item completion state."""
     entry = data_manager.toggle_list_item_done(user_id, entry_ref, item_index, done)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 @handle_errors("removing notebook list item", default_return=NotebookEntryResult(None, False))
 def delete_list_item(user_id: str, entry_ref: str, item_index: int) -> NotebookEntryResult:
     """Remove an item from a notebook list entry."""
     entry = data_manager.remove_list_item(user_id, entry_ref, item_index)
-    return NotebookEntryResult(entry=entry, success=entry is not None)
+    return _operation_result(user_id, entry_ref, entry)
 
 
 # Compatibility wrappers for callers that still use data-manager-style names.

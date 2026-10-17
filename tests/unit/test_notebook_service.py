@@ -7,6 +7,7 @@ import pytest
 
 import notebook.notebook_service as ns
 from notebook.notebook_schemas import Entry
+from notebook.notebook_data_manager import EntryReferenceResolution
 
 
 @pytest.mark.unit
@@ -66,3 +67,23 @@ def test_add_entry_tags_returns_structured_result():
     assert result.success is True
     assert result.entry is entry
     add_tags.assert_called_once_with("user-1", "n123", ["a"])
+
+
+@pytest.mark.unit
+@pytest.mark.notebook
+def test_failed_mutation_preserves_ambiguous_reference_result():
+    with (
+        patch(
+            "notebook.notebook_service.data_manager.archive_entry",
+            return_value=None,
+        ),
+        patch(
+            "notebook.notebook_service.data_manager.resolve_entry_reference",
+            return_value=EntryReferenceResolution(None, ambiguous=True, match_count=2),
+        ),
+    ):
+        result = ns.archive_notebook_entry("user-1", "shared title")
+
+    assert result.success is False
+    assert result.entry is None
+    assert result.error == ns.AMBIGUOUS_ENTRY_REFERENCE

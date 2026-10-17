@@ -61,12 +61,11 @@ class WebNotesRoutes:
         action = request.match_info.get("action")
 
         # ERROR_HANDLING_EXCLUDE: Lookup helper raises an intentional HTTP response.
-        def find(identifier, include_archived=True):
+        def find(entries, identifier, include_archived=True):
             """Resolve a notebook entry identifier or raise a not-found response."""
-            entries = notes.list_recent(
-                uid, n=1000, include_archived=include_archived
-            )
             for entry in entries:
+                if not include_archived and entry.status != "active":
+                    continue
                 if str(entry.id) == identifier or str(
                     entry.short_id or ""
                 ).casefold() == identifier.casefold():
@@ -115,18 +114,23 @@ class WebNotesRoutes:
             tag_filter = request.query.get("tag", "").strip()
             if len(query) > 500 or len(tag_filter) > 100:
                 raise web.HTTPBadRequest(text="Keep notebook filters brief.")
+            all_entries = await asyncio.to_thread(
+                notes.list_recent, uid, n=1000, include_archived=True
+            )
             if query:
-                entries = notes.search_entries(uid, query, limit=100)
-            elif status == "pinned":
-                entries = notes.list_pinned(uid, limit=100)
-            elif status == "inbox":
-                entries = notes.list_inbox(uid, limit=100)
-            else:
-                entries = notes.list_recent(
-                    uid, n=100, include_archived=status != "active"
+                entries = notes.search_entries_from_snapshot(
+                    all_entries, query, limit=100
                 )
-            if status not in {"all", "pinned", "inbox"}:
-                entries = [entry for entry in entries if entry.status == status]
+            elif status == "pinned":
+                entries = notes.list_pinned_from_snapshot(all_entries, limit=100)
+            elif status == "inbox":
+                entries = notes.list_inbox_from_snapshot(all_entries, limit=100)
+            elif status == "all":
+                entries = all_entries[:100]
+            else:
+                entries = [
+                    entry for entry in all_entries if entry.status == status
+                ][:100]
             if tag_filter:
                 entries = [
                     entry
@@ -134,9 +138,6 @@ class WebNotesRoutes:
                     if tag_filter.casefold()
                     in {str(tag).casefold() for tag in (entry.tags or [])}
                 ]
-            all_entries = notes.list_recent(
-                uid, n=1000, include_archived=True
-            )
             from core.tags import get_user_tags
 
             saved_tags = await asyncio.to_thread(get_user_tags, uid)
@@ -197,13 +198,9 @@ class WebNotesRoutes:
                     notes.create_list,
                     uid,
                     title=title.strip(),
-                    items=[item["text"] for item in items],
+                    items=items,
                     tags=tags,
                 )
-                if entry and any(item["done"] for item in items):
-                    entry = await asyncio.to_thread(
-                        notes.set_list_items, uid, str(entry.id), items
-                    )
             elif kind == "journal_entry":
                 entry = await asyncio.to_thread(
                     notes.create_journal,
@@ -235,11 +232,15 @@ class WebNotesRoutes:
 
         if not note_id:
             raise web.HTTPBadRequest(text="A note ID is required.")
+        current_entries = await asyncio.to_thread(
+            notes.list_recent, uid, n=1000, include_archived=True
+        )
         if action in {"archive", "restore"} and request.method == "POST":
-            find(note_id, include_archived=True)
-            if not await asyncio.to_thread(
+            find(current_entries, note_id, include_archived=True)
+            updated = await asyncio.to_thread(
                 notes.archive_entry, uid, note_id, action == "archive"
-            ):
+            )
+            if not updated:
                 previous_section = "active notes" if action == "archive" else "the archive"
                 raise web.HTTPServiceUnavailable(
                     text=(
@@ -247,9 +248,7 @@ class WebNotesRoutes:
                         f"{previous_section}. Refresh your notebook, then try again."
                     )
                 )
-            return web.json_response(
-                {"note": note_view(find(note_id, include_archived=True))}
-            )
+            return web.json_response({"note": note_view(updated)})
         if action is None and request.method == "PATCH":
             data = await self.gateway.body(request)
             allowed = {"title", "description", "items", "tags", "pinned"}
@@ -279,7 +278,7 @@ class WebNotesRoutes:
                 raise web.HTTPBadRequest(text="Tags must be a list of words.")
             if "tags" in data:
                 data["tags"] = normalize_tags(data["tags"])
-            current_entry = find(note_id, include_archived=False)
+            current_entry = find(current_entries, note_id, include_archived=False)
             if "items" in data:
                 data["items"] = clean_list_items(data["items"])
                 if current_entry.kind != "list":

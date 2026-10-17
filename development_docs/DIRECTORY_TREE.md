@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-14 22:07:06
+> **Last Generated**: 2026-10-17 13:33:10
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -261,6 +261,7 @@ C:.
 |   |   pagination.py
 |   |   profile_v2_io.py
 |   |   profile_v2_schemas.py
+|   |   resource_paths.py
 |   |   response_tracking.py
 |   |   schedule_document_defaults.py
 |   |   schedule_period_normalize.py
@@ -523,6 +524,7 @@ C:.
 |   |   default_natural_language_defaults.json
 |   |   default_tags.json
 |   |   presets.json
+|   |   __init__.py
 |   |
 |   +---default_checkin
 |   |       questions.json
@@ -589,6 +591,7 @@ C:.
 |   |
 +---styles
 |       admin_theme.qss
+|       __init__.py
 |
 +---tasks
 |   |   task_breakdown.py
@@ -1073,6 +1076,7 @@ C:.
 |   |   |   test_lm_studio_manager.py
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
+|   |   |   test_logging_privacy.py
 |   |   |   test_message_formatter.py
 |   |   |   test_message_reactions.py
 |   |   |   test_message_service_schedule.py
@@ -1086,6 +1090,7 @@ C:.
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_direct_env_mutation_policy.py
 |   |   |   test_no_prints_policy.py
+|   |   |   test_packaging_metadata.py
 |   |   |   test_pagination.py
 |   |   |   test_product_ai_flow_runtime_wiring.py
 |   |   |   test_product_ai_phase0_contracts.py
@@ -1170,6 +1175,7 @@ C:.
 |   |   |   test_web_tasks.py
 |   |   |   test_web_user_settings.py
 |   |   |   test_wellness_status.py
+|   |   |   test_worker_user_store_cleanup.py
 |   |   |
 +---ui
 |   |   admin_actions.py
@@ -1284,6 +1290,7 @@ C:.
 |   |   worker.mjs
 |   |   worker.test.mjs
 |   |   wrangler.jsonc
+|   |   __init__.py
 |   |
 |   \---fonts
 |           inter-latin-ext.woff2

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-14 22:06:19
+> **Last Generated**: 2026-10-17 13:32:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 303
-- **Total Imports Found**: 2716
-- **Dependencies Documented**: 303 (100% coverage)
-- **Standard Library Imports**: 784 (28.9%)
-- **Third-Party Imports**: 235 (8.7%)
-- **Local Imports**: 1697 (62.5%)
-- **Last Updated**: 2026-10-14
+- **Files Scanned**: 304
+- **Total Imports Found**: 2723
+- **Dependencies Documented**: 304 (100% coverage)
+- **Standard Library Imports**: 784 (28.8%)
+- **Third-Party Imports**: 235 (8.6%)
+- **Local Imports**: 1704 (62.6%)
+- **Last Updated**: 2026-10-17
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 784 imports (28.9%)
-- **Third-Party**: 235 imports (8.7%)
-- **Local**: 1697 imports (62.5%)
+- **Standard Library**: 784 imports (28.8%)
+- **Third-Party**: 235 imports (8.6%)
+- **Local**: 1704 imports (62.6%)
 
 ## Module Dependencies by Directory
 
@@ -948,6 +948,7 @@
     - `core.config (AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.resource_paths (shipped_resource_path)` (NEW)
   - **Standard Library**:
     - `dataclasses (dataclass)`
     - `os`
@@ -963,7 +964,7 @@
   - `ai/prompts/command_interpreter.py`
 
 **Dependency Changes**:
-- Added: ai.prompts.action_catalog, ai.prompts.command_registry, ai.prompts.flows, core.config, core.error_handling, core.logger
+- Added: ai.prompts.action_catalog, ai.prompts.command_registry, ai.prompts.flows, core.config, core.error_handling, core.logger, core.resource_paths
 - Removed: ai/__init__.py, ai/chat/chatbot.py, ai/chat/response_generator.py, ai/context/assembly.py, ai/prompts/__init__.py, ai/prompts/command_interpreter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1487,7 +1488,7 @@
     - `core.time_format_constants (DATE_DISPLAY_MONTH_DAY)` (NEW)
     - `core.time_utilities (format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
-    - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_list_item_done)` (NEW)
+    - `notebook.notebook_service (AMBIGUOUS_ENTRY_REFERENCE, add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, list_archived_entries, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, resolve_notebook_entry, search_entries_for_display, set_list_item_done)` (NEW)
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `typing (Any)`
@@ -3705,6 +3706,7 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_configuration_error, handle_errors)` (NEW)
+    - `core.resource_paths (shipped_resource_path)` (NEW)
     - `integrations.google_health.token_crypto (is_valid_fernet_key)`
     - `storage.user_id (is_valid_user_id)` (NEW)
   - **Standard Library**:
@@ -3768,7 +3770,7 @@
   - `ui/request_actions.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, storage.user_id
+- Added: core.error_handling, core.resource_paths, storage.user_id
 - Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/prompts/manager.py, communication/command_handlers/health_handler.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhooks/server.py, communication/communication_channels/discord/webhooks/tunnel.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/flows/flow_state.py, communication/message_processing/interaction_manager.py, communication/message_processing/response_enhancer.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/file_operations.py, core/logger.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/sync_manager.py, integrations/google_health/user_settings.py, messages/message_data_manager.py, messages/message_reactions.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_breakdown.py, ui/request_actions.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3942,6 +3944,7 @@
   - `core/pagination.py`
   - `core/profile_v2_io.py`
   - `core/profile_v2_schemas.py`
+  - `core/resource_paths.py`
   - `core/response_tracking.py`
   - `core/schedule_document_defaults.py`
   - `core/schedule_period_normalize.py`
@@ -4519,6 +4522,7 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.resource_paths (shipped_resource_path)` (NEW)
     - `storage.user_data_write (update_user_preferences)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
@@ -4527,7 +4531,6 @@
     - `dataclasses (dataclass, field)`
     - `datetime`
     - `json`
-    - `pathlib (Path)`
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/natural_language_handler.py`
@@ -4540,7 +4543,7 @@
   - `ui/widgets/natural_language_settings_widget.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, storage.user_data_write, tasks.task_time_parsing
+- Added: core, core.error_handling, core.logger, core.resource_paths, storage.user_data_write, tasks.task_time_parsing
 - Removed: collections.abc, communication/command_handlers/natural_language_handler.py, communication/message_processing/task_phrase_parser.py, core/web_user_settings.py, tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py, tasks/task_service.py, ui/dialogs/natural_language_settings_dialog.py, ui/widgets/natural_language_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4651,6 +4654,28 @@
 **Dependency Changes**:
 - Added: core.error_handling, core.time_utilities, storage.user_data_v2_base
 - Removed: core/profile_v2_io.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_v2_envelopes.py, storage/user_data_validation.py, storage/user_data_write.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/resource_paths.py`
+- **Purpose**: Core system module for resource_paths
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+- **Used by**:
+  - `ai/prompts/manager.py`
+  - `core/config.py`
+  - `core/natural_language_defaults.py`
+  - `core/tags.py`
+  - `core/web_account_service.py`
+  - `ui/ui_app_qt.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4908,6 +4933,7 @@
     - `core.file_operations (load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.profile_v2_io (is_profile_v2_envelope, prepare_profile_raw_on_load, wrap_profile_document_for_save)` (NEW)
+    - `core.resource_paths (shipped_resource_path)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
     - `json`
@@ -4928,7 +4954,7 @@
   - `ui/widgets/tag_widget.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.resource_paths, core.time_utilities
 - Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/create_item_ui.py, communication/message_processing/command_parser.py, communication/message_processing/flows/note_flow.py, communication/message_processing/task_phrase_parser.py, core/web_notes.py, core/web_tasks.py, storage/user_data_registry.py, tasks/task_data_manager.py, tasks/task_tag_helpers.py, ui/widgets/tag_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5164,6 +5190,7 @@
     - `core.billing (StripeAPIError, StripeBillingClient, StripeWebhookError, account_billing_summary, local_status_for_stripe)` (NEW)
     - `core.error_handling (CommunicationError, ConfigurationError, DataError, ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.resource_paths (shipped_website_path)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.web_assets (register_asset_routes)` (NEW)
@@ -5204,7 +5231,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.billing, core.error_handling, core.logger, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_tasks, core.web_user_settings, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
+- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.billing, core.error_handling, core.logger, core.resource_paths, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_tasks, core.web_user_settings, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
 - Removed: collections.abc, core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7807,6 +7834,8 @@
 #### `ui/ui_app_qt.py`
 - **Purpose**: Main UI application (PyQt6)
 - **Dependencies**:
+  - **Local**:
+    - `core.resource_paths (shipped_style_path)` (NEW)
   - **Standard Library**:
     - `functools (partial)`
     - `importlib (import_module)`
@@ -7819,6 +7848,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
+- Added: core.resource_paths
 - Removed: PySide6.QtCore, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->

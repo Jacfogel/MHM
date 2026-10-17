@@ -29,6 +29,10 @@ from communication.message_processing.flows.flow_constants import (
     FLOW_NOTE_BODY,
 )
 from tests.test_helpers.test_utilities import TestUserFactory
+from notebook.notebook_service import (
+    AMBIGUOUS_ENTRY_REFERENCE,
+    NotebookEntryResult,
+)
 
 
 @pytest.mark.behavior
@@ -36,6 +40,22 @@ from tests.test_helpers.test_utilities import TestUserFactory
 @pytest.mark.notebook
 class TestNotebookHandlerBehavior:
     """Test notebook handler real behavior and side effects."""
+
+    def test_ambiguous_entry_reference_asks_for_exact_short_id(self):
+        handler = NotebookHandler()
+        with patch(
+            "communication.command_handlers.notebook_handler.resolve_notebook_entry",
+            return_value=NotebookEntryResult(
+                None, False, AMBIGUOUS_ENTRY_REFERENCE
+            ),
+        ):
+            response = handler._handle_show_entry(
+                "user-1", {"entry_ref": "shared title"}
+            )
+
+        assert response.completed is False
+        assert "more than one" in response.message.lower()
+        assert "exact short id" in response.message.lower()
 
     def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""

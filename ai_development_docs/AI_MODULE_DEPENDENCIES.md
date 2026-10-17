@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-14 22:06:52
+> **Last Generated**: 2026-10-17 13:33:05
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,18 +12,18 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 303
-- **Total Imports**: 2716
-- **Standard Library**: 784 (28.9%)
-- **Third-Party**: 235 (8.7%)
-- **Local Imports**: 1697 (62.5%)
+- **Files Scanned**: 304
+- **Total Imports**: 2723
+- **Standard Library**: 784 (28.8%)
+- **Third-Party**: 235 (8.6%)
+- **Local Imports**: 1704 (62.6%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, token_crypto, user_id
+  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, resource_paths, token_crypto, user_id
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
   - core/file_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, error_handling, file_locking, time_utilities (+4 more)
@@ -59,7 +59,7 @@ Communication Dependencies:
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (functools, importlib, os, pathlib), third-party (PySide6.QtCore, PySide6.QtWidgets)
+  - ui/ui_app_qt.py <- standard library (functools, importlib, os, pathlib), third-party (PySide6.QtCore, PySide6.QtWidgets), resource_paths
 - Dialogs
   - ui/dialog_actions.py <- standard library (collections.abc, importlib, typing), third-party (PySide6.QtWidgets)
   - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, uuid, warnings), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, error_handling, dialog_helpers, category_selection_widget (+6 more)
@@ -116,7 +116,7 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (34 import statements; 11 duplicate)
-- `core/web_account_service.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (36 import statements; 14 duplicate)
+- `core/web_account_service.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (37 import statements; 14 duplicate)
 - `ai/chat/chatbot.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (23 import statements; 2 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)

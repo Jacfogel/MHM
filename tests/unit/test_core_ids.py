@@ -123,7 +123,7 @@ def test_find_entry_exact_short_id_wins_over_ambiguous_fragment():
         short_id="n222bbb",
         description="b",
     )
-    # Fragment collision still returns first (documented ambiguity)
-    assert _find_entry_by_ref([first, second], "naaaaaa") is first
+    # Fragment collisions never select an arbitrary entry.
+    assert _find_entry_by_ref([first, second], "naaaaaa") is None
     # Exact persisted short_id wins
     assert _find_entry_by_ref([first, second], "n222bbb") is second

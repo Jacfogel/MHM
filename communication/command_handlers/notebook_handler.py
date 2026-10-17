@@ -24,9 +24,9 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from notebook.notebook_service import (
+    AMBIGUOUS_ENTRY_REFERENCE,
     add_entry_tags,
     add_item_to_list,
-    get_entry,
     append_entry_body,
     archive_notebook_entry,
     create_journal_from_command,
@@ -41,6 +41,7 @@ from notebook.notebook_service import (
     list_recent_entries,
     pin_notebook_entry,
     remove_entry_tags,
+    resolve_notebook_entry,
     replace_entry_body,
     search_entries_for_display,
     set_list_item_done,
@@ -52,6 +53,18 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
 _ENTRY_KIND_ICONS = {"note": "📄", "list": "📋", "journal_entry": "📔"}
+_AMBIGUOUS_ENTRY_MESSAGE = (
+    "I found more than one matching notebook entry. Please choose one and try "
+    "again using its exact short ID, such as `n123abc`."
+)
+
+
+# ERROR_HANDLING_EXCLUDE: Pure response adapter used by guarded command handlers.
+def _entry_failure_response(result: Any, fallback: str) -> InteractionResponse:
+    """Ask for an exact ID when a notebook reference matched multiple entries."""
+    if getattr(result, "error", None) == AMBIGUOUS_ENTRY_REFERENCE:
+        return InteractionResponse(_AMBIGUOUS_ENTRY_MESSAGE, False)
+    return InteractionResponse(fallback, True)
 
 # Channel-neutral notebook help (single source for `help notebook` and handler.get_help).
 NOTEBOOK_HELP_TEXT = """**Notebook Help:**
@@ -556,10 +569,13 @@ class NotebookHandler(InteractionHandler):
                 "Which entry would you like to see? (Provide ID or title)", False
             )
 
-        entry = get_entry(user_id, entry_ref)
+        result = resolve_notebook_entry(user_id, entry_ref)
+        entry = result.entry if result else None
 
         if not entry:
-            return InteractionResponse(f"❌ Entry not found: {entry_ref}", True)
+            return _entry_failure_response(
+                result, "❌ Entry not found. Try an exact short ID."
+            )
 
         return InteractionResponse(self._format_entry_response(entry), True)
 
@@ -588,8 +604,8 @@ class NotebookHandler(InteractionHandler):
                 f"✅ Appended to '{entry.title or 'Untitled'}' ({short_id})", True
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to append. Entry not found or invalid.", True
+            return _entry_failure_response(
+                result, "❌ Failed to append. Entry not found or invalid."
             )
 
     @handle_errors("handling set entry body")
@@ -615,8 +631,8 @@ class NotebookHandler(InteractionHandler):
                 f"✅ Updated '{entry.title or 'Untitled'}' ({short_id})", True
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to update. Entry not found or invalid.", True
+            return _entry_failure_response(
+                result, "❌ Failed to update. Entry not found or invalid."
             )
 
     @handle_errors("handling edit entry session")
@@ -638,11 +654,12 @@ class NotebookHandler(InteractionHandler):
                 False,
             )
 
-        entry = get_entry(user_id, entry_ref)
+        result = resolve_notebook_entry(user_id, entry_ref)
+        entry = result.entry if result else None
         if not entry:
-            return InteractionResponse(
+            return _entry_failure_response(
+                result,
                 "❌ Entry not found. Try a short ID (`n123abc`) or `!edit note <title>`.",
-                True,
             )
         if entry.kind == "list":
             return InteractionResponse(
@@ -689,7 +706,9 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
         else:
-            return InteractionResponse("❌ Failed to add tags. Entry not found.", True)
+            return _entry_failure_response(
+                result, "❌ Failed to add tags. Entry not found."
+            )
 
     @handle_errors("handling remove tags")
     def _handle_remove_tags(
@@ -713,8 +732,8 @@ class NotebookHandler(InteractionHandler):
                 f"✅ Tags removed from '{entry.title or 'Untitled'}' ({short_id})", True
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to remove tags. Entry not found.", True
+            return _entry_failure_response(
+                result, "❌ Failed to remove tags. Entry not found."
             )
 
     @handle_errors("handling search entries")
@@ -787,7 +806,7 @@ class NotebookHandler(InteractionHandler):
                 f"✅ {action.capitalize()} '{entry.title or 'Untitled'}' ({short_id})",
                 True,
             )
-        return InteractionResponse(failure_message, True)
+        return _entry_failure_response(result, failure_message)
 
     # not_duplicate: notebook_pin_archive_entry_wrappers
     @handle_errors(
@@ -860,8 +879,8 @@ class NotebookHandler(InteractionHandler):
                 f"✅ Added item to '{entry.title}' ({short_id})", True
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to add item. List not found or invalid.", True
+            return _entry_failure_response(
+                result, "❌ Failed to add item. List not found or invalid."
             )
 
     @handle_errors("handling toggle list item done")
@@ -895,8 +914,8 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to toggle item. List not found or invalid.", True
+            return _entry_failure_response(
+                result, "❌ Failed to toggle item. List not found or invalid."
             )
 
     @handle_errors("handling remove list item")
@@ -927,8 +946,8 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
         else:
-            return InteractionResponse(
-                "❌ Failed to remove item. List not found or invalid.", True
+            return _entry_failure_response(
+                result, "❌ Failed to remove item. List not found or invalid."
             )
 
     @handle_errors(

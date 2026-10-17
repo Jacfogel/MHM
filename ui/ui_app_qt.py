@@ -152,7 +152,9 @@ class MHMManagerUI(QMainWindow):
 
         # Test code may monkeypatch Path with generic mocks. Guard against
         # non-pathlike objects so we never pass file-descriptor-like values to open().
-        if not isinstance(theme_path, (str, bytes, pathlib.Path)):
+        if isinstance(theme_path, str):
+            theme_path = pathlib.Path(theme_path)
+        elif not isinstance(theme_path, pathlib.Path):
             logger.warning("Theme path is not path-like; skipping theme load")
             return
 

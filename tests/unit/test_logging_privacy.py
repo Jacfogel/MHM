@@ -9,20 +9,52 @@ import pytest
 pytestmark = [pytest.mark.unit, pytest.mark.core]
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_RUNTIME_ROOTS = ("ai", "communication", "core", "messages")
+_RUNTIME_ROOTS = (
+    "ai",
+    "checkins",
+    "communication",
+    "core",
+    "integrations",
+    "messages",
+    "notebook",
+    "scheduler",
+    "storage",
+    "tasks",
+    "ui",
+    "user",
+)
 _LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
 _CONTENT_NAMES = {
     "ai_response",
     "content",
+    "description",
+    "entry_data",
+    "item_data",
+    "item_text",
     "message",
     "message_preview",
     "message_to_send",
+    "persisted_entry",
+    "preview",
+    "query",
+    "ref",
     "response_data",
     "selected_message_content",
     "test_message",
+    "text",
+    "title",
     "user_message",
 }
 _SAFE_TRANSFORMS = {"len", "type"}
+
+
+def _is_logger_receiver(node: ast.AST) -> bool:
+    """Return whether a call receiver is a logger rather than another API."""
+    if isinstance(node, ast.Name):
+        return node.id == "logger" or node.id.endswith("_logger")
+    if isinstance(node, ast.Attribute):
+        return node.attr == "logger" or node.attr.endswith("_logger")
+    return False
 
 
 class _RawContentReference(ast.NodeVisitor):
@@ -37,7 +69,7 @@ class _RawContentReference(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
-        if node.attr in {"body", "content", "message", "text"}:
+        if node.attr in {"body", "content", "description", "message", "text", "title"}:
             self.names.add(node.attr)
         # Do not treat identifiers such as message.author.id as message content.
 
@@ -56,6 +88,8 @@ def test_runtime_log_calls_do_not_include_message_content() -> None:
                 if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
                     continue
                 if node.func.attr not in _LOG_METHODS:
+                    continue
+                if not _is_logger_receiver(node.func.value):
                     continue
                 finder = _RawContentReference()
                 for value in [*node.args, *(item.value for item in node.keywords)]:

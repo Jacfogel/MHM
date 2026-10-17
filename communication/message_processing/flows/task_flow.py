@@ -448,8 +448,11 @@ class TaskFlowMixin(FlowControlMixin):
 
         text_lower = self._normalize_reminder_text(text)
         logger.debug(
-            f"Parsing reminder periods from text '{text}' (normalized: '{text_lower}') "
-            f"for task {task_id} with due_datetime {due_datetime}"
+            "Parsing reminder periods",
+            text_length=len(text),
+            normalized_length=len(text_lower),
+            task_id=task_id,
+            due_datetime=str(due_datetime),
         )
 
         reminder_periods = []

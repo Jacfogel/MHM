@@ -274,7 +274,7 @@ def search_users(
 ) -> list[dict[str, Any]]:
     """Search for users based on query string and specified fields."""
     if not query or not isinstance(query, str):
-        logger.error(f"Invalid query: {query}")
+        logger.error("Invalid user search query", query_type=type(query).__name__)
         return []
 
     if not query.strip():

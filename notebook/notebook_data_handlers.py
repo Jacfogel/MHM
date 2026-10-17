@@ -4,12 +4,14 @@ Notebook data handlers for loading and saving notebook entries.
 Handles JSON persistence for notebook entries with lazy directory creation.
 """
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import TypeVar
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors, FileOperationError
 from core.config import get_user_data_dir
-from core.file_operations import load_json_data, save_json_data
+from core.file_operations import load_json_data, save_json_data, update_json_data
 from core.time_utilities import now_timestamp_full
 from core.ids import generate_short_id
 from storage.user_data_v2_base import SCHEMA_VERSION as V2_SCHEMA_VERSION
@@ -18,6 +20,7 @@ from notebook.notebook_schemas import Entry, NotebookV2Model
 logger = get_component_logger("main")
 
 NOTEBOOK_FILE_NAME = "entries.json"
+_T = TypeVar("_T")
 
 
 @handle_errors("ensuring notebook directories")
@@ -79,9 +82,21 @@ def load_entries(user_id: str) -> list[Entry]:
         )
         return []
 
+    loaded_entries = _entries_from_payload(raw_data, user_id=user_id)
+    logger.debug(f"Loaded {len(loaded_entries)} notebook entries for user {user_id}.")
+    return loaded_entries
+
+
+# ERROR_HANDLING_EXCLUDE: Pure conversion helper; callers own persistence failures.
+def _entries_from_payload(raw_data: object, *, user_id: str) -> list[Entry]:
+    """Validate persisted entries without exposing user-authored values in logs."""
+    if not isinstance(raw_data, dict):
+        return []
     entries_data = raw_data.get("entries", [])
+    if not isinstance(entries_data, list):
+        return []
     loaded_entries: list[Entry] = []
-    for persisted_entry in entries_data:
+    for index, persisted_entry in enumerate(entries_data):
         if not isinstance(persisted_entry, dict):
             continue
         try:
@@ -91,13 +106,68 @@ def load_entries(user_id: str) -> list[Entry]:
             entry_data = _entry_v2_to_runtime(validated)
             entry = Entry.model_validate(entry_data)
             loaded_entries.append(entry)
-        except Exception as e:
-            logger.error(
-                f"Failed to validate notebook entry for user {user_id}: {e} - Data: {persisted_entry}"
+        except Exception as exc:
+            errors = getattr(exc, "errors", None)
+            error_details = errors() if callable(errors) else None
+            error_count = (
+                len(error_details) if isinstance(error_details, (list, tuple)) else 1
             )
-
-    logger.debug(f"Loaded {len(loaded_entries)} notebook entries for user {user_id}.")
+            raw_kind = persisted_entry.get("kind")
+            entry_kind = (
+                raw_kind
+                if raw_kind in {"note", "list", "journal_entry"}
+                else "unknown"
+            )
+            logger.error(
+                "Failed to validate persisted notebook entry",
+                user_id=user_id,
+                entry_index=index,
+                entry_kind=entry_kind,
+                validation_error_count=error_count,
+                exception_type=type(exc).__name__,
+            )
     return loaded_entries
+
+
+# ERROR_HANDLING_EXCLUDE: Pure serialization helper used by guarded persistence paths.
+def _entries_payload(entries: list[Entry]) -> dict:
+    """Return the canonical persisted notebook collection payload."""
+    entries_data = [entry.model_dump(mode="json") for entry in entries]
+    return {
+        "schema_version": V2_SCHEMA_VERSION,
+        "entries": [_entry_runtime_to_v2(entry) for entry in entries_data],
+        "updated_at": now_timestamp_full(),
+    }
+
+
+@handle_errors("updating notebook entries transactionally", default_return=None)
+def update_entries(
+    user_id: str,
+    updater: Callable[[list[Entry]], _T | None],
+) -> _T | None:
+    """Run one notebook read-modify-write operation while holding the file lock."""
+    from core.tags import ensure_tags_initialized
+
+    ensure_tags_initialized(user_id)
+    file_path = _get_notebook_file_path(user_id)
+    result: _T | None = None
+
+    # ERROR_HANDLING_EXCLUDE: Executed inside update_json_data's guarded transaction.
+    def apply(raw_data: object) -> dict:
+        """Apply the caller mutation and serialize the resulting entry collection."""
+        nonlocal result
+        entries = _entries_from_payload(raw_data, user_id=user_id)
+        result = updater(entries)
+        if result is None:
+            return raw_data if isinstance(raw_data, dict) else _entries_payload(entries)
+        return _entries_payload(entries)
+
+    success = update_json_data(
+        str(file_path),
+        apply,
+        default={"schema_version": V2_SCHEMA_VERSION, "entries": []},
+    )
+    return result if success else None
 
 
 @handle_errors("saving notebook entries")
@@ -116,13 +186,7 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
     ensure_notebook_dirs(user_id)
     file_path = _get_notebook_file_path(user_id)
 
-    # Convert Pydantic models to dictionaries
-    entries_data = [entry.model_dump(mode="json") for entry in entries]
-    data_to_save = {
-        "schema_version": V2_SCHEMA_VERSION,
-        "entries": [_entry_runtime_to_v2(entry) for entry in entries_data],
-        "updated_at": now_timestamp_full(),
-    }
+    data_to_save = _entries_payload(entries)
 
     # Use core.file_operations.save_json_data for atomic write
     success = save_json_data(data_to_save, str(file_path))

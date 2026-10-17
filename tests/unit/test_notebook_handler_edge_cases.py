@@ -9,6 +9,7 @@ import pytest
 from communication.command_handlers.shared_types import PaginationAction
 from communication.command_handlers.notebook_handler import NotebookHandler
 from notebook.notebook_schemas import Entry, EntryKind
+from notebook.notebook_service import NotebookEntryResult
 
 
 def _entry(title: str = "Sample", kind: str = "note") -> Entry:
@@ -220,8 +221,8 @@ class TestNotebookHandlerPublicFlowStart:
         handler = NotebookHandler()
         entry = _entry("Editable")
         with patch(
-            "communication.command_handlers.notebook_handler.get_entry",
-            return_value=entry,
+            "communication.command_handlers.notebook_handler.resolve_notebook_entry",
+            return_value=NotebookEntryResult(entry, True),
         ), patch(
             "communication.message_processing.conversation_flow_manager.conversation_manager"
         ) as mock_cm:
