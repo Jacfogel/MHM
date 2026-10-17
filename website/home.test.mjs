@@ -25,7 +25,7 @@ function node(extras = {}) {
   };
 }
 
-async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, energy = null, fetchImpl, random = () => 0, chat = false } = {}) {
+async function page({ account = { preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true }, tasks = { tasks: [{ title: 'Drink water', due_date: '2026-09-21', due_time: '09:00' }] }, efforts = { tasks: [] }, focus, energy = null, fetchImpl, chat = false } = {}) {
   const nodes = new Map([
     ['app-status', node({ hidden: false })],
     ['home-content', node()],
@@ -57,20 +57,26 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
   }
   const requests = [];
   const navigation = [];
+  const firstTask = (tasks.tasks || [])[0] || null;
+  const firstEffort = firstTask
+    ? (efforts.tasks || []).find(item => item.id === firstTask.id)
+    : null;
+  const focusResponse = focus === undefined
+    ? { focus: firstTask ? { task: firstTask, reason: 'This is overdue, so it stays visible ahead of less urgent tasks.', effort_minutes: firstEffort ? firstEffort.minutes : 15, gentle: false, parent_title: '', deferral_count: 0 } : null }
+    : { focus };
   const context = vm.createContext({
     document: {
       getElementById(id) { return nodes.get(id); },
       querySelectorAll() { return []; },
       createElement() { return node(); },
     },
-    window: { dispatchEvent() {}, requestAnimationFrame() {}, setInterval() {}, mhmRandom: random },
+    window: { dispatchEvent() {}, requestAnimationFrame() {}, setInterval() {} },
     Event,
     location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: fetchImpl || (async (url, options = {}) => {
       requests.push({ url, options });
       if (url === '/api/account') return Response.json(account);
-      if (url === '/api/tasks?status=active') return Response.json(tasks);
-      if (url === '/api/tasks/effort') return Response.json(efforts);
+      if (url === '/api/tasks/focus') return Response.json(focusResponse);
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true, energy_today: energy });
       if (url === '/api/actions') return Response.json({ ok: true, message: 'Your check-in was queued for delivery.' });
       if (String(url).endsWith('/breakdown')) return Response.json({ steps: ['Ask if the refill is ready'] });
@@ -105,9 +111,8 @@ test('home stays put when the account summary omits setup flags', async () => {
     account: { preferred_name: 'Brook' },
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'Brook' });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
-      return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
+      return Response.json({ focus: null });
     },
   });
   assert.deepEqual(view.navigation, []);
@@ -126,18 +131,16 @@ test('home suggests the overdue task and explains why', async () => {
 });
 
 test('home prefers a due-today task over a later one and skips a snoozed task', async () => {
-  const later = new Date(Date.now() + 2 * 60 * 60 * 1000);
   const pad = value => String(value).padStart(2, '0');
-  const snoozedUntil = `${later.getFullYear()}-${pad(later.getMonth() + 1)}-${pad(later.getDate())} ${pad(later.getHours())}:${pad(later.getMinutes())}:00`;
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   const view = await page({
-    tasks: {
-      tasks: [
-        { id: 'later', title: 'File taxes', due_date: '2099-01-01', priority: 'critical' },
-        { id: 'snoozed', title: 'Call pharmacy', due_date: todayKey, priority: 'high', reminder_snooze_until: snoozedUntil },
-        { id: 'today', title: 'Water plants', due_date: todayKey, priority: 'low' },
-      ],
+    focus: {
+      task: { id: 'today', title: 'Water plants', due_date: todayKey, priority: 'low' },
+      reason: 'This is due today.',
+      effort_minutes: 10,
+      gentle: false,
+      parent_title: '',
     },
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Water plants');
@@ -145,23 +148,22 @@ test('home prefers a due-today task over a later one and skips a snoozed task', 
   assert.match(view.nodes.get('home-task-why').textContent, /This is due today/);
 });
 
-test('a short due-today task is preferred, and a low roll can still pick another fit', async () => {
+test('home displays the backend-selected short task and its explanation', async () => {
   const today = new Date();
   const pad = value => String(value).padStart(2, '0');
   const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
-  const tasks = {
-    tasks: [
-      { id: 'long', title: 'Clean the whole house', due_date: todayKey, priority: 'medium' },
-      { id: 'short', title: 'Call pharmacy', due_date: todayKey, priority: 'medium' },
-    ],
-  };
-  const efforts = { tasks: [{ id: 'long', minutes: 120 }, { id: 'short', minutes: 5 }] };
-  const usual = await page({ tasks, efforts });
+  const usual = await page({
+    focus: {
+      task: { id: 'short', title: 'Call pharmacy', due_date: todayKey, priority: 'medium' },
+      reason: 'This is probably the easiest useful thing to clear first.',
+      effort_minutes: 5,
+      gentle: false,
+      parent_title: '',
+    },
+  });
   assert.equal(usual.nodes.get('home-task-title').textContent, 'Call pharmacy');
   assert.match(usual.nodes.get('home-task-meta').textContent, /About 5 minutes/);
   assert.match(usual.nodes.get('home-task-why').textContent, /easiest useful/);
-  const surprise = await page({ tasks, efforts, random: () => 0.99 });
-  assert.equal(surprise.nodes.get('home-task-title').textContent, 'Clean the whole house');
 });
 
 test('done, later, and break it down call the task actions', async () => {
@@ -191,11 +193,12 @@ test('home picks an open subtask and keeps the bigger task', async () => {
   const pad = value => String(value).padStart(2, '0');
   const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   const view = await page({
-    tasks: {
-      tasks: [
-        { id: 'dentist', title: 'Call the dentist', due_date: todayKey, priority: 'high' },
-        { id: 'phone', title: 'Find the phone number', due_date: todayKey, priority: 'low', parent_id: 'dentist' },
-      ],
+    focus: {
+      task: { id: 'phone', title: 'Find the phone number', due_date: todayKey, priority: 'low', parent_id: 'dentist' },
+      reason: 'This is due today.',
+      effort_minutes: 5,
+      gentle: false,
+      parent_title: 'Call the dentist',
     },
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Find the phone number');
@@ -221,17 +224,16 @@ test('home can add a step you type', async () => {
 });
 
 test('home returns to the bigger task when its smaller step is set aside', async () => {
-  const later = new Date(Date.now() + 2 * 60 * 60 * 1000);
   const pad = value => String(value).padStart(2, '0');
-  const snoozedUntil = `${later.getFullYear()}-${pad(later.getMonth() + 1)}-${pad(later.getDate())} ${pad(later.getHours())}:${pad(later.getMinutes())}:00`;
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   const view = await page({
-    tasks: {
-      tasks: [
-        { id: 'dentist', title: 'Call the dentist', due_date: todayKey, priority: 'high' },
-        { id: 'phone', title: 'Find the phone number', due_date: todayKey, priority: 'low', parent_id: 'dentist', reminder_snooze_until: snoozedUntil },
-      ],
+    focus: {
+      task: { id: 'dentist', title: 'Call the dentist', due_date: todayKey, priority: 'high' },
+      reason: 'This is due today.',
+      effort_minutes: 20,
+      gentle: false,
+      parent_title: '',
     },
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Call the dentist');
@@ -242,7 +244,7 @@ test('home points back to an open check-in', async () => {
   const view = await page({
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
       if (url === '/api/checkins') return Response.json({ active: true, index: 2, total: 3, question_type: 'yes_no' });
       return Response.json({ error: 'missing' }, { status: 404 });
     },
@@ -259,7 +261,7 @@ test('home warns when task reminders are off', async () => {
   assert.equal(view.nodes.get('home-task-off').hidden, false);
   assert.equal(view.nodes.get('home-tasks').hidden, false);
   assert.equal(view.nodes.get('home-task-title').textContent, 'Drink water');
-  assert.equal(view.requests.some(request => request.url === '/api/tasks?status=active'), true);
+  assert.equal(view.requests.some(request => request.url === '/api/tasks/focus'), true);
   assert.equal(view.nodes.get('home-checkin-off').hidden, true);
 });
 
@@ -269,8 +271,7 @@ test('a scheduled message in the chat can ask for more like it', async () => {
     chat: true,
     fetchImpl: async (url, options = {}) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/chat/reactions') {
         reactions.push(JSON.parse(options.body));
@@ -312,8 +313,7 @@ test('home chat shows at least the six most recent turns when the 48-hour window
     chat: true,
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/chat') return Response.json({ turns: oldTurns });
       return Response.json({ error: 'missing' }, { status: 404 });
@@ -345,8 +345,7 @@ test('home chat keeps every turn from 48 hours and More reveals older turns', as
     chat: true,
     fetchImpl: async (url) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/chat') return Response.json({ turns: [...olderTurns, ...recentTurns] });
       return Response.json({ error: 'missing' }, { status: 404 });
@@ -366,8 +365,13 @@ test('a long task due today is not called the easiest one', async () => {
   const pad = value => String(value).padStart(2, '0');
   const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   const view = await page({
-    tasks: { tasks: [{ id: 'house', title: 'Clean the whole house', due_date: todayKey, priority: 'medium' }] },
-    efforts: { tasks: [{ id: 'house', minutes: 120 }] },
+    focus: {
+      task: { id: 'house', title: 'Clean the whole house', due_date: todayKey, priority: 'medium' },
+      reason: 'This will take a while, and it is due today.',
+      effort_minutes: 120,
+      gentle: false,
+      parent_title: '',
+    },
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Clean the whole house');
   assert.match(view.nodes.get('home-task-why').textContent, /will take a while/);
@@ -377,13 +381,13 @@ test('a long task due today is not called the easiest one', async () => {
 test('low energy prefers a short task over a longer one', async () => {
   const view = await page({
     energy: 2,
-    tasks: {
-      tasks: [
-        { id: 'long', title: 'Rewrite the notes', priority: 'high' },
-        { id: 'short', title: 'Send one email', priority: 'low' },
-      ],
+    focus: {
+      task: { id: 'short', title: 'Send one email', priority: 'low' },
+      reason: 'Your energy is low today, so this is a small step among the most urgent options.',
+      effort_minutes: 10,
+      gentle: true,
+      parent_title: '',
     },
-    efforts: { tasks: [{ id: 'long', minutes: 25 }, { id: 'short', minutes: 10 }] },
   });
   assert.equal(view.nodes.get('home-task-title').textContent, 'Send one email');
   assert.match(view.nodes.get('home-task-why').textContent, /energy is low/);
@@ -416,8 +420,7 @@ test('failed chat sends restore the message for a quick retry', async () => {
     chat: true,
     fetchImpl: async (url, options = {}) => {
       if (url === '/api/account') return Response.json({ preferred_name: 'River', needs_setup: false, tasks_enabled: true, checkins_enabled: true });
-      if (url === '/api/tasks?status=active') return Response.json({ tasks: [] });
-      if (url === '/api/tasks/effort') return Response.json({ tasks: [] });
+      if (url === '/api/tasks/focus') return Response.json({ focus: null });
       if (url === '/api/checkins') return Response.json({ active: false, enabled: true });
       if (url === '/api/chat' && options.method === 'POST') throw new Error('Connection dropped.');
       if (url === '/api/chat') return Response.json({ turns: [] });

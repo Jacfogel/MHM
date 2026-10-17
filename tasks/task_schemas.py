@@ -51,6 +51,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "recurrence",
     "reminder_sent",
     "reminder_snooze_until",
+    "reminder_deferrals",
     "links",
 )
 
@@ -124,6 +125,32 @@ class TaskLinkModel(BaseModel):
         return normalize_task_link_label(value)
 
 
+class ReminderDeferralModel(BaseModel):
+    """One bounded record of a task reminder being snoozed or skipped."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    action: Literal["snooze", "skip"]
+    at: str
+    until: str | None = None
+
+    @field_validator("at")
+    @classmethod
+    def validate_at(cls, value: str) -> str:
+        """Require the canonical timestamp of the deferral action."""
+        validate_optional_v2_timestamp(value, "reminder_deferrals.at")
+        if not value:
+            raise v2_schema_validation_error("reminder_deferrals.at is required")
+        return value
+
+    @field_validator("until")
+    @classmethod
+    def validate_until(cls, value: str | None) -> str | None:
+        """Require a canonical timestamp when the next reminder time is known."""
+        validate_optional_v2_timestamp(value, "reminder_deferrals.until")
+        return value
+
+
 class RecurrenceModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -150,6 +177,9 @@ class TaskV2Model(BaseItemModel):
     completion: CompletionModel = Field(default_factory=CompletionModel)
     reminder_sent: bool = False
     reminder_snooze_until: str | None = None
+    reminder_deferrals: list[ReminderDeferralModel] = Field(
+        default_factory=list, max_length=5
+    )
     links: list[TaskLinkModel] = Field(default_factory=list)
     parent_id: str | None = None
 

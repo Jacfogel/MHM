@@ -44,6 +44,7 @@ class TestSkipTaskOccurrence:
         assert any(_task_id(item) == task_id for item in load_active_tasks(user_id))
         assert not any(_task_id(item) == task_id for item in load_completed_tasks(user_id))
         assert "Skipped this time" in str(task.get("description") or "")
+        assert task.get("reminder_deferrals", [])[0]["action"] == "skip"
 
     def test_one_off_skip_keeps_due_until_tomorrow_morning(self, test_data_dir):
         user_id = "skip_one_off_due"
@@ -70,6 +71,7 @@ class TestSkipTaskOccurrence:
         assert task.get("due", {}).get("time") == "14:00"
         assert runtime_task_is_completed(task) is False
         assert task.get("reminder_snooze_until", "").startswith("2026-09-16")
+        assert task.get("reminder_deferrals", [])[0]["action"] == "skip"
 
 
 def _task_id(task):

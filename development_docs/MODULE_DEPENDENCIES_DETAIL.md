@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:06:44
+> **Last Generated**: 2026-10-17 17:19:33
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 305
-- **Total Imports Found**: 2739
-- **Dependencies Documented**: 305 (100% coverage)
-- **Standard Library Imports**: 789 (28.8%)
-- **Third-Party Imports**: 235 (8.6%)
-- **Local Imports**: 1715 (62.6%)
+- **Files Scanned**: 307
+- **Total Imports Found**: 2756
+- **Dependencies Documented**: 307 (100% coverage)
+- **Standard Library Imports**: 794 (28.8%)
+- **Third-Party Imports**: 235 (8.5%)
+- **Local Imports**: 1727 (62.7%)
 - **Last Updated**: 2026-10-17
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 789 imports (28.8%)
-- **Third-Party**: 235 imports (8.6%)
-- **Local**: 1715 imports (62.6%)
+- **Standard Library**: 794 imports (28.8%)
+- **Third-Party**: 235 imports (8.5%)
+- **Local**: 1727 imports (62.7%)
 
 ## Module Dependencies by Directory
 
@@ -1157,8 +1157,8 @@
 - **Used by**:
   - `ai/context/service.py`
   - `communication/command_handlers/checkin_handler.py`
+  - `core/message_pressure.py`
   - `core/web_checkins.py`
-  - `tasks/task_focus.py`
 
 **Dependency Changes**:
 - Added: checkins.analysis, checkins.checkin_data_manager, core.error_handling, core.time_utilities, scheduler.user_timezone
@@ -2643,11 +2643,10 @@
     - `core (get_user_data)` (NEW)
     - `core.config (AI_PERSONALIZED_MESSAGE_TIMEOUT, DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, get_available_channels)` (NEW)
     - `core.error_handling (handle_communication_error, handle_errors, handle_network_error)` (NEW)
-    - `core.health_signals (get_message_guidance)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger)` (NEW)
+    - `core.message_pressure (scheduled_message_pressure_prefix)` (NEW)
     - `core.network_probe (wait_for_network)` (NEW)
     - `core.schedule_runtime (get_current_time_periods_with_validation)` (NEW)
-    - `integrations.google_health.personalization_rules (build_scheduled_message_context_prefix)`
     - `messages.message_data_manager (get_personalized_message_source, is_ai_generated_message_category, is_personalized_message_category_available, store_sent_message)`
     - `messages.message_reactions (personalized_reaction_instructions, text_is_retired)` (NEW)
   - **Standard Library**:
@@ -2663,8 +2662,8 @@
   - `integrations/google_health/notifications.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, communication.communication_channels.email.inbound_processor, communication.communication_channels.website.inbox, communication.core.message_send_result, communication.delivery.message_dispatcher, communication.delivery.recipient_resolver, communication.reminders.checkin_prompt_dispatcher, communication.reminders.reminder_dispatcher, core, core.config, core.error_handling, core.health_signals, core.logger, core.network_probe, core.schedule_runtime, messages.message_reactions
-- Removed: communication/command_handlers/account_handler.py, core/service.py, integrations/google_health/notifications.py
+- Added: ai.chat.chatbot, communication.communication_channels.email.inbound_processor, communication.communication_channels.website.inbox, communication.core.message_send_result, communication.delivery.message_dispatcher, communication.delivery.recipient_resolver, communication.reminders.checkin_prompt_dispatcher, communication.reminders.reminder_dispatcher, core, core.config, core.error_handling, core.logger, core.message_pressure, core.network_probe, core.schedule_runtime, messages.message_reactions
+- Removed: communication/command_handlers/account_handler.py, core/service.py, integrations.google_health.personalization_rules, integrations/google_health/notifications.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3529,6 +3528,7 @@
     - `tasks.task_breakdown (next_open_step)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
     - `tasks.task_focus (explain_task_focus, task_focus_signals)` (NEW)
+    - `tasks.task_reminder_deferrals (repeated_deferral_advice)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `typing (Any)`
@@ -3537,7 +3537,7 @@
   - `communication/reminders/__init__.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.email.bot, communication.communication_channels.interaction_view_factory, communication.communication_channels.website.inbox, communication.core, communication.core.message_send_result, core.error_handling, core.logger, tasks, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_focus
+- Added: communication.communication_channels.email.bot, communication.communication_channels.interaction_view_factory, communication.communication_channels.website.inbox, communication.core, communication.core.message_send_result, core.error_handling, core.logger, tasks, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_focus, tasks.task_reminder_deferrals
 - Removed: communication/core/channel_orchestrator.py, communication/reminders/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3941,6 +3941,7 @@
   - `core/ids.py`
   - `core/launch_env.py`
   - `core/logger.py`
+  - `core/message_pressure.py`
   - `core/natural_language_defaults.py`
   - `core/pagination.py`
   - `core/profile_v2_io.py`
@@ -4016,6 +4017,7 @@
   - `tasks/task_link_helpers.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
+  - `tasks/task_reminder_deferrals.py`
   - `tasks/task_reminder_snooze.py`
   - `tasks/task_service.py`
   - `tasks/task_simplify.py`
@@ -4253,9 +4255,8 @@
     - `datetime (timedelta)`
     - `typing (Any)`
 - **Used by**:
-  - `communication/core/channel_orchestrator.py`
   - `core/health_context_builder.py`
-  - `tasks/task_focus.py`
+  - `core/message_pressure.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.time_utilities
@@ -4516,6 +4517,28 @@
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Logging system configuration and management
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/message_pressure.py`
+- **Purpose**: Core system module for message_pressure
+- **Dependencies**:
+  - **Local**:
+    - `checkins.checkin_service (today_checkin_energy)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_signals (get_message_guidance)` (NEW)
+    - `integrations.google_health.personalization_rules (build_scheduled_message_context_prefix)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+- **Used by**:
+  - `communication/core/channel_orchestrator.py`
+  - `tasks/task_focus.py`
+
+**Dependency Changes**:
+- Added: checkins.checkin_service, core.error_handling, core.health_signals, integrations.google_health.personalization_rules
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `core/natural_language_defaults.py`
@@ -5067,6 +5090,7 @@
   - `tasks/task_focus.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
+  - `tasks/task_reminder_deferrals.py`
   - `tasks/task_reminder_snooze.py`
   - `tasks/task_schemas.py`
   - `tasks/task_service.py`
@@ -5433,7 +5457,9 @@
     - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
     - `tasks.task_effort (estimate_task_efforts)` (NEW)
+    - `tasks.task_focus (choose_task_focus_for_user)` (NEW)
     - `tasks.task_occurrence_skip (skip_task_occurrence)` (NEW)
+    - `tasks.task_reminder_deferrals (reminder_deferral_count)` (NEW)
     - `tasks.task_reminder_snooze (snooze_task_reminder)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
     - `tasks.task_service (complete_task, create_task, delete_task, get_tasks_due_soon, list_task_templates, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
@@ -5448,7 +5474,7 @@
   - `core/web_account_service.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.tags, core.time_utilities, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_effort, tasks.task_occurrence_skip, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
+- Added: core.error_handling, core.tags, core.time_utilities, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_effort, tasks.task_focus, tasks.task_occurrence_skip, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_schemas, tasks.task_service, tasks.task_simplify, tasks.task_tag_helpers
 - Removed: core/web_account_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5647,8 +5673,8 @@
     - `__future__ (annotations)`
     - `typing (Any)`
 - **Used by**:
-  - `communication/core/channel_orchestrator.py`
   - `core/health_context_builder.py`
+  - `core/message_pressure.py`
   - `integrations/google_health/signal_builder.py`
 
 **Dependency Changes**:
@@ -6785,6 +6811,7 @@
   - `tasks/task_focus.py`
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
+  - `tasks/task_reminder_deferrals.py`
   - `tasks/task_reminder_snooze.py`
   - `tasks/task_service.py`
   - `tasks/task_simplify.py`
@@ -6862,9 +6889,8 @@
 - **Purpose**: Task management and scheduling
 - **Dependencies**:
   - **Local**:
-    - `checkins.checkin_service (today_checkin_energy)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.health_signals (get_message_guidance)` (NEW)
+    - `core.message_pressure (resolve_message_pressure)` (NEW)
     - `core.time_utilities (now_datetime_full, parse_date_only)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_is_completed, runtime_task_recurrence_pattern)` (NEW)
     - `tasks.task_effort (local_task_minutes)` (NEW)
@@ -6879,10 +6905,11 @@
 - **Used by**:
   - `communication/message_processing/user_suggestions.py`
   - `communication/reminders/reminder_dispatcher.py`
+  - `core/web_tasks.py`
   - `scheduler/task_reminders.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_service, core.error_handling, core.health_signals, core.time_utilities, tasks.task_data_handlers, tasks.task_effort, tasks.task_reminder_snooze
+- Added: core.error_handling, core.message_pressure, core.time_utilities, tasks.task_data_handlers, tasks.task_effort, tasks.task_reminder_snooze
 - Removed: collections.abc, communication/message_processing/user_suggestions.py, communication/reminders/reminder_dispatcher.py, scheduler/task_reminders.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6928,6 +6955,7 @@
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_is_completed, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
     - `tasks.task_data_manager (_calculate_next_due_date, get_task_by_id, update_task)` (NEW)
+    - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
     - `tasks.task_reminder_snooze (snooze_task_reminder)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
@@ -6940,7 +6968,7 @@
   - `core/web_tasks.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_snooze, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, core/web_tasks.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6974,6 +7002,31 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tasks/task_reminder_deferrals.py`
+- **Purpose**: Task management and scheduling
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `datetime`
+    - `typing (Any, Literal)`
+- **Used by**:
+  - `communication/reminders/reminder_dispatcher.py`
+  - `core/web_tasks.py`
+  - `tasks/task_occurrence_skip.py`
+  - `tasks/task_reminder_snooze.py`
+  - `tasks/task_validation.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.time_utilities, tasks.task_data_handlers
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tasks/task_reminder_snooze.py`
 - **Purpose**: Task management and scheduling
 - **Dependencies**:
@@ -6985,6 +7038,7 @@
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
     - `tasks.task_data_manager (get_task_by_id, update_task)` (NEW)
+    - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
     - `tasks.task_service (parse_relative_date)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
@@ -7004,7 +7058,7 @@
   - `tasks/task_occurrence_skip.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_service, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_service, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/command_parser.py, communication/message_processing/email_reply_routing.py, core/web_tasks.py, scheduler/task_reminders.py, tasks/task_focus.py, tasks/task_occurrence_skip.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7186,6 +7240,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (parse_date_only)` (NEW)
     - `tasks.task_link_helpers (sanitize_task_links)` (NEW)
+    - `tasks.task_reminder_deferrals (MAX_REMINDER_DEFERRALS, normalize_reminder_deferrals)` (NEW)
     - `tasks.task_schemas (ALLOWED_UPDATE_FIELDS, TaskCollectionV2Model, VALID_PRIORITIES)`
   - **Standard Library**:
     - `typing (Any)`
@@ -7196,7 +7251,7 @@
   - `tasks/task_simplify.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.time_utilities, tasks.task_link_helpers
+- Added: core.error_handling, core.logger, core.time_utilities, tasks.task_link_helpers, tasks.task_reminder_deferrals
 - Removed: storage/user_data_v2_envelopes.py, tasks/task_breakdown.py, tasks/task_data_manager.py, tasks/task_simplify.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

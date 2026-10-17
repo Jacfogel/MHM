@@ -38,14 +38,14 @@ class TestTaskReminderView:
         assert view is not None
         assert view.timeout is None
         assert _labels(view) == [
-            "Complete Task",
-            "Remind Me Later",
+            "Done",
+            "Snooze",
             "More",
-            "Skip",
-            "Break it down",
+            "Leave me alone",
+            "Simplify",
         ]
         break_button = next(
-            child for child in view.children if child.label == "Break it down"
+            child for child in view.children if child.label == "Simplify"
         )
         assert break_button.row == 0
         assert str(break_button.style).endswith("primary")
@@ -100,7 +100,7 @@ class TestTaskReminderView:
         self, mock_interaction_factory
     ):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Remind Me Later")
+        button = next(child for child in view.children if child.label == "Snooze")
         interaction = mock_interaction_factory()
         fake_response = type(
             "Resp", (), {"message": "When should I remind you?", "completed": False}
@@ -130,7 +130,7 @@ class TestTaskReminderView:
         self, mock_interaction_factory
     ):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Remind Me Later")
+        button = next(child for child in view.children if child.label == "Snooze")
         interaction = mock_interaction_factory()
         with patch("core.get_user_id_by_identifier", return_value=None):
             await button.callback(interaction)
@@ -140,7 +140,7 @@ class TestTaskReminderView:
     @pytest.mark.asyncio
     async def test_skip_button_routes_skip_command(self, mock_interaction_factory):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Skip")
+        button = next(child for child in view.children if child.label == "Leave me alone")
         interaction = mock_interaction_factory()
         fake_response = type("Resp", (), {"message": "Okay. I skipped this time."})()
         with (
@@ -156,7 +156,7 @@ class TestTaskReminderView:
     @pytest.mark.asyncio
     async def test_break_down_button_suggests_steps(self, mock_interaction_factory):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Break it down")
+        button = next(child for child in view.children if child.label == "Simplify")
         interaction = mock_interaction_factory()
         fake_response = type(
             "Resp",

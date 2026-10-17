@@ -401,7 +401,7 @@ def select_task_for_reminder(
         decision = choose_task_focus_for_user(
             user_id,
             incomplete_tasks,
-            random_value=random.random,
+            random_value=lambda: 0.0,
         )
         if decision is None:
             return None

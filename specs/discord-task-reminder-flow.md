@@ -5,9 +5,9 @@
 > **Purpose**: Behavior requirements for Discord task reminder delivery and task reminder action buttons  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
 > **Last Updated**: 2026-10-17
-> **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
+> **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_deferrals.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `core/message_pressure.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
-> **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
+> **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_deferrals.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/unit/test_message_pressure.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-task-reminder-flow)
 
 ## 1. Purpose
@@ -58,7 +58,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 ### 2.2. Requirement: Task reminder view provides persistent action buttons
 
-`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Complete Task, Remind Me Later, More, Skip, and Break it down buttons.
+`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Done, Snooze, Simplify, Leave me alone, and More buttons. These labels SHALL preserve the existing complete, reminder-snooze, breakdown, skip-occurrence, and help behavior.
 
 #### Scenario: Task reminder view creation
 
@@ -67,7 +67,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **THEN** it returns a Discord `View`  
 - **AND** the view uses `timeout=None`  
 - **AND** each button custom ID includes the internal user ID and task ID  
-- **AND** `Break it down` is a primary action on the first button row
+- **AND** `Simplify` is a primary action on the first button row
 
 #### Scenario: Shared focus policy selects the reminder task
 
@@ -91,30 +91,46 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** a task reminder is formatted
 - **THEN** its wording keeps expectations small and avoids productivity pressure
 - **AND** it explains why the task was selected without exposing raw health measurements
-- **AND** it points prominently to `Break it down`
+- **AND** it points prominently to `Simplify`
 - **WHEN** no reliable energy or health signal exists
 - **THEN** the established direct reminder tone is preserved
 
-#### Scenario: Complete Task button
+#### Scenario: Repeated deferrals change reminder guidance
 
-- **GIVEN** a task reminder includes a `Complete Task` button  
+- **GIVEN** a task reminder has been snoozed or skipped repeatedly
+- **WHEN** another reminder is formatted
+- **THEN** only the five newest deferrals are retained
+- **AND** an existing open subtask is named as the smaller next step when available
+- **AND** otherwise `Simplify` is offered
+- **AND** after at least three deferrals on a dated task, reconsidering the due date is offered
+
+#### Scenario: Pressure guidance is coordinated across scheduled messages
+
+- **GIVEN** reliable guidance includes `avoid_nagging_movement_prompts` or another gentle-pressure signal
+- **WHEN** MHM prepares task, motivational, or Google Health messaging
+- **THEN** the categories share one pressure policy
+- **AND** motivational messages do not continue at normal pressure while health messages soften
+
+#### Scenario: Done button
+
+- **GIVEN** a task reminder includes a `Done` button
 - **WHEN** the user clicks it  
 - **THEN** the button handler defers the Discord interaction  
 - **AND** looks up the internal user ID from the clicker's Discord ID  
 - **AND** routes `complete task <task_id>` through `handle_user_message(..., "discord")`  
 - **AND** sends the handler response ephemerally  
 
-#### Scenario: Complete Task button from unlinked user
+#### Scenario: Done button from unlinked user
 
 - **GIVEN** a task reminder button interaction is received  
 - **AND** the clicker's Discord ID cannot be mapped to an internal MHM user  
-- **WHEN** the `Complete Task` button handler runs  
+- **WHEN** the `Done` button handler runs
 - **THEN** it sends an ephemeral account-not-found error  
 - **AND** does not mark the task complete  
 
-#### Scenario: Remind Me Later button
+#### Scenario: Snooze button
 
-- **GIVEN** a task reminder includes a `Remind Me Later` button  
+- **GIVEN** a task reminder includes a `Snooze` button
 - **WHEN** the user clicks it  
 - **THEN** the button handler defers the Discord interaction  
 - **AND** looks up the internal user ID from the clicker's Discord ID  
@@ -124,7 +140,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 #### Scenario: Snooze 1 hour
 
-- **GIVEN** a linked user chooses `1 hour` after Remind Me Later  
+- **GIVEN** a linked user chooses `1 hour` after Snooze
 - **WHEN** the snooze handler runs  
 - **THEN** the task due date is unchanged  
 - **AND** `reminder_snooze_until` is set about one hour from now  
@@ -153,11 +169,11 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **THEN** the reminder is snoozed until that time  
 - **AND** the task due date is unchanged  
 
-#### Scenario: Remind Me Later from unlinked user
+#### Scenario: Snooze from unlinked user
 
 - **GIVEN** a task reminder button interaction is received  
 - **AND** the clicker's Discord ID cannot be mapped to an internal MHM user  
-- **WHEN** the `Remind Me Later` button handler runs  
+- **WHEN** the `Snooze` button handler runs
 - **THEN** it sends an ephemeral account-not-found error  
 - **AND** does not change task reminder state  
 
@@ -173,7 +189,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 #### Scenario: Skip this occurrence (recurring)
 
 - **GIVEN** a Discord reminder is for a repeating task  
-- **WHEN** the linked user clicks `Skip` or types `skip task <id>`  
+- **WHEN** the linked user clicks `Leave me alone` or types `skip task <id>`
 - **THEN** the current occurrence is not marked completed  
 - **AND** the same task stays active  
 - **AND** the due date moves to the next occurrence  
@@ -182,14 +198,14 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 #### Scenario: Skip this occurrence (one-off)
 
 - **GIVEN** a Discord reminder is for a one-off task  
-- **WHEN** the linked user clicks `Skip` or types `skip that`  
+- **WHEN** the linked user clicks `Leave me alone` or types `skip that`
 - **THEN** the task stays on the list  
 - **AND** the due date is unchanged  
 - **AND** MHM does not ping again until tomorrow morning  
 
 #### Scenario: Break the task into smaller steps
 
-- **GIVEN** a Discord reminder includes a `Break it down` button  
+- **GIVEN** a Discord reminder includes a `Simplify` button
 - **WHEN** the linked user clicks it, or types `simplify that`  
 - **THEN** MHM suggests a few smaller steps  
 - **AND** the original task title stays  
@@ -202,7 +218,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **GIVEN** the reminded task has an open step  
 - **WHEN** the reminder is sent  
 - **THEN** the message names that step and says which task it is part of  
-- **AND** Complete finishes that step  
+- **AND** Done finishes that step
 - **AND** the original task stays open  
 - **AND** Later and Skip still apply to the original task's reminder  
 
@@ -212,7 +228,7 @@ Completing a task from Discord SHALL go through the same command flow as typed t
 
 #### Scenario: Complete by task ID from reminder
 
-- **GIVEN** a linked user clicks `Complete Task` on a Discord reminder  
+- **GIVEN** a linked user clicks `Done` on a Discord reminder
 - **WHEN** the adapter routes `complete task <task_id>`  
 - **THEN** the task handler marks the matching task complete if valid  
 - **AND** the user receives the same kind of completion response they would receive after typing the command  
@@ -256,8 +272,8 @@ Run after changing Discord task reminder behavior:
 4. [ ] Deleted task reaches reminder time -> no Discord reminder is sent.
 5. [ ] Update task reminder time -> future reminder follows new time.
 6. [ ] Delivery handoff returns without exception -> scheduler marks `reminder_sent`; dispatcher result still reflects actual Discord delivery outcome.
-7. [ ] Click `Complete Task` -> task is completed through normal task handler behavior.
-8. [ ] Click `Remind Me Later` -> snooze choices appear (1 hour, tonight or tomorrow morning, next week, custom); due date unchanged.
+7. [ ] Click `Done` -> task is completed through normal task handler behavior.
+8. [ ] Click `Snooze` -> snooze choices appear (1 hour, tonight or tomorrow morning, next week, custom); due date unchanged.
 8a. [ ] Choose `1 hour` -> a later reminder is scheduled; due date unchanged.
 8b. [ ] Choose tonight before evening -> reminder is scheduled for tonight; after evening the choice is tomorrow morning.
 8c. [ ] Choose `Next week` -> reminder is scheduled about 7 days later in the morning.
@@ -265,9 +281,10 @@ Run after changing Discord task reminder behavior:
 9. [ ] Click `More` -> short ID, title examples, skip, and simplify commands appear ephemerally.
 10. [ ] Unlinked user clicks a task button -> account-not-found message appears; task remains unchanged.
 11. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
-12. [ ] Click `Skip` on a repeating task -> task stays active, due date moves to the next occurrence, no shame-y completed copy.
-13. [ ] Click `Skip` on a one-off task -> due date unchanged; no ping until tomorrow morning.
-14. [ ] Click `Break it down` -> suggested steps appear; adding them keeps the original title and due date.
+12. [ ] Click `Leave me alone` on a repeating task -> task stays active, due date moves to the next occurrence, no shame-y completed copy.
+13. [ ] Click `Leave me alone` on a one-off task -> due date unchanged; no ping until tomorrow morning.
+14. [ ] Click `Simplify` -> suggested steps appear; adding them keeps the original title and due date.
+15. [ ] Snooze or skip the same task repeatedly -> reminder names an open step, offers Simplify, or suggests reconsidering the due date instead of repeating unchanged copy.
 
 ## 6. Related documentation
 

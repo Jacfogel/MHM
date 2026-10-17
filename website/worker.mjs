@@ -43,9 +43,10 @@ export default {
       if (!assets.has(url.pathname)) return secured(new Response('Page not found.', { status: 404 }));
       return secured(await env.ASSETS.fetch(request));
     }
+    const taskFocus = url.pathname === '/api/tasks/focus';
     const taskEffort = url.pathname === '/api/tasks/effort';
     const taskBulk = url.pathname.match(/^\/api\/tasks\/bulk\/(?:complete|restore|delete|priority)$/);
-    const taskAction = !taskEffort && !taskBulk && url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach))?$/);
+    const taskAction = !taskFocus && !taskEffort && !taskBulk && url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach))?$/);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
     const messageAction = url.pathname.match(/^\/api\/messages\/[^/]+\/[^/]+$/);
     const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook)\/start$/);
@@ -54,7 +55,7 @@ export default {
       ? taskAction ? '/api/tasks/:task_id' : noteAction ? '/api/notes/:note_id' : messageAction ? '/api/messages/:category/:message_id' : oauthStart ? '/api/auth/oauth/:provider/start' : '/api/auth/oauth/:provider/callback'
       : url.pathname;
     const methods = oauthStart || oauthCallback ? ['GET']
-      : taskEffort ? ['GET']
+      : taskFocus || taskEffort ? ['GET']
       : taskBulk ? ['POST']
       : taskAction
       ? (/\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach)$/.test(url.pathname) ? ['POST'] : ['PATCH', 'DELETE'])

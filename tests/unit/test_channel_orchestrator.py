@@ -115,6 +115,37 @@ class TestChannelOrchestratorHelpers:
         deliver.assert_not_called()
         store.assert_not_called()
 
+    def test_motivational_message_uses_shared_pressure_guidance(self):
+        """Motivational copy uses the same gentle-pressure policy as health copy."""
+        with (
+            patch("ai.chat.chatbot.get_ai_chatbot") as get_bot,
+            patch(
+                "core.message_pressure.scheduled_message_pressure_prefix",
+                return_value="Keep this optional and gentle.",
+            ),
+            patch(
+                "messages.message_reactions.personalized_reaction_instructions",
+                return_value="",
+            ),
+            patch("messages.message_reactions.text_is_retired", return_value=False),
+            patch.object(self.manager, "send_message_sync", return_value=False),
+        ):
+            get_bot.return_value.generate_personalized_message.return_value = "Hello"
+            self.manager._send_ai_generated_message(
+                "u1",
+                "motivational",
+                "email",
+                "a@b.co",
+                source="profile",
+            )
+
+        assert (
+            get_bot.return_value.generate_personalized_message.call_args.kwargs[
+                "prompt_prefix"
+            ]
+            == "Keep this optional and gentle."
+        )
+
     def test_ai_message_stores_website_copy_once_when_unconfirmed(self):
         """An unconfirmed personalized send stores one website copy and does not retry."""
         order = []
@@ -394,7 +425,28 @@ class TestChannelOrchestratorHelpers:
 
         assert "gentle task reminder" in message.lower()
         assert "Why this one" in message
-        assert "Break it down" in message
+        assert "Simplify" in message
+
+    def test_repeated_deferrals_change_task_reminder_guidance(self):
+        """Repeated snoozes replace identical copy with a useful next action."""
+        task = {
+            "title": "File taxes",
+            "priority": "high",
+            "due": {"date": "2026-10-17"},
+            "reminder_deferrals": [
+                {"action": "snooze", "at": "2026-10-15 09:00:00"},
+                {"action": "skip", "at": "2026-10-16 09:00:00"},
+                {"action": "snooze", "at": "2026-10-17 09:00:00"},
+            ],
+        }
+
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(
+            task
+        )
+
+        assert "deferred a few times" in message
+        assert "**Simplify**" in message
+        assert "reconsidering the due date" in message
 
     def test_create_task_reminder_message_invalid_input(self):
         """Test _create_task_reminder_message with invalid input."""

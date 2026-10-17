@@ -30,11 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-10-17 - Shared task focus reaches reminders and chat **COMPLETED**
-- Scheduled task reminders and chat suggestions now use one backend focus policy with urgency guardrails, snooze awareness, subtask preference, time-of-day fit, and effort estimates.
-- Reliable low-energy or health guidance makes reminder wording gentler and favors smaller work only among similarly urgent tasks; missing signals preserve the direct tone.
-- Reminders explain the selection and promote **Break it down**; generic `Help with tasks` suggestions are replaced by the selected task or step. Repeated deferrals and cross-category pressure coordination remain planned next slices.
-- The focused regression set passes 252 tests; the standard audit reports complete docstrings and 100% error-handling coverage, and Ruff and project-wide Pyright are clean.
+### 2026-10-17 - Adaptive task focus and reminder pressure **COMPLETED**
+- Home, scheduled reminders, and chat suggestions now use one deterministic backend focus policy with urgency guardrails, snooze awareness, subtask preference, time-of-day fit, and effort estimates.
+- Tasks retain five deferrals; repeated snoozes/skips surface a smaller step, **Simplify**, or due-date reconsideration. Discord actions are **Done**, **Snooze**, **Simplify**, and **Leave me alone** with unchanged underlying behavior.
+- One reliable-signal policy lowers pressure across task, motivational, and Google Health messages. Missing energy/health signals preserve existing behavior.
+- The new integrated regression set passes 138 Python checks and 41 browser/proxy tests; Ruff and targeted Pyright are clean.
 
 ### 2026-10-17 - Notebook persistence and reference safety hardened **COMPLETED**
 - Notebook logs retain only safe operational metadata, and the privacy guard now scans every Python runtime package.

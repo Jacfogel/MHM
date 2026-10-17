@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:06:41
+> **Last Generated**: 2026-10-17 17:19:31
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 307
-- **Functions Found**: 3199
-- **Methods Found**: 1637
-- **Classes Found**: 284
-- **Total Items**: 4836
-- **Functions Documented**: 2845
-- **Methods Documented**: 1458
-- **Classes Documented**: 217
-- **Total Documented**: 4303
+- **Files Scanned**: 309
+- **Functions Found**: 3208
+- **Methods Found**: 1640
+- **Classes Found**: 286
+- **Total Items**: 4848
+- **Functions Documented**: 2854
+- **Methods Documented**: 1461
+- **Classes Documented**: 219
+- **Total Documented**: 4315
 - **Template-Generated**: 70
 - **Last Updated**: 2026-10-17
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (673)
+### **Core System Functions** (676)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (903)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (186)
+### **Task Management Functions** (192)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -4948,6 +4948,13 @@ Returns:
 Args:
     name: Logger name (unused, kept for interface compatibility)
 
+#### `core/message_pressure.py`
+**Functions:**
+- [OK] `resolve_message_pressure(user_id)` - Resolve today's reliable signals without exposing raw health measurements.
+- [OK] `scheduled_message_pressure_prefix(user_id)` - Return private prompt guidance shared by all scheduled message categories.
+**Classes:**
+- [OK] `MessagePressurePolicy` - Reliable user signals reduced to channel-agnostic pressure guidance.
+
 #### `core/natural_language_defaults.py`
 **Functions:**
 - [OK] `_build_nl_defaults_patch(field, value)` - Validate one field update and return a patch dict for natural_language_defaults.
@@ -5868,6 +5875,7 @@ its methods as routes.
 - [OK] `family_rank(task_id)` - Finish steps before the task they belong to.
 - [OK] `register_task_routes(app, gateway)` - Register all task endpoints on a gateway application.
 - [OK] `task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+- [OK] `task_focus_api(self, request)` - Return the same deterministic focus decision used by chat and reminders.
 - [OK] `task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
 - [OK] `task_view(task)` - Return the stable, browser-safe task shape used by the website.
@@ -5894,6 +5902,7 @@ its methods as routes.
   - [OK] `WebTaskRoutes._task_response(self, uid, task_id, action_message)` - Return the browser task view, plus an action message when one exists.
   - [OK] `WebTaskRoutes._update_task(self, request, uid, task_id)` - Apply a partial update to one active task.
   - [OK] `WebTaskRoutes.task_effort_api(self, request)` - Estimate how many minutes each active task is likely to take.
+  - [OK] `WebTaskRoutes.task_focus_api(self, request)` - Return the same deterministic focus decision used by chat and reminders.
   - [OK] `WebTaskRoutes.task_templates(self, request)` - Return safe built-in and account-owned templates for quick creation.
   - [OK] `WebTaskRoutes.task_view(task)` - Return the stable, browser-safe task shape used by the website.
   - [OK] `WebTaskRoutes.tasks_api(self, request)` - Handle authenticated website task routes through the task service.
@@ -7221,6 +7230,13 @@ Prefers a title mentioned in recent chat, then a uniquely recent active
 task. Does not fall back to a leftover task after a more recent
 completion. Returns None when the reference is ambiguous.
 
+#### `tasks/task_reminder_deferrals.py`
+**Functions:**
+- [OK] `append_reminder_deferral(task, action)` - Append one deferral and discard records older than the bounded history.
+- [OK] `normalize_reminder_deferrals(value)` - Return at most the five newest valid snooze and skip records.
+- [OK] `reminder_deferral_count(task)` - Return the number of retained snooze and skip records for a task.
+- [OK] `repeated_deferral_advice(task)` - Change reminder guidance after repeated deferrals instead of repeating copy.
+
 #### `tasks/task_reminder_snooze.py`
 **Functions:**
 - [OK] `_at_clock_time(day, hhmm)` - Return *day* with hour and minute from an HH:MM string.
@@ -7248,6 +7264,7 @@ completion. Returns None when the reference is ambiguous.
 **Functions:**
 - [OK] `sanitize_links(cls, value)` - Normalize link payloads before model construction.
 - [OK] `sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
+- [OK] `validate_at(cls, value)` - Require the canonical timestamp of the deferral action.
 - [MISSING] `validate_completed_at(cls, value)` - No description
 - [MISSING] `validate_completion_status(self)` - No description
 - [MISSING] `validate_date(cls, value)` - No description
@@ -7256,6 +7273,7 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `validate_parent_id(cls, value)` - Keep a parent task id, or clear an empty one.
 - [OK] `validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 - [MISSING] `validate_time(cls, value)` - No description
+- [OK] `validate_until(cls, value)` - Require a canonical timestamp when the next reminder time is known.
 - [OK] `validate_url(cls, value)` - Require an http:// or https:// task link URL.
 **Classes:**
 - [MISSING] `CompletionModel` - No description
@@ -7265,6 +7283,9 @@ completion. Returns None when the reference is ambiguous.
   - [MISSING] `DueModel.validate_time(cls, value)` - No description
 - [MISSING] `RecurrenceModel` - No description
   - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
+- [OK] `ReminderDeferralModel` - One bounded record of a task reminder being snoozed or skipped.
+  - [OK] `ReminderDeferralModel.validate_at(cls, value)` - Require the canonical timestamp of the deferral action.
+  - [OK] `ReminderDeferralModel.validate_until(cls, value)` - Require a canonical timestamp when the next reminder time is known.
 - [MISSING] `TaskCollectionV2Model` - No description
 - [OK] `TaskLinkModel` - A web link attached to a task (URL plus optional short label).
   - [OK] `TaskLinkModel.validate_label(cls, value)` - Normalize an optional short display label for a task link.

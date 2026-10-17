@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:07:27
+> **Last Generated**: 2026-10-17 17:20:18
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -256,6 +256,7 @@ C:.
 |   |   ids.py
 |   |   launch_env.py
 |   |   logger.py
+|   |   message_pressure.py
 |   |   natural_language_defaults.py
 |   |   network_probe.py
 |   |   pagination.py
@@ -602,6 +603,7 @@ C:.
 |   |   task_link_helpers.py
 |   |   task_occurrence_skip.py
 |   |   task_reference.py
+|   |   task_reminder_deferrals.py
 |   |   task_reminder_snooze.py
 |   |   task_schemas.py
 |   |   task_service.py
@@ -1079,6 +1081,7 @@ C:.
 |   |   |   test_logging_components.py
 |   |   |   test_logging_privacy.py
 |   |   |   test_message_formatter.py
+|   |   |   test_message_pressure.py
 |   |   |   test_message_reactions.py
 |   |   |   test_message_service_schedule.py
 |   |   |   test_natural_language_defaults.py
@@ -1134,6 +1137,7 @@ C:.
 |   |   |   test_task_links.py
 |   |   |   test_task_occurrence_skip.py
 |   |   |   test_task_reference.py
+|   |   |   test_task_reminder_deferrals.py
 |   |   |   test_task_reminder_snooze.py
 |   |   |   test_task_reminder_view.py
 |   |   |   test_task_service.py

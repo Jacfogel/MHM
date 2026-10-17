@@ -247,6 +247,8 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                 old_value = task.get(field, "None")
                 if field == "due_date":
                     task.setdefault("due", {})["date"] = value
+                    if "reminder_deferrals" not in updates:
+                        task["reminder_deferrals"] = []
                 elif field == "due_time":
                     task.setdefault("due", {})["time"] = value
                 elif field == "reminder_periods":

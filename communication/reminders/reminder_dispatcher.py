@@ -213,6 +213,7 @@ class TaskReminderDispatcher:
 
         from tasks.task_data_handlers import runtime_task_due_date
         from tasks.task_focus import explain_task_focus
+        from tasks.task_reminder_deferrals import repeated_deferral_advice
 
         shown = focus_step if isinstance(focus_step, dict) else task
         title = shown.get("title", "Untitled Task")
@@ -246,6 +247,9 @@ class TaskReminderDispatcher:
         if reason:
             message += f"\n**Why this one:** {reason}"
         if gentle or energy in {1, 2}:
-            message += "\n\nA smaller step is enough today—use **Break it down** if that would help."
+            message += "\n\nA smaller step is enough today—use **Simplify** if that would help."
+        deferral_advice = repeated_deferral_advice(task, focus_step=focus_step)
+        if deferral_advice:
+            message += f"\n\n{deferral_advice}"
 
         return message

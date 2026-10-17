@@ -1400,17 +1400,11 @@ class CommunicationManager:
         try:
             from ai.chat.chatbot import get_ai_chatbot
             from core.config import AI_PERSONALIZED_MESSAGE_TIMEOUT
-            from core.health_signals import get_message_guidance
-            from integrations.google_health.personalization_rules import (
-                build_scheduled_message_context_prefix,
-            )
+            from core.message_pressure import scheduled_message_pressure_prefix
 
             ai_bot = get_ai_chatbot()
 
-            prefix = None
-            if source == "google_health":
-                guidance = get_message_guidance(user_id)
-                prefix = build_scheduled_message_context_prefix(guidance) or None
+            prefix = scheduled_message_pressure_prefix(user_id) or None
             from messages.message_reactions import (
                 personalized_reaction_instructions,
                 text_is_retired,

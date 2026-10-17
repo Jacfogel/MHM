@@ -26,103 +26,12 @@
     return result;
   }
 
-  const PRIORITY_SCORE = { critical: 40, urgent: 32, high: 24, medium: 12, low: 4 };
-
   function daysUntil(dueDate, now) {
     if (!dueDate || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) return null;
     const [year, month, day] = dueDate.split('-').map(Number);
     const due = new Date(year, month - 1, day);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return Math.round((due.getTime() - today.getTime()) / 86400000);
-  }
-
-  function snoozeUntil(task) {
-    const raw = task.reminder_snooze_until;
-    if (typeof raw !== 'string' || !raw.trim()) return null;
-    const parsed = new Date(raw.includes('T') ? raw : raw.replace(' ', 'T'));
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  function timeBand(hour) {
-    if (hour < 12) return 'morning';
-    if (hour < 17) return 'afternoon';
-    if (hour < 21) return 'evening';
-    return 'night';
-  }
-
-  function scoreFocus(task, now, energy) {
-    const until = snoozeUntil(task);
-    if (until && until.getTime() > now.getTime()) return null;
-    const days = daysUntil(task.due_date, now);
-    const priority = String(task.priority || 'medium').toLowerCase();
-    const recurring = Boolean(task.recurrence && task.recurrence.pattern);
-    const tags = (Array.isArray(task.tags) ? task.tags : []).map(tag => String(tag).toLowerCase());
-    const reasons = [];
-    const lowEnergy = typeof energy === 'number' && energy >= 1 && energy <= 2;
-    let score = PRIORITY_SCORE[priority] || 12;
-    if (days === null) score += 5;
-    else if (days < 0) {
-      score += 80 + Math.min(-days, 14) * 4;
-      reasons.push('overdue');
-    } else if (days === 0) {
-      score += 60;
-      reasons.push('due-today');
-    } else if (days <= 2) {
-      score += 40;
-      reasons.push('due-soon');
-    } else if (days <= 7) {
-      score += 20;
-      reasons.push('due-week');
-    }
-    if (priority === 'critical' || priority === 'urgent' || priority === 'high') reasons.push('priority');
-    if (tags.includes(timeBand(now.getHours()))) {
-      score += 12;
-      reasons.push('time-of-day');
-    }
-    if (days === 0 && /^\d{2}:\d{2}$/.test(task.due_time || '')) {
-      const [hour, minute] = task.due_time.split(':').map(Number);
-      const delta = hour * 60 + minute - (now.getHours() * 60 + now.getMinutes());
-      if (delta <= 120 && delta >= -180) {
-        score += 15;
-        reasons.push('due-time');
-      }
-    }
-    if (until) {
-      score += 18;
-      reasons.push('deferred');
-    }
-    if (!recurring && days !== null && days <= 0) score += 6;
-    else if (recurring) reasons.push('recurring');
-    const minutes = Number(task.effort_minutes);
-    if (Number.isFinite(minutes) && minutes > 0) {
-      reasons.push('effort');
-      if (lowEnergy) {
-        reasons.push('low-energy');
-        if (minutes <= 15) score += 28;
-        else score -= 18;
-      } else if (minutes <= 10) score += 22;
-      else if (minutes <= 30) score += 10;
-      else score -= 8;
-    }
-    return { task, score: Math.max(score, 1), reasons, days, priority, recurring, minutes: Number.isFinite(minutes) ? minutes : null };
-  }
-
-  function chooseFocus(tasks, now = new Date(), random = Math.random, energy = null) {
-    const list = tasks || [];
-    const parentsWithSteps = new Set(list.map(task => task && task.parent_id).filter(Boolean));
-    const smallerSteps = list.filter(task => task && !parentsWithSteps.has(task.id));
-    let ranked = smallerSteps.map(task => scoreFocus(task, now, energy)).filter(Boolean);
-    if (!ranked.length) ranked = list.map(task => scoreFocus(task, now, energy)).filter(Boolean);
-    if (!ranked.length) return null;
-    ranked.sort((left, right) => right.score - left.score || String(left.task.title).localeCompare(String(right.task.title)));
-    const roll = typeof random === 'function' ? random() : Math.random();
-    const total = ranked.reduce((sum, item) => sum + item.score, 0);
-    let cursor = (Number.isFinite(roll) ? roll : 0) * total;
-    for (const item of ranked) {
-      cursor -= item.score;
-      if (cursor < 0) return item;
-    }
-    return ranked[ranked.length - 1];
   }
 
   function focusMeta(pick) {
@@ -139,37 +48,6 @@
     return parts.join(' · ');
   }
 
-  function focusReason(pick) {
-    const { reasons, priority } = pick;
-    if (reasons.includes('deferred') && reasons.includes('overdue')) {
-      return 'You already set this aside, and it is still overdue. A small start still counts.';
-    }
-    if (reasons.includes('low-energy') && pick.minutes <= 15) {
-      return 'Your energy is low today, so this is a small one to start with.';
-    }
-    if (reasons.includes('low-energy') && pick.minutes > 15 && (reasons.includes('due-today') || reasons.includes('overdue'))) {
-      const when = reasons.includes('overdue') ? 'overdue' : 'due today';
-      return `Your energy is low, and this will take a while. It is still ${when}.`;
-    }
-    if (reasons.includes('overdue')) return 'This is overdue. Clearing it first takes the pressure off.';
-    if (reasons.includes('effort') && pick.minutes <= 15 && (reasons.includes('due-today') || reasons.includes('overdue'))) {
-      return 'This is probably the easiest useful thing to clear first.';
-    }
-    if (reasons.includes('due-today') && Number.isFinite(pick.minutes) && pick.minutes > 30) {
-      return 'This will take a while, and it is due today.';
-    }
-    if (reasons.includes('due-today') && priority !== 'high' && priority !== 'urgent' && priority !== 'critical') {
-      return 'This is due today.';
-    }
-    if (reasons.includes('due-today')) return 'Due today, and it matters more than the other open tasks.';
-    if (reasons.includes('deferred')) return 'You already set this aside once. A small start still counts.';
-    if (reasons.includes('due-soon') || reasons.includes('due-week')) {
-      return 'This is coming up soon, so starting it now keeps it from becoming urgent.';
-    }
-    if (reasons.includes('time-of-day')) return 'This fits the time of day better than the other open tasks.';
-    return 'No deadline is pressing. This is a calm one to pick up when you have a moment.';
-  }
-
   function accountNeedsSetup(account) {
     return account.needs_setup === true;
   }
@@ -179,10 +57,16 @@
   let homeLoad = 0;
   let focusActionBusy = false;
 
-  function renderFocus(taskList, efforts, energy) {
-    const withEffort = (taskList || []).map(task => ({ ...task, effort_minutes: efforts[task.id] }));
-    const pick = chooseFocus(withEffort, new Date(), window.mhmRandom || Math.random, energy);
-    focusedTask = pick ? pick.task : null;
+  function renderFocus(result) {
+    const focus = result && result.focus ? result.focus : null;
+    focusedTask = focus ? focus.task : null;
+    const pick = focusedTask ? {
+      task: focusedTask,
+      days: daysUntil(focusedTask.due_date, new Date()),
+      priority: String(focusedTask.priority || 'medium').toLowerCase(),
+      recurring: Boolean(focusedTask.recurrence && focusedTask.recurrence.pattern),
+      minutes: Number.isFinite(Number(focus.effort_minutes)) ? Number(focus.effort_minutes) : null,
+    } : null;
     const actions = document.getElementById('home-task-actions');
     const breakForm = document.getElementById('home-task-break-form');
     const breakButton = document.getElementById('home-task-break');
@@ -192,11 +76,9 @@
     document.getElementById('home-task-meta').textContent = pick
       ? focusMeta(pick)
       : 'Add something small on Tasks, or tell MHM what you need.';
-    const parent = focusedTask && focusedTask.parent_id
-      ? withEffort.find(task => task.id === focusedTask.parent_id)
-      : null;
-    const why = pick ? focusReason(pick) : '';
-    document.getElementById('home-task-why').textContent = parent ? `${why} Part of ${parent.title}.` : why;
+    const why = focus ? String(focus.reason || '') : '';
+    const parentTitle = focus ? String(focus.parent_title || '') : '';
+    document.getElementById('home-task-why').textContent = parentTitle ? `${why} Part of ${parentTitle}.` : why;
     if (actions) actions.hidden = !focusedTask;
     if (breakButton) breakButton.hidden = !focusedTask || Boolean(focusedTask.parent_id);
     if (ownButton) ownButton.hidden = !focusedTask || !focusedTask.parent_id;
@@ -226,11 +108,11 @@
       document.getElementById('home-task-off').hidden = account.tasks_enabled;
       document.getElementById('home-checkin-off').hidden = account.checkins_enabled;
       const loadId = ++homeLoad;
-      const tasksPromise = api('/api/tasks?status=active');
+      const focusPromise = api('/api/tasks/focus');
       const checkinPromise = account.checkins_enabled
         ? api('/api/checkins').catch(() => ({ active: false }))
         : Promise.resolve({ active: false });
-      const [tasks, loadedCheckin] = await Promise.all([tasksPromise, checkinPromise]);
+      const [focus, loadedCheckin] = await Promise.all([focusPromise, checkinPromise]);
       if (loadId !== homeLoad) return;
       const checkinState = loadedCheckin || { active: false };
       const checkinOn = document.getElementById('home-checkin-on');
@@ -251,21 +133,11 @@
         answerLink.hidden = false;
         answerLink.textContent = 'Start check-in';
       }
-      const taskList = tasks.tasks || [];
-      const rawEnergy = checkinState.energy_today;
-      const energy = typeof rawEnergy === 'number' && Number.isFinite(rawEnergy) ? rawEnergy : null;
-      renderFocus(taskList, {}, energy);
+      renderFocus(focus);
       homeContent.hidden = false;
       pinTalkToLatest();
       window.requestAnimationFrame(pinTalkToLatest);
       status.textContent = '';
-      api('/api/tasks/effort').then(estimate => {
-        if (loadId !== homeLoad) return;
-        const breakForm = document.getElementById('home-task-break-form');
-        if (breakForm && !breakForm.hidden) return;
-        const efforts = Object.fromEntries((estimate.tasks || []).filter(item => item && item.id).map(item => [item.id, item.minutes]));
-        renderFocus(taskList, efforts, energy);
-      }).catch(() => {});
     } catch (error) {
       if (status) {
         status.textContent = error.message;

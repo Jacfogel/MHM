@@ -124,14 +124,19 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | Updated reminder schedule | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
 | Scheduler marks reminder attempted after dispatch handoff | Partial | Current behavior is documented; add direct scheduler-level assertion that `reminder_sent` does not depend on `MessageSendResult`. |
 | Task reminder view creation | Partial | Custom view attachment is tested; add direct `communication/communication_channels/discord/ui/task_reminder_view.py` button-shape coverage. |
-| Complete Task button | Partial | Completion by Discord reminder and task command behavior are tested; add direct button callback coverage. |
-| Complete Task button from unlinked user | Gap | Add direct button callback coverage for unmapped Discord user. |
-| Remind Me Later button | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
+| Shared focus policy selects the reminder task | Automated | [tests/unit/test_task_focus.py](../tests/unit/test_task_focus.py), [tests/unit/test_scheduler_task_reminder_weights.py](../tests/unit/test_scheduler_task_reminder_weights.py) |
+| Low energy changes effort preference but not urgency | Automated | [tests/unit/test_task_focus.py](../tests/unit/test_task_focus.py) |
+| Reminder wording follows reliable guidance | Automated | [tests/unit/test_task_focus.py](../tests/unit/test_task_focus.py), [tests/unit/test_channel_orchestrator.py](../tests/unit/test_channel_orchestrator.py) |
+| Repeated deferrals change reminder guidance | Automated | [tests/unit/test_task_reminder_deferrals.py](../tests/unit/test_task_reminder_deferrals.py), [tests/unit/test_channel_orchestrator.py](../tests/unit/test_channel_orchestrator.py) |
+| Pressure guidance is coordinated across scheduled messages | Automated | [tests/unit/test_message_pressure.py](../tests/unit/test_message_pressure.py), [tests/unit/test_channel_orchestrator.py](../tests/unit/test_channel_orchestrator.py) |
+| Done button | Partial | Completion by Discord reminder and task command behavior are tested; add direct button callback coverage. |
+| Done button from unlinked user | Gap | Add direct button callback coverage for unmapped Discord user. |
+| Snooze button | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
 | Snooze 1 hour | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py) |
 | Snooze tonight or tomorrow morning | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
 | Snooze next week | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
 | Custom snooze time | Automated | [tests/unit/test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py) |
-| Remind Me Later from unlinked user | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
+| Snooze from unlinked user | Automated | [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
 | More button | Partial | Help text includes skip/simplify examples; add a dedicated More-button callback test if that text becomes high-risk. |
 | Skip this occurrence (recurring) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py), [tests/behavior/test_task_handler_behavior.py](../tests/behavior/test_task_handler_behavior.py), [tests/unit/test_task_reminder_view.py](../tests/unit/test_task_reminder_view.py) |
 | Skip this occurrence (one-off) | Automated | [tests/unit/test_task_occurrence_skip.py](../tests/unit/test_task_occurrence_skip.py) |

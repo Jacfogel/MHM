@@ -313,6 +313,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "metadata": metadata,
         "reminder_sent": bool(task.get("reminder_sent")),
         "reminder_snooze_until": task.get("reminder_snooze_until") or None,
+        "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": str(task.get("parent_id") or "").strip() or None,
     }
@@ -348,6 +349,7 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "metadata": task.get("metadata", {}),
         "reminder_sent": bool(task.get("reminder_sent")),
         "reminder_snooze_until": task.get("reminder_snooze_until") or None,
+        "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": task.get("parent_id") or None,
     }

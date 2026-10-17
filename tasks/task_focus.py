@@ -27,14 +27,6 @@ _PRIORITY_SCORE = {
     "low": 10,
     "none": 5,
 }
-_PRESSURE_GUIDANCE = {
-    "avoid_high_pressure_productivity_prompt",
-    "avoid_nagging_movement_prompts",
-    "keep_expectations_small",
-    "use_gentle_tone",
-}
-
-
 @dataclass(frozen=True)
 class TaskFocusDecision:
     """A selected task plus the user-facing reason for selecting it."""
@@ -262,13 +254,10 @@ def choose_task_focus(
 @handle_errors("reading task focus signals", default_return=(None, False))
 def task_focus_signals(user_id: str) -> tuple[int | None, bool]:
     """Return today's energy and whether reminders should avoid pressure."""
-    from checkins.checkin_service import today_checkin_energy
-    from core.health_signals import get_message_guidance
+    from core.message_pressure import resolve_message_pressure
 
-    energy = today_checkin_energy(user_id)
-    guidance = {str(item).strip().lower() for item in get_message_guidance(user_id)}
-    gentle = energy in {1, 2} or bool(guidance & _PRESSURE_GUIDANCE)
-    return energy, gentle
+    policy = resolve_message_pressure(user_id)
+    return policy.energy, policy.gentle
 
 
 @handle_errors("choosing task focus for user", default_return=None)

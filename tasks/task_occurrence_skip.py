@@ -107,6 +107,8 @@ def _skip_recurring_occurrence(
     if ping_at <= now_dt:
         ping_at = now_dt + timedelta(minutes=1)
     title = str(task.get("title") or "this task")
+    from tasks.task_reminder_deferrals import append_reminder_deferral
+
     saved = update_task(
         user_id,
         task_id,
@@ -116,6 +118,9 @@ def _skip_recurring_occurrence(
             "description": _with_skip_note(task, skipped_on, next_due),
             "reminder_sent": True,
             "reminder_snooze_until": format_timestamp(ping_at, TIMESTAMP_FULL),
+            "reminder_deferrals": append_reminder_deferral(
+                task, "skip", occurred_at=now_dt, until=ping_at
+            ),
         },
     )
     if not saved:
@@ -158,6 +163,7 @@ def _skip_one_off_occurrence(
         "custom",
         custom_when="tomorrow morning",
         now_dt=now_dt,
+        deferral_action="skip",
     )
     if not snoozed.success:
         return TaskOccurrenceSkipResult(

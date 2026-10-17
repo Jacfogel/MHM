@@ -329,6 +329,7 @@ def snooze_task_reminder(
     *,
     custom_when: str | None = None,
     now_dt: datetime | None = None,
+    deferral_action: str = "snooze",
 ) -> TaskReminderSnoozeResult:
     """Snooze one task's reminder. Does not change the task due date."""
     if not user_id or not task_id:
@@ -365,12 +366,18 @@ def snooze_task_reminder(
 
     due_before = runtime_task_due_date(task)
     until_stamp = format_timestamp(until, TIMESTAMP_FULL)
+    from tasks.task_reminder_deferrals import append_reminder_deferral
+
+    action = "skip" if deferral_action == "skip" else "snooze"
     saved = update_task(
         user_id,
         task_id,
         {
             "reminder_sent": True,
             "reminder_snooze_until": until_stamp,
+            "reminder_deferrals": append_reminder_deferral(
+                task, action, occurred_at=now_dt, until=until
+            ),
         },
     )
     if not saved:

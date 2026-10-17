@@ -243,7 +243,7 @@ class WebTaskRoutes:
         status = request.query.get("status", "active")
         if status not in {"active", "completed", "all"}:
             raise web.HTTPBadRequest(text="Choose active, completed, or all tasks.")
-        active = await asyncio.to_thread(load_active_tasks, uid)
+        active = await asyncio.to_thread(load_active_tasks, uid) or []
         completed = await asyncio.to_thread(load_completed_tasks, uid)
         due_soon = await asyncio.to_thread(get_tasks_due_soon, uid, days_ahead=7)
         saved_tags = await asyncio.to_thread(get_user_tags, uid)
@@ -844,6 +844,47 @@ class WebTaskRoutes:
         estimates = await asyncio.to_thread(estimate_task_efforts, active)
         return web.json_response({"tasks": estimates})
 
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
+    async def task_focus_api(self, request):
+        """Return the same deterministic focus decision used by chat and reminders."""
+        uid, _current = await self.gateway.authenticated_account(request)
+        from tasks.task_focus import choose_task_focus_for_user
+        from tasks.task_reminder_deferrals import reminder_deferral_count
+        from tasks.task_service import load_active_tasks
+
+        active = await asyncio.to_thread(load_active_tasks, uid)
+        decision = await asyncio.to_thread(
+            choose_task_focus_for_user,
+            uid,
+            active,
+            random_value=lambda: 0.0,
+        )
+        if decision is None:
+            return web.json_response({"focus": None})
+
+        task = decision.task
+        parent_id = str(task.get("parent_id") or "").strip()
+        parent = next(
+            (
+                item
+                for item in active
+                if str(item.get("id") or "").strip() == parent_id
+            ),
+            None,
+        )
+        return web.json_response(
+            {
+                "focus": {
+                    "task": self.task_view(task),
+                    "reason": decision.reason,
+                    "effort_minutes": decision.effort_minutes,
+                    "gentle": decision.gentle,
+                    "parent_title": str((parent or {}).get("title") or ""),
+                    "deferral_count": reminder_deferral_count(task),
+                }
+            }
+        )
+
 # ERROR_HANDLING_EXCLUDE: Shared serializer also supports account exports.
 def task_view(task):
     """Return the stable, browser-safe task shape used by the website."""
@@ -858,6 +899,7 @@ def task_view(task):
 def register_task_routes(app, gateway):
     """Register all task endpoints on a gateway application."""
     routes = WebTaskRoutes(gateway)
+    app.router.add_get("/api/tasks/focus", routes.task_focus_api)
     app.router.add_get("/api/tasks/effort", routes.task_effort_api)
     app.router.add_get("/api/tasks", routes.tasks_api)
     app.router.add_post("/api/tasks", routes.tasks_api)

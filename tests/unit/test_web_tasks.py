@@ -499,6 +499,57 @@ async def test_breakdown_adds_subtasks_and_keeps_the_original_title(task_gateway
     assert nested.status == 400
 
 
+async def test_home_focus_endpoint_uses_shared_backend_policy(task_gateway, monkeypatch):
+    """Home receives one deterministic backend decision, including parent context."""
+    import core.message_pressure as pressure
+
+    monkeypatch.setattr(
+        pressure,
+        "resolve_message_pressure",
+        lambda user_id: pressure.MessagePressurePolicy(None, (), False, False),
+    )
+    client, active, _completed = task_gateway
+    active.extend(
+        [
+            {
+                "id": "parent-1",
+                "title": "File taxes",
+                "description": "",
+                "priority": "high",
+                "status": "active",
+                "due": {"date": "2026-10-17", "time": None},
+                "recurrence": {},
+                "completion": {"completed": False},
+                "tags": [],
+                "reminders": [],
+                "parent_id": None,
+            },
+            {
+                "id": "step-1",
+                "title": "Find the tax form",
+                "description": "",
+                "priority": "high",
+                "status": "active",
+                "due": {"date": "2026-10-17", "time": None},
+                "recurrence": {},
+                "completion": {"completed": False},
+                "tags": [],
+                "reminders": [],
+                "parent_id": "parent-1",
+            },
+        ]
+    )
+
+    response = await client.get("/api/tasks/focus")
+    body = await response.json()
+
+    assert response.status == 200
+    assert body["focus"]["task"]["id"] == "step-1"
+    assert body["focus"]["parent_title"] == "File taxes"
+    assert body["focus"]["reason"]
+    assert body["focus"]["effort_minutes"] > 0
+
+
 async def test_task_route_initialization_reports_and_reraises_errors(monkeypatch):
     calls = []
     monkeypatch.setattr(

@@ -74,6 +74,18 @@ def validate_update_field(field: str, value: Any) -> tuple[bool, str | None]:
         cleaned = sanitize_task_links(value)
         if value and not cleaned:
             return False, "Links must use http:// or https:// addresses"
+    if field == "reminder_deferrals":
+        from tasks.task_reminder_deferrals import (
+            MAX_REMINDER_DEFERRALS,
+            normalize_reminder_deferrals,
+        )
+
+        if not isinstance(value, list):
+            return False, "Reminder deferrals must be a list"
+        if len(value) > MAX_REMINDER_DEFERRALS:
+            return False, "Reminder deferral history is too long"
+        if len(normalize_reminder_deferrals(value)) != len(value):
+            return False, "Reminder deferral history contains an invalid record"
     return True, None
 
 

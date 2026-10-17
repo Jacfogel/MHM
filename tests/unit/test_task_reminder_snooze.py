@@ -93,7 +93,7 @@ class TestSnoozeTaskReminder:
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
         )
-        from tasks import create_task, get_task_by_id
+        from tasks import create_task, get_task_by_id, update_task
 
         task_id = create_task(
             user_id, title="Call dentist", due_date="2026-09-20", due_time="14:00"
@@ -115,7 +115,16 @@ class TestSnoozeTaskReminder:
         assert task.get("due", {}).get("time") == "14:00"
         assert task.get("reminder_sent") is True
         assert task.get("reminder_snooze_until")
+        assert task.get("reminder_deferrals") == [
+            {
+                "action": "snooze",
+                "at": "2026-09-14 10:00:00",
+                "until": "2026-09-14 11:00:00",
+            }
+        ]
         scheduler.schedule_task_reminder_at_datetime.assert_called_once()
+        assert update_task(user_id, task_id, {"due_date": "2026-09-22"}) is True
+        assert get_task_by_id(user_id, task_id).get("reminder_deferrals") == []
 
     def test_future_snooze_is_detected(self):
         task = {"reminder_snooze_until": "2026-09-14 12:00:00"}

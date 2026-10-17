@@ -48,7 +48,7 @@ def get_task_reminder_view(
             self.task_title = task_title
 
         @discord.ui.button(
-            label="Complete Task",
+            label="Done",
             style=discord.ButtonStyle.success,
             custom_id=f"task_complete_{user_id}_{task_id}",
         )
@@ -83,7 +83,7 @@ def get_task_reminder_view(
                 )
 
         @discord.ui.button(
-            label="Remind Me Later",
+            label="Snooze",
             style=discord.ButtonStyle.secondary,
             custom_id=f"task_remind_later_{user_id}_{task_id}",
         )
@@ -157,7 +157,7 @@ def get_task_reminder_view(
             await interaction.response.send_message(more_info, ephemeral=True)
 
         @discord.ui.button(
-            label="Skip",
+            label="Leave me alone",
             style=discord.ButtonStyle.secondary,
             custom_id=f"task_skip_{user_id}_{task_id}",
             row=1,
@@ -185,7 +185,7 @@ def get_task_reminder_view(
             await interaction.followup.send(response.message, ephemeral=True)
 
         @discord.ui.button(
-            label="Break it down",
+            label="Simplify",
             style=discord.ButtonStyle.primary,
             custom_id=f"task_simplify_{user_id}_{task_id}",
             row=0,

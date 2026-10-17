@@ -212,7 +212,7 @@ test('task CRUD routes forward dynamic IDs and mutating methods safely', async (
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test('smaller-step and effort routes reach the gateway', async () => {
+test('smaller-step, focus, and effort routes reach the gateway', async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (target, options) => {
@@ -235,6 +235,9 @@ test('smaller-step and effort routes reach the gateway', async () => {
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/effort', {
       headers: { Cookie: 'mhm_session=owned' },
     }), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/focus', {
+      headers: { Cookie: 'mhm_session=owned' },
+    }), env)).status, 200);
     assert.deepEqual(calls, [
       ['https://gateway.example/api/tasks/task-1/breakdown', 'POST'],
       ['https://gateway.example/api/tasks/task-1/subtasks', 'POST'],
@@ -242,12 +245,16 @@ test('smaller-step and effort routes reach the gateway', async () => {
       ['https://gateway.example/api/tasks/bulk/delete', 'POST'],
       ['https://gateway.example/api/tasks/bulk/priority', 'POST'],
       ['https://gateway.example/api/tasks/effort', 'GET'],
+      ['https://gateway.example/api/tasks/focus', 'GET'],
     ]);
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/breakdown', { method: 'GET' }), env)).status, 405);
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/task-1/publish', {
       method: 'POST', headers, body: '{}',
     }), env)).status, 404);
     assert.equal((await worker.fetch(new Request(url + '/api/tasks/effort', {
+      method: 'POST', headers, body: '{}',
+    }), env)).status, 405);
+    assert.equal((await worker.fetch(new Request(url + '/api/tasks/focus', {
       method: 'POST', headers, body: '{}',
     }), env)).status, 405);
   } finally { globalThis.fetch = originalFetch; }

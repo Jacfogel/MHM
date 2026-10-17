@@ -32,12 +32,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-10-17 - Shared task focus reaches reminders and chat
+### 2026-10-17 - Adaptive task focus and reminder pressure completed
 - **Shared focus policy**: Added [task_focus.py](../tasks/task_focus.py) as the backend selection policy for scheduled task reminders and chat suggestions. It ranks active unsnoozed work by urgency, due proximity, priority, time-of-day fit, subtask availability, and local effort while keeping overdue, critical, urgent, high-priority, and due-today work ahead of easier nonurgent tasks.
 - **Energy and health adaptation**: Today's reliable check-in energy and Google Health message guidance can enable gentle reminder wording. Low-energy selection prefers short tasks or unfinished subtasks only within the highest current urgency band; missing or low-confidence signals keep the established direct tone.
-- **Actionable delivery**: Task reminders explain why the task was selected and make **Break it down** a primary first-row Discord action. Chat suggestions name the selected task or step and no longer fall back to generic `Help with tasks` copy.
-- **Roadmap and behavior contract**: Updated the Discord reminder spec and task plan. Repeated-deferral history, coordinated pressure across scheduled-message categories, Home/backend policy convergence, and possible plain-language action labels remain explicit next slices.
-- **Verification and impact**: 252 focused task, reminder, scheduler, communication, and admin-action tests pass. The five new focus helpers use centralized safe defaults, forced-failure coverage passes, and the standard audit reports 2,998 of 2,998 functions documented with 100% error-handling coverage. Ruff is clean, project-wide Pyright reports zero errors and warnings, and `git diff --check` is clean. MHM now offers one explainable next action across reminder and chat paths without hiding urgent work on low-energy days.
+- **Meaningful deferrals**: Tasks retain only their five newest snooze/skip records. Repeated deferrals now surface an existing smaller step, offer **Simplify**, and, after three deferrals on dated work, suggest reconsidering the due date.
+- **Coordinated pressure**: One policy now applies reliable low-energy and health guidance to task reminders plus AI-generated motivational and Google Health messages. `avoid_nagging_movement_prompts` softens message pressure across categories, while missing signals add no assumptions.
+- **One Home decision**: The Home card now reads `/api/tasks/focus` instead of carrying a second JavaScript ranking implementation. Home, chat, and scheduled reminders use the same deterministic urgency guardrails.
+- **Plain Discord actions**: Reminder buttons are now **Done**, **Snooze**, **Simplify**, and **Leave me alone**; their existing complete, snooze, breakdown, and skip behavior is unchanged.
+- **Verification and impact**: 138 focused Python checks and 41 browser/proxy tests pass. Ruff is clean and targeted Pyright reports zero errors and warnings. MHM now offers one explainable next action across Home, reminder, and chat paths without hiding urgent work on low-energy days.
 
 ### 2026-10-17 - Notebook persistence and reference safety hardened
 - **Private diagnostics**: Notebook validation and creation paths now log only bounded metadata such as entry kind, index, identifier, exception type, and validation-error count. Full persisted records, titles, descriptions, list-item values, tags, queries, and title-like references are omitted. The static privacy guard scans every Python runtime package and distinguishes logger calls from unrelated APIs that also expose methods such as `warning`.
