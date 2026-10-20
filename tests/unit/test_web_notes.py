@@ -8,6 +8,7 @@ import pytest_asyncio
 from aiohttp import CookieJar
 
 from core.error_handling import error_handler
+from core.time_utilities import now_timestamp_full
 from core.web_account_service import create_web_app
 from core.web_notes import WebNotesRoutes, register_notes_routes
 from tests.unit.test_web_account_service import web_client
@@ -92,7 +93,8 @@ async def notes_gateway(monkeypatch):
             )
             for index, item in enumerate(values.get("items", []))
         ]
-        return SimpleNamespace(id=uuid4(), short_id=f"{prefix}{uuid4().hex[:5]}", kind=kind, title=values["title"], description=values.get("description"), items=items, tags=values.get("tags", []), pinned=False, status="active", submitted_at=None, created_at="2026-09-20 09:00:00", updated_at="2026-09-20 09:00:00")
+        timestamp = now_timestamp_full()
+        return SimpleNamespace(id=uuid4(), short_id=f"{prefix}{uuid4().hex[:5]}", kind=kind, title=values["title"], description=values.get("description"), items=items, tags=values.get("tags", []), pinned=False, status="active", submitted_at=None, created_at=timestamp, updated_at=timestamp)
 
     def list_recent(uid, n=5, include_archived=False):
         return [entry for entry in entries if include_archived or entry.status == "active"][:n]
@@ -105,6 +107,8 @@ async def notes_gateway(monkeypatch):
         if not entry or entry.status != "active":
             return None
         callback(entry)
+        # Notebook mutations refresh updated_at, which keeps a cleared note in the 30-day inbox.
+        entry.updated_at = now_timestamp_full()
         return entry
 
     def update_entry(uid, ref, changes):
@@ -147,9 +151,11 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "update_entry", update_entry)
     monkeypatch.setattr(manager, "archive_entry", archive)
     monkeypatch.setattr(shared_tags, "get_user_tags", lambda uid: ["work", "personal"])
+    # Inbox includes untagged notes updated within 30 days, so these cannot be fixed calendar dates.
+    recent = now_timestamp_full()
     entries.extend([
-        SimpleNamespace(id=uuid4(), short_id="labc12", kind="list", title="Groceries", description=None, items=[SimpleNamespace(id=uuid4(), text="Oats", done=False, order=0)], tags=["home"], pinned=False, status="active", submitted_at=None, created_at="2026-09-19 09:00:00", updated_at="2026-09-19 09:00:00"),
-        SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], pinned=False, status="active", submitted_at="2026-09-18 09:00:00", created_at="2026-09-18 09:00:00", updated_at="2026-09-18 09:00:00"),
+        SimpleNamespace(id=uuid4(), short_id="labc12", kind="list", title="Groceries", description=None, items=[SimpleNamespace(id=uuid4(), text="Oats", done=False, order=0)], tags=["home"], pinned=False, status="active", submitted_at=None, created_at=recent, updated_at=recent),
+        SimpleNamespace(id=uuid4(), short_id="jabc12", kind="journal_entry", title="Today", description="A steady day", items=None, tags=["journal"], pinned=False, status="active", submitted_at=recent, created_at=recent, updated_at=recent),
     ])
 
     async with web_client(create_web_app(accounts=Accounts(), mailer=lambda email, code: sent.append(code), origin=ORIGIN, proxy_secret=""), cookie_jar=CookieJar(unsafe=True)) as client:

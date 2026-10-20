@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-20 - Nightly notebook inbox test stays date-stable **COMPLETED**
+- The October 19 nightly suite failed one test: after clearing tags, a grocery list seeded on September 19 was older than the 30-day inbox window.
+- Website note fixtures now use the current timestamp, and mocked edits refresh `updated_at` the same way real notebook saves do.
+- The notes route tests pass. Inbox behavior is unchanged.
+
 ### 2026-10-19 - Quiet mode and energy rules are user-controlled **COMPLETED**
 - Website **Support mode** now stores a clear quiet-mode end time plus an on/off switch and threshold for deterministic check-in energy rules.
 - Quiet mode pauses scheduled encouragement and check-ins, but still permits due, overdue, urgent, and critical task reminders with gentler wording; manual actions remain available.
@@ -111,11 +116,6 @@ Guidelines:
 - Scheduled messages, check-ins, and task reminders stop after trial/grace expiry or cancellation, while legacy accounts remain complimentary.
 - Onboarding now explains the free-to-paid transition and offers Subscribe now or Continue with free trial. Account navigation opens the Account settings panel instead of Profile.
 - Fixed the account-envelope allowlist that initially replaced new trial fields with complimentary defaults. Test-mode Stripe objects and the public Worker route are deployed and verified; focused checks pass 27 Python billing/storage tests and 123 browser tests, with broader backend and scheduler checks also green.
-
-### 2026-10-06 - Disabled automated messages stay quiet **COMPLETED**
-- Category messages are no longer scheduled or sent when automated messages are disabled. A job already queued for that account is dropped instead of sent.
-- Check-ins and task reminders still follow their own switches.
-- Restart the running service so an account that is already disabled stops receiving the messages queued by the current process.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

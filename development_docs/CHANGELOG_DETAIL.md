@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-20 - Nightly notebook inbox test stays date-stable
+- **Nightly failure**: The October 19 full suite ([run 39250643644](https://github.com/Jacfogel/MHM/actions/runs/39250643644)) failed only `test_notebook_queries_validate_status_and_filter_results`. Search and pinned views passed. The inbox view was empty because the grocery fixture was stamped `2026-09-19 09:00:00`, and inbox keeps untagged notes updated within 30 days. That cutoff crossed during the October 19 run. October 17 and 18 were still inside the window, which is why those nights passed.
+- **Fix**: [test_web_notes.py](../tests/unit/test_web_notes.py) now stamps fixture notes with `now_timestamp_full()`. Mocked notebook edits also refresh `updated_at`, matching `_mutate_entry`. The 30-day inbox rule itself is unchanged.
+- **Verification**: `tests/unit/test_web_notes.py` passes 20 tests.
+- **Impact**: The nightly inbox assertion no longer depends on how many days have passed since a hardcoded September date.
+
 ### 2026-10-19 - User-controlled quiet mode and deterministic energy rules
 - Added a website **Support mode** section backed by `preferences.message_pressure_settings`. Users can set a local quiet-mode end time, turn automatic energy adaptation off, or choose a low-energy threshold from 1 through 4.
 - The shared message-pressure policy now exposes explicit low-energy and quiet-mode decisions. Task focus ranking, explanations, and reminder wording consume that decision instead of duplicating a hardcoded 1-2 check.
