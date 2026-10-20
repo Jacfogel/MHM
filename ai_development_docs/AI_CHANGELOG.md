@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-19 - Quiet mode and energy rules are user-controlled **COMPLETED**
+- Website **Support mode** now stores a clear quiet-mode end time plus an on/off switch and threshold for deterministic check-in energy rules.
+- Quiet mode pauses scheduled encouragement and check-ins, but still permits due, overdue, urgent, and critical task reminders with gentler wording; manual actions remain available.
+- The saved energy rule drives both task ranking and reminder copy without inferring mood from chat or requesting an LLM. Next work is better rule explanations, cooldowns, and an "until tomorrow" shortcut.
+
+### 2026-10-19 - Optional AI controls centralized **COMPLETED**
+- A provider-neutral policy now supports global AI off and feature-level disable lists while preserving deterministic commands, reminders, and fallbacks.
+- Low-level HTTP calls and higher-level cache paths both enforce the policy; disabled features cannot make model requests or return old cached AI responses.
+- Planning now prioritizes optional AI and deterministic mood/energy rules. Provider billing and budget tracking stay outside MHM, and response-quality work is paused until the model changes.
+
 ### 2026-10-17 - Adaptive task focus and reminder pressure **COMPLETED**
 - Home, scheduled reminders, and chat suggestions now use one deterministic backend focus policy with urgency guardrails, snooze awareness, subtask preference, time-of-day fit, and effort estimates.
 - Tasks retain five deferrals; repeated snoozes/skips surface a smaller step, **Simplify**, or due-date reconsideration. Discord actions are **Done**, **Snooze**, **Simplify**, and **Leave me alone** with unchanged underlying behavior.
@@ -106,22 +116,6 @@ Guidelines:
 - Category messages are no longer scheduled or sent when automated messages are disabled. A job already queued for that account is dropped instead of sent.
 - Check-ins and task reminders still follow their own switches.
 - Restart the running service so an account that is already disabled stops receiving the messages queued by the current process.
-
-### 2026-10-06 - Schedule saves keep every open period **COMPLETED**
-- Website schedule saves, and the desktop schedule editor, ask the running service to rebuild that category the same way other schedule edits do.
-- A period that still has time left today is scheduled inside the remaining window. It moves to tomorrow only after the window has ended.
-- Sending one period leaves the other periods in that category on the schedule.
-- Two sends conflict only when they are within five minutes, so neighboring windows such as morning and check-in can both go out.
-- Restart the running service so it loads this scheduler. After that, save the schedule again if you want today's remaining windows queued.
-- The period-window helper and the job-matching helpers now have docstrings and shared error handling, and the function registry includes them.
-
-### 2026-10-06 - Error log limit, task routes, and task phrases **COMPLETED**
-- `errors.log` now has one shared handler with the configured size limit, so component errors can rotate the file instead of growing past it.
-- Website task handling is split into one method per action (list, create, update, complete, and the smaller task actions) with the same checks and responses.
-- Due dates, times, priority, tags, links, and recurrence are read in `task_phrase_parser.py`. The command parser calls that module when it builds a task.
-- The three shared-handler helpers are covered by the error decorator, logger tests close their files, and the task-phrase guide uses the full parser path.
-- Size-rollover tests clear leftover backups, and fixture-label lookup uses the newest user so a second audit does not count old check-ins or old log files.
-- Restart MHM so the running process picks up the shared error log. The current oversized `errors.log` rotates on the next error after that restart.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

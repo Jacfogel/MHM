@@ -77,6 +77,26 @@ class TaskReminderDispatcher:
             )
             return MessageSendResult.skipped(user_id, TASK_REMINDER_CATEGORY)
 
+        from core.message_pressure import (
+            resolve_message_pressure,
+            task_reminder_allowed_during_quiet_mode,
+            user_quiet_mode_is_active,
+        )
+
+        quiet_mode = user_quiet_mode_is_active(user_id)
+        from scheduler.user_timezone import user_local_now_naive
+
+        if quiet_mode and not task_reminder_allowed_during_quiet_mode(
+            task,
+            now_dt=user_local_now_naive(user_id),
+        ):
+            logger.info(
+                "Skipping non-urgent task reminder while quiet mode is active",
+                extra={"user_id": user_id, "task_identifier": task_identifier},
+            )
+            return MessageSendResult.skipped(user_id, TASK_REMINDER_CATEGORY)
+        pressure = resolve_message_pressure(user_id)
+
         from communication.core import channel_orchestrator as _orch
 
         prefs_result = _orch.get_user_data(user_id, "preferences")
@@ -100,15 +120,14 @@ class TaskReminderDispatcher:
             return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
         from tasks.task_breakdown import next_open_step
-        from tasks.task_focus import task_focus_signals
 
         focus_step = next_open_step(user_id, task)
-        energy, gentle = task_focus_signals(user_id)
         reminder_message = self.create_task_reminder_message(
             task,
             focus_step=focus_step,
-            energy=energy,
-            gentle=gentle,
+            energy=pressure.energy,
+            gentle=pressure.gentle,
+            low_energy=pressure.low_energy,
         )
         display_title = str(
             (focus_step or task).get("title") or task.get("title") or "Untitled Task"
@@ -205,6 +224,7 @@ class TaskReminderDispatcher:
         *,
         energy: int | None = None,
         gentle: bool = False,
+        low_energy: bool | None = None,
     ) -> str:
         """Create a formatted task reminder message."""
         if not task or not isinstance(task, dict):
@@ -228,7 +248,10 @@ class TaskReminderDispatcher:
             "critical": "🚨",
         }.get(priority, "🟡")
 
-        heading = "A gentle task reminder" if gentle or energy in {1, 2} else "Task Reminder"
+        is_low_energy = energy in {1, 2} if low_energy is None else low_energy
+        heading = (
+            "A gentle task reminder" if gentle or is_low_energy else "Task Reminder"
+        )
         message = f"💡 **{heading}:** {priority_emoji}\n\n"
         message += f"**{title}**\n"
         if isinstance(focus_step, dict):
@@ -243,10 +266,10 @@ class TaskReminderDispatcher:
             message += f"📅 **Due:** {due_date}\n"
 
         message += f"⚡ **Priority:** {priority.title()}\n"
-        reason = explain_task_focus(shown, energy=energy)
+        reason = explain_task_focus(shown, energy=energy, low_energy=is_low_energy)
         if reason:
             message += f"\n**Why this one:** {reason}"
-        if gentle or energy in {1, 2}:
+        if gentle or is_low_energy:
             message += "\n\nA smaller step is enough today—use **Simplify** if that would help."
         deferral_advice = repeated_deferral_advice(task, focus_step=focus_step)
         if deferral_advice:

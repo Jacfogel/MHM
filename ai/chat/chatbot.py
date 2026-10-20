@@ -42,6 +42,12 @@ from ai.client.cache_manager import get_response_cache
 from ai.prompts.command_interpreter import get_command_interpreter
 from ai.fallback import get_fallback_responses
 from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
+from ai.usage_policy import (
+    AIUsageFeature,
+    get_ai_usage_policy_status,
+    is_ai_usage_allowed,
+    usage_feature_for_response_mode,
+)
 from ai.chat.response_generator import get_response_generator
 from ai.client.lm_studio_client import (
     LmStudioCompletion,
@@ -162,7 +168,7 @@ class AIChatBotSingleton:
         self._refresh_lm_studio_availability()
 
         # If connection failed, check LM Studio status
-        if not self.lm_studio_available:
+        if not self.lm_studio_available and is_ai_usage_allowed():
             try:
                 from ai.client.lm_studio_manager import is_lm_studio_ready
 
@@ -218,6 +224,10 @@ class AIChatBotSingleton:
     @handle_errors("refreshing LM Studio availability", default_return=None)
     def _refresh_lm_studio_availability(self):
         """Update lm_studio_available from a live connection test."""
+        if not is_ai_usage_allowed():
+            self.lm_studio_available = False
+            ai_logger.info("AI connection check skipped by usage policy")
+            return
         self.lm_studio_available = test_lm_studio_connection()
         if os.getenv("MHM_TESTING") == "1" and self.lm_studio_available:
             ai_logger.info("LM Studio connection assumed available for tests")
@@ -231,6 +241,7 @@ class AIChatBotSingleton:
         timeout: int | None = None,
         *,
         stop: list[str] | None = None,
+        usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
     ) -> str | None:
         """Make an API call to LM Studio and keep that call's failure reason."""
         return complete_lm_studio_chat(
@@ -239,6 +250,7 @@ class AIChatBotSingleton:
             temperature=temperature,
             timeout=timeout,
             stop=stop,
+            usage_feature=usage_feature,
         )
 
     @handle_errors(
@@ -303,6 +315,17 @@ class AIChatBotSingleton:
             else self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
         )
         mode = self._normalize_response_mode(mode, user_prompt)
+
+        usage_feature = usage_feature_for_response_mode(mode)
+        if not is_ai_usage_allowed(usage_feature):
+            ai_logger.info(
+                "AI response skipped by usage policy",
+                user_id=user_id,
+                mode=mode,
+                usage_feature=usage_feature.value,
+                prompt_length=len(user_prompt),
+            )
+            return _text_when_model_is_unavailable(mode, user_prompt, user_id)
 
         if mode in ("chat", "personalized") and is_uninterpretable_user_prompt(
             user_prompt
@@ -375,6 +398,7 @@ class AIChatBotSingleton:
                 temperature=temperature,
                 timeout=timeout,
                 stop=stop_sequences,
+                usage_feature=usage_feature,
             )
             text, failure = _text_from_lm_call(result)
 
@@ -439,16 +463,16 @@ class AIChatBotSingleton:
     @handle_errors("normalizing response mode", default_return="chat")
     def _normalize_response_mode(self, mode: str | None, user_prompt: str) -> str:
         """Normalize generation mode to supported values."""
-        if mode == "personalized":
-            return "personalized"
+        if mode in ("personalized", "response_enhancement"):
+            return mode
         resolved_mode = (
             mode if mode is not None else get_command_interpreter().detect_mode(user_prompt)
         )
         if resolved_mode is None:
             return "chat"
         resolved_mode = resolved_mode.lower()
-        if resolved_mode == "personalized":
-            return "personalized"
+        if resolved_mode in ("personalized", "response_enhancement"):
+            return resolved_mode
         if resolved_mode != "chat" and not resolved_mode.startswith("command"):
             return "chat"
         return resolved_mode
@@ -498,6 +522,8 @@ class AIChatBotSingleton:
     @handle_errors("ensuring LM Studio availability", default_return=False)
     def _ensure_lm_studio_available(self) -> bool:
         """Ensure LM Studio availability by retrying connection if needed."""
+        if not is_ai_usage_allowed():
+            return False
         if not self.lm_studio_available:
             self._test_lm_studio_connection()
         return self.lm_studio_available
@@ -711,7 +737,7 @@ class AIChatBotSingleton:
         """
         Check if the AI model is available and functional.
         """
-        return self.lm_studio_available
+        return self.lm_studio_available and is_ai_usage_allowed()
 
     @handle_errors("reloading system prompt", default_return=None)
     def reload_system_prompt(self):
@@ -761,15 +787,20 @@ class AIChatBotSingleton:
         """
         Get detailed status information about the AI system.
         """
+        usage_policy = get_ai_usage_policy_status()
+        ai_functional = self.lm_studio_available and bool(
+            usage_policy.get("automatic_calls_allowed")
+        )
         return {
             "lm_studio_available": self.lm_studio_available,
             "lm_studio_base_url": LM_STUDIO_BASE_URL,
             "lm_studio_model": LM_STUDIO_MODEL,
-            "ai_functional": self.lm_studio_available,
-            "fallback_mode": not self.lm_studio_available,
+            "ai_functional": ai_functional,
+            "fallback_mode": not ai_functional,
             "cache_enabled": AI_CACHE_RESPONSES,
             "cache_size": len(self.response_cache.cache),
             "timeout_seconds": AI_TIMEOUT_SECONDS,
+            "usage_policy": usage_policy,
             # System prompt information
             "custom_prompt_enabled": AI_USE_CUSTOM_PROMPT,
             "custom_prompt_path": AI_SYSTEM_PROMPT_PATH,
@@ -801,7 +832,9 @@ class AIChatBotSingleton:
         if timeout is None:
             timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT
 
-        if not self.lm_studio_available:
+        if not is_ai_usage_allowed(
+            AIUsageFeature.PERSONALIZED_MESSAGES
+        ) or not self.lm_studio_available:
             return get_fallback_responses().personalized(user_id, source=source)
 
         from core.health_context_builder import (
@@ -906,6 +939,8 @@ class AIChatBotSingleton:
 
         name = preferred_name_from_context(load_user_context(user_id))
         fallback = simple_greeting_text(name)
+        if not is_ai_usage_allowed(AIUsageFeature.CONVERSATION):
+            return fallback
         if not self._ensure_lm_studio_available():
             return fallback
 
@@ -926,6 +961,7 @@ class AIChatBotSingleton:
             max_tokens=80,
             temperature=0.4,
             timeout=6,
+            usage_feature=AIUsageFeature.CONVERSATION,
         )
         text = (raw or "").strip()
         if len(text) < 3 or reply_cites_checkin_statistics(text):
@@ -987,7 +1023,10 @@ class AIChatBotSingleton:
             )
             return response
 
-        if not self.lm_studio_available:
+        if (
+            not is_ai_usage_allowed(AIUsageFeature.CONVERSATION)
+            or not self.lm_studio_available
+        ):
             fallback_response = get_fallback_responses().contextual(
                 user_prompt, user_id, envelope=envelope
             )
@@ -1059,6 +1098,7 @@ class AIChatBotSingleton:
                 max_tokens=contextual_max_tokens,
                 temperature=contextual_temperature,
                 timeout=timeout,
+                usage_feature=AIUsageFeature.CONVERSATION,
             )
             text, _failure = _text_from_lm_call(result)
 

@@ -14,6 +14,7 @@ from ai.prompts.action_catalog import (
     get_action_catalog,
 )
 from ai.client.lm_studio_client import call_lm_studio_api
+from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from ai.prompts.command_interpreter import get_command_interpreter
 from ai.prompts.command_registry import canonicalize_intent_name
 from tasks.task_reference import (
@@ -237,7 +238,9 @@ class ActionPlanner:
 
             ai_chatbot = get_ai_chatbot()
 
-        if not ai_chatbot.is_ai_available():
+        if not is_ai_usage_allowed(
+            AIUsageFeature.ACTION_PLANNING
+        ) or not ai_chatbot.is_ai_available():
             logger.debug("AI unavailable for action planning; defaulting to answer_only")
             return answer_only_plan(user_message, planning_method="ai_unavailable")
 
@@ -256,6 +259,7 @@ class ActionPlanner:
             temperature=AI_COMMAND_TEMPERATURE,
             timeout=AI_COMMAND_PARSING_TIMEOUT,
             stop=_PLANNING_STOP_SEQUENCES,
+            usage_feature=AIUsageFeature.ACTION_PLANNING,
         )
         if not raw_response or not str(raw_response).strip():
             logger.warning(

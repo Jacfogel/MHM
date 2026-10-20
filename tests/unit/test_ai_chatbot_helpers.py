@@ -30,6 +30,38 @@ def chatbot_instance():
 class TestAIChatBotHelpers:
     """Test helper methods in AIChatBotSingleton."""
 
+    def test_disabled_chat_uses_fallback_before_cache_or_model(self, chatbot_instance):
+        """Feature policy must also block cached AI responses."""
+        with (
+            patch("ai.chat.chatbot.is_ai_usage_allowed", return_value=False),
+            patch.object(chatbot_instance, "_get_cached_non_chat_response") as cache,
+            patch.object(chatbot_instance, "_call_lm_studio_api") as model_call,
+        ):
+            response = chatbot_instance.generate_response(
+                "Hello", user_id="policy_user", mode="chat"
+            )
+
+        assert isinstance(response, str)
+        assert response.strip()
+        cache.assert_not_called()
+        model_call.assert_not_called()
+
+    def test_disabled_personalized_messages_skip_cache(self, chatbot_instance):
+        """Personalized feature policy must run before its response cache."""
+        with (
+            patch("ai.chat.chatbot.is_ai_usage_allowed", return_value=False),
+            patch.object(chatbot_instance.response_cache, "get") as cache,
+            patch("ai.chat.chatbot.get_fallback_responses") as fallbacks,
+        ):
+            fallbacks.return_value.personalized.return_value = "Local message"
+            response = chatbot_instance.generate_personalized_message(
+                "policy_user",
+                source="profile",
+            )
+
+        assert response == "Local message"
+        cache.assert_not_called()
+
     def test_make_cache_key_inputs_valid(self, chatbot_instance):
         """Test _make_cache_key_inputs with valid inputs."""
         result = chatbot_instance._make_cache_key_inputs("chat", "Hello", "user123")

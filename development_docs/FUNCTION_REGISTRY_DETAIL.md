@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:19:31
+> **Last Generated**: 2026-10-19 15:27:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 309
-- **Functions Found**: 3208
+- **Files Scanned**: 310
+- **Functions Found**: 3221
 - **Methods Found**: 1640
-- **Classes Found**: 286
-- **Total Items**: 4848
-- **Functions Documented**: 2854
+- **Classes Found**: 289
+- **Total Items**: 4861
+- **Functions Documented**: 2867
 - **Methods Documented**: 1461
-- **Classes Documented**: 219
-- **Total Documented**: 4315
+- **Classes Documented**: 222
+- **Total Documented**: 4328
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-17
+- **Last Updated**: 2026-10-19
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (676)
+### **Core System Functions** (682)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (903)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (192)
+### **Task Management Functions** (193)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -922,6 +922,18 @@ Args:
 Returns:
     True if template was removed, False if not found
 - [OK] `PromptTemplate` - Template for AI prompts
+
+#### `ai/usage_policy.py`
+**Functions:**
+- [OK] `_normalized_token(value)` - Return a configuration token in its canonical comparison form.
+- [OK] `get_ai_usage_mode()` - Return the configured mode, failing closed for an invalid value.
+- [OK] `get_ai_usage_policy_status()` - Return non-secret policy state for status and diagnostics.
+- [OK] `get_disabled_ai_features()` - Return normalized feature names disabled by configuration.
+- [OK] `is_ai_usage_allowed(feature)` - Return whether an automatic model call is allowed for ``feature``.
+- [OK] `usage_feature_for_response_mode(mode)` - Map chatbot response modes to cost-control feature names.
+**Classes:**
+- [OK] `AIUsageFeature` - Product features that may make a model request.
+- [OK] `AIUsageMode` - Supported global AI execution modes.
 
 ### `checkins/` - Unknown Directory
 
@@ -4950,10 +4962,17 @@ Args:
 
 #### `core/message_pressure.py`
 **Functions:**
-- [OK] `resolve_message_pressure(user_id)` - Resolve today's reliable signals without exposing raw health measurements.
+- [OK] `energy_is_low(energy, settings)` - Apply the user's explicit one-to-five energy rule.
+- [OK] `load_message_pressure_settings(user_id)` - Read one user's saved deterministic pressure controls.
+- [OK] `message_pressure_settings_from_preferences(preferences)` - Normalize saved controls without guessing from free-form user text.
+- [OK] `quiet_mode_is_active(settings)` - Return whether the saved quiet-mode expiry is still in the future.
+- [OK] `resolve_message_pressure(user_id)` - Resolve saved controls and today's reliable signals without an LLM.
 - [OK] `scheduled_message_pressure_prefix(user_id)` - Return private prompt guidance shared by all scheduled message categories.
+- [OK] `task_reminder_allowed_during_quiet_mode(task)` - Allow only due, overdue, urgent, or critical task reminders while quiet.
+- [OK] `user_quiet_mode_is_active(user_id)` - Check the manual quiet control without loading health or check-in signals.
 **Classes:**
 - [OK] `MessagePressurePolicy` - Reliable user signals reduced to channel-agnostic pressure guidance.
+- [OK] `MessagePressureSettings` - Saved user controls for deterministic message-pressure decisions.
 
 #### `core/natural_language_defaults.py`
 **Functions:**
@@ -7179,12 +7198,13 @@ answer is cached, so a timeout or an unavailable model can be retried.
 - [OK] `_days_until_due(task, now_dt)` - Return calendar days until the task due date, or None without one.
 - [OK] `_focus_reason(ranked)` - Turn ranking evidence into a short, nonjudgmental explanation.
 - [OK] `_leaf_candidates(tasks, now_dt)` - Return unsnoozed open leaf tasks, falling back to eligible parents.
-- [MISSING] `_rank_task(task, now_dt, energy)` - No description
+- [MISSING] `_rank_task(task, now_dt)` - No description
 - [OK] `_time_band(hour)` - Return the broad day period used by task time-of-day tags.
 - [OK] `_urgency(priority, days_until_due)` - Put tasks in broad bands so energy never hides genuinely urgent work.
 - [OK] `choose_task_focus(tasks)` - Choose one actionable task while preserving urgency guardrails.
 - [OK] `choose_task_focus_for_user(user_id, tasks)` - Choose a focus task with the user's reliable energy and health guidance.
 - [OK] `explain_task_focus(task)` - Explain a task's own urgency and effort without exposing health details.
+- [OK] `task_focus_energy_is_low(user_id, energy)` - Apply the saved energy threshold used by task ranking.
 - [OK] `task_focus_signals(user_id)` - Return today's energy and whether reminders should avoid pressure.
 **Classes:**
 - [OK] `TaskFocusDecision` - A selected task plus the user-facing reason for selecting it.

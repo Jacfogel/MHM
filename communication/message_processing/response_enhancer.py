@@ -4,6 +4,7 @@
 
 from ai.context.assembly import assemble_action_result_messages
 from core.config import AI_MAX_RESPONSE_LENGTH
+from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
@@ -110,7 +111,9 @@ def enhance_response_with_ai(
 ) -> InteractionResponse:
     """Enhance a structured response with AI contextual information."""
     try:
-        if not enable_ai_enhancement:
+        if not enable_ai_enhancement or not is_ai_usage_allowed(
+            AIUsageFeature.RESPONSE_ENHANCEMENT
+        ):
             return response
 
         intent = parsed_command.intent or ""
@@ -147,6 +150,7 @@ def enhance_response_with_ai(
             context_prompt,
             user_id=user_id,
             timeout=3,
+            mode="response_enhancement",
         )
 
         if enhanced_text and len(enhanced_text) > 10:

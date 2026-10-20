@@ -16,6 +16,7 @@ from tasks.task_focus import (
     choose_task_focus,
     task_focus_signals,
 )
+from core.message_pressure import MessagePressureSettings
 
 
 @pytest.mark.unit
@@ -25,9 +26,13 @@ class TestTaskFocusPolicy:
         now = datetime(2026, 10, 17, 10, 0)
 
         assert _time_band("bad") == ""  # type: ignore[arg-type]
-        assert _days_until_due(
-            {"due": {"date": "2026-10-17"}}, None  # type: ignore[arg-type]
-        ) is None
+        assert (
+            _days_until_due(
+                {"due": {"date": "2026-10-17"}},
+                None,  # type: ignore[arg-type]
+            )
+            is None
+        )
         assert _urgency("medium", "bad") == 0  # type: ignore[arg-type]
         assert _focus_reason(None) == (  # type: ignore[arg-type]
             "This is the next task selected by your current priorities."
@@ -125,6 +130,27 @@ class TestTaskFocusPolicy:
                 "core.health_signals.get_message_guidance",
                 return_value=["use_gentle_tone"],
             ),
+            patch(
+                "core.message_pressure.load_message_pressure_settings",
+                return_value=MessagePressureSettings(),
+            ),
         ):
             assert task_focus_signals("user-1") == (None, True)
 
+    def test_explicit_energy_rule_can_leave_energy_two_unmodified(self):
+        tasks = [
+            {"id": "long", "title": "Prepare the long planning document"},
+            {"id": "short", "title": "Email Pat"},
+        ]
+
+        decision = choose_task_focus(
+            tasks,
+            now_dt=datetime(2026, 10, 17, 10, 0),
+            energy=2,
+            low_energy=False,
+            random_value=lambda: 0.0,
+        )
+
+        assert decision is not None
+        assert decision.gentle is False
+        assert "energy is low" not in decision.reason.lower()

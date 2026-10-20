@@ -82,6 +82,7 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
         return estimates
     from ai.chat.chatbot import get_ai_chatbot
     from ai.client.lm_studio_client import call_lm_studio_api
+    from ai.usage_policy import AIUsageFeature
 
     if not get_ai_chatbot().is_ai_available():
         logger.info("Using local task effort estimates because the model is unavailable")
@@ -110,6 +111,7 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
         max_tokens=220,
         temperature=0.2,
         timeout=_EFFORT_TIMEOUT_SECONDS,
+        usage_feature=AIUsageFeature.TASK_EFFORT,
     )
     parsed = {
         item["id"]: item["minutes"]

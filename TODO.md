@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-09-16 (internal username cleanup follow-up)
+> **Last Updated**: 2026-10-19 (cost-aware optional AI direction)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -45,11 +45,31 @@ When adding new tasks, follow this format:
 - **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP).
 - **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
-**Use / fit** (2026-05-21 status): System AI overhaul is complete; post-overhaul AI quality work is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
+**Use / fit** (2026-10-19 status): System AI overhaul is complete. Prompt tuning, response-quality work, NLP expansion, and live tone review are paused until the model changes. Cost-aware optional AI is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
 
 ## High Priority
 
-No active high-priority TODOs are currently tracked here. Keep completed architecture-review decisions in changelogs and architecture guides, not in this file.
+### Optional AI controls
+
+**Finish configurable low-cost AI mode** - Keep all core behavior deterministic while making every model-backed feature explicitly optional.
+- *Created*: 2026-10-19
+- *What it means*: The central global and feature-level execution policy is the first slice. Next, add a real user-facing manual action before introducing a manual-only configuration mode, and keep the policy provider-neutral for the later LM Studio replacement.
+- *Why it helps*: MHM can stay useful without paid model calls, and a future provider cannot silently become required for commands, reminders, or recovery behavior.
+- *Estimated effort*: Medium
+- *Remaining*:
+  - [ ] Add user-facing settings for the global and feature-level controls; environment configuration remains the operational fallback.
+  - [ ] Design one explicit manual AI action, then add manual-only policy semantics around that real trigger.
+  - [ ] Keep provider billing, budgets, and price tracking out of MHM; use the provider's own controls.
+  - [ ] Preserve deterministic fallbacks and avoid cached AI responses whenever a feature is disabled.
+
+### Deterministic adaptation
+
+**Finish deterministic adaptation feedback and cooldowns** - Build on the shipped quiet-mode and energy controls without adding model decisions.
+- *Created*: 2026-10-19
+- *What it means*: Quiet mode with a custom end time, explicit suppression rules, and configurable energy thresholds shipped on 2026-10-19. Next, add an "until tomorrow" shortcut, clearer explanations of which rule changed a decision, and cooldowns that prevent rapid pressure changes.
+- *Why it helps*: MHM can reduce pressure when capacity is low without guessing from chat text or paying for an AI judgment.
+- *Estimated effort*: Small-Medium
+- *Tracking*: [PLANS.md](development_docs/PLANS.md) Section 5.3 and [TASKS_PLAN.md](development_docs/TASKS_PLAN.md) Section 4.3.
 
 ## Medium Priority
 
@@ -78,25 +98,7 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
   - [ ] Create script or tool to help identify and update references automatically (or extend development tools)
   - [ ] Update documentation standards to require section numbers in references
 
-### AI & Conversation
-
-**Improve Natural Language Processing (NLP) Accuracy** - *Active (post-overhaul; [PLANS.md](development_docs/PLANS.md) Section 5.0.1)*
-- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" -> task creation intent).
-- *Why it helps*: More reliable command understanding and fewer misinterpretations
-- *Estimated effort*: Medium
-
-**Conversation Flow Management**
-- *What it means*: Improve conversational state transitions and fallbacks to keep interactions smooth
-- *User priority*: Medium.
-- *Why it helps*: More predictable user experience and fewer dead-ends
-- *Estimated effort*: Medium
-
 ### Performance Optimizations
-
-**Optimize AI Response Times** - *Active (post-overhaul; profile cache/timeouts on hot paths)*
-- *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
-- *Why it helps*: Snappier interactions and better UX
-- *Estimated effort*: Medium
 
 **Improve Message Processing Efficiency**
 - *What it means*: Profile and streamline message pipelines (I/O, parsing, scheduling)
@@ -111,14 +113,6 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 - *Estimated effort*: Medium
 
 ## Low Priority
-
-### Post-overhaul AI (active - see PLANS.md Section 5.0.1)
-
-**AI Chatbot Actionability Sprint** - *Active (post-overhaul)*
-- *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
-- *Why it helps*: Addresses the user's biggest friction and increases real utility.
-- *Estimated effort*: Large
-- *Remaining*: Live LM Studio review of **tone and phrasing** only (categories 1, 2, 11). Safety/honesty on a real model is T-18.x in [`tests/ai/test_ai_live_journeys.py`](tests/ai/test_ai_live_journeys.py). Mocked journeys: [`tests/behavior/test_ai_user_journeys.py`](tests/behavior/test_ai_user_journeys.py). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/context/`; shipped 2026-05-22: [`ai/chat/action_boundaries.py`](ai/chat/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py); shipped 2026-08-26: action planner uses recent user turns so "add that as a task" can create the task you just described; shipped 2026-08-28: "make that due tomorrow" / "that's urgent" / "mark that done" update or complete the recent task, with calmer confirmation phrasing - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 2.2.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing

@@ -306,6 +306,7 @@ class PreferencesV2EnvelopeModel(BaseModel):
     channel: ChannelV2Model = Field(default_factory=lambda: ChannelV2Model(type="email"))
     checkin_settings: dict[str, Any] | None = None
     task_settings: dict[str, Any] | None = None
+    message_pressure_settings: dict[str, Any] | None = None
     natural_language_defaults: dict[str, Any] | None = None
 
     @field_validator("updated_at")

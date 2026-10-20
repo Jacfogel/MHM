@@ -132,6 +132,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         )
     from ai.chat.chatbot import get_ai_chatbot
     from ai.client.lm_studio_client import call_lm_studio_api
+    from ai.usage_policy import AIUsageFeature
     from core.config import AI_COMMAND_PARSING_TIMEOUT
 
     if not get_ai_chatbot().is_ai_available():
@@ -166,6 +167,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         max_tokens=220,
         temperature=0.2,
         timeout=AI_COMMAND_PARSING_TIMEOUT,
+        usage_feature=AIUsageFeature.TASK_BREAKDOWN,
     )
     existing_titles = {
         str(child.get("title") or "").strip().casefold() for child in existing

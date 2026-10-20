@@ -1202,6 +1202,16 @@ class CommunicationManager:
             logger.error("User ID is not provided.")
             return MessageSendResult.failed(category=category)
 
+        if is_scheduled_trigger:
+            from core.message_pressure import user_quiet_mode_is_active
+
+            if user_quiet_mode_is_active(user_id):
+                logger.info(
+                    "Skipping scheduled message while quiet mode is active",
+                    extra={"user_id": user_id, "category": category},
+                )
+                return MessageSendResult.skipped(user_id, category)
+
         # Scheduled sends should defer if user is mid-flow or just completed one.
         if is_scheduled_trigger and allow_deferral:
             block_reason = _get_conversation_manager().get_flow_block_reason(user_id)

@@ -15,6 +15,7 @@ from core.config import (
 )
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 
 logger = get_component_logger("ai")
 
@@ -183,8 +184,20 @@ def complete_lm_studio_chat(
     timeout: int | None = None,
     *,
     stop: list[str] | None = None,
+    usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
 ) -> LmStudioCompletion:
     """Request one completion and keep the failure reason on that result."""
+    if not is_ai_usage_allowed(usage_feature):
+        feature_name = str(usage_feature)
+        logger.info(
+            "AI model call skipped by usage policy",
+            usage_feature=feature_name,
+        )
+        return LmStudioCompletion(
+            text=None,
+            failure=f"AI usage disabled for feature: {feature_name}",
+        )
+
     if timeout is None:
         timeout = AI_API_CALL_TIMEOUT
 
@@ -255,6 +268,7 @@ def call_lm_studio_api(
     timeout: int | None = None,
     *,
     stop: list[str] | None = None,
+    usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
 ) -> str | None:
     """Make a chat/completions request to LM Studio and return the text."""
     completion = complete_lm_studio_chat(
@@ -263,6 +277,7 @@ def call_lm_studio_api(
         temperature=temperature,
         timeout=timeout,
         stop=stop,
+        usage_feature=usage_feature,
     )
     if not isinstance(completion, LmStudioCompletion):
         return None

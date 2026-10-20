@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:20:18
+> **Last Generated**: 2026-10-19 15:28:13
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -33,6 +33,7 @@ C:.
 |
 +---ai
 |   |   SYSTEM_AI_GUIDE.md
+|   |   usage_policy.py
 |   |   __init__.py
 |   |
 |   +---chat
@@ -997,6 +998,7 @@ C:.
 |   |   |   test_ai_import_boundaries.py
 |   |   |   test_ai_prompt_flows.py
 |   |   |   test_ai_response_postprocess.py
+|   |   |   test_ai_usage_policy.py
 |   |   |   test_analytics_handler.py
 |   |   |   test_analytics_handler_helper_branches.py
 |   |   |   test_auto_cleanup_backup_retention.py

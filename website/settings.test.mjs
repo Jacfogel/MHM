@@ -103,6 +103,7 @@ function settingsData(overrides = {}) {
         allergies_sensitivities: [], reminders_needed: [], notes_for_ai: [], loved_ones: [],
       },
       delivery: { timezone: 'America/Regina', channel: 'email' },
+      support: { quiet_mode_until: '', automatic_energy_rules: true, low_energy_threshold: 2 },
       phrases: {
         tonight_start_time: '18:00', after_work_school_time: '17:00',
         time_of_day_defaults: { morning: '09:00', afternoon: '14:00', evening: '18:00', night: '21:00' },
@@ -112,7 +113,7 @@ function settingsData(overrides = {}) {
       tasks: { enabled: true, periods: {}, recurring: {}, custom_templates: {} },
       checkins: { enabled: true, periods: {}, questions: {}, custom_questions: {}, min_questions: 1, max_questions: 1 },
     },
-    revisions: Object.fromEntries(['profile', 'delivery', 'phrases', 'messages', 'tasks', 'checkins'].map(section => [section, `${section}-v1`])),
+    revisions: Object.fromEntries(['profile', 'delivery', 'support', 'phrases', 'messages', 'tasks', 'checkins'].map(section => [section, `${section}-v1`])),
     options: {
       timezones: ['America/Regina'], categories: [], questions: {}, question_category_map: {}, question_categories: {},
     },
@@ -213,12 +214,30 @@ test('settings load every editable section and select the profile by default', a
 
   assert.equal(screen.status.textContent, '');
   assert.equal(screen.retry.hidden, true);
-  assert.equal(screen.nav.children.length, 8);
-  assert.equal(screen.panels.children.length, 8);
+  assert.equal(screen.nav.children.length, 9);
+  assert.equal(screen.panels.children.length, 9);
   assert.equal(screen.document.getElementById('settings-profile').hidden, false);
   assert.equal(screen.document.getElementById('settings-delivery').hidden, true);
   assert.equal(screen.document.getElementById('preferred-name').value, 'River');
   assert.equal(screen.document.getElementById('timezone').value, 'America/Regina');
+});
+
+test('support mode submits an explicit expiry and energy threshold', async () => {
+  const screen = await settingsPage(async request => (
+    request.method === 'GET' ? Response.json(settingsData()) : Response.json(settingsData())
+  ));
+  const form = screen.document.getElementById('settings-support');
+  screen.document.getElementById('quiet-mode-until').value = '2026-10-20T08:30';
+  screen.document.getElementById('low-energy-threshold').value = '3';
+
+  await form.listeners.submit({ preventDefault() {} });
+
+  const save = screen.requests.find(request => request.method === 'POST');
+  assert.equal(save.body.section, 'support');
+  assert.equal(save.body.values.quiet_mode_until, '2026-10-20T08:30');
+  assert.equal(save.body.values.automatic_energy_rules, true);
+  assert.equal(save.body.values.low_energy_threshold, 3);
+  assert.equal(save.body.complete_setup, undefined);
 });
 
 test('saving profile settings locks all forms and submits the current revision', async () => {

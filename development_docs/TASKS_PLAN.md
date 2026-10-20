@@ -219,6 +219,12 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Move the Home focus card onto `/api/tasks/focus`, which returns the deterministic backend decision used by chat and scheduled reminders.
 - [x] Use the plainer Discord labels **Done**, **Snooze**, **Simplify**, and **Leave me alone** while preserving the current complete, snooze, breakdown, and skip actions.
 
+**User-control slice (2026-10-19)**:
+- [x] Add website **Support mode** with a clear quiet-mode end time, an automatic-energy-rules switch, and a configurable low-energy threshold from 1 through 4.
+- [x] Pause scheduled encouragement and check-ins during quiet mode while allowing due, overdue, urgent, and critical task reminders with gentle wording.
+- [x] Apply the saved energy threshold to both task focus ranking and reminder wording; disabling the rule leaves check-in energy available without changing pressure.
+- [x] Keep manual replies and actions available, and never infer energy or quiet mode from ordinary chat text.
+
 **Acceptance**:
 - The same user state produces the same urgency guardrails in Home, chat, and scheduled reminders.
 - Low energy changes effort preference and wording, never whether urgent work is disclosed.
@@ -246,11 +252,11 @@ Notebook and tasks both use concepts like tags, short IDs, search/list views, an
 
 ### 5.1 User-customizable natural-language timeframes
 
-**Status**: Planned  
+**Status**: Completed (2026-06-27); implementation redesign only if prioritized
 **Priority**: Medium  
 **Why it matters**: Parser and `parse_relative_date` currently use fixed defaults (for example `tonight` → 18:00, `after work` / `after school` → 17:00, weekend `this week` → end of the coming week). Different schedules and time zones need per-user settings.
 
-**Implement later**:
+**Implemented**:
 - [x] Add preference fields under task settings (for example in `preferences.json` / `task_settings`): `tonight_start_time`, `after_work_school_time` (shared default for “after work” and “after school”), `time_of_day_defaults` (morning/afternoon/evening/night), and optionally `weekend_this_week_means_coming_week` (boolean, default true) (2026-06-24).
 - [x] Load preferences in `task_service.parse_relative_date` and `command_parser._extract_task_entities` via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) instead of hard-coded constants (2026-06-24 core helper; 2026-06-27 moved to preferences root).
 - [x] Expose settings via Discord command and/or desktop UI (2026-06-27: `show phrase settings`, `set tonight to 8pm`; admin **Phrase Settings** dialog — not in task widget).
@@ -260,6 +266,8 @@ Notebook and tasks both use concepts like tags, short IDs, search/list views, an
 **Acceptance**:
 - A user can change what “tonight” and “after work/school” mean without code changes.
 - Defaults remain sensible when preferences are unset.
+
+The website now exposes these settings as well. The current implementation is not a new feature gap; any replacement should be a deliberate UX or architecture redesign rather than a parallel settings system.
 
 **Note (2026-05-22)**: Current shipped defaults — `tonight` 18:00, `after work` / `after school` 17:00, Sat/Sun `this week` → Sunday at end of the coming week.
 

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-17 17:19:31
+> **Last Generated**: 2026-10-19 15:27:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.0% [!] GOOD**
-- **Total Functions**: 3208
+- **Total Functions**: 3221
 - **Total Methods**: 1640
-- **Documented**: 4315/4848
-- **Files Scanned**: 309
+- **Documented**: 4328/4861
+- **Files Scanned**: 310
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -194,7 +194,7 @@ Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::main()` - Complexity: 2820
 2. [OK] `run_tests.py::run_command()` - Complexity: 2212
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1898
-4. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1431
+4. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1537
 5. [OK] `core/web_account_service.py::oauth_callback()` - Complexity: 1043
 
 
@@ -205,15 +205,15 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (38 files, 443 functions)
+- `ai/` - AI chatbot functionality (39 files, 449 functions)
 - `checkins/` -  (7 files, 154 functions)
 - `communication/` - Communication channels and message processing (98 files, 1556 functions)
-- `core/` - System utilities and data management (51 files, 929 functions)
+- `core/` - System utilities and data management (51 files, 935 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)
 - `scheduler/` -  (9 files, 121 functions)
 - `storage/` -  (17 files, 147 functions)
-- `tasks/` - Task management system (18 files, 206 functions)
+- `tasks/` - Task management system (18 files, 207 functions)
 - `ui/` - User interface components (44 files, 1010 functions)
 - `user/` - User context and preferences (5 files, 52 functions)
 

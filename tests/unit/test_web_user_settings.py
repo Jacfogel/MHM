@@ -14,7 +14,13 @@ from core.web_user_settings import (
     build_settings_updates,
     settings_snapshot,
 )
-from tests.unit.test_web_account_service import Accounts, ORIGIN, request_code, verify, web_client
+from tests.unit.test_web_account_service import (
+    Accounts,
+    ORIGIN,
+    request_code,
+    verify,
+    web_client,
+)
 
 pytestmark = [pytest.mark.unit, pytest.mark.user]
 
@@ -103,6 +109,50 @@ def test_checkin_defaults_are_two_and_three(documents):
     checkins = values(documents, "checkins")
     assert checkins["min_questions"] == 2
     assert checkins["max_questions"] == 3
+
+
+def test_support_controls_round_trip_without_changing_other_preferences(documents):
+    draft = values(documents, "support")
+    assert draft == {
+        "quiet_mode_until": "",
+        "automatic_energy_rules": True,
+        "low_energy_threshold": 2,
+    }
+    draft.update(
+        quiet_mode_until="2026-10-20T08:30",
+        automatic_energy_rules=True,
+        low_energy_threshold=3,
+    )
+
+    updates = build_settings_updates(documents, OPTIONS, "support", draft)
+
+    saved = updates["preferences"]
+    assert saved["message_pressure_settings"] == {
+        "quiet_mode_until": "2026-10-20 08:30:00",
+        "automatic_energy_rules": True,
+        "low_energy_threshold": 3,
+    }
+    assert saved["task_settings"] == {"custom": "keep"}
+
+    snapshot = settings_snapshot({**documents, "preferences": saved}, OPTIONS)
+    assert snapshot["sections"]["support"]["quiet_mode_until"] == ("2026-10-20T08:30")
+
+
+@pytest.mark.parametrize(
+    ("field", "bad"),
+    [
+        ("quiet_mode_until", "tomorrow"),
+        ("automatic_energy_rules", "true"),
+        ("low_energy_threshold", 5),
+        ("low_energy_threshold", True),
+    ],
+)
+def test_support_controls_reject_invalid_values(documents, field, bad):
+    draft = values(documents, "support")
+    draft[field] = bad
+
+    with pytest.raises(ValidationError):
+        build_settings_updates(documents, OPTIONS, "support", draft)
 
 
 def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
@@ -541,16 +591,30 @@ async def test_personal_message_library_crud_uses_allowed_categories_and_periods
 
     client, _, sent = settings_gateway
     stored = []
-    monkeypatch.setattr(manager, "load_user_messages", lambda uid, category: deepcopy(stored))
-    monkeypatch.setattr(manager, "is_ai_generated_message_category", lambda category: False)
-    monkeypatch.setattr(manager, "add_message", lambda uid, category, message: stored.append(deepcopy(message)))
+    monkeypatch.setattr(
+        manager, "load_user_messages", lambda uid, category: deepcopy(stored)
+    )
+    monkeypatch.setattr(
+        manager, "is_ai_generated_message_category", lambda category: False
+    )
+    monkeypatch.setattr(
+        manager,
+        "add_message",
+        lambda uid, category, message: stored.append(deepcopy(message)),
+    )
 
     def edit(uid, category, message_id, values):
         target = next(item for item in stored if item["id"] == message_id)
         target.update(deepcopy(values))
 
     monkeypatch.setattr(manager, "edit_message", edit)
-    monkeypatch.setattr(manager, "delete_message", lambda uid, category, message_id: stored.remove(next(item for item in stored if item["id"] == message_id)))
+    monkeypatch.setattr(
+        manager,
+        "delete_message",
+        lambda uid, category, message_id: stored.remove(
+            next(item for item in stored if item["id"] == message_id)
+        ),
+    )
     token = (await (await request_code(client)).json())["challenge"]
     assert (await verify(client, token, sent[-1])).status == 200
 
@@ -578,16 +642,20 @@ async def test_personal_message_library_crud_uses_allowed_categories_and_periods
     )
     assert edited.status == 200
     assert (await edited.json())["message"]["active"] is False
-    assert (await client.post(
-        "/api/messages?category=motivational",
-        json={**payload, "periods": ["Unknown"]},
-        headers={"Origin": ORIGIN},
-    )).status == 400
-    assert (await client.delete(
-        f"/api/messages/motivational/{message['id']}",
-        json={},
-        headers={"Origin": ORIGIN},
-    )).status == 200
+    assert (
+        await client.post(
+            "/api/messages?category=motivational",
+            json={**payload, "periods": ["Unknown"]},
+            headers={"Origin": ORIGIN},
+        )
+    ).status == 400
+    assert (
+        await client.delete(
+            f"/api/messages/motivational/{message['id']}",
+            json={},
+            headers={"Origin": ORIGIN},
+        )
+    ).status == 200
     assert stored == []
 
 
@@ -596,6 +664,7 @@ async def test_authenticated_delivery_actions_write_scoped_service_requests(
     settings_gateway, monkeypatch, tmp_path
 ):
     from core import service_utilities
+
     client, accounts, sent = settings_gateway
     accounts.docs["existing"]["preferences"]["channel"] = {"type": "email"}
     accounts.docs["existing"]["account"]["features"]["checkins"] = "enabled"
@@ -746,5 +815,7 @@ def test_save_settings_reschedules_only_changed_schedule_categories(monkeypatch)
     assert requested == [("user-1", "motivational", "website_settings")]
 
     requested.clear()
-    assert save_settings("user-1", {"preferences": {"channel": {"type": "email"}}}) is True
+    assert (
+        save_settings("user-1", {"preferences": {"channel": {"type": "email"}}}) is True
+    )
     assert requested == []

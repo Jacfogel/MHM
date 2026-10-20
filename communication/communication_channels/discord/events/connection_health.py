@@ -176,6 +176,7 @@ class DiscordConnectionHealthMixin:
         logger.error(f"Network connectivity did not recover within {max_wait} seconds")
         return False
 
+    # devtools: intentional[duplicate-functions]: discord_connection_status_views
     @handle_errors("getting detailed connection status", default_return={})
     def _get_detailed_connection_status(self) -> dict[str, Any]:
         status_info = {
@@ -199,6 +200,7 @@ class DiscordConnectionHealthMixin:
                 status_info["discord_status_error"] = str(exc)
         return status_info
 
+    # devtools: intentional[duplicate-functions]: discord_connection_status_contract
     @handle_errors("updating connection status", default_return=None)
     def _shared__update_connection_status(
         self,
@@ -302,6 +304,7 @@ class DiscordConnectionHealthMixin:
     def get_health_status(self) -> dict[str, Any]:
         return self._get_detailed_connection_status()
 
+    # devtools: intentional[duplicate-functions]: discord_connection_status_views
     @handle_errors("getting connection status summary", default_return="Unknown")
     def get_connection_status_summary(self) -> str:
         status_info = self._get_detailed_connection_status()

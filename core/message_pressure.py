@@ -1,10 +1,17 @@
-"""One pressure policy for task, motivational, and health messages."""
+"""One deterministic pressure policy for task, motivational, and health messages."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
 from core.error_handling import handle_errors
+from core.time_utilities import now_datetime_full, parse_date_only, parse_timestamp_full
+
+DEFAULT_LOW_ENERGY_THRESHOLD = 2
+MIN_LOW_ENERGY_THRESHOLD = 1
+MAX_LOW_ENERGY_THRESHOLD = 4
 
 _GENTLE_GUIDANCE = {
     "avoid_high_pressure_productivity_prompt",
@@ -15,6 +22,15 @@ _GENTLE_GUIDANCE = {
 
 
 @dataclass(frozen=True)
+class MessagePressureSettings:
+    """Saved user controls for deterministic message-pressure decisions."""
+
+    automatic_energy_rules: bool = True
+    low_energy_threshold: int = DEFAULT_LOW_ENERGY_THRESHOLD
+    quiet_mode_until: str | None = None
+
+
+@dataclass(frozen=True)
 class MessagePressurePolicy:
     """Reliable user signals reduced to channel-agnostic pressure guidance."""
 
@@ -22,6 +38,106 @@ class MessagePressurePolicy:
     guidance: tuple[str, ...]
     gentle: bool
     avoid_nagging: bool
+    low_energy: bool = False
+    low_energy_threshold: int = DEFAULT_LOW_ENERGY_THRESHOLD
+    quiet_mode: bool = False
+    quiet_mode_until: str | None = None
+
+
+@handle_errors(
+    "normalizing message pressure settings",
+    default_return=MessagePressureSettings(),
+)
+def message_pressure_settings_from_preferences(
+    preferences: dict[str, Any] | None,
+) -> MessagePressureSettings:
+    """Normalize saved controls without guessing from free-form user text."""
+    raw = (preferences or {}).get("message_pressure_settings") or {}
+    if not isinstance(raw, dict):
+        raw = {}
+
+    automatic = raw.get("automatic_energy_rules", True)
+    if type(automatic) is not bool:
+        automatic = True
+
+    threshold = raw.get("low_energy_threshold", DEFAULT_LOW_ENERGY_THRESHOLD)
+    if (
+        type(threshold) is not int
+        or not MIN_LOW_ENERGY_THRESHOLD <= threshold <= MAX_LOW_ENERGY_THRESHOLD
+    ):
+        threshold = DEFAULT_LOW_ENERGY_THRESHOLD
+
+    quiet_until = raw.get("quiet_mode_until")
+    if not isinstance(quiet_until, str) or parse_timestamp_full(quiet_until) is None:
+        quiet_until = None
+
+    return MessagePressureSettings(
+        automatic_energy_rules=automatic,
+        low_energy_threshold=threshold,
+        quiet_mode_until=quiet_until,
+    )
+
+
+@handle_errors(
+    "loading message pressure settings",
+    default_return=MessagePressureSettings(),
+)
+def load_message_pressure_settings(user_id: str) -> MessagePressureSettings:
+    """Read one user's saved deterministic pressure controls."""
+    from core import get_user_data
+
+    result = get_user_data(user_id, "preferences", normalize_on_read=True)
+    return message_pressure_settings_from_preferences(result.get("preferences"))
+
+
+@handle_errors("checking quiet mode", default_return=False)
+def quiet_mode_is_active(
+    settings: MessagePressureSettings,
+    *,
+    now_dt: datetime | None = None,
+) -> bool:
+    """Return whether the saved quiet-mode expiry is still in the future."""
+    quiet_until = parse_timestamp_full(settings.quiet_mode_until or "")
+    return quiet_until is not None and quiet_until > (now_dt or now_datetime_full())
+
+
+@handle_errors("checking user quiet mode", default_return=False)
+def user_quiet_mode_is_active(user_id: str) -> bool:
+    """Check the manual quiet control without loading health or check-in signals."""
+    from scheduler.user_timezone import user_local_now_naive
+
+    return quiet_mode_is_active(
+        load_message_pressure_settings(user_id),
+        now_dt=user_local_now_naive(user_id),
+    )
+
+
+@handle_errors("applying the low-energy rule", default_return=False)
+def energy_is_low(energy: int | None, settings: MessagePressureSettings) -> bool:
+    """Apply the user's explicit one-to-five energy rule."""
+    return bool(
+        settings.automatic_energy_rules
+        and type(energy) is int
+        and 1 <= energy <= settings.low_energy_threshold
+    )
+
+
+@handle_errors("checking quiet-mode task urgency", default_return=False)
+def task_reminder_allowed_during_quiet_mode(
+    task: dict[str, Any],
+    *,
+    now_dt: datetime | None = None,
+) -> bool:
+    """Allow only due, overdue, urgent, or critical task reminders while quiet."""
+    priority = str(task.get("priority") or "").strip().lower()
+    if priority in {"urgent", "critical"}:
+        return True
+
+    from tasks.task_data_handlers import runtime_task_due_date
+
+    due_text = runtime_task_due_date(task)
+    due = parse_date_only(due_text) if due_text else None
+    return due is not None and due.date() <= (now_dt or now_datetime_full()).date()
 
 
 @handle_errors(
@@ -29,10 +145,11 @@ class MessagePressurePolicy:
     default_return=MessagePressurePolicy(None, (), False, False),
 )
 def resolve_message_pressure(user_id: str) -> MessagePressurePolicy:
-    """Resolve today's reliable signals without exposing raw health measurements."""
+    """Resolve saved controls and today's reliable signals without an LLM."""
     from checkins.checkin_service import today_checkin_energy
     from core.health_signals import get_message_guidance
 
+    settings = load_message_pressure_settings(user_id)
     energy = today_checkin_energy(user_id)
     guidance = tuple(
         dict.fromkeys(
@@ -42,11 +159,22 @@ def resolve_message_pressure(user_id: str) -> MessagePressurePolicy:
         )
     )
     guidance_set = set(guidance)
+    low_energy = energy_is_low(energy, settings)
+    from scheduler.user_timezone import user_local_now_naive
+
+    quiet_mode = quiet_mode_is_active(
+        settings,
+        now_dt=user_local_now_naive(user_id),
+    )
     return MessagePressurePolicy(
         energy=energy,
         guidance=guidance,
-        gentle=energy in {1, 2} or bool(guidance_set & _GENTLE_GUIDANCE),
-        avoid_nagging="avoid_nagging_movement_prompts" in guidance_set,
+        gentle=quiet_mode or low_energy or bool(guidance_set & _GENTLE_GUIDANCE),
+        avoid_nagging=quiet_mode or "avoid_nagging_movement_prompts" in guidance_set,
+        low_energy=low_energy,
+        low_energy_threshold=settings.low_energy_threshold,
+        quiet_mode=quiet_mode,
+        quiet_mode_until=settings.quiet_mode_until if quiet_mode else None,
     )
 
 
@@ -59,7 +187,7 @@ def scheduled_message_pressure_prefix(user_id: str) -> str:
 
     policy = resolve_message_pressure(user_id)
     hints = build_scheduled_message_context_prefix(list(policy.guidance))
-    if policy.energy in {1, 2}:
+    if policy.low_energy:
         guidance = set(policy.guidance)
         energy_hints = []
         if "use_gentle_tone" not in guidance:

@@ -45,6 +45,8 @@ Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_conte
 
 **Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
 
+**Deterministic message pressure** (optional): `preferences.message_pressure_settings` stores `quiet_mode_until` (canonical local timestamp or null), `automatic_energy_rules` (boolean), and `low_energy_threshold` (1-4). Missing values preserve the shipped defaults: quiet mode off, automatic energy rules on, threshold 2. These are user settings, not environment variables or AI prompt controls. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
+
 ---
 
 ## 3. Logging
@@ -177,7 +179,16 @@ These settings control the optional local AI integration.
 
 **Breaks if wrong:** AI calls fail or fall back (depending on implementation); the rest of MHM should continue functioning without AI.
 
-### 6.2. Prompt and timeouts
+### 6.2. Optional AI usage controls
+
+- `AI_USAGE_MODE` - `automatic` (default) permits configured model features; `off` prevents model requests while deterministic commands, reminders, and fallbacks continue. Model connection settings are not required when this is `off`.
+- `AI_DISABLED_FEATURES` - optional comma-separated list of model-backed features to disable. Supported names are `conversation`, `command_interpretation`, `personalized_messages`, `action_planning`, `response_enhancement`, `task_breakdown`, and `task_effort`.
+
+Disabled features do not use cached AI responses. Unknown feature names produce a configuration warning. MHM does not duplicate provider billing limits, budgets, or price tracking.
+
+**Breaks if wrong:** an invalid `AI_USAGE_MODE` fails validation and runtime policy fails closed. Misspelled disabled feature names are ignored after producing a warning.
+
+### 6.3. Prompt and timeouts
 
 - `AI_SYSTEM_PROMPT_PATH`
 - `AI_USE_CUSTOM_PROMPT`

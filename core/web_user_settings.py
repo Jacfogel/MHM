@@ -4,7 +4,7 @@ import copy
 import hashlib
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 
 import pytz
 
@@ -38,7 +38,9 @@ PERSONALIZED_CATEGORIES = {
 }
 
 
-@handle_errors("remembering website setup completion", user_friendly=False, default_return=None)
+@handle_errors(
+    "remembering website setup completion", user_friendly=False, default_return=None
+)
 def remember_setup_complete(account):
     """Mark one in-memory account document as finished with first-run setup."""
     if not isinstance(account, dict):
@@ -48,6 +50,8 @@ def remember_setup_complete(account):
         metadata = {}
         account["metadata"] = metadata
     metadata["website_setup_completed"] = True
+
+
 CUSTOM_QUESTION_TYPES = frozenset(
     {"optional_text", "yes_no", "scale_1_5", "number", "time", "time_pair"}
 )
@@ -108,18 +112,14 @@ def _editable_custom_questions(checkin_settings):
             or not isinstance(definition["category"], str)
             or definition["category"] not in DEFAULT_QUESTION_CATEGORIES
             or not isinstance(definition["validation"], dict)
-            or set(definition["validation"])
-            - {"min", "max", "error_message"}
+            or set(definition["validation"]) - {"min", "max", "error_message"}
             or type(definition["enabled"]) is not bool
             or type(definition["always_include"]) is not bool
             or type(definition["sometimes_include"]) is not bool
             or definition["always_include"]
             and definition["sometimes_include"]
             or definition["enabled"]
-            != (
-                definition["always_include"]
-                or definition["sometimes_include"]
-            )
+            != (definition["always_include"] or definition["sometimes_include"])
         ):
             raise ValidationError("Saved custom questions must use the current format.")
         validation = definition["validation"]
@@ -155,7 +155,9 @@ def _custom_task_templates_for_settings(value):
     try:
         return normalize_custom_task_templates(value, strict=True)
     except ValidationError as exc:
-        raise ValidationError("Saved custom task templates need to be repaired.") from exc
+        raise ValidationError(
+            "Saved custom task templates need to be repaired."
+        ) from exc
 
 
 @handle_errors("loading website settings options", user_friendly=False, re_raise=True)
@@ -195,11 +197,12 @@ def settings_snapshot(documents, options):
     schedules = schedule_categories(copy.deepcopy(documents.get("schedules") or {}))
     features = account.get("features") or {}
     effective_options = copy.deepcopy(options)
-    effective_options["categories"] = _available_message_categories(
-        options, features
-    )
+    effective_options["categories"] = _available_message_categories(options, features)
     task = prefs.get("task_settings") or {}
     checkin = prefs.get("checkin_settings") or {}
+    from core.message_pressure import message_pressure_settings_from_preferences
+
+    pressure = message_pressure_settings_from_preferences(prefs)
     custom_questions = _editable_custom_questions(checkin)
     effective_options.setdefault("questions", {})
     effective_options.setdefault("question_defaults", {})
@@ -214,14 +217,14 @@ def settings_snapshot(documents, options):
     )
 
     phrase_defaults = natural_language_defaults_to_preferences_dict(
-        NaturalLanguageDefaults.from_preferences(
-            prefs.get("natural_language_defaults")
-        )
+        NaturalLanguageDefaults.from_preferences(prefs.get("natural_language_defaults"))
     )
     from tasks.task_time_parsing import parse_time_string
 
     for key in ("tonight_start_time", "after_work_school_time"):
-        phrase_defaults[key] = parse_time_string(phrase_defaults[key]) or phrase_defaults[key]
+        phrase_defaults[key] = (
+            parse_time_string(phrase_defaults[key]) or phrase_defaults[key]
+        )
     phrase_defaults["time_of_day_defaults"] = {
         key: parse_time_string(value) or value
         for key, value in phrase_defaults["time_of_day_defaults"].items()
@@ -257,14 +260,16 @@ def settings_snapshot(documents, options):
                     "sometimes_include": custom.get("sometimes_include", False),
                 }
             else:
-                question_states[key] = effective_options.get("question_defaults", {}).get(
-                    key, "off"
-                )
+                question_states[key] = effective_options.get(
+                    "question_defaults", {}
+                ).get(key, "off")
                 continue
         question_states[key] = (
             "always"
             if question.get("always_include")
-            else "sometimes" if question.get("sometimes_include") else "off"
+            else "sometimes"
+            if question.get("sometimes_include")
+            else "off"
         )
     sections = {
         "profile": {
@@ -277,6 +282,15 @@ def settings_snapshot(documents, options):
         "delivery": {
             "timezone": account.get("timezone", ""),
             "channel": (prefs.get("channel") or {}).get("type", "email"),
+        },
+        "support": {
+            "quiet_mode_until": (
+                pressure.quiet_mode_until[:16].replace(" ", "T")
+                if pressure.quiet_mode_until
+                else ""
+            ),
+            "automatic_energy_rules": pressure.automatic_energy_rules,
+            "low_energy_threshold": pressure.low_energy_threshold,
         },
         "messages": {
             "enabled": features.get("automated_messages") == "enabled",
@@ -357,7 +371,9 @@ def _legal_question_counts(always, sometimes, total_enabled, minimum, maximum):
     return minimum, maximum
 
 
-@handle_errors("validating website settings updates", user_friendly=False, re_raise=True)
+@handle_errors(
+    "validating website settings updates", user_friendly=False, re_raise=True
+)
 def build_settings_updates(documents, options, section, values):
     """Validate all input before producing updates; preserve unrelated saved fields."""
     snapshot = settings_snapshot(documents, options)
@@ -444,7 +460,9 @@ def build_settings_updates(documents, options, section, values):
                 or ("ALL" in days and len(days) != 1)
                 or (period["active"] and not days)
             ):
-                raise ValidationError("Choose valid days for each enabled reminder window.")
+                raise ValidationError(
+                    "Choose valid days for each enabled reminder window."
+                )
         if periods:
             valid, errors = validate_schedule_periods(periods, category)
             # The admin console permits all windows to be disabled when a feature is off.
@@ -578,7 +596,9 @@ def build_settings_updates(documents, options, section, values):
         if not isinstance(values["periods"], dict) or set(values["periods"]) != set(
             categories
         ):
-            raise ValidationError("Provide reminder windows for each selected category.")
+            raise ValidationError(
+                "Provide reminder windows for each selected category."
+            )
         flag("automated_messages")
         for category in categories:
             save_periods(category, values["periods"][category])
@@ -647,8 +667,7 @@ def build_settings_updates(documents, options, section, values):
                 or definition["type"] not in CUSTOM_QUESTION_TYPES
                 or definition["category"] not in allowed_categories
                 or not isinstance(definition["validation"], dict)
-                or set(definition["validation"])
-                - {"min", "max", "error_message"}
+                or set(definition["validation"]) - {"min", "max", "error_message"}
             ):
                 raise ValidationError("Check each custom question and answer type.")
             validation = definition["validation"]
@@ -736,6 +755,37 @@ def build_settings_updates(documents, options, section, values):
             {"questions": questions, "min_questions": minimum, "max_questions": maximum}
         )
         prefs["checkin_settings"] = checkin
+    elif section == "support":
+        quiet_until = values["quiet_mode_until"]
+        if not isinstance(quiet_until, str) or (
+            quiet_until
+            and not re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d",
+                quiet_until,
+            )
+        ):
+            raise ValidationError("Choose a valid quiet-mode end date and time.")
+        if quiet_until:
+            try:
+                datetime.fromisoformat(quiet_until)
+            except ValueError:
+                raise ValidationError(
+                    "Choose a valid quiet-mode end date and time."
+                ) from None
+        automatic = values["automatic_energy_rules"]
+        threshold = values["low_energy_threshold"]
+        if type(automatic) is not bool:
+            raise ValidationError("Choose whether energy rules are enabled.")
+        if type(threshold) is not int or not 1 <= threshold <= 4:
+            raise ValidationError("Choose an energy threshold from 1 to 4.")
+        prefs["message_pressure_settings"] = {
+            "quiet_mode_until": (
+                f"{quiet_until.replace('T', ' ')}:00" if quiet_until else None
+            ),
+            "automatic_energy_rules": automatic,
+            "low_energy_threshold": threshold,
+        }
+        return {"preferences": prefs}
     elif section == "phrases":
         time_fields = (
             "tonight_start_time",
@@ -748,7 +798,9 @@ def build_settings_updates(documents, options, section, values):
             "evening",
             "night",
         }:
-            raise ValidationError("Check the morning, afternoon, evening, and night times.")
+            raise ValidationError(
+                "Check the morning, afternoon, evening, and night times."
+            )
         all_times = [values[key] for key in time_fields] + list(time_of_day.values())
         if any(
             not isinstance(value, str)
@@ -758,7 +810,9 @@ def build_settings_updates(documents, options, section, values):
             raise ValidationError("Use valid times for each phrase setting.")
         weekend = values["weekend_this_week_means_coming_week"]
         if type(weekend) is not bool:
-            raise ValidationError("Choose how MHM should interpret ‘this week’ on weekends.")
+            raise ValidationError(
+                "Choose how MHM should interpret ‘this week’ on weekends."
+            )
         prefs["natural_language_defaults"] = copy.deepcopy(values)
         return {"preferences": prefs}
     return {"account": account, "preferences": prefs, "schedules": schedules}

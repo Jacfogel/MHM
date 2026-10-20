@@ -32,6 +32,7 @@ class DiscordHandlerHost(Protocol):
         """Update channel lifecycle status, optionally recording a human-readable reason."""
         ...
 
+    # devtools: intentional[duplicate-functions]: discord_connection_status_contract
     def _shared__update_connection_status(
         self, status: DiscordConnectionStatus, error_info: dict[str, Any] | None = None
     ) -> None:

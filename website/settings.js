@@ -42,10 +42,11 @@ const MHMSettingsInput = Object.freeze({
 });
 
 (() => {
-  const titles = { profile: 'Profile', delivery: 'Delivery', phrases: 'Phrases', messages: 'Messages', tasks: 'Tasks', checkins: 'Check-ins' };
+  const titles = { profile: 'Profile', delivery: 'Delivery', support: 'Support mode', phrases: 'Phrases', messages: 'Messages', tasks: 'Tasks', checkins: 'Check-ins' };
   const descriptions = {
     profile: 'Tell MHM a little about you. Separate entries with a new line, comma, or semicolon.',
     delivery: 'Choose where your support arrives and the time zone for your reminders.',
+    support: 'Pause non-urgent scheduled messages and choose exactly when check-in energy should lower reminder pressure.',
     phrases: 'Choose how MHM interprets everyday time phrases when you create tasks or reminders.',
     messages: 'Choose the encouragement you want and when it can reach you.',
     tasks: 'Set reminder windows, recurring defaults, and reusable task templates.',
@@ -101,7 +102,7 @@ const MHMSettingsInput = Object.freeze({
     if (kind !== 'textarea') input.type = kind;
     if (kind === 'checkbox') input.checked = !!value;
     else input.value = value ?? '';
-    if (kind === 'date' || kind === 'time') {
+    if (kind === 'date' || kind === 'time' || kind === 'datetime-local') {
       MHMSettingsInput.bindPicker(input);
     }
     if (kind === 'checkbox') { wrapper.classList.add('settings-toggle'); wrapper.append(input, label); }
@@ -494,6 +495,17 @@ const MHMSettingsInput = Object.freeze({
         form.append(connect);
       }
       read = () => ({ timezone: timezone.value, channel: channel.value });
+    } else if (section === 'support') {
+      const quietUntil = field(form, 'Quiet mode until', 'quiet-mode-until', 'datetime-local', values.quiet_mode_until);
+      form.append(el('p', 'Leave this blank to keep quiet mode off. Until this time, MHM pauses scheduled check-ins and encouragement. Only due, overdue, urgent, or critical task reminders can still arrive.', { className: 'field-hint' }));
+      const automatic = field(form, 'Use today’s check-in energy to lower reminder pressure', 'automatic-energy-rules', 'checkbox', values.automatic_energy_rules);
+      const threshold = select(form, 'Treat energy as low at', 'low-energy-threshold', [['1', '1 only'], ['2', '1–2'], ['3', '1–3'], ['4', '1–4']], String(values.low_energy_threshold));
+      const thresholdHint = el('p', 'When enabled, low energy favors shorter tasks and gentler wording. Urgent work stays visible. MHM does not infer energy from chat.', { className: 'field-hint' });
+      form.append(thresholdHint);
+      const syncEnergyControls = () => { threshold.disabled = !automatic.checked; };
+      automatic.addEventListener('change', syncEnergyControls);
+      syncEnergyControls();
+      read = () => ({ quiet_mode_until: quietUntil.value, automatic_energy_rules: automatic.checked, low_energy_threshold: Number(threshold.value) });
     } else if (section === 'phrases') {
       const first = el('div', null, { className: 'settings-two-col' });
       const tonight = field(first, '“Tonight” starts at', 'phrase-tonight', 'time', values.tonight_start_time, { required: '' });

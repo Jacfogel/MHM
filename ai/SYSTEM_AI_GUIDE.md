@@ -328,6 +328,18 @@ When you adjust conversational behavior, edit the category file for that concern
 
 Do not bypass these helpers or call LM Studio directly from other modules.
 
+### 5.3. Optional AI usage policy
+
+`ai/usage_policy.py` is the provider-neutral boundary that decides whether a model-backed feature may run:
+
+- `AI_USAGE_MODE=automatic` preserves normal model use.
+- `AI_USAGE_MODE=off` prevents model requests while deterministic handlers and fallbacks continue.
+- `AI_DISABLED_FEATURES` disables selected automatic features: conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
+
+`ai/client/lm_studio_client.py` enforces the policy immediately before HTTP requests. Higher-level chatbot paths check it before reading the AI response cache, so disabling a feature cannot return an older generated response. Direct feature callers pass their `AIUsageFeature` when requesting a completion.
+
+The policy intentionally does not implement billing budgets or price tracking; the future provider owns those controls. A manual-only mode is deferred until MHM has an explicit user-facing action that can authorize one request.
+
 ---
 
 ## 6. Caching and Performance

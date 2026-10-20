@@ -32,6 +32,17 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-19 - User-controlled quiet mode and deterministic energy rules
+- Added a website **Support mode** section backed by `preferences.message_pressure_settings`. Users can set a local quiet-mode end time, turn automatic energy adaptation off, or choose a low-energy threshold from 1 through 4.
+- The shared message-pressure policy now exposes explicit low-energy and quiet-mode decisions. Task focus ranking, explanations, and reminder wording consume that decision instead of duplicating a hardcoded 1-2 check.
+- Quiet mode skips scheduled check-ins and encouragement. Non-urgent task reminders are skipped, while due, overdue, urgent, and critical reminders remain visible with gentle wording. Manual messages and actions are unaffected.
+- Added policy, website-settings, delivery, persistence, task-focus, and browser coverage. Focused verification passes 118 Python tests and 47 browser tests.
+
+### 2026-10-19 - Optional AI usage policy added
+- **Feature**: Added provider-neutral AI usage controls in `ai/usage_policy.py`. `AI_USAGE_MODE=off` prevents all model requests, while `AI_DISABLED_FEATURES` can independently block conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, and model-based task-effort estimates. The shared LM Studio client enforces the policy before HTTP, and chatbot paths enforce it before reading the AI response cache.
+- **Configuration and planning**: Documented the new environment settings and made cost-aware optional AI plus deterministic mood/energy rules the active product direction. Prompt tuning and response-quality work are paused until the model changes. MHM deliberately does not duplicate provider billing limits, budgets, or price tracking.
+- **Impact**: Core commands, reminders, and deterministic fallbacks remain available when AI is globally or selectively disabled. Invalid modes fail closed, unknown feature names produce configuration warnings, and focused policy/chatbot tests verify that blocked features neither call the model nor return cached AI text.
+
 ### 2026-10-17 - Adaptive task focus and reminder pressure completed
 - **Shared focus policy**: Added [task_focus.py](../tasks/task_focus.py) as the backend selection policy for scheduled task reminders and chat suggestions. It ranks active unsnoozed work by urgency, due proximity, priority, time-of-day fit, subtask availability, and local effort while keeping overdue, critical, urgent, high-priority, and due-today work ahead of easier nonurgent tasks.
 - **Energy and health adaptation**: Today's reliable check-in energy and Google Health message guidance can enable gentle reminder wording. Low-energy selection prefers short tasks or unfinished subtasks only within the highest current urgency band; missing or low-confidence signals keep the established direct tone.

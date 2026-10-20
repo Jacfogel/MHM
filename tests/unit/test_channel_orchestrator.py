@@ -864,6 +864,30 @@ class TestChannelOrchestratorHelpers:
 
         mock_send.assert_not_called()
 
+    def test_quiet_mode_skips_nonurgent_task_reminder(self):
+        task = {
+            "id": "task_quiet",
+            "title": "Plan next month",
+            "status": "active",
+            "priority": "high",
+            "completion": {"completed": False},
+            "due": {"date": "2026-10-20", "time": None},
+        }
+        with (
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("core.message_pressure.user_quiet_mode_is_active", return_value=True),
+            patch(
+                "scheduler.user_timezone.user_local_now_naive",
+                return_value=datetime(2026, 10, 19, 10, 0),
+            ),
+            patch.object(self.manager, "send_message_sync") as mock_send,
+        ):
+            result = self.manager.handle_task_reminder("user_quiet", "task_quiet")
+
+        assert result.status == "skipped"
+        mock_send.assert_not_called()
+
     def test_handle_task_reminder_skips_completed_task(self):
         """Test completed task branch exits without sending."""
         task = {
@@ -981,6 +1005,20 @@ class TestChannelOrchestratorHelpers:
                 user_id, "motivational", is_scheduled_trigger=True, allow_deferral=True
             )
         assert status.status == "deferred"
+
+    def test_handle_message_sending_skips_scheduled_message_during_quiet_mode(self):
+        with (
+            patch("core.message_pressure.user_quiet_mode_is_active", return_value=True),
+            patch.object(
+                self.manager.predefined_dispatcher, "send_predefined_message"
+            ) as mock_send,
+        ):
+            result = self.manager.handle_message_sending(
+                "quiet_user", "motivational", is_scheduled_trigger=True
+            )
+
+        assert result.status == "skipped"
+        mock_send.assert_not_called()
 
     def test_handle_message_sending_defers_when_cooldown_active(self):
         """Scheduled sends should defer during post-flow cooldown."""

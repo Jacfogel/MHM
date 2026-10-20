@@ -27,6 +27,8 @@ _PRIORITY_SCORE = {
     "low": 10,
     "none": 5,
 }
+
+
 @dataclass(frozen=True)
 class TaskFocusDecision:
     """A selected task plus the user-facing reason for selecting it."""
@@ -87,12 +89,11 @@ def _urgency(priority: str, days_until_due: int | None) -> int:
 
 
 def _rank_task(
-    task: dict[str, Any], now_dt: datetime, energy: int | None
+    task: dict[str, Any], now_dt: datetime, *, low_energy: bool
 ) -> _RankedTask:
     priority = str(task.get("priority") or "medium").strip().lower()
     days = _days_until_due(task, now_dt)
     effort = local_task_minutes(task)
-    low_energy = energy in {1, 2}
     reasons: set[str] = set()
     score = float(_PRIORITY_SCORE.get(priority, 20))
 
@@ -114,9 +115,7 @@ def _rank_task(
     if priority in {"critical", "urgent", "high"}:
         reasons.add("priority")
     tags = {
-        str(tag).strip().lower()
-        for tag in task.get("tags", [])
-        if str(tag).strip()
+        str(tag).strip().lower() for tag in task.get("tags", []) if str(tag).strip()
     }
     if _time_band(now_dt.hour) in tags:
         score += 12
@@ -172,8 +171,10 @@ def _focus_reason(ranked: _RankedTask) -> str:
     minutes = ranked.effort_minutes
     if "low-energy" in reasons and minutes <= 15:
         return "Your energy is low today, so this is a small step among the most urgent options."
-    if "low-energy" in reasons and minutes > 15 and (
-        "overdue" in reasons or "due-today" in reasons or "priority" in reasons
+    if (
+        "low-energy" in reasons
+        and minutes > 15
+        and ("overdue" in reasons or "due-today" in reasons or "priority" in reasons)
     ):
         return "This is still urgent today. Breaking it down may make the first step easier."
     if "overdue" in reasons:
@@ -183,14 +184,18 @@ def _focus_reason(ranked: _RankedTask) -> str:
     if "priority" in reasons:
         return "Its priority keeps it ahead of less urgent tasks."
     if "due-soon" in reasons or "due-week" in reasons:
-        return "This is coming up soon, so a start now can keep it from becoming urgent."
+        return (
+            "This is coming up soon, so a start now can keep it from becoming urgent."
+        )
     if "time-of-day" in reasons:
         return "This fits the current time of day."
     return "No deadline is pressing, so this is a manageable next task."
 
 
 @handle_errors("filtering actionable task focus candidates", default_return=[])
-def _leaf_candidates(tasks: list[dict[str, Any]], now_dt: datetime) -> list[dict[str, Any]]:
+def _leaf_candidates(
+    tasks: list[dict[str, Any]], now_dt: datetime
+) -> list[dict[str, Any]]:
     """Return unsnoozed open leaf tasks, falling back to eligible parents."""
     eligible = [
         task
@@ -219,6 +224,7 @@ def choose_task_focus(
     now_dt: datetime | None = None,
     energy: int | None = None,
     gentle: bool = False,
+    low_energy: bool | None = None,
     random_value: Callable[[], float] | None = None,
 ) -> TaskFocusDecision | None:
     """Choose one actionable task while preserving urgency guardrails."""
@@ -227,7 +233,8 @@ def choose_task_focus(
     if not candidates:
         return None
 
-    ranked = [_rank_task(task, now_dt, energy) for task in candidates]
+    is_low_energy = energy in {1, 2} if low_energy is None else low_energy
+    ranked = [_rank_task(task, now_dt, low_energy=is_low_energy) for task in candidates]
     highest_urgency = max(item.urgency for item in ranked)
     comparable = [item for item in ranked if item.urgency == highest_urgency]
     comparable.sort(
@@ -247,7 +254,7 @@ def choose_task_focus(
         reason=_focus_reason(selected),
         effort_minutes=selected.effort_minutes,
         energy=energy,
-        gentle=gentle or energy in {1, 2},
+        gentle=gentle or is_low_energy,
     )
 
 
@@ -258,6 +265,14 @@ def task_focus_signals(user_id: str) -> tuple[int | None, bool]:
 
     policy = resolve_message_pressure(user_id)
     return policy.energy, policy.gentle
+
+
+@handle_errors("reading task focus energy rule", default_return=False)
+def task_focus_energy_is_low(user_id: str, energy: int | None) -> bool:
+    """Apply the saved energy threshold used by task ranking."""
+    from core.message_pressure import energy_is_low, load_message_pressure_settings
+
+    return energy_is_low(energy, load_message_pressure_settings(user_id))
 
 
 @handle_errors("choosing task focus for user", default_return=None)
@@ -275,13 +290,25 @@ def choose_task_focus_for_user(
         now_dt=now_dt,
         energy=energy,
         gentle=gentle,
+        low_energy=task_focus_energy_is_low(user_id, energy),
         random_value=random_value,
     )
 
 
 @handle_errors("explaining focused task", default_return="")
 def explain_task_focus(
-    task: dict[str, Any], *, now_dt: datetime | None = None, energy: int | None = None
+    task: dict[str, Any],
+    *,
+    now_dt: datetime | None = None,
+    energy: int | None = None,
+    low_energy: bool | None = None,
 ) -> str:
     """Explain a task's own urgency and effort without exposing health details."""
-    return _focus_reason(_rank_task(task, now_dt or now_datetime_full(), energy))
+    is_low_energy = energy in {1, 2} if low_energy is None else low_energy
+    return _focus_reason(
+        _rank_task(
+            task,
+            now_dt or now_datetime_full(),
+            low_energy=is_low_energy,
+        )
+    )

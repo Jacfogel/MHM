@@ -7,6 +7,7 @@ from typing import Any
 
 from ai.chat.action_planner import get_action_planner
 from ai.client.lm_studio_client import call_lm_studio_api
+from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from ai.context.assembly import assemble_action_result_messages
 from ai.fallback.conversational import (
     is_simple_greeting,
@@ -290,7 +291,11 @@ class ActionPlanExecutor:
     ) -> InteractionResponse:
         """Rewrite handler output using the action_result_response prompt flow."""
         source = str(getattr(action, "source_message", "") or "")
-        if is_simple_greeting(source) or not ai_chatbot.is_ai_available():
+        if (
+            is_simple_greeting(source)
+            or not is_ai_usage_allowed(AIUsageFeature.RESPONSE_ENHANCEMENT)
+            or not ai_chatbot.is_ai_available()
+        ):
             return handler_response
 
         result_metadata = metadata.to_dict()
@@ -307,6 +312,7 @@ class ActionPlanExecutor:
             max_tokens=120,
             temperature=0.4,
             timeout=6,
+            usage_feature=AIUsageFeature.RESPONSE_ENHANCEMENT,
         )
         enhanced_text = (raw or "").strip()
         if len(enhanced_text) <= 10:

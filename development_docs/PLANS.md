@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-10-17
+> **Last Updated**: 2026-10-19
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -65,10 +65,11 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Model slice is recent titles, pinned entries, and a short summary when untitled; Home shows recent titles |
-| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Adaptive focus and reminder pressure are complete across Home, chat, scheduled reminders, and motivational/health messaging; select the next task-system slice |
+| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode and explicit energy controls are complete; select the next task-system slice |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
-| Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy (everyday phrasing shipped); command-list parity shipped 2026-08-26; response-time tuning; actionability sprint |
+| Cost-aware optional AI | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Central execution policy, feature-level off switches, deterministic fallbacks; manual-only controls later |
+| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Decision explanations, cooldowns, and an "until tomorrow" shortcut |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
@@ -92,25 +93,27 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 ---
 
-### 5.0.1 Post-overhaul AI quality (active follow-ups)
+### 5.0.1 Cost-aware optional AI
 
 **Status**: **ACTIVE**  
 **Priority**: High  
-**Started**: 2026-05-21  
-**Tracking**: [TODO.md](../TODO.md) (AI & Conversation, Performance Optimizations)
+**Started**: 2026-10-19
+**Tracking**: [TODO.md](../TODO.md) (AI & Conversation)
 
-**Use / fit**: Improve real-world utility now that interaction-type separation is stable. Deterministic handlers remain authoritative; AI assists wording, intent hints, and clarification only.
+**Use / fit**: Keep MHM useful at no model cost for as long as practical. Deterministic handlers remain authoritative. AI is optional and must be easy to disable globally or for individual product features before a paid provider replaces LM Studio.
 
 **Workstreams** (in recommended order):
 
-1. **Command list parity** - Runtime injection via `ai/command_registry.py` is in place; injection self-initializes the parser; exact set-parity tests cover catalog, command prompt, and planning summary. `ACTION: create note` / `start check-in` canonicalize to live parser names. Remaining: none required unless a new static list is added.
-2. **NLP / mode detection** - Expand `ai/command_interpreter.py` keywords and natural-language task patterns; add regression tests aligned with `command_parser` intents. Everyday create/complete/list/append phrases shipped 2026-08-26.
-3. **Response-time tuning** - Profile hot paths (`generate_quick_response`, command parsing, context assembly); tune cache TTL and timeouts where safe without stale user context.
-4. **Actionability sprint** - CRUD reliability, feature-flag-aware suggestions, and non-conflicting guidance using recent automated messages (partially present in `ai/conversational_context/`).
+1. **Central execution policy** - Every model request passes through one policy boundary. `AI_USAGE_MODE=off` prevents model requests, while deterministic commands, reminders, and fallbacks continue.
+2. **Feature-level controls** - `AI_DISABLED_FEATURES` can independently disable conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
+3. **Manual-only controls** - Later, expose an explicit user action that can authorize one model request while automatic AI remains disabled. Do not add a configuration mode until an actual user-facing trigger exists.
+4. **Provider replacement boundary** - Keep usage policy independent from LM Studio so a future paid provider cannot bypass the same controls.
 
-**First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.  
-**Follow-up (2026-08-26)**: Parser coverage for casual task phrasing (`i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `add X to my list`, `i gotta...`, then `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `show my list`, `cross off...`) plus identifier/title cleanup and notebook capture (`jot down...`, `add a note about...`, `keep in mind that...`, `write this down...`). Command-list parity: live parser intents in prompts/catalog/planning; `ACTION: create note` / `start check-in` canonicalize. Action planner follow-ups: recent user turns ground titles for "add that as a task" without inventing example titles.
-**Follow-up (2026-08-28)**: Pronoun task follow-ups (`make that due tomorrow`, `that's urgent`, `mark that done`) update or complete the recently mentioned or created task. Completing a task does not make "that" jump to a leftover. Thinking-out-loud create (`i should...`, `i gotta...`) asks first. Result-aware and offer language stay calm instead of teaching command syntax. Live LM Studio tone review remains.
+**First slice shipped (2026-10-19)**: `ai/usage_policy.py`, the shared client boundary, and chatbot cache checks enforce `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Configuration validation fails closed for an invalid mode and does not require model connection settings when AI is off.
+
+**Out of scope**: MHM will not duplicate provider billing, budgets, or price tracking. The selected provider owns monetary limits. MHM owns only whether a feature may request AI.
+
+**Paused until the model changes**: Prompt tuning, response-quality work, NLP expansion, live tone review, and generalized AI response-time optimization. Completed command parity, everyday phrasing, action boundaries, and pronoun follow-ups remain in place.
 
 ---
 
@@ -179,7 +182,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most: selecting the right number of questions from the right lists, responding dynamically, saving results properly, and supporting flexible response formats.
 
-**Completed baseline**:
+**Completed baseline and first user-control slice**:
 
 - Deferral and cooldown behavior implemented in runtime.
 - One-time retry scheduling implemented.
@@ -217,6 +220,36 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 - [ ] Review direct `handle_error` calls when generated reports surface them.
 
 **Reference**: [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+
+---
+
+### 5.3 Deterministic mood and energy rules
+
+**Status**: **ACTIVE**
+**Priority**: High
+**Started**: 2026-10-19
+
+**Use / fit**: Adapt task selection and reminder pressure without relying on an LLM. Rules must be explicit, inspectable, and user-controlled.
+
+**Completed baseline**:
+
+- The shared task-focus policy already prefers smaller work within the same urgency band when reliable low-energy or health signals are present.
+- Reliable `avoid_nagging_movement_prompts` guidance already softens pressure across task, motivational, and Google Health messages.
+- Missing or low-confidence signals preserve established behavior instead of guessing.
+- Website **Support mode** stores a user-chosen quiet-mode end time. While active, scheduled encouragement and check-ins pause; task reminders continue only for due, overdue, urgent, or critical work and use gentle wording.
+- Users can disable automatic energy adaptation or choose a low-energy threshold from 1 through 4. The same saved rule drives task ranking and reminder wording.
+- Manual replies and actions remain available during quiet mode. Rules use saved preferences and reliable check-in/health data only, never ordinary chat text or an LLM judgment.
+
+**Next slices**:
+
+- [x] Add a manual quiet mode with a clear custom end time.
+- [ ] Add a convenience "until tomorrow" quiet-mode shortcut.
+- [x] Define which scheduled messages quiet mode suppresses, softens, or allows because they are genuinely urgent.
+- [x] Expose explicit user preferences for energy thresholds and automatic gentle-mode behavior.
+- [ ] Explain which reliable signal or preference changed a focus or reminder decision.
+- [ ] Add cooldowns so changing signals do not make reminder pressure oscillate.
+
+**Guardrails**: Never hide urgent work; never infer mood from ordinary chat text; never require AI to evaluate the rules.
 
 ---
 
@@ -414,29 +447,7 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ---
 
-### 8.2 Mood-aware support calibration
-
-**Status**: **DEFERRED**  
-**Priority**: High once foundational work is stable
-
-**Use / fit**: This is important for long-term usefulness: gentler support when mood/energy is low, less nagging when overwhelmed, and better action suggestions based on state.
-
-**Why deferred**:
-
-- It depends on more reliable check-ins, task usage, and AI/prompt architecture.
-- It overlaps with future task context, reminder tone, and AI overhaul work.
-
-**Keep for later**:
-
-- Safety-net prompt language.
-- Mood/energy-to-reminder mapping.
-- Quiet/unavailable mode rules.
-- Mood re-evaluation triggers and cooldowns.
-- Low-energy task suggestions.
-
----
-
-### 8.3 Message analytics, deduplication, and proactive intelligence
+### 8.2 Message analytics, deduplication, and proactive intelligence
 
 **Status**: **DEFERRED / MONITORING**  
 **Priority**: Low/Medium
@@ -460,7 +471,7 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ---
 
-### 8.4 UI polish and validation
+### 8.3 UI polish and validation
 
 **Status**: **DEFERRED / OPPORTUNISTIC**  
 **Priority**: Low
@@ -488,7 +499,7 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 
 ---
 
-### 8.5 Cross-channel sync
+### 8.4 Cross-channel sync
 
 **Status**: **DEFERRED**  
 **Priority**: Low
@@ -510,7 +521,7 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 
 ---
 
-### 8.6 Smart home integration
+### 8.5 Smart home integration
 
 **Status**: **ARCHIVED / FUTURE ONLY**  
 **Priority**: None currently

@@ -147,6 +147,12 @@ AI_CUDA_WARMUP = (
 )  # Disabled for LM Studio
 AI_CACHE_RESPONSES = os.getenv("AI_CACHE_RESPONSES", "true").lower() == "true"
 
+# AI Usage Policy Configuration
+# ``automatic`` preserves current behavior. ``off`` keeps deterministic product
+# features and fallbacks available while preventing model requests.
+AI_USAGE_MODE = os.getenv("AI_USAGE_MODE", "automatic").strip().lower()
+AI_DISABLED_FEATURES = os.getenv("AI_DISABLED_FEATURES", "")
+
 # LM Studio AI Model Configuration - Centralized Timeouts and Confidence Thresholds
 AI_CONNECTION_TEST_TIMEOUT = int(
     os.getenv("AI_CONNECTION_TEST_TIMEOUT", "15")
@@ -516,25 +522,53 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
         errors = []
         warnings = []
 
-        # Check LM Studio configuration
-        if not LM_STUDIO_BASE_URL:
-            errors.append("LM_STUDIO_BASE_URL is not configured")
-        elif not LM_STUDIO_BASE_URL.startswith(("http://", "https://")):
+        valid_usage_modes = {"automatic", "off"}
+        if AI_USAGE_MODE not in valid_usage_modes:
             errors.append(
-                "LM_STUDIO_BASE_URL must be a valid URL starting with http:// or https://"
+                "AI_USAGE_MODE must be one of: automatic, off"
             )
 
-        # LM_STUDIO_API_KEY has a default value, so we only warn if it's explicitly set to empty
-        if LM_STUDIO_API_KEY == "":
+        valid_usage_features = {
+            "conversation",
+            "command_interpretation",
+            "personalized_messages",
+            "action_planning",
+            "response_enhancement",
+            "task_breakdown",
+            "task_effort",
+        }
+        configured_disabled_features = {
+            part.strip().lower().replace("-", "_").replace(" ", "_")
+            for part in AI_DISABLED_FEATURES.split(",")
+            if part.strip()
+        }
+        unknown_disabled_features = sorted(
+            configured_disabled_features - valid_usage_features
+        )
+        if unknown_disabled_features:
             warnings.append(
-                "LM_STUDIO_API_KEY is explicitly set to empty (using default)"
+                "AI_DISABLED_FEATURES contains unknown names: "
+                + ", ".join(unknown_disabled_features)
             )
 
-        # LM_STUDIO_MODEL has a default value, so we only warn if it's explicitly set to empty
-        if LM_STUDIO_MODEL == "":
-            warnings.append(
-                "LM_STUDIO_MODEL is explicitly set to empty (using default)"
-            )
+        # Model connection settings are optional when every AI call is disabled.
+        if AI_USAGE_MODE != "off":
+            if not LM_STUDIO_BASE_URL:
+                errors.append("LM_STUDIO_BASE_URL is not configured")
+            elif not LM_STUDIO_BASE_URL.startswith(("http://", "https://")):
+                errors.append(
+                    "LM_STUDIO_BASE_URL must be a valid URL starting with http:// or https://"
+                )
+
+            # These values have defaults, so only warn when explicitly empty.
+            if LM_STUDIO_API_KEY == "":
+                warnings.append(
+                    "LM_STUDIO_API_KEY is explicitly set to empty (using default)"
+                )
+            if LM_STUDIO_MODEL == "":
+                warnings.append(
+                    "LM_STUDIO_MODEL is explicitly set to empty (using default)"
+                )
 
         # Check AI performance settings
         if AI_TIMEOUT_SECONDS < 5:
@@ -1030,6 +1064,8 @@ def print_configuration_report():
         print(f"  Log File: {LOG_MAIN_FILE}")
         print(f"  Log Level: {LOG_LEVEL}")
         print(f"  LM Studio URL: {LM_STUDIO_BASE_URL}")
+        print(f"  AI Usage Mode: {AI_USAGE_MODE}")
+        print(f"  Disabled AI Features: {AI_DISABLED_FEATURES or 'None'}")
         print(f"  AI Timeout: {AI_TIMEOUT_SECONDS}s")
         print(f"  Scheduler Interval: {SCHEDULER_INTERVAL}s")
         print(f"  Auto Create User Dirs: {AUTO_CREATE_USER_DIRS}")
