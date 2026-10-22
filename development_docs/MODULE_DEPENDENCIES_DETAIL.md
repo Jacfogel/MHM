@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-19 15:27:48
+> **Last Generated**: 2026-10-21 23:23:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 308
-- **Total Imports Found**: 2777
+- **Total Imports Found**: 2779
 - **Dependencies Documented**: 308 (100% coverage)
 - **Standard Library Imports**: 797 (28.7%)
 - **Third-Party Imports**: 235 (8.5%)
-- **Local Imports**: 1745 (62.8%)
-- **Last Updated**: 2026-10-19
+- **Local Imports**: 1747 (62.9%)
+- **Last Updated**: 2026-10-21
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 797 imports (28.7%)
 - **Third-Party**: 235 imports (8.5%)
-- **Local**: 1745 imports (62.8%)
+- **Local**: 1747 imports (62.9%)
 
 ## Module Dependencies by Directory
 
@@ -6249,7 +6249,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_date_only, parse_time_only_minute)` (NEW)
-    - `scheduler.user_timezone (localized_now_for_user, resolve_user_timezone_str)` (NEW)
+    - `scheduler.user_timezone (localized_now_for_user, resolve_user_timezone_str, user_local_now_naive)` (NEW)
     - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
     - `tasks.task_focus (choose_task_focus_for_user)` (NEW)
@@ -6263,7 +6263,9 @@
   - **Third-party**:
     - `pytz`
     - `schedule`
-- **Used by**: None (not imported by other modules)
+- **Used by**:
+  - `tasks/task_occurrence_skip.py`
+  - `tasks/task_reminder_snooze.py`
 
 **Dependency Changes**:
 - Added: core, core.billing, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler.user_timezone, tasks, tasks.task_data_handlers, tasks.task_focus, tasks.task_reminder_snooze
@@ -6298,7 +6300,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.time_utilities
-- Removed: ai/context/phraser.py, ai/context/service.py, checkins/checkin_service.py, core/message_pressure.py, scheduler/health_sync_schedule.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_manager.py
+- Removed: ai/context/phraser.py, ai/context/service.py, checkins/checkin_service.py, communication/reminders/reminder_dispatcher.py, core/message_pressure.py, scheduler/health_sync_schedule.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -7002,6 +7004,7 @@
     - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
+    - `scheduler.task_reminders (reminder_sent_fields)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_is_completed, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
     - `tasks.task_data_manager (_calculate_next_due_date, get_task_by_id, update_task)` (NEW)
     - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
@@ -7017,7 +7020,7 @@
   - `core/web_tasks.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, scheduler.task_reminders, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, core/web_tasks.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7086,6 +7089,7 @@
     - `core.natural_language_defaults (NaturalLanguageDefaults, get_natural_language_defaults, is_past_time_of_day)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
+    - `scheduler.task_reminders (reminder_sent_fields)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
     - `tasks.task_data_manager (get_task_by_id, update_task)` (NEW)
     - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
@@ -7108,7 +7112,7 @@
   - `tasks/task_occurrence_skip.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_service, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, scheduler.task_reminders, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_service, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/command_parser.py, communication/message_processing/email_reply_routing.py, core/web_tasks.py, scheduler/task_reminders.py, tasks/task_focus.py, tasks/task_occurrence_skip.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

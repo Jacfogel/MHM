@@ -16,7 +16,7 @@ from core.schedule_runtime import (
 )
 from core.time_utilities import now_datetime_full
 from scheduler.manager import SchedulerManager
-from scheduler.task_reminders import handle_task_reminder
+from scheduler.task_reminders import handle_task_reminder, reminder_sent_fields
 from storage.user_data_validation import validate_schedule_periods
 from tasks import create_task, get_task_by_id, update_task
 from tests.test_helpers.test_utilities import TestUserFactory
@@ -180,7 +180,12 @@ def test_task_reminder_update_text_used_on_next_send(test_data_dir):
 @pytest.mark.scheduler
 def test_task_reminder_already_sent_is_not_delivered_again():
     manager = MagicMock()
-    task = {"id": "t1", "status": "active", "reminder_sent": True}
+    task = {
+        "id": "t1",
+        "status": "active",
+        "reminder_sent": True,
+        "reminder_sent_on": reminder_sent_fields("u1")["reminder_sent_on"],
+    }
     with (
         patch("tasks.get_task_by_id", return_value=task),
         patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
@@ -210,6 +215,7 @@ def test_task_reminder_sent_flag_persists_and_blocks_duplicate(test_data_dir):
     reloaded = get_task_by_id(user_id, task_id)
     assert reloaded is not None
     assert reloaded.get("reminder_sent") is True
+    assert reloaded.get("reminder_sent_on") == reminder_sent_fields(user_id)["reminder_sent_on"]
 
     handle_task_reminder(manager, user_id, task_id, retry_attempts=1, retry_delay=0)
     assert manager.delivery.handle_task_reminder.call_count == 1

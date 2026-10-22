@@ -109,6 +109,8 @@ def _skip_recurring_occurrence(
     title = str(task.get("title") or "this task")
     from tasks.task_reminder_deferrals import append_reminder_deferral
 
+    from scheduler.task_reminders import reminder_sent_fields
+
     saved = update_task(
         user_id,
         task_id,
@@ -116,7 +118,7 @@ def _skip_recurring_occurrence(
             "due_date": next_due,
             "next_due_date": next_due,
             "description": _with_skip_note(task, skipped_on, next_due),
-            "reminder_sent": True,
+            **reminder_sent_fields(user_id, now_dt),
             "reminder_snooze_until": format_timestamp(ping_at, TIMESTAMP_FULL),
             "reminder_deferrals": append_reminder_deferral(
                 task, "skip", occurred_at=now_dt, until=ping_at

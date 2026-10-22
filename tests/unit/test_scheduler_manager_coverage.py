@@ -444,6 +444,45 @@ class TestTaskRemindersModuleCoverage:
             tr.schedule_all_task_reminders(scheduler_manager, user_id)
             mock_schedule.assert_not_called()
 
+    def test_schedule_all_task_reminders_skips_all_day_window(
+        self, scheduler_manager
+    ):
+        user_id = "user-1"
+        with (
+            patch("tasks.are_tasks_enabled", return_value=True),
+            patch(
+                "core.schedule_runtime.get_schedule_time_periods",
+                return_value={
+                    "ALL": {
+                        "active": True,
+                        "start_time": "00:00",
+                        "end_time": "23:59",
+                    },
+                    "Window 2": {
+                        "active": True,
+                        "start_time": "14:00",
+                        "end_time": "16:00",
+                    },
+                },
+            ),
+            patch("tasks.load_active_tasks", return_value=[{"id": "t1", "title": "Task"}]),
+            patch.object(
+                scheduler_manager,
+                "select_task_for_reminder",
+                return_value={"id": "t1", "title": "Task"},
+            ),
+            patch.object(
+                scheduler_manager,
+                "get_random_time_within_task_period",
+                return_value="14:30",
+            ),
+            patch.object(
+                scheduler_manager, "schedule_task_reminder_at_time"
+            ) as mock_schedule,
+        ):
+            tr.schedule_all_task_reminders(scheduler_manager, user_id)
+            mock_schedule.assert_called_once_with(user_id, "t1", "14:30")
+
     def test_schedule_all_task_reminders_skips_task_without_id(
         self, scheduler_manager
     ):

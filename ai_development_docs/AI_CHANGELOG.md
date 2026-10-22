@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-21 - Task reminders repeat on later days **COMPLETED**
+- `reminder_sent_on` blocks a second reminder for the same task on the user's local date. The next day can send again, and a pending snooze still arrives.
+- Tasks stuck with `reminder_sent` and no date are eligible again. Task and check-in schedules no longer receive an all-day window; message categories still do. Existing all-day task periods were removed from every account. This account's reminders stay in the 14:00-16:00 window.
+- Focused scheduler and snooze tests cover the same-day, next-day, and snooze cases.
+
 ### 2026-10-20 - Nightly notebook inbox test stays date-stable **COMPLETED**
 - The October 19 nightly suite failed one test: after clearing tags, a grocery list seeded on September 19 was older than the 30-day inbox window.
 - Website note fixtures now use the current timestamp, and mocked edits refresh `updated_at` the same way real notebook saves do.
@@ -110,12 +115,6 @@ Guidelines:
 - Hourly one-time notices warn before trial expiry and when trial, failed-payment grace, or cancellation pauses scheduled support. Delivery uses the account's preferred channel and keeps a website inbox copy.
 - Onboarding now says when a near-expiry trial will be charged immediately. Live-mode cutover, canary, restart, and rollback steps are documented without changing production credentials.
 - Verification: 36 focused billing/storage tests, 95 scheduler/delivery tests, and 127 browser tests pass.
-
-### 2026-10-07 - Stripe trial billing and onboarding shipped **COMPLETED**
-- New accounts receive a persisted 30-day trial and can start a CA$8.99 CAD monthly Stripe subscription through hosted Checkout; signed webhooks, Customer Portal sessions, and a three-day failed-payment grace period keep local entitlement state synchronized without storing card details.
-- Scheduled messages, check-ins, and task reminders stop after trial/grace expiry or cancellation, while legacy accounts remain complimentary.
-- Onboarding now explains the free-to-paid transition and offers Subscribe now or Continue with free trial. Account navigation opens the Account settings panel instead of Profile.
-- Fixed the account-envelope allowlist that initially replaced new trial fields with complimentary defaults. Test-mode Stripe objects and the public Worker route are deployed and verified; focused checks pass 27 Python billing/storage tests and 123 browser tests, with broader backend and scheduler checks also green.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

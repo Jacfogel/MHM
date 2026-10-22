@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord task reminder delivery and task reminder action buttons  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-10-17
+> **Last Updated**: 2026-10-21
 > **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_deferrals.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `core/message_pressure.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_deferrals.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/unit/test_message_pressure.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
@@ -52,9 +52,11 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 - **GIVEN** `scheduler/task_reminders.py` hands a task reminder to the delivery interface  
 - **WHEN** the delivery call returns without raising an exception  
-- **THEN** the scheduler updates the task's `reminder_sent` flag  
+- **THEN** the scheduler sets `reminder_sent` and `reminder_sent_on` to the user's local date  
+- **AND** another reminder for that same task is skipped for the rest of that local date  
+- **AND** a later local date can send a reminder for that task again  
 - **AND** the lower-level `TaskReminderDispatcher` still returns a `MessageSendResult` that records whether Discord delivery actually succeeded, failed, or was skipped  
-- **NOTE** this reflects current behavior; the scheduler does not currently gate `reminder_sent` on the returned delivery result  
+- **AND** `reminder_sent_on` is written only when delivery returns `sent` or `unconfirmed`  
 
 ### 2.2. Requirement: Task reminder view provides persistent action buttons
 
@@ -144,7 +146,8 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** the snooze handler runs  
 - **THEN** the task due date is unchanged  
 - **AND** `reminder_snooze_until` is set about one hour from now  
-- **AND** `reminder_sent` stays true so duplicate period reminders do not fire early  
+- **AND** `reminder_sent` stays true and `reminder_sent_on` stays on today's local date so another period reminder does not fire the same day  
+- **AND** the snooze reminder itself still sends at the snooze time, including when that time is later the same day  
 - **AND** a one-time reminder is scheduled for that snooze time  
 
 #### Scenario: Snooze tonight or tomorrow morning
@@ -271,7 +274,7 @@ Run after changing Discord task reminder behavior:
 3. [ ] Completed task reaches reminder time -> no Discord reminder is sent.
 4. [ ] Deleted task reaches reminder time -> no Discord reminder is sent.
 5. [ ] Update task reminder time -> future reminder follows new time.
-6. [ ] Delivery handoff returns without exception -> scheduler marks `reminder_sent`; dispatcher result still reflects actual Discord delivery outcome.
+6. [ ] Delivery returns sent or unconfirmed -> scheduler marks `reminder_sent` and today's `reminder_sent_on`; a later day can remind again; a pending snooze still sends.
 7. [ ] Click `Done` -> task is completed through normal task handler behavior.
 8. [ ] Click `Snooze` -> snooze choices appear (1 hour, tonight or tomorrow morning, next week, custom); due date unchanged.
 8a. [ ] Choose `1 hour` -> a later reminder is scheduled; due date unchanged.

@@ -50,6 +50,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "next_due_date",
     "recurrence",
     "reminder_sent",
+    "reminder_sent_on",
     "reminder_snooze_until",
     "reminder_deferrals",
     "links",
@@ -176,6 +177,7 @@ class TaskV2Model(BaseItemModel):
     recurrence: RecurrenceModel = Field(default_factory=RecurrenceModel)
     completion: CompletionModel = Field(default_factory=CompletionModel)
     reminder_sent: bool = False
+    reminder_sent_on: str | None = None
     reminder_snooze_until: str | None = None
     reminder_deferrals: list[ReminderDeferralModel] = Field(
         default_factory=list, max_length=5
@@ -193,6 +195,16 @@ class TaskV2Model(BaseItemModel):
             raise v2_schema_validation_error("parent_id must be a task id")
         cleaned = value.strip()
         return cleaned or None
+
+    @field_validator("reminder_sent_on")
+    @classmethod
+    def validate_reminder_sent_on(cls, value: str | None) -> str | None:
+        """Store the user-local date of the last successful reminder handoff."""
+        if value == "":
+            return None
+        if value and parse_date_only(value) is None:
+            raise v2_schema_validation_error("reminder_sent_on must use YYYY-MM-DD")
+        return value
 
     @field_validator("reminder_snooze_until")
     @classmethod

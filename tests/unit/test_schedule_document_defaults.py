@@ -91,6 +91,7 @@ def test_ensure_category_has_default_schedule_migrates_and_creates_periods():
     saved_payload = save_schedules.call_args[0][1]
     assert "tasks" in saved_payload
     assert "Task Reminder Default" in saved_payload["tasks"]["periods"]
+    assert "ALL" not in saved_payload["tasks"]["periods"]
 
 
 @pytest.mark.unit
@@ -164,6 +165,9 @@ def test_create_default_schedule_periods_named_defaults():
     checkin = create_default_schedule_periods("checkin")
     health = create_default_schedule_periods("health_and_wellness")
 
+    assert "ALL" not in tasks
+    assert "ALL" not in checkin
+    assert "ALL" in health
     assert "Task Reminder Default" in tasks
     assert "Check-in Reminder Default" in checkin
     assert "Health And Wellness Message Default" in health

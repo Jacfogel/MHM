@@ -23,10 +23,37 @@ from core.time_utilities import (
     parse_date_only,
     parse_time_only_minute,
 )
-from scheduler.user_timezone import localized_now_for_user, resolve_user_timezone_str
+from scheduler.user_timezone import (
+    localized_now_for_user,
+    resolve_user_timezone_str,
+    user_local_now_naive,
+)
 from tasks.task_data_handlers import runtime_task_is_completed
 
 logger = get_component_logger("scheduler")
+
+
+@handle_errors("building today's reminder sent fields", default_return={})
+def reminder_sent_fields(user_id: str, now_dt: datetime | None = None) -> dict[str, Any]:
+    """Mark a reminder handed off on the user's local calendar date.
+
+    ``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
+    is the date that blocks a second copy. A later day can send again.
+    """
+    moment = now_dt if now_dt is not None else user_local_now_naive(user_id)
+    sent_on = format_timestamp(moment, DATE_ONLY)
+    if not sent_on:
+        return {"reminder_sent": True}
+    return {"reminder_sent": True, "reminder_sent_on": sent_on}
+
+
+@handle_errors("checking whether a task reminder was already sent today", default_return=False)
+def task_reminder_already_sent_today(task: dict[str, Any], user_id: str) -> bool:
+    """True when this task was already handed off on the user's local today."""
+    sent_on = str(task.get("reminder_sent_on") or "").strip()
+    if not sent_on:
+        return False
+    return sent_on == format_timestamp(user_local_now_naive(user_id), DATE_ONLY)
 
 
 @handle_errors("handling task reminder")
@@ -86,9 +113,9 @@ def handle_task_reminder(
                 return
 
             snooze_until = parse_task_snooze_until(task)
-            if task.get("reminder_sent") and snooze_until is None:
+            if task_reminder_already_sent_today(task, user_id) and snooze_until is None:
                 logger.info(
-                    f"Task {task_identifier} reminder already sent, skipping duplicate"
+                    f"Task {task_identifier} reminder already sent today, skipping duplicate"
                 )
                 return
 
@@ -103,7 +130,7 @@ def handle_task_reminder(
                 update_task(
                     user_id,
                     task_identifier,
-                    {"reminder_sent": True, "reminder_snooze_until": None},
+                    {**reminder_sent_fields(user_id), "reminder_snooze_until": None},
                 )
                 if status == "unconfirmed":
                     logger.warning(
@@ -161,7 +188,7 @@ def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> N
                 user_id,
                 task_id,
                 {
-                    "reminder_sent": True,
+                    **reminder_sent_fields(user_id),
                     "reminder_snooze_until": format_timestamp(until, TIMESTAMP_FULL),
                 },
             )
@@ -220,6 +247,12 @@ def schedule_all_task_reminders(scheduler_manager: Any, user_id: str) -> None:
         scheduled_count = 0
 
         for period_name, period_data in task_periods.items():
+            if str(period_name).strip().upper() == "ALL":
+                logger.debug(
+                    f"Skipping all-day task period for user {user_id}; "
+                    "all-day windows are for message categories"
+                )
+                continue
             if not period_data.get("active", True):
                 continue
 

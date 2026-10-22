@@ -631,9 +631,8 @@ class TestUserManagementCoverageExpansion:
         
         # Assert
         assert isinstance(result, dict), "Should return dictionary"
-        assert "ALL" in result, "Should have ALL period"
+        assert "ALL" not in result, "Tasks should not get an all-day window"
         assert "Task Reminder Default" in result, "Should have Task Reminder Default period"
-        assert result["ALL"]["active"] is True, "ALL period should be active"
         assert result["Task Reminder Default"]["active"] is True, "Task period should be active"
     
     def test_create_default_schedule_periods_checkin_real_behavior(self):
@@ -643,9 +642,8 @@ class TestUserManagementCoverageExpansion:
         
         # Assert
         assert isinstance(result, dict), "Should return dictionary"
-        assert "ALL" in result, "Should have ALL period"
+        assert "ALL" not in result, "Check-ins should not get an all-day window"
         assert "Check-in Reminder Default" in result, "Should have Check-in Reminder Default period"
-        assert result["ALL"]["active"] is True, "ALL period should be active"
         assert result["Check-in Reminder Default"]["active"] is True, "Check-in period should be active"
     
     def test_create_default_schedule_periods_other_category_real_behavior(self):

@@ -13,6 +13,18 @@ from core.logger import get_component_logger
 logger = get_component_logger("main")
 
 _PERIOD_V2_KEYS = frozenset({"active", "days", "start_time", "end_time"})
+_ALL_DAY_WINDOW = {
+    "active": True,
+    "days": ["ALL"],
+    "start_time": "00:00",
+    "end_time": "23:59",
+}
+
+
+@handle_errors("checking whether a category uses an all-day window", default_return=True)
+def category_uses_all_day_window(category: str | None) -> bool:
+    """All-day windows belong to message categories, not tasks or check-ins."""
+    return category not in ("tasks", "checkin")
 
 
 @handle_errors("creating default schedule periods", default_return={})
@@ -34,20 +46,17 @@ def create_default_schedule_periods(category: str | None = None) -> dict[str, An
         default_period_name = "Default"
         default_start_time, default_end_time = "18:00", "20:00"
 
-    return {
-        "ALL": {
-            "active": True,
-            "days": ["ALL"],
-            "start_time": "00:00",
-            "end_time": "23:59",
-        },
+    named_period = {
         default_period_name: {
             "active": True,
             "days": ["ALL"],
             "start_time": default_start_time,
             "end_time": default_end_time,
-        },
+        }
     }
+    if not category_uses_all_day_window(category):
+        return named_period
+    return {"ALL": dict(_ALL_DAY_WINDOW), **named_period}
 
 
 @handle_errors("normalizing schedule period fields", default_return={})

@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-21 - Task reminders repeat on later days, once per day
+- **Fix**: A task reminder now records `reminder_sent_on` as the user's local date. That date blocks a second copy the same day. A later day can remind the same task again. A pending snooze still sends at the snooze time, and an active snooze still waits. Tasks that only had the old stuck `reminder_sent` flag, with no date, are eligible again. See [task_reminders.py](../scheduler/task_reminders.py), [task_schemas.py](../tasks/task_schemas.py), and [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
+- **Schedule**: All-day task periods are removed from every account that had one. Named task windows stay. The live account's reminders stay inside Window 2 (14:00-16:00). The other three accounts keep Task Reminder Default (15:00-17:00).
+- **Fix**: New task and check-in schedules no longer include an all-day window. Saving those settings no longer puts one back. Message categories still keep theirs. The task scheduler ignores a leftover all-day period. See [schedule_period_normalize.py](../core/schedule_period_normalize.py) and [web_user_settings.py](../core/web_user_settings.py).
+- **Tests**: Same-day skip, previous-day send, stuck-flag send, and snooze date coverage in [test_scheduler_task_reminder_weights.py](../tests/unit/test_scheduler_task_reminder_weights.py) and [test_task_reminder_snooze.py](../tests/unit/test_task_reminder_snooze.py).
+- **Impact**: Open tasks can be reminded again on later days, still only once each day, and only inside the afternoon window for this account.
+
 ### 2026-10-20 - Nightly notebook inbox test stays date-stable
 - **Nightly failure**: The October 19 full suite ([run 39250643644](https://github.com/Jacfogel/MHM/actions/runs/39250643644)) failed only `test_notebook_queries_validate_status_and_filter_results`. Search and pinned views passed. The inbox view was empty because the grocery fixture was stamped `2026-09-19 09:00:00`, and inbox keeps untagged notes updated within 30 days. That cutoff crossed during the October 19 run. October 17 and 18 were still inside the window, which is why those nights passed.
 - **Fix**: [test_web_notes.py](../tests/unit/test_web_notes.py) now stamps fixture notes with `now_timestamp_full()`. Mocked notebook edits also refresh `updated_at`, matching `_mutate_entry`. The 30-day inbox rule itself is unchanged.

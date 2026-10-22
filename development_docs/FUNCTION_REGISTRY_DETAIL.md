@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-19 15:27:46
+> **Last Generated**: 2026-10-21 23:23:54
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 310
-- **Functions Found**: 3221
-- **Methods Found**: 1640
+- **Functions Found**: 3224
+- **Methods Found**: 1641
 - **Classes Found**: 289
-- **Total Items**: 4861
-- **Functions Documented**: 2867
-- **Methods Documented**: 1461
+- **Total Items**: 4865
+- **Functions Documented**: 2870
+- **Methods Documented**: 1462
 - **Classes Documented**: 222
-- **Total Documented**: 4328
+- **Total Documented**: 4332
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-19
+- **Last Updated**: 2026-10-21
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (193)
+### **Task Management Functions** (194)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -6783,6 +6783,10 @@ Args:
 ``task_identifier`` is the task record's canonical ``id`` or another value
 accepted by ``tasks.get_task_by_id``.
 - [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
+- [OK] `reminder_sent_fields(user_id, now_dt)` - Mark a reminder handed off on the user's local calendar date.
+
+``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
+is the date that blocks a second copy. A later day can send again.
 - [OK] `reschedule_snoozed_task_reminders(scheduler_manager, user_id)` - Re-schedule persisted reminder snoozes after a service restart.
 - [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
 
@@ -6792,6 +6796,7 @@ priority/due-date logic and scheduled at a random time within that period.
 - [OK] `schedule_task_reminder_at_time(scheduler_manager, user_id, task_identifier, reminder_time)` - Schedule a daily reminder for one task at an HH:MM time.
 - [OK] `select_task_by_weight(scheduler_manager, task_weights, incomplete_tasks)` - Select a reminder candidate using weighted random selection.
 - [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks, user_id)` - Select a reminder task, using shared focus signals when a user is known.
+- [OK] `task_reminder_already_sent_today(task, user_id)` - True when this task was already handed off on the user's local today.
 - [OK] `task_selection_key(task, index)` - Build a stable key for tracking reminder selection state.
 
 #### `scheduler/user_timezone.py`
@@ -7291,6 +7296,7 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `validate_label(cls, value)` - Normalize an optional short display label for a task link.
 - [MISSING] `validate_next_due_date(cls, value)` - No description
 - [OK] `validate_parent_id(cls, value)` - Keep a parent task id, or clear an empty one.
+- [OK] `validate_reminder_sent_on(cls, value)` - Store the user-local date of the last successful reminder handoff.
 - [OK] `validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 - [MISSING] `validate_time(cls, value)` - No description
 - [OK] `validate_until(cls, value)` - Require a canonical timestamp when the next reminder time is known.
@@ -7316,6 +7322,7 @@ completion. Returns None when the reference is ambiguous.
   - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
   - [OK] `TaskV2Model.validate_parent_id(cls, value)` - Keep a parent task id, or clear an empty one.
+  - [OK] `TaskV2Model.validate_reminder_sent_on(cls, value)` - Store the user-local date of the last successful reminder handoff.
   - [OK] `TaskV2Model.validate_reminder_snooze_until(cls, value)` - Require a canonical timestamp when a reminder snooze is stored.
 
 #### `tasks/task_service.py`

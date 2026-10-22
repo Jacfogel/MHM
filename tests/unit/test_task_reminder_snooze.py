@@ -114,6 +114,7 @@ class TestSnoozeTaskReminder:
         assert runtime_task_due_date(task) == "2026-09-20"
         assert task.get("due", {}).get("time") == "14:00"
         assert task.get("reminder_sent") is True
+        assert task.get("reminder_sent_on") == "2026-09-14"
         assert task.get("reminder_snooze_until")
         assert task.get("reminder_deferrals") == [
             {

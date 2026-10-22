@@ -170,7 +170,8 @@ def test_sections_preserve_unrelated_admin_data_and_reserved_periods(documents):
     assert updates["account"]["features"]["google_health"] == "enabled"
     assert updates["preferences"]["task_settings"]["custom"] == "keep"
     assert updates["preferences"]["natural_language_defaults"] == {"keep": True}
-    assert updates["schedules"]["tasks"]["periods"]["ALL"] == ALL
+    assert "ALL" not in updates["schedules"]["tasks"]["periods"]
+    assert "Morning" in updates["schedules"]["tasks"]["periods"]
     assert (
         updates["schedules"]["health"] == original["schedules"]["categories"]["health"]
     )
@@ -723,9 +724,9 @@ def test_saved_settings_use_existing_v2_profile_and_schedule_storage(test_data_d
     )
     saved = adapter.documents(uid)
     assert saved["account"]["features"]["task_management"] == "enabled"
-    assert (
-        schedule_categories(saved["schedules"])["tasks"]["periods"]["Morning"] == WINDOW
-    )
+    saved_task_periods = schedule_categories(saved["schedules"])["tasks"]["periods"]
+    assert saved_task_periods["Morning"] == WINDOW
+    assert "ALL" not in saved_task_periods
     assert (
         saved["preferences"]["task_settings"]["recurring_settings"][
             "default_recurrence_pattern"

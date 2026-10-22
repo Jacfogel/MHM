@@ -26,6 +26,7 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from communication.core.message_send_result import MessageSendResult
+from scheduler.task_reminders import reminder_sent_fields
 
 
 @pytest.fixture
@@ -848,7 +849,7 @@ class TestMessageHandling:
                 mock_update_task.assert_called_once_with(
                     user_id,
                     task_id,
-                    {"reminder_sent": True, "reminder_snooze_until": None},
+                    {**reminder_sent_fields(user_id), "reminder_snooze_until": None},
                 )
 
     @pytest.mark.behavior

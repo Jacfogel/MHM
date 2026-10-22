@@ -11,7 +11,10 @@ import pytz
 from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 from core.error_handling import ValidationError, handle_errors
 from core.profile_v2_io import schedule_categories
-from core.schedule_period_normalize import create_default_schedule_periods
+from core.schedule_period_normalize import (
+    category_uses_all_day_window,
+    create_default_schedule_periods,
+)
 from core.time_utilities import now_timestamp_full
 from storage.user_data_validation import validate_schedule_periods
 
@@ -476,13 +479,16 @@ def build_settings_updates(documents, options, section, values):
             raise ValidationError(
                 "Add at least one enabled reminder window before enabling this feature."
             )
-        old_all = schedules.get(category, {}).get("periods", {}).get("ALL")
-        schedules[category] = {
-            **schedules.get(category, {}),
-            "periods": {
+        stored_periods = dict(periods)
+        if category_uses_all_day_window(category):
+            old_all = schedules.get(category, {}).get("periods", {}).get("ALL")
+            stored_periods = {
                 "ALL": old_all or create_default_schedule_periods(category)["ALL"],
                 **periods,
-            },
+            }
+        schedules[category] = {
+            **schedules.get(category, {}),
+            "periods": stored_periods,
         }
 
     if section == "profile":

@@ -11,6 +11,11 @@ from communication.core.message_send_result import MessageSendResult
 from scheduler import task_reminders as tr
 
 
+def _sent_update(user_id: str = "u1") -> dict:
+    """The task fields written after a reminder is handed off."""
+    return {**tr.reminder_sent_fields(user_id), "reminder_snooze_until": None}
+
+
 @pytest.mark.unit
 @pytest.mark.scheduler
 class TestTaskSelectionEdgeCases:
@@ -182,9 +187,59 @@ class TestHandleTaskReminderModule:
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with(
-            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
+
+    def test_already_sent_today_is_not_delivered(self):
+        manager = MagicMock()
+        task = {
+            "id": "t1",
+            "status": "active",
+            "reminder_sent": True,
+            "reminder_sent_on": tr.reminder_sent_fields("u1")["reminder_sent_on"],
+        }
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
+        manager.delivery.handle_task_reminder.assert_not_called()
+        update_task.assert_not_called()
+
+    def test_sent_on_a_previous_day_is_delivered_again(self):
+        manager = MagicMock()
+        task = {
+            "id": "t1",
+            "status": "active",
+            "reminder_sent": True,
+            "reminder_sent_on": "2000-01-01",
+        }
+        manager.delivery.handle_task_reminder.return_value = MessageSendResult.sent(
+            "u1", "task_reminders"
         )
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
+        manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
+
+    def test_stuck_sent_flag_without_a_date_is_delivered_again(self):
+        manager = MagicMock()
+        task = {"id": "t1", "status": "active", "reminder_sent": True}
+        manager.delivery.handle_task_reminder.return_value = MessageSendResult.sent(
+            "u1", "task_reminders"
+        )
+        with (
+            patch("tasks.get_task_by_id", return_value=task),
+            patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
+            patch("tasks.update_task") as update_task,
+        ):
+            tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
+        manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
 
     def test_snoozed_task_is_not_delivered(self):
         manager = MagicMock()
@@ -219,9 +274,7 @@ class TestHandleTaskReminderModule:
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with(
-            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
-        )
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
 
     def test_failed_send_is_not_marked_sent_and_reuses_message_id(self):
         manager = MagicMock()
@@ -244,9 +297,7 @@ class TestHandleTaskReminderModule:
         assert manager.delivery.handle_task_reminder.call_args_list[1].kwargs == {
             "message_id": "<same@example.com>"
         }
-        update_task.assert_called_once_with(
-            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
-        )
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
         sleep.assert_called_once_with(0)
 
     def test_unconfirmed_send_is_marked_sent_without_another_attempt(self):
@@ -262,6 +313,4 @@ class TestHandleTaskReminderModule:
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=3, retry_delay=0)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with(
-            "u1", "t1", {"reminder_sent": True, "reminder_snooze_until": None}
-        )
+        update_task.assert_called_once_with("u1", "t1", _sent_update())
