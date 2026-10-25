@@ -16,7 +16,7 @@ from core.natural_language_defaults import (
 )
 from core.time_utilities import (
     DATE_ONLY,
-    TIME_ONLY_MINUTE,
+    TIME_ONLY_SECOND,
     TIMESTAMP_FULL,
     format_timestamp,
     now_datetime_full,
@@ -184,6 +184,7 @@ def _resolve_next_week(now_dt: datetime, defaults: NaturalLanguageDefaults) -> d
 def _strip_time_words(phrase: str) -> str:
     """Remove clock and time-of-day words so a date phrase remains."""
     cleaned = _TIME_WORD_RE.sub(" ", phrase)
+    cleaned = re.sub(r"\bat\b", " ", cleaned, flags=re.IGNORECASE)
     return re.sub(r"\s+", " ", cleaned).strip(" ,")
 
 
@@ -247,6 +248,8 @@ def parse_custom_snooze_when(
         )
     day = parse_date_only(date_str) if date_str else None
     if day is None and clock:
+        if date_phrase:
+            return None
         candidate = _at_clock_time(now_dt, clock)
         if candidate is None:
             return None
@@ -313,7 +316,7 @@ def _schedule_snooze_fire(
         )
         return False
     date_str = format_timestamp(until, DATE_ONLY)
-    time_str = format_timestamp(until, TIME_ONLY_MINUTE)
+    time_str = format_timestamp(until, TIME_ONLY_SECOND)
     return bool(
         scheduler_manager.schedule_task_reminder_at_datetime(
             user_id, task_id, date_str, time_str
@@ -397,7 +400,12 @@ def snooze_task_reminder(
             False, "Something went wrong saving the snooze. The due date may need a check."
         )
 
-    _schedule_snooze_fire(user_id, str(refreshed.get("id") or task_id), until)
+    if not _schedule_snooze_fire(user_id, str(refreshed.get("id") or task_id), until):
+        return TaskReminderSnoozeResult(
+            False,
+            "I saved the snooze, but could not schedule the reminder. Please try again.",
+            until=until,
+        )
     title = str(refreshed.get("title") or "that task")
     when_text = format_timestamp(until, TIMESTAMP_FULL)
     logger.info(

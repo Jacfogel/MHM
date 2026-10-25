@@ -15,6 +15,25 @@ from core.error_handling import handle_errors
 logger = get_component_logger("discord")
 
 
+@handle_errors("restoring task reminder buttons", default_return=None)
+def restore_task_reminder_views(client) -> None:
+    """Register saved task buttons so old reminder messages survive a restart."""
+    from core.user_management import get_all_user_ids
+    from tasks.task_data_handlers import load_active_tasks, load_completed_tasks
+
+    for user_id in get_all_user_ids():
+        tasks = load_active_tasks(user_id) + load_completed_tasks(user_id)
+        for task in tasks:
+            task_id = str(task.get("id") or "")
+            if not task_id:
+                continue
+            view = get_task_reminder_view(
+                user_id, task_id, str(task.get("title") or "this task")
+            )
+            if view is not None:
+                client.add_view(view)
+
+
 @handle_errors("creating task reminder view", default_return=None)
 def get_task_reminder_view(
     user_id: str, task_id: str, task_title: str

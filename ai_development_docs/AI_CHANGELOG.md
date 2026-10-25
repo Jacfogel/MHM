@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-25 - Discord reminder actions and snooze delivery repaired **COMPLETED**
+- Snooze, Skip, Simplify, and continued check-in replies preserve their deterministic text. Unavailable AI enhancement returns no replacement text instead of exposing an offline reply and internal action catalog.
+- Discord restores saved task reminder buttons at startup. Custom Snooze rejects unrecognized dates while accepting clock-only and weekday/time phrases.
+- Snoozes retain seconds through scheduling and restart recovery; one-time jobs remove themselves after delivery, including failure, and remain compatible with task/orphan cleanup. Scheduling failures report that the snooze was saved but the reminder could not be scheduled.
+- Verification: the earlier action fixes passed 75 targeted tests; the final scheduling changes passed separate runs of 75 reminder/task-flow tests and 19 time/cleanup tests. Targeted Ruff checks passed. Restart the bot to apply the changes.
+
 ### 2026-10-21 - Task reminders repeat on later days **COMPLETED**
 - `reminder_sent_on` blocks a second reminder for the same task on the user's local date. The next day can send again, and a pending snooze still arrives.
 - Tasks stuck with `reminder_sent` and no date are eligible again. Task and check-in schedules no longer receive an all-day window; message categories still do. Existing all-day task periods were removed from every account. This account's reminders stay in the 14:00-16:00 window.
@@ -109,12 +115,6 @@ Guidelines:
 - Made the website-chat gateway tests use a fresh account ID per test so retained xdist inbox data cannot duplicate conversation turns in a later run; removed an advisory link to an absent optional coverage snapshot.
 - Fixed the remaining Pyright optional-value error in the billing portal test and regenerated the function registry/module references for the new billing functions.
 - Verification: the repaired six-worker main track passes 5,931 tests with 1 skip using the former crash seed; the development-tools track passes 1,661 tests; focused config/error-handling tests pass 63 tests; Pyright reports 0 errors and Ruff is clean. The user-requested full audit was stopped and not rerun.
-
-### 2026-10-09 - Stripe post-launch hardening **COMPLETED**
-- Stripe webhooks now persist processed event IDs and reconcile each handled event against the current Subscription, so duplicate or delayed invoice events cannot regress access. Invoice events can resolve an account from Subscription metadata even if they arrive before Checkout completion.
-- Hourly one-time notices warn before trial expiry and when trial, failed-payment grace, or cancellation pauses scheduled support. Delivery uses the account's preferred channel and keeps a website inbox copy.
-- Onboarding now says when a near-expiry trial will be charged immediately. Live-mode cutover, canary, restart, and rollback steps are documented without changing production credentials.
-- Verification: 36 focused billing/storage tests, 95 scheduler/delivery tests, and 127 browser tests pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

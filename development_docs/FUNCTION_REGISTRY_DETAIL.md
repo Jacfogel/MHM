@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-21 23:23:54
+> **Last Generated**: 2026-10-25 17:29:26
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 310
-- **Functions Found**: 3224
+- **Functions Found**: 3227
 - **Methods Found**: 1641
 - **Classes Found**: 289
-- **Total Items**: 4865
-- **Functions Documented**: 2870
+- **Total Items**: 4868
+- **Functions Documented**: 2873
 - **Methods Documented**: 1462
 - **Classes Documented**: 222
-- **Total Documented**: 4332
+- **Total Documented**: 4335
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-21
+- **Last Updated**: 2026-10-25
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (682)
+### **Core System Functions** (683)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (903)
+### **Communication Functions** (904)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (549)
@@ -2525,6 +2525,7 @@ Returns:
 - [OK] `more_button(self, interaction, button)` - Handle More button click - show additional information
 - [OK] `on_submit(self, interaction)` - Snooze the reminder until the typed time.
 - [OK] `remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
+- [OK] `restore_task_reminder_views(client)` - Register saved task buttons so old reminder messages survive a restart.
 - [OK] `simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
 - [OK] `skip_button(self, interaction, button)` - Skip this occurrence through the shared task command path.
 - [OK] `snooze_custom(self, interaction, button)` - Open a modal so the user can type a custom snooze time.
@@ -5149,6 +5150,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 #### `core/schedule_period_normalize.py`
 **Functions:**
 - [OK] `_normalize_period_fields(period_data)` - Rename start/end keys to start_time/end_time and drop extra period fields.
+- [OK] `category_uses_all_day_window(category)` - All-day windows belong to message categories, not tasks or check-ins.
 - [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
 - [OK] `migrate_legacy_schedules_structure(schedules_data)` - Normalize category maps to ``{category: {periods: ...}}`` with v2 period fields.
 
@@ -5541,10 +5543,10 @@ Raises ValidationError if invalid.
 - [OK] `format_time_compact_hour_minute(dt)` - Format a datetime as HHMM for compact identifiers.
 - [OK] `format_time_tuple(time_tuple, fmt)` - Format a time tuple using a provided format string.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
-- [OK] `load_and_localize_datetime(datetime_str, timezone_str)` - Parse a canonical minute timestamp and localize it to a timezone.
+- [OK] `load_and_localize_datetime(datetime_str, timezone_str)` - Parse a canonical minute or second timestamp and localize it to a timezone.
 
 This helper is scheduler-facing: callers pass the persisted
-``TIMESTAMP_MINUTE`` shape and receive a timezone-aware datetime, or None
+``TIMESTAMP_MINUTE`` or ``TIMESTAMP_FULL`` shape and receive an aware datetime, or None
 when the timestamp/timezone is invalid.
 - [OK] `now_datetime_full()` - Current local-naive datetime with second precision matching TIMESTAMP_FULL.
 
@@ -6772,6 +6774,7 @@ Args:
 
 #### `scheduler/task_reminders.py`
 **Functions:**
+- [OK] `_run_one_time_task_reminder(scheduler_manager, user_id, task_identifier)` - Deliver once and remove the job, including after a delivery failure.
 - [OK] `calculate_due_date_weight(task, today)` - Calculate due-date proximity reminder selection weight for a task.
 - [OK] `calculate_priority_weight(task)` - Calculate priority-based reminder selection weight for a task.
 - [OK] `calculate_task_weights(incomplete_tasks, today)` - Calculate combined priority and due-date weights for reminder candidates.

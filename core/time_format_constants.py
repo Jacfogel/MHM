@@ -17,6 +17,7 @@ DATE_ONLY = "%Y-%m-%d"
 
 # Time only (hour + minute)
 TIME_ONLY_MINUTE = "%H:%M"
+TIME_ONLY_SECOND = "%H:%M:%S"
 
 # Time only for compact identifiers (hour + minute, no separator)
 TIME_COMPACT_HOUR_MINUTE = "%H%M"

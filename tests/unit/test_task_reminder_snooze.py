@@ -84,10 +84,64 @@ class TestResolveSnoozeUntil:
         )
         assert until == datetime(2026, 9, 14, 10, 20, 0)
 
+    def test_custom_invalid_date_does_not_fall_back_to_clock_only(self):
+        assert parse_custom_snooze_when(
+            "next Blursday 3pm",
+            now_dt=datetime(2026, 9, 14, 10, 0),
+            nl_defaults=_defaults(),
+        ) is None
+
+    @pytest.mark.parametrize("phrase", ["3pm", "at 3pm"])
+    def test_custom_clock_only_still_works(self, phrase):
+        assert parse_custom_snooze_when(
+            phrase, now_dt=datetime(2026, 9, 14, 10, 0), nl_defaults=_defaults()
+        ) == datetime(2026, 9, 14, 15, 0)
+
+    def test_custom_date_with_at_still_works(self):
+        assert parse_custom_snooze_when(
+            "Friday at 3pm", now_dt=datetime(2026, 9, 14, 10, 0), nl_defaults=_defaults()
+        ) == datetime(2026, 9, 18, 15, 0)
+
 
 @pytest.mark.unit
 @pytest.mark.tasks
 class TestSnoozeTaskReminder:
+    @pytest.mark.parametrize("scheduler_available", [False, True])
+    def test_scheduling_failure_is_reported(self, scheduler_available):
+        task = {"id": "task-1", "title": "Dentist", "status": "active"}
+        scheduler = MagicMock() if scheduler_available else None
+        if scheduler is not None:
+            scheduler.schedule_task_reminder_at_datetime.return_value = False
+        with (
+            patch("tasks.task_data_manager.get_task_by_id", return_value=task),
+            patch("tasks.task_data_manager.update_task", return_value=True),
+            patch("scheduler.runtime_access.get_scheduler_manager", return_value=scheduler),
+        ):
+            result = snooze_task_reminder(
+                "user-1", "task-1", "1_hour", now_dt=datetime(2026, 10, 22, 10, 0, 30)
+            )
+        assert not result.success
+        assert "saved the snooze" in result.message
+        assert "could not schedule" in result.message
+
+    def test_snooze_schedules_the_full_saved_timestamp(self):
+        task = {"id": "task-1", "title": "Dentist", "status": "active"}
+        scheduler = MagicMock()
+        scheduler.schedule_task_reminder_at_datetime.return_value = True
+        with (
+            patch("tasks.task_data_manager.get_task_by_id", return_value=task),
+            patch("tasks.task_data_manager.update_task", return_value=True) as save,
+            patch("scheduler.runtime_access.get_scheduler_manager", return_value=scheduler),
+        ):
+            result = snooze_task_reminder(
+                "user-1", "task-1", "1_hour", now_dt=datetime(2026, 10, 22, 10, 0, 30)
+            )
+        assert result.success
+        assert save.call_args.args[2]["reminder_snooze_until"] == "2026-10-22 11:00:30"
+        scheduler.schedule_task_reminder_at_datetime.assert_called_once_with(
+            "user-1", "task-1", "2026-10-22", "11:00:30"
+        )
+
     def test_snooze_does_not_change_due_date(self, test_data_dir):
         user_id = "snooze_due_stays"
         assert TestUserFactory.create_basic_user(

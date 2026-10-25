@@ -1,12 +1,13 @@
 """Unit tests for Discord task reminder and snooze-choice views."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from communication.communication_channels.discord.ui.task_reminder_view import (
     get_task_reminder_view,
     get_task_snooze_choice_view,
+    restore_task_reminder_views,
 )
 
 
@@ -32,6 +33,24 @@ def mock_interaction_factory():
 @pytest.mark.communication
 @pytest.mark.tasks
 class TestTaskReminderView:
+    @pytest.mark.asyncio
+    async def test_restart_registers_saved_reminder_buttons(self):
+        client = Mock()
+        with (
+            patch("core.user_management.get_all_user_ids", return_value=["user-1"]),
+            patch("tasks.task_data_handlers.load_active_tasks", return_value=[
+                {"id": "task-1", "title": "Call dentist"}
+            ]),
+            patch("tasks.task_data_handlers.load_completed_tasks", return_value=[
+                {"id": "task-2", "title": "Done task"}
+            ]),
+        ):
+            restore_task_reminder_views(client)
+        assert client.add_view.call_count == 2
+        views = [call.args[0] for call in client.add_view.call_args_list]
+        assert all(view.is_persistent() for view in views)
+        assert views[0].children[1].custom_id == "task_remind_later_user-1_task-1"
+
     @pytest.mark.asyncio
     async def test_reminder_view_has_complete_later_and_more_buttons(self):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")

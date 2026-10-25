@@ -115,6 +115,8 @@ def _text_when_model_is_unavailable(
     """Return parser-safe text for command modes, and a conversational fallback otherwise."""
     if isinstance(mode, str) and mode.startswith("command"):
         return _COMMAND_PARSE_UNAVAILABLE
+    if mode == "response_enhancement":
+        return ""
     return get_fallback_responses().contextual(user_prompt, user_id)
 
 

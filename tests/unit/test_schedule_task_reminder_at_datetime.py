@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import pytz
+import schedule
 
 from scheduler import task_reminders as tr
 
@@ -24,6 +25,66 @@ def active_task():
 @pytest.mark.unit
 @pytest.mark.scheduler
 class TestScheduleTaskReminderAtDatetime:
+    @pytest.mark.parametrize("delivery_fails", [False, True])
+    def test_one_time_job_preserves_seconds_and_removes_itself(
+        self, mock_scheduler_manager, active_task, monkeypatch, delivery_fails
+    ):
+        local_scheduler = schedule.Scheduler()
+        now = pytz.timezone("America/Regina").localize(
+            datetime(2026, 10, 22, 10, 0, 0, 500000)
+        )
+        monkeypatch.setattr("tasks.get_task_by_id", lambda *args: active_task)
+        monkeypatch.setattr(tr, "resolve_user_timezone_str", lambda uid: "America/Regina")
+        monkeypatch.setattr(tr, "localized_now_for_user", lambda uid: now)
+        monkeypatch.setattr(tr.schedule, "every", local_scheduler.every)
+        if delivery_fails:
+            mock_scheduler_manager.handle_task_reminder.side_effect = RuntimeError("delivery failed")
+
+        assert tr.schedule_task_reminder_at_datetime(
+            mock_scheduler_manager, "user-1", "task-1", "2026-10-22", "11:00:30"
+        )
+        assert local_scheduler.jobs[0].interval == 3630
+        local_scheduler.jobs[0].next_run = datetime.min
+        local_scheduler.run_pending()
+        local_scheduler.run_pending()
+        assert local_scheduler.jobs == []
+        mock_scheduler_manager.handle_task_reminder.assert_called_once_with(
+            user_id="user-1", task_identifier="task-1"
+        )
+
+    def test_cleanup_removes_one_time_jobs(self, mock_scheduler_manager, active_task, monkeypatch):
+        local_scheduler = schedule.Scheduler()
+        local_scheduler.every(30).seconds.do(
+            tr._run_one_time_task_reminder,
+            scheduler_manager=mock_scheduler_manager, user_id="user-1", task_identifier="task-1",
+        )
+        monkeypatch.setattr(tr.schedule, "jobs", local_scheduler.jobs)
+        assert tr.cleanup_task_reminders(mock_scheduler_manager, "user-1", "task-1")
+        assert local_scheduler.jobs == []
+
+    def test_orphan_cleanup_removes_one_time_jobs(self, mock_scheduler_manager, monkeypatch):
+        local_scheduler = schedule.Scheduler()
+        local_scheduler.every(30).seconds.do(
+            tr._run_one_time_task_reminder,
+            scheduler_manager=mock_scheduler_manager, user_id="user-1", task_identifier="task-1",
+        )
+        monkeypatch.setattr(tr.schedule, "jobs", local_scheduler.jobs)
+        monkeypatch.setattr("core.get_all_user_ids", lambda: ["user-1"])
+        monkeypatch.setattr("tasks.get_task_by_id", lambda *args: None)
+        tr.cleanup_orphaned_task_reminders(mock_scheduler_manager)
+        assert local_scheduler.jobs == []
+
+    def test_restart_preserves_snooze_seconds(self, mock_scheduler_manager, monkeypatch):
+        monkeypatch.setattr(tr, "now_datetime_full", lambda: datetime(2026, 10, 22, 10, 0))
+        monkeypatch.setattr("tasks.load_active_tasks", lambda uid: [{
+            "id": "task-1", "status": "active",
+            "reminder_snooze_until": "2026-10-22 11:00:30",
+        }])
+        tr.reschedule_snoozed_task_reminders(mock_scheduler_manager, "user-1")
+        mock_scheduler_manager.schedule_task_reminder_at_datetime.assert_called_once_with(
+            "user-1", "task-1", "2026-10-22", "11:00:30"
+        )
+
     def test_skips_past_reminder(self, mock_scheduler_manager, active_task, monkeypatch):
         fixed_now = datetime(2026, 1, 20, 12, 0, 0)
         regina = pytz.timezone("America/Regina")

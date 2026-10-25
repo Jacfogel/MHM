@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-21 23:23:56
+> **Last Generated**: 2026-10-25 17:29:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 308
-- **Total Imports Found**: 2779
+- **Total Imports Found**: 2783
 - **Dependencies Documented**: 308 (100% coverage)
-- **Standard Library Imports**: 797 (28.7%)
-- **Third-Party Imports**: 235 (8.5%)
-- **Local Imports**: 1747 (62.9%)
-- **Last Updated**: 2026-10-21
+- **Standard Library Imports**: 798 (28.7%)
+- **Third-Party Imports**: 235 (8.4%)
+- **Local Imports**: 1750 (62.9%)
+- **Last Updated**: 2026-10-25
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 797 imports (28.7%)
-- **Third-Party**: 235 imports (8.5%)
-- **Local**: 1747 imports (62.9%)
+- **Standard Library**: 798 imports (28.7%)
+- **Third-Party**: 235 imports (8.4%)
+- **Local**: 1750 imports (62.9%)
 
 ## Module Dependencies by Directory
 
@@ -1966,6 +1966,7 @@
     - `communication.communication_channels.base.base_channel (ChannelStatus)` (NEW)
     - `communication.communication_channels.discord.events.protocol (DiscordHandlerHost)` (NEW)
     - `communication.communication_channels.discord.events.status (DiscordConnectionStatus)` (NEW)
+    - `communication.communication_channels.discord.ui.task_reminder_view (restore_task_reminder_views)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -1976,7 +1977,7 @@
   - `communication/communication_channels/discord/bot.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.events.protocol, communication.communication_channels.discord.events.status, core.error_handling, core.logger
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.events.protocol, communication.communication_channels.discord.events.status, communication.communication_channels.discord.ui.task_reminder_view, core.error_handling, core.logger
 - Removed: communication/communication_channels/discord/bot.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2310,17 +2311,20 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.ids (display_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.user_management (get_all_user_ids)` (NEW)
     - `tasks.task_breakdown (add_task_subtasks, next_open_step_id)` (NEW)
+    - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks)` (NEW)
     - `tasks.task_reminder_snooze (tonight_snooze_label)` (NEW)
   - **Standard Library**:
     - `typing (Optional)`
   - **Third-party**:
     - `discord`
 - **Used by**:
+  - `communication/communication_channels/discord/events/lifecycle.py`
   - `communication/communication_channels/discord/interaction_views.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.interaction_manager, core, core.error_handling, core.ids, core.logger, tasks.task_breakdown, tasks.task_reminder_snooze
+- Added: communication.message_processing.interaction_manager, core, core.error_handling, core.ids, core.logger, core.user_management, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_reminder_snooze
 - Removed: communication/communication_channels/discord/interaction_views.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5053,7 +5057,7 @@
 - **Purpose**: Core system module for time_utilities
 - **Dependencies**:
   - **Local**:
-    - `core.time_format_constants (DATETIME_DISPLAY_FOR_AI, DATE_ONLY, EXTERNAL_TIMESTAMP_VARIANTS, TIMESTAMP_FILENAME, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIMESTAMP_WITH_MICROSECONDS, TIME_COMPACT_HOUR_MINUTE, TIME_ONLY_MINUTE)` (NEW)
+    - `core.time_format_constants (DATETIME_DISPLAY_FOR_AI, DATE_ONLY, EXTERNAL_TIMESTAMP_VARIANTS, TIMESTAMP_FILENAME, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIMESTAMP_WITH_MICROSECONDS, TIME_COMPACT_HOUR_MINUTE, TIME_ONLY_MINUTE, TIME_ONLY_SECOND)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `collections.abc (Callable, Iterable)`
@@ -5238,6 +5242,7 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `core/service.py`
   - `core/user_lookup.py`
   - `integrations/google_health/sync_manager.py`
@@ -5535,7 +5540,7 @@
     - `core.message_pressure (message_pressure_settings_from_preferences)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, natural_language_defaults_to_preferences_dict)` (NEW)
     - `core.profile_v2_io (schedule_categories)` (NEW)
-    - `core.schedule_period_normalize (create_default_schedule_periods)` (NEW)
+    - `core.schedule_period_normalize (category_uses_all_day_window, create_default_schedule_periods)` (NEW)
     - `core.schedule_runtime (clear_schedule_periods_cache)` (NEW)
     - `core.service_requests (create_reschedule_request)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
@@ -6248,7 +6253,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_date_only, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, TIME_ONLY_SECOND, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_date_only, parse_time_only_minute)` (NEW)
     - `scheduler.user_timezone (localized_now_for_user, resolve_user_timezone_str, user_local_now_naive)` (NEW)
     - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
@@ -6257,6 +6262,7 @@
   - **Standard Library**:
     - `__future__ (annotations)`
     - `datetime (datetime, timedelta)`
+    - `math`
     - `random`
     - `time`
     - `typing (Any)`
@@ -6269,6 +6275,7 @@
 
 **Dependency Changes**:
 - Added: core, core.billing, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler.user_timezone, tasks, tasks.task_data_handlers, tasks.task_focus, tasks.task_reminder_snooze
+- Removed: tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6850,6 +6857,7 @@
   - `ai/context/phraser.py`
   - `communication/command_handlers/task_handler.py`
   - `communication/communication_channels/discord/ui/task_list_ui.py`
+  - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/flows/task_flow.py`
   - `communication/message_processing/user_suggestions.py`
   - `communication/reminders/reminder_dispatcher.py`
@@ -7087,7 +7095,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, get_natural_language_defaults, is_past_time_of_day)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_SECOND, format_timestamp, now_datetime_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `scheduler.task_reminders (reminder_sent_fields)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)

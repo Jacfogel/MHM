@@ -43,6 +43,7 @@ from core.time_format_constants import (
     EXTERNAL_TIMESTAMP_VARIANTS,
     TIME_COMPACT_HOUR_MINUTE,
     TIME_ONLY_MINUTE,
+    TIME_ONLY_SECOND as TIME_ONLY_SECOND,
     TIMESTAMP_FILENAME,
     TIMESTAMP_FULL,
     TIMESTAMP_MINUTE,
@@ -196,10 +197,10 @@ def load_and_localize_datetime(
     datetime_str: str, timezone_str: str = "America/Regina"
 ) -> datetime | None:
     """
-    Parse a canonical minute timestamp and localize it to a timezone.
+    Parse a canonical minute or second timestamp and localize it to a timezone.
 
     This helper is scheduler-facing: callers pass the persisted
-    ``TIMESTAMP_MINUTE`` shape and receive a timezone-aware datetime, or None
+    ``TIMESTAMP_MINUTE`` or ``TIMESTAMP_FULL`` shape and receive an aware datetime, or None
     when the timestamp/timezone is invalid.
     """
     try:
@@ -207,10 +208,10 @@ def load_and_localize_datetime(
     except pytz.exceptions.UnknownTimeZoneError as e:
         raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}") from e
 
-    naive_datetime = parse_timestamp_minute(datetime_str)
+    naive_datetime = parse_timestamp_minute(datetime_str) or parse_timestamp_full(datetime_str)
     if naive_datetime is None:
         raise InvalidTimeFormatError(
-            f"Invalid datetime format '{datetime_str}' (expected '{TIMESTAMP_MINUTE}')"
+            f"Invalid datetime format '{datetime_str}' (expected '{TIMESTAMP_MINUTE}' or '{TIMESTAMP_FULL}')"
         )
 
     aware_datetime = tz.localize(naive_datetime)

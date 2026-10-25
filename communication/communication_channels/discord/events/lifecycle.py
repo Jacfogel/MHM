@@ -42,6 +42,11 @@ async def run_on_ready_internal(bot: DiscordHandlerHost) -> None:
     bot._set_status(ChannelStatus.READY)
     bot._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
 
+    from communication.communication_channels.discord.ui.task_reminder_view import (
+        restore_task_reminder_views,
+    )
+
+    restore_task_reminder_views(discord_bot)
     bot._schedule_ready_tasks(discord_bot)
     bot._start_discord_webhook_server_for_ready()
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import schedule
 import random
+import math
 import time
 from datetime import datetime, timedelta
 from typing import Any
@@ -16,6 +17,7 @@ from core.logger import get_component_logger
 from core.time_utilities import (
     DATE_ONLY,
     TIME_ONLY_MINUTE,
+    TIME_ONLY_SECOND,
     TIMESTAMP_FULL,
     format_timestamp,
     load_and_localize_datetime,
@@ -193,7 +195,7 @@ def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> N
                 },
             )
         date_str = format_timestamp(until, DATE_ONLY)
-        time_str = format_timestamp(until, TIME_ONLY_MINUTE)
+        time_str = format_timestamp(until, TIME_ONLY_SECOND)
         if scheduler_manager.schedule_task_reminder_at_datetime(
             user_id, task_id, date_str, time_str
         ):
@@ -554,6 +556,15 @@ def schedule_task_reminder_at_time(
         return False
 
 
+@handle_errors("running one-time task reminder", default_return=schedule.CancelJob)
+def _run_one_time_task_reminder(
+    scheduler_manager: Any, user_id: str, task_identifier: str
+):
+    """Deliver once and remove the job, including after a delivery failure."""
+    scheduler_manager.handle_task_reminder(user_id=user_id, task_identifier=task_identifier)
+    return schedule.CancelJob
+
+
 @handle_errors("scheduling task reminder at specific datetime")
 def schedule_task_reminder_at_datetime(
     scheduler_manager: Any,
@@ -589,9 +600,10 @@ def schedule_task_reminder_at_datetime(
             return False
 
         delay_seconds = (reminder_datetime - now).total_seconds()
-        delay_seconds_int = max(1, int(delay_seconds))
+        delay_seconds_int = max(1, math.ceil(delay_seconds))
         schedule.every(delay_seconds_int).seconds.do(
-            scheduler_manager.handle_task_reminder,
+            _run_one_time_task_reminder,
+            scheduler_manager=scheduler_manager,
             user_id=user_id,
             task_identifier=task_identifier,
         )
@@ -630,7 +642,13 @@ def cleanup_task_reminders(
                     continue
                 if (
                     hasattr(job_func, "func")
-                    and job_func.func == scheduler_manager.handle_task_reminder
+                    and (
+                        job_func.func == scheduler_manager.handle_task_reminder
+                        or (
+                            job_func.func == _run_one_time_task_reminder
+                            and job_func.keywords.get("scheduler_manager") is scheduler_manager
+                        )
+                    )
                 ):
                     if hasattr(job_func, "keywords"):
                         kwargs = job_func.keywords
@@ -703,7 +721,13 @@ def cleanup_orphaned_task_reminders(scheduler_manager: Any) -> None:
                 if not job_func:
                     continue
                 if (
-                    hasattr(job_func, "func") and job_func.func == handle_fn
+                    hasattr(job_func, "func") and (
+                        job_func.func == handle_fn
+                        or (
+                            job_func.func == _run_one_time_task_reminder
+                            and job_func.keywords.get("scheduler_manager") is scheduler_manager
+                        )
+                    )
                 ) and hasattr(job_func, "keywords"):
                     kwargs = job_func.keywords
                     user_id = kwargs.get("user_id")
