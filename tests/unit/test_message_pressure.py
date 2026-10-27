@@ -8,6 +8,7 @@ import pytest
 
 from core.message_pressure import (
     MessagePressureSettings,
+    MessagePressurePolicy,
     energy_is_low,
     message_pressure_settings_from_preferences,
     quiet_mode_is_active,
@@ -17,6 +18,97 @@ from core.message_pressure import (
 )
 
 pytestmark = [pytest.mark.unit, pytest.mark.communication]
+
+
+def test_pressure_explanation_failure_does_not_interrupt_delivery():
+    class BrokenExpiry:
+        def __format__(self, spec):
+            raise RuntimeError("invalid expiry")
+
+    policy = MessagePressurePolicy(
+        None, (), True, True, quiet_mode=True,
+        quiet_mode_until=BrokenExpiry(),  # type: ignore[arg-type]
+    )
+    assert policy.explanation == ""
+    assert policy.gentle is True
+
+
+def test_cooldown_keeps_urgent_work_visible_and_explains_actual_rule():
+    from tasks.task_focus import choose_task_focus_for_user
+    from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
+
+    policy = MessagePressurePolicy(
+        energy=4,
+        guidance=(),
+        gentle=True,
+        avoid_nagging=False,
+        low_energy=True,
+        energy_cooldown=True,
+    )
+    urgent = {"id": "urgent", "title": "Submit the form", "priority": "critical"}
+    with patch("core.message_pressure.resolve_message_pressure", return_value=policy):
+        decision = choose_task_focus_for_user(
+            "u1",
+            [urgent, {"id": "small", "title": "Email Sam", "priority": "low"}],
+            now_dt=datetime(2026, 10, 27, 12),
+            random_value=lambda: 0,
+        )
+    assert decision.task["id"] == "urgent"
+    assert "priority" in decision.reason
+    assert "30 minutes" in decision.reason
+    assert "energy is low" not in decision.reason
+    text = TaskReminderDispatcher(None).create_task_reminder_message(
+        urgent,
+        energy=4,
+        gentle=True,
+        low_energy=True,
+        energy_cooldown=True,
+        pressure_explanation=policy.explanation,
+    )
+    assert "gentle task reminder" in text
+    assert "30 minutes" in text
+    assert "energy is low" not in text
+
+
+def test_quiet_explanation_names_expiry_and_urgency_exceptions():
+    policy = MessagePressurePolicy(
+        None,
+        (),
+        True,
+        True,
+        quiet_mode=True,
+        quiet_mode_until="2026-10-28 06:45:00",
+    )
+    assert "2026-10-28 06:45:00" in policy.explanation
+    assert "critical" in policy.explanation
+    assert "paused" in policy.explanation
+
+
+@pytest.mark.parametrize(
+    "enabled,energy,expected", [(True, 4, True), (False, 4, False), (True, None, False)]
+)
+def test_recovery_cooldown_respects_manual_disable_and_missing_energy(
+    enabled, energy, expected
+):
+    with (
+        patch("checkins.checkin_service.today_checkin_energy", return_value=energy),
+        patch(
+            "checkins.checkin_service.recent_low_energy_cooldown", return_value=True
+        ) as hold,
+        patch("core.health_signals.get_message_guidance", return_value=[]),
+        patch(
+            "core.message_pressure.load_message_pressure_settings",
+            return_value=MessagePressureSettings(automatic_energy_rules=enabled),
+        ),
+    ):
+        policy = resolve_message_pressure("u1")
+    assert policy.energy_cooldown is expected
+    assert policy.low_energy is expected
+    assert policy.gentle is expected
+    assert hold.called is expected
+    if expected:
+        assert "30 minutes" in policy.explanation
+        assert "4/5" not in policy.explanation
 
 
 def test_low_energy_softens_messages_without_health_data():

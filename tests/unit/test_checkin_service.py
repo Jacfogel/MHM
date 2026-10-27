@@ -10,6 +10,44 @@ from checkins import checkin_service
 
 @pytest.mark.unit
 @pytest.mark.checkins
+@pytest.mark.parametrize(
+    "timestamp,answer,asked,expected",
+    [
+        ("2026-05-11 08:00:00", 2, True, True),
+        ("2026-05-11 07:59:59", 2, True, False),
+        ("2026-05-11 08:30:00", 2, True, False),
+        ("2026-05-10 23:59:00", 1, True, False),
+        ("2026-05-11 08:15:00", 4, True, False),
+        ("2026-05-11 08:15:00", "SKIPPED", True, False),
+        ("2026-05-11 08:15:00", 1, False, False),
+    ],
+)
+def test_energy_recovery_hold_uses_only_recent_answered_low_energy(
+    timestamp, answer, asked, expected
+):
+    with (
+        patch("checkins.checkin_service.is_user_checkins_enabled", return_value=True),
+        patch(
+            "checkins.checkin_service.get_recent_checkins",
+            return_value=[
+                {
+                    "submitted_at": timestamp,
+                    "questions_asked": ["energy"] if asked else [],
+                    "responses": {"energy": answer},
+                }
+            ],
+        ),
+    ):
+        assert (
+            checkin_service.recent_low_energy_cooldown(
+                "u1", 2, now_dt=datetime(2026, 5, 11, 8, 29, 59)
+            )
+            is expected
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
 def test_get_checkin_start_status_detects_disabled_user():
     with patch("checkins.checkin_service.is_user_checkins_enabled", return_value=False):
         status = checkin_service.get_checkin_start_status("u1")

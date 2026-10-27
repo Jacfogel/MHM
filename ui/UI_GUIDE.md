@@ -158,6 +158,12 @@ Where relevant, follow the error-handling and logging patterns described in:
 
 ---
 
+### 2.1. Desktop admin AI controls
+
+Open **Admin > AI Controls** without selecting an account. The dialog edits installation-wide global and feature switches, preserves feature selections when AI is off, and can restore environment defaults. Save applies to subsequent model requests in desktop and service processes; Cancel does not write changes, and a failed save keeps the draft open. These controls do not belong in website user settings.
+
+The layout source is `ui/designs/ai_controls_dialog.ui`, generated into `ui/generated/ai_controls_dialog_pyqt.py`. Behavior lives in `ui/dialogs/ai_controls_dialog.py`. The shared schema and dependency-light reader live in `core/ai_usage_configuration.py`; `core/ai_usage_settings.py` provides the environment fallback and atomic persistence through the runtime storage layer. Configuration validation uses the same schema reader without importing the AI runtime. See [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) Section 6.2 for precedence, storage, and failure behavior.
+
 ## 3. Usage Pattern
 
 Basic pattern for using a generated UI class in a dialog:

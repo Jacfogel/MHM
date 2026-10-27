@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from core import config
+from core.ai_usage_settings import read_ai_usage_settings
 from core.error_handling import handle_errors
 
 
@@ -35,14 +35,13 @@ def _normalized_token(value: object) -> str:
 @handle_errors("reading the configured AI usage mode", default_return=AIUsageMode.OFF)
 def get_ai_usage_mode() -> AIUsageMode:
     """Return the configured mode, failing closed for an invalid value."""
-    return AIUsageMode(_normalized_token(config.AI_USAGE_MODE))
+    return AIUsageMode(_normalized_token(read_ai_usage_settings()["mode"]))
 
 
 @handle_errors("reading disabled AI features", default_return=set())
 def get_disabled_ai_features() -> set[str]:
     """Return normalized feature names disabled by configuration."""
-    raw = str(config.AI_DISABLED_FEATURES or "")
-    return {_normalized_token(part) for part in raw.split(",") if part.strip()}
+    return set(read_ai_usage_settings()["disabled_features"])
 
 
 @handle_errors("checking the AI usage policy", default_return=False)
@@ -50,10 +49,11 @@ def is_ai_usage_allowed(
     feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
 ) -> bool:
     """Return whether an automatic model call is allowed for ``feature``."""
-    if get_ai_usage_mode() is not AIUsageMode.AUTOMATIC:
+    settings = read_ai_usage_settings()
+    if _normalized_token(settings["mode"]) != AIUsageMode.AUTOMATIC.value:
         return False
     feature_name = _normalized_token(feature)
-    return feature_name not in get_disabled_ai_features()
+    return feature_name not in settings["disabled_features"]
 
 
 @handle_errors(
@@ -75,11 +75,17 @@ def usage_feature_for_response_mode(mode: str | None) -> AIUsageFeature:
 @handle_errors("building AI usage policy status", default_return={})
 def get_ai_usage_policy_status() -> dict[str, object]:
     """Return non-secret policy state for status and diagnostics."""
-    mode = get_ai_usage_mode()
-    disabled = sorted(get_disabled_ai_features())
+    settings = read_ai_usage_settings()
+    mode = (
+        AIUsageMode.AUTOMATIC
+        if _normalized_token(settings["mode"]) == AIUsageMode.AUTOMATIC.value
+        else AIUsageMode.OFF
+    )
+    disabled = sorted(settings["disabled_features"])
     return {
         "mode": mode.value,
         "automatic_calls_allowed": mode is AIUsageMode.AUTOMATIC,
         "disabled_features": disabled,
+        "source": settings["source"],
     }
 

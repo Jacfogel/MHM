@@ -240,6 +240,38 @@ test('support mode submits an explicit expiry and energy threshold', async () =>
   assert.equal(save.body.complete_setup, undefined);
 });
 
+test('tomorrow morning uses the saved morning start and account calendar date', () => {
+  assert.equal(context.helpers.tomorrowMorning('America/Regina', '06:45', new Date('2026-11-01T03:00:00Z')), '2026-11-01T06:45');
+  assert.equal(context.helpers.tomorrowMorning('Pacific/Auckland', '10:15', new Date('2026-12-31T12:00:00Z')), '2027-01-02T10:15');
+  assert.equal(context.helpers.tomorrowMorning('America/New_York', '07:30', new Date('2026-03-08T06:30:00Z')), '2026-03-09T07:30');
+});
+
+test('quiet shortcuts populate or clear the expiry and only save on submit', async () => {
+  const screen = await settingsPage(async () => Response.json(settingsData()));
+  const form = screen.document.getElementById('settings-support');
+  screen.document.getElementById('quiet-mode-tomorrow').listeners.click();
+  const expiry = screen.document.getElementById('quiet-mode-until');
+  assert.ok(expiry.value.endsWith('T09:00'));
+  assert.equal(form.dataset.dirty, 'true');
+  assert.equal(screen.requests.filter(request => request.method === 'POST').length, 0);
+  await form.listeners.submit({ preventDefault() {} });
+  assert.equal(screen.requests.find(request => request.method === 'POST').body.values.quiet_mode_until, expiry.value);
+  screen.document.getElementById('quiet-mode-off').listeners.click();
+  assert.equal(expiry.value, '');
+});
+
+test('tomorrow shortcut follows a morning time saved without reloading the page', async () => {
+  const screen = await settingsPage(async request => {
+    const data = settingsData();
+    if (request.method === 'POST') data.sections.phrases.time_of_day_defaults.morning = '06:45';
+    return Response.json(data);
+  });
+  screen.document.getElementById('phrase-morning').value = '06:45';
+  await screen.document.getElementById('settings-phrases').listeners.submit({ preventDefault() {} });
+  screen.document.getElementById('quiet-mode-tomorrow').listeners.click();
+  assert.ok(screen.document.getElementById('quiet-mode-until').value.endsWith('T06:45'));
+});
+
 test('saving profile settings locks all forms and submits the current revision', async () => {
   let finishSave;
   const initial = settingsData();

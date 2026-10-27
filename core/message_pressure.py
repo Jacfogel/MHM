@@ -42,6 +42,31 @@ class MessagePressurePolicy:
     low_energy_threshold: int = DEFAULT_LOW_ENERGY_THRESHOLD
     quiet_mode: bool = False
     quiet_mode_until: str | None = None
+    energy_cooldown: bool = False
+
+    @property
+    @handle_errors("explaining message pressure", default_return="")
+    def explanation(self) -> str:
+        """Explain only rules that actually softened this decision."""
+        reasons = []
+        if self.quiet_mode:
+            reasons.append(
+                f"Quiet mode is on until {self.quiet_mode_until}. Scheduled check-ins "
+                "and encouragement are paused; due, overdue, urgent, and critical "
+                "task reminders can still arrive with gentler wording."
+            )
+        if self.energy_cooldown:
+            reasons.append(
+                "A recent low-energy check-in is keeping support gentle for 30 minutes "
+                "after that answer, so pressure does not rise immediately."
+            )
+        elif self.low_energy:
+            reasons.append(
+                f"Your check-in energy ({self.energy}/5) meets your low-energy rule "
+                f"(1–{self.low_energy_threshold}); smaller steps and gentler wording "
+                "are favored while urgent tasks stay visible."
+            )
+        return " ".join(reasons)
 
 
 @handle_errors(
@@ -146,7 +171,10 @@ def task_reminder_allowed_during_quiet_mode(
 )
 def resolve_message_pressure(user_id: str) -> MessagePressurePolicy:
     """Resolve saved controls and today's reliable signals without an LLM."""
-    from checkins.checkin_service import today_checkin_energy
+    from checkins.checkin_service import (
+        recent_low_energy_cooldown,
+        today_checkin_energy,
+    )
     from core.health_signals import get_message_guidance
 
     settings = load_message_pressure_settings(user_id)
@@ -162,10 +190,18 @@ def resolve_message_pressure(user_id: str) -> MessagePressurePolicy:
     low_energy = energy_is_low(energy, settings)
     from scheduler.user_timezone import user_local_now_naive
 
-    quiet_mode = quiet_mode_is_active(
-        settings,
-        now_dt=user_local_now_naive(user_id),
+    now_dt = user_local_now_naive(user_id)
+    cooldown = bool(
+        settings.automatic_energy_rules
+        and type(energy) is int
+        and 1 <= energy <= 5
+        and not low_energy
+        and recent_low_energy_cooldown(
+            user_id, settings.low_energy_threshold, now_dt=now_dt
+        )
     )
+    low_energy = low_energy or cooldown
+    quiet_mode = quiet_mode_is_active(settings, now_dt=now_dt)
     return MessagePressurePolicy(
         energy=energy,
         guidance=guidance,
@@ -175,6 +211,7 @@ def resolve_message_pressure(user_id: str) -> MessagePressurePolicy:
         low_energy_threshold=settings.low_energy_threshold,
         quiet_mode=quiet_mode,
         quiet_mode_until=settings.quiet_mode_until if quiet_mode else None,
+        energy_cooldown=cooldown,
     )
 
 

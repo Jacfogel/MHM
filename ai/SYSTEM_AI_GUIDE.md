@@ -332,6 +332,8 @@ Do not bypass these helpers or call LM Studio directly from other modules.
 
 `ai/usage_policy.py` is the provider-neutral boundary that decides whether a model-backed feature may run:
 
+- Desktop **Admin > AI Controls** owns installation-wide global and feature switches. They are administrator settings, excluded from website user settings.
+- Saved overrides in `BASE_DATA_DIR/ai_usage_settings.json` take precedence over environment defaults, apply to subsequent policy checks across processes, and fail closed when unreadable. The desktop dialog can restore environment defaults. Requests already in progress may finish.
 - `AI_USAGE_MODE=automatic` preserves normal model use.
 - `AI_USAGE_MODE=off` prevents model requests while deterministic handlers and fallbacks continue.
 - `AI_DISABLED_FEATURES` disables selected automatic features: conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.

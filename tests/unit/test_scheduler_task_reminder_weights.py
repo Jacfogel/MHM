@@ -9,11 +9,12 @@ import pytest
 
 from communication.core.message_send_result import MessageSendResult
 from scheduler import task_reminders as tr
+from tasks.task_reminder_state import reminder_sent_fields
 
 
 def _sent_update(user_id: str = "u1") -> dict:
     """The task fields written after a reminder is handed off."""
-    return {**tr.reminder_sent_fields(user_id), "reminder_snooze_until": None}
+    return {**reminder_sent_fields(user_id), "reminder_snooze_until": None}
 
 
 @pytest.mark.unit
@@ -195,7 +196,7 @@ class TestHandleTaskReminderModule:
             "id": "t1",
             "status": "active",
             "reminder_sent": True,
-            "reminder_sent_on": tr.reminder_sent_fields("u1")["reminder_sent_on"],
+            "reminder_sent_on": reminder_sent_fields("u1")["reminder_sent_on"],
         }
         with (
             patch("tasks.get_task_by_id", return_value=task),

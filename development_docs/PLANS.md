@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-10-19
+> **Last Updated**: 2026-10-27
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -68,8 +68,8 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode and explicit energy controls are complete; select the next task-system slice |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
-| Cost-aware optional AI | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Central execution policy, feature-level off switches, deterministic fallbacks; manual-only controls later |
-| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Decision explanations, cooldowns, and an "until tomorrow" shortcut |
+| Cost-aware optional AI | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Desktop admin switches shipped; design explicit manual action before manual-only mode |
+| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode shortcuts and energy recovery cooldown shipped; evaluate health-signal cooldowns separately |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
@@ -102,6 +102,8 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Use / fit**: Keep MHM useful at no model cost for as long as practical. Deterministic handlers remain authoritative. AI is optional and must be easy to disable globally or for individual product features before a paid provider replaces LM Studio.
 
+**Admin ownership (2026-10-27)**: Global and feature-level AI switches belong in the desktop admin UI. They are administrator controls and must not appear in website user settings. Environment configuration remains an operational fallback.
+
 **Workstreams** (in recommended order):
 
 1. **Central execution policy** - Every model request passes through one policy boundary. `AI_USAGE_MODE=off` prevents model requests, while deterministic commands, reminders, and fallbacks continue.
@@ -110,6 +112,8 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 4. **Provider replacement boundary** - Keep usage policy independent from LM Studio so a future paid provider cannot bypass the same controls.
 
 **First slice shipped (2026-10-19)**: `ai/usage_policy.py`, the shared client boundary, and chatbot cache checks enforce `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Configuration validation fails closed for an invalid mode and does not require model connection settings when AI is off.
+
+**Desktop admin controls shipped (2026-10-27)**: Admin > AI Controls exposes one installation-wide global switch and the seven feature switches. Saved overrides use `ai_usage_settings.json` under `BASE_DATA_DIR`; reads are fresh for each policy decision, including new requests in a running service. Use environment defaults returns control to `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Corrupt saved controls fail closed and configuration validation explains how to repair them. The website has no AI policy settings. Manual-only semantics remain deferred until an explicit action is designed.
 
 **Out of scope**: MHM will not duplicate provider billing, budgets, or price tracking. The selected provider owns monetary limits. MHM owns only whether a feature may request AI.
 
@@ -127,6 +131,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Triage rubric**: High-coupling audit flag = unique local fan-out **> 10**, excluding package `__init__.py` re-export hubs. Legitimate composition hubs (orchestrator, chatbot, interaction_manager, `core.service`) keep their fan-out. Fix only **inappropriate** edges (wrong direction, private-API reach, domain -> composition-root locators).
 
 **Done this pass**:
+- Moved reminder handoff date fields into `tasks/task_reminder_state.py`; scheduling, snoozing, and recurrence skips share the helper without importing `scheduler.task_reminders` back from the task actions. (2026-10-27)
 - Public `get_first_checkin_question_text` on check-in flow; `core.service_requests` no longer calls private conversation-flow helpers.
 - `scheduler.runtime_access` holds the process SchedulerManager handle; `tasks.task_data_manager` no longer imports `core.service`.
 - Coupling analyzer threshold raised to > 10 with `__init__.py` exclusion; AI_PRIORITIES action text updated for triage (not hub shrink).
@@ -243,11 +248,12 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Next slices**:
 
 - [x] Add a manual quiet mode with a clear custom end time.
-- [ ] Add a convenience "until tomorrow" quiet-mode shortcut.
+- [x] Add an "until tomorrow morning" quiet-mode shortcut using the saved morning start time in Phrases, plus a manual off shortcut. Both apply when saved. (2026-10-27)
 - [x] Define which scheduled messages quiet mode suppresses, softens, or allows because they are genuinely urgent.
 - [x] Expose explicit user preferences for energy thresholds and automatic gentle-mode behavior.
-- [ ] Explain which reliable signal or preference changed a focus or reminder decision.
-- [ ] Add cooldowns so changing signals do not make reminder pressure oscillate.
+- [x] Explain quiet mode, the configured energy threshold, and recovery cooldown in task focus and reminder decisions. (2026-10-27)
+- [x] Keep support gentle for 30 minutes after a low-energy answer today when a higher answer arrives; derive the hold from saved check-ins so restarts agree. Missing energy does not create a hold; disabling automatic energy rules bypasses it immediately. (2026-10-27)
+- [ ] Evaluate cooldowns for health-derived pressure changes separately; the shipped cooldown covers explicit check-in energy only.
 
 **Guardrails**: Never hide urgent work; never infer mood from ordinary chat text; never require AI to evaluate the rules.
 

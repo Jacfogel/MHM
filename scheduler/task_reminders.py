@@ -31,22 +31,9 @@ from scheduler.user_timezone import (
     user_local_now_naive,
 )
 from tasks.task_data_handlers import runtime_task_is_completed
+from tasks import task_reminder_state
 
 logger = get_component_logger("scheduler")
-
-
-@handle_errors("building today's reminder sent fields", default_return={})
-def reminder_sent_fields(user_id: str, now_dt: datetime | None = None) -> dict[str, Any]:
-    """Mark a reminder handed off on the user's local calendar date.
-
-    ``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
-    is the date that blocks a second copy. A later day can send again.
-    """
-    moment = now_dt if now_dt is not None else user_local_now_naive(user_id)
-    sent_on = format_timestamp(moment, DATE_ONLY)
-    if not sent_on:
-        return {"reminder_sent": True}
-    return {"reminder_sent": True, "reminder_sent_on": sent_on}
 
 
 @handle_errors("checking whether a task reminder was already sent today", default_return=False)
@@ -132,7 +119,10 @@ def handle_task_reminder(
                 update_task(
                     user_id,
                     task_identifier,
-                    {**reminder_sent_fields(user_id), "reminder_snooze_until": None},
+                    {
+                        **task_reminder_state.reminder_sent_fields(user_id),
+                        "reminder_snooze_until": None,
+                    },
                 )
                 if status == "unconfirmed":
                     logger.warning(
@@ -190,7 +180,7 @@ def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> N
                 user_id,
                 task_id,
                 {
-                    **reminder_sent_fields(user_id),
+                    **task_reminder_state.reminder_sent_fields(user_id),
                     "reminder_snooze_until": format_timestamp(until, TIMESTAMP_FULL),
                 },
             )

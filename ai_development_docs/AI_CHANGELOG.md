@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-27 - Desktop AI controls, quiet mode, and reminder dependencies **COMPLETED**
+- Desktop Admin > AI Controls owns installation-wide global and seven feature switches, with environment-default restoration. Atomic shared settings override the environment on subsequent decisions across processes; invalid saved controls fail closed, failed saves retain the draft, and Cancel writes nothing. These controls are excluded from website user settings.
+- Quiet-mode shortcuts use the saved Phrases morning start time and account timezone. Focus/reminders explain quiet mode, energy thresholds, and a restart-stable 30-minute recovery hold after today's low-energy answer. Disabling energy rules bypasses the hold; health-signal cooldowns remain separate follow-up work.
+- Shared reminder date fields now live in tasks/task_reminder_state.py, removing the scheduler/snooze cycle. Reminder/snooze/skip and cleanup checks pass 143 tests. Explanation failures return safe empty text; the function registry includes the new helpers.
+- Desktop controls validation passes 126 focused policy/chatbot/configuration/admin tests, a final 17 settings/dialog tests, and earlier 91 desktop-shell regression checks. Ruff and Pyright pass; the rendered dialog was visually reviewed. Restart desktop and service once to load the feature; later policy saves apply without restarting. Earlier quiet-mode checks passed 90 tests; a broader website-service run stalled and was stopped.
+
 ### 2026-10-25 - Discord reminder actions and snooze delivery repaired **COMPLETED**
 - Snooze, Skip, Simplify, and continued check-in replies preserve their deterministic text. Unavailable AI enhancement returns no replacement text instead of exposing an offline reply and internal action catalog.
 - Discord restores saved task reminder buttons at startup. Custom Snooze rejects unrecognized dates while accepting clock-only and weekday/time phrases.
@@ -108,13 +114,6 @@ Guidelines:
 - Website notebook failures now distinguish stale entries from temporary save/state-change failures, retain failed drafts, hide raw network details, and tell users when to refresh before retrying an uncertain operation.
 - Both Pyright warnings were cleared with explicit async-mock call narrowing. Generated documentation and audit reports now show zero registry gaps and Pyright PASS with zero warnings.
 - Focused verification passes 44 account/billing gateway tests, 10 task-route tests, 24 account/task browser tests, 34 website page/asset tests, 22 Discord Create UI tests, 17 notebook route tests, and 13 notebook browser tests; the complete browser-script bridge, Ruff, and Pyright are clean.
-
-### 2026-10-10 - Billing follow-up checks restored **COMPLETED**
-- Fixed the order-dependent development-tools classifier failure by preserving complete error-handling defaults when a worker loads partial external configuration and returning isolated nested settings to each caller.
-- Fixed the Tier 3 xdist interruption caused by an account-creation test repeatedly scanning every accumulated account until the five-minute timeout killed its worker. The test now checks only the canonical account paths, and an unstarted no-parallel track is reported as skipped instead of inheriting the parallel crash.
-- Made the website-chat gateway tests use a fresh account ID per test so retained xdist inbox data cannot duplicate conversation turns in a later run; removed an advisory link to an absent optional coverage snapshot.
-- Fixed the remaining Pyright optional-value error in the billing portal test and regenerated the function registry/module references for the new billing functions.
-- Verification: the repaired six-worker main track passes 5,931 tests with 1 skip using the former crash seed; the development-tools track passes 1,661 tests; focused config/error-handling tests pass 63 tests; Pyright reports 0 errors and Ruff is clean. The user-requested full audit was stopped and not rerun.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

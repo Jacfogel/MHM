@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-25 17:29:26
+> **Last Generated**: 2026-10-27 14:16:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 310
-- **Functions Found**: 3227
-- **Methods Found**: 1641
-- **Classes Found**: 289
-- **Total Items**: 4868
-- **Functions Documented**: 2873
-- **Methods Documented**: 1462
-- **Classes Documented**: 222
-- **Total Documented**: 4335
+- **Files Scanned**: 314
+- **Functions Found**: 3239
+- **Methods Found**: 1648
+- **Classes Found**: 290
+- **Total Items**: 4887
+- **Functions Documented**: 2885
+- **Methods Documented**: 1469
+- **Classes Documented**: 223
+- **Total Documented**: 4354
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-25
+- **Last Updated**: 2026-10-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,19 +39,19 @@
 
 ## Function Categories
 
-### **Core System Functions** (683)
+### **Core System Functions** (688)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (904)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (549)
+### **User Interface Functions** (555)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (28)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (194)
+### **Task Management Functions** (195)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1185,6 +1185,10 @@ Checks custom questions first (if user_id provided), then predefined questions.
 - [OK] `checkin_display_date(checkin)` - Return a stable display date for a check-in.
 - [OK] `get_checkin_start_status(user_id)` - Return whether a user can start a new check-in right now.
 - [OK] `get_recent_checkin_summary(user_id)` - Return recent check-ins if check-ins are enabled for the user.
+- [OK] `recent_low_energy_cooldown(user_id, threshold)` - Hold gentler support for 30 minutes after a low energy answer today.
+
+Derive this from saved answers so restarts and separate consumers agree.
+Future answers, previous days, and unanswered energy questions do not count.
 - [OK] `today_checkin_energy(user_id)` - Return today's 1-5 energy score, or None when today has no energy answer.
 **Classes:**
 - [OK] `CheckinStartStatus` - Preflight status for starting a check-in.
@@ -3946,6 +3950,19 @@ Returns the new user_id on success, or None on failure.
 - [OK] `update_user_index_with_retry(user_id, max_retries)` - Update user index with retries to handle parallel test race conditions.
 - [OK] `wait_for_user_files_ready(user_id, max_wait_attempts)` - Wait until account.json and preferences.json are readable with expected data.
 
+#### `core/ai_usage_configuration.py`
+**Functions:**
+- [OK] `read_ai_usage_override(base_dir)` - Read an admin override, return None for environment defaults, or fail closed.
+
+#### `core/ai_usage_settings.py`
+**Functions:**
+- [OK] `environment_ai_usage_settings()` - Return the operational environment defaults without changing them.
+- [OK] `read_ai_usage_settings()` - Read one fresh policy snapshot; unreadable saved controls disable AI.
+
+Atomic shared storage makes subsequent calls in separate desktop/service
+processes observe saved changes without restarting or mutating environment.
+- [OK] `save_ai_usage_settings(mode, disabled_features)` - Validate and atomically persist installation-wide administrator choices.
+
 #### `core/auto_cleanup.py`
 **Functions:**
 - [OK] `_calculate_cache_size__calculate_pyc_files_size(pyc_files)` - Calculate total size of standalone .pyc files.
@@ -4964,6 +4981,7 @@ Args:
 #### `core/message_pressure.py`
 **Functions:**
 - [OK] `energy_is_low(energy, settings)` - Apply the user's explicit one-to-five energy rule.
+- [OK] `explanation(self)` - Explain only rules that actually softened this decision.
 - [OK] `load_message_pressure_settings(user_id)` - Read one user's saved deterministic pressure controls.
 - [OK] `message_pressure_settings_from_preferences(preferences)` - Normalize saved controls without guessing from free-form user text.
 - [OK] `quiet_mode_is_active(settings)` - Return whether the saved quiet-mode expiry is still in the future.
@@ -4973,6 +4991,7 @@ Args:
 - [OK] `user_quiet_mode_is_active(user_id)` - Check the manual quiet control without loading health or check-in signals.
 **Classes:**
 - [OK] `MessagePressurePolicy` - Reliable user signals reduced to channel-agnostic pressure guidance.
+  - [OK] `MessagePressurePolicy.explanation(self)` - Explain only rules that actually softened this decision.
 - [OK] `MessagePressureSettings` - Saved user controls for deterministic message-pressure decisions.
 
 #### `core/natural_language_defaults.py`
@@ -6786,10 +6805,6 @@ Args:
 ``task_identifier`` is the task record's canonical ``id`` or another value
 accepted by ``tasks.get_task_by_id``.
 - [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
-- [OK] `reminder_sent_fields(user_id, now_dt)` - Mark a reminder handed off on the user's local calendar date.
-
-``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
-is the date that blocks a second copy. A later day can send again.
 - [OK] `reschedule_snoozed_task_reminders(scheduler_manager, user_id)` - Re-schedule persisted reminder snoozes after a service restart.
 - [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
 
@@ -7288,6 +7303,13 @@ completion. Returns None when the reference is ambiguous.
 **Classes:**
 - [OK] `TaskReminderSnoozeResult` - Outcome of a reminder snooze request.
 
+#### `tasks/task_reminder_state.py`
+**Functions:**
+- [OK] `reminder_sent_fields(user_id, now_dt)` - Mark a reminder handed off on the user's local calendar date.
+
+``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
+is the date that blocks a second copy. A later day can send again.
+
 #### `tasks/task_schemas.py`
 **Functions:**
 - [OK] `sanitize_links(cls, value)` - Normalize link payloads before model construction.
@@ -7430,6 +7452,7 @@ Returns:
 - [OK] `_discord_health_lines(self, create_communication_manager)` - Return Discord connectivity health lines.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
 - [OK] `force_clean_cache(self, parent)` - Force cache cleanup regardless of schedule.
+- [OK] `manage_ai_controls(self, parent)` - Open installation-wide AI controls without a selected account.
 - [OK] `open_process_watcher(self, parent)` - Open the process watcher dialog.
 - [OK] `show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
 - [OK] `system_health_check(self, parent)` - Perform a basic system health check.
@@ -7445,6 +7468,7 @@ Returns:
   - [OK] `AdminActions._configuration_values(self)` - Return display-ready configuration values for the validation dialog.
   - [OK] `AdminActions._discord_health_lines(self, create_communication_manager)` - Return Discord connectivity health lines.
   - [OK] `AdminActions.force_clean_cache(self, parent)` - Force cache cleanup regardless of schedule.
+  - [OK] `AdminActions.manage_ai_controls(self, parent)` - Open installation-wide AI controls without a selected account.
   - [OK] `AdminActions.open_process_watcher(self, parent)` - Open the process watcher dialog.
   - [OK] `AdminActions.show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
   - [OK] `AdminActions.system_health_check(self, parent)` - Perform a basic system health check.
@@ -7612,6 +7636,21 @@ Returns:
 Args:
     data: Admin panel data to set (currently not implemented)
   - [OK] `AdminPanelDialog.setup_ui(self)` - Setup the UI components.
+
+#### `ui/dialogs/ai_controls_dialog.py`
+**Functions:**
+- [OK] `__init__(self, parent)` - Build the admin controls and load the effective shared settings.
+- [OK] `_environment_changed(self, checked)` - Preview environment defaults before the administrator saves them.
+- [OK] `_populate_policy(self, settings)` - Display the global switch and preserve feature choices when AI is off.
+- [OK] `_sync_controls(self, _checked)` - Disable inactive controls without discarding the feature selections.
+- [OK] `save_settings(self)` - Persist valid choices and keep the draft open if storage fails.
+**Classes:**
+- [OK] `AIControlsDialog` - Edit shared global and feature-level AI controls without selecting a user.
+  - [OK] `AIControlsDialog.__init__(self, parent)` - Build the admin controls and load the effective shared settings.
+  - [OK] `AIControlsDialog._environment_changed(self, checked)` - Preview environment defaults before the administrator saves them.
+  - [OK] `AIControlsDialog._populate_policy(self, settings)` - Display the global switch and preserve feature choices when AI is off.
+  - [OK] `AIControlsDialog._sync_controls(self, _checked)` - Disable inactive controls without discarding the feature selections.
+  - [OK] `AIControlsDialog.save_settings(self)` - Persist valid choices and keep the draft open if storage fails.
 
 #### `ui/dialogs/category_management_dialog.py`
 **Functions:**

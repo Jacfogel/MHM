@@ -360,6 +360,7 @@
     <property name="title">
      <string>Admin</string>
     </property>
+    <addaction name="actionAI_Controls"/>
     <addaction name="actionValidate_Configuration"/>
     <addaction name="actionView_All_Users"/>
     <addaction name="actionSystem_Health_Check"/>
@@ -391,6 +392,11 @@
   <action name="actionValidate_Configuration">
    <property name="text">
     <string>Validate Configuration</string>
+   </property>
+  </action>
+  <action name="actionAI_Controls">
+   <property name="text">
+    <string>AI Controls...</string>
    </property>
   </action>
   <action name="actionView_All_Users">

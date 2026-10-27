@@ -522,26 +522,31 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
         errors = []
         warnings = []
 
+        from core.ai_usage_configuration import AI_FEATURE_LABELS, read_ai_usage_override
+
+        ai_controls = read_ai_usage_override(BASE_DATA_DIR)
+        if ai_controls is None:
+            ai_controls = {
+                "mode": AI_USAGE_MODE,
+                "disabled_features": [
+                    part.strip().lower().replace("-", "_").replace(" ", "_")
+                    for part in AI_DISABLED_FEATURES.split(",") if part.strip()
+                ],
+                "source": "environment",
+            }
         valid_usage_modes = {"automatic", "off"}
-        if AI_USAGE_MODE not in valid_usage_modes:
+        if ai_controls["source"] == "invalid":
+            errors.append(
+                "Desktop AI controls could not be loaded. "
+                "Open Admin > AI Controls and save valid settings."
+            )
+        if ai_controls["mode"] not in valid_usage_modes:
             errors.append(
                 "AI_USAGE_MODE must be one of: automatic, off"
             )
 
-        valid_usage_features = {
-            "conversation",
-            "command_interpretation",
-            "personalized_messages",
-            "action_planning",
-            "response_enhancement",
-            "task_breakdown",
-            "task_effort",
-        }
-        configured_disabled_features = {
-            part.strip().lower().replace("-", "_").replace(" ", "_")
-            for part in AI_DISABLED_FEATURES.split(",")
-            if part.strip()
-        }
+        valid_usage_features = set(AI_FEATURE_LABELS)
+        configured_disabled_features = set(ai_controls["disabled_features"])
         unknown_disabled_features = sorted(
             configured_disabled_features - valid_usage_features
         )
@@ -552,7 +557,7 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
             )
 
         # Model connection settings are optional when every AI call is disabled.
-        if AI_USAGE_MODE != "off":
+        if ai_controls["mode"] != "off":
             if not LM_STUDIO_BASE_URL:
                 errors.append("LM_STUDIO_BASE_URL is not configured")
             elif not LM_STUDIO_BASE_URL.startswith(("http://", "https://")):

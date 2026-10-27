@@ -16,7 +16,8 @@ from core.schedule_runtime import (
 )
 from core.time_utilities import now_datetime_full
 from scheduler.manager import SchedulerManager
-from scheduler.task_reminders import handle_task_reminder, reminder_sent_fields
+from scheduler.task_reminders import handle_task_reminder
+from tasks.task_reminder_state import reminder_sent_fields
 from storage.user_data_validation import validate_schedule_periods
 from tasks import create_task, get_task_by_id, update_task
 from tests.test_helpers.test_utilities import TestUserFactory

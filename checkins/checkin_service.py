@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any
 
 from checkins.analysis import coerce_numeric, is_question_asked, response_value
@@ -87,6 +88,34 @@ def today_checkin_energy(user_id: str) -> int | None:
             continue
         return int(round(value))
     return None
+
+
+@handle_errors("checkin service: energy recovery cooldown", default_return=False)
+def recent_low_energy_cooldown(
+    user_id: str, threshold: int, *, now_dt: datetime
+) -> bool:
+    """Hold gentler support for 30 minutes after a low energy answer today.
+
+    Derive this from saved answers so restarts and separate consumers agree.
+    Future answers, previous days, and unanswered energy questions do not count.
+    """
+    if not is_user_checkins_enabled(user_id):
+        return False
+    for checkin in get_recent_checkins(user_id, limit=100):
+        if not isinstance(checkin, dict):
+            continue
+        timestamp = checkin_runtime_timestamp(checkin)
+        parsed = parse_timestamp_full(timestamp) if timestamp else None
+        if parsed is None or parsed.date() != now_dt.date():
+            continue
+        if not timedelta(0) <= now_dt - parsed < timedelta(minutes=30):
+            continue
+        if not is_question_asked(checkin, "energy"):
+            continue
+        value = coerce_numeric(response_value(checkin, "energy"))
+        if value is not None and 1 <= value <= 5 and int(round(value)) <= threshold:
+            return True
+    return False
 
 
 @handle_errors("checkin service: recent checkin summary", default_return=RecentCheckinSummary([], False))

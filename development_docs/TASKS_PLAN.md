@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-10-17
+> **Last Updated**: 2026-10-27
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -224,6 +224,11 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Pause scheduled encouragement and check-ins during quiet mode while allowing due, overdue, urgent, and critical task reminders with gentle wording.
 - [x] Apply the saved energy threshold to both task focus ranking and reminder wording; disabling the rule leaves check-in energy available without changing pressure.
 - [x] Keep manual replies and actions available, and never infer energy or quiet mode from ordinary chat text.
+
+**Quiet-mode follow-up (2026-10-27)**:
+- [x] Support mode shortcuts end quiet mode tomorrow at the saved Phrases morning start time, or turn it off, after saving.
+- [x] Focus and reminder explanations name quiet mode, the configured energy rule, or a 30-minute recovery hold after today's low-energy answer.
+- [x] Energy recovery holds are derived from saved check-ins, survive restart, preserve urgency, and are bypassed when automatic energy rules are disabled. Health-signal cooldowns remain a separate follow-up in PLANS.md Section 5.3.
 
 **Acceptance**:
 - The same user state produces the same urgency guardrails in Home, chat, and scheduled reminders.

@@ -128,6 +128,8 @@ class TaskReminderDispatcher:
             energy=pressure.energy,
             gentle=pressure.gentle,
             low_energy=pressure.low_energy,
+            pressure_explanation=pressure.explanation,
+            energy_cooldown=pressure.energy_cooldown,
         )
         display_title = str(
             (focus_step or task).get("title") or task.get("title") or "Untitled Task"
@@ -225,6 +227,8 @@ class TaskReminderDispatcher:
         energy: int | None = None,
         gentle: bool = False,
         low_energy: bool | None = None,
+        pressure_explanation: str = "",
+        energy_cooldown: bool = False,
     ) -> str:
         """Create a formatted task reminder message."""
         if not task or not isinstance(task, dict):
@@ -266,9 +270,13 @@ class TaskReminderDispatcher:
             message += f"📅 **Due:** {due_date}\n"
 
         message += f"⚡ **Priority:** {priority.title()}\n"
-        reason = explain_task_focus(shown, energy=energy, low_energy=is_low_energy)
+        reason = explain_task_focus(
+            shown, energy=energy, low_energy=is_low_energy and not energy_cooldown
+        )
         if reason:
             message += f"\n**Why this one:** {reason}"
+        if pressure_explanation:
+            message += f"\n{pressure_explanation}"
         if gentle or is_low_energy:
             message += "\n\nA smaller step is enough today—use **Simplify** if that would help."
         deferral_advice = repeated_deferral_advice(task, focus_step=focus_step)

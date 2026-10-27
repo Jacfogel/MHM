@@ -184,9 +184,13 @@ These settings control the optional local AI integration.
 - `AI_USAGE_MODE` - `automatic` (default) permits configured model features; `off` prevents model requests while deterministic commands, reminders, and fallbacks continue. Model connection settings are not required when this is `off`.
 - `AI_DISABLED_FEATURES` - optional comma-separated list of model-backed features to disable. Supported names are `conversation`, `command_interpretation`, `personalized_messages`, `action_planning`, `response_enhancement`, `task_breakdown`, and `task_effort`.
 
-Disabled features do not use cached AI responses. Unknown feature names produce a configuration warning. MHM does not duplicate provider billing limits, budgets, or price tracking.
+Desktop administrators can use **Admin > AI Controls** to save a global switch and feature switches for the whole installation. These controls are not user preferences and do not appear on the website. Saved desktop overrides take precedence over these environment defaults. Select **Use environment defaults** and save to return to the environment policy.
 
-**Breaks if wrong:** an invalid `AI_USAGE_MODE` fails validation and runtime policy fails closed. Misspelled disabled feature names are ignored after producing a warning.
+The shared `ai_usage_settings.json` configuration file lives under `BASE_DATA_DIR`. Its schema version is 1, with `use_environment` and, for an override, `mode` plus a `disabled_features` list. Writes are atomic. New policy decisions in the desktop and service read the saved values without a restart; requests already in progress can finish. Missing files use environment defaults. Unreadable or invalid saved overrides disable AI and fail configuration validation until repaired through the admin dialog.
+
+Disabled features do not use cached AI responses. Unknown feature names in environment defaults produce a configuration warning. MHM does not duplicate provider billing limits, budgets, or price tracking.
+
+**Breaks if wrong:** when environment defaults are active, an invalid `AI_USAGE_MODE` fails validation and runtime policy fails closed. Misspelled environment feature names are ignored after producing a warning; invalid names in saved desktop overrides fail closed.
 
 ### 6.3. Prompt and timeouts
 

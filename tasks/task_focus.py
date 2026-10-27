@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 
@@ -284,15 +284,23 @@ def choose_task_focus_for_user(
     random_value: Callable[[], float] | None = None,
 ) -> TaskFocusDecision | None:
     """Choose a focus task with the user's reliable energy and health guidance."""
-    energy, gentle = task_focus_signals(user_id)
-    return choose_task_focus(
+    from core.message_pressure import resolve_message_pressure
+
+    policy = resolve_message_pressure(user_id)
+    decision = choose_task_focus(
         tasks,
         now_dt=now_dt,
-        energy=energy,
-        gentle=gentle,
-        low_energy=task_focus_energy_is_low(user_id, energy),
+        energy=policy.energy,
+        gentle=policy.gentle,
+        low_energy=policy.low_energy,
         random_value=random_value,
     )
+    if decision is not None and policy.explanation:
+        reason = decision.reason
+        if policy.energy_cooldown:
+            reason = explain_task_focus(decision.task, now_dt=now_dt, low_energy=False)
+        return replace(decision, reason=f"{reason} {policy.explanation}")
+    return decision
 
 
 @handle_errors("explaining focused task", default_return="")

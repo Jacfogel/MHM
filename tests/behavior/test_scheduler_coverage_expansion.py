@@ -26,7 +26,7 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from communication.core.message_send_result import MessageSendResult
-from scheduler.task_reminders import reminder_sent_fields
+from tasks.task_reminder_state import reminder_sent_fields
 
 
 @pytest.fixture

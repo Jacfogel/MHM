@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-25 17:30:08
+> **Last Generated**: 2026-10-27 14:17:53
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -240,6 +240,8 @@ C:.
 |   |   |
 +---core
 |   |   admin_account_provisioning.py
+|   |   ai_usage_configuration.py
+|   |   ai_usage_settings.py
 |   |   auto_cleanup.py
 |   |   billing.py
 |   |   billing_notices.py
@@ -606,6 +608,7 @@ C:.
 |   |   task_reference.py
 |   |   task_reminder_deferrals.py
 |   |   task_reminder_snooze.py
+|   |   task_reminder_state.py
 |   |   task_schemas.py
 |   |   task_service.py
 |   |   task_simplify.py
@@ -734,13 +737,13 @@ C:.
 |   |   |   test_welcome_manager_behavior.py
 |   |   |
 |   +---communication
-|   |   |   test_channel_monitor.py
-|   |   |   test_communication_coverage_expansion.py
-|   |   |   test_flow_command_helpers.py
-|   |   |   test_message_processing_scenarios.py
-|   |   |   test_retry_manager.py
-|   |   |   test_task_list_ui.py
-|   |   |
+|   |       test_channel_monitor.py
+|   |       test_communication_coverage_expansion.py
+|   |       test_flow_command_helpers.py
+|   |       test_message_processing_scenarios.py
+|   |       test_retry_manager.py
+|   |       test_task_list_ui.py
+|   |
 |   +---core
 |   |   |   test_file_auditor.py
 |   |   |   test_file_auditor_gap_coverage.py
@@ -754,151 +757,151 @@ C:.
 |   |   |   test_user_data_read_scenarios.py
 |   |   |
 |   +---development_tools
-|   |   |   conftest.py
-|   |   |   regenerate_fixture_status_files.py
-|   |   |   test_analysis_tool_validation.py
-|   |   |   test_analysis_validation_framework.py
-|   |   |   test_analyze_ai_work.py
-|   |   |   test_analyze_ascii_compliance.py
-|   |   |   test_analyze_config.py
-|   |   |   test_analyze_dependency_patterns.py
-|   |   |   test_analyze_dev_tools_import_boundaries.py
-|   |   |   test_analyze_documentation.py
-|   |   |   test_analyze_duplicate_functions.py
-|   |   |   test_analyze_error_handling.py
-|   |   |   test_analyze_facade_shims.py
-|   |   |   test_analyze_functions.py
-|   |   |   test_analyze_function_patterns.py
-|   |   |   test_analyze_function_registry.py
-|   |   |   test_analyze_heading_numbering.py
-|   |   |   test_analyze_missing_addresses.py
-|   |   |   test_analyze_module_dependencies.py
-|   |   |   test_analyze_module_imports_cli.py
-|   |   |   test_analyze_module_refactor_candidates.py
-|   |   |   test_analyze_package_exports.py
-|   |   |   test_analyze_security_static_checks.py
-|   |   |   test_analyze_system_signals_additional.py
-|   |   |   test_analyze_test_coverage.py
-|   |   |   test_analyze_test_markers.py
-|   |   |   test_analyze_test_markers_domain.py
-|   |   |   test_analyze_unconverted_links.py
-|   |   |   test_analyze_unused_functions.py
-|   |   |   test_analyze_vulture.py
-|   |   |   test_audit_orchestration_helpers.py
-|   |   |   test_audit_scope_b016.py
-|   |   |   test_audit_signal_state.py
-|   |   |   test_audit_status_updates.py
-|   |   |   test_audit_storage_scope.py
-|   |   |   test_audit_strict_mode.py
-|   |   |   test_audit_tier_comprehensive.py
-|   |   |   test_audit_tier_e2e_verification.py
-|   |   |   test_audit_tool_matrix_policy.py
-|   |   |   test_backup_inventory.py
-|   |   |   test_backup_policy_models.py
-|   |   |   test_backup_reports.py
-|   |   |   test_cache_dependency_paths.py
-|   |   |   test_changelog_trim_tooling.py
-|   |   |   test_check_channel_loggers.py
-|   |   |   test_cli_interface.py
-|   |   |   test_commands_additional_helpers.py
-|   |   |   test_commands_backup_flow.py
-|   |   |   test_commands_coverage_helpers.py
-|   |   |   test_commands_docs_locks.py
-|   |   |   test_commands_docs_workflow.py
-|   |   |   test_common_shared.py
-|   |   |   test_config.json
-|   |   |   test_config.py
-|   |   |   test_constants.py
-|   |   |   test_constants_config_alignment.py
-|   |   |   test_constants_config_import_order.py
-|   |   |   test_coverage_b015_helpers.py
-|   |   |   test_data_freshness_audit.py
-|   |   |   test_data_loading_helpers.py
-|   |   |   test_decision_support.py
-|   |   |   test_deprecation_inventory_guard.py
-|   |   |   test_deprecation_inventory_policy.py
-|   |   |   test_development_tools_package_init.py
-|   |   |   test_dev_tools_coverage_cache.py
-|   |   |   test_dev_tools_portability_smoke.py
-|   |   |   test_dev_tools_scoped_status_report.py
-|   |   |   test_documentation_sync_checker.py
-|   |   |   test_domain_mapper_product_packages.py
-|   |   |   test_error_scenarios.py
-|   |   |   test_example_marker_validation.py
-|   |   |   test_exclusion_utilities.py
-|   |   |   test_export_snapshots.py
-|   |   |   test_false_negative_detection.py
-|   |   |   test_file_rotation.py
-|   |   |   test_fixture_status_files.py
-|   |   |   test_fix_documentation.py
-|   |   |   test_fix_documentation_addresses.py
-|   |   |   test_fix_documentation_ascii.py
-|   |   |   test_fix_documentation_headings.py
-|   |   |   test_fix_documentation_links.py
-|   |   |   test_fix_function_docstrings.py
-|   |   |   test_fix_project_cleanup.py
-|   |   |   test_fix_test_markers.py
-|   |   |   test_fix_version_sync_changelog_archive_order.py
-|   |   |   test_fix_version_sync_file_discovery.py
-|   |   |   test_fix_version_sync_todo_sync.py
-|   |   |   test_flaky_detector.py
-|   |   |   test_generate_consolidated_report.py
-|   |   |   test_generate_directory_tree.py
-|   |   |   test_generate_error_handling_recommendations.py
-|   |   |   test_generate_error_handling_report.py
-|   |   |   test_generate_function_registry.py
-|   |   |   test_generate_module_dependencies.py
-|   |   |   test_host_hooks.py
-|   |   |   test_import_boundary_policy.py
-|   |   |   test_integration_workflows.py
-|   |   |   test_legacy_reference_cleanup.py
-|   |   |   test_measure_tool_timings.py
-|   |   |   test_mtime_cache.py
-|   |   |   test_output_storage_archiving.py
-|   |   |   test_output_storage_helpers.py
-|   |   |   test_path_drift_detection.py
-|   |   |   test_path_drift_integration.py
-|   |   |   test_path_drift_verification_comprehensive.py
-|   |   |   test_pyright_config_paths.py
-|   |   |   test_pytest_isolation.py
-|   |   |   test_regenerate_coverage_metrics.py
-|   |   |   test_report_generation_dev_tools_scope.py
-|   |   |   test_report_generation_helpers_pure.py
-|   |   |   test_report_generation_problem_payload.py
-|   |   |   test_report_generation_quick_wins.py
-|   |   |   test_report_generation_static_analysis.py
-|   |   |   test_result_format.py
-|   |   |   test_retention_engine.py
-|   |   |   test_run_development_tools.py
-|   |   |   test_run_dev_tools.py
-|   |   |   test_run_test_coverage_helpers.py
-|   |   |   test_run_test_suite_helpers.py
-|   |   |   test_service_utilities.py
-|   |   |   test_sharded_static_analysis.py
-|   |   |   test_sharded_static_scan_wiring.py
-|   |   |   test_shared_function_scan.py
-|   |   |   test_shared_logging.py
-|   |   |   test_shared_maintenance_scripts.py
-|   |   |   test_standard_exclusions.py
-|   |   |   test_static_analysis_tools.py
-|   |   |   test_status_file_timing.py
-|   |   |   test_supporting_tools.py
-|   |   |   test_sync_ruff_toml.py
-|   |   |   test_test_file_coverage_cache.py
-|   |   |   test_test_file_suite_cache.py
-|   |   |   test_tooling_policy_consistency.py
-|   |   |   test_tool_cache_inventory_policy.py
-|   |   |   test_tool_guide.py
-|   |   |   test_tool_wrappers_additional.py
-|   |   |   test_tool_wrappers_branch_paths.py
-|   |   |   test_tool_wrappers_cache_helpers.py
-|   |   |   test_tool_wrappers_package_exports.py
-|   |   |   test_tool_wrappers_static_analysis.py
-|   |   |   test_verification_summary.py
-|   |   |   test_verify_process_cleanup.py
-|   |   |   test_verify_tool_storage.py
-|   |   |   __init__.py
-|   |   |
+|   |       conftest.py
+|   |       regenerate_fixture_status_files.py
+|   |       test_analysis_tool_validation.py
+|   |       test_analysis_validation_framework.py
+|   |       test_analyze_ai_work.py
+|   |       test_analyze_ascii_compliance.py
+|   |       test_analyze_config.py
+|   |       test_analyze_dependency_patterns.py
+|   |       test_analyze_dev_tools_import_boundaries.py
+|   |       test_analyze_documentation.py
+|   |       test_analyze_duplicate_functions.py
+|   |       test_analyze_error_handling.py
+|   |       test_analyze_facade_shims.py
+|   |       test_analyze_functions.py
+|   |       test_analyze_function_patterns.py
+|   |       test_analyze_function_registry.py
+|   |       test_analyze_heading_numbering.py
+|   |       test_analyze_missing_addresses.py
+|   |       test_analyze_module_dependencies.py
+|   |       test_analyze_module_imports_cli.py
+|   |       test_analyze_module_refactor_candidates.py
+|   |       test_analyze_package_exports.py
+|   |       test_analyze_security_static_checks.py
+|   |       test_analyze_system_signals_additional.py
+|   |       test_analyze_test_coverage.py
+|   |       test_analyze_test_markers.py
+|   |       test_analyze_test_markers_domain.py
+|   |       test_analyze_unconverted_links.py
+|   |       test_analyze_unused_functions.py
+|   |       test_analyze_vulture.py
+|   |       test_audit_orchestration_helpers.py
+|   |       test_audit_scope_b016.py
+|   |       test_audit_signal_state.py
+|   |       test_audit_status_updates.py
+|   |       test_audit_storage_scope.py
+|   |       test_audit_strict_mode.py
+|   |       test_audit_tier_comprehensive.py
+|   |       test_audit_tier_e2e_verification.py
+|   |       test_audit_tool_matrix_policy.py
+|   |       test_backup_inventory.py
+|   |       test_backup_policy_models.py
+|   |       test_backup_reports.py
+|   |       test_cache_dependency_paths.py
+|   |       test_changelog_trim_tooling.py
+|   |       test_check_channel_loggers.py
+|   |       test_cli_interface.py
+|   |       test_commands_additional_helpers.py
+|   |       test_commands_backup_flow.py
+|   |       test_commands_coverage_helpers.py
+|   |       test_commands_docs_locks.py
+|   |       test_commands_docs_workflow.py
+|   |       test_common_shared.py
+|   |       test_config.json
+|   |       test_config.py
+|   |       test_constants.py
+|   |       test_constants_config_alignment.py
+|   |       test_constants_config_import_order.py
+|   |       test_coverage_b015_helpers.py
+|   |       test_data_freshness_audit.py
+|   |       test_data_loading_helpers.py
+|   |       test_decision_support.py
+|   |       test_deprecation_inventory_guard.py
+|   |       test_deprecation_inventory_policy.py
+|   |       test_development_tools_package_init.py
+|   |       test_dev_tools_coverage_cache.py
+|   |       test_dev_tools_portability_smoke.py
+|   |       test_dev_tools_scoped_status_report.py
+|   |       test_documentation_sync_checker.py
+|   |       test_domain_mapper_product_packages.py
+|   |       test_error_scenarios.py
+|   |       test_example_marker_validation.py
+|   |       test_exclusion_utilities.py
+|   |       test_export_snapshots.py
+|   |       test_false_negative_detection.py
+|   |       test_file_rotation.py
+|   |       test_fixture_status_files.py
+|   |       test_fix_documentation.py
+|   |       test_fix_documentation_addresses.py
+|   |       test_fix_documentation_ascii.py
+|   |       test_fix_documentation_headings.py
+|   |       test_fix_documentation_links.py
+|   |       test_fix_function_docstrings.py
+|   |       test_fix_project_cleanup.py
+|   |       test_fix_test_markers.py
+|   |       test_fix_version_sync_changelog_archive_order.py
+|   |       test_fix_version_sync_file_discovery.py
+|   |       test_fix_version_sync_todo_sync.py
+|   |       test_flaky_detector.py
+|   |       test_generate_consolidated_report.py
+|   |       test_generate_directory_tree.py
+|   |       test_generate_error_handling_recommendations.py
+|   |       test_generate_error_handling_report.py
+|   |       test_generate_function_registry.py
+|   |       test_generate_module_dependencies.py
+|   |       test_host_hooks.py
+|   |       test_import_boundary_policy.py
+|   |       test_integration_workflows.py
+|   |       test_legacy_reference_cleanup.py
+|   |       test_measure_tool_timings.py
+|   |       test_mtime_cache.py
+|   |       test_output_storage_archiving.py
+|   |       test_output_storage_helpers.py
+|   |       test_path_drift_detection.py
+|   |       test_path_drift_integration.py
+|   |       test_path_drift_verification_comprehensive.py
+|   |       test_pyright_config_paths.py
+|   |       test_pytest_isolation.py
+|   |       test_regenerate_coverage_metrics.py
+|   |       test_report_generation_dev_tools_scope.py
+|   |       test_report_generation_helpers_pure.py
+|   |       test_report_generation_problem_payload.py
+|   |       test_report_generation_quick_wins.py
+|   |       test_report_generation_static_analysis.py
+|   |       test_result_format.py
+|   |       test_retention_engine.py
+|   |       test_run_development_tools.py
+|   |       test_run_dev_tools.py
+|   |       test_run_test_coverage_helpers.py
+|   |       test_run_test_suite_helpers.py
+|   |       test_service_utilities.py
+|   |       test_sharded_static_analysis.py
+|   |       test_sharded_static_scan_wiring.py
+|   |       test_shared_function_scan.py
+|   |       test_shared_logging.py
+|   |       test_shared_maintenance_scripts.py
+|   |       test_standard_exclusions.py
+|   |       test_static_analysis_tools.py
+|   |       test_status_file_timing.py
+|   |       test_supporting_tools.py
+|   |       test_sync_ruff_toml.py
+|   |       test_test_file_coverage_cache.py
+|   |       test_test_file_suite_cache.py
+|   |       test_tooling_policy_consistency.py
+|   |       test_tool_cache_inventory_policy.py
+|   |       test_tool_guide.py
+|   |       test_tool_wrappers_additional.py
+|   |       test_tool_wrappers_branch_paths.py
+|   |       test_tool_wrappers_cache_helpers.py
+|   |       test_tool_wrappers_package_exports.py
+|   |       test_tool_wrappers_static_analysis.py
+|   |       test_verification_summary.py
+|   |       test_verify_process_cleanup.py
+|   |       test_verify_tool_storage.py
+|   |       __init__.py
+|   |
 |   +---integration
 |   |   |   test_account_lifecycle.py
 |   |   |   test_account_management.py
@@ -946,6 +949,7 @@ C:.
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py
 |   |   |   test_admin_actions.py
+|   |   |   test_ai_controls_dialog.py
 |   |   |   test_category_management_dialog.py
 |   |   |   test_channel_management_dialog_coverage_expansion.py
 |   |   |   test_channel_selection_widget.py
@@ -991,6 +995,7 @@ C:.
 |   |   |   test_ai_action_executor.py
 |   |   |   test_ai_action_planner.py
 |   |   |   test_ai_action_request_adapter.py
+|   |   |   test_ai_admin_settings.py
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_context_builder_envelope.py
 |   |   |   test_ai_context_service.py
@@ -1206,6 +1211,7 @@ C:.
 |   +---designs
 |   |       account_creator_dialog.ui
 |   |       admin_panel.ui
+|   |       ai_controls_dialog.ui
 |   |       category_management_dialog.ui
 |   |       category_selection_widget.ui
 |   |       channel_management_dialog.ui
@@ -1252,63 +1258,64 @@ C:.
 |   |   user_preferences.py
 |   |   __init__.py
 |   |
-+---website
-|   |   .assetsignore
-|   |   account-settings.html
-|   |   app.html
-|   |   app.js
-|   |   app.test.mjs
-|   |   auth.js
-|   |   auth.test.mjs
-|   |   checkin.html
-|   |   checkin.js
-|   |   checkin.test.mjs
-|   |   data.html
-|   |   home.html
-|   |   home.js
-|   |   home.test.mjs
-|   |   index.html
-|   |   insights.html
-|   |   insights.js
-|   |   insights.test.mjs
-|   |   integrations.html
-|   |   integrations.js
-|   |   integrations.test.mjs
-|   |   login.html
-|   |   messages.html
-|   |   messages.js
-|   |   messages.test.mjs
-|   |   mhm-logo.png
-|   |   notes.html
-|   |   notes.js
-|   |   notes.test.mjs
-|   |   privacy.html
-|   |   README.md
-|   |   script.js
-|   |   script.test.mjs
-|   |   settings.js
-|   |   settings.test.mjs
-|   |   setup.html
-|   |   setup.js
-|   |   setup.test.mjs
-|   |   styles.css
-|   |   tasks.html
-|   |   tasks.js
-|   |   tasks.test.mjs
-|   |   terms.html
-|   |   worker.mjs
-|   |   worker.test.mjs
-|   |   wrangler.jsonc
-|   |   __init__.py
-|   |
-|   \---fonts
-|           inter-latin-ext.woff2
-|           inter-latin.woff2
-|           LICENSE-Inter.txt
-|           LICENSE-Nunito.txt
-|           nunito-latin-ext.woff2
-|           nunito-latin.woff2
-|
+\---website
+    |   .assetsignore
+    |   account-settings.html
+    |   app.html
+    |   app.js
+    |   app.test.mjs
+    |   auth.js
+    |   auth.test.mjs
+    |   checkin.html
+    |   checkin.js
+    |   checkin.test.mjs
+    |   data.html
+    |   home.html
+    |   home.js
+    |   home.test.mjs
+    |   index.html
+    |   insights.html
+    |   insights.js
+    |   insights.test.mjs
+    |   integrations.html
+    |   integrations.js
+    |   integrations.test.mjs
+    |   login.html
+    |   messages.html
+    |   messages.js
+    |   messages.test.mjs
+    |   mhm-logo.png
+    |   notes.html
+    |   notes.js
+    |   notes.test.mjs
+    |   privacy.html
+    |   README.md
+    |   script.js
+    |   script.test.mjs
+    |   settings.js
+    |   settings.test.mjs
+    |   setup.html
+    |   setup.js
+    |   setup.test.mjs
+    |   styles.css
+    |   tasks.html
+    |   tasks.js
+    |   tasks.test.mjs
+    |   terms.html
+    |   worker.mjs
+    |   worker.test.mjs
+    |   wrangler.jsonc
+    |   __init__.py
+    |
+    \---fonts
+            inter-latin-ext.woff2
+            inter-latin.woff2
+            LICENSE-Inter.txt
+            LICENSE-Nunito.txt
+            nunito-latin-ext.woff2
+            nunito-latin.woff2
+
+
 
 ---
 

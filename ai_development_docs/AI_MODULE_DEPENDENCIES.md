@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-25 17:30:04
+> **Last Generated**: 2026-10-27 14:17:47
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,18 +12,19 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 308
-- **Total Imports**: 2783
-- **Standard Library**: 798 (28.7%)
-- **Third-Party**: 235 (8.4%)
-- **Local Imports**: 1750 (62.9%)
+- **Files Scanned**: 312
+- **Total Imports**: 2805
+- **Standard Library**: 804 (28.7%)
+- **Third-Party**: 236 (8.4%)
+- **Local Imports**: 1765 (62.9%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, resource_paths, token_crypto, user_id
+  - core/ai_usage_configuration.py <- standard library (json, pathlib), error_handling
+  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling, resource_paths, ai_usage_configuration, token_crypto, user_id
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
   - core/file_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, error_handling, file_locking, time_utilities (+4 more)
@@ -33,7 +34,7 @@ Core System Dependencies:
 ### Need AI or Chatbot Support?
 AI System Dependencies:
 - AI Core
-  - ai/usage_policy.py <- standard library (enum), core, error_handling
+  - ai/usage_policy.py <- standard library (enum), ai_usage_settings, error_handling
   - ai/__init__.py <- chatbot, cache_manager, action_catalog, action_planner, command_interpreter (+11 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_identity, user_data_operations (+3 more)
@@ -74,7 +75,7 @@ UI Dependencies:
 
 ### Core -> Communication and AI (most common)
 Communication and AI modules depend on core system modules.
-- `ai/usage_policy.py` -> core.error_handling
+- `ai/usage_policy.py` -> core.ai_usage_settings, core.error_handling
 - `ai/chat/action_boundaries.py` -> core.error_handling
 
 ### UI -> Core
@@ -121,14 +122,11 @@ External libraries provide channel and UI support.
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
 
 ### Third-Party Risks
-- `ui/admin_actions.py` -> PySide6.QtWidgets (37 modules use this)
+- `ui/admin_actions.py` -> PySide6.QtWidgets (38 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (22 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (20 modules use this)
 - `communication/communication_channels/discord/bot.py` -> aiohttp (14 modules use this)
 - `ai/chat/chatbot.py` -> psutil (8 modules use this)
-
-### Circular Dependencies to Monitor
-- `scheduler/task_reminders.py` <-> `tasks/task_reminder_snooze.py`
 
 
 ## Quick Reference for AI

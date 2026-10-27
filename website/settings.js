@@ -1,4 +1,10 @@
 const MHMSettingsInput = Object.freeze({
+  tomorrowMorning(timezone, morning, now = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone || 'America/Regina', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
+    const value = name => Number(parts.find(part => part.type === name).value);
+    const tomorrow = new Date(Date.UTC(value('year'), value('month') - 1, value('day') + 1));
+    return `${tomorrow.toISOString().slice(0, 10)}T${morning}`;
+  },
   profileEntries(value) {
     if (typeof value !== 'string') throw new TypeError('Profile entries must be text.');
     return value.split(/[\n,;]+/).map(entry => entry.trim()).filter(Boolean);
@@ -497,10 +503,21 @@ const MHMSettingsInput = Object.freeze({
       read = () => ({ timezone: timezone.value, channel: channel.value });
     } else if (section === 'support') {
       const quietUntil = field(form, 'Quiet mode until', 'quiet-mode-until', 'datetime-local', values.quiet_mode_until);
+      const tomorrow = el('button', 'Until tomorrow morning', { id: 'quiet-mode-tomorrow', type: 'button' });
+      const off = el('button', 'Turn quiet mode off', { id: 'quiet-mode-off', type: 'button' });
+      tomorrow.addEventListener('click', () => {
+        quietUntil.value = MHMSettingsInput.tomorrowMorning(data.sections.delivery.timezone, data.sections.phrases.time_of_day_defaults.morning);
+        form.dataset.dirty = 'true';
+      });
+      off.addEventListener('click', () => {
+        quietUntil.value = '';
+        form.dataset.dirty = 'true';
+      });
+      form.append(tomorrow, off, el('p', 'Until tomorrow uses your saved morning start time in Phrases and your account time zone. Choose Save changes to apply a shortcut.', { className: 'field-hint' }));
       form.append(el('p', 'Leave this blank to keep quiet mode off. Until this time, MHM pauses scheduled check-ins and encouragement. Only due, overdue, urgent, or critical task reminders can still arrive.', { className: 'field-hint' }));
       const automatic = field(form, 'Use today’s check-in energy to lower reminder pressure', 'automatic-energy-rules', 'checkbox', values.automatic_energy_rules);
       const threshold = select(form, 'Treat energy as low at', 'low-energy-threshold', [['1', '1 only'], ['2', '1–2'], ['3', '1–3'], ['4', '1–4']], String(values.low_energy_threshold));
-      const thresholdHint = el('p', 'When enabled, low energy favors shorter tasks and gentler wording. Urgent work stays visible. MHM does not infer energy from chat.', { className: 'field-hint' });
+      const thresholdHint = el('p', 'When enabled, low energy favors shorter tasks and gentler wording immediately. After a higher energy answer, support stays gentle until 30 minutes after the last low-energy answer today. Urgent work stays visible. Turning energy rules off takes effect immediately. MHM does not infer energy from chat.', { className: 'field-hint' });
       form.append(thresholdHint);
       const syncEnergyControls = () => { threshold.disabled = !automatic.checked; };
       automatic.addEventListener('change', syncEnergyControls);
@@ -658,6 +675,7 @@ const MHMSettingsInput = Object.freeze({
       try {
         const latest = await api('POST', { section, values: read(), revision });
         revision = latest.revisions[section];
+        data.sections[section] = latest.sections[section];
         form.dataset.dirty = 'false';
         feedback.textContent = 'Changes saved';
         if (section === 'checkins' && forms.messages?.dataset.dirty === 'false') {

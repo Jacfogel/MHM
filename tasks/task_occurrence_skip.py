@@ -109,7 +109,7 @@ def _skip_recurring_occurrence(
     title = str(task.get("title") or "this task")
     from tasks.task_reminder_deferrals import append_reminder_deferral
 
-    from scheduler.task_reminders import reminder_sent_fields
+    from tasks.task_reminder_state import reminder_sent_fields
 
     saved = update_task(
         user_id,

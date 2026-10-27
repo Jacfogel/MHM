@@ -372,7 +372,7 @@ def snooze_task_reminder(
     from tasks.task_reminder_deferrals import append_reminder_deferral
 
     action = "skip" if deferral_action == "skip" else "snooze"
-    from scheduler.task_reminders import reminder_sent_fields
+    from tasks.task_reminder_state import reminder_sent_fields
 
     saved = update_task(
         user_id,

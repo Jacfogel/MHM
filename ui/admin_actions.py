@@ -43,6 +43,12 @@ def _load_attr(module_name: str, attr_name: str):
 class AdminActions:
     """Run admin/system actions that are not core Qt shell responsibilities."""
 
+    @handle_errors("opening desktop AI controls", default_return=None)
+    def manage_ai_controls(self, parent: QWidget) -> None:
+        """Open installation-wide AI controls without a selected account."""
+        AIControlsDialog = _load_attr("ui.dialogs.ai_controls_dialog", "AIControlsDialog")
+        AIControlsDialog(parent).exec()
+
     @handle_errors("toggling logging verbosity", default_return=None)
     def toggle_logging_verbosity(self, parent: QWidget, menu_action: Any) -> None:
         """Toggle logging verbosity, update the menu action, and notify the user."""

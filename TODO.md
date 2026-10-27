@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-10-19 (cost-aware optional AI direction)
+> **Last Updated**: 2026-10-27 (desktop admin AI controls; quiet-mode follow-up)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -53,23 +53,13 @@ When adding new tasks, follow this format:
 
 **Finish configurable low-cost AI mode** - Keep all core behavior deterministic while making every model-backed feature explicitly optional.
 - *Created*: 2026-10-19
-- *What it means*: The central global and feature-level execution policy is the first slice. Next, add a real user-facing manual action before introducing a manual-only configuration mode, and keep the policy provider-neutral for the later LM Studio replacement.
+- *What it means*: The central policy and desktop admin global/feature controls have shipped. Next, design a real user-facing manual AI action before introducing a manual-only configuration mode, and keep the policy provider-neutral for the later LM Studio replacement.
 - *Why it helps*: MHM can stay useful without paid model calls, and a future provider cannot silently become required for commands, reminders, or recovery behavior.
 - *Estimated effort*: Medium
 - *Remaining*:
-  - [ ] Add user-facing settings for the global and feature-level controls; environment configuration remains the operational fallback.
   - [ ] Design one explicit manual AI action, then add manual-only policy semantics around that real trigger.
   - [ ] Keep provider billing, budgets, and price tracking out of MHM; use the provider's own controls.
   - [ ] Preserve deterministic fallbacks and avoid cached AI responses whenever a feature is disabled.
-
-### Deterministic adaptation
-
-**Finish deterministic adaptation feedback and cooldowns** - Build on the shipped quiet-mode and energy controls without adding model decisions.
-- *Created*: 2026-10-19
-- *What it means*: Quiet mode with a custom end time, explicit suppression rules, and configurable energy thresholds shipped on 2026-10-19. Next, add an "until tomorrow" shortcut, clearer explanations of which rule changed a decision, and cooldowns that prevent rapid pressure changes.
-- *Why it helps*: MHM can reduce pressure when capacity is low without guessing from chat text or paying for an AI judgment.
-- *Estimated effort*: Small-Medium
-- *Tracking*: [PLANS.md](development_docs/PLANS.md) Section 5.3 and [TASKS_PLAN.md](development_docs/TASKS_PLAN.md) Section 4.3.
 
 ## Medium Priority
 

@@ -212,6 +212,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_send_task_reminder.clicked.connect(self.send_task_reminder)
 
         # Menu actions
+        self.ui.actionAI_Controls.triggered.connect(self.manage_ai_controls)
         self.ui.actionToggle_Verbose_Logging.triggered.connect(
             self.toggle_logging_verbosity
         )
@@ -650,6 +651,7 @@ DELEGATED_UI_ACTIONS = {
     "validate_configuration": lambda self: self.admin_actions.validate_configuration(
         self
     ),
+    "manage_ai_controls": lambda self: self.admin_actions.manage_ai_controls(self),
     "show_configuration_help": lambda self, parent_window: self.admin_actions.show_configuration_help(
         parent_window
     ),
