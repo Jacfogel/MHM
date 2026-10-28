@@ -80,7 +80,7 @@ def repeated_deferral_advice(
         )
     else:
         advice = (
-            "This has been deferred a few times. **Simplify** can turn it into a smaller "
+            "This has been deferred a few times. **Break down with AI** can turn it into a smaller "
             "next step."
         )
     if count >= RECONSIDER_DUE_DATE_COUNT and runtime_task_due_date(task):

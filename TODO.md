@@ -53,11 +53,11 @@ When adding new tasks, follow this format:
 
 **Finish configurable low-cost AI mode** - Keep all core behavior deterministic while making every model-backed feature explicitly optional.
 - *Created*: 2026-10-19
-- *What it means*: The central policy and desktop admin global/feature controls have shipped. Next, design a real user-facing manual AI action before introducing a manual-only configuration mode, and keep the policy provider-neutral for the later LM Studio replacement.
+- *What it means*: The central policy, desktop admin global/feature controls, and explicit Discord task-breakdown action have shipped. Next, consider manual-only configuration semantics around that real trigger, and keep the policy provider-neutral for the later LM Studio replacement.
 - *Why it helps*: MHM can stay useful without paid model calls, and a future provider cannot silently become required for commands, reminders, or recovery behavior.
 - *Estimated effort*: Medium
 - *Remaining*:
-  - [ ] Design one explicit manual AI action, then add manual-only policy semantics around that real trigger.
+  - [ ] Add manual-only policy semantics around Discord's explicit **Break down with AI** action; global off and feature disables must remain authoritative.
   - [ ] Keep provider billing, budgets, and price tracking out of MHM; use the provider's own controls.
   - [ ] Preserve deterministic fallbacks and avoid cached AI responses whenever a feature is disabled.
 

@@ -193,7 +193,7 @@ class TestGetUserSuggestionsScenarios:
                 "communication.message_processing.user_suggestions.now_datetime_full",
                 return_value=fixed_now,
             ),
-            patch("tasks.task_focus.task_focus_signals", return_value=(1, True)),
+            patch("checkins.checkin_service.today_checkin_energy", return_value=1),
         ):
             suggestions = get_user_suggestions(user_id)
         assert 'Break down "Prepare the annual tax filing package"' in suggestions

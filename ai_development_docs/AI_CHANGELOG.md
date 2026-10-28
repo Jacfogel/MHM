@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-27 - Explicit Discord AI task breakdown **COMPLETED**
+- Audit follow-up: repaired the stale low-energy test patch and the Discord test's button-type warning. All 129 affected tests pass sequentially and in parallel; full Pyright and targeted Ruff are clean. Regenerated registry/dependency/tree docs. Full Tier 3 was not rerun.
+- Website and Discord share **Break down with AI**, **Add selected steps**, and **Add my own step** labels; reminder guidance and desktop AI controls match. Existing typed `simplify` aliases still work.
+- Task details add **Break down with AI** through the deterministic task handler, with unsaved suggestions, selected/all saving, own-step entry, and cancellation.
+- Global/feature disables prevent model initialization and availability probing; manual step entry works without AI. Review ownership and matching pending-confirmation cleanup are enforced. Manual-only configuration remains a follow-up.
+- All 114 focused task/Discord/policy tests, static checks, and documentation sync pass. Restart the service; live Discord validation remains manual.
+
 ### 2026-10-27 - Desktop AI controls, quiet mode, and reminder dependencies **COMPLETED**
 - Desktop Admin > AI Controls owns installation-wide global and seven feature switches, with environment-default restoration. Atomic shared settings override the environment on subsequent decisions across processes; invalid saved controls fail closed, failed saves retain the draft, and Cancel writes nothing. These controls are excluded from website user settings.
 - Quiet-mode shortcuts use the saved Phrases morning start time and account timezone. Focus/reminders explain quiet mode, energy thresholds, and a restart-stable 30-minute recovery hold after today's low-energy answer. Disabling energy rules bypasses the hold; health-signal cooldowns remain separate follow-up work.
@@ -106,14 +113,6 @@ Guidelines:
 - Account reads reuse canonical user-ID validation, resolved data paths must stay inside the users root, and debug logs record requested data types instead of personal record payloads.
 - Static-analysis summaries now require fresh successful results from Ruff, Pyright, Bandit, pip-audit, and Vulture before reporting `CLEAN`; stale, missing, or incomplete evidence is labeled explicitly.
 - Focused regression coverage passes 101 tests. The clean Tier 3 full audit passes 7,610 parallel and 123 no-parallel tests, reports 80.4% coverage and documentation sync PASS, and records zero findings from all five static-analysis tools.
-
-### 2026-10-12 - User-facing failures explain recovery **COMPLETED**
-- Website account, billing, and task failures now distinguish the failed action, state what remains unchanged or retained, and give a concrete retry, refresh, alternative, or escalation step.
-- Task routes distinguish stale state from temporary service failure; browser network failures no longer expose raw diagnostics, and failed task drafts/edits remain available.
-- Discord's Create menu now gives unlinked accounts, unavailable forms, and failed task/note submissions a specific recovery path; deferred note failures always receive a reply.
-- Website notebook failures now distinguish stale entries from temporary save/state-change failures, retain failed drafts, hide raw network details, and tell users when to refresh before retrying an uncertain operation.
-- Both Pyright warnings were cleared with explicit async-mock call narrowing. Generated documentation and audit reports now show zero registry gaps and Pyright PASS with zero warnings.
-- Focused verification passes 44 account/billing gateway tests, 10 task-route tests, 24 account/task browser tests, 34 website page/asset tests, 22 Discord Create UI tests, 17 notebook route tests, and 13 notebook browser tests; the complete browser-script bridge, Ruff, and Pyright are clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

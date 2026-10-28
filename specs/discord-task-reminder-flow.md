@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord task reminder delivery and task reminder action buttons  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-10-21
+> **Last Updated**: 2026-10-27
 > **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_deferrals.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `core/message_pressure.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_deferrals.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/unit/test_message_pressure.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
@@ -60,7 +60,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 ### 2.2. Requirement: Task reminder view provides persistent action buttons
 
-`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Done, Snooze, Simplify, Leave me alone, and More buttons. These labels SHALL preserve the existing complete, reminder-snooze, breakdown, skip-occurrence, and help behavior.
+`get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Done, Snooze, Break down with AI, Leave me alone, and More buttons. These labels SHALL preserve the existing complete, reminder-snooze, breakdown, skip-occurrence, and help behavior.
 
 #### Scenario: Task reminder view creation
 
@@ -69,7 +69,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **THEN** it returns a Discord `View`  
 - **AND** the view uses `timeout=None`  
 - **AND** each button custom ID includes the internal user ID and task ID  
-- **AND** `Simplify` is a primary action on the first button row
+- **AND** `Break down with AI` is a primary action on the first button row
 
 #### Scenario: Shared focus policy selects the reminder task
 
@@ -93,7 +93,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** a task reminder is formatted
 - **THEN** its wording keeps expectations small and avoids productivity pressure
 - **AND** it explains why the task was selected without exposing raw health measurements
-- **AND** it points prominently to `Simplify`
+- **AND** it points prominently to `Break down with AI`
 - **WHEN** no reliable energy or health signal exists
 - **THEN** the established direct reminder tone is preserved
 
@@ -103,7 +103,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** another reminder is formatted
 - **THEN** only the five newest deferrals are retained
 - **AND** an existing open subtask is named as the smaller next step when available
-- **AND** otherwise `Simplify` is offered
+- **AND** otherwise `Break down with AI` is offered
 - **AND** after at least three deferrals on a dated task, reconsidering the due date is offered
 
 #### Scenario: Pressure guidance is coordinated across scheduled messages
@@ -208,7 +208,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 
 #### Scenario: Break the task into smaller steps
 
-- **GIVEN** a Discord reminder includes a `Simplify` button
+- **GIVEN** a Discord reminder includes a `Break down with AI` button
 - **WHEN** the linked user clicks it, or types `simplify that`  
 - **THEN** MHM suggests a few smaller steps  
 - **AND** the original task title stays  
@@ -256,6 +256,24 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - **AND** the next recurring instance is created or scheduled according to recurrence rules  
 - **AND** future reminders apply to the next active instance rather than the completed one  
 
+### 3.2. Requirement: Explicit AI task breakdown is reviewed before saving
+
+- **GIVEN** a linked user selects a task in the Discord task picker
+- **WHEN** they press **Break down with AI**
+- **THEN** MHM requests smaller steps through the task handler without AI command interpretation or response enhancement
+- **AND** suggestions alone do not save subtasks or change the original task
+- **AND** the user can add all, choose steps to add, add their own step, or cancel
+- **AND** cancelling saves nothing and ends the matching pending text confirmation
+- **AND** successful saving ends the review; another account cannot use it
+
+#### Scenario: AI is disabled or unavailable
+
+- **GIVEN** global AI is off, task-breakdown AI is disabled, or the model is unavailable
+- **WHEN** the user requests a breakdown
+- **THEN** MHM explains why suggestions are unavailable and offers **Add my own step**
+- **AND** writing and saving that step requires no model request
+- **AND** disabled AI is checked before model initialization or availability probing
+
 ## 4. Out of scope
 
 - Asking why a reminder was skipped, or auto-creating a notebook blocker note (see [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) Section 5.5).
@@ -286,8 +304,10 @@ Run after changing Discord task reminder behavior:
 11. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
 12. [ ] Click `Leave me alone` on a repeating task -> task stays active, due date moves to the next occurrence, no shame-y completed copy.
 13. [ ] Click `Leave me alone` on a one-off task -> due date unchanged; no ping until tomorrow morning.
-14. [ ] Click `Simplify` -> suggested steps appear; adding them keeps the original title and due date.
-15. [ ] Snooze or skip the same task repeatedly -> reminder names an open step, offers Simplify, or suggests reconsidering the due date instead of repeating unchanged copy.
+14. [ ] Click `Break down with AI` -> suggested steps appear; adding them keeps the original title and due date.
+14a. [ ] Select a task from the task picker, then `Break down with AI` -> review appears; Cancel saves nothing; adding selected steps saves only those steps.
+14b. [ ] Turn AI off in desktop Admin > AI Controls, then request a breakdown -> explanatory fallback and `Add my own step` appear; saving a typed step works.
+15. [ ] Snooze or skip the same task repeatedly -> reminder names an open step, offers Break down with AI, or suggests reconsidering the due date instead of repeating unchanged copy.
 
 ## 6. Related documentation
 

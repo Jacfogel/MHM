@@ -132,14 +132,20 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         )
     from ai.chat.chatbot import get_ai_chatbot
     from ai.client.lm_studio_client import call_lm_studio_api
-    from ai.usage_policy import AIUsageFeature
+    from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
     from core.config import AI_COMMAND_PARSING_TIMEOUT
 
+    if not is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN):
+        return TaskBreakdownResult(
+            False,
+            "AI task breakdown is turned off. You can still add your own smaller step.",
+            unavailable=True,
+        )
     if not get_ai_chatbot().is_ai_available():
         logger.info("Skipping task breakdown because the model is unavailable")
         return TaskBreakdownResult(
             False,
-            "MHM could not suggest smaller steps just now. Please try again.",
+            "AI is unavailable just now. You can still add your own smaller step.",
             unavailable=True,
         )
     description = str(task.get("description") or "").replace("\n", " ").strip()[:400]
@@ -180,7 +186,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
     if not steps:
         return TaskBreakdownResult(
             False,
-            "MHM could not find smaller steps for this. Please try again.",
+            "AI could not suggest useful steps. You can still add your own smaller step.",
             unavailable=True,
         )
     return TaskBreakdownResult(True, "Here are a few smaller steps.", steps=steps)

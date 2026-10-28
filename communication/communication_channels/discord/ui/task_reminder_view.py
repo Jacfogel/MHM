@@ -168,7 +168,7 @@ def get_task_reminder_view(
                 f"* `snooze task {short_id} until Friday 3pm`\n\n"
                 f"**To skip this time** (repeating tasks move to the next occurrence):\n"
                 f"* `skip task {short_id}`\n\n"
-                f"**To break it down** (smaller steps under this task):\n"
+                f"**Break down with AI** (review smaller steps before saving):\n"
                 f"* `simplify task {short_id}`\n"
                 f"* `simplify task {short_id} to wipe the kitchen counter`\n\n"
                 f"**Task ID:** `{short_id}`"
@@ -204,7 +204,7 @@ def get_task_reminder_view(
             await interaction.followup.send(response.message, ephemeral=True)
 
         @discord.ui.button(
-            label="Simplify",
+            label="Break down with AI",
             style=discord.ButtonStyle.primary,
             custom_id=f"task_simplify_{user_id}_{task_id}",
             row=0,
@@ -236,7 +236,7 @@ def get_task_reminder_view(
                 steps = [str(step).strip() for step in raw_steps if str(step).strip()]
             view = get_task_simplify_view(
                 internal_user_id, self.task_id, self.task_title, steps
-            ) if steps else None
+            ) if rich_data.get("interaction_view") == "task_simplify" or steps else None
             if view is not None:
                 await interaction.followup.send(
                     response.message, view=view, ephemeral=True
@@ -388,8 +388,6 @@ def get_task_simplify_view(
 ) -> Optional["discord.ui.View"]:
     """Create buttons that save suggested steps under the original task."""
     cleaned = [str(step).strip() for step in steps or [] if str(step).strip()][:5]
-    if not cleaned:
-        return None
 
     class TaskBreakdownView(discord.ui.View):
         # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
@@ -400,7 +398,40 @@ def get_task_simplify_view(
             self.task_id = task_id
             self.task_title = task_title
             self.steps = steps
-            self.add_item(_StepSelect(self))
+            if steps:
+                self.add_item(_StepSelect(self))
+            else:
+                self.remove_item(self.add_all)
+
+        @handle_errors("checking task breakdown owner", default_return=False)
+        async def interaction_check(self, interaction: discord.Interaction) -> bool:
+            """Keep suggested steps attached to their requesting account."""
+            from core import get_user_id_by_identifier
+
+            if get_user_id_by_identifier(str(interaction.user.id)) != self.user_id:
+                await interaction.response.send_message(
+                    "These steps belong to another account.", ephemeral=True
+                )
+                return False
+            if self.is_finished():
+                await interaction.response.send_message(
+                    "This review has ended. Open the task again to add steps.", ephemeral=True
+                )
+                return False
+            return True
+
+        @handle_errors("finishing task step review", default_return=None)
+        def finish_review(self) -> None:
+            """Disable this review and clear only its matching text prompt."""
+            from communication.command_handlers.task_handler import PENDING_SIMPLIFY
+
+            pending = PENDING_SIMPLIFY.get(self.user_id) or {}
+            if pending.get("task_id") == self.task_id and pending.get("steps") == self.steps:
+                PENDING_SIMPLIFY.pop(self.user_id, None)
+            for child in self.children:
+                if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+                    child.disabled = True
+            self.stop()
 
         @handle_errors("adding chosen task steps", context={"component": "discord"})
         async def add_steps(
@@ -412,7 +443,7 @@ def get_task_simplify_view(
             from tasks.task_breakdown import add_task_subtasks
 
             internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
-            if not internal_user_id:
+            if internal_user_id != self.user_id:
                 await interaction.followup.send(
                     "❌ Could not find your account. Please try again.", ephemeral=True
                 )
@@ -420,9 +451,7 @@ def get_task_simplify_view(
             result = add_task_subtasks(internal_user_id, self.task_id, titles)
             message = result.message if result else "Those steps could not be added."
             if result and result.success:
-                for child in self.children:
-                    if isinstance(child, (discord.ui.Button, discord.ui.Select)):
-                        child.disabled = True
+                self.finish_review()
                 await interaction.edit_original_response(view=self)
             await interaction.followup.send(message, ephemeral=True)
 
@@ -434,6 +463,40 @@ def get_task_simplify_view(
             """Save every suggested step."""
             await self.add_steps(interaction, list(self.steps))
 
+        @discord.ui.button(label="Add my own step", style=discord.ButtonStyle.secondary, row=1)
+        @handle_errors("opening custom task step", context={"component": "discord"})
+        async def own_step(self, interaction: discord.Interaction, button: discord.ui.Button):
+            """Let the user write a step without a model request."""
+            await interaction.response.send_modal(_OwnStepModal(self))
+
+        @discord.ui.button(label="Cancel", style=discord.ButtonStyle.secondary, row=1)
+        @handle_errors("cancelling task step review", context={"component": "discord"})
+        async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+            """Dismiss suggestions without changing the task."""
+            self.finish_review()
+            await interaction.response.edit_message(
+                content="Okay, I left the task as it is.", view=self
+            )
+
+    class _OwnStepModal(discord.ui.Modal, title="Add my own step"):
+        """Save a user-written step using the same validation as suggested steps."""
+
+        step_input = discord.ui.TextInput(
+            label="One small action", placeholder="Find the dentist's phone number",
+            max_length=120, required=True,
+        )
+
+        # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
+        def __init__(self, parent_view: TaskBreakdownView):
+            super().__init__(timeout=300)
+            self.parent_view = parent_view
+
+        @handle_errors("saving custom task step", context={"component": "discord"})
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            """Require the original owner and an open review before saving."""
+            if await self.parent_view.interaction_check(interaction):
+                await self.parent_view.add_steps(interaction, [str(self.step_input.value).strip()])
+
     class _StepSelect(discord.ui.Select):
         # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
         def __init__(self, parent_view: TaskBreakdownView):
@@ -443,7 +506,7 @@ def get_task_simplify_view(
                 for index, step in enumerate(parent_view.steps)
             ]
             super().__init__(
-                placeholder="Or choose some steps",
+                placeholder="Add selected steps",
                 min_values=1,
                 max_values=len(options),
                 options=options,

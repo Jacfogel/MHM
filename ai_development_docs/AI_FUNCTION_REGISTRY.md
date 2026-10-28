@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 14:16:48
+> **Last Generated**: 2026-10-27 23:20:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.1% [!] GOOD**
-- **Total Functions**: 3239
-- **Total Methods**: 1648
-- **Documented**: 4354/4887
+- **Total Functions**: 3246
+- **Total Methods**: 1655
+- **Documented**: 4368/4901
 - **Files Scanned**: 314
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -162,7 +162,7 @@ Core System Decision Tree:
 - `core/profile_v2_schemas.py` - 22/56 functions undocumented (61% coverage)
 - `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/communication_channels/discord/ui/task_list_ui.py` - 18/24 functions undocumented (25% coverage)
+- `communication/communication_channels/discord/ui/task_list_ui.py` - 18/26 functions undocumented (31% coverage)
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/communication_channels/discord/ui/rich_delivery.py` - 16/28 functions undocumented (43% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
@@ -207,7 +207,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (39 files, 449 functions)
 - `checkins/` -  (7 files, 155 functions)
-- `communication/` - Communication channels and message processing (98 files, 1557 functions)
+- `communication/` - Communication channels and message processing (98 files, 1571 functions)
 - `core/` - System utilities and data management (53 files, 942 functions)
 - `integrations/` -  (13 files, 116 functions)
 - `messages/` -  (6 files, 63 functions)

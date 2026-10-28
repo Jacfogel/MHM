@@ -425,7 +425,7 @@ class TestChannelOrchestratorHelpers:
 
         assert "gentle task reminder" in message.lower()
         assert "Why this one" in message
-        assert "Simplify" in message
+        assert "Break down with AI" in message
 
     def test_repeated_deferrals_change_task_reminder_guidance(self):
         """Repeated snoozes replace identical copy with a useful next action."""
@@ -445,7 +445,7 @@ class TestChannelOrchestratorHelpers:
         )
 
         assert "deferred a few times" in message
-        assert "**Simplify**" in message
+        assert "**Break down with AI**" in message
         assert "reconsidering the due date" in message
 
     def test_create_task_reminder_message_invalid_input(self):

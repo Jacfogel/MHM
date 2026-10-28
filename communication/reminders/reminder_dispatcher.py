@@ -278,7 +278,7 @@ class TaskReminderDispatcher:
         if pressure_explanation:
             message += f"\n{pressure_explanation}"
         if gentle or is_low_energy:
-            message += "\n\nA smaller step is enough today—use **Simplify** if that would help."
+            message += "\n\nA smaller step is enough today—use **Break down with AI** if that would help."
         deferral_advice = repeated_deferral_advice(task, focus_step=focus_step)
         if deferral_advice:
             message += f"\n\n{deferral_advice}"

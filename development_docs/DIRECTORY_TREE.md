@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 14:17:53
+> **Last Generated**: 2026-10-27 23:20:52
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -737,13 +737,13 @@ C:.
 |   |   |   test_welcome_manager_behavior.py
 |   |   |
 |   +---communication
-|   |       test_channel_monitor.py
-|   |       test_communication_coverage_expansion.py
-|   |       test_flow_command_helpers.py
-|   |       test_message_processing_scenarios.py
-|   |       test_retry_manager.py
-|   |       test_task_list_ui.py
-|   |
+|   |   |   test_channel_monitor.py
+|   |   |   test_communication_coverage_expansion.py
+|   |   |   test_flow_command_helpers.py
+|   |   |   test_message_processing_scenarios.py
+|   |   |   test_retry_manager.py
+|   |   |   test_task_list_ui.py
+|   |   |
 |   +---core
 |   |   |   test_file_auditor.py
 |   |   |   test_file_auditor_gap_coverage.py

@@ -6,6 +6,7 @@ import pytest
 
 from communication.communication_channels.discord.ui.task_reminder_view import (
     get_task_reminder_view,
+    get_task_simplify_view,
     get_task_snooze_choice_view,
     restore_task_reminder_views,
 )
@@ -13,6 +14,69 @@ from communication.communication_channels.discord.ui.task_reminder_view import (
 
 def _labels(view):
     return [child.label for child in view.children if hasattr(child, "label")]
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+@pytest.mark.tasks
+class TestTaskBreakdownReview:
+    @pytest.mark.asyncio
+    async def test_cancel_saves_nothing_and_clears_text_confirmation(self, mock_interaction_factory):
+        from communication.command_handlers.task_handler import PENDING_SIMPLIFY
+
+        view = get_task_simplify_view("user-1", "task-1", "Call dentist", ["Find the number"])
+        PENDING_SIMPLIFY["user-1"] = {"task_id": "task-1", "steps": ["Find the number"]}
+        with patch("tasks.task_breakdown.add_task_subtasks") as save:
+            await next(child for child in view.children if getattr(child, "label", "") == "Cancel").callback(
+                mock_interaction_factory()
+            )
+        save.assert_not_called()
+        assert "user-1" not in PENDING_SIMPLIFY
+        assert view.is_finished()
+        assert all(child.disabled for child in view.children)
+
+    @pytest.mark.asyncio
+    async def test_other_account_cannot_save_review(self, mock_interaction_factory):
+        view = get_task_simplify_view("user-1", "task-1", "Call dentist", ["Find the number"])
+        interaction = mock_interaction_factory()
+        with patch("core.get_user_id_by_identifier", return_value="other-user"), patch(
+            "tasks.task_breakdown.add_task_subtasks"
+        ) as save:
+            assert await view.interaction_check(interaction) is False
+            await view.add_steps(interaction, ["Find the number"])
+        save.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_unavailable_review_accepts_own_step_without_ai(self, mock_interaction_factory):
+        from tasks.task_breakdown import TaskBreakdownResult
+
+        view = get_task_simplify_view("user-1", "task-1", "Call dentist", [])
+        assert _labels(view) == ["Add my own step", "Cancel"]
+        interaction = mock_interaction_factory()
+        await next(child for child in view.children if child.label == "Add my own step").callback(interaction)
+        modal = interaction.response.send_modal.call_args.args[0]
+        modal.step_input._value = "Find the number"
+        with patch("core.get_user_id_by_identifier", return_value="user-1"), patch(
+            "tasks.task_breakdown.add_task_subtasks", return_value=TaskBreakdownResult(True, "Added one step.")
+        ) as save, patch("ai.client.lm_studio_client.call_lm_studio_api") as model:
+            await modal.on_submit(mock_interaction_factory())
+        save.assert_called_once_with("user-1", "task-1", ["Find the number"])
+        model.assert_not_called()
+        assert view.is_finished()
+
+    @pytest.mark.asyncio
+    async def test_cancelled_modal_cannot_save(self, mock_interaction_factory):
+        view = get_task_simplify_view("user-1", "task-1", "Call dentist", [])
+        interaction = mock_interaction_factory()
+        await next(child for child in view.children if child.label == "Add my own step").callback(interaction)
+        modal = interaction.response.send_modal.call_args.args[0]
+        modal.step_input._value = "Find the number"
+        view.finish_review()
+        with patch("core.get_user_id_by_identifier", return_value="user-1"), patch(
+            "tasks.task_breakdown.add_task_subtasks"
+        ) as save:
+            await modal.on_submit(mock_interaction_factory())
+        save.assert_not_called()
 
 
 @pytest.fixture
@@ -61,10 +125,10 @@ class TestTaskReminderView:
             "Snooze",
             "More",
             "Leave me alone",
-            "Simplify",
+            "Break down with AI",
         ]
         break_button = next(
-            child for child in view.children if child.label == "Simplify"
+            child for child in view.children if child.label == "Break down with AI"
         )
         assert break_button.row == 0
         assert str(break_button.style).endswith("primary")
@@ -175,7 +239,7 @@ class TestTaskReminderView:
     @pytest.mark.asyncio
     async def test_break_down_button_suggests_steps(self, mock_interaction_factory):
         view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Simplify")
+        button = next(child for child in view.children if child.label == "Break down with AI")
         interaction = mock_interaction_factory()
         fake_response = type(
             "Resp",

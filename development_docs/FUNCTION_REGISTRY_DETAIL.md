@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 14:16:48
+> **Last Generated**: 2026-10-27 23:20:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,15 +16,15 @@
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 314
-- **Functions Found**: 3239
-- **Methods Found**: 1648
-- **Classes Found**: 290
-- **Total Items**: 4887
-- **Functions Documented**: 2885
-- **Methods Documented**: 1469
-- **Classes Documented**: 223
-- **Total Documented**: 4354
-- **Template-Generated**: 70
+- **Functions Found**: 3246
+- **Methods Found**: 1655
+- **Classes Found**: 291
+- **Total Items**: 4901
+- **Functions Documented**: 2892
+- **Methods Documented**: 1476
+- **Classes Documented**: 224
+- **Total Documented**: 4368
+- **Template-Generated**: 72
 - **Last Updated**: 2026-10-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (688)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (904)
+### **Communication Functions** (911)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (555)
@@ -2477,6 +2477,7 @@ Returns True when this interaction was a create-hub task modal.
 - [MISSING] `_run_handler_intent(user_id, intent, entities, original_message)` - No description
 - [MISSING] `_start_flow(self, interaction, flow_kind)` - No description
 - [OK] `_task_flow_response(user_id, task_id, flow_kind)` - Start a task follow-up flow and return the first prompt.
+- [OK] `breakdown_button(self, interaction, button)` - Request suggestions explicitly and show a review before saving.
 - [MISSING] `callback(self, interaction)` - No description
 - [MISSING] `callback(interaction)` - No description
 - [MISSING] `complete_button(self, interaction, button)` - No description
@@ -2489,6 +2490,7 @@ Returns True when this interaction was a create-hub task modal.
 - [OK] `TaskDetailView` - Ephemeral actions for one task.
   - [OK] `TaskDetailView.__init__(self, user_id, task_id, discord_bot)` - Special Python method
   - [MISSING] `TaskDetailView._start_flow(self, interaction, flow_kind)` - No description
+  - [OK] `TaskDetailView.breakdown_button(self, interaction, button)` - Request suggestions explicitly and show a review before saving.
   - [MISSING] `TaskDetailView.complete_button(self, interaction, button)` - No description
   - [MISSING] `TaskDetailView.due_date_button(self, interaction, button)` - No description
   - [MISSING] `TaskDetailView.more_button(self, interaction, button)` - No description
@@ -2509,12 +2511,15 @@ Args:
     task_title: The title of the task to display
 - [OK] `__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
 - [OK] `__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
+- [OK] `__init__(self, parent_view)` - Special Python method
 - [OK] `__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
 - [OK] `_run_snooze_command(self, interaction, command)` - Defer and run a channel-agnostic snooze command.
 - [OK] `add_all(self, interaction, button)` - Save every suggested step.
 - [OK] `add_steps(self, interaction, titles)` - Save the chosen steps under the original task.
 - [OK] `callback(self, interaction)` - Save the steps the user left selected.
+- [OK] `cancel(self, interaction, button)` - Dismiss suggestions without changing the task.
 - [OK] `complete_task_button(self, interaction, button)` - Handle Complete Task button click
+- [OK] `finish_review(self)` - Disable this review and clear only its matching text prompt.
 - [OK] `get_task_reminder_view(user_id, task_id, task_title)` - Create a Discord View with buttons for task reminder actions.
 
 Args:
@@ -2526,8 +2531,11 @@ Returns:
     discord.ui.View with buttons for task reminder actions
 - [OK] `get_task_simplify_view(user_id, task_id, task_title, steps)` - Create buttons that save suggested steps under the original task.
 - [OK] `get_task_snooze_choice_view(user_id, task_id, task_title)` - Create buttons for 1 hour, tonight/tomorrow morning, next week, and custom snooze.
+- [OK] `interaction_check(self, interaction)` - Keep suggested steps attached to their requesting account.
 - [OK] `more_button(self, interaction, button)` - Handle More button click - show additional information
 - [OK] `on_submit(self, interaction)` - Snooze the reminder until the typed time.
+- [OK] `on_submit(self, interaction)` - Require the original owner and an open review before saving.
+- [OK] `own_step(self, interaction, button)` - Let the user write a step without a model request.
 - [OK] `remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
 - [OK] `restore_task_reminder_views(client)` - Register saved task buttons so old reminder messages survive a restart.
 - [OK] `simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
@@ -2541,6 +2549,10 @@ Returns:
   - [OK] `TaskBreakdownView.__init__(self, user_id, task_id, task_title, steps)` - Store the suggested steps for this task.
   - [OK] `TaskBreakdownView.add_all(self, interaction, button)` - Save every suggested step.
   - [OK] `TaskBreakdownView.add_steps(self, interaction, titles)` - Save the chosen steps under the original task.
+  - [OK] `TaskBreakdownView.cancel(self, interaction, button)` - Dismiss suggestions without changing the task.
+  - [OK] `TaskBreakdownView.finish_review(self)` - Disable this review and clear only its matching text prompt.
+  - [OK] `TaskBreakdownView.interaction_check(self, interaction)` - Keep suggested steps attached to their requesting account.
+  - [OK] `TaskBreakdownView.own_step(self, interaction, button)` - Let the user write a step without a model request.
 - [MISSING] `TaskReminderView` - No description
   - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
 
@@ -2560,6 +2572,9 @@ Args:
   - [OK] `TaskSnoozeChoiceView.snooze_next_week(self, interaction, button)` - Snooze the reminder until next week.
   - [OK] `TaskSnoozeChoiceView.snooze_one_hour(self, interaction, button)` - Snooze the reminder for one hour.
   - [OK] `TaskSnoozeChoiceView.snooze_tonight(self, interaction, button)` - Snooze until tonight, or tomorrow morning when it is already evening.
+- [OK] `_OwnStepModal` - Save a user-written step using the same validation as suggested steps.
+  - [OK] `_OwnStepModal.__init__(self, parent_view)` - Special Python method
+  - [OK] `_OwnStepModal.on_submit(self, interaction)` - Require the original owner and an open review before saving.
 - [MISSING] `_StepSelect` - No description
   - [OK] `_StepSelect.__init__(self, parent_view)` - Offer the suggested steps, with all of them selected.
   - [OK] `_StepSelect.callback(self, interaction)` - Save the steps the user left selected.

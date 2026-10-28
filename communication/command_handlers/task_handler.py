@@ -88,9 +88,10 @@ Manage tasks with natural language or short commands.
 • `snooze task 1 for 1 hour` / `snooze that until tonight` / `snooze dentist until next week`
 • `snooze dentist until Friday 3pm` / `remind me later`
 
-**Skip this time / Break it down** (not the same as snooze):
+**Skip this time / Break down with AI** (not the same as snooze):
 • Discord **Skip**: repeating tasks move to the next occurrence; one-off tasks stay due and wait until tomorrow morning
-• Discord **Break it down**: suggest smaller steps and save the ones you want under the task
+• Discord task details **Break down with AI**: review suggestions before saving selected steps
+• **Add my own step** works even when AI is off or unavailable
 • `skip that` / `skip task 1` / `skip this occurrence`
 • `simplify that` / `simplify that to wipe the kitchen counter`
 • `break that into steps` / `break it down`
@@ -1316,11 +1317,20 @@ class TaskManagementHandler(InteractionHandler):
             if not result:
                 return InteractionResponse("That step could not be added.", False)
             return InteractionResponse(result.message, result.success)
+        PENDING_SIMPLIFY.pop(user_id, None)
         result = suggest_breakdown(user_id, task_id)
         if not result or not result.success or not result.steps:
             return InteractionResponse(
-                result.message if result else "MHM could not suggest smaller steps just now. Please try again.",
+                (result.message if result else "MHM could not suggest smaller steps just now.")
+                + f" Try `simplify task {task_id} to <smaller step>`.",
                 False,
+                rich_data={
+                    "interaction_view": "task_simplify",
+                    "user_id": user_id,
+                    "task_identifier": task_id,
+                    "task_title": parent_title,
+                    "steps": [],
+                } if not result or result.unavailable else {},
             )
         PENDING_SIMPLIFY[user_id] = {
             "task_id": task_id,
@@ -1331,7 +1341,7 @@ class TaskManagementHandler(InteractionHandler):
             f"{index}. {step}" for index, step in enumerate(result.steps, start=1)
         )
         return InteractionResponse(
-            f"Here are smaller steps for **{parent_title}**. The original task stays.\n"
+            f"AI suggested these smaller steps for **{parent_title}**. The original task stays. Nothing has been saved yet.\n"
             f"{lines}\n"
             "Reply `all` to add them, or reply with one step.",
             False,

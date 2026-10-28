@@ -189,6 +189,29 @@ class TestTaskHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
+    def test_disabled_breakdown_offers_manual_view_without_saving(self, test_data_dir, monkeypatch):
+        from tasks import create_task, load_active_tasks
+        from communication.command_handlers.task_handler import PENDING_SIMPLIFY
+
+        user_id = "handler_breakdown_off"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        task_id = create_task(user_id, title="Call the dentist")
+        monkeypatch.setattr("ai.usage_policy.read_ai_usage_settings", lambda: {
+            "mode": "off", "disabled_features": [],
+        })
+        PENDING_SIMPLIFY[user_id] = {"task_id": "old-task", "steps": ["Old suggestion"]}
+        response = TaskManagementHandler().handle(
+            user_id,
+            ParsedCommand("simplify_task", {"task_identifier": task_id}, 1.0, "simplify"),
+        )
+        assert "turned off" in response.message
+        assert response.rich_data["interaction_view"] == "task_simplify"
+        assert response.rich_data["task_identifier"] == task_id
+        assert response.rich_data["steps"] == []
+        assert user_id not in PENDING_SIMPLIFY
+        assert len(load_active_tasks(user_id)) == 1
+
+    @pytest.mark.tasks
     def test_simplify_task_adds_subtasks_and_keeps_the_title(self, test_data_dir, monkeypatch):
         """Simplify suggests steps or saves one step under the original task."""
         from tasks import create_task, get_task_by_id, load_active_tasks
@@ -218,6 +241,8 @@ class TestTaskHandlerBehavior:
         assert ask.rich_data["interaction_view"] == "task_simplify"
         assert ask.rich_data["steps"] == ["Wipe the counter", "Take out the trash"]
         assert "original task stays" in ask.message
+        assert "Nothing has been saved yet" in ask.message
+        assert len(load_active_tasks(user_id)) == 1
         added = handle_pending_simplify(user_id, "all")
         assert added is not None and added.completed is True
         parent = get_task_by_id(user_id, task_id)

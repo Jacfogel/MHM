@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import discord
 
 from communication.command_handlers.shared_types import InteractionResponse
 
@@ -13,6 +14,31 @@ from communication.command_handlers.shared_types import InteractionResponse
 @pytest.mark.communication
 class TestTaskListUiHelpers:
     """Pure helpers and handler delegation in task_list_ui."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("owner", ["user-1", "other-user", None])
+    async def test_manual_breakdown_button_uses_explicit_handler(self, owner):
+        from communication.communication_channels.discord.ui import task_list_ui as ui
+
+        view = ui.TaskDetailView("user-1", "task-1", MagicMock())
+        interaction = AsyncMock()
+        response = InteractionResponse("Review these steps.", False)
+        button = next(
+            child for child in view.children
+            if isinstance(child, discord.ui.Button) and child.label == "Break down with AI"
+        )
+        with patch.object(ui, "_internal_user_id", return_value=owner), patch.object(
+            ui, "_run_handler_intent", return_value=response
+        ) as handler, patch.object(ui, "deliver_handler_response", new_callable=AsyncMock) as deliver:
+            await button.callback(interaction)
+        if owner == "user-1":
+            handler.assert_called_once_with(
+                "user-1", "simplify_task", {"task_identifier": "task-1"}, "simplify task task-1"
+            )
+            deliver.assert_awaited_once_with(interaction, response, view.discord_bot, ephemeral=True)
+        else:
+            handler.assert_not_called()
+            deliver.assert_not_awaited()
 
     def test_task_flow_response_not_found(self):
         from communication.communication_channels.discord.ui.task_list_ui import (

@@ -16,7 +16,7 @@ AI_FEATURE_LABELS = {
     "personalized_messages": "Personalized messages",
     "action_planning": "Action planning",
     "response_enhancement": "Response enhancement",
-    "task_breakdown": "Task breakdown (Simplify)",
+    "task_breakdown": "Break down with AI",
     "task_effort": "Task effort estimates",
 }
 UNREADABLE_AI_SETTINGS = {"mode": "off", "disabled_features": [], "source": "invalid"}

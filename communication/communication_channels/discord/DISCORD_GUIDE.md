@@ -120,13 +120,14 @@ UI views are adapters between Discord's UI and the core message pipeline:
   - "Quick note" / "New note" on the second button row - Open empty note modals.
 
 - `get_task_list_view(...)` in `ui/task_list_ui.py` attaches the task picker dropdown (and Show More when needed). Button follow-ups such as Show More use `deliver_handler_response`, which now resolves `interaction_view` so page 2 still has the dropdown. Dropdown numbers match the list (`11.` on page 2, not `1.`).
+  - Select a task, then **Break down with AI** to explicitly request smaller steps. The request runs outside the Discord event loop and goes directly to the task handler. Suggestions are reviewed before saving: **Add all**, **Add selected steps**, **Add my own step**, or **Cancel**. The original task stays. Global AI off and the task-breakdown feature switch still apply; when unavailable, **Add my own step** works without AI. Cancelling or successfully saving ends that review and clears its matching pending text confirmation. Reviews expire after five minutes and require the requesting account.
 
 - `get_task_reminder_view(user_id, task_id, task_title)` in `ui/task_reminder_view.py` returns a `discord.ui.View` with:
   - "Done" - Routes `complete task {task_id}` through the interaction manager.
   - "Snooze" - Routes `snooze task {task_id}` through the interaction manager, then shows 1 hour, tonight or tomorrow morning, next week, and custom.
   - "More" - Sends a brief help message including a short task ID, completion examples, snooze, skip, and simplify commands.
   - "Leave me alone" - Routes `skip task {task_id}` through the interaction manager. Repeating tasks roll to the next occurrence; one-off tasks stay due and wait until tomorrow morning.
-  - "Simplify" - Suggests smaller steps and lets the user save selected steps under the unchanged original task.
+  - "Break down with AI" - Suggests smaller steps and lets the user save selected steps under the unchanged original task.
 
 Each button callback:
 

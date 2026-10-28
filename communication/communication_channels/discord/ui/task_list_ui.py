@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -111,6 +112,25 @@ class TaskDetailView(discord.ui.View):
         self.user_id = user_id
         self.task_id = task_id
         self.discord_bot = discord_bot
+
+    @discord.ui.button(label="Break down with AI", style=discord.ButtonStyle.secondary, row=1)
+    @handle_errors("requesting AI task steps from task details", default_return=None)
+    async def breakdown_button(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        """Request suggestions explicitly and show a review before saving."""
+        internal_id = _internal_user_id(interaction)
+        if not internal_id or internal_id != self.user_id:
+            await interaction.response.send_message("Account not found.", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        response = await asyncio.to_thread(
+            _run_handler_intent, internal_id, "simplify_task",
+            {"task_identifier": self.task_id}, f"simplify task {self.task_id}",
+        )
+        await deliver_handler_response(
+            interaction, response, self.discord_bot, ephemeral=True
+        )
 
     @handle_errors("starting task detail flow", default_return=None)
     async def _start_flow(

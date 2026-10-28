@@ -68,7 +68,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode and explicit energy controls are complete; select the next task-system slice |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
-| Cost-aware optional AI | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Desktop admin switches shipped; design explicit manual action before manual-only mode |
+| Cost-aware optional AI | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Explicit Discord task-breakdown action shipped; manual-only mode remains a follow-up |
 | Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode shortcuts and energy recovery cooldown shipped; evaluate health-signal cooldowns separately |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
@@ -108,12 +108,12 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 1. **Central execution policy** - Every model request passes through one policy boundary. `AI_USAGE_MODE=off` prevents model requests, while deterministic commands, reminders, and fallbacks continue.
 2. **Feature-level controls** - `AI_DISABLED_FEATURES` can independently disable conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
-3. **Manual-only controls** - Later, expose an explicit user action that can authorize one model request while automatic AI remains disabled. Do not add a configuration mode until an actual user-facing trigger exists.
+3. **Manual-only controls** - Discord task details now expose **Break down with AI**, routing directly to task suggestions with a review before saving. This action currently respects the existing global and feature switches. A future manual-only mode may distinguish this explicit request from automatic calls; global off and feature disables must still win.
 4. **Provider replacement boundary** - Keep usage policy independent from LM Studio so a future paid provider cannot bypass the same controls.
 
 **First slice shipped (2026-10-19)**: `ai/usage_policy.py`, the shared client boundary, and chatbot cache checks enforce `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Configuration validation fails closed for an invalid mode and does not require model connection settings when AI is off.
 
-**Desktop admin controls shipped (2026-10-27)**: Admin > AI Controls exposes one installation-wide global switch and the seven feature switches. Saved overrides use `ai_usage_settings.json` under `BASE_DATA_DIR`; reads are fresh for each policy decision, including new requests in a running service. Use environment defaults returns control to `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Corrupt saved controls fail closed and configuration validation explains how to repair them. The website has no AI policy settings. Manual-only semantics remain deferred until an explicit action is designed.
+**Desktop admin controls shipped (2026-10-27)**: Admin > AI Controls exposes one installation-wide global switch and the seven feature switches. Saved overrides use `ai_usage_settings.json` under `BASE_DATA_DIR`; reads are fresh for each policy decision, including new requests in a running service. Use environment defaults returns control to `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Corrupt saved controls fail closed and configuration validation explains how to repair them. The website has no AI policy settings. Manual-only semantics remain a follow-up to the explicit task-breakdown action.
 
 **Out of scope**: MHM will not duplicate provider billing, budgets, or price tracking. The selected provider owns monetary limits. MHM owns only whether a feature may request AI.
 

@@ -377,7 +377,7 @@ const MHMTaskInput = Object.freeze({
     custom.append(customLabel, customWhen, customButton);
     const breakdown = document.createElement('div'); breakdown.className = 'settings-field';
     if (!task.parent_id) {
-      const suggest = button('Suggest smaller steps', 'button', async () => {
+      const suggest = button('Break down with AI', 'button', async () => {
         suggest.disabled = true;
         try {
           const result = await api(`/api/tasks/${encodeURIComponent(task.id)}/breakdown`, 'POST', {});
@@ -392,7 +392,7 @@ const MHMTaskInput = Object.freeze({
             const text = document.createElement('span'); text.textContent = step;
             label.append(box, text); choices.append(label);
           }
-          const add = button('Add these steps', 'button', () => {
+          const add = button('Add selected steps', 'button', () => {
             const titles = steps.filter(step => chosen.has(step));
             if (!titles.length) { showStatus('Choose at least one step.', true); return; }
             runSupportAction(task, 'subtasks', { titles }, dialog);
@@ -401,9 +401,9 @@ const MHMTaskInput = Object.freeze({
         } catch (error) { showStatus(error.message, true); suggest.disabled = false; }
       });
       const typed = document.createElement('div'); typed.className = 'settings-field';
-      const typedLabel = document.createElement('label'); typedLabel.htmlFor = 'task-step-title'; typedLabel.textContent = 'Or type a step';
+      const typedLabel = document.createElement('label'); typedLabel.htmlFor = 'task-step-title'; typedLabel.textContent = 'One small action';
       const typedTitle = document.createElement('input'); typedTitle.id = 'task-step-title'; typedTitle.maxLength = 120; typedTitle.placeholder = 'Wipe the counter';
-      const addTyped = button('Add this step', 'plain-button', () => {
+      const addTyped = button('Add my own step', 'plain-button', () => {
         const title = typedTitle.value.trim();
         if (!title) { showStatus('Type a step first.', true); return; }
         runSupportAction(task, 'subtasks', { titles: [title] }, dialog);

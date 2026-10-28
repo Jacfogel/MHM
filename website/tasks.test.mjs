@@ -347,7 +347,7 @@ test('an unsaved task draft can prevent logout', async () => {
 });
 
 test('task help asks for smaller steps instead of replacing the title', () => {
-  assert.match(source, /Suggest smaller steps/);
+  assert.match(source, /Break down with AI/);
   assert.match(source, /\/breakdown/);
   assert.match(source, /'subtasks'/);
   assert.match(source, /task-step-title/);

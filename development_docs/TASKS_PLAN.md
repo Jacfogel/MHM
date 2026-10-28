@@ -178,11 +178,11 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Why it matters**: A hard task is easier to start when the bigger title stays and the next actions are visible.
 
 **Shipped**:
-- [x] **Simplify** asks the model for a few concrete steps.
+- [x] **Break down with AI** asks the model for a few concrete steps.
 - [x] The steps you keep are saved as subtasks. The original title stays.
 - [x] Home focuses on an open subtask when the bigger task has one.
 - [x] Subtasks are one level deep. The parent stays open until you mark it done.
-- [x] Discord **Simplify**, and `simplify` in Discord or email, save steps under the original task.
+- [x] Discord **Break down with AI**, and `simplify` in Discord or email, save steps under the original task.
 - [x] Completing or deleting the parent completes or deletes its steps (2026-09-27).
 - [x] A repeating task keeps those step titles on the next occurrence (2026-09-27).
 - [x] A reminder for a task with an open step names that step and says which task it is part of. Done finishes the step. Later and Skip still apply to the parent reminder (2026-09-27).
@@ -209,15 +209,15 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - [x] Added one backend focus policy for scheduled task reminders and chat suggestions, based on priority, due proximity, time-of-day tags, reminder snoozes, subtasks, and a local effort estimate.
 - [x] Scheduled reminders use today's check-in energy and reliable Google Health message guidance. Low-energy selection prefers a short task or unfinished subtask only among tasks in the same urgency band.
 - [x] Overdue, critical, urgent, high-priority, and due-today work stays ahead of less urgent work even when it is larger.
-- [x] Reminder copy explains why the task remains the focus. Gentle mode lowers expectations and points to **Simplify**, which is a primary first-row Discord action.
+- [x] Reminder copy explains why the task remains the focus. Gentle mode lowers expectations and points to **Break down with AI**, which is a primary first-row Discord action.
 - [x] Chat suggestions use the selected task or subtask instead of the generic `Help with tasks` suggestion.
 - [x] Missing or low-confidence energy/health data leaves the established reminder tone unchanged.
 
 **Completed slices (2026-10-17)**:
-- [x] Record at most five reminder deferrals per task. After repeated snoozes or skips, name the next open subtask, offer **Simplify**, and, after three deferrals on a dated task, suggest reconsidering the due date instead of repeating identical copy.
+- [x] Record at most five reminder deferrals per task. After repeated snoozes or skips, name the next open subtask, offer **Break down with AI**, and, after three deferrals on a dated task, suggest reconsidering the due date instead of repeating identical copy.
 - [x] Coordinate pressure across task reminders, motivational messages, and Google Health messages so `avoid_nagging_movement_prompts` and related reliable guidance reduce message pressure as one policy.
 - [x] Move the Home focus card onto `/api/tasks/focus`, which returns the deterministic backend decision used by chat and scheduled reminders.
-- [x] Use the plainer Discord labels **Done**, **Snooze**, **Simplify**, and **Leave me alone** while preserving the current complete, snooze, breakdown, and skip actions.
+- [x] Use the plainer Discord labels **Done**, **Snooze**, **Break down with AI**, and **Leave me alone** while preserving the current complete, snooze, breakdown, and skip actions.
 
 **User-control slice (2026-10-19)**:
 - [x] Add website **Support mode** with a clear quiet-mode end time, an automatic-energy-rules switch, and a configurable low-energy threshold from 1 through 4.

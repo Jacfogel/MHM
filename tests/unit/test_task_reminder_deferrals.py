@@ -42,4 +42,4 @@ def test_repeated_deferral_prefers_an_existing_smaller_step():
     advice = repeated_deferral_advice(task, focus_step={"title": "Find the form"})
 
     assert "next smaller step" in advice
-    assert "Simplify" not in advice
+    assert "Break down with AI" not in advice

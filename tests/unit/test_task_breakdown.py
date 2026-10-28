@@ -25,6 +25,36 @@ def _fresh_user_id(name: str) -> str:
 @pytest.mark.unit
 @pytest.mark.tasks
 class TestTaskBreakdown:
+    @pytest.mark.parametrize("mode,disabled", [("off", []), ("automatic", ["task_breakdown"])])
+    def test_disabled_breakdown_never_initializes_or_calls_model(
+        self, test_data_dir, monkeypatch, mode, disabled
+    ):
+        from unittest.mock import Mock
+        from tasks import create_task, load_active_tasks
+
+        user_id = _fresh_user_id("breakdown_disabled")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id, title="Call the dentist")
+        monkeypatch.setattr("ai.usage_policy.read_ai_usage_settings", lambda: {
+            "mode": mode, "disabled_features": disabled,
+        })
+        chatbot = Mock(side_effect=AssertionError("Must not initialize AI"))
+        request = Mock(side_effect=AssertionError("Must not request AI"))
+        monkeypatch.setattr("ai.chat.chatbot.get_ai_chatbot", chatbot)
+        monkeypatch.setattr("ai.client.lm_studio_client.call_lm_studio_api", request)
+
+        result = suggest_breakdown(user_id, task_id)
+        assert result.unavailable and not result.steps
+        assert "own smaller step" in result.message
+        assert len(load_active_tasks(user_id)) == 1
+        chatbot.assert_not_called()
+        request.assert_not_called()
+        saved = add_task_subtasks(user_id, task_id, ["Find the phone number"])
+        assert saved.success
+        assert len(load_active_tasks(user_id)) == 2
+
     def test_parse_keeps_short_unique_titles(self):
         text = (
             "1. Find the phone number\n"
