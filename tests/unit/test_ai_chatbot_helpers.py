@@ -14,15 +14,15 @@ from ai.fallback import get_fallback_responses
 @pytest.fixture(scope="module")
 def chatbot_instance():
     """Create chatbot instance once per module (shared across all tests in this file)."""
-    # Mock LM Studio connection to avoid actual API calls
-    with patch('ai.chat.chatbot.AIChatBotSingleton._test_lm_studio_connection'), \
-         patch('ai.client.lm_studio_manager.is_lm_studio_ready', return_value=False):
+    # Mock OpenAI connection to avoid actual API calls
+    with patch('ai.chat.chatbot.AIChatBotSingleton._test_openai_connection'), \
+         patch('ai.chat.chatbot.test_openai_connection', return_value=False):
         # Get or create singleton instance
         chatbot = get_ai_chatbot()
-        original_available = chatbot.lm_studio_available
-        chatbot.lm_studio_available = False  # Set to False to avoid actual API calls
+        original_available = chatbot.openai_available
+        chatbot.openai_available = False  # Set to False to avoid actual API calls
         yield chatbot
-        chatbot.lm_studio_available = original_available
+        chatbot.openai_available = original_available
 
 
 @pytest.mark.unit
@@ -35,7 +35,7 @@ class TestAIChatBotHelpers:
         with (
             patch("ai.chat.chatbot.is_ai_usage_allowed", return_value=False),
             patch.object(chatbot_instance, "_get_cached_non_chat_response") as cache,
-            patch.object(chatbot_instance, "_call_lm_studio_api") as model_call,
+            patch.object(chatbot_instance, "_call_openai_api") as model_call,
         ):
             response = chatbot_instance.generate_response(
                 "Hello", user_id="policy_user", mode="chat"
@@ -289,14 +289,14 @@ class TestAIChatBotHelpers:
     def test_generate_response_fallback_when_lm_unavailable(
         self, chatbot_instance, monkeypatch
     ):
-        """Unavailable LM Studio should use deterministic fallback, not model output."""
+        """Unavailable OpenAI should use deterministic fallback, not model output."""
         from unittest.mock import patch
 
         chatbot_instance.response_cache.clear()
-        monkeypatch.setattr(chatbot_instance, "lm_studio_available", False)
-        monkeypatch.setattr(chatbot_instance, "_ensure_lm_studio_available", lambda: False)
+        monkeypatch.setattr(chatbot_instance, "openai_available", False)
+        monkeypatch.setattr(chatbot_instance, "_ensure_openai_available", lambda: False)
         with patch(
-            "ai.client.lm_studio_client.test_lm_studio_connection",
+            "ai.client.openai_client.test_openai_connection",
             return_value=False,
         ):
             response = chatbot_instance.generate_response(
@@ -509,7 +509,7 @@ class TestAIChatBotHelpers:
         self, chatbot_instance
     ):
         """Admin test sends should not reuse cached personalized text."""
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         with (
             patch.object(chatbot_instance.response_cache, "get") as mock_get,
             patch.object(chatbot_instance.response_cache, "set") as mock_set,
@@ -532,7 +532,7 @@ class TestAIChatBotHelpers:
     def test_personalized_profile_message_uses_only_profile_context(
         self, chatbot_instance
     ):
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         with (
             patch(
                 "core.health_context_builder.build_personalized_profile_context",
@@ -566,7 +566,7 @@ class TestAIChatBotHelpers:
     ):
         from core.error_handling import ValidationError
 
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         with pytest.raises(ValidationError) as exc_info:
             chatbot_instance.generate_personalized_message.__wrapped__(
                 chatbot_instance, "user123", source="unknown"
@@ -577,7 +577,7 @@ class TestAIChatBotHelpers:
     def test_personalized_message_unsupported_source_returns_safe_default(
         self, chatbot_instance
     ):
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         result = chatbot_instance.generate_personalized_message(
             "user123", source="unknown"
         )
@@ -832,14 +832,14 @@ class TestAIChatBotHelpers:
             "Samantha and Emily are close friends"
         )
         chatbot_instance.response_cache.clear()
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         try:
             with (
                 patch.object(
-                    chatbot_instance, "_ensure_lm_studio_available", return_value=True
+                    chatbot_instance, "_ensure_openai_available", return_value=True
                 ),
                 patch.object(
-                    chatbot_instance, "_call_lm_studio_api", return_value=raw
+                    chatbot_instance, "_call_openai_api", return_value=raw
                 ),
             ):
                 result = chatbot_instance.generate_response(
@@ -848,7 +848,7 @@ class TestAIChatBotHelpers:
                     mode="personalized",
                 )
         finally:
-            chatbot_instance.lm_studio_available = False
+            chatbot_instance.openai_available = False
 
         assert "sleep and activity" in result
         assert "[Your Name]" not in result
@@ -862,7 +862,7 @@ class TestAIChatBotHelpers:
         """A hello may mention breakfast. A check-in rate is replaced."""
         with (
             patch.object(
-                chatbot_instance, "_ensure_lm_studio_available", return_value=True
+                chatbot_instance, "_ensure_openai_available", return_value=True
             ),
             patch(
                 "ai.fallback.profile_helpers.load_user_context",
@@ -873,7 +873,7 @@ class TestAIChatBotHelpers:
                 return_value="",
             ),
             patch(
-                "ai.chat.chatbot.call_lm_studio_api",
+                "ai.chat.chatbot.call_openai_api",
                 return_value="Hope breakfast was gentle today.",
             ),
         ):
@@ -882,7 +882,7 @@ class TestAIChatBotHelpers:
 
         with (
             patch.object(
-                chatbot_instance, "_ensure_lm_studio_available", return_value=True
+                chatbot_instance, "_ensure_openai_available", return_value=True
             ),
             patch(
                 "ai.fallback.profile_helpers.load_user_context",
@@ -893,7 +893,7 @@ class TestAIChatBotHelpers:
                 return_value="",
             ),
             patch(
-                "ai.chat.chatbot.call_lm_studio_api",
+                "ai.chat.chatbot.call_openai_api",
                 return_value="You ate breakfast 4 out of 5 times.",
             ),
         ):
@@ -903,21 +903,21 @@ class TestAIChatBotHelpers:
 
     def test_command_mode_failure_stays_unparsed(self, chatbot_instance, monkeypatch):
         """A failed command interpretation must not become chat text the parser can run."""
-        from ai.client.lm_studio_client import LmStudioCompletion
+        from ai.client.openai_client import OpenAICompletion
 
         chatbot_instance.response_cache.clear()
-        chatbot_instance.lm_studio_available = True
+        chatbot_instance.openai_available = True
         calls = []
 
         def _fail(**kwargs):
             calls.append(kwargs)
-            return LmStudioCompletion(
+            return OpenAICompletion(
                 text=None,
                 failure="ReadTimeout: The read operation timed out",
             )
 
-        monkeypatch.setattr(chatbot_instance, "_ensure_lm_studio_available", lambda: True)
-        monkeypatch.setattr(chatbot_instance, "_call_lm_studio_api", _fail)
+        monkeypatch.setattr(chatbot_instance, "_ensure_openai_available", lambda: True)
+        monkeypatch.setattr(chatbot_instance, "_call_openai_api", _fail)
         monkeypatch.setattr(
             chatbot_instance,
             "_build_response_generation_request",
@@ -932,11 +932,11 @@ class TestAIChatBotHelpers:
         assert "help" not in text.lower()
         assert "task" not in text.lower()
 
-    def test_invalid_lm_studio_json_stays_on_the_completion(self, monkeypatch):
+    def test_invalid_openai_json_stays_on_the_completion(self, monkeypatch):
         """A bad response body is a failure on that call, not a shared global."""
-        from ai.client.lm_studio_client import (
-            call_lm_studio_api,
-            complete_lm_studio_chat,
+        from ai.client.openai_client import (
+            call_openai_api,
+            complete_openai_chat,
         )
 
         class _Response:
@@ -947,11 +947,11 @@ class TestAIChatBotHelpers:
                 raise ValueError("Expecting value")
 
         monkeypatch.setattr(
-            "ai.client.lm_studio_client.requests.post",
+            "ai.client.openai_client.requests.post",
             lambda *args, **kwargs: _Response(),
         )
-        completion = complete_lm_studio_chat([{"role": "user", "content": "hi"}])
+        completion = complete_openai_chat([{"role": "user", "content": "hi"}])
         assert completion.text is None
         assert "invalid JSON" in (completion.failure or "")
-        assert call_lm_studio_api([{"role": "user", "content": "hi"}]) is None
+        assert call_openai_api([{"role": "user", "content": "hi"}]) is None
 

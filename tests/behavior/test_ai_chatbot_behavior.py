@@ -20,12 +20,12 @@ from core import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
 
 
-def _use_mocked_lm_studio_api(chatbot, return_value=None, side_effect=None):
-    """Route generate_response through a fake API (not live LM Studio HTTP)."""
-    chatbot.lm_studio_available = True
+def _use_mocked_openai_api(chatbot, return_value=None, side_effect=None):
+    """Route generate_response through a fake API (not live OpenAI HTTP)."""
+    chatbot.openai_available = True
     return patch.object(
         chatbot,
-        "_call_lm_studio_api",
+        "_call_openai_api",
         return_value=return_value,
         side_effect=side_effect,
     )
@@ -139,7 +139,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot actually generates responses with real behavior."""
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Test AI response"):
+        with _use_mocked_openai_api(chatbot, return_value="Test AI response"):
             response = chatbot.generate_response("Hello", user_id="test_user")
             
             # Verify response is generated and reflects mocked content
@@ -155,7 +155,7 @@ class TestAIChatBotBehavior:
         chatbot = AIChatBotSingleton()
         
         # Mock API failure by making the API call return None
-        with patch.object(chatbot, '_call_lm_studio_api', return_value=None):
+        with patch.object(chatbot, '_call_openai_api', return_value=None):
             response = chatbot.generate_response("Hello", user_id="test_user")
             
             # Verify fallback response is provided
@@ -200,7 +200,7 @@ class TestAIChatBotBehavior:
         
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Personalized response"):
+        with _use_mocked_openai_api(chatbot, return_value="Personalized response"):
             # Generate contextual response
             response = chatbot.generate_contextual_response(user_id, "How am I doing?")
             
@@ -240,7 +240,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot command parsing actually creates structured output."""
         chatbot = AIChatBotSingleton()
 
-        with _use_mocked_lm_studio_api(
+        with _use_mocked_openai_api(
             chatbot, return_value='{"action": "remind", "details": {"task": "test"}}'
         ):
             response = chatbot.generate_response("remind me to test", mode="command")
@@ -269,13 +269,13 @@ class TestAIChatBotBehavior:
                 )
             )
             stack.enter_context(
-                patch.object(chatbot, '_ensure_lm_studio_available', return_value=True)
+                patch.object(chatbot, '_ensure_openai_available', return_value=True)
             )
-            chatbot.lm_studio_available = True
+            chatbot.openai_available = True
             mock_api = stack.enter_context(
                 patch.object(
                     chatbot,
-                    '_call_lm_studio_api',
+                    '_call_openai_api',
                     return_value="Please clarify your request.",
                 )
             )
@@ -326,13 +326,13 @@ class TestAIChatBotBehavior:
                 )
             )
             stack.enter_context(
-                patch.object(chatbot, '_ensure_lm_studio_available', return_value=True)
+                patch.object(chatbot, '_ensure_openai_available', return_value=True)
             )
-            chatbot.lm_studio_available = True
+            chatbot.openai_available = True
             mock_api = stack.enter_context(
                 patch.object(
                     chatbot,
-                    '_call_lm_studio_api',
+                    '_call_openai_api',
                     return_value="Could you share more details?",
                 )
             )
@@ -421,7 +421,7 @@ class TestAIChatBotBehavior:
         ]
         
         for error in error_scenarios:
-            with _use_mocked_lm_studio_api(chatbot, side_effect=error):
+            with _use_mocked_openai_api(chatbot, side_effect=error):
                 # Should not crash the system
                 response = chatbot.generate_response("test", user_id="test_user")
                 
@@ -439,7 +439,7 @@ class TestAIChatBotBehavior:
         user_id = "test_conv_user"
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Conversation response"):
+        with _use_mocked_openai_api(chatbot, return_value="Conversation response"):
             # Test conversation flow
             reply, completed = conversation_manager.handle_inbound_message(user_id, "Hello")
             
@@ -488,7 +488,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot performs well under load."""
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Load test response"):
+        with _use_mocked_openai_api(chatbot, return_value="Load test response"):
             # Test multiple rapid requests
             responses = []
             for i in range(5):
@@ -505,7 +505,7 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot cache actually improves performance."""
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Cached response"):
+        with _use_mocked_openai_api(chatbot, return_value="Cached response"):
             # First request - should call API
             response1 = chatbot.generate_response("Cached test", user_id="cache_user")
             
@@ -526,7 +526,7 @@ class TestAIChatBotBehavior:
         
         # Test that chatbot can be used multiple times without resource leaks
         for i in range(3):
-            with _use_mocked_lm_studio_api(chatbot, return_value=f"Response {i}"):
+            with _use_mocked_openai_api(chatbot, return_value=f"Response {i}"):
                 response = chatbot.generate_response(f"Test {i}", user_id="cleanup_user")
                 assert response is not None, f"Response {i} should be generated"
         
@@ -578,7 +578,7 @@ class TestAIChatBotIntegration:
         # Test AI chatbot with this user data
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, return_value="Integration test response"):
+        with _use_mocked_openai_api(chatbot, return_value="Integration test response"):
             response = chatbot.generate_contextual_response(actual_user_id, "How are my schedules looking?")
             
             # Verify response is generated
@@ -605,7 +605,7 @@ class TestAIChatBotIntegration:
         # Test AI chatbot handles problematic data gracefully
         chatbot = AIChatBotSingleton()
         
-        with _use_mocked_lm_studio_api(chatbot, side_effect=Exception("API Error")):
+        with _use_mocked_openai_api(chatbot, side_effect=Exception("API Error")):
             response = chatbot.generate_contextual_response(user_id, "Test message")
             
             # Should provide fallback response
@@ -624,7 +624,7 @@ class TestAIChatBotIntegration:
         
         def generate_response(thread_id):
             try:
-                with _use_mocked_lm_studio_api(chatbot, return_value=f"Thread {thread_id} response"):
+                with _use_mocked_openai_api(chatbot, return_value=f"Thread {thread_id} response"):
                     response = chatbot.generate_response(f"Thread {thread_id} message", user_id=f"thread_user_{thread_id}")
                     results.append((thread_id, response))
             except Exception as e:

@@ -43,7 +43,7 @@ class TestTaskBreakdown:
         chatbot = Mock(side_effect=AssertionError("Must not initialize AI"))
         request = Mock(side_effect=AssertionError("Must not request AI"))
         monkeypatch.setattr("ai.chat.chatbot.get_ai_chatbot", chatbot)
-        monkeypatch.setattr("ai.client.lm_studio_client.call_lm_studio_api", request)
+        monkeypatch.setattr("ai.client.openai_client.call_openai_api", request)
 
         result = suggest_breakdown(user_id, task_id)
         assert result.unavailable and not result.steps
@@ -85,7 +85,7 @@ class TestTaskBreakdown:
             "ai.chat.chatbot.get_ai_chatbot", lambda: Available()
         )
         monkeypatch.setattr(
-            "ai.client.lm_studio_client.call_lm_studio_api",
+            "ai.client.openai_client.call_openai_api",
             lambda **_kwargs: "Find the phone number\nCall the dentist\nAsk for the next opening",
         )
         result = suggest_breakdown(user_id, task_id)

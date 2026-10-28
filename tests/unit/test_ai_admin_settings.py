@@ -15,7 +15,7 @@ from core.ai_usage_settings import (
     save_ai_usage_settings,
 )
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
-from ai.client.lm_studio_client import complete_lm_studio_chat
+from ai.client.openai_client import complete_openai_chat
 
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
 
@@ -36,8 +36,8 @@ def test_saved_switches_override_environment_and_block_http(isolated_admin_setti
     assert save_ai_usage_settings("automatic", ["conversation", "task_breakdown"])
     assert read_ai_usage_settings()["source"] == "desktop"
     assert is_ai_usage_allowed(AIUsageFeature.TASK_EFFORT)
-    with patch("ai.client.lm_studio_client.requests.post") as request:
-        result = complete_lm_studio_chat(
+    with patch("ai.client.openai_client.requests.post") as request:
+        result = complete_openai_chat(
             [{"role": "user", "content": "Hello"}],
             usage_feature=AIUsageFeature.CONVERSATION,
         )
@@ -111,7 +111,7 @@ def test_invalid_or_failed_save_keeps_last_working_policy(isolated_admin_setting
 
 def test_global_off_override_does_not_require_model_configuration(monkeypatch):
     assert save_ai_usage_settings("off", [])
-    monkeypatch.setattr(config, "LM_STUDIO_BASE_URL", "")
+    monkeypatch.setattr(config, "OPENAI_BASE_URL", "")
     valid, errors, _warnings = config.validate_ai_configuration()
     assert valid
     assert not errors
@@ -119,8 +119,8 @@ def test_global_off_override_does_not_require_model_configuration(monkeypatch):
 
 def test_enabling_ai_in_desktop_requires_model_configuration(monkeypatch):
     monkeypatch.setattr(config, "AI_USAGE_MODE", "off")
-    monkeypatch.setattr(config, "LM_STUDIO_BASE_URL", "")
+    monkeypatch.setattr(config, "OPENAI_BASE_URL", "")
     assert save_ai_usage_settings("automatic", [])
     valid, errors, _warnings = config.validate_ai_configuration()
     assert not valid
-    assert "LM_STUDIO_BASE_URL is not configured" in errors
+    assert "OPENAI_BASE_URL is not configured" in errors

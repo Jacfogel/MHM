@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.client.lm_studio_client import complete_lm_studio_chat
+from ai.client.openai_client import complete_openai_chat
 from ai.usage_policy import (
     AIUsageFeature,
     AIUsageMode,
@@ -77,9 +77,9 @@ class TestAIUsagePolicy:
         with (
             patch.object(config, "AI_USAGE_MODE", "automatic"),
             patch.object(config, "AI_DISABLED_FEATURES", "conversation"),
-            patch("ai.client.lm_studio_client.requests.post") as request,
+            patch("ai.client.openai_client.requests.post") as request,
         ):
-            result = complete_lm_studio_chat(
+            result = complete_openai_chat(
                 [{"role": "user", "content": "Hello"}],
                 usage_feature=AIUsageFeature.CONVERSATION,
             )
@@ -122,13 +122,13 @@ class TestAIUsageConfigurationValidation:
     def test_off_mode_does_not_require_model_connection_settings(self):
         with (
             patch.object(config, "AI_USAGE_MODE", "off"),
-            patch.object(config, "LM_STUDIO_BASE_URL", ""),
-            patch.object(config, "LM_STUDIO_API_KEY", ""),
-            patch.object(config, "LM_STUDIO_MODEL", ""),
+            patch.object(config, "OPENAI_BASE_URL", ""),
+            patch.object(config, "OPENAI_API_KEY", ""),
+            patch.object(config, "OPENAI_MODEL", ""),
         ):
             valid, errors, warnings = config.validate_ai_configuration()
 
         assert valid is True
-        assert not any("LM_STUDIO" in error for error in errors)
-        assert not any("LM_STUDIO" in warning for warning in warnings)
+        assert not any("OPENAI" in error for error in errors)
+        assert not any("OPENAI" in warning for warning in warnings)
 

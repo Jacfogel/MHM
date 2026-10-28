@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for the notebook feature  
 > **Style**: Actionable, checklist-focused, concise  
-> **Last Updated**: 2026-09-24  
+> **Last Updated**: 2026-10-28
 > **Current Evidence**: Validated against live codebase 2026-09-24 (notebook package, Discord handler, website notes page, AI context)  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
@@ -230,13 +230,13 @@ This is a high-level capability map, not a complete alias list. Exact command al
 - The next non-command message replaces the entry description via `replace_entry_body`.
 - `cancel` / `skip` / timeout clear the flow without writing.
 - Lists are rejected (use list item commands).
-- Optional later: append mode vs replace mode (not started).
+- `!append <ref>` starts an append session; the next message adds text without replacing existing content. Multi-word titles can use `!append Meeting Notes |`. Cancel, skip, and timeout leave the entry unchanged (2026-10-28).
 
 **Tasks**:
 
 - [x] Define edit-session state model and timeout (reuse conversation flow; 10-minute `CONVERSATION_FLOW_TIMEOUT_MINUTES`).
 - [x] Reuse conversation flow manager (`FLOW_ENTRY_EDIT` in `note_flow.py`).
-- [x] Implement replace flow first; defer append/review modes unless needed.
+- [x] Implement replace flow first; add optional two-message append mode (2026-10-28). Review mode remains deferred.
 - [x] Add skip/cancel handling (both abandon without write).
 - [x] Add tests for timeout, cancel, valid replacement, and invalid entry reference.
 

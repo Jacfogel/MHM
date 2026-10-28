@@ -51,7 +51,7 @@ The AI functionality test suite is organized into focused, maintainable modules:
 
 ## 3. Prerequisites
 
-- LM Studio running (**optional** - tests should work with fallbacks)
+- A valid OpenAI API key (**optional** - deterministic tests use mocks and fallbacks)
 - Test user data scenarios available (created by the runner / fixtures as applicable)
 - Service running (if required by the suite): `python run_headless_service.py start`
 
@@ -105,15 +105,15 @@ The test suite covers categories such as:
 6. Error handling and fallbacks
 7. Conversation history integration and storage
 8. Cache functionality
-9. LM Studio connection handling
+9. OpenAI connection handling
 10. Performance and resource management
 11. Advanced multi-turn and coherence checks
-12. Post-process leak contract (T-17.x fixture tests; deterministic, no LM Studio)
-13. Live safety and honesty journeys (T-18.x; real model when LM Studio is up)
+12. Post-process leak contract (T-17.x fixture tests; deterministic, no OpenAI)
+13. Live safety and honesty journeys (T-18.x; real model when OpenAI is accessible)
 
 Do **not** re-review mocked routing after a pytest-green run of [test_ai_user_journeys.py](../behavior/test_ai_user_journeys.py). When you run this live suite, treat **T-18.x failures as blockers** (false CRUD, invented check-ins, fake creates). Skip re-reading categories 3, 4, 5, and 6 for those same contracts if T-18 passed.
 
-Keep live LM Studio **tone** review for categories 1, 2, and 11.
+Keep live OpenAI **tone** review for categories 1, 2, and 11.
 
 ---
 

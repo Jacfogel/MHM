@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 from core.error_handling import handle_configuration_error, handle_errors
 from core.resource_paths import shipped_resource_path
@@ -103,31 +103,25 @@ if os.getenv("MHM_TESTING") == "1":
     # Force default messages dir during tests to avoid absolute path/env variance
     DEFAULT_MESSAGES_DIR_PATH = str(shipped_resource_path("default_messages"))
 
-# LM Studio Configuration
-# SETUP INSTRUCTIONS:
-# 1. Download and install LM Studio from https://lmstudio.ai/
-# 2. In LM Studio, load your downloaded Phi 2 Chat model
-# 3. Start the local server (usually localhost:1234)
-# 4. The server will be available at http://localhost:1234/v1 with OpenAI-compatible API
-LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
-LM_STUDIO_API_KEY = os.getenv(
-    "LM_STUDIO_API_KEY", "lm-studio"
-)  # LM Studio uses any key
-LM_STUDIO_MODEL = os.getenv("LM_STUDIO_MODEL", "phi-2")  # Model name for API calls
+# OpenAI API configuration (server-side only; never expose the key to the website).
+@handle_errors("resolving the OpenAI API key", default_return="")
+def _resolve_openai_api_key() -> str:
+    """Prefer the local project key over stale keys inherited from desktop apps.
 
-# LM Studio Auto-Management Configuration
-LM_STUDIO_AUTO_START = (
-    os.getenv("LM_STUDIO_AUTO_START", "true").lower() == "true"
-)  # Auto-start LM Studio if not running
-LM_STUDIO_AUTO_LOAD_MODEL = (
-    os.getenv("LM_STUDIO_AUTO_LOAD_MODEL", "true").lower() == "true"
-)  # Auto-load model if not loaded
-LM_STUDIO_STARTUP_TIMEOUT = int(
-    os.getenv("LM_STUDIO_STARTUP_TIMEOUT", "60")
-)  # Timeout for LM Studio startup (seconds)
-LM_STUDIO_MODEL_LOAD_TIMEOUT = int(
-    os.getenv("LM_STUDIO_MODEL_LOAD_TIMEOUT", "30")
-)  # Timeout for model loading (seconds)
+    An explicitly empty local key disables the inherited credential. Deployments
+    without a local key continue to use the process environment.
+    """
+    local_values = dotenv_values(interpolate=False)
+    if "OPENAI_API_KEY" in local_values:
+        return (local_values["OPENAI_API_KEY"] or "").strip()
+    return os.getenv("OPENAI_API_KEY", "").strip()
+
+
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+OPENAI_API_KEY = _resolve_openai_api_key()
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini").strip()
+# App input budget, deliberately smaller than the model context window.
+AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS", "16384"))
 
 # AI System Prompt Configuration
 AI_SYSTEM_PROMPT_PATH = os.getenv(
@@ -144,7 +138,7 @@ AI_TIMEOUT_SECONDS = int(
 AI_BATCH_SIZE = int(os.getenv("AI_BATCH_SIZE", "4"))  # For batch processing
 AI_CUDA_WARMUP = (
     os.getenv("AI_CUDA_WARMUP", "false").lower() == "true"
-)  # Disabled for LM Studio
+)  # Disabled for OpenAI
 AI_CACHE_RESPONSES = os.getenv("AI_CACHE_RESPONSES", "true").lower() == "true"
 
 # AI Usage Policy Configuration
@@ -153,13 +147,13 @@ AI_CACHE_RESPONSES = os.getenv("AI_CACHE_RESPONSES", "true").lower() == "true"
 AI_USAGE_MODE = os.getenv("AI_USAGE_MODE", "automatic").strip().lower()
 AI_DISABLED_FEATURES = os.getenv("AI_DISABLED_FEATURES", "")
 
-# LM Studio AI Model Configuration - Centralized Timeouts and Confidence Thresholds
+# OpenAI AI Model Configuration - Centralized Timeouts and Confidence Thresholds
 AI_CONNECTION_TEST_TIMEOUT = int(
     os.getenv("AI_CONNECTION_TEST_TIMEOUT", "15")
-)  # Timeout for testing LM Studio connection
+)  # Timeout for testing OpenAI connection
 AI_API_CALL_TIMEOUT = int(
     os.getenv("AI_API_CALL_TIMEOUT", "15")
-)  # Default timeout for LM Studio API calls
+)  # Default timeout for OpenAI API calls
 AI_COMMAND_PARSING_TIMEOUT = int(
     os.getenv("AI_COMMAND_PARSING_TIMEOUT", "15")
 )  # Timeout for AI-enhanced command parsing
@@ -556,24 +550,18 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
                 + ", ".join(unknown_disabled_features)
             )
 
-        # Model connection settings are optional when every AI call is disabled.
+        # Core deterministic features still start without an API key.
         if ai_controls["mode"] != "off":
-            if not LM_STUDIO_BASE_URL:
-                errors.append("LM_STUDIO_BASE_URL is not configured")
-            elif not LM_STUDIO_BASE_URL.startswith(("http://", "https://")):
-                errors.append(
-                    "LM_STUDIO_BASE_URL must be a valid URL starting with http:// or https://"
-                )
-
-            # These values have defaults, so only warn when explicitly empty.
-            if LM_STUDIO_API_KEY == "":
-                warnings.append(
-                    "LM_STUDIO_API_KEY is explicitly set to empty (using default)"
-                )
-            if LM_STUDIO_MODEL == "":
-                warnings.append(
-                    "LM_STUDIO_MODEL is explicitly set to empty (using default)"
-                )
+            if not OPENAI_BASE_URL:
+                errors.append("OPENAI_BASE_URL is not configured")
+            elif not OPENAI_BASE_URL.startswith("https://"):
+                errors.append("OPENAI_BASE_URL must use https://")
+            if not OPENAI_API_KEY:
+                warnings.append("OPENAI_API_KEY is not configured; AI features use local fallbacks")
+            if not OPENAI_MODEL:
+                errors.append("OPENAI_MODEL is not configured")
+        if AI_CONTEXT_TOKENS < 1024:
+            errors.append("AI_CONTEXT_TOKENS must be at least 1024")
 
         # Check AI performance settings
         if AI_TIMEOUT_SECONDS < 5:
@@ -1068,7 +1056,7 @@ def print_configuration_report():
         print(f"  Base Data Directory: {BASE_DATA_DIR}")
         print(f"  Log File: {LOG_MAIN_FILE}")
         print(f"  Log Level: {LOG_LEVEL}")
-        print(f"  LM Studio URL: {LM_STUDIO_BASE_URL}")
+        print(f"  OpenAI URL: {OPENAI_BASE_URL}")
         print(f"  AI Usage Mode: {AI_USAGE_MODE}")
         print(f"  Disabled AI Features: {AI_DISABLED_FEATURES or 'None'}")
         print(f"  AI Timeout: {AI_TIMEOUT_SECONDS}s")

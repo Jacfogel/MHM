@@ -1,7 +1,7 @@
 """Mocked AI user journeys through chatbot and handle_user_message.
 
 These replace the safety / routing / capability items on the manual AI
-checklist. Tone and phrasing still need occasional live LM Studio review.
+checklist. Tone and phrasing still need occasional live OpenAI review.
 """
 
 from __future__ import annotations
@@ -72,12 +72,12 @@ def _create_journey_user(
     return user_id
 
 
-def _use_mocked_lm_studio_api(chatbot, return_value=None):
-    """Route generate_response through a fake API (not live LM Studio HTTP)."""
-    chatbot.lm_studio_available = True
+def _use_mocked_openai_api(chatbot, return_value=None):
+    """Route generate_response through a fake API (not live OpenAI HTTP)."""
+    chatbot.openai_available = True
     return (
-        patch.object(chatbot, "_ensure_lm_studio_available", return_value=True),
-        patch.object(chatbot, "_call_lm_studio_api", return_value=return_value),
+        patch.object(chatbot, "_ensure_openai_available", return_value=True),
+        patch.object(chatbot, "_call_openai_api", return_value=return_value),
     )
 
 
@@ -127,12 +127,12 @@ def _reset_conversation_state():
 @pytest.fixture
 def chatbot():
     bot = AIChatBotSingleton()
-    original_available = bot.lm_studio_available
+    original_available = bot.openai_available
     bot.response_cache.clear()
     try:
         yield bot
     finally:
-        bot.lm_studio_available = original_available
+        bot.openai_available = original_available
         bot.response_cache.clear()
 
 
@@ -140,7 +140,7 @@ def chatbot():
 def test_generate_response_sanitizes_false_crud_chat_reply(test_data_dir, chatbot):
     """Chat replies that claim a completed create are stripped before the user sees them."""
     user_id = _create_journey_user(test_data_dir, "journey-false-crud")
-    ensure_patch, api_patch = _use_mocked_lm_studio_api(chatbot, _FALSE_CRUD_REPLY)
+    ensure_patch, api_patch = _use_mocked_openai_api(chatbot, _FALSE_CRUD_REPLY)
 
     with ensure_patch, api_patch:
         response = chatbot.generate_response(
@@ -163,7 +163,7 @@ def test_handle_user_message_chat_fallback_sanitizes_false_crud(test_data_dir, c
     manager.enable_ai_enhancement = False
     manager.ai_chatbot = chatbot
     _force_low_confidence_parse(manager)
-    ensure_patch, api_patch = _use_mocked_lm_studio_api(chatbot, _FALSE_CRUD_REPLY)
+    ensure_patch, api_patch = _use_mocked_openai_api(chatbot, _FALSE_CRUD_REPLY)
 
     with _mock_planner_plan(answer_only_plan(message, planning_method="test")):
         with ensure_patch, api_patch:
@@ -533,7 +533,7 @@ def test_checkin_status_prompt_includes_analysis_when_data_exists(
             },
         )
 
-    ensure_patch, api_patch = _use_mocked_lm_studio_api(
+    ensure_patch, api_patch = _use_mocked_openai_api(
         chatbot, "Your recent check-ins look steady. How are you feeling today?"
     )
     with ensure_patch, api_patch as mock_api:
@@ -582,7 +582,7 @@ def test_disabled_tasks_prompt_and_reply_stay_within_capabilities(
     assert "task management is disabled" in system_content
     assert "ACTION BOUNDARIES" in system_content
 
-    ensure_patch, api_patch = _use_mocked_lm_studio_api(chatbot, _FALSE_CRUD_REPLY)
+    ensure_patch, api_patch = _use_mocked_openai_api(chatbot, _FALSE_CRUD_REPLY)
     with ensure_patch, api_patch:
         response = chatbot.generate_response(
             "can you create a task for me",

@@ -11,7 +11,7 @@ logger = get_component_logger("ai")
 
 
 class ResponseGenerator:
-    """Build conversational prompts for LM Studio chat calls."""
+    """Build conversational prompts for OpenAI chat calls."""
 
     # devtools: intentional[duplicate-functions]: thin_prompt_component_constructors
     @handle_errors("initializing response generator", default_return=None)
@@ -31,7 +31,7 @@ class ResponseGenerator:
     def create_comprehensive_context_prompt(
         self, user_id: str, user_prompt: str, envelope=None
     ) -> list:
-        """Create a comprehensive context prompt with all user data for LM Studio."""
+        """Create a comprehensive context prompt with all user data for OpenAI."""
         return assemble_comprehensive_messages(
             user_id, user_prompt, envelope=envelope
         )

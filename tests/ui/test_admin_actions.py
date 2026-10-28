@@ -289,7 +289,7 @@ def test_configuration_values_masks_discord_token():
             "BASE_DATA_DIR": "data",
             "LOG_MAIN_FILE": "app.log",
             "LOG_LEVEL": "INFO",
-            "LM_STUDIO_BASE_URL": "http://localhost:1234/v1",
+            "OPENAI_BASE_URL": "https://api.openai.com/v1",
             "AI_TIMEOUT_SECONDS": 30,
             "SCHEDULER_INTERVAL": 60,
             "EMAIL_SMTP_SERVER": "",
@@ -351,7 +351,7 @@ def test_validate_configuration_valid_and_invalid_reports(qapp):
         "summary": "Missing channels",
         "available_channels": [],
         "errors": ["No channel configured"],
-        "warnings": ["LM Studio URL uses default"],
+        "warnings": ["OpenAI URL uses default"],
     }
 
     with patch("ui.admin_actions.validate_all_configuration", return_value=valid_result), \

@@ -131,7 +131,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
             "This task already has enough smaller steps. Finish one of those first.",
         )
     from ai.chat.chatbot import get_ai_chatbot
-    from ai.client.lm_studio_client import call_lm_studio_api
+    from ai.client.openai_client import call_openai_api
     from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
     from core.config import AI_COMMAND_PARSING_TIMEOUT
 
@@ -168,7 +168,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         },
         {"role": "user", "content": f"Task: {title}{notes}{already_block}"},
     ]
-    raw = call_lm_studio_api(
+    raw = call_openai_api(
         messages=messages,
         max_tokens=220,
         temperature=0.2,

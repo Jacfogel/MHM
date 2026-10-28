@@ -30,6 +30,22 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-28 - OpenAI replaces LM Studio **COMPLETED**
+- OpenAI Responses API now serves optional model features, defaulting to configurable `gpt-5.4-mini`. Hosted model-access checks replace local loading and process management.
+- Existing AI policy and deterministic fallbacks remain authoritative; no key means fallback. Uses `store=false`, bounded inputs/output, sanitized failures, and rejection of partial/refused output.
+- **Live connection**: Existing local key is present, but OpenAI rejected it with HTTP 401. A valid local `OPENAI_API_KEY` and a desktop/service restart are required before live replies work. The synthetic test sent no user context.
+- **Verification**: 365 distinct focused checks pass across chatbot/policy/configuration, Responses transport, task planning, user journeys, command parsing, and Discord review suites. Full-project Pyright and targeted Ruff pass; docs generation and doc-sync succeed. Discord async checks require local Windows event-loop sockets; the restricted run stalled before test execution and the unrestricted mocked run passes all 13 checks. A full Tier 3 audit was not run.
+- **Credential follow-up**: Discord logs confirmed repeated 401 fallbacks because stale inherited Windows credentials overrode the replacement project key. OpenAI key resolution now prefers an explicit local `.env` setting (including blank), retaining process-environment support when no local key is set. 47 credential/configuration/policy/transport tests pass; targeted Ruff passes. Fresh-process model access and synthetic generation pass using the actual configuration without environment overrides. Restart the desktop app to reload the fix in its managed service.
+- Upgraded eight vulnerable dependencies to advisory-fixed versions and raised matching metadata floors. Fresh pip-audit is clean; pip check finds no conflicts.
+- Explicit positive HTTP timeout clears Bandit B113. Removed unused OpenAI manager wrappers; client readiness remains authoritative. Clarified sampling documentation and repaired eight historical broken links.
+- 167 focused regressions pass, with clean Ruff/Pyright checks. Restart MHM to load updated libraries.
+- **Audit refresh**: Standard analyzers now report zero dependency vulnerabilities, Bandit issues, duplicate groups, facade/shim candidates, and Markdown link-target hints. Regenerated documentation and cached status/priority reports; documentation sync passes. Full Tier 3 audit and coverage regeneration were not rerun.
+
+### 2026-10-28 - Two-message notebook append sessions **COMPLETED**
+- Reference-only `!append` now starts a persisted append session; the next reply adds to the existing note or journal entry. One-message commands remain supported.
+- Cancel, skip, and timeout leave content unchanged; lists and invalid references are rejected before starting.
+- **Verification**: 95 notebook behavior and handler checks pass. Targeted Ruff and Pyright checks pass. Restart the service to load the new flow.
+
 ### 2026-10-27 - Explicit Discord AI task breakdown **COMPLETED**
 - Audit follow-up: repaired the stale low-energy test patch and the Discord test's button-type warning. All 129 affected tests pass sequentially and in parallel; full Pyright and targeted Ruff are clean. Regenerated registry/dependency/tree docs. Full Tier 3 was not rerun.
 - Website and Discord share **Break down with AI**, **Add selected steps**, and **Add my own step** labels; reminder guidance and desktop AI controls match. Existing typed `simplify` aliases still work.
@@ -95,24 +111,6 @@ Guidelines:
 - Package metadata now declares the runtime, UI, and development dependencies, includes shipped resources, styles, fonts, and website assets, and consistently supports Python 3.11 across metadata, CI, type checking, and setup documentation.
 - Logger exception forwarding preserves traceback detail while supporting redacted exception messages. OAuth failures omit codes, state, tokens, and other secrets; shipped-resource path helpers now use centralized fail-fast error handling with failure-path tests.
 - Risk-focused Discord and health tests cover unknown and returning users, blocked DMs, failed sends, account creation/linking outcomes, invalid health mutations, reauthentication, and route registration. The previously unreachable confirmation-code modal now opens from an ephemeral Discord button, validates six ASCII digits, and submits without exposing the identifier or code in logs. Focused branch coverage is 99% for inbound routing, 97% for onboarding, and 100% for health routes; the Tier 3 development-tools repair passes 1,665 tests, and Ruff and Pyright are clean.
-
-### 2026-10-15 - Audit reruns stay scoped after setup errors **COMPLETED**
-- Class-based JUnit results now map back to the real test file, so a few setup errors no longer force the next full audit to rerun every domain from the last suite.
-- Pytest exit code 1 with setup errors is recorded as test failures. Session cleanup keeps a live `pytest_runner` tree, including worker folders that are still in use.
-- Parallel workers now delete the test accounts they create. Each worker clears its own `tests/data/xdist_<worker>/` store at session start and end, and each test removes user directories it added. Missed user lookups were rereading about 3,000 leftover accounts and taking about 26 seconds. Listing those directories uses `os.listdir`, so a test that replaces `Path.iterdir` cannot fail teardown.
-- The audit already running when this landed still uses the previous behavior. The following audit can shrink to the files that actually failed, and its workers start by deleting the leftover accounts.
-
-### 2026-10-14 - User-data reads simplified and compatibility facades removed **COMPLETED**
-- Split `get_user_data` into explicit request, existence-policy, loader, and payload-finalization phases; removed test-only loader healing and broad exception-driven fallbacks. The existence and document-load boundaries now use standard error decorators with safe defaults.
-- Moved canonical user-ID validation into dependency-free `storage/user_id.py`; all callers now import it directly, eliminating both dependency cycles and the temporary validation-module re-export.
-- Existing-user saves load current documents once and pass required snapshots into update validation. The implicit compatibility reader, metadata wrapper, and v2 schema/ID re-exports were removed.
-- Regenerated the function registry with all five missing entries and no stale rows. Focused checks pass 14 read-path and 27 runner tests; Ruff is clean. The standalone changed-domain suite recorded 524 passes, zero failures, and zero errors before its 1,800-second limit; timeouts now report `pytest_timeout` instead of a generic crash reason. A threaded registry test now owns its patches outside worker threads, preventing leaked mocks that caused four order-dependent Tier 3 failures; the contaminating module plus all four regressions pass 50 tests.
-
-### 2026-10-13 - Notebook saves, user paths, and audit status hardened **COMPLETED**
-- Notebook PATCH requests now validate and persist the complete edited entry in one save, preventing partial title, body, checklist, or tag changes when a later operation fails.
-- Account reads reuse canonical user-ID validation, resolved data paths must stay inside the users root, and debug logs record requested data types instead of personal record payloads.
-- Static-analysis summaries now require fresh successful results from Ruff, Pyright, Bandit, pip-audit, and Vulture before reporting `CLEAN`; stale, missing, or incomplete evidence is labeled explicitly.
-- Focused regression coverage passes 101 tests. The clean Tier 3 full audit passes 7,610 parallel and 123 no-parallel tests, reports 80.4% coverage and documentation sync PASS, and records zero findings from all five static-analysis tools.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

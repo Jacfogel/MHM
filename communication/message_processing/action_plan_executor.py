@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ai.chat.action_planner import get_action_planner
-from ai.client.lm_studio_client import call_lm_studio_api
+from ai.client.openai_client import call_openai_api
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from ai.context.assembly import assemble_action_result_messages
 from ai.fallback.conversational import (
@@ -307,7 +307,7 @@ class ActionPlanExecutor:
         if not messages or len(messages) < 2:
             return handler_response
 
-        raw = call_lm_studio_api(
+        raw = call_openai_api(
             messages=messages,
             max_tokens=120,
             temperature=0.4,

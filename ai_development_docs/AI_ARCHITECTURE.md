@@ -57,7 +57,7 @@ Top-level routing only; do not duplicate full descriptions here.
 - `ui/` - PySide6 admin app (designs, generated code, dialogs, widgets, `ui/ui_app_qt.py`).  
 - `data/` - per-user runtime data under `data/users/{user_id}/` (use handlers, not raw file IO).  
 - `resources/` - shared templates and assets (`resources/default_messages/` for message templates).  
-- `ai/` - AI integration (LM Studio and helpers).  
+- `ai/` - AI integration (OpenAI and helpers).
 - `ai_development_docs/` - AI-focused documentation for routing and constraints.  
 - `development_tools/` - tools runner and commands such as `doc-sync`, `config`, `coverage`.  
 - `development_docs/` - human references (changelog, dependencies, plans).  

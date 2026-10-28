@@ -960,6 +960,8 @@ class EnhancedCommandParser:
                 r"^view\s+(?!my\s+tasks?$)(.+)$",
             ],
             "append_to_entry": [
+                r"^append\s+([^|]+?)\s*\|\s*(.*)$",
+                r"^append\s+(\S+)$",
                 r"^append\s+(\S+)\s+(.+)$",
                 r"^add\s+(\S+)\s+(.+)$",
                 r"^addto\s+(\S+)\s+(.+)$",
@@ -2045,8 +2047,9 @@ class EnhancedCommandParser:
             return True
 
         if intent in ("append_to_entry", "set_entry_body"):
-            if len(match.groups()) >= 2:
+            if match.groups():
                 entities["entry_ref"] = match.group(1).strip()
+            if len(match.groups()) >= 2:
                 entities["text"] = self._strip_optional_pipe_prefix(match.group(2))
             return True
 
@@ -2175,7 +2178,6 @@ class EnhancedCommandParser:
             user_id=user_id,
             original_message=getattr(self, "_rule_parse_original_message", "") or "",
         )
-
 
     @handle_errors("extracting task name from context")
     def _extract_task_name_from_context(self, message: str) -> str | None:

@@ -25,7 +25,7 @@ class TestTaskEffort:
             {"id": "pharmacy", "title": "Call pharmacy", "description": "Ask about the refill"},
         ]
         with patch("ai.chat.chatbot.get_ai_chatbot") as chatbot, patch(
-            "ai.client.lm_studio_client.call_lm_studio_api",
+            "ai.client.openai_client.call_openai_api",
             return_value="pharmacy 5",
         ) as call:
             chatbot.return_value.is_ai_available.return_value = True
@@ -38,7 +38,7 @@ class TestTaskEffort:
     def test_estimate_skips_the_model_when_it_is_unavailable(self):
         task_effort._effort_cache.clear()
         with patch("ai.chat.chatbot.get_ai_chatbot") as chatbot, patch(
-            "ai.client.lm_studio_client.call_lm_studio_api"
+            "ai.client.openai_client.call_openai_api"
         ) as call:
             chatbot.return_value.is_ai_available.return_value = False
             assert estimate_task_efforts([{"id": "a", "title": "Brand new task"}]) == [
@@ -50,7 +50,7 @@ class TestTaskEffort:
         task_effort._effort_cache.clear()
         tasks = [{"id": "a", "title": "Brand new task"}]
         with patch("ai.chat.chatbot.get_ai_chatbot") as chatbot, patch(
-            "ai.client.lm_studio_client.call_lm_studio_api"
+            "ai.client.openai_client.call_openai_api"
         ) as call:
             chatbot.return_value.is_ai_available.return_value = False
             skipped = estimate_task_efforts(tasks)
@@ -65,7 +65,7 @@ class TestTaskEffort:
         task_effort._effort_cache.clear()
         tasks = [{"id": "pharmacy", "title": "Call pharmacy", "description": ""}]
         with patch("ai.chat.chatbot.get_ai_chatbot") as chatbot, patch(
-            "ai.client.lm_studio_client.call_lm_studio_api",
+            "ai.client.openai_client.call_openai_api",
             side_effect=[None, "pharmacy 7"],
         ) as call:
             chatbot.return_value.is_ai_available.return_value = True
@@ -88,7 +88,7 @@ class TestTaskEffort:
             return "t0 12"
 
         with patch("ai.chat.chatbot.get_ai_chatbot") as chatbot, patch(
-            "ai.client.lm_studio_client.call_lm_studio_api",
+            "ai.client.openai_client.call_openai_api",
             side_effect=fake_call,
         ):
             chatbot.return_value.is_ai_available.return_value = True

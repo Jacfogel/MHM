@@ -58,7 +58,7 @@ class TestTaskBreakdownReview:
         modal.step_input._value = "Find the number"
         with patch("core.get_user_id_by_identifier", return_value="user-1"), patch(
             "tasks.task_breakdown.add_task_subtasks", return_value=TaskBreakdownResult(True, "Added one step.")
-        ) as save, patch("ai.client.lm_studio_client.call_lm_studio_api") as model:
+        ) as save, patch("ai.client.openai_client.call_openai_api") as model:
             await modal.on_submit(mock_interaction_factory())
         save.assert_called_once_with("user-1", "task-1", ["Find the number"])
         model.assert_not_called()

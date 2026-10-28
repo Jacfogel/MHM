@@ -2,7 +2,7 @@
 Live AI journey tests for the functionality runner.
 
 These hit generate_response / generate_contextual_response / handle_user_message
-with a real model when LM Studio is up (fallbacks if not). They FAIL on
+with a real model when OpenAI is up (fallbacks if not). They FAIL on
 safety and honesty issues instead of asking for PARTIAL review.
 
 Mirrored mocked coverage: tests/behavior/test_ai_user_journeys.py

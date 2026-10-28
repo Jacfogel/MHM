@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-08-28
+> **Last Updated**: 2026-10-28
 
 ## 1. Overview
 
@@ -13,7 +13,7 @@ The MHM AI subsystem is responsible for generating context-aware, safety-aligned
 It is designed to:
 
 - Centralize AI-specific logic (so channels can be added/removed without duplicating behavior)
-- Use local models via LM Studio when available, with clear fallbacks
+- Use OpenAI models when configured, with clear fallbacks
 - Build rich user context (history, mood, schedules, preferences) in a safe, controlled way
 - Apply strict prompt, logging, and error-handling rules
 - Support both rule-based and AI-enhanced parsing without making AI a single point of failure
@@ -30,7 +30,7 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 
 | Path | Role |
 |---|---|
-| `ai/chat/chatbot.py` | Main AI chatbot logic (modes, LM Studio calls, caching, fallbacks). |
+| `ai/chat/chatbot.py` | Main AI chatbot logic (modes, OpenAI calls, caching, fallbacks). |
 | `ai/chat/action_planner.py` | Low-confidence action planning (`AIActionPlan`: answer-only, clarify, or execute-action). Uses up to two recent user turns so follow-ups like "add that as a task" can reuse a title the user already stated, and so "make that due tomorrow" can set `TASK_IDENTIFIER: that`. |
 | `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts via `compose_product_prompt()`. |
 | `ai/prompts/action_catalog.py` | Metadata-only action catalog for prompts/planner (no handler imports or writes). |
@@ -40,16 +40,16 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | `ai/context/analytics.py` | AI re-export of shared check-in analysis (`CheckinAnalysis`, `analyze_checkin_entries`). |
 | `ai/context/chatbot_context.py` | Envelope-backed chatbot summary dict for contextual fallback personalization. |
 | `ai/context/history.py` | Persists and retrieves per-user conversational history. |
-| `ai/client/lm_studio_manager.py` | Detects LM Studio status and model readiness. |
+| `ai/client/openai_client.py` | Sends Responses requests and checks configured model access. |
 | `ai/chat/interaction_types.py` | Named interaction types mapped from `generate_response` modes. |
-| `ai/fallback/` | Template and data-aware fallback responses when LM Studio is unavailable or API calls fail. Coordinator, check-in summary, conversational keyword support, personalized greetings, and categories live here. Public API: `get_fallback_responses().contextual(...)` / `.personalized(...)`. |
+| `ai/fallback/` | Template and data-aware fallback responses when OpenAI is unavailable or API calls fail. Coordinator, check-in summary, conversational keyword support, personalized greetings, and categories live here. Public API: `get_fallback_responses().contextual(...)` / `.personalized(...)`. |
 | `ai/prompts/command_interpreter.py` | Mode detection, command parsing prompts, and structured extraction from model output. |
 | `ai/chat/response_generator.py` | Builds comprehensive conversational context prompts via `assemble_comprehensive_messages()`. |
 | `ai/prompts/command_registry.py` | Dynamic command intent list for the command system prompt (from rule-based parser patterns). |
 | `communication/message_processing/command_parser.py` | Enhanced command parser combining rule-based and AI parsing. |
 | `communication/message_processing/action_plan_executor.py` | Executes `AIActionPlan` through `dispatch_structured_command` and result-aware replies. |
 
-**Module ownership:** `ai/chat/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
+**Module ownership:** `ai/chat/chatbot.py` orchestrates OpenAI, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
 Supporting modules:
 
 - `user/context_manager.py`  
@@ -76,7 +76,7 @@ At a high level:
    - Detects mode (`chat`, `command`, `command_with_clarification`, or `personalized`).
    - Builds one `AIContextEnvelope` and reuses it for session overlay, fallback, and conversational prompt assembly.
    - Builds prompts via `PromptManager.compose_product_prompt()` plus envelope prompt sections (not duplicated behavioral rules in code).
-   - Calls LM Studio (if available) with timeouts and error handling.
+   - Calls OpenAI (if available) with timeouts and error handling.
    - Applies **mode-specific** cleaning (`_post_process_generated_response(mode, ...)`): personalized messages strip letter sign-offs, homework-style `Use Case` / `Scenario` dumps, and placeholder names like `[Your Name]`.
    - Caches appropriate responses via `ResponseCache` (skip contextual cache when prior session turns exist).
 5. The final response goes back through the communication layer to the user.
@@ -98,7 +98,7 @@ The core public entry points in `ai/chat/chatbot.py` are:
   - Thin async wrapper that runs `generate_response` on an executor.
 - `generate_contextual_response(user_id, user_prompt, timeout=None)`  
   - Builds rich context for the user first, then calls into `generate_response`.
-- Higher-level helpers in communication or parsing modules call these functions; avoid calling LM Studio directly from elsewhere.
+- Higher-level helpers in communication or parsing modules call these functions; avoid calling OpenAI directly from elsewhere.
 
 All of these are accessed via a singleton instance; use `get_ai_chatbot()` rather than instantiating the chatbot class directly.
 
@@ -121,7 +121,7 @@ Per [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md), the sys
 
 **Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `get_command_interpreter().detect_mode` / `interaction_manager._try_ai_command_parsing`.
 
-**Fallback**: `ai/fallback/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
+**Fallback**: `ai/fallback/` supplies templates and check-in-aware text when OpenAI is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
 
 **Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md).
 
@@ -240,7 +240,7 @@ Comprehensive chat prompts are assembled in `ai/context/` (`ai/context/assembly.
 
 | Subpackage | Role |
 |---|---|
-| `ai/client/` | LM Studio API, connection manager, response cache |
+| `ai/client/` | OpenAI API, connection manager, response cache |
 | `ai/context/` | `AIContextEnvelope`, context phrasing, chat message assembly |
 | `ai/prompts/` | Category composition, command interpretation helpers, action catalog |
 | `ai/chat/` | Chatbot orchestration, response post-processing, action-boundary checks |
@@ -302,31 +302,27 @@ Command parsing remains separate in `resources/prompts/command.txt` (ACTION form
 
 When you adjust conversational behavior, edit the category file for that concern. Do not reintroduce duplicated rules in `ai/chat/chatbot.py`, fallback copy, or post-processing (post-processing cleans leaks/format only, plus narrow coherence/fact reinforcement).
 
-### 5.2. LM Studio integration
+### 5.2. OpenAI integration
 
-`ai/chat/chatbot.py` delegates model interaction to LM Studio via HTTP:
+`ai/chat/chatbot.py` delegates model interaction to OpenAI via HTTP:
 
-- Uses LM Studio configuration from `core/config.py`:
-  - `LM_STUDIO_BASE_URL`
-  - `LM_STUDIO_API_KEY`
-  - `LM_STUDIO_MODEL`
+- Uses OpenAI configuration from `core/config.py`:
+  - `OPENAI_BASE_URL`
+  - `OPENAI_API_KEY`
+  - `OPENAI_MODEL`
   - `AI_API_CALL_TIMEOUT` and related timeouts.
-- `ai/client/lm_studio_manager.py` provides helpers to:
-  - Check whether LM Studio is running.
-  - Ensure the configured model is loaded.
-  - Optionally auto-start LM Studio and auto-load the model based on:
-    - `LM_STUDIO_AUTO_START`
-    - `LM_STUDIO_AUTO_LOAD_MODEL`
-    - `LM_STUDIO_STARTUP_TIMEOUT`
-    - `LM_STUDIO_MODEL_LOAD_TIMEOUT`
+- `ai/client/openai_client.py` sends `POST /responses` with `store=false`, bounded output, and policy checks before HTTP. It extracts assistant output text and rejects incomplete, refused, or malformed responses. Stop sequences are applied locally; temperature is omitted for model compatibility.
+- `ai/client/openai_client.py` checks configured model access using `GET /models/<model>`. It never generates test completions, starts a local process, or loads a local model.
+- The default is `gpt-5.4-mini` with no reasoning. `AI_CONTEXT_TOKENS` bounds input independently of the model's context window.
+- Keep `OPENAI_API_KEY` in local environment configuration. An explicit project `.env` key wins over inherited Windows credentials (including an explicit blank); deployments without that local setting use the process environment. No key is exposed in status, website settings, or request-failure logs.
 
 `AIChatBotSingleton`:
 
-- Tests LM Studio connectivity at initialization (`_test_lm_studio_connection`).
-- Uses `lm_studio_available` flags to decide whether to call the model or fall back to local responses.
-- Applies timeouts to each request so a hung LM Studio instance does not block the whole app.
+- Tests OpenAI connectivity at initialization (`_test_openai_connection`).
+- Uses `openai_available` flags to decide whether to call the model or fall back to local responses.
+- Applies timeouts to each request so a hung OpenAI instance does not block the whole app.
 
-Do not bypass these helpers or call LM Studio directly from other modules.
+Do not bypass these helpers or call OpenAI directly from other modules.
 
 ### 5.3. Optional AI usage policy
 
@@ -338,7 +334,7 @@ Do not bypass these helpers or call LM Studio directly from other modules.
 - `AI_USAGE_MODE=off` prevents model requests while deterministic handlers and fallbacks continue.
 - `AI_DISABLED_FEATURES` disables selected automatic features: conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
 
-`ai/client/lm_studio_client.py` enforces the policy immediately before HTTP requests. Higher-level chatbot paths check it before reading the AI response cache, so disabling a feature cannot return an older generated response. Direct feature callers pass their `AIUsageFeature` when requesting a completion.
+`ai/client/openai_client.py` enforces the policy immediately before HTTP requests. Higher-level chatbot paths check it before reading the AI response cache, so disabling a feature cannot return an older generated response. Direct feature callers pass their `AIUsageFeature` when requesting a completion.
 
 The policy intentionally does not implement billing budgets or price tracking; the future provider owns those controls. A manual-only mode is deferred until MHM has an explicit user-facing action that can authorize one request.
 
@@ -411,7 +407,7 @@ For detailed patterns, see:
 
 Common fallback behaviors include:
 
-- If LM Studio is not available or model calls repeatedly fail:
+- If OpenAI is not available or model calls repeatedly fail:
   - Use a local, simple fallback response (for example, supportive generic messages) via `get_fallback_responses().contextual`.
   - Log the failure to the AI component logger and, where appropriate, to user-activity logs.
 - If context building fails:
@@ -463,7 +459,7 @@ For logging details, see:
 
 When debugging:
 
-1. Check the AI component logs for mode detection, prompt building, and LM Studio call issues.
+1. Check the AI component logs for mode detection, prompt building, and OpenAI call issues.
 2. Check `user_activity` logs and response tracking files for context/history problems.
 3. Use configuration validation helpers in `core/config.py` to detect misconfiguration (for example, invalid URLs or timeouts).
 
@@ -471,11 +467,11 @@ When debugging:
 
 If AI responses stop working or degrade:
 
-- Verify LM Studio is running and the configured model is loaded.
+- Verify `OPENAI_API_KEY`, model access, network connectivity, and provider quota.
 - Check timeouts (`AI_API_CALL_TIMEOUT`, `AI_TIMEOUT_SECONDS`, `AI_COMMAND_PARSING_TIMEOUT`) for values that are too low or too high.
 - Inspect AI logs for repeated errors or timeouts.
 - Confirm that the system prompt file exists at `AI_SYSTEM_PROMPT_PATH` and is readable.
-- Run AI functionality tests to see whether failures are localized (for example, only parsing) or global (LM Studio down).
+- Run AI functionality tests to see whether failures are localized (for example, only parsing) or global (OpenAI down).
 
 ---
 
@@ -484,7 +480,7 @@ If AI responses stop working or degrade:
 For quick navigation when working on the AI subsystem:
 
 - `ai/chat/chatbot.py`  
-  - Main AI entry points, modes, LM Studio calls, caching, and concurrency.
+  - Main AI entry points, modes, OpenAI calls, caching, and concurrency.
 - `ai/context/service.py`  
   - Canonical envelope construction and section metadata.
 - `ai/context/analytics.py`  
@@ -499,8 +495,8 @@ For quick navigation when working on the AI subsystem:
   - Response and context caches (TTL and LRU).
 - `ai/context/history.py`  
   - Conversation history persistence; limits history passed into prompts.
-- `ai/client/lm_studio_manager.py`  
-  - LM Studio status checks, model readiness, and auto-start behavior.
+- `ai/client/openai_client.py`
+  - Responses transport and model-access checks without generation or local process management.
 - `communication/message_processing/command_parser.py`  
   - Enhanced command parser using both rule-based and AI-assisted parsing.
 - `core/config.py`  

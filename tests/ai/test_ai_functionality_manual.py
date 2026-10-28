@@ -1274,15 +1274,15 @@ class AITestRunner:
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
 
                 # Force reconnection test
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = False
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = False
 
                 # Should use fallback response
                 prompt = "Test connection error"
                 response = self.chatbot.generate_response(prompt, user_id=test_user_id)
 
                 # Restore original state
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
 
                 if response and len(response) > 0:
                     # Should get fallback response (not empty)
@@ -1320,7 +1320,7 @@ class AITestRunner:
 
         # Test 10.2: Timeout handling
         try:
-            with patch("ai.chat.chatbot.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 # Simulate timeout
                 mock_post.side_effect = requests.Timeout("Request timed out")
 
@@ -1370,24 +1370,24 @@ class AITestRunner:
 
         # Test 10.3: Invalid API response handling
         try:
-            with patch("ai.chat.chatbot.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 # Simulate invalid/malformed response
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {
                     "invalid": "structure"
-                }  # Missing 'choices'
+                }  # Missing Responses output
                 mock_post.return_value = mock_response
 
                 # Force API call (not fallback)
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = True
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = True
 
                 prompt = "Test invalid response"
                 response = self.chatbot.generate_response(prompt, user_id=test_user_id)
 
                 # Restore original state
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
 
                 if response and len(response) > 0:
                     # Should handle gracefully and provide fallback
@@ -1433,7 +1433,7 @@ class AITestRunner:
 
         # Test 10.4: 5xx Server error handling
         try:
-            with patch("ai.chat.chatbot.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 # Simulate server error
                 mock_response = MagicMock()
                 mock_response.status_code = 500
@@ -1441,14 +1441,14 @@ class AITestRunner:
                 mock_post.return_value = mock_response
 
                 # Force API call
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = True
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = True
 
                 prompt = "Test server error"
                 response = self.chatbot.generate_response(prompt, user_id=test_user_id)
 
                 # Restore original state
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
 
                 if response and len(response) > 0:
                     # Should get fallback response

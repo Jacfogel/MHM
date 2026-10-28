@@ -184,7 +184,7 @@ def test_plan_from_message_uses_ai_when_available(monkeypatch):
         return_value="INTENT: answer_only\n",
     )
     monkeypatch.setattr(
-        "ai.chat.action_planner.call_lm_studio_api",
+        "ai.chat.action_planner.call_openai_api",
         mock_call,
     )
 
@@ -412,7 +412,7 @@ def test_plan_from_message_grounds_title_in_recent_turns(monkeypatch):
         ],
     )
     monkeypatch.setattr(
-        "ai.chat.action_planner.call_lm_studio_api",
+        "ai.chat.action_planner.call_openai_api",
         MagicMock(
             return_value=(
                 "ACTION: create_task\nTITLE: pack the hiking bag\nCONFIDENCE: 0.9\n"

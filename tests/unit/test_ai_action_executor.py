@@ -260,7 +260,7 @@ def test_execute_action_plan_applies_result_aware_when_enhancement_disabled():
             ],
         ) as assemble:
             with patch(
-                "communication.message_processing.action_plan_executor.call_lm_studio_api",
+                "communication.message_processing.action_plan_executor.call_openai_api",
                 return_value="You have one task on your list: buy milk.",
             ) as rewrite:
                 result = executor.execute_plan(
@@ -318,7 +318,7 @@ def test_execute_multi_action_plan_applies_result_aware_to_each_action():
             ],
         ) as assemble:
             with patch(
-                "communication.message_processing.action_plan_executor.call_lm_studio_api",
+                "communication.message_processing.action_plan_executor.call_openai_api",
                 side_effect=[
                     "Done — task 1 is now high priority.",
                     "Your tasks: Weekly laundry, marked high priority.",
@@ -408,7 +408,7 @@ def test_result_rewrite_drops_unrelated_breakfast_reply():
         ],
     ):
         with patch(
-            "communication.message_processing.action_plan_executor.call_lm_studio_api",
+            "communication.message_processing.action_plan_executor.call_openai_api",
             return_value="Julie, I notice you've been eating breakfast 40% of the time.",
         ):
             result = executor._generate_result_aware_response(
@@ -445,7 +445,7 @@ def test_result_rewrite_keeps_a_breakfast_task_confirmation():
         ],
     ):
         with patch(
-            "communication.message_processing.action_plan_executor.call_lm_studio_api",
+            "communication.message_processing.action_plan_executor.call_openai_api",
             return_value="I added breakfast to your list.",
         ):
             result = executor._generate_result_aware_response(

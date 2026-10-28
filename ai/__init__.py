@@ -1,7 +1,7 @@
 """AI package for the MHM application.
 
 Subpackages:
-- client: LM Studio API and response cache
+- client: OpenAI API and response cache
 - context: user data envelope and prompt context assembly
 - prompts: prompt categories, flows, and command interpretation helpers
 - chat: conversational reply orchestration and post-processing
@@ -60,12 +60,6 @@ from ai.fallback import (
     get_fallback_responses,
 )
 from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
-from ai.client.lm_studio_manager import (
-    LMStudioManager,
-    ensure_lm_studio_ready,
-    get_lm_studio_manager,
-    is_lm_studio_ready,
-)
 from ai.prompts.manager import PromptManager, PromptTemplate, get_prompt_manager
 from ai.prompts.flows import (
     PRODUCT_AI_PROMPT_FLOWS,
@@ -124,8 +118,4 @@ __all__ = [
     "get_product_ai_prompt_flow",
     "ResponseGenerator",
     "get_response_generator",
-    "LMStudioManager",
-    "get_lm_studio_manager",
-    "is_lm_studio_ready",
-    "ensure_lm_studio_ready",
 ]

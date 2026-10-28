@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 23:20:05
+> **Last Generated**: 2026-10-28 01:08:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 314
-- **Functions Found**: 3246
-- **Methods Found**: 1655
-- **Classes Found**: 291
-- **Total Items**: 4901
-- **Functions Documented**: 2892
-- **Methods Documented**: 1476
-- **Classes Documented**: 224
-- **Total Documented**: 4368
+- **Files Scanned**: 313
+- **Functions Found**: 3238
+- **Methods Found**: 1649
+- **Classes Found**: 290
+- **Total Items**: 4887
+- **Functions Documented**: 2884
+- **Methods Documented**: 1470
+- **Classes Documented**: 223
+- **Total Documented**: 4354
 - **Template-Generated**: 72
-- **Last Updated**: 2026-10-27
+- **Last Updated**: 2026-10-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (688)
+### **Core System Functions** (689)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (911)
@@ -89,7 +89,7 @@ Test functions and testing utilities.
 - [OK] `_recent_user_turns_for_planning(user_id, current_message)` - Return the last few distinct user turns, excluding the current message.
 - [OK] `_trim_planner_output(planner_output)` - Drop common local-model trailing junk after the first plan block.
 - [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
-- [OK] `build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
+- [OK] `build_planning_messages(self, user_id, user_message)` - Build compact OpenAI messages for action planning.
 
 Full context envelopes are omitted so local models with ~2k context can
 run planning. At most two recent user turns are included so follow-ups
@@ -101,7 +101,7 @@ like "add that as a task" can reuse a title the user already stated.
 - [OK] `plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
 **Classes:**
 - [OK] `ActionPlanner` - Plan product-AI responses and optional app actions from user messages.
-  - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
+  - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build compact OpenAI messages for action planning.
 
 Full context envelopes are omitted so local models with ~2k context can
 run planning. At most two recent user turns are included so follow-ups
@@ -116,11 +116,11 @@ like "add that as a task" can reuse a title the user already stated.
 - [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
 - [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
 - [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio and keep that call's failure reason.
+- [OK] `_call_openai_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to OpenAI and keep that call's failure reason.
 - [OK] `_clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
-- [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-- [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+- [OK] `_ensure_openai_available(self)` - Ensure OpenAI availability by retrying connection if needed.
+- [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when OpenAI is unavailable.
 - [OK] `_finalize_contextual_response(self, user_prompt, response, context, profile)` - Apply chat post-processing plus Phase 6 coherence and wellness honesty.
 - [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
 - [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
@@ -132,13 +132,13 @@ like "add that as a task" can reuse a title the user already stated.
 Returns:
     tuple: (user_prompt, user_id, mode)
 - [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
-- [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+- [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for OpenAI API.
 - [OK] `_post_process_generated_response(self, mode, result, user_prompt)` - Post-process model output into final user-visible response.
 - [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-- [OK] `_refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+- [OK] `_refresh_openai_availability(self)` - Update openai_available from a live connection test.
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
 - [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-- [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `_test_openai_connection(self)` - Test connection to OpenAI (delegates to ai.client.openai_client).
 - [OK] `_text_from_lm_call(result)` - Return response text, and the failure reason when there is no text.
 - [OK] `_text_when_model_is_unavailable(mode, user_prompt, user_id)` - Return parser-safe text for command modes, and a conversational fallback otherwise.
 - [OK] `async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
@@ -155,7 +155,7 @@ When skip_cache is True (admin test sends), bypass the response cache and
 ask the model for fresh wording so back-to-back tests are not identical.
 - [OK] `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
-- [OK] `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
+- [OK] `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using OpenAI API.
 Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
 - [OK] `get_ai_chatbot()` - Return the shared AIChatBot instance.
 - [OK] `get_ai_status(self)` - Get detailed status information about the AI system.
@@ -163,17 +163,17 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 - [OK] `reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
 - [OK] `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
 **Classes:**
-- [OK] `AIChatBotSingleton` - A Singleton container for LM Studio API client.
+- [OK] `AIChatBotSingleton` - A Singleton container for OpenAI API client.
   - [OK] `AIChatBotSingleton.__init__(self)` - Initialize the object.
   - [OK] `AIChatBotSingleton.__new__(cls)` - Create a new instance.
   - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
   - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
   - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio and keep that call's failure reason.
+  - [OK] `AIChatBotSingleton._call_openai_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to OpenAI and keep that call's failure reason.
   - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
-  - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-  - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+  - [OK] `AIChatBotSingleton._ensure_openai_available(self)` - Ensure OpenAI availability by retrying connection if needed.
+  - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when OpenAI is unavailable.
   - [OK] `AIChatBotSingleton._finalize_contextual_response(self, user_prompt, response, context, profile)` - Apply chat post-processing plus Phase 6 coherence and wellness honesty.
   - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
   - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
@@ -185,13 +185,13 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 Returns:
     tuple: (user_prompt, user_id, mode)
   - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
-  - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+  - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for OpenAI API.
   - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result, user_prompt)` - Post-process model output into final user-visible response.
   - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-  - [OK] `AIChatBotSingleton._refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+  - [OK] `AIChatBotSingleton._refresh_openai_availability(self)` - Update openai_available from a live connection test.
   - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
   - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-  - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+  - [OK] `AIChatBotSingleton._test_openai_connection(self)` - Test connection to OpenAI (delegates to ai.client.openai_client).
   - [OK] `AIChatBotSingleton.async_generate_response(self, user_prompt, user_id)` - Async variant if you need to integrate with an async context.
   - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
@@ -206,7 +206,7 @@ When skip_cache is True (admin test sends), bypass the response cache and
 ask the model for fresh wording so back-to-back tests are not identical.
   - [OK] `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
-  - [OK] `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
+  - [OK] `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using OpenAI API.
 Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
   - [OK] `AIChatBotSingleton.get_ai_status(self)` - Get detailed status information about the AI system.
   - [OK] `AIChatBotSingleton.is_ai_available(self)` - Check if the AI model is available and functional.
@@ -231,12 +231,12 @@ answer with the stated fact instead of a vague or forgetful reply.
 #### `ai/chat/response_generator.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
-- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for LM Studio.
+- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for OpenAI.
 - [OK] `get_response_generator()` - Return the shared response generator.
 **Classes:**
-- [OK] `ResponseGenerator` - Build conversational prompts for LM Studio chat calls.
+- [OK] `ResponseGenerator` - Build conversational prompts for OpenAI chat calls.
   - [OK] `ResponseGenerator.__init__(self)` - Special Python method
-  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for LM Studio.
+  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt, envelope)` - Create a comprehensive context prompt with all user data for OpenAI.
 
 #### `ai/chat/response_postprocess.py`
 **Functions:**
@@ -331,41 +331,24 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
   - [OK] `ResponseCache.remove_user_entries(self, user_id)` - Remove all cache entries for a specific user
   - [OK] `ResponseCache.set(self, prompt, response, user_id, prompt_type, metadata)` - Cache a response
 
-#### `ai/client/lm_studio_client.py`
+#### `ai/client/openai_client.py`
 **Functions:**
 - [OK] `_apply_text_budget(messages, indexes, budget)` - Write each selected message so their combined text stays within budget.
 - [OK] `_context_char_budget(completion_tokens)` - Return how many prompt characters fit beside the reserved completion.
 - [OK] `_keep_text_tail(content, budget)` - Keep the end of text, starting on the next line when a cut lands mid-line.
 - [OK] `_shrink_system_prompt(content, budget)` - Keep the start of the instructions and the start of the user context.
-- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio and return the text.
-- [OK] `complete_lm_studio_chat(messages, max_tokens, temperature, timeout)` - Request one completion and keep the failure reason on that result.
-- [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink system and user text so the request stays inside the 2048-token window.
+- [OK] `call_openai_api(messages, max_tokens, temperature, timeout)` - Return text from one policy-controlled Responses request.
+- [OK] `complete_openai_chat(messages, max_tokens, temperature, timeout)` - Request bounded text; keep errors on this call and never log credentials.
+
+Temperature is retained in the application interface, but omitted from the
+wire request so sampling uses the model defaults. Stop sequences are applied locally.
+- [OK] `fit_messages_to_context(messages, completion_tokens)` - Shrink system and user text so the request stays inside the configured app input budget.
 
 The start of the instructions is kept. The end of the user message is kept.
 The combined text never exceeds the character budget.
-- [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
+- [OK] `test_openai_connection()` - Check model access without generating or paying for a test completion.
 **Classes:**
-- [OK] `LmStudioCompletion` - Text from one chat/completions call, and why the text is missing.
-
-#### `ai/client/lm_studio_manager.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize LM Studio status detector
-- [OK] `ensure_lm_studio_ready()` - Ensure LM Studio is ready, attempting automatic model loading if needed
-- [OK] `get_lm_studio_manager()` - Get the global LM Studio manager instance
-- [OK] `is_lm_studio_ready()` - Check if LM Studio is ready for AI features
-- [OK] `is_lm_studio_running(self)` - Check if LM Studio process is running
-- [OK] `is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
-- [OK] `is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
-- [OK] `is_server_responding(self)` - Check if LM Studio server is responding on the configured port
-- [OK] `load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
-**Classes:**
-- [OK] `LMStudioManager` - Detects LM Studio status and model availability
-  - [OK] `LMStudioManager.__init__(self)` - Initialize LM Studio status detector
-  - [OK] `LMStudioManager.is_lm_studio_running(self)` - Check if LM Studio process is running
-  - [OK] `LMStudioManager.is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
-  - [OK] `LMStudioManager.is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
-  - [OK] `LMStudioManager.is_server_responding(self)` - Check if LM Studio server is responding on the configured port
-  - [OK] `LMStudioManager.load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
+- [OK] `OpenAICompletion` - Text from one Responses API call, and why the text is missing.
 
 #### `ai/context/__init__.py`
 
@@ -662,7 +645,7 @@ against every check-in. Those lines keep using the check-in count.
 - [MISSING] `personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
 - [MISSING] `personalized(self, user_id)` - No description
 **Classes:**
-- [OK] `FallbackResponses` - Template and data-aware fallback text; does not call LM Studio.
+- [OK] `FallbackResponses` - Template and data-aware fallback text; does not call OpenAI.
   - [MISSING] `FallbackResponses.contextual(self, user_prompt, user_id)` - No description
   - [MISSING] `FallbackResponses.personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
   - [MISSING] `FallbackResponses.personalized(self, user_id)` - No description
@@ -1533,7 +1516,7 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_create_list(self, user_id, entities)` - Handle list creation.
 - [OK] `_handle_create_note(self, user_id, entities)` - Handle note creation.
 - [OK] `_handle_create_quick_note(self, user_id, entities)` - Handle quick note creation. No body text is required.
-- [OK] `_handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
+- [OK] `_handle_edit_entry(self, user_id, entities)` - Start a replace or append session for the next free-text message.
 - [OK] `_handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
 - [OK] `_handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
 - [OK] `_handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
@@ -1567,7 +1550,7 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._handle_create_list(self, user_id, entities)` - Handle list creation.
   - [OK] `NotebookHandler._handle_create_note(self, user_id, entities)` - Handle note creation.
   - [OK] `NotebookHandler._handle_create_quick_note(self, user_id, entities)` - Handle quick note creation. No body text is required.
-  - [OK] `NotebookHandler._handle_edit_entry(self, user_id, entities)` - Start a replace edit session; next free-text message becomes the new body.
+  - [OK] `NotebookHandler._handle_edit_entry(self, user_id, entities)` - Start a replace or append session for the next free-text message.
   - [OK] `NotebookHandler._handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
   - [OK] `NotebookHandler._handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
   - [OK] `NotebookHandler._handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
@@ -3638,7 +3621,7 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
 - [OK] `_finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
 - [OK] `_finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
-- [OK] `_handle_entry_edit_flow(self, user_id, user_state, message_text)` - Handle phone-friendly replace edit: next message replaces entry description.
+- [OK] `_handle_entry_edit_flow(self, user_id, user_state, message_text)` - Save the next message using the session's replace or append operation.
 - [OK] `_handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
 - [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
@@ -3647,7 +3630,7 @@ Safe no-op if no flow or different flow is active.
 - [OK] `_note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 - [OK] `_start_notebook_flow(self, user_id, flow, data, log_label)` - Persist a notebook conversation flow for the next inbound message.
 - [OK] `get_note_body_flow_data(self, user_id)` - Return a copy of note-body flow data when that flow is active.
-- [OK] `start_entry_edit_flow(self, user_id)` - Start a replace-edit session. Next free-text message becomes the new body.
+- [OK] `start_entry_edit_flow(self, user_id)` - Start a body edit session, preserving its operation across restarts.
 - [OK] `start_journal_body_flow(self, user_id)` - Start a journal-body prompt flow. Called after a title-only create-journal command.
 - [OK] `start_list_items_flow(self, user_id)` - Start a list-item collection flow. Called after a title-only create-list command.
 - [OK] `start_note_body_flow(self, user_id)` - Start a note-body prompt flow. Called after a title-only create-note command.
@@ -3661,7 +3644,7 @@ Safe no-op if no flow or different flow is active.
   - [OK] `NoteFlowMixin._finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
   - [OK] `NoteFlowMixin._finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
   - [OK] `NoteFlowMixin._finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
-  - [OK] `NoteFlowMixin._handle_entry_edit_flow(self, user_id, user_state, message_text)` - Handle phone-friendly replace edit: next message replaces entry description.
+  - [OK] `NoteFlowMixin._handle_entry_edit_flow(self, user_id, user_state, message_text)` - Save the next message using the session's replace or append operation.
   - [OK] `NoteFlowMixin._handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
   - [OK] `NoteFlowMixin._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
   - [OK] `NoteFlowMixin._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
@@ -3670,7 +3653,7 @@ Safe no-op if no flow or different flow is active.
   - [OK] `NoteFlowMixin._note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
   - [OK] `NoteFlowMixin._start_notebook_flow(self, user_id, flow, data, log_label)` - Persist a notebook conversation flow for the next inbound message.
   - [OK] `NoteFlowMixin.get_note_body_flow_data(self, user_id)` - Return a copy of note-body flow data when that flow is active.
-  - [OK] `NoteFlowMixin.start_entry_edit_flow(self, user_id)` - Start a replace-edit session. Next free-text message becomes the new body.
+  - [OK] `NoteFlowMixin.start_entry_edit_flow(self, user_id)` - Start a body edit session, preserving its operation across restarts.
   - [OK] `NoteFlowMixin.start_journal_body_flow(self, user_id)` - Start a journal-body prompt flow. Called after a title-only create-journal command.
   - [OK] `NoteFlowMixin.start_list_items_flow(self, user_id)` - Start a list-item collection flow. Called after a title-only create-list command.
   - [OK] `NoteFlowMixin.start_note_body_flow(self, user_id)` - Start a note-body prompt flow. Called after a title-only create-note command.
@@ -4066,6 +4049,10 @@ This is separate from production data cleanup.
 - Removes CR/LF control chars
 - Strips surrounding quotes
 - Normalizes separators to OS-specific
+- [OK] `_resolve_openai_api_key()` - Prefer the local project key over stale keys inherited from desktop apps.
+
+An explicitly empty local key disables the inherited credential. Deployments
+without a local key continue to use the process environment.
 - [OK] `ensure_user_directory(user_id)` - Ensure user directory exists if using subdirectories.
 - [OK] `get_available_channels()` - Get list of available communication channels based on configuration.
 

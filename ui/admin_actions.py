@@ -265,7 +265,7 @@ Current cache files found:
         base_data_dir = _load_attr("core.config", "BASE_DATA_DIR")
         log_main_file = _load_attr("core.config", "LOG_MAIN_FILE")
         log_level = _load_attr("core.config", "LOG_LEVEL")
-        lm_studio_base_url = _load_attr("core.config", "LM_STUDIO_BASE_URL")
+        openai_base_url = _load_attr("core.config", "OPENAI_BASE_URL")
         ai_timeout_seconds = _load_attr("core.config", "AI_TIMEOUT_SECONDS")
         scheduler_interval = _load_attr("core.config", "SCHEDULER_INTERVAL")
         email_smtp_server = _load_attr("core.config", "EMAIL_SMTP_SERVER")
@@ -277,7 +277,7 @@ Current cache files found:
             ("Base Data Directory", str(base_data_dir)),
             ("Log File", str(log_main_file)),
             ("Log Level", str(log_level)),
-            ("LM Studio URL", str(lm_studio_base_url)),
+            ("OpenAI URL", str(openai_base_url)),
             ("AI Timeout", f"{ai_timeout_seconds}s"),
             ("Scheduler Interval", f"{scheduler_interval}s"),
             ("Email SMTP Server", email_smtp_server or "Not configured"),
@@ -512,10 +512,10 @@ REQUIRED SETTINGS:
    - For Email: EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
    - For Discord: DISCORD_BOT_TOKEN
 
-2. AI CONFIGURATION:
-   - LM_STUDIO_BASE_URL (default: http://localhost:1234/v1)
-   - LM_STUDIO_API_KEY (default: lm-studio)
-   - LM_STUDIO_MODEL (default: deepseek-llm-7b-chat)
+2. OPTIONAL AI CONFIGURATION:
+   - OPENAI_BASE_URL (default: https://api.openai.com/v1)
+   - OPENAI_API_KEY (your server-side OpenAI API key; never share it)
+   - OPENAI_MODEL (default: gpt-5.4-mini)
 
 OPTIONAL SETTINGS:
 =================
@@ -539,9 +539,9 @@ EMAIL_SMTP_PASSWORD=your-app-password
 DISCORD_BOT_TOKEN=your-discord-bot-token
 
 # AI Configuration:
-LM_STUDIO_BASE_URL=http://localhost:1234/v1
-LM_STUDIO_API_KEY=lm-studio
-LM_STUDIO_MODEL=deepseek-llm-7b-chat
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_API_KEY=your-api-key
+OPENAI_MODEL=gpt-5.4-mini
 
 # Optional settings:
 LOG_LEVEL=INFO

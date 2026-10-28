@@ -81,7 +81,7 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
     if not pending:
         return estimates
     from ai.chat.chatbot import get_ai_chatbot
-    from ai.client.lm_studio_client import call_lm_studio_api
+    from ai.client.openai_client import call_openai_api
     from ai.usage_policy import AIUsageFeature
 
     if not get_ai_chatbot().is_ai_available():
@@ -106,7 +106,7 @@ def estimate_task_efforts(tasks: list[dict[str, Any]] | None) -> list[dict[str, 
         },
         {"role": "user", "content": "\n".join(lines)},
     ]
-    raw = call_lm_studio_api(
+    raw = call_openai_api(
         messages=messages,
         max_tokens=220,
         temperature=0.2,

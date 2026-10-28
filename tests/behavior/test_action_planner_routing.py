@@ -1,7 +1,7 @@
 """
 Behavior tests for InteractionManager routing when AI_ACTION_PLANNER_ENABLED is on.
 
-Uses mocked planner output so tests do not require LM Studio or Discord.
+Uses mocked planner output so tests do not require OpenAI or Discord.
 """
 
 from __future__ import annotations
@@ -82,7 +82,7 @@ def _mock_planner_plan(plan):
 
 
 def _suppress_planner_result_aware(interaction_manager: InteractionManager) -> None:
-    """Routing/parity tests assert handler outcomes, not LM Studio reply wording."""
+    """Routing/parity tests assert handler outcomes, not OpenAI reply wording."""
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = False
     interaction_manager.ai_chatbot = ai_chatbot
@@ -159,7 +159,7 @@ def test_planner_follow_up_creates_task_from_recent_chat(
     )
     message = "yeah add that as a task"
     monkeypatch.setattr(
-        "ai.chat.action_planner.call_lm_studio_api",
+        "ai.chat.action_planner.call_openai_api",
         MagicMock(
             return_value=(
                 "ACTION: create_task\nTITLE: pack the hiking bag\nCONFIDENCE: 0.9\n"
@@ -202,7 +202,7 @@ def test_planner_follow_up_updates_task_from_recent_chat(
     )
     message = "make that due tomorrow"
     monkeypatch.setattr(
-        "ai.chat.action_planner.call_lm_studio_api",
+        "ai.chat.action_planner.call_openai_api",
         MagicMock(
             return_value=(
                 "ACTION: update_task\nDUE_DATE: tomorrow\nCONFIDENCE: 0.9\n"

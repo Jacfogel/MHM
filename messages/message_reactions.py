@@ -126,7 +126,7 @@ def generate_similar_message_texts(user_id: str, source_text: str) -> list[str]:
     from ai.chat.chatbot import get_ai_chatbot
 
     chatbot = get_ai_chatbot()
-    if not getattr(chatbot, "lm_studio_available", False):
+    if not getattr(chatbot, "openai_available", False):
         logger.info("Skipping similar-message generation because the model is unavailable")
         return []
     prompt = (

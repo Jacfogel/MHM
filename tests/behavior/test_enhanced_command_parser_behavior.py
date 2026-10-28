@@ -13,7 +13,7 @@ from ai.chat.chatbot import AIChatBotSingleton
 
 
 def _fast_ai_command_response(message, mode="command", user_id=None, timeout=None):
-    """Deterministic stub for AI command parsing (avoids LM Studio timeouts in behavior tests)."""
+    """Deterministic stub for AI command parsing (avoids OpenAI timeouts in behavior tests)."""
     msg = (message or "").lower()
     action = "unknown"
     details: dict = {}

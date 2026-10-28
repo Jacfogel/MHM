@@ -13,9 +13,9 @@ pytestmark = [pytest.mark.core]
 class TestConfigBranchCoverage:
     def test_validate_ai_configuration_threshold_branches(self):
         with (
-            patch.object(config, "LM_STUDIO_BASE_URL", "http://localhost:1234/v1"),
-            patch.object(config, "LM_STUDIO_API_KEY", ""),
-            patch.object(config, "LM_STUDIO_MODEL", ""),
+            patch.object(config, "OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            patch.object(config, "OPENAI_API_KEY", ""),
+            patch.object(config, "OPENAI_MODEL", ""),
             patch.object(config, "AI_TIMEOUT_SECONDS", 4),
             patch.object(config, "AI_BATCH_SIZE", 0),
             patch.object(config, "CONTEXT_CACHE_TTL", 30),
@@ -25,17 +25,17 @@ class TestConfigBranchCoverage:
 
         assert valid is False
         assert "AI_BATCH_SIZE must be at least 1" in errors
-        assert any("LM_STUDIO_API_KEY is explicitly set to empty" in w for w in warnings)
-        assert any("LM_STUDIO_MODEL is explicitly set to empty" in w for w in warnings)
+        assert any("OPENAI_API_KEY is not configured" in w for w in warnings)
+        assert "OPENAI_MODEL is not configured" in errors
         assert any("AI_TIMEOUT_SECONDS is very low" in w for w in warnings)
         assert any("CONTEXT_CACHE_TTL is very low" in w for w in warnings)
         assert any("CONTEXT_CACHE_MAX_SIZE is very low" in w for w in warnings)
 
     def test_validate_ai_configuration_upper_bounds(self):
         with (
-            patch.object(config, "LM_STUDIO_BASE_URL", "http://localhost:1234/v1"),
-            patch.object(config, "LM_STUDIO_API_KEY", "lm-studio"),
-            patch.object(config, "LM_STUDIO_MODEL", "phi-2"),
+            patch.object(config, "OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            patch.object(config, "OPENAI_API_KEY", "test-key"),
+            patch.object(config, "OPENAI_MODEL", "gpt-5.4-mini"),
             patch.object(config, "AI_TIMEOUT_SECONDS", 301),
             patch.object(config, "AI_BATCH_SIZE", 25),
             patch.object(config, "CONTEXT_CACHE_TTL", 3601),

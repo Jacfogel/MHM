@@ -1,19 +1,24 @@
 # Core dependencies
 # Security floors (pip-audit): aiohttp is pulled by discord.py; explicit floor for known CVEs.
-aiohttp>=3.14.3
+aiohttp>=3.14.4
 discord.py>=2.3.0  # For Discord bot functionality
 schedule>=1.2.0  # For task scheduling
 python-dotenv>=1.2.2  # For environment variable management; CVE-2026-28684 / GHSA-mf9w-mj56-hr94 (symlink rewrite)
 pytz>=2023.3  # For timezone handling (used in scheduler.py)
 tzlocal>=5.3.1  # For detecting system timezone in account creation
 psutil>=5.9.0  # For process management in UI application
-dnspython>=2.4.0  # For DNS resolution with alternative servers
+dnspython>=2.9.0  # For DNS resolution with alternative servers
 PyNaCl>=1.6.2  # For Discord webhook signature verification (ed25519); pip-audit floor
 
+# Shared security floors (direct and transitive dependencies)
+certifi>=2026.10.19  # Updated certificate trust store; PYSEC-2026-4320
+filelock>=4.2.1  # Lock-file hardening; CVE-2026-112940/112913/112907
+setuptools>=84.1.0  # Windows wheel-install path traversal; GHSA-xmj3-9gf7-h52w
+
 # AI/ML dependencies  
-requests>=2.33.0  # For LM Studio HTTP API calls (pip-audit floor)
+requests>=2.33.0  # For OpenAI and other HTTP API calls (pip-audit floor)
 urllib3>=2.8.0  # Transitive; floor for CVE-2026-97689, CVE-2026-97688, and proxy TLS context mix-up (2.7.0)
-msgpack>=1.2.1  # Transitive (CacheControl/pip-audit); GHSA-6v7p-g79w-8964 DoS fix
+msgpack>=1.2.3  # Transitive (CacheControl/pip-audit); GHSA-6v7p-g79w-8964 DoS fix
 idna>=3.15  # Transitive (requests); CVE-2026-45409 / GHSA-65pc-fj4g-8rjx DoS in encode(); pip-audit floor
 pyasn1>=0.6.4  # Transitive (google-auth); pip-audit floor for PYSEC-2026-3455/3456/3457
 pydantic>=2.7.0  # For JSON schema validation and parsing
@@ -39,11 +44,11 @@ pytest-cov>=4.1.0  # For coverage (required by development_tools audit --full)
 py-spy>=0.4.1  # For timeout stack diagnostics in flaky_detector
 
 # Optional but recommended for development
-black>=26.3.1  # For code formatting (pip-audit; CVE fixes in formatter)
+black>=26.10.1  # For code formatting (pip-audit; CVE fixes in formatter)
 click>=8.3.3  # Transitive (black); floor for CVE-2026-7246 / PYSEC-2026-2132 (click.edit command injection)
 pygments>=2.20.0  # Pulled by several tools; explicit floor for pip-audit
 ruff>=0.1.0  # Linting (development_tools audit via analyze_ruff)
-pylint>=2.17.0  # Optional local linting (audit uses ruff)
+pylint>=4.0.9  # Optional local linting (audit uses ruff)
 pyright>=1.1.380  # For static type checking
 bandit[toml]>=1.7.0  # Security lint; TOML for [tool.bandit] in pyproject.toml (audit --full Tier 3)
 vulture>=2.11  # Dead-code scan (development_tools audit --full Tier 3 analyze_vulture)

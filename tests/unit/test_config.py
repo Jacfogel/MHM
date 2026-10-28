@@ -87,8 +87,8 @@ class TestConfigValidation:
     def test_validate_ai_configuration_success(self):
         """Test successful AI configuration validation."""
         with patch.dict(os.environ, {
-            'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
-            'LM_STUDIO_API_KEY': 'test_key'
+            'OPENAI_BASE_URL': 'https://api.openai.com/v1',
+            'OPENAI_API_KEY': 'test_key'
         }):
             is_valid, errors, warnings = validate_ai_configuration()
             
@@ -181,8 +181,8 @@ class TestConfigValidation:
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
                 with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     with patch.dict(os.environ, {
-                        'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
-                        'LM_STUDIO_API_KEY': 'test_key'
+                        'OPENAI_BASE_URL': 'https://api.openai.com/v1',
+                        'OPENAI_API_KEY': 'test_key'
                     }):
                         result = validate_all_configuration()
                         
@@ -201,8 +201,8 @@ class TestConfigValidation:
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
                 with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     with patch.dict(os.environ, {
-                        'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
-                        'LM_STUDIO_API_KEY': 'test_key'
+                        'OPENAI_BASE_URL': 'https://api.openai.com/v1',
+                        'OPENAI_API_KEY': 'test_key'
                     }):
                         available_channels = validate_and_raise_if_invalid()
                         
@@ -229,8 +229,8 @@ class TestConfigValidation:
                 with patch.object(config_module, 'DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     with patch.object(config_module, 'GOOGLE_HEALTH_ENABLED', False):
                         with patch.dict(os.environ, {
-                            'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
-                            'LM_STUDIO_API_KEY': 'test_key',
+                            'OPENAI_BASE_URL': 'https://api.openai.com/v1',
+                            'OPENAI_API_KEY': 'test_key',
                             'GOOGLE_HEALTH_ENABLED': 'false',
                         }, clear=False):
                             with patch.object(

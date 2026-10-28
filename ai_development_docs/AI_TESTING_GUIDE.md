@@ -358,7 +358,7 @@ When manual testing is required (examples, not exhaustive):
 - Changes to scheduling rules or reminder behavior.
 - Significant UI changes (dialogs, flows, validation).
 - Changes to Discord or email behavior.
-- Changes to AI persona tone (live LM Studio). Safety/routing/capability: run `tests/behavior/test_ai_user_journeys.py` first.
+- Changes to AI persona tone (live OpenAI). Safety/routing/capability: run `tests/behavior/test_ai_user_journeys.py` first.
 
 Routing:
 
@@ -372,8 +372,8 @@ Routing:
   - Run [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py) plus the mapped files in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6.
   - Live Discord is optional for tone and the real client.
 - For AI conversation and functionality testing:
-  - Safety, routing, and capability limits: [test_ai_user_journeys.py](../tests/behavior/test_ai_user_journeys.py) (in `python run_tests.py`; no LM Studio).
-  - Live LM Studio safety contracts (T-18.x, FAIL not PARTIAL) plus tone/phrasing review: [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](../tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
+  - Safety, routing, and capability limits: [test_ai_user_journeys.py](../tests/behavior/test_ai_user_journeys.py) (in `python run_tests.py`; no live OpenAI requests).
+  - Live OpenAI safety contracts (T-18.x, FAIL not PARTIAL) plus tone/phrasing review: [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](../tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md), especially:
     - Section 1. "Quick Start".
     - Section 2. "Test Suite Structure".
     - Section 6. "Test Features".

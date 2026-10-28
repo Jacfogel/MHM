@@ -1,6 +1,6 @@
 # ai/context/assembly.py
 
-"""Orchestrate natural-language context sections into LM Studio message arrays."""
+"""Orchestrate natural-language context sections into OpenAI message arrays."""
 
 from typing import Any
 

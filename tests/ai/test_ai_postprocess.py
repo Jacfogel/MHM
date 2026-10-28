@@ -1,5 +1,5 @@
 """
-AI post-process contract tests (deterministic, no LM Studio required).
+AI post-process contract tests (deterministic, no OpenAI required).
 
 Validates that known model leak patterns from functionality runs are stripped
 before responses reach users.

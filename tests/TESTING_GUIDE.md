@@ -854,9 +854,9 @@ Safety, routing, and capability limits are automated in the main pytest suite:
   - Disabled-task capability limits
   - Numeric-only / unclear input
 
-Run `pytest tests/behavior/test_ai_user_journeys.py` after AI prompt, routing, or sanitizer changes. These tests mock LM Studio and run with `python run_tests.py`.
+Run `pytest tests/behavior/test_ai_user_journeys.py` after AI prompt, routing, or sanitizer changes. These tests mock OpenAI and run with `python run_tests.py`.
 
-For live LM Studio conversation quality (tone and phrasing), use:
+For live OpenAI conversation quality (tone and phrasing), use:
 
 - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
   - Section 1. "Quick Start".

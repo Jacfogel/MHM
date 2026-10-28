@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 23:20:52
+> **Last Generated**: 2026-10-28 01:09:05
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -49,8 +49,7 @@ C:.
 |   |   |
 |   +---client
 |   |   |   cache_manager.py
-|   |   |   lm_studio_client.py
-|   |   |   lm_studio_manager.py
+|   |   |   openai_client.py
 |   |   |   __init__.py
 |   |   |
 |   +---context
@@ -1082,8 +1081,6 @@ C:.
 |   |   |   test_interaction_handlers_helpers.py
 |   |   |   test_interaction_handlers_help_and_registry.py
 |   |   |   test_item_form_shared.py
-|   |   |   test_lm_studio_context_fit.py
-|   |   |   test_lm_studio_manager.py
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
 |   |   |   test_logging_privacy.py
@@ -1101,6 +1098,9 @@ C:.
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_direct_env_mutation_policy.py
 |   |   |   test_no_prints_policy.py
+|   |   |   test_openai_client.py
+|   |   |   test_openai_context_fit.py
+|   |   |   test_openai_key_configuration.py
 |   |   |   test_packaging_metadata.py
 |   |   |   test_pagination.py
 |   |   |   test_product_ai_flow_runtime_wiring.py
@@ -1258,64 +1258,63 @@ C:.
 |   |   user_preferences.py
 |   |   __init__.py
 |   |
-\---website
-    |   .assetsignore
-    |   account-settings.html
-    |   app.html
-    |   app.js
-    |   app.test.mjs
-    |   auth.js
-    |   auth.test.mjs
-    |   checkin.html
-    |   checkin.js
-    |   checkin.test.mjs
-    |   data.html
-    |   home.html
-    |   home.js
-    |   home.test.mjs
-    |   index.html
-    |   insights.html
-    |   insights.js
-    |   insights.test.mjs
-    |   integrations.html
-    |   integrations.js
-    |   integrations.test.mjs
-    |   login.html
-    |   messages.html
-    |   messages.js
-    |   messages.test.mjs
-    |   mhm-logo.png
-    |   notes.html
-    |   notes.js
-    |   notes.test.mjs
-    |   privacy.html
-    |   README.md
-    |   script.js
-    |   script.test.mjs
-    |   settings.js
-    |   settings.test.mjs
-    |   setup.html
-    |   setup.js
-    |   setup.test.mjs
-    |   styles.css
-    |   tasks.html
-    |   tasks.js
-    |   tasks.test.mjs
-    |   terms.html
-    |   worker.mjs
-    |   worker.test.mjs
-    |   wrangler.jsonc
-    |   __init__.py
-    |
-    \---fonts
-            inter-latin-ext.woff2
-            inter-latin.woff2
-            LICENSE-Inter.txt
-            LICENSE-Nunito.txt
-            nunito-latin-ext.woff2
-            nunito-latin.woff2
-
-
++---website
+|   |   .assetsignore
+|   |   account-settings.html
+|   |   app.html
+|   |   app.js
+|   |   app.test.mjs
+|   |   auth.js
+|   |   auth.test.mjs
+|   |   checkin.html
+|   |   checkin.js
+|   |   checkin.test.mjs
+|   |   data.html
+|   |   home.html
+|   |   home.js
+|   |   home.test.mjs
+|   |   index.html
+|   |   insights.html
+|   |   insights.js
+|   |   insights.test.mjs
+|   |   integrations.html
+|   |   integrations.js
+|   |   integrations.test.mjs
+|   |   login.html
+|   |   messages.html
+|   |   messages.js
+|   |   messages.test.mjs
+|   |   mhm-logo.png
+|   |   notes.html
+|   |   notes.js
+|   |   notes.test.mjs
+|   |   privacy.html
+|   |   README.md
+|   |   script.js
+|   |   script.test.mjs
+|   |   settings.js
+|   |   settings.test.mjs
+|   |   setup.html
+|   |   setup.js
+|   |   setup.test.mjs
+|   |   styles.css
+|   |   tasks.html
+|   |   tasks.js
+|   |   tasks.test.mjs
+|   |   terms.html
+|   |   worker.mjs
+|   |   worker.test.mjs
+|   |   wrangler.jsonc
+|   |   __init__.py
+|   |
+|   \---fonts
+|           inter-latin-ext.woff2
+|           inter-latin.woff2
+|           LICENSE-Inter.txt
+|           LICENSE-Nunito.txt
+|           nunito-latin-ext.woff2
+|           nunito-latin.woff2
+|
 
 ---
 

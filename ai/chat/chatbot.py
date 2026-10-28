@@ -15,8 +15,8 @@ import collections
 import uuid
 from core.logger import get_component_logger
 from core.config import (
-    LM_STUDIO_BASE_URL,
-    LM_STUDIO_MODEL,
+    OPENAI_BASE_URL,
+    OPENAI_MODEL,
     AI_TIMEOUT_SECONDS,
     AI_CACHE_RESPONSES,
     AI_SYSTEM_PROMPT_PATH,
@@ -49,11 +49,11 @@ from ai.usage_policy import (
     usage_feature_for_response_mode,
 )
 from ai.chat.response_generator import get_response_generator
-from ai.client.lm_studio_client import (
-    LmStudioCompletion,
-    call_lm_studio_api,
-    complete_lm_studio_chat,
-    test_lm_studio_connection,
+from ai.client.openai_client import (
+    OpenAICompletion,
+    call_openai_api,
+    complete_openai_chat,
+    test_openai_connection,
 )
 from ai.chat.action_boundaries import (
     UNCLEAR_USER_INPUT_REPLY,
@@ -121,12 +121,12 @@ def _text_when_model_is_unavailable(
 
 
 @handle_errors(
-    "reading an LM Studio call result",
+    "reading an OpenAI call result",
     default_return=(None, "no response text"),
 )
 def _text_from_lm_call(result) -> tuple[str | None, str | None]:
     """Return response text, and the failure reason when there is no text."""
-    if isinstance(result, LmStudioCompletion):
+    if isinstance(result, OpenAICompletion):
         text = result.text.strip() if isinstance(result.text, str) else ""
         if text:
             return text, None
@@ -138,7 +138,7 @@ def _text_from_lm_call(result) -> tuple[str | None, str | None]:
 
 class AIChatBotSingleton:
     """
-    A Singleton container for LM Studio API client.
+    A Singleton container for OpenAI API client.
     """
 
     _instance = None
@@ -158,29 +158,16 @@ class AIChatBotSingleton:
         """Initialize the object."""
         if self._initialized:
             return
-        logger.info("Initializing shared AIChatBot with LM Studio API (singleton).")
-        self.lm_studio_available = False
+        logger.info("Initializing shared AIChatBot with OpenAI API (singleton).")
+        self.openai_available = False
         self.response_cache = get_response_cache()
         self._generation_lock = threading.Lock()  # Prevent concurrent generations
         self._locks_by_user = collections.defaultdict(
             threading.Lock
         )  # Per-user locks for better concurrency
 
-        # Test LM Studio connection
-        self._refresh_lm_studio_availability()
-
-        # If connection failed, check LM Studio status
-        if not self.lm_studio_available and is_ai_usage_allowed():
-            try:
-                from ai.client.lm_studio_manager import is_lm_studio_ready
-
-                if is_lm_studio_ready():
-                    logger.info("LM Studio is now ready - retrying connection")
-                    self._refresh_lm_studio_availability()
-                else:
-                    logger.warning("LM Studio not ready - AI features will be limited")
-            except Exception as e:
-                logger.warning(f"LM Studio status check error: {e}")
+        # Test OpenAI connection
+        self._refresh_openai_availability()
 
         self._initialized = True
 
@@ -218,24 +205,24 @@ class AIChatBotSingleton:
         # Always use the raw prompt; pass mode as prompt_type into the cache
         return user_prompt, user_id, mode
 
-    @handle_errors("testing LM Studio connection", default_return=None)
-    def _test_lm_studio_connection(self):
-        """Test connection to LM Studio (delegates to ai.client.lm_studio_client)."""
-        self._refresh_lm_studio_availability()
+    @handle_errors("testing OpenAI connection", default_return=None)
+    def _test_openai_connection(self):
+        """Test connection to OpenAI (delegates to ai.client.openai_client)."""
+        self._refresh_openai_availability()
 
-    @handle_errors("refreshing LM Studio availability", default_return=None)
-    def _refresh_lm_studio_availability(self):
-        """Update lm_studio_available from a live connection test."""
+    @handle_errors("refreshing OpenAI availability", default_return=None)
+    def _refresh_openai_availability(self):
+        """Update openai_available from a live connection test."""
         if not is_ai_usage_allowed():
-            self.lm_studio_available = False
+            self.openai_available = False
             ai_logger.info("AI connection check skipped by usage policy")
             return
-        self.lm_studio_available = test_lm_studio_connection()
-        if os.getenv("MHM_TESTING") == "1" and self.lm_studio_available:
-            ai_logger.info("LM Studio connection assumed available for tests")
+        self.openai_available = test_openai_connection()
+        if os.getenv("MHM_TESTING") == "1" and self.openai_available:
+            ai_logger.info("OpenAI connection assumed available for tests")
 
-    @handle_errors("calling LM Studio API", default_return=None)
-    def _call_lm_studio_api(
+    @handle_errors("calling OpenAI API", default_return=None)
+    def _call_openai_api(
         self,
         messages: list,
         max_tokens: int = 100,
@@ -245,8 +232,8 @@ class AIChatBotSingleton:
         stop: list[str] | None = None,
         usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
     ) -> str | None:
-        """Make an API call to LM Studio and keep that call's failure reason."""
-        return complete_lm_studio_chat(
+        """Make an API call to OpenAI and keep that call's failure reason."""
+        return complete_openai_chat(
             messages,
             max_tokens=max_tokens,
             temperature=temperature,
@@ -274,7 +261,7 @@ class AIChatBotSingleton:
         ],
     )
     def _optimize_prompt(self, user_prompt: str, context: str | None = None) -> list:
-        """Create optimized messages array for LM Studio API."""
+        """Create optimized messages array for OpenAI API."""
         system_message = {
             "role": "system",
             "content": get_persona_prompt_text(),
@@ -304,7 +291,7 @@ class AIChatBotSingleton:
         mode: str | None = None,
     ) -> str:
         """
-        Generate a basic AI response from user_prompt, using LM Studio API.
+        Generate a basic AI response from user_prompt, using OpenAI API.
         Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
         """
         if not self._is_valid_timeout(timeout):
@@ -351,7 +338,7 @@ class AIChatBotSingleton:
         if cached_response:
             return cached_response
 
-        if not self._ensure_lm_studio_available():
+        if not self._ensure_openai_available():
             return self._fallback_response_for_unavailable_lm(
                 user_prompt, user_id, mode
             )
@@ -377,7 +364,7 @@ class AIChatBotSingleton:
         )
 
         logger.debug(
-            f"AIChatBot generating response via LM Studio for prompt: {user_prompt[:60]} in mode {mode}..."
+            f"AIChatBot generating response via OpenAI for prompt: {user_prompt[:60]} in mode {mode}..."
         )
 
         try:
@@ -393,8 +380,8 @@ class AIChatBotSingleton:
                 if mode == "personalized"
                 else None
             )
-            # Call LM Studio API with adaptive timeout
-            result = self._call_lm_studio_api(
+            # Call OpenAI API with adaptive timeout
+            result = self._call_openai_api(
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
@@ -521,26 +508,26 @@ class AIChatBotSingleton:
         )
         return cached_response
 
-    @handle_errors("ensuring LM Studio availability", default_return=False)
-    def _ensure_lm_studio_available(self) -> bool:
-        """Ensure LM Studio availability by retrying connection if needed."""
+    @handle_errors("ensuring OpenAI availability", default_return=False)
+    def _ensure_openai_available(self) -> bool:
+        """Ensure OpenAI availability by retrying connection if needed."""
         if not is_ai_usage_allowed():
             return False
-        if not self.lm_studio_available:
-            self._test_lm_studio_connection()
-        return self.lm_studio_available
+        if not self.openai_available:
+            self._test_openai_connection()
+        return self.openai_available
 
     @handle_errors(
-        "getting fallback response for unavailable LM Studio",
+        "getting fallback response for unavailable OpenAI",
         default_return="I'm having trouble generating a response right now. Please try again in a moment.",
     )
     def _fallback_response_for_unavailable_lm(
         self, user_prompt: str, user_id: str | None, mode: str
     ) -> str:
-        """Return contextual fallback when LM Studio is unavailable."""
+        """Return contextual fallback when OpenAI is unavailable."""
         response = _text_when_model_is_unavailable(mode, user_prompt, user_id)
         ai_logger.warning(
-            "AI response using fallback - LM Studio unavailable",
+            "AI response using fallback - OpenAI unavailable",
             user_id=user_id,
             mode=mode,
             interaction_type=AIInteractionType.FALLBACK.value,
@@ -739,7 +726,7 @@ class AIChatBotSingleton:
         """
         Check if the AI model is available and functional.
         """
-        return self.lm_studio_available and is_ai_usage_allowed()
+        return self.openai_available and is_ai_usage_allowed()
 
     @handle_errors("reloading system prompt", default_return=None)
     def reload_system_prompt(self):
@@ -790,13 +777,13 @@ class AIChatBotSingleton:
         Get detailed status information about the AI system.
         """
         usage_policy = get_ai_usage_policy_status()
-        ai_functional = self.lm_studio_available and bool(
+        ai_functional = self.openai_available and bool(
             usage_policy.get("automatic_calls_allowed")
         )
         return {
-            "lm_studio_available": self.lm_studio_available,
-            "lm_studio_base_url": LM_STUDIO_BASE_URL,
-            "lm_studio_model": LM_STUDIO_MODEL,
+            "openai_available": self.openai_available,
+            "openai_base_url": OPENAI_BASE_URL,
+            "openai_model": OPENAI_MODEL,
             "ai_functional": ai_functional,
             "fallback_mode": not ai_functional,
             "cache_enabled": AI_CACHE_RESPONSES,
@@ -836,7 +823,7 @@ class AIChatBotSingleton:
 
         if not is_ai_usage_allowed(
             AIUsageFeature.PERSONALIZED_MESSAGES
-        ) or not self.lm_studio_available:
+        ) or not self.openai_available:
             return get_fallback_responses().personalized(user_id, source=source)
 
         from core.health_context_builder import (
@@ -943,7 +930,7 @@ class AIChatBotSingleton:
         fallback = simple_greeting_text(name)
         if not is_ai_usage_allowed(AIUsageFeature.CONVERSATION):
             return fallback
-        if not self._ensure_lm_studio_available():
+        if not self._ensure_openai_available():
             return fallback
 
         who = name or "there"
@@ -958,7 +945,7 @@ class AIChatBotSingleton:
             },
             {"role": "user", "content": (user_prompt or "").strip()},
         ]
-        raw = call_lm_studio_api(
+        raw = call_openai_api(
             messages=messages,
             max_tokens=80,
             temperature=0.4,
@@ -1027,7 +1014,7 @@ class AIChatBotSingleton:
 
         if (
             not is_ai_usage_allowed(AIUsageFeature.CONVERSATION)
-            or not self.lm_studio_available
+            or not self.openai_available
         ):
             fallback_response = get_fallback_responses().contextual(
                 user_prompt, user_id, envelope=envelope
@@ -1043,7 +1030,7 @@ class AIChatBotSingleton:
             )
             return response
 
-        # Create comprehensive context-aware messages for LM Studio with all user data
+        # Create comprehensive context-aware messages for OpenAI with all user data
         messages = get_response_generator().create_comprehensive_context_prompt(
             user_id, user_prompt, envelope=envelope
         )
@@ -1095,7 +1082,7 @@ class AIChatBotSingleton:
         )
 
         try:
-            result = self._call_lm_studio_api(
+            result = self._call_openai_api(
                 messages=messages,
                 max_tokens=contextual_max_tokens,
                 temperature=contextual_temperature,

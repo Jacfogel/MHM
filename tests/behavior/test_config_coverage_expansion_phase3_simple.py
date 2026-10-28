@@ -104,24 +104,24 @@ class TestConfigCoverageExpansionPhase3Simple:
             assert isinstance(warnings, list)
 
     def test_validate_ai_configuration_missing_url(self, tmp_path):
-        """Test validate_ai_configuration with missing LM Studio URL"""
-        with patch('core.config.LM_STUDIO_BASE_URL', ''):
+        """Test validate_ai_configuration with missing OpenAI URL"""
+        with patch('core.config.OPENAI_BASE_URL', ''):
             valid, errors, warnings = core.config.validate_ai_configuration()
             assert valid is False
             assert len(errors) == 1
-            assert "LM_STUDIO_BASE_URL is not configured" in errors[0]
+            assert "OPENAI_BASE_URL is not configured" in errors[0]
 
     def test_validate_ai_configuration_invalid_url(self, tmp_path):
         """Test validate_ai_configuration with invalid URL"""
-        with patch('core.config.LM_STUDIO_BASE_URL', 'invalid-url'):
+        with patch('core.config.OPENAI_BASE_URL', 'invalid-url'):
             valid, errors, warnings = core.config.validate_ai_configuration()
             assert valid is False
             assert len(errors) == 1
-            assert "must be a valid URL starting with http:// or https://" in errors[0]
+            assert "must use https://" in errors[0]
 
     def test_validate_ai_configuration_valid_config(self, tmp_path):
         """Test validate_ai_configuration with valid configuration"""
-        with patch('core.config.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+        with patch('core.config.OPENAI_BASE_URL', 'https://api.openai.com'):
             valid, errors, warnings = core.config.validate_ai_configuration()
             assert valid is True
             assert len(errors) == 0
@@ -327,13 +327,13 @@ class TestConfigCoverageExpansionPhase3Simple:
         # Test that environment variables are properly loaded
         assert hasattr(core.config, 'BASE_DATA_DIR')
         assert hasattr(core.config, 'LOG_LEVEL')
-        assert hasattr(core.config, 'LM_STUDIO_BASE_URL')
+        assert hasattr(core.config, 'OPENAI_BASE_URL')
 
     def test_configuration_constants_exist(self, tmp_path):
         """Test that all expected configuration constants exist"""
         expected_constants = [
             'BASE_DATA_DIR', 'LOG_LEVEL', 'LOG_MAIN_FILE', 'LOG_BACKUP_DIR',
-            'LOG_ARCHIVE_DIR', 'LM_STUDIO_BASE_URL', 'AI_TIMEOUT_SECONDS',
+            'LOG_ARCHIVE_DIR', 'OPENAI_BASE_URL', 'AI_TIMEOUT_SECONDS',
             'SCHEDULER_INTERVAL', 'AUTO_CREATE_USER_DIRS', 'DEFAULT_MESSAGES_DIR_PATH'
         ]
         

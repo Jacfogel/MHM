@@ -167,15 +167,20 @@ If Telegram is being removed, these should remain unused/ignored in code.
 
 ---
 
-## 6. LM Studio and AI behavior
+## 6. OpenAI and AI behavior
 
-These settings control the optional local AI integration.
+These settings control the optional hosted AI integration.
 
-### 6.1. LM Studio connection
+### 6.1. OpenAI connection
 
-- `LM_STUDIO_BASE_URL`
-- `LM_STUDIO_MODEL`
-- `LM_STUDIO_API_KEY`
+- `OPENAI_BASE_URL` - defaults to `https://api.openai.com/v1`; HTTPS required.
+- `OPENAI_MODEL` - defaults to `gpt-5.4-mini`; change in local `.env` if needed.
+- `OPENAI_API_KEY` - server-side API key. A value present in the project `.env` takes precedence over the inherited process environment; an explicitly blank local value disables the inherited key. Without a local key setting, deployment environment credentials are used. Missing keys produce a warning and deterministic fallbacks.
+- `AI_CONTEXT_TOKENS` - bounded application prompt budget, default 16384, minimum 1024.
+
+Requests use the Responses API with `store=false` and bounded output. Readiness checks query model access without generating text. Local server startup and model loading are no longer needed. The old `LM_STUDIO_*` settings are ignored. Restart the desktop app and service after changing model credentials.
+
+API billing is separate from ChatGPT subscriptions; manage spending through OpenAI. See [OpenAI text-generation documentation](https://developers.openai.com/api/docs/guides/text).
 
 **Breaks if wrong:** AI calls fail or fall back (depending on implementation); the rest of MHM should continue functioning without AI.
 

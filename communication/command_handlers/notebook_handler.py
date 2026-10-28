@@ -88,7 +88,7 @@ Capture notes, lists, and journal entries from Discord.
 • `!pinned` / `!archived` / `!t work`
 
 **Modify:**
-• `!append EntryRef | more text`
+• `!append EntryRef | more text` (or `!append EntryRef`, then send text)
 • `!edit n123abc` or `!edit note Meeting Notes` — next message replaces the body (`cancel` aborts)
 • `!set EntryRef new body` / `!tag EntryRef #idea #work`
 • `!pin` / `!unpin` / `!archive` / `!unarchive`
@@ -593,7 +593,9 @@ class NotebookHandler(InteractionHandler):
                 "Which entry would you like to append to?", False
             )
         if not text:
-            return InteractionResponse("What would you like to add?", False)
+            return self._handle_edit_entry(
+                user_id, {"entry_ref": entry_ref, "mode": "append"}
+            )
 
         result = append_entry_body(user_id, entry_ref, text)
         entry = result.entry if result else None
@@ -639,7 +641,7 @@ class NotebookHandler(InteractionHandler):
     def _handle_edit_entry(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
-        """Start a replace edit session; next free-text message becomes the new body."""
+        """Start a replace or append session for the next free-text message."""
         from communication.message_processing.conversation_flow_manager import (
             conversation_manager,
         )
@@ -667,6 +669,7 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
 
+        mode = "append" if entities.get("mode") == "append" else "replace"
         short_id = self._format_entry_id(entry)
         title = entry.title or "Untitled"
         conversation_manager.start_entry_edit_flow(
@@ -674,7 +677,16 @@ class NotebookHandler(InteractionHandler):
             entry_ref=str(entry.id),
             short_id=short_id,
             title=title,
+            mode=mode,
         )
+        if mode == "append":
+            return InteractionResponse(
+                f"Adding to '{title}' ({short_id}).\n\n"
+                "What would you like to add? Send the text as your next message. "
+                "Existing text will be kept. Type `cancel` to leave the entry unchanged.",
+                False,
+                suggestions=list(ENTRY_EDIT_SUGGESTIONS),
+            )
         return InteractionResponse(
             f"✏️ Editing '{title}' ({short_id}).\n\n"
             "Send the new body text as your next message. "

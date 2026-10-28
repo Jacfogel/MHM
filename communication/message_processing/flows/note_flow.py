@@ -407,7 +407,7 @@ class NoteFlowMixin(FlowControlMixin):
     def _handle_entry_edit_flow(
         self, user_id: str, user_state: dict, message_text: str
     ) -> tuple[str, bool]:
-        """Handle phone-friendly replace edit: next message replaces entry description."""
+        """Save the next message using the session's replace or append operation."""
         message_lower = message_text.lower().strip()
 
         control = self._try_flow_control_command(
@@ -438,23 +438,28 @@ class NoteFlowMixin(FlowControlMixin):
             self._clear_flow_state(user_id, mark_completion=True)
             return ("Edit session lost its entry reference. Please try `!edit` again.", True)
 
+        appending = flow_data.get("mode") == "append"
         body = message_text.strip()
         if not body:
             return (
-                "Send the new body text for this entry, or type `cancel` to leave it unchanged.",
+                "Send the text to add, or type `cancel` to leave it unchanged."
+                if appending
+                else "Send the new body text for this entry, or type `cancel` to leave it unchanged.",
                 False,
             )
 
         self._clear_flow_state(user_id, mark_completion=True)
 
-        from notebook.notebook_service import replace_entry_body
+        from notebook.notebook_service import append_entry_body, replace_entry_body
 
-        result = replace_entry_body(user_id, entry_ref, body)
+        save_body = append_entry_body if appending else replace_entry_body
+        result = save_body(user_id, entry_ref, body)
         entry = result.entry if result else None
         if entry:
             short_id = self._entry_short_id(entry)
             title = entry.title or "Untitled"
-            return (f"✅ Updated '{title}' ({short_id})", True)
+            action = "Appended to" if appending else "Updated"
+            return (f"✅ {action} '{title}' ({short_id})", True)
         return (
             "❌ Failed to update. Entry not found or cannot be edited (lists use item commands).",
             True,
@@ -549,11 +554,17 @@ class NoteFlowMixin(FlowControlMixin):
         entry_ref: str,
         short_id: str,
         title: str,
+        mode: str = "replace",
     ) -> None:
-        """Start a replace-edit session. Next free-text message becomes the new body."""
+        """Start a body edit session, preserving its operation across restarts."""
         self._start_notebook_flow(
             user_id,
             FLOW_ENTRY_EDIT,
-            {"entry_ref": entry_ref, "short_id": short_id, "title": title},
+            {
+                "entry_ref": entry_ref,
+                "short_id": short_id,
+                "title": title,
+                "mode": mode,
+            },
             "entry edit flow",
         )

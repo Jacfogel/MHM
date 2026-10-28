@@ -1272,6 +1272,20 @@ class TestNotebookEntityExtraction:
         assert title == "title", f"Should extract title, got: {title}"
         assert "body text" in body, f"Should extract description, got: {body}"
 
+    @pytest.mark.parametrize(
+        "command, reference",
+        [
+            ("append n123abc", "n123abc"),
+            ("append Meeting Notes |", "Meeting Notes"),
+        ],
+    )
+    def test_append_without_text_extracts_reference(self, command, reference):
+        """Reference-only append commands route to a follow-up without invented text."""
+        result = EnhancedCommandParser().parse(command)
+        assert result.parsed_command.intent == "append_to_entry"
+        assert result.parsed_command.entities["entry_ref"].lower() == reference.lower()
+        assert not result.parsed_command.entities.get("text")
+
     def test_append_strips_optional_pipe_before_text(self, test_data_dir):
         """Help shows `!append EntryRef | more text`; leading pipe is not stored."""
         parser = EnhancedCommandParser()
@@ -1752,6 +1766,42 @@ class TestNotebookFlowStateEdgeCases:
         ), "Note should be saved with title only after timeout skip-all"
 
     @pytest.mark.file_io
+    @pytest.mark.parametrize("kind", ["note", "journal_entry"])
+    def test_append_entry_two_message_flow(self, test_data_dir, kind):
+        """A reference-only append command preserves the body and adds the reply."""
+        from notebook.notebook_data_manager import (
+            create_note,
+            create_journal,
+            get_entry,
+        )
+
+        user_id = "test_append_session_" + kind
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir)
+        create = create_note if kind == "note" else create_journal
+        entry = create(user_id, title="Phone notes", description="Original text")
+        assert entry is not None
+        parsed = (
+            EnhancedCommandParser().parse(f"append {entry.short_id or entry.id}").parsed_command
+        )
+        assert parsed.intent == "append_to_entry"
+        response = NotebookHandler().handle(user_id, parsed)
+        assert not response.completed
+        assert "what would you like to add" in response.message.lower()
+        assert get_entry(user_id, str(entry.id)).description == "Original text"
+        reply, completed = conversation_manager.handle_inbound_message(
+            user_id, "Added from phone"
+        )
+        assert completed
+        assert "appended" in reply.lower()
+        updated = get_entry(user_id, str(entry.id))
+        assert updated.description == "Original text\nAdded from phone"
+        assert updated.title == "Phone notes"
+        assert conversation_manager.user_states.get(user_id, {}).get("flow", 0) in (
+            0,
+            None,
+        )
+
+    @pytest.mark.file_io
     def test_edit_entry_replace_flow(self, test_data_dir):
         """!edit starts a session; next message replaces the entry body."""
         from notebook.notebook_data_manager import create_note, get_entry
@@ -1794,7 +1844,8 @@ class TestNotebookFlowStateEdgeCases:
         )
 
     @pytest.mark.file_io
-    def test_edit_entry_cancel_leaves_body_unchanged(self, test_data_dir):
+    @pytest.mark.parametrize("intent", ["edit_entry", "append_to_entry"])
+    def test_edit_entry_cancel_leaves_body_unchanged(self, test_data_dir, intent):
         """Cancel during edit session does not write."""
         from notebook.notebook_data_manager import create_note, get_entry
 
@@ -1808,7 +1859,7 @@ class TestNotebookFlowStateEdgeCases:
         response = handler.handle(
             user_id,
             ParsedCommand(
-                intent="edit_entry",
+                intent=intent,
                 entities={"entry_ref": short_id},
                 confidence=0.9,
                 original_message=f"!edit {short_id}",
@@ -1824,7 +1875,8 @@ class TestNotebookFlowStateEdgeCases:
         assert get_entry(user_id, short_id).description == "keep me"
 
     @pytest.mark.file_io
-    def test_edit_entry_timeout_leaves_body_unchanged(self, test_data_dir):
+    @pytest.mark.parametrize("intent", ["edit_entry", "append_to_entry"])
+    def test_edit_entry_timeout_leaves_body_unchanged(self, test_data_dir, intent):
         """Expired edit session clears without replacing body."""
         from datetime import timedelta
 
@@ -1840,7 +1892,7 @@ class TestNotebookFlowStateEdgeCases:
         response = handler.handle(
             user_id,
             ParsedCommand(
-                intent="edit_entry",
+                intent=intent,
                 entities={"entry_ref": short_id},
                 confidence=0.9,
                 original_message=f"!edit {short_id}",
@@ -1863,7 +1915,8 @@ class TestNotebookFlowStateEdgeCases:
         assert get_entry(user_id, short_id).description == "unchanged"
 
     @pytest.mark.file_io
-    def test_edit_entry_rejects_missing_and_list(self, test_data_dir):
+    @pytest.mark.parametrize("intent", ["edit_entry", "append_to_entry"])
+    def test_edit_entry_rejects_missing_and_list(self, test_data_dir, intent):
         """Invalid refs and lists do not start an edit session."""
         from notebook.notebook_data_manager import create_list
 
@@ -1874,7 +1927,7 @@ class TestNotebookFlowStateEdgeCases:
         missing = handler.handle(
             user_id,
             ParsedCommand(
-                intent="edit_entry",
+                intent=intent,
                 entities={"entry_ref": "nabcdef"},
                 confidence=0.9,
                 original_message="!edit nabcdef",
@@ -1888,7 +1941,7 @@ class TestNotebookFlowStateEdgeCases:
         list_resp = handler.handle(
             user_id,
             ParsedCommand(
-                intent="edit_entry",
+                intent=intent,
                 entities={"entry_ref": list_ref},
                 confidence=0.9,
                 original_message=f"!edit {list_ref}",

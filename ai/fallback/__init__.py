@@ -1,7 +1,7 @@
 # ai/fallback/__init__.py
 
 """
-Fallback response generation when LM Studio or AI API calls are unavailable.
+Fallback response generation when OpenAI or AI API calls are unavailable.
 
 Ownership: all fallback *content* and routing live under ai/fallback/.
 communication/ adapters format and deliver messages only; they must not own
@@ -33,7 +33,7 @@ __all__ = [
 
 
 class FallbackResponses:
-    """Template and data-aware fallback text; does not call LM Studio."""
+    """Template and data-aware fallback text; does not call OpenAI."""
 
     @handle_errors(
         "getting contextual fallback",

@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-10-27
+> **Last Updated**: 2026-10-28
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -100,7 +100,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Started**: 2026-10-19
 **Tracking**: [TODO.md](../TODO.md) (AI & Conversation)
 
-**Use / fit**: Keep MHM useful at no model cost for as long as practical. Deterministic handlers remain authoritative. AI is optional and must be easy to disable globally or for individual product features before a paid provider replaces LM Studio.
+**Use / fit**: Keep MHM useful at no model cost for as long as practical. Deterministic handlers remain authoritative. AI is optional and must be easy to disable globally or for individual product features with OpenAI replacing LM Studio (2026-10-28).
 
 **Admin ownership (2026-10-27)**: Global and feature-level AI switches belong in the desktop admin UI. They are administrator controls and must not appear in website user settings. Environment configuration remains an operational fallback.
 
@@ -109,7 +109,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 1. **Central execution policy** - Every model request passes through one policy boundary. `AI_USAGE_MODE=off` prevents model requests, while deterministic commands, reminders, and fallbacks continue.
 2. **Feature-level controls** - `AI_DISABLED_FEATURES` can independently disable conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
 3. **Manual-only controls** - Discord task details now expose **Break down with AI**, routing directly to task suggestions with a review before saving. This action currently respects the existing global and feature switches. A future manual-only mode may distinguish this explicit request from automatic calls; global off and feature disables must still win.
-4. **Provider replacement boundary** - Keep usage policy independent from LM Studio so a future paid provider cannot bypass the same controls.
+4. **Provider replacement boundary** - OpenAI now replaces LM Studio; keep the existing global and feature controls authoritative for every provider call (2026-10-28).
 
 **First slice shipped (2026-10-19)**: `ai/usage_policy.py`, the shared client boundary, and chatbot cache checks enforce `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Configuration validation fails closed for an invalid mode and does not require model connection settings when AI is off.
 
@@ -117,7 +117,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Out of scope**: MHM will not duplicate provider billing, budgets, or price tracking. The selected provider owns monetary limits. MHM owns only whether a feature may request AI.
 
-**Paused until the model changes**: Prompt tuning, response-quality work, NLP expansion, live tone review, and generalized AI response-time optimization. Completed command parity, everyday phrasing, action boundaries, and pronoun follow-ups remain in place.
+**Provider changed (2026-10-28); quality work still deferred until separately selected**: Prompt tuning, response-quality work, NLP expansion, live tone review, and generalized AI response-time optimization. Completed command parity, everyday phrasing, action boundaries, and pronoun follow-ups remain in place.
 
 ---
 

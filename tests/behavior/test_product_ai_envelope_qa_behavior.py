@@ -3,7 +3,7 @@ Behavior tests: product AI answers from envelope-backed user data.
 
 Asserts domain facts appear in responses (tasks, profile, schedules) without
 checking exact prompt wording. Uses deterministic fallback routing so tests do
-not require LM Studio.
+not require OpenAI.
 """
 
 from __future__ import annotations

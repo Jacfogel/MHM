@@ -13,53 +13,41 @@ from unittest.mock import Mock, patch
 
 from tests.conftest import tests_data_dir
 
-_LIVE_LM_STUDIO_TEST_FILES = {
-    "test_lm_studio_manager.py",
+_LIVE_OPENAI_TEST_FILES = {
     "test_ai_errors.py",
 }
 
 
 @pytest.fixture(autouse=True)
-def block_live_lm_studio_http(request):
-    """Fail LM Studio HTTP immediately so leaked calls cannot hang for 15-35s.
+def block_live_openai_http(request, monkeypatch):
+    """Fail OpenAI HTTP immediately so leaked calls cannot hang for 15-35s.
 
-    Chatbot init and command parsing call ``test_lm_studio_connection`` /
-    ``is_lm_studio_ready`` / ``call_lm_studio_api``. Patching the global
+    Chatbot init and command parsing call ``test_openai_connection`` /
+    ``call_openai_api``. Patching the global
     ``requests`` module does not intercept those already-imported clients.
     Tests that exercise the real HTTP helpers keep the live wrappers.
     """
+    monkeypatch.setattr("ai.client.openai_client.OPENAI_API_KEY", "test-openai-key")
     path = getattr(request, "path", None) or getattr(request, "fspath", None)
     test_file = getattr(path, "name", None) or getattr(path, "basename", "") or ""
     if callable(test_file):
         test_file = test_file()
-    if test_file in _LIVE_LM_STUDIO_TEST_FILES:
+    if test_file in _LIVE_OPENAI_TEST_FILES:
         yield
         return
 
-    blocked = requests.ConnectionError("LM Studio HTTP blocked in tests")
+    blocked = requests.ConnectionError("OpenAI HTTP blocked in tests")
     with (
         patch(
-            "ai.chat.chatbot.test_lm_studio_connection",
+            "ai.chat.chatbot.test_openai_connection",
             return_value=False,
         ),
         patch(
-            "ai.client.lm_studio_manager.is_lm_studio_ready",
-            return_value=False,
-        ),
-        patch(
-            "ai.client.lm_studio_client.requests.get",
+            "ai.client.openai_client.requests.get",
             side_effect=blocked,
         ),
         patch(
-            "ai.client.lm_studio_client.requests.post",
-            side_effect=blocked,
-        ),
-        patch(
-            "ai.client.lm_studio_manager.requests.get",
-            side_effect=blocked,
-        ),
-        patch(
-            "ai.client.lm_studio_manager.requests.post",
+            "ai.client.openai_client.requests.post",
             side_effect=blocked,
         ),
     ):

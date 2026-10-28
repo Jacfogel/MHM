@@ -23,7 +23,7 @@ For supporting details on logging, testing, and error handling, see:
 This section describes the top-level directories. It should match the actual project tree.
 
 - `ai/`  
-  AI integration modules, including optional LM Studio integration and local helpers for
+  AI integration modules, including optional OpenAI integration and local helpers for
   context building or summarization. See the "Overview" section in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md)
   if present.
 

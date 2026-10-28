@@ -235,6 +235,7 @@ class TestNotebookHandlerPublicFlowStart:
             entry_ref=str(entry.id),
             short_id=handler._format_entry_id(entry),
             title="Editable",
+            mode="replace",
         )
         mock_cm._save_user_states.assert_not_called()
         assert response.completed is False

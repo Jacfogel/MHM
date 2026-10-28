@@ -1,4 +1,4 @@
-"""LM Studio client, cache, and connection management."""
+"""OpenAI client, cache, and connection management."""
 
 from ai.client.cache_manager import (
     CacheEntry,
@@ -7,13 +7,7 @@ from ai.client.cache_manager import (
     get_context_cache,
     get_response_cache,
 )
-from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
-from ai.client.lm_studio_manager import (
-    LMStudioManager,
-    ensure_lm_studio_ready,
-    get_lm_studio_manager,
-    is_lm_studio_ready,
-)
+from ai.client.openai_client import call_openai_api, test_openai_connection
 
 __all__ = [
     "CacheEntry",
@@ -21,10 +15,6 @@ __all__ = [
     "ResponseCache",
     "get_context_cache",
     "get_response_cache",
-    "call_lm_studio_api",
-    "test_lm_studio_connection",
-    "LMStudioManager",
-    "ensure_lm_studio_ready",
-    "get_lm_studio_manager",
-    "is_lm_studio_ready",
+    "call_openai_api",
+    "test_openai_connection",
 ]

@@ -13,7 +13,7 @@ from ai.prompts.action_catalog import (
     ResponseIntent,
     get_action_catalog,
 )
-from ai.client.lm_studio_client import call_lm_studio_api
+from ai.client.openai_client import call_openai_api
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from ai.prompts.command_interpreter import get_command_interpreter
 from ai.prompts.command_registry import canonicalize_intent_name
@@ -198,7 +198,7 @@ class ActionPlanner:
         *,
         recent_turns: Iterable[str] | None = None,
     ) -> list[dict[str, str]]:
-        """Build compact LM Studio messages for action planning.
+        """Build compact OpenAI messages for action planning.
 
         Full context envelopes are omitted so local models with ~2k context can
         run planning. At most two recent user turns are included so follow-ups
@@ -251,9 +251,9 @@ class ActionPlanner:
         if not messages:
             return answer_only_plan(user_message, planning_method="prompt_build_failed")
 
-        # Call LM Studio with the compact planning messages directly. Do not route
+        # Call OpenAI with the compact planning messages directly. Do not route
         # through generate_response(mode="command"), which rebuilds a different prompt.
-        raw_response = call_lm_studio_api(
+        raw_response = call_openai_api(
             messages=messages,
             max_tokens=_PLANNING_MAX_TOKENS,
             temperature=AI_COMMAND_TEMPERATURE,
@@ -263,7 +263,7 @@ class ActionPlanner:
         )
         if not raw_response or not str(raw_response).strip():
             logger.warning(
-                "Action planner received empty LM Studio response; using answer_only"
+                "Action planner received empty OpenAI response; using answer_only"
             )
             return answer_only_plan(user_message, planning_method="ai_empty_response")
 

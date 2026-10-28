@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-10-27 (desktop admin AI controls; quiet-mode follow-up)
+> **Last Updated**: 2026-10-28 (OpenAI provider migration)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -45,7 +45,7 @@ When adding new tasks, follow this format:
 - **Deferred residual from V6**: **B-016** full arbitrary audit scope (Tier 3/static/pytest/coverage still unsupported beyond `--audit-scope` MVP).
 - **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
-**Use / fit** (2026-10-19 status): System AI overhaul is complete. Prompt tuning, response-quality work, NLP expansion, and live tone review are paused until the model changes. Cost-aware optional AI is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
+**Use / fit** (2026-10-19 status): System AI overhaul is complete. Prompt tuning, response-quality work, NLP expansion, and live tone review are deferred until separately selected following the OpenAI migration. Cost-aware optional AI is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
 
 ## High Priority
 
@@ -53,7 +53,7 @@ When adding new tasks, follow this format:
 
 **Finish configurable low-cost AI mode** - Keep all core behavior deterministic while making every model-backed feature explicitly optional.
 - *Created*: 2026-10-19
-- *What it means*: The central policy, desktop admin global/feature controls, and explicit Discord task-breakdown action have shipped. Next, consider manual-only configuration semantics around that real trigger, and keep the policy provider-neutral for the later LM Studio replacement.
+- *What it means*: The central policy, desktop admin global/feature controls, and explicit Discord task-breakdown action have shipped. Next, consider manual-only configuration semantics around that real trigger, and keep the policy provider-neutral now that OpenAI replaces LM Studio.
 - *Why it helps*: MHM can stay useful without paid model calls, and a future provider cannot silently become required for commands, reminders, or recovery behavior.
 - *Estimated effort*: Medium
 - *Remaining*:
@@ -130,6 +130,6 @@ When adding new tasks, follow this format:
 ### Testing
 
 **Add Performance Monitoring**
-- *What it means*: Track how long operations take across subsystems. Includes: Python worker memory usage, LM Studio model residency in RAM, Windows file cache behavior during large test runs. Identify safe optimizations without reducing usability.
+- *What it means*: Track how long operations take across subsystems. Includes: Python worker memory usage, Windows file cache behavior during large test runs. Identify safe optimizations without reducing usability.
 - *Why it helps*: Helps identify and fix performance problems proactively
 - *Estimated effort*: Medium

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-27 23:20:46
+> **Last Generated**: 2026-10-28 01:09:00
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 312
-- **Total Imports**: 2808
-- **Standard Library**: 805 (28.7%)
-- **Third-Party**: 236 (8.4%)
-- **Local Imports**: 1767 (62.9%)
+- **Files Scanned**: 311
+- **Total Imports**: 2800
+- **Standard Library**: 804 (28.7%)
+- **Third-Party**: 235 (8.4%)
+- **Local Imports**: 1761 (62.9%)
 
 ## Dependency Decision Trees
 
@@ -35,7 +35,7 @@ Core System Dependencies:
 AI System Dependencies:
 - AI Core
   - ai/usage_policy.py <- standard library (enum), ai_usage_settings, error_handling
-  - ai/__init__.py <- chatbot, cache_manager, action_catalog, action_planner, command_interpreter (+11 more)
+  - ai/__init__.py <- chatbot, cache_manager, action_catalog, action_planner, command_interpreter (+10 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_identity, user_data_operations (+3 more)
   - communication/command_handlers/analytics_formatting.py <- standard library (typing), checkin_data_manager, error_handling
@@ -90,10 +90,10 @@ Communication modules compose other communication utilities for complete flows.
 ### Third-Party Integration
 External libraries provide channel and UI support.
 - `ai/chat/chatbot.py` -> psutil
-- `ai/client/lm_studio_client.py` -> requests
-- `ai/client/lm_studio_manager.py` -> requests
+- `ai/client/openai_client.py` -> requests
 - `checkins/checkin_schemas.py` -> pydantic
 - `checkins/__init__.py` -> analysis, checkin_analytics
+- `communication/__init__.py` -> communication_channels.base.base_channel, message_processing.command_parser
 
 
 ## Critical Dependencies for AI Context
@@ -116,8 +116,8 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `core/web_account_service.py` -> 23 unique local dependencies (high fan-out; review for inappropriate edges) (37 import statements; 14 duplicate)
-- `ai/chat/chatbot.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (24 import statements; 2 duplicate)
 - `communication/core/channel_orchestrator.py` -> 22 unique local dependencies (high fan-out; review for inappropriate edges) (34 import statements; 12 duplicate)
+- `ai/chat/chatbot.py` -> 21 unique local dependencies (high fan-out; review for inappropriate edges) (23 import statements; 2 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 19 unique local dependencies (high fan-out; review for inappropriate edges) (20 import statements; 1 duplicate)
 - `ai/context/service.py` -> 16 unique local dependencies (high fan-out; review for inappropriate edges) (17 import statements; 1 duplicate)
 

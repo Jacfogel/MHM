@@ -92,13 +92,13 @@ class TestAIErrors(AITestBase):
         try:
             # Non-contextual response - minimal context (fallback used when connection fails)
             context_info = self._build_context_info(None)
-            context_info["note"] = "Non-contextual response with fallback (LM Studio unavailable)"
+            context_info["note"] = "Non-contextual response with fallback (OpenAI unavailable)"
             
-            with patch("ai.client.lm_studio_client.requests.get") as mock_get:
+            with patch("ai.client.openai_client.requests.get") as mock_get:
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
                 
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = False
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = False
                 self.chatbot.response_cache.clear()
                 
                 prompt = "Test connection error"
@@ -106,7 +106,7 @@ class TestAIErrors(AITestBase):
                     prompt, user_id=test_user_id, mode="chat"
                 )
                 
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
                 
                 if response and len(response) > 0:
                     is_fallback = "trouble" in response.lower() or "support" in response.lower() or "help" in response.lower() or "technical" in response.lower()
@@ -128,7 +128,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (timeout scenario)"
             
-            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 mock_post.side_effect = requests.Timeout("Request timed out")
                 
                 prompt = "Test timeout"
@@ -156,19 +156,19 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (invalid API response)"
             
-            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {"invalid": "structure"}
                 mock_post.return_value = mock_response
                 
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = True
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = True
                 
                 prompt = "Test invalid response"
                 response = self.chatbot.generate_response(prompt, user_id=test_user_id)
                 
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
                 
                 if response and len(response) > 0:
                     self.log_test("T-10.3", "Invalid API response handling", "PASS",
@@ -192,19 +192,19 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (server error)"
             
-            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
+            with patch("ai.client.openai_client.requests.post") as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 500
                 mock_response.text = "Internal Server Error"
                 mock_post.return_value = mock_response
                 
-                original_available = self.chatbot.lm_studio_available
-                self.chatbot.lm_studio_available = True
+                original_available = self.chatbot.openai_available
+                self.chatbot.openai_available = True
                 
                 prompt = "Test server error"
                 response = self.chatbot.generate_response(prompt, user_id=test_user_id)
                 
-                self.chatbot.lm_studio_available = original_available
+                self.chatbot.openai_available = original_available
                 
                 if response and len(response) > 0:
                     self.log_test("T-10.4", "Server error (5xx) handling", "PASS",

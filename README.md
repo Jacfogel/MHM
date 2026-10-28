@@ -136,11 +136,11 @@ Recent improvements (see change logs for details):
 
 ## 7. AI Integration (Optional)
 
-MHM can integrate with a local AI model via LM Studio:
+MHM can use the OpenAI API for optional AI features:
 
-- Configuration is controlled by `LM_STUDIO_*` and `AI_*` environment variables
+- Configuration is controlled by `OPENAI_*` and `AI_*` environment variables
   in `.env` / `.env.example` and read by `core/config.py`.
-- If LM Studio is not installed or the model is not available, MHM still works
+- If the API key is missing or the model is unavailable, MHM still works
   as a scheduler/reminder system.
 - The headless service supports start/stop/status and diagnostic commands;
   see [HOW_TO_RUN.md](HOW_TO_RUN.md) for details.
