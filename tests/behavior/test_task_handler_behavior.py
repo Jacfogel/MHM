@@ -211,6 +211,8 @@ class TestTaskHandlerBehavior:
         assert user_id not in PENDING_SIMPLIFY
         assert len(load_active_tasks(user_id)) == 1
 
+    @pytest.mark.behavior
+    @pytest.mark.communication
     @pytest.mark.tasks
     def test_simplify_task_adds_subtasks_and_keeps_the_title(self, test_data_dir, monkeypatch):
         """Simplify suggests steps or saves one step under the original task."""

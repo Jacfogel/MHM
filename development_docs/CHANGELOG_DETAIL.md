@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-28 - Nightly marker and email-socket failures
+- **Markers**: Added the missing category marker on the task-simplify behavior test and the missing domain markers on the task-response enhancement tests. Those gaps failed the nightly policy checks on Oct 26-28.
+- **Email tests**: Initialization, health-check failure, and SMTP recovery tests now mock IMAP as well as SMTP. Recovery was opening a live `imap.gmail.com` socket after the mocked SMTP step; the abandoned SSL socket then failed a later nightly test during garbage collection.
+- **Verification**: 15 focused policy, task-response, simplify, and email checks pass, including both marker guards across the current test tree. The recovery check finishes without a network wait. Targeted Ruff passes. The full nightly suite was not rerun locally.
+- **Earlier week**: The Oct 19-20 notebook inbox failure stayed green after the Oct 20 date-stability fix. No further change was needed for that case.
+
 ### 2026-10-28 - OpenAI replaces LM Studio
 - **Provider**: Migrated runtime callers, chatbot status, admin configuration display, and tests to the OpenAI Responses API. Defaults to configurable `gpt-5.4-mini`; local model loading and process checks are removed. Uses existing HTTP dependencies.
 - **Controls and failures**: Global and feature AI controls still run before requests and cached responses. Missing API credentials keep deterministic features available. Requests use `store=false`; partial/refused/malformed output fails closed. Readiness checks query model access without generating text. Request errors do not log credentials or exception bodies.

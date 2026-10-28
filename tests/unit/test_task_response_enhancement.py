@@ -9,6 +9,7 @@ from communication.message_processing.response_enhancer import enhance_response_
 
 
 @pytest.mark.unit
+@pytest.mark.tasks
 @pytest.mark.parametrize(
     "intent", ["snooze_task_reminder", "skip_task_occurrence", "simplify_task", "continue_checkin"]
 )
@@ -38,6 +39,7 @@ def test_task_reminder_responses_are_preserved_when_ai_is_offline(intent, comple
 
 
 @pytest.mark.unit
+@pytest.mark.ai
 def test_unavailable_enhancement_does_not_generate_chat_fallback():
     from ai.chat.chatbot import _text_when_model_is_unavailable
 

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-28 - Nightly marker and email-socket failures **COMPLETED**
+- Task-simplify and task-response tests now carry the required category and domain markers that failed nightly policy checks on Oct 26-28.
+- Email initialization and recovery tests mock IMAP, so a live Gmail socket can no longer time out and fail a later nightly test during garbage collection.
+- **Verification**: 15 focused checks pass, including both marker guards. Targeted Ruff passes. The full nightly suite was not rerun locally.
+
 ### 2026-10-28 - OpenAI replaces LM Studio **COMPLETED**
 - OpenAI Responses API now serves optional model features, defaulting to configurable `gpt-5.4-mini`. Hosted model-access checks replace local loading and process management.
 - Existing AI policy and deterministic fallbacks remain authoritative; no key means fallback. Uses `store=false`, bounded inputs/output, sanitized failures, and rejection of partial/refused output.

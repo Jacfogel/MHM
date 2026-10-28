@@ -109,7 +109,8 @@ class TestEmailBotBehavior:
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
-             patch('smtplib.SMTP_SSL') as mock_smtp:
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL'):
             mock_smtp.side_effect = smtplib.SMTPAuthenticationError(535, "Authentication failed")
 
             # Act
@@ -338,8 +339,9 @@ class TestEmailBotBehavior:
     @pytest.mark.asyncio
     async def test_email_bot_health_check_failure_behavior(self, test_data_dir):
         """Test health check failure behavior."""
-        # Arrange - Mock SMTP connection failure
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        # Arrange - Mock SMTP connection failure. IMAP stays mocked so a
+        # configured local inbox cannot open a live mailbox during this check.
+        with patch('smtplib.SMTP_SSL') as mock_smtp, patch('imaplib.IMAP4_SSL'):
             mock_smtp.side_effect = smtplib.SMTPAuthenticationError(535, "Authentication failed")
             
             # Act
@@ -563,13 +565,16 @@ class TestEmailBotIntegration:
     @pytest.mark.asyncio
     @pytest.mark.slow
     async def test_email_bot_error_recovery_with_real_operations(self, test_data_dir):
-        """Test error recovery when working with real operations."""
-        # Arrange - Mock email configuration
+        """Test error recovery when a mocked SMTP failure is followed by success."""
+        # Arrange - Mock email configuration. IMAP must be mocked too: initialize()
+        # still checks the mailbox after SMTP, and a live imap.gmail.com socket
+        # was timing out and failing later nightly tests during garbage collection.
         with patch('communication.communication_channels.email.bot.EMAIL_SMTP_SERVER', 'smtp.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_IMAP_SERVER', 'imap.gmail.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'), \
-             patch('smtplib.SMTP_SSL') as mock_smtp:
+             patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch('imaplib.IMAP4_SSL'):
             # First call fails, second call succeeds
             mock_smtp.side_effect = [
                 smtplib.SMTPAuthenticationError(535, "Auth failed"),
