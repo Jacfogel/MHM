@@ -7,16 +7,17 @@ Dependency direction (intentional):
   ``ai.prompts.command_registry`` -> ``communication.message_processing.command_parser``
 
 The communication layer owns ``RULE_BASED_INTENT_PATTERNS`` and intent detection.
-The AI layer must not duplicate that list in prompt text. This module injects the
-live intent names into the command system prompt at runtime.
+The AI layer must not duplicate that list in prompt text. The action catalog uses
+this module to discover live names for the canonical planning contract. Text
+injection remains a compatibility helper for older callers.
 
 Reverse coupling (separate concern):
   ``communication`` modules call ``ai.chat.chatbot.get_ai_chatbot`` for generation.
   That does not import ``command_registry``.
 
-If ``RULE_BASED_INTENT_PATTERNS`` is unset, injection initializes the parser
-singleton so every run mode gets the live list. The template in
-``resources/prompts/command.txt`` stays a placeholder, not a second inventory.
+If ``RULE_BASED_INTENT_PATTERNS`` is unset, discovery initializes the parser
+singleton so every run mode gets the live list. ``resources/prompts/command.txt``
+is retired; runtime prompts use the catalog-backed planning contract.
 
 Imports from ``command_parser`` are lazy (inside ``get_command_intent_names``) to avoid
 a circular import when ``command_parser`` loads ``ai.chat.chatbot`` during package init.

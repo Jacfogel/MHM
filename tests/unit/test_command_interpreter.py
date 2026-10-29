@@ -28,7 +28,9 @@ class TestCommandInterpreter:
         "prompt",
         ["Tell me something helpful", "Tell me a fact", "Tell me a short story"],
     )
-    def test_detect_mode_direct_information_requests_are_chat(self, interpreter, prompt):
+    def test_detect_mode_direct_information_requests_are_chat(
+        self, interpreter, prompt
+    ):
         assert interpreter.detect_mode(prompt) == "chat"
 
     def test_detect_mode_command_for_detailed_request(self, interpreter):
@@ -38,8 +40,12 @@ class TestCommandInterpreter:
         assert result in ("command", "command_with_clarification")
 
     def test_clarification_prompt_differs_from_command_prompt(self, interpreter):
-        command_msgs = interpreter.create_command_parsing_prompt("remind me", clarification=False)
-        clarify_msgs = interpreter.create_command_parsing_prompt("remind me", clarification=True)
+        command_msgs = interpreter.create_command_parsing_prompt(
+            "remind me", clarification=False
+        )
+        clarify_msgs = interpreter.create_command_parsing_prompt(
+            "remind me", clarification=True
+        )
         assert command_msgs[0]["content"] != clarify_msgs[0]["content"]
         assert "CLARIFICATION MODE" in clarify_msgs[0]["content"]
 
@@ -80,7 +86,7 @@ class TestCommandInterpreter:
         result = interpreter.ensure_structured_command_response(
             "I can add that as a task. Want me to?", "add task buy milk"
         )
-        assert result == '{"action": "create_task", "details": {"title": "buy milk"}}'
+        assert json.loads(result)["action"] == "unknown"
 
     def test_ensure_structured_command_response_wraps_unparsed_command_safely(
         self, interpreter
@@ -126,5 +132,7 @@ class TestCommandInterpreter:
             ("can you show me some support", "chat"),
         ],
     )
-    def test_detect_mode_post_overhaul_nlp_patterns(self, interpreter, prompt, expected_mode):
+    def test_detect_mode_post_overhaul_nlp_patterns(
+        self, interpreter, prompt, expected_mode
+    ):
         assert interpreter.detect_mode(prompt) == expected_mode

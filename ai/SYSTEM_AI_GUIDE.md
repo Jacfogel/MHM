@@ -169,15 +169,9 @@ The command system prompt must list the same intents as the rule-based parser. D
 
 **Bridge:** `ai/prompts/command_registry.py` exposes `get_command_intent_names()` and `inject_command_actions_into_prompt()`. The registry lazy-imports `get_rule_based_intent_names()` from the parser to avoid circular imports during package init.
 
-**When injection runs:** `ai/prompts/manager.py` calls `inject_command_actions_into_prompt()` whenever `get_prompt("command")` is used. `ai/prompts/command_interpreter.py` builds command and clarification prompts through that path.
+**Runtime contract:** `ai.prompts.planning.build_planning_system_prompt()` supplies one canonical ACTION contract and live action-field definitions. `PromptManager.get_prompt("command")`, its template accessor, and `CommandInterpreter.create_command_parsing_prompt()` share that contract. The compatibility command parser requests one action; the action planner supports ordered multiple actions. Prose clarification is a separate, non-executing request.
 
-**Production initialization (verified):**
-
-1. `get_prompt("command")` and the action catalog initialize the parser singleton when needed (`get_enhanced_command_parser()`). `InteractionManager.__init__` also constructs it for the live Discord/email path.
-2. Any later `get_prompt("command")` or `create_command_parsing_prompt(...)` replaces the placeholder line in `resources/prompts/command.txt` with the live comma-separated intent list.
-3. `generate_response(..., mode="command")` uses the injected prompt via the command interpreter (same path as `EnhancedCommandParser._ai_enhanced_parse`).
-
-**Template fallback:** `resources/prompts/command.txt` keeps a short placeholder (`Available actions: injected at runtime...`). Injection initializes the parser singleton when needed, then replaces that whole line with the live comma-separated intent list. A leftover placeholder after `get_prompt("command")` is a test failure, not a second source of truth.
+**Initialization:** The action catalog initializes the parser registry lazily, after prompt-manager construction, to avoid circular startup. `resources/prompts/command.txt` is retired and is not read at runtime. The registry's text-injection helper remains available for callers with older templates.
 
 **Name canonicalization:** `canonicalize_intent_name()` in `communication/message_processing/intent_validation.py` maps spaced/hyphenated ACTION lines (`create note`, `start check-in`) onto live parser names. The command parser uses that helper directly. AI code (action planner) must call the re-export on `ai/prompts/command_registry.py` instead of importing communication. This replaces hardcoded 3-5 item alias lists.
 
@@ -296,7 +290,7 @@ Canonical product-AI composition is `PromptManager.compose_product_prompt(flow_n
 | `action_boundaries` | `action_boundaries.txt` | No false CRUD claims; safe offer language |
 | `available_actions` | (runtime) | Injected from `AIActionCatalog`, not a prompt file |
 
-Command parsing remains separate in `resources/prompts/command.txt` (ACTION format + live intent injection).
+Command parsing uses the shared ACTION contract in `ai.prompts.planning.build_planning_system_prompt` and live catalog field metadata.
 
 `resources/prompts/assistant_system_prompt.txt` is a comment-only override stub when `AI_USE_CUSTOM_PROMPT` is enabled; canonical persona text is `product_ai/persona.txt`.
 
@@ -501,3 +495,14 @@ For quick navigation when working on the AI subsystem:
   - Enhanced command parser using both rule-based and AI-assisted parsing.
 - `core/config.py`  
   - AI configuration values, thresholds, and validation logic.
+
+
+## 11. Prompt follow-ups, selection, and evaluation
+
+Planning sends at most two bounded recent user turns and, only for a follow-up reference, the most recent assistant reply (up to 4,000 characters; oversized replies are omitted). Assistant text is reference material, never authorization or execution evidence. Entity grounding accepts an explicitly selected numbered suggestion or a single clear action offer; ambiguous selections cannot supply a missing title. Existing handler validation and confirmation requirements remain authoritative.
+
+Conversation assembly honors the envelope's selected domains. Time, account/feature state, preferences, and recent conversation remain available; detailed tasks, check-ins, health, messages, schedules, notebooks, analytics, and personal context are included by relevance. Follow-up domain selection can consult recent user turns. Selection uses word boundaries to avoid accidental matches such as `rest` inside `interested`.
+
+Content repairs intervene on recognizable unusable deflections, not every request about a fact, focus, feelings, capabilities, or stories. Normal statements that a feature is disabled are not prompt leaks. Output sanitation and false-action-claim checks remain in place.
+
+For synthetic-only live checks, run `python -m tests.ai.evaluate_prompts --live --repeat 2 --output development_tools/reports/ai_prompt_evaluation.json`. This makes paid requests using the configured model and policy, without handlers, user-store writes, or fallbacks. It records raw/final responses, topic/contract checks, request latency, and provider token usage. A failed request is a failed evaluation, not a fallback success. Read the raw/final examples as well as the checks; the finite cases are not a general quality guarantee.

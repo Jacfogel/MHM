@@ -83,12 +83,17 @@ class TestConversationalContextActionability:
         assert "task management is disabled" in joined
         assert "automated messages are enabled" in joined
 
-    def test_recent_messages_omitted_when_automated_messages_disabled(self, monkeypatch):
+    def test_recent_messages_omitted_when_automated_messages_disabled(
+        self, monkeypatch
+    ):
         self._bind_runtime_to_test_data_dir(monkeypatch)
 
         user_id = "user_no_auto_msgs"
         assert TestUserFactory.create_basic_user(
-            user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir
+            user_id,
+            enable_checkins=True,
+            enable_tasks=True,
+            test_data_dir=self.test_data_dir,
         )
         self._set_automated_messages_feature(user_id, enabled=False)
         actual_id = self._resolve_user_id(user_id)
@@ -105,17 +110,22 @@ class TestConversationalContextActionability:
         messages = get_response_generator().create_comprehensive_context_prompt(
             actual_id, "hello"
         )
-        content = messages[0]["content"]
+        content = messages[-1]["content"]
         assert "automated messages are disabled" in content
         assert "Recent automated messages sent to them:" not in content
         assert "You are doing great!" not in content
 
-    def test_recent_messages_included_when_automated_messages_enabled(self, monkeypatch):
+    def test_recent_messages_included_when_automated_messages_enabled(
+        self, monkeypatch
+    ):
         self._bind_runtime_to_test_data_dir(monkeypatch)
 
         user_id = "user_with_auto_msgs"
         assert TestUserFactory.create_basic_user(
-            user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir
+            user_id,
+            enable_checkins=True,
+            enable_tasks=True,
+            test_data_dir=self.test_data_dir,
         )
         self._set_automated_messages_feature(user_id, enabled=True)
         actual_id = self._resolve_user_id(user_id)
@@ -130,9 +140,9 @@ class TestConversationalContextActionability:
         )
 
         messages = get_response_generator().create_comprehensive_context_prompt(
-            actual_id, "hello"
+            actual_id, "What messages were sent recently?"
         )
-        content = messages[0]["content"]
+        content = messages[-1]["content"]
         assert "automated messages are enabled" in content
         assert "Recent automated messages sent to them:" in content
         assert "Keep going today!" in content

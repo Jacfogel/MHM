@@ -10,7 +10,6 @@ from ai.context.assembly import (
     build_context_parts,
 )
 
-
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
 
 
@@ -38,7 +37,11 @@ def _envelope() -> AIContextEnvelope:
                     "enabled": True,
                     "active": [{"title": "Call pharmacy"}],
                     "due_soon": [],
-                    "stats": {"total_count": 1, "active_count": 1, "completed_count": 0},
+                    "stats": {
+                        "total_count": 1,
+                        "active_count": 1,
+                        "completed_count": 0,
+                    },
                 },
             ),
             "checkins": _section(
@@ -107,7 +110,8 @@ def test_assemble_comprehensive_messages_reuses_supplied_envelope(monkeypatch):
         envelope=_envelope(),
     )
 
-    assert messages[1] == {"role": "user", "content": "hello"}
+    assert messages[-1]["role"] == "user"
+    assert messages[-1]["content"].endswith("Current request:\nhello")
     assert calls == []
 
 
@@ -130,8 +134,10 @@ def test_assemble_comprehensive_messages_uses_chat_response_flow(monkeypatch):
 
     assert messages[0]["role"] == "system"
     assert "MHM's in-app assistant" in messages[0]["content"]
-    assert "User Context:" in messages[0]["content"]
-    assert messages[1] == {"role": "user", "content": "hello"}
+    assert "The user's preferred name is Julie" not in messages[0]["content"]
+    assert "The user's preferred name is Julie" in messages[-1]["content"]
+    assert messages[-1]["role"] == "user"
+    assert messages[-1]["content"].endswith("Current request:\nhello")
     assert calls == [
         (
             "user-1",
@@ -163,9 +169,8 @@ def test_build_context_parts_includes_session_stated_facts(monkeypatch):
     envelope.sections["conversation"] = _section(
         "conversation", {"recent_chat_interactions": []}
     )
-    parts = build_context_parts("user-1", envelope=envelope)
-    joined = "\n".join(parts)
-
-    assert "Recent conversation" in joined
-    assert "My favorite color is blue" in joined
-    assert 'User said: "My favorite color is blue"' in joined
+    messages = assemble_comprehensive_messages(
+        "user-1", "What is my favorite color?", envelope=envelope
+    )
+    assert {"role": "user", "content": "My favorite color is blue"} in messages
+    assert {"role": "assistant", "content": "Nice choice!"} in messages

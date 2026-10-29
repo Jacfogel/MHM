@@ -69,7 +69,7 @@ class TestPromptManager:
         """Test loading custom prompt when file exists."""
         with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
              patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
-             patch('builtins.open', mock_open(read_data="Custom prompt content")):
+             patch('ai.prompts.manager._read_prompt_file', return_value="Custom prompt content"):
             manager = PromptManager()
             
             # Custom prompt should be loaded
@@ -90,7 +90,7 @@ class TestPromptManager:
         """Test error handling when loading custom prompt fails."""
         with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
              patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
-             patch('builtins.open', side_effect=PermissionError("Access denied")):
+             patch('pathlib.Path.read_text', side_effect=PermissionError("Access denied")):
             manager = PromptManager()
             
             # Should handle error gracefully
@@ -334,12 +334,12 @@ class TestPromptManager:
         with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
              patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
             # Create manager with initial content
-            with patch('builtins.open', mock_open(read_data=initial_content)):
+            with patch('ai.prompts.manager._read_prompt_file', return_value=initial_content):
                 manager = PromptManager()
                 assert manager._custom_prompt == initial_content
             
             # Reload with updated content
-            with patch('builtins.open', mock_open(read_data=updated_content)):
+            with patch('ai.prompts.manager._read_prompt_file', return_value=updated_content):
                 manager.reload_custom_prompt()
                 assert manager._custom_prompt == updated_content
     
@@ -378,7 +378,7 @@ class TestPromptManager:
         
         with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
              patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
-             patch('builtins.open', mock_open(read_data=prompt_content)):
+             patch('ai.prompts.manager._read_prompt_file', return_value=prompt_content):
             manager = PromptManager()
             
             assert manager.custom_prompt_length() == len(prompt_content)

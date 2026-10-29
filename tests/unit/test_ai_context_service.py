@@ -7,13 +7,14 @@ import pytest
 from ai.context.service import build_ai_context_envelope
 from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
-
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
 
 
 def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     user_id = "ai-context-envelope-user"
-    assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
+    assert TestUserFactory.create_full_featured_user(
+        user_id, test_data_dir=test_data_dir
+    )
 
     from checkins.checkin_data_manager import store_checkin_response
     from messages.message_data_manager import add_message, store_sent_message
@@ -70,17 +71,28 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert envelope.metadata["user_id"] == actual_user_id
     assert "now_display" in structured["temporal"]
     assert "timezone" in structured["temporal"]
-    assert "Current date and time for the user:" in envelope.sections["temporal"].prompt_text
+    assert (
+        "Current date and time for the user:"
+        in envelope.sections["temporal"].prompt_text
+    )
     assert envelope.metadata["active_channel"] == "discord"
     assert envelope.metadata["context_version"] == 1
     assert "features" in structured["account"]
     assert "motivational" in structured["preferences"]["categories"]
-    assert "Prefers gentle encouragement" in structured["personal_context"]["notes_for_ai"]
+    assert (
+        "Prefers gentle encouragement" in structured["personal_context"]["notes_for_ai"]
+    )
     assert "raw" in structured["schedules"]
-    assert any(task["title"] == "Review refill request" for task in structured["tasks"]["active"])
+    assert any(
+        task["title"] == "Review refill request"
+        for task in structured["tasks"]["active"]
+    )
     assert structured["checkins"]["recent"][0]["mood"] == 4
     assert structured["messages"]["recent_sent"][0]["sent_text"] == "Keep going."
-    assert structured["messages"]["templates_by_category"]["motivational"][0]["text"] == "Keep going."
+    assert (
+        structured["messages"]["templates_by_category"]["motivational"][0]["text"]
+        == "Keep going."
+    )
     assert structured["notebooks"]["recent"][0]["title"] == "Refill notes"
     assert "description" not in structured["notebooks"]["recent"][0]
     assert "Refill notes" in envelope.sections["notebooks"].prompt_text
@@ -96,7 +108,9 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
 
 def test_notebook_context_uses_titles_pinned_entries_and_short_summaries(test_data_dir):
     user_id = "ai-context-notebook-slice-user"
-    assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
+    assert TestUserFactory.create_full_featured_user(
+        user_id, test_data_dir=test_data_dir
+    )
 
     from notebook import notebook_data_manager as notes
 
@@ -128,18 +142,26 @@ def test_notebook_context_uses_titles_pinned_entries_and_short_summaries(test_da
     untitled = next(item for item in recent if "summary" in item)
     assert untitled["summary"].startswith("The gate code is 1234")
     assert len(untitled["summary"]) <= 80
-    assert "spare key is under the mat by the side door after dark" not in untitled["summary"]
+    assert (
+        "spare key is under the mat by the side door after dark"
+        not in untitled["summary"]
+    )
     assert "description" not in untitled
     assert any(item.get("title") == "Doctor questions" for item in notebooks["pinned"])
     prompt = envelope.sections["notebooks"].prompt_text
     assert "Refill notes" in prompt
     assert "Doctor questions" in prompt
-    assert "Call pharmacy before Friday and ask about the prior authorization." not in prompt
+    assert (
+        "Call pharmacy before Friday and ask about the prior authorization."
+        not in prompt
+    )
 
 
 def test_ai_context_prompt_selection_records_included_sections(test_data_dir):
     user_id = "ai-context-selection-user"
-    assert TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
+    assert TestUserFactory.create_full_featured_user(
+        user_id, test_data_dir=test_data_dir
+    )
 
     actual_user_id = TestUserFactory.get_test_user_id_by_label(user_id, test_data_dir)
     assert actual_user_id
@@ -153,7 +175,7 @@ def test_ai_context_prompt_selection_records_included_sections(test_data_dir):
     assert "account" in envelope.included_sections
     assert "preferences" in envelope.included_sections
     assert "personal_context" in envelope.included_sections
-    assert "tasks" in envelope.included_sections
+    assert "tasks" not in envelope.included_sections
     assert "conversation" in envelope.included_sections
     assert "checkins" in envelope.included_sections
     assert "health" in envelope.included_sections

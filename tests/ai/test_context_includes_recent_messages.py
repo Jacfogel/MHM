@@ -78,17 +78,19 @@ class TestAIContextRecentMessages:
 
         # Build context prompt and ensure recent automated messages are included
         messages = get_response_generator().create_comprehensive_context_prompt(
-            user_id, "hello"
+            user_id, "What messages have I received and what is my check-in status today?"
         )
         assert isinstance(messages, list) and len(messages) >= 2
         system = messages[0]
         assert system["role"] == "system"
-        content = system["content"]
+        content = messages[-1]["content"]
+        assert "Keep going, you are doing great today!" not in system["content"]
 
         # The summary should include the category and FULL text for the most recent non-checkin message (natural language format)
         assert "Recent automated messages sent to them:" in content
         assert "motivational" in content.lower()  # Should say "A motivational message" in natural language
         assert "Keep going, you are doing great today!" in content
+        assert "On a scale of 1-5, how is your mood?" not in content
         # Exclude checkin category from the automated messages section
         # Note: checkin messages are filtered out in the code, so they shouldn't appear at all
         
@@ -102,10 +104,9 @@ class TestAIContextRecentMessages:
         # Since timing/storage format might vary, we just verify the context builds without error
         store_user_response(user_id, {"mood": 4, "energy": 3}, response_type="checkin")
         messages2 = get_response_generator().create_comprehensive_context_prompt(
-            user_id, "hello"
+            user_id, "What messages have I received and what is my check-in status today?"
         )
-        system2 = messages2[0]
-        content2 = system2["content"]
+        content2 = messages2[-1]["content"]
         # Context should build successfully - check-in status will appear if data is found
         # If status appears, it should be in natural language format
         # If it doesn't appear, that's OK too (might be timing/storage format issue)
@@ -122,9 +123,9 @@ class TestAIContextRecentMessages:
         )
         assert ok3
         messages3 = get_response_generator().create_comprehensive_context_prompt(
-            user_id, "hello"
+            user_id, "What messages have I received and what is my check-in status today?"
         )
-        content3 = messages3[0]["content"]
+        content3 = messages3[-1]["content"]
         # Natural language format: "They received a task reminder at...: \"Don't forget to review your tasks for today.\""
         assert "task reminder" in content3.lower()
         assert "Don't forget to review your tasks for today." in content3

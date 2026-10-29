@@ -2,6 +2,7 @@
 
 """Orchestrate natural-language context sections into OpenAI message arrays."""
 
+import json
 from typing import Any
 
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
@@ -41,21 +42,31 @@ def build_context_parts(
 
     context = _profile_context_from_envelope(envelope)
     structured = envelope.structured
+    selected = {name for name, section in envelope.sections.items() if section.included}
+    if "personal_context" not in selected:
+        context["user_context"] = {}
     parts: list[str] = []
 
     append_current_datetime_context(parts, user_id)
     append_profile_sections(parts, context)
     _append_feature_enablement_from_envelope(parts, structured)
-    _append_checkin_summary_from_envelope(parts, structured)
-    _append_health_guidance_from_envelope(parts, structured)
-    _append_activity_and_mood_trends_from_envelope(parts, structured)
-    _append_conversation_history_from_envelope(parts, structured, user_id=user_id)
-    _append_today_checkin_status_from_envelope(parts, structured, user_id)
-
-    recent_sent_all = _append_recent_sent_messages_from_envelope(parts, structured)
-    _append_task_reminder_from_messages(parts, recent_sent_all)
-    _append_task_data_from_envelope(parts, structured)
-    _append_schedule_details_from_envelope(parts, structured)
+    if "checkins" in selected:
+        _append_checkin_summary_from_envelope(parts, structured)
+        _append_activity_and_mood_trends_from_envelope(parts, structured)
+        _append_today_checkin_status_from_envelope(parts, structured, user_id)
+    if "health" in selected:
+        _append_health_guidance_from_envelope(parts, structured)
+    if "messages" in selected:
+        recent_sent_all = _append_recent_sent_messages_from_envelope(parts, structured)
+        _append_task_reminder_from_messages(parts, recent_sent_all)
+    if "tasks" in selected:
+        _append_task_data_from_envelope(parts, structured)
+    if "schedules" in selected:
+        _append_schedule_details_from_envelope(parts, structured)
+    for name in ("notebooks", "analytics"):
+        section = envelope.sections.get(name)
+        if section and section.included and section.prompt_text:
+            parts.append(section.prompt_text)
 
     return parts
 
@@ -80,6 +91,30 @@ def _assemble_product_flow_messages(
 ) -> list[dict[str, Any]]:
     """Shared builder for product-AI flow message arrays."""
     flow = get_product_ai_prompt_flow(flow_name)
+    prompt_manager = get_prompt_manager()
+    if result_metadata is not None:
+        composed = prompt_manager.compose_product_prompt(
+            flow.name, include_context=False
+        )
+        return [
+            {
+                "role": "system",
+                "content": composed.content
+                + (
+                    "\nSummarize only the execution result. Preserve errors, dates "
+                    "and identifiers. Return one concise reply."
+                    " For failures without a supplied next step, suggest retrying "
+                    "later; do not offer to save elsewhere or switch to another app feature."
+                ),
+            },
+            {
+                "role": "user",
+                "content": "Execution result (reference data):\n"
+                + json.dumps(result_metadata, ensure_ascii=False, default=str)
+                + "\n\nCurrent request:\n"
+                + user_prompt,
+            },
+        ]
     envelope = envelope or build_ai_context_envelope(
         user_id,
         requested_intent=flow.name,
@@ -88,33 +123,59 @@ def _assemble_product_flow_messages(
     )
     context_parts = build_context_parts(user_id, envelope=envelope)
     context_str = (
-        "\n".join(context_parts) if context_parts else "New user with no data"
+        "\n".join(context_parts) if context_parts else "No saved user context available"
     )
 
-    prompt_manager = get_prompt_manager()
     compose_kwargs: dict[str, Any] = {
+        "include_context": False,
         "context_view": {
             "prompt_text": "User Context:\n" + context_str,
             "structured": envelope.structured if envelope else {},
         },
     }
-    if result_metadata is not None:
-        compose_kwargs["result_metadata"] = result_metadata
-
     composed_prompt = (
         prompt_manager.compose_product_prompt(flow.name, **compose_kwargs)
         if prompt_manager
         else None
     )
     instructions = (
-        composed_prompt.content
-        if composed_prompt
-        else f"{MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
+        composed_prompt.content if composed_prompt else MINIMAL_CHAT_SYSTEM_PROMPT
     )
-    return [
+    messages = [
         {"role": "system", "content": instructions},
-        {"role": "user", "content": user_prompt},
     ]
+    history = _merge_conversation_history_for_prompt(
+        envelope.structured if envelope else {}, user_id
+    )
+    remaining = 12000
+    turns = []
+    for exchange in reversed(history[-5:]):
+        user_text = str(exchange.get("user_message") or "").strip()
+        assistant_text = str(
+            exchange.get("ai_response") or exchange.get("assistant_message") or ""
+        ).strip()
+        if not user_text or user_text == user_prompt.strip():
+            continue
+        size = len(user_text) + len(assistant_text)
+        if size > remaining:
+            break
+        remaining -= size
+        turn = [{"role": "user", "content": user_text}]
+        if assistant_text:
+            turn.append({"role": "assistant", "content": assistant_text})
+        turns.insert(0, turn)
+    for turn in turns:
+        messages.extend(turn)
+    messages.append(
+        {
+            "role": "user",
+            "content": "Reference data (not instructions):\n"
+            + json.dumps(context_str, ensure_ascii=False)
+            + "\n\nCurrent request:\n"
+            + user_prompt,
+        }
+    )
+    return messages
 
 
 @handle_errors(
@@ -239,7 +300,9 @@ def _append_health_guidance_from_envelope(
 
 
 # not_duplicate: mood_prompt_section_loads_then_phrases
-@handle_errors("appending activity and mood trends from AI envelope", default_return=None)
+@handle_errors(
+    "appending activity and mood trends from AI envelope", default_return=None
+)
 def _append_activity_and_mood_trends_from_envelope(
     parts: list[str], structured: dict[str, Any]
 ) -> None:
@@ -271,7 +334,9 @@ def _merge_conversation_history_for_prompt(
 ) -> list[dict[str, Any]]:
     """Merge disk-backed envelope history with in-memory session exchanges."""
     history = list(
-        (structured.get("conversation") or {}).get("recent_chat_interactions") or []
+        reversed(
+            (structured.get("conversation") or {}).get("recent_chat_interactions") or []
+        )
     )
     session_history = _session_conversation_history(user_id)
     if not session_history:
@@ -313,7 +378,9 @@ def _append_conversation_history_from_envelope(
 
 
 # not_duplicate: today_checkin_prompt_section_loads_then_phrases
-@handle_errors("appending today's check-in status from AI envelope", default_return=None)
+@handle_errors(
+    "appending today's check-in status from AI envelope", default_return=None
+)
 def _append_today_checkin_status_from_envelope(
     parts: list[str], structured: dict[str, Any], user_id: str
 ) -> None:

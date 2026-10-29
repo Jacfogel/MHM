@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 from collections.abc import Iterable
 from typing import Any
 
@@ -15,7 +16,7 @@ from ai.prompts.action_catalog import (
 )
 from ai.client.openai_client import call_openai_api
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
-from ai.prompts.command_interpreter import get_command_interpreter
+from ai.prompts.planning import build_planning_system_prompt
 from ai.prompts.command_registry import canonicalize_intent_name
 from tasks.task_reference import (
     action_accepts_pronoun_task,
@@ -32,32 +33,7 @@ from core.logger import get_component_logger
 
 logger = get_component_logger("ai")
 
-# Keep this short: local models often have 2k context. Do not stack chat
-# category files, command.txt, or full AIContextEnvelope into planning.
-# ACTION-first matches the existing command parser format that local models
-# already follow more reliably than INTENT-first prose.
-_PLANNING_SYSTEM_TEMPLATE = """Extract one MHM action as key-value lines only. No prose, JSON, or code.
-
-Example:
-ACTION: create_task
-TITLE: pack hiking bag
-CONFIDENCE: 0.9
-
-Chat/venting/no action:
-ACTION: unknown
-
-Missing required detail:
-INTENT: clarify
-QUESTION: What should the task be called?
-
-Rules: ACTION must be unknown or one of: {actions}
-Copy field values from Current or Recent user said only. Do not invent dates, locations, or titles.
-If Current refers to that/it/this, copy TITLE from Recent user said.
-If Current updates/completes that/it/this, set TASK_IDENTIFIER: that.
-If Current asks to break a task into steps or break it down, ACTION: simplify_task. Set TASK_IDENTIFIER to the task name, or that.
-"""
-
-_PLANNING_MAX_TOKENS = 60
+_PLANNING_MAX_TOKENS = 1200
 _PLANNING_STOP_SEQUENCES = [
     '"""',
     "```",
@@ -69,9 +45,7 @@ _PLANNING_STOP_SEQUENCES = [
     "\n[",
 ]
 
-_SHARED_PLAN_KEYS = frozenset(
-    {"INTENT", "QUESTION", "CLARIFICATION_QUESTION", "NOTES"}
-)
+_SHARED_PLAN_KEYS = frozenset({"INTENT", "QUESTION", "CLARIFICATION_QUESTION", "NOTES"})
 
 _INTENT_ALIASES = {
     "answer": "answer_only",
@@ -120,7 +94,7 @@ _GROUNDED_ENTITY_KEYS = frozenset(
 )
 
 _PLANNING_RECENT_TURN_LIMIT = 2
-_PLANNING_RECENT_TURN_CLIP = 120
+_PLANNING_RECENT_TURN_CLIP = 2000
 
 
 @handle_errors("clipping planner conversation turn", default_return="")
@@ -143,7 +117,9 @@ def _recent_user_turns_for_planning(
     from core.response_tracking import get_recent_chat_interactions
     from user.context_manager import user_context_manager
 
-    session_history = user_context_manager.get_session_conversation_history(user_id) or []
+    session_history = (
+        user_context_manager.get_session_conversation_history(user_id) or []
+    )
     disk_recent = get_recent_chat_interactions(user_id, limit=5) or []
     newest_first: list[dict[str, Any]] = []
     newest_first.extend(reversed(list(session_history)))
@@ -174,6 +150,78 @@ def _planner_grounding_text(source_message: str, recent_turns: Iterable[str]) ->
     return "\n".join(parts)
 
 
+@handle_errors("loading the latest assistant planning reference", default_return=[])
+def _recent_assistant_turns_for_planning(user_id: str | None) -> list[str]:
+    """Load only the latest assistant reply for explicitly selected follow-ups."""
+    if not user_id:
+        return []
+    from core.response_tracking import get_recent_chat_interactions
+    from user.context_manager import user_context_manager
+
+    session = user_context_manager.get_session_conversation_history(user_id) or []
+    disk = get_recent_chat_interactions(user_id, limit=1) or []
+    exchanges = list(reversed(session)) + list(disk)
+    if not exchanges:
+        return []
+    exchange = exchanges[0]
+    text = str(
+        exchange.get("ai_response") or exchange.get("assistant_message") or ""
+    ).strip()
+    # Omit oversized replies rather than hiding alternatives by clipping them.
+    return [text] if text and len(text) <= 4000 else []
+
+
+@handle_errors("checking for an assistant follow-up reference", default_return=False)
+def _needs_assistant_reference(message: str) -> bool:
+    """Do not send a previous assistant reply for self-contained requests."""
+    return bool(
+        re.search(
+            r"\b(?:that|it|those|first|second|third|1st|2nd|3rd|suggestion|option)\b|"
+            r"\bthis\b(?!\s+(?:week|month|year|morning|afternoon|evening))|"
+            r"^\s*(?:yes|yeah|sure|please do|do that)\b",
+            message,
+            re.I,
+        )
+    )
+
+
+@handle_errors("grounding a selected assistant suggestion", default_return="")
+def _selected_assistant_grounding(source: str, assistant_turns: Iterable[str]) -> str:
+    """Ground entities only in a suggestion the user explicitly selects."""
+    turns = list(assistant_turns)
+    if not turns:
+        return ""
+    proposal = turns[-1]
+    selection = re.search(r"\b(first|second|third|1st|2nd|3rd)\b", source, re.I)
+    explicit = re.search(r"\b(add|create|save|make|use|choose|pick)\b", source, re.I)
+    options = re.findall(r"(?m)^\s*(?:\d+[.)]|[-*])\s+(.+)$", proposal)
+    if selection and explicit:
+        index = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2}[
+            selection[1].lower()
+        ]
+        return options[index] if index < len(options) else ""
+    if explicit and re.search(r"\b(that|it|this|suggestion)\b", source, re.I):
+        return (
+            proposal if len(options) <= 1 and not re.search(r"\bor\b", proposal) else ""
+        )
+    if re.fullmatch(
+        r"\s*(?:yes|yeah|sure|please do|do that)(?:[, !.]+(?:please|do that))?[, !.]*",
+        source,
+        re.I,
+    ):
+        offers = re.findall(
+            r"(?:want me to|would you like me to|shall I)\s+(?:add|create|save)\b[^?]*\?",
+            proposal,
+            re.I,
+        )
+        return (
+            proposal
+            if len(offers) == 1 and not options and not re.search(r"\bor\b", proposal)
+            else ""
+        )
+    return ""
+
+
 @handle_errors("formatting planning user content", default_return="")
 def _format_planning_user_content(
     user_message: str, recent_turns: Iterable[str]
@@ -183,7 +231,7 @@ def _format_planning_user_content(
     turns = [turn.strip() for turn in recent_turns if turn and turn.strip()]
     if not turns:
         return current
-    recent_lines = "\n".join(f"- {turn}" for turn in turns)
+    recent_lines = json.dumps(turns, ensure_ascii=False)
     return f"Recent user said:\n{recent_lines}\n\nCurrent:\n{current}"
 
 
@@ -197,27 +245,47 @@ class ActionPlanner:
         user_message: str,
         *,
         recent_turns: Iterable[str] | None = None,
+        recent_assistant_turns: Iterable[str] | None = None,
     ) -> list[dict[str, str]]:
         """Build compact OpenAI messages for action planning.
 
-        Full context envelopes are omitted so local models with ~2k context can
-        run planning. At most two recent user turns are included so follow-ups
+        Full context envelopes are omitted to keep planning focused.
+        At most two recent user turns are included so follow-ups
         like "add that as a task" can reuse a title the user already stated.
         """
-        catalog = get_action_catalog()
-        system_content = _PLANNING_SYSTEM_TEMPLATE.format(
-            actions=catalog.to_planning_prompt_summary()
-        ).strip()
+        system_content = build_planning_system_prompt()
         turns = (
             list(recent_turns)
             if recent_turns is not None
             else _recent_user_turns_for_planning(user_id, user_message)
         )
+        content = _format_planning_user_content(user_message, turns)
+        assistants = (
+            list(recent_assistant_turns)
+            if recent_assistant_turns is not None
+            else (
+                _recent_assistant_turns_for_planning(user_id)
+                if _needs_assistant_reference(user_message)
+                else []
+            )
+        )
+        assistants = assistants[-1:]
+        if assistants:
+            content = (
+                "Recent assistant said (reference suggestions only):\n"
+                + json.dumps(assistants, ensure_ascii=False)
+                + "\n\n"
+                + content
+            )
+        if user_id:
+            from ai.context.phraser import phrase_current_datetime_context
+
+            content = phrase_current_datetime_context(user_id) + "\n\n" + content
         return [
             {"role": "system", "content": system_content},
             {
                 "role": "user",
-                "content": _format_planning_user_content(user_message, turns),
+                "content": content,
             },
         ]
 
@@ -238,15 +306,26 @@ class ActionPlanner:
 
             ai_chatbot = get_ai_chatbot()
 
-        if not is_ai_usage_allowed(
-            AIUsageFeature.ACTION_PLANNING
-        ) or not ai_chatbot.is_ai_available():
-            logger.debug("AI unavailable for action planning; defaulting to answer_only")
+        if (
+            not is_ai_usage_allowed(AIUsageFeature.ACTION_PLANNING)
+            or not ai_chatbot.is_ai_available()
+        ):
+            logger.debug(
+                "AI unavailable for action planning; defaulting to answer_only"
+            )
             return answer_only_plan(user_message, planning_method="ai_unavailable")
 
         recent_turns = _recent_user_turns_for_planning(user_id, user_message)
+        assistant_turns = (
+            _recent_assistant_turns_for_planning(user_id)
+            if _needs_assistant_reference(user_message)
+            else []
+        )
         messages = self.build_planning_messages(
-            user_id, user_message, recent_turns=recent_turns
+            user_id,
+            user_message,
+            recent_turns=recent_turns,
+            recent_assistant_turns=assistant_turns,
         )
         if not messages:
             return answer_only_plan(user_message, planning_method="prompt_build_failed")
@@ -272,7 +351,9 @@ class ActionPlanner:
             source_message=user_message,
             catalog=get_action_catalog(),
             planning_method="ai_planner",
-            grounding_text=_planner_grounding_text(user_message, recent_turns),
+            grounding_text=_planner_grounding_text(user_message, recent_turns)
+            + "\n"
+            + _selected_assistant_grounding(user_message, assistant_turns),
         )
 
     @handle_errors("planning action from text", default_return=None)
@@ -338,14 +419,6 @@ def parse_action_plan_from_text(
     fields = dict(shared)
     if action_blocks:
         fields.update(action_blocks[0])
-    if not fields.get("INTENT") and not fields.get("ACTION"):
-        cleaned = get_command_interpreter().extract_command_from_response(
-            planner_output or ""
-        )
-        shared, action_blocks = _parse_plan_structure(cleaned or planner_output or "")
-        fields = dict(shared)
-        if action_blocks:
-            fields.update(action_blocks[0])
     intent = _normalize_intent(fields.get("INTENT", ""))
 
     if not intent:
@@ -396,7 +469,10 @@ def parse_action_plan_from_text(
     )
 
 
-@handle_errors("building missing-field clarification question", default_return="Could you share a bit more detail?")
+@handle_errors(
+    "building missing-field clarification question",
+    default_return="Could you share a bit more detail?",
+)
 def _missing_field_question(field_name: str) -> str:
     """Return a calm clarification question for a missing planner field."""
     questions = {
@@ -484,7 +560,9 @@ def _build_execute_plan(
     )
 
 
-@handle_errors("building action request from planner fields", default_return=(None, None))
+@handle_errors(
+    "building action request from planner fields", default_return=(None, None)
+)
 def _build_action_request_from_fields(
     fields: dict[str, str],
     *,
@@ -536,8 +614,7 @@ def _build_action_request_from_fields(
     if missing_required:
         return None, clarify_plan(
             source_message,
-            fields.get("QUESTION")
-            or _missing_field_question(missing_required[0]),
+            fields.get("QUESTION") or _missing_field_question(missing_required[0]),
             planning_method=f"{planning_method}_missing_fields",
         )
 
@@ -602,9 +679,7 @@ def _parse_plan_structure(text: str) -> tuple[dict[str, str], list[dict[str, str
         return flat, []
 
     action_fields = {
-        key: value
-        for key, value in flat.items()
-        if key not in _SHARED_PLAN_KEYS
+        key: value for key, value in flat.items() if key not in _SHARED_PLAN_KEYS
     }
     shared_fields = {
         key: value for key, value in flat.items() if key in _SHARED_PLAN_KEYS
@@ -699,8 +774,9 @@ def _extract_entities_from_fields(
         if key in reserved or not value:
             continue
         entity_key = _ENTITY_KEY_ALIASES.get(key, key.lower())
-        if entity_key in _GROUNDED_ENTITY_KEYS and not _entity_value_grounded_in_message(
-            value, grounding
+        if (
+            entity_key in _GROUNDED_ENTITY_KEYS
+            and not _entity_value_grounded_in_message(value, grounding)
         ):
             continue
         entities[entity_key] = value

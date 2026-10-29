@@ -1,0 +1,49 @@
+{
+  "model": "gpt-5.4-mini",
+  "synthetic_only": true,
+  "scope": "Prompt requests and output parsing; no handlers, user stores, or fallbacks. Deterministic topic checks plus human review of raw/final text; not a broad quality benchmark.",
+  "passed": 2,
+  "total": 2,
+  "complete_suite": true,
+  "case_ids": [
+    "failed_result"
+  ],
+  "input_tokens": 2064,
+  "output_tokens": 53,
+  "cases": [
+    {
+      "id": "failed_result",
+      "request": "Create a task called Water the plants",
+      "model": "gpt-5.4-mini",
+      "raw": "I couldn’t save the task because storage is unavailable. You can try again later, and I can help you phrase the task if you want.",
+      "final": "I couldn’t save the task because storage is unavailable. You can try again later, and I can help you phrase the task if you want.",
+      "changed_by_postprocessing": false,
+      "raw_issues": [],
+      "issues": [],
+      "passed": true,
+      "failure": null,
+      "latency_ms": 1570,
+      "input_characters": 5040,
+      "input_tokens": 1032,
+      "output_tokens": 33,
+      "cached_input_tokens": 0
+    },
+    {
+      "id": "failed_result",
+      "request": "Create a task called Water the plants",
+      "model": "gpt-5.4-mini",
+      "raw": "I couldn’t save the task because storage is unavailable. Please try again later.",
+      "final": "I couldn’t save the task because storage is unavailable. Please try again later.",
+      "changed_by_postprocessing": false,
+      "raw_issues": [],
+      "issues": [],
+      "passed": true,
+      "failure": null,
+      "latency_ms": 1328,
+      "input_characters": 5040,
+      "input_tokens": 1032,
+      "output_tokens": 20,
+      "cached_input_tokens": 0
+    }
+  ]
+}

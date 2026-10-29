@@ -124,7 +124,8 @@ class TestConversationalPromptActionBoundaries:
         )
         system_content = messages[0]["content"]
         assert "ACTION BOUNDARIES" in system_content
-        assert "task management is disabled" in system_content
+        assert "task management is disabled" in messages[-1]["content"]
+        assert "task management is disabled" not in system_content
         assert "no false CRUD claims" in system_content
 
     def test_assemble_messages_includes_wellness_and_boundary_instructions(
@@ -146,7 +147,8 @@ class TestConversationalPromptActionBoundaries:
         system_content = messages[0]["content"]
         assert "MHM's in-app assistant" in system_content
         assert "ACTION BOUNDARIES" in system_content
-        assert messages[1]["content"] == "create a task to buy milk"
+        assert messages[-1]["role"] == "user"
+        assert messages[-1]["content"].endswith("Current request:\ncreate a task to buy milk")
 
 
 @pytest.mark.behavior

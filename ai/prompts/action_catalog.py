@@ -99,7 +99,9 @@ class AIActionCatalog:
         """Return a catalog action by canonical action name."""
         return self.actions.get(action_name)
 
-    @handle_errors("building AI action prompt summary", default_return="Actions: none available.")
+    @handle_errors(
+        "building AI action prompt summary", default_return="Actions: none available."
+    )
     def to_prompt_summary(self) -> str:
         """Return compact action metadata for model prompts."""
         if not self.actions:
@@ -107,7 +109,9 @@ class AIActionCatalog:
         parts = []
         for action in self.actions.values():
             required = ", ".join(action.required_fields) or "none"
-            parts.append(f"{action.action_name} ({action.domain}; required: {required})")
+            parts.append(
+                f"{action.action_name} ({action.domain}; required: {required})"
+            )
         return "Actions: " + "; ".join(parts)
 
     @handle_errors(
@@ -123,13 +127,26 @@ class AIActionCatalog:
         """
         if not self.actions:
             return "none"
-        priority = [
-            name for name in _PRIORITY_PLANNING_ACTIONS if name in self.actions
-        ]
+        priority = [name for name in _PRIORITY_PLANNING_ACTIONS if name in self.actions]
         rest = sorted(
             name for name in self.actions if name not in _PRIORITY_PLANNING_ACTIONS
         )
         return ", ".join(priority + rest)
+
+    @handle_errors("building action entity field contracts", re_raise=True)
+    def to_planning_field_contract(self) -> str:
+        """Describe supported entities from the canonical catalog."""
+        lines = []
+        for action in self.actions.values():
+            fields = ", ".join(
+                f"{item.name.upper()}{' (required)' if item.required else ''}"
+                + (f": {item.description}" if item.description else "")
+                for item in action.fields
+            )
+            lines.append(
+                f"{action.action_name} [{action.domain}]: {fields or 'no fields'}"
+            )
+        return "\n".join(lines)
 
     @handle_errors(
         "building AI action chat prompt summary",
@@ -151,7 +168,9 @@ class AIActionCatalog:
         if not allowed:
             return "none"
         priority = [name for name in _PRIORITY_PLANNING_ACTIONS if name in allowed]
-        rest = sorted(name for name in allowed if name not in _PRIORITY_PLANNING_ACTIONS)
+        rest = sorted(
+            name for name in allowed if name not in _PRIORITY_PLANNING_ACTIONS
+        )
         return ", ".join(priority + rest)
 
     # not_duplicate: action_catalog_serialization
@@ -174,7 +193,9 @@ _TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
         AIActionField("due_time", False, "Optional due time."),
         AIActionField("priority", False, "low, medium, or high."),
         AIActionField("tags", False, "Optional task tags."),
-        AIActionField("links", False, "Optional web links found in the create message."),
+        AIActionField(
+            "links", False, "Optional web links found in the create message."
+        ),
     ],
     "create_task_from_template": [
         AIActionField("template_ref", True, "Built-in task template id or name."),
@@ -608,12 +629,22 @@ def _infer_domain(intent: str) -> str:
     if "schedule" in intent:
         return "schedules"
     if any(
-        marker in intent for marker in ("analytics", "trends", "analysis", "score", "rate")
+        marker in intent
+        for marker in ("analytics", "trends", "analysis", "score", "rate")
     ):
         return "analytics"
     if any(
         marker in intent
-        for marker in ("note", "entry", "entries", "journal", "inbox", "pinned", "archive", "tag")
+        for marker in (
+            "note",
+            "entry",
+            "entries",
+            "journal",
+            "inbox",
+            "pinned",
+            "archive",
+            "tag",
+        )
     ):
         return "notebooks"
     if "account" in intent:

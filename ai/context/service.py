@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+import re
 
 from checkins.analysis import analyze_checkin_entries
 from core import get_user_data
@@ -125,7 +126,9 @@ def build_ai_context_envelope(
         _build_schedule_context(schedules),
         source='get_user_data("all").schedules',
     )
-    sections["tasks"] = _section("tasks", _build_task_context(user_id), source="tasks.task_service")
+    sections["tasks"] = _section(
+        "tasks", _build_task_context(user_id), source="tasks.task_service"
+    )
     sections["checkins"] = _section(
         "checkins", _build_checkin_context(user_id), source="checkins.checkin_service"
     )
@@ -135,7 +138,9 @@ def build_ai_context_envelope(
         source="messages.message_data_manager",
     )
     sections["notebooks"] = _section(
-        "notebooks", _build_notebook_context(user_id), source="notebook.notebook_service"
+        "notebooks",
+        _build_notebook_context(user_id),
+        source="notebook.notebook_service",
     )
     sections["health"] = _section(
         "health", _build_health_context(user_id), source="core.health_context_builder"
@@ -280,7 +285,11 @@ def _format_personal_context(personal_context: dict[str, Any]) -> str:
     custom_fields = personal_context.get("custom_fields") or {}
     if custom_fields:
         bits.append("custom context fields available")
-    return "Personal context: " + "; ".join(bits) if bits else "Personal context: none loaded."
+    return (
+        "Personal context: " + "; ".join(bits)
+        if bits
+        else "Personal context: none loaded."
+    )
 
 
 @handle_errors("building schedule context", default_return={})
@@ -318,7 +327,10 @@ def _build_task_context(user_id: str) -> dict[str, Any]:
 @handle_errors("building check-in context", default_return={})
 def _build_checkin_context(user_id: str) -> dict[str, Any]:
     """Build structured check-in context through check-in service APIs."""
-    from checkins.checkin_service import get_checkin_start_status, get_recent_checkin_summary
+    from checkins.checkin_service import (
+        get_checkin_start_status,
+        get_recent_checkin_summary,
+    )
 
     summary = get_recent_checkin_summary(user_id, limit=10)
     start_status = get_checkin_start_status(user_id)
@@ -358,7 +370,9 @@ NOTEBOOK_CONTEXT_LIMIT = 10
 NOTEBOOK_SUMMARY_LENGTH = 80
 
 
-@handle_errors("summarizing an untitled notebook entry", default_return="Untitled entry")
+@handle_errors(
+    "summarizing an untitled notebook entry", default_return="Untitled entry"
+)
 def _notebook_summary(entry: Any) -> str:
     """Return a short label for an entry that has no title."""
     description = str(getattr(entry, "description", None) or "").strip()
@@ -461,21 +475,29 @@ def _default_prompt_text(name: str, data: Any) -> str:
     if name == "checkins":
         recent = (data or {}).get("recent") or []
         enabled = (data or {}).get("enabled")
-        return f"Check-ins: {'enabled' if enabled else 'disabled'}; {len(recent)} recent."
+        return (
+            f"Check-ins: {'enabled' if enabled else 'disabled'}; {len(recent)} recent."
+        )
     if name == "messages":
         categories = (data or {}).get("categories") or []
         recent = (data or {}).get("recent_sent") or []
         return f"Messages: categories {', '.join(categories) if categories else 'none'}; {len(recent)} recent sent."
     if name == "notebooks":
         notebook = data or {}
-        recent_labels = ", ".join(
-            str(item.get("title") or item.get("summary") or "Untitled entry")
-            for item in notebook.get("recent") or []
-        ) or "none"
-        pinned_labels = ", ".join(
-            str(item.get("title") or item.get("summary") or "Untitled entry")
-            for item in notebook.get("pinned") or []
-        ) or "none"
+        recent_labels = (
+            ", ".join(
+                str(item.get("title") or item.get("summary") or "Untitled entry")
+                for item in notebook.get("recent") or []
+            )
+            or "none"
+        )
+        pinned_labels = (
+            ", ".join(
+                str(item.get("title") or item.get("summary") or "Untitled entry")
+                for item in notebook.get("pinned") or []
+            )
+            or "none"
+        )
         return f"Notebooks: recent {recent_labels}. Pinned: {pinned_labels}."
     if name == "health":
         patterns = (data or {}).get("recent_patterns") or ""
@@ -510,19 +532,89 @@ def _select_prompt_sections(
         "temporal",
         "account",
         "preferences",
-        "personal_context",
-        "tasks",
         "conversation",
     }
     keyword_sections = {
-        "checkins": ("check-in", "checkin", "mood", "energy", "wellness"),
-        "schedules": ("schedule", "window", "reminder time"),
-        "messages": ("message", "sent", "category"),
-        "notebooks": ("note", "notebook", "journal", "list"),
+        "personal_context": (
+            "goal",
+            "goals",
+            "interest",
+            "interests",
+            "prefer",
+            "favorite",
+            "remember",
+            "about me",
+            "focus",
+            "prioritize",
+            "support",
+        ),
+        "tasks": (
+            "task",
+            "tasks",
+            "todo",
+            "to-do",
+            "overdue",
+            "workload",
+            "focus",
+            "prioritize",
+            "reminder",
+            "reminders",
+        ),
+        "checkins": (
+            "check-in",
+            "check-ins",
+            "checkin",
+            "checkins",
+            "check in",
+            "mood",
+            "energy",
+            "wellness",
+        ),
+        "schedules": ("schedule", "schedules", "window", "reminder", "reminders"),
+        "messages": ("message", "messages", "sent", "category", "categories"),
+        "notebooks": (
+            "note",
+            "notes",
+            "notebook",
+            "notebooks",
+            "journal",
+            "journals",
+            "list",
+            "lists",
+        ),
         "health": ("health", "sleep", "rest", "recovery"),
         "analytics": ("trend", "summary", "analytics", "stats"),
     }
     for section_name, keywords in keyword_sections.items():
-        if any(keyword in request for keyword in keywords):
+        if any(
+            re.search(r"\b" + re.escape(keyword) + r"\b", request)
+            for keyword in keywords
+        ):
             selected.add(section_name)
+    from ai.chat.wellness_status import is_wellness_status_question
+
+    if is_wellness_status_question(request):
+        selected.update({"checkins", "health"})
+    if selected & {"checkins", "health"}:
+        selected.add("personal_context")
+    if "analytics" in selected:
+        selected.update({"checkins", "tasks"})
+    if "schedules" in selected:
+        selected.add("messages")
+    if re.search(r"\b(?:it|that|those|this|second|first|third|more)\b", request):
+        conversation = sections.get("conversation")
+        history = (
+            (conversation.data or {}).get("recent_chat_interactions", [])
+            if conversation is not None
+            else []
+        )
+        previous = " ".join(str(item.get("user_message") or "") for item in history[:2])
+        if previous and previous.casefold() != request:
+            # Resolve a follow-up's domain without adding irrelevant stored data.
+            for name, keywords in keyword_sections.items():
+                if any(
+                    re.search(r"\b" + re.escape(word) + r"\b", previous, re.I)
+                    for word in keywords
+                ):
+                    selected.add(name)
     return selected & set(sections)

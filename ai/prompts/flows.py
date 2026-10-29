@@ -7,7 +7,6 @@ from typing import Literal
 
 from core.error_handling import handle_errors
 
-
 PromptFlowName = Literal[
     "chat_response",
     "action_interpretation",
@@ -52,8 +51,8 @@ PRODUCT_AI_PROMPT_FLOWS: dict[PromptFlowName, ProductAIPromptFlow] = {
             "action_boundaries",
             "available_actions",
         ),
-        context_source="ai.context.service.AIContextEnvelope + ai.prompts.action_catalog.AIActionCatalog",
-        prompt_owner="ai.prompts.command_interpreter",
+        context_source="recent conversation + ai.prompts.action_catalog.AIActionCatalog",
+        prompt_owner="ai.prompts.command_interpreter + ai.chat.action_planner",
     ),
     "action_result_response": ProductAIPromptFlow(
         name="action_result_response",
@@ -61,14 +60,15 @@ PRODUCT_AI_PROMPT_FLOWS: dict[PromptFlowName, ProductAIPromptFlow] = {
         categories=(
             "persona",
             "reply_rules",
+            "data_honesty",
             "action_boundaries",
         ),
-        context_source="handler result metadata + refreshed AIContextEnvelope",
+        context_source="handler result metadata (no unrelated personal context)",
         prompt_owner="communication.message_processing.action_plan_executor",
     ),
     "fallback_response": ProductAIPromptFlow(
         name="fallback_response",
-        purpose="Produce deterministic responses when model planning or generation is unavailable.",
+        purpose="Describe deterministic fallback behavior; these categories are not sent to the model.",
         categories=(
             "persona",
             "data_honesty",

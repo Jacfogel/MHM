@@ -3,13 +3,50 @@
 """AI enhancement for structured command responses."""
 
 from ai.context.assembly import assemble_action_result_messages
+from ai.client.openai_client import call_openai_api, fit_messages_to_context
 from core.config import AI_MAX_RESPONSE_LENGTH
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.command_handlers.shared_types import (
+    InteractionResponse,
+    ParsedCommand,
+)
 
 logger = get_component_logger("communication_manager")
+
+
+@handle_errors("generating a grounded action result reply", default_return=None)
+def generate_result_text(user_id: str, source: str, metadata: dict) -> str | None:
+    """Send exactly one result prompt and retain the handler reply on failure."""
+    if not is_ai_usage_allowed(AIUsageFeature.RESPONSE_ENHANCEMENT):
+        return None
+    from ai.chat.response_postprocess import clean_system_prompt_leaks
+    from ai.fallback.conversational import reply_cites_checkin_statistics
+
+    messages = assemble_action_result_messages(user_id, source, metadata)
+    if not messages or "Product AI flow: action_result_response" not in messages[0].get(
+        "content", ""
+    ):
+        return None
+    if fit_messages_to_context(messages, 160) != messages:
+        return None
+    raw = call_openai_api(
+        messages=messages,
+        max_tokens=160,
+        temperature=0.4,
+        timeout=6,
+        usage_feature=AIUsageFeature.RESPONSE_ENHANCEMENT,
+    )
+    text = clean_system_prompt_leaks(raw or "").strip()
+    if not text or len(text) > AI_MAX_RESPONSE_LENGTH:
+        return None
+    if reply_cites_checkin_statistics(text) and not reply_cites_checkin_statistics(
+        str(metadata)
+    ):
+        return None
+    return text
+
 
 EXCLUDED_ENHANCEMENT_INTENTS = {
     "help",
@@ -121,7 +158,7 @@ def enhance_response_with_ai(
             return response
 
         intent = parsed_command.intent or ""
-        if _should_skip_ai_enhancement(intent):
+        if _should_skip_ai_enhancement(intent) or not ai_chatbot.is_ai_available():
             return response
 
         result_metadata = {
@@ -133,28 +170,8 @@ def enhance_response_with_ai(
             "error": response.error,
             "source_message": parsed_command.original_message,
         }
-        messages = assemble_action_result_messages(
-            user_id,
-            parsed_command.original_message,
-            result_metadata,
-        )
-        if not messages or len(messages) < 2:
-            return response
-
-        system_content = messages[0].get("content", "")
-        user_content = messages[1].get("content", parsed_command.original_message)
-        context_prompt = (
-            f"{system_content}\n\n"
-            f"User: {user_content}\n\n"
-            "Write one calm, concise user-visible reply that reflects the handler result. "
-            "Name what changed. Do not cheerlead, do not teach command syntax, and return ONLY the reply text."
-        )
-
-        enhanced_text = ai_chatbot.generate_response(
-            context_prompt,
-            user_id=user_id,
-            timeout=3,
-            mode="response_enhancement",
+        enhanced_text = generate_result_text(
+            user_id, parsed_command.original_message, result_metadata
         )
 
         if enhanced_text and len(enhanced_text) > 10:

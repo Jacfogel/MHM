@@ -1,7 +1,5 @@
 # prompt_manager.py
 
-import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -18,7 +16,6 @@ logger = prompt_logger
 _PROMPTS_DIR = shipped_resource_path("prompts")
 _PRODUCT_AI_PROMPTS_DIR = _PROMPTS_DIR / "product_ai"
 _ASSISTANT_PROMPT_FILENAME = "assistant_system_prompt.txt"
-_COMMAND_PROMPT_FILENAME = "command.txt"
 _PRODUCT_AI_CATEGORY_FILENAMES: dict[str, str] = {
     "persona": "persona.txt",
     "reply_rules": "reply_rules.txt",
@@ -31,7 +28,9 @@ _MINIMAL_WELLNESS_FALLBACK = (
     "encouraging, and conversational."
 )
 MINIMAL_CHAT_SYSTEM_PROMPT = _MINIMAL_WELLNESS_FALLBACK
-_PERSONA_PROMPT_ALIASES = frozenset({"wellness", "neurodivergent_support", "chat_response"})
+_PERSONA_PROMPT_ALIASES = frozenset(
+    {"wellness", "neurodivergent_support", "chat_response"}
+)
 
 
 @handle_errors("loading prompt text file", default_return="")
@@ -43,30 +42,11 @@ def _read_prompt_file(path: Path) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
-@handle_errors("loading command prompt file", default_return="")
-def _load_command_prompt_text() -> str:
-    """Load the command-parser system prompt from resources/prompts/command.txt."""
-    return _read_prompt_file(_PROMPTS_DIR / _COMMAND_PROMPT_FILENAME)
-
-
-_COMMAND_ACTION_LIST_MARKER = "Available actions:"
-
-
-@handle_errors("loading command format instructions", default_return="")
-def _load_command_format_instructions() -> str:
-    """Return ACTION-format instructions from command.txt without the action list."""
-    body = _load_command_prompt_text()
-    if not body:
-        return ""
-    marker_index = body.find(_COMMAND_ACTION_LIST_MARKER)
-    if marker_index >= 0:
-        return body[:marker_index].strip()
-    return body.strip()
-
-
 @handle_errors("loading assistant system prompt file", default_return="")
 def _load_assistant_system_prompt_text() -> str:
     """Load optional custom override prompt or defer to product_ai/persona.txt."""
+    if not AI_USE_CUSTOM_PROMPT:
+        return _load_product_ai_category_text("persona")
     path = Path(AI_SYSTEM_PROMPT_PATH)
     if not path.is_absolute():
         path = Path(__file__).resolve().parent.parent.parent / AI_SYSTEM_PROMPT_PATH
@@ -190,7 +170,7 @@ def _max_tokens_for_product_flow(flow_name: str) -> int | None:
     """Return default max-token budget for a product-AI prompt flow."""
     return {
         "chat_response": 250,
-        "action_interpretation": 180,
+        "action_interpretation": 1200,
         "action_result_response": 160,
         "fallback_response": 140,
     }.get(flow_name)
@@ -232,19 +212,15 @@ class PromptManager:
         }
         self._assistant_prompt = _load_assistant_system_prompt_text()
         persona_body = self._product_ai_categories.get("persona", "").strip()
-        persona_text = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
-        command_body = _load_command_prompt_text()
-        if not command_body:
-            logger.error(
-                f"Command prompt is empty; check resources/prompts/{_COMMAND_PROMPT_FILENAME}"
-            )
-
+        persona_text = (
+            self._assistant_prompt or persona_body or _MINIMAL_WELLNESS_FALLBACK
+        )
         self._fallback_prompts = {
             "command": PromptTemplate(
                 name="command",
-                content=command_body,
-                description="Command parsing prompt (resources/prompts/command.txt)",
-                max_tokens=120,
+                content="",  # Built lazily after the command registry initializes.
+                description="Canonical single-action parsing contract",
+                max_tokens=1200,
                 temperature=0.1,
             ),
             "chat_response": PromptTemplate(
@@ -266,6 +242,7 @@ class PromptManager:
         context_view: Any = None,
         action_catalog: Any = None,
         result_metadata: dict[str, Any] | None = None,
+        include_context: bool = True,
     ) -> PromptTemplate | None:
         """Compose a product-AI prompt from flow categories and supplied data."""
         from ai.prompts.flows import (
@@ -299,14 +276,16 @@ class PromptManager:
                 continue
 
             category_text = self._product_ai_categories.get(category, "").strip()
+            if category == "persona":
+                category_text = self._assistant_prompt or category_text
             if category_text:
                 content_sections.append(f"[{category}]\n{category_text}")
 
         context_text = _extract_context_prompt_text(context_view)
-        if context_text:
+        if context_text and include_context:
             content_sections.append("[selected_user_context]\n" + context_text)
 
-        if result_metadata:
+        if result_metadata and include_context:
             content_sections.append("[action_result_metadata]\n" + str(result_metadata))
 
         return PromptTemplate(
@@ -325,24 +304,18 @@ class PromptManager:
             self._custom_prompt = None
             return
 
-        try:
-            if os.path.exists(AI_SYSTEM_PROMPT_PATH):
-                with open(AI_SYSTEM_PROMPT_PATH, encoding="utf-8") as f:
-                    self._custom_prompt = f.read().strip()
-                _is_tool = "development_tools" in " ".join(
-                    getattr(sys, "argv", [])
-                ) or "run_dev_tools" in " ".join(getattr(sys, "argv", []))
-                (logger.debug if _is_tool else logger.info)(
-                    f"Loaded custom system prompt from {AI_SYSTEM_PROMPT_PATH}"
-                )
-            else:
-                self._custom_prompt = None
-                logger.warning(
-                    f"Custom system prompt file not found: {AI_SYSTEM_PROMPT_PATH}"
-                )
-        except Exception as e:
-            self._custom_prompt = None
-            logger.error(f"Error loading custom system prompt: {e}")
+        path = Path(AI_SYSTEM_PROMPT_PATH)
+        if not path.is_absolute():
+            path = Path(__file__).resolve().parent.parent.parent / path
+        raw = _read_prompt_file(path)
+        self._custom_prompt = (
+            "\n".join(
+                line
+                for line in raw.splitlines()
+                if line.strip() and not line.strip().startswith("#")
+            ).strip()
+            or None
+        )
 
     @handle_errors(
         "getting prompt",
@@ -354,26 +327,21 @@ class PromptManager:
 
         if prompt_type in _PERSONA_PROMPT_ALIASES:
             return get_persona_prompt_text()
+        if prompt_type == "command":
+            from ai.prompts.planning import build_planning_system_prompt
+
+            return build_planning_system_prompt(single_action=True)
 
         template = self._fallback_prompts.get(prompt_type)
         if template:
             logger.debug(f"Using fallback prompt for type: {prompt_type}")
             content = template.content
-            if prompt_type == "command":
-                from ai.prompts.command_registry import inject_command_actions_into_prompt
-
-                content = inject_command_actions_into_prompt(content)
             return content
 
         logger.debug(
             f"Prompt type '{prompt_type}' not found, using persona prompt text"
         )
         return get_persona_prompt_text()
-
-    @handle_errors("getting command format instructions", default_return="")
-    def get_command_format_instructions(self) -> str:
-        """Return ACTION-format parsing rules without the runtime action list."""
-        return _load_command_format_instructions()
 
     # not_duplicate: prompt_template_lookup_mutation
     @handle_errors("getting prompt template", default_return=None)
@@ -393,6 +361,8 @@ class PromptManager:
         if prompt_type in _PERSONA_PROMPT_ALIASES:
             prompt_type = "chat_response"
 
+        if prompt_type == "command":
+            self._fallback_prompts["command"].content = self.get_prompt("command")
         return self._fallback_prompts.get(prompt_type)
 
     @handle_errors("adding prompt template", default_return=False)
@@ -429,10 +399,17 @@ class PromptManager:
     @handle_errors("reloading custom prompt", default_return=False)
     def reload_custom_prompt(self):
         """Reload the custom prompt from file (useful for development)"""
+        self._product_ai_categories = {
+            category: _load_product_ai_category_text(category)
+            for category in _PRODUCT_AI_CATEGORY_FILENAMES
+        }
         self._assistant_prompt = _load_assistant_system_prompt_text()
         persona_body = self._product_ai_categories.get("persona", "").strip()
-        persona_text = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
+        persona_text = (
+            self._assistant_prompt or persona_body or _MINIMAL_WELLNESS_FALLBACK
+        )
         self._fallback_prompts["chat_response"].content = persona_text
+        self._fallback_prompts["command"].content = ""
         self._load_custom_prompt()
         logger.info("Custom system prompt reloaded")
 

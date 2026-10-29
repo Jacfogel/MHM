@@ -80,7 +80,9 @@ class TestAIChatBotBehavior:
 
                 # Test fallback prompts work
                 command_prompt = manager.get_prompt('command')
-                assert "extract the user's intent" in command_prompt.lower(), "Command prompt should be used"
+                assert "ACTION: create_task" in command_prompt
+                assert "Action contracts:" in command_prompt
+                assert "This caller accepts one action" in command_prompt
                     
         finally:
             # Cleanup
@@ -293,12 +295,12 @@ class TestAIChatBotBehavior:
             )
 
         mock_interpreter.create_command_parsing_prompt.assert_called_once_with(
-            "Can you add a task?", clarification=True
+            "Can you add a task?", clarification=True, user_id="clar_prompt_user"
         )
         assert mock_api.call_count == 1, "Clarification mode should invoke the API once"
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used"
-        assert call_kwargs["max_tokens"] == 120, "Clarification mode should request more tokens"
+        assert call_kwargs["max_tokens"] == 600, "Clarification mode should use its response budget"
         assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be used"
         assert response == "What would you like the task to be called?"
 
@@ -349,7 +351,7 @@ class TestAIChatBotBehavior:
             )
 
         mock_interpreter.create_command_parsing_prompt.assert_called_once_with(
-            ambiguous_prompt, clarification=True
+            ambiguous_prompt, clarification=True, user_id="clar_detect_user"
         )
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used for ambiguous requests"

@@ -86,10 +86,6 @@ def clean_system_prompt_leaks(response: str) -> str:
         if any(
             pattern in line_lower
             for pattern in [
-                "check-ins are disabled",
-                "check-ins are enabled",
-                "task management is disabled",
-                "task management is enabled",
                 "do not mention check-ins",
                 "do not mention tasks",
             ]
@@ -195,7 +191,14 @@ def polish_greeting_response(response: str, user_prompt: str) -> str:
     simple_greeting = bool(
         re.fullmatch(r"(?:hello|hi|hey)(?:\s+there)?[!.?\s]*", prompt_lower)
     )
-    greeting_markers = ("hello", "hi", "hey", "good morning", "good afternoon", "good evening")
+    greeting_markers = (
+        "hello",
+        "hi",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+    )
     feeling_markers = (
         "doing well",
         "doing great",
@@ -219,9 +222,13 @@ def polish_greeting_response(response: str, user_prompt: str) -> str:
             "in-app assistant",
         )
     )
-    if simple_greeting and instructional_greeting and not (
-        response_lower.startswith(greeting_markers)
-        or any(marker in response_lower for marker in feeling_markers)
+    if (
+        simple_greeting
+        and instructional_greeting
+        and not (
+            response_lower.startswith(greeting_markers)
+            or any(marker in response_lower for marker in feeling_markers)
+        )
     ):
         return "Hi! How are you doing today?"
     if simple_greeting and len(response) > 200:
@@ -285,6 +292,7 @@ def polish_greeting_response(response: str, user_prompt: str) -> str:
         flags=re.IGNORECASE,
     ).strip()
     return polished or response
+
 
 _INSTRUCTION_TUNING_MARKERS = (
     re.compile(r"##\s*INPUT\s*##\s*OUTPUT", re.IGNORECASE),
@@ -389,7 +397,9 @@ _PARENTHETICAL_INPUT_PLACEHOLDER = re.compile(
 )
 
 
-@handle_errors("truncating response at first leak pattern", user_friendly=False, default_return="")
+@handle_errors(
+    "truncating response at first leak pattern", user_friendly=False, default_return=""
+)
 def _truncate_at_first_leak(
     text: str,
     patterns: tuple[re.Pattern[str], ...],
@@ -436,11 +446,6 @@ _INSTRUCTION_LINE_HINTS = (
     "never return",
     "return only natural",
     "user context:",
-    "check-ins are disabled",
-    "check-ins are enabled",
-    "task management is disabled",
-    "task management is enabled",
-    "automated messages are disabled",
     "check-in data, or suggest",
     "[response_rules]",
     "[reply_rules]",
@@ -478,13 +483,19 @@ _CODE_LINE_HINTS = re.compile(
 )
 
 
-@handle_errors("detecting leading code artifact in response", user_friendly=False, default_return=False)
+@handle_errors(
+    "detecting leading code artifact in response",
+    user_friendly=False,
+    default_return=False,
+)
 def _response_starts_with_code_artifact(text: str) -> bool:
     """Return whether the response begins with a leaked code artifact."""
     return bool(_LEADING_CODE_LEAK.match(text))
 
 
-@handle_errors("detecting user prose in response lines", user_friendly=False, default_return=False)
+@handle_errors(
+    "detecting user prose in response lines", user_friendly=False, default_return=False
+)
 def _first_nonempty_line_looks_like_user_prose(text: str) -> bool:
     """Return whether the first meaningful response line looks like natural prose."""
     for line in text.splitlines():
@@ -497,7 +508,11 @@ def _first_nonempty_line_looks_like_user_prose(text: str) -> bool:
     return False
 
 
-@handle_errors("detecting instruction-only response leak", user_friendly=False, default_return=False)
+@handle_errors(
+    "detecting instruction-only response leak",
+    user_friendly=False,
+    default_return=False,
+)
 def _response_is_mostly_instruction_leak(text: str) -> bool:
     """True when the remaining text looks like leaked prompt instructions, not chat."""
     stripped = text.strip()
@@ -601,6 +616,7 @@ def find_response_leak_markers(text: str) -> list[str]:
         markers.append("blank placeholder")
     return markers
 
+
 _PRODUCT_AI_CATEGORY_NAMES = (
     "persona",
     "chat_response",
@@ -641,9 +657,9 @@ def strip_markup_and_tutorial_leaks(response: str) -> str:
     ):
         return ""
 
-    if _response_starts_with_code_artifact(text) and not _first_nonempty_line_looks_like_user_prose(
+    if _response_starts_with_code_artifact(
         text
-    ):
+    ) and not _first_nonempty_line_looks_like_user_prose(text):
         return ""
 
     text = _truncate_at_first_leak(
@@ -800,9 +816,7 @@ _INLINE_SIGNOFF = re.compile(
 
 # Soft day-wish / help-offer closings
 _DAY_WISH = r"have a (?:wonderful|great|nice|lovely|good) day"
-_TAKE_CARE_CLOSING = (
-    r"take care of yourself(?:\s+and(?:\s+" + _DAY_WISH + r")?)?"
-)
+_TAKE_CARE_CLOSING = r"take care of yourself(?:\s+and(?:\s+" + _DAY_WISH + r")?)?"
 _SOFT_CLOSING_LINE = re.compile(
     r"^\s*(?:"
     rf"{_DAY_WISH}"
@@ -832,7 +846,9 @@ _PLACEHOLDER_NAME_LEAK = re.compile(r"\s*\[Your Name\]", re.IGNORECASE)
 
 # Model meta-commentary like "(Note: This response uses supportive language...)"
 _META_NOTE_LINE = re.compile(r"^\s*\(\s*Note\s*:.*\)\s*$", re.IGNORECASE | re.DOTALL)
-_TRAILING_META_NOTE = re.compile(r"\s*\(\s*Note\s*:.*?\)\s*$", re.IGNORECASE | re.DOTALL)
+_TRAILING_META_NOTE = re.compile(
+    r"\s*\(\s*Note\s*:.*?\)\s*$", re.IGNORECASE | re.DOTALL
+)
 
 _GREETING_NAME = r"(?:Dear|Hi|Hey)\s+\w+"
 _PERSONALIZED_GREETING_START = re.compile(
@@ -889,7 +905,9 @@ def strip_ungrounded_checkin_claims(text: str) -> str:
     return " ".join(kept).strip()
 
 
-@handle_errors("detecting letter sign-off line", user_friendly=False, default_return=False)
+@handle_errors(
+    "detecting letter sign-off line", user_friendly=False, default_return=False
+)
 def _line_is_letter_signoff(line: str) -> bool:
     """True when a line is a letter closing, signature, soft closer, or meta note."""
     return bool(
@@ -967,8 +985,8 @@ _PERSONA_DEFINITION_MARKERS = (
     "usually 50-300 words",
 )
 _PERSONA_DEFINITION_REPLY = (
-    "I'm MHM's assistant - here to help with tasks, routines, check-ins, and "
-    "day-to-day support. What would you like to focus on?"
+    "I'm MHM's assistant, here to offer practical day-to-day support and help "
+    "with the features enabled for your account."
 )
 
 
@@ -1009,6 +1027,8 @@ def collapse_persona_definition_echo(user_prompt: str, response: str) -> str:
         return response
     if not _IDENTITY_QUESTION_PATTERN.search(user_prompt):
         return response
+    if not any(marker in response.lower() for marker in _PERSONA_DEFINITION_MARKERS):
+        return response
     return _PERSONA_DEFINITION_REPLY
 
 
@@ -1046,7 +1066,39 @@ def repair_vague_capabilities_reply(user_prompt: str, response: str) -> str:
     """Answer capability questions with a concise list of supported features."""
     if not response or not _CAPABILITIES_QUESTION_PATTERN.search(user_prompt or ""):
         return response
-    return _PERSONA_DEFINITION_REPLY
+    if any(marker in response.lower() for marker in _CONCRETE_CAPABILITY_MARKERS):
+        return response
+    if not _needs_content_repair(response):
+        return response
+    return "I can help you talk things through and use the MHM features enabled for your account."
+
+
+@handle_errors("checking for unusable conversational content", default_return=False)
+def _needs_content_repair(response: str) -> bool:
+    """Recognize empty deflections; never replace an answer just for its topic."""
+    lowered = (response or "").strip().lower()
+    return (
+        not lowered
+        or response == UNCLEAR_USER_INPUT_REPLY
+        or lowered.startswith(
+            (
+                "i'm not sure what you mean",
+                "i’m not sure what you mean",
+                "i am not sure what you mean",
+                "could you rephrase",
+                "what would you like",
+                "i can answer questions",
+                "i can tell you what i know",
+                "i'm happy to help! do you have any questions",
+                "this is normal. come back later",
+                "try the weekly task planner",
+                "i'm doing well. what would you like to talk about",
+                "you're telling me a short story",
+                "what kind of story",
+                "what story would",
+            )
+        )
+    )
 
 
 _HELPFUL_REQUEST_PATTERN = re.compile(
@@ -1064,6 +1116,8 @@ def repair_direct_helpful_reply(user_prompt: str, response: str) -> str:
     """Return a concrete tip when a direct helpful request produced unusable text."""
     if not _HELPFUL_REQUEST_PATTERN.search(user_prompt or ""):
         return response
+    if not _needs_content_repair(response):
+        return response
     return _HELPFUL_REPLY
 
 
@@ -1076,6 +1130,12 @@ _FACT_REQUEST_PATTERN = re.compile(
 def repair_direct_fact_reply(user_prompt: str, response: str) -> str:
     """Ensure a direct fact request receives an actual, concise fact."""
     if not _FACT_REQUEST_PATTERN.search(user_prompt or ""):
+        return response
+    if not _needs_content_repair(response):
+        return response
+    if not re.fullmatch(
+        r"\s*(?:tell|give|show)\s+me\s+a\s+fact[.!?\s]*", user_prompt, re.I
+    ):
         return response
     return "Octopuses have three hearts."
 
@@ -1093,6 +1153,9 @@ def repair_simple_arithmetic_reply(user_prompt: str, response: str) -> str:
     if match is None:
         return response
     left, right = (int(value) for value in match.groups())
+    numbers = re.findall(r"-?\d+", response or "")
+    if numbers and int(numbers[-1]) == left + right:
+        return response
     return f"The answer is {left + right}."
 
 
@@ -1105,6 +1168,8 @@ _FOCUS_REQUEST_PATTERN = re.compile(
 def repair_focus_reply(user_prompt: str, response: str) -> str:
     """Replace unusable focus advice with one concrete prioritization step."""
     if not _FOCUS_REQUEST_PATTERN.search(user_prompt or ""):
+        return response
+    if not _needs_content_repair(response):
         return response
     return (
         "Choose one important outcome for the week, then pick the smallest next "
@@ -1128,6 +1193,8 @@ _EMOTIONAL_DISCLOSURE_PATTERN = re.compile(
 def repair_emotional_support_reply(user_prompt: str, response: str) -> str:
     """Provide a grounded, relevant reply to direct stress or emotional disclosures."""
     prompt = user_prompt or ""
+    if not _needs_content_repair(response):
+        return response
     if _STRESS_SUPPORT_PATTERN.search(prompt):
         return (
             "To lower the stress, try three slow breaths, then write down the next "
@@ -1190,10 +1257,9 @@ def repair_action_status_reply(user_prompt: str, response: str) -> str:
         "did you" in prompt and "add" in prompt and "task" in prompt
     ):
         return response
-    return (
-        "No, I haven't added it. If you'd like to create it, say "
-        '"create task buy groceries."'
-    )
+    if not _needs_content_repair(response) and not find_false_crud_claims(response):
+        return response
+    return "I don't have a verified task-creation result in this chat. You can check your task list to confirm."
 
 
 _EXPLICIT_CREATE_CHAT_PATTERN = re.compile(
@@ -1216,13 +1282,6 @@ _SHORT_STORY_REQUEST = re.compile(
     r"\b(?:tell|write)\s+me\s+(?:a\s+)?(?:short\s+)?stor(?:y|ies)\b",
     re.IGNORECASE,
 )
-_STORY_RESPONSE_MARKERS = (
-    "tale",
-    "once ",
-    "one day",
-    "one night",
-    "long ago",
-)
 _SHORT_STORY_FALLBACK = (
     "Once, a small lantern worried it was not bright enough to matter. One foggy night, "
     "a traveler followed its modest glow safely home. By morning, the lantern "
@@ -1235,9 +1294,6 @@ def repair_short_story_mismatch(user_prompt: str, response: str) -> str:
     """Return a brief story when a direct story request gets an obvious chat redirect."""
     if not response or not _SHORT_STORY_REQUEST.search(user_prompt or ""):
         return response
-    response_lower = response.lower()
-    if len(response) <= 500 and any(
-        marker in response_lower for marker in _STORY_RESPONSE_MARKERS
-    ):
+    if not _needs_content_repair(response):
         return response
     return _SHORT_STORY_FALLBACK

@@ -27,6 +27,10 @@ class OpenAICompletion:
 
     text: str | None = None
     failure: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cached_input_tokens: int | None = None
+
 
 # Conservative character estimate for the app's bounded input budget.
 _MODEL_CONTEXT_TOKENS = AI_CONTEXT_TOKENS
@@ -86,9 +90,7 @@ def _apply_text_budget(
 
 
 @handle_errors("fitting OpenAI messages to the context window", default_return=[])
-def fit_messages_to_context(
-    messages: list, completion_tokens: int
-) -> list:
+def fit_messages_to_context(messages: list, completion_tokens: int) -> list:
     """Shrink system and user text so the request stays inside the configured app input budget.
 
     The start of the instructions is kept. The end of the user message is kept.
@@ -102,6 +104,13 @@ def fit_messages_to_context(
         if isinstance(message, dict):
             fitted.append(dict(message))
     total = sum(len(str(message.get("content") or "")) for message in fitted)
+    # Remove oldest complete conversational turns before shortening instructions
+    # or the current request. Never leave an orphaned assistant reply.
+    while total > budget and len(fitted) > 2 and fitted[1].get("role") != "system":
+        removed = fitted.pop(1)
+        total -= len(str(removed.get("content") or ""))
+        if len(fitted) > 2 and fitted[1].get("role") == "assistant":
+            total -= len(str(fitted.pop(1).get("content") or ""))
     if total <= budget:
         return fitted
 
@@ -111,7 +120,9 @@ def fit_messages_to_context(
     other_indexes = [
         index for index, message in enumerate(fitted) if message.get("role") != "system"
     ]
-    user_len = sum(len(str(fitted[index].get("content") or "")) for index in other_indexes)
+    user_len = sum(
+        len(str(fitted[index].get("content") or "")) for index in other_indexes
+    )
     system_len = sum(
         len(str(fitted[index].get("content") or "")) for index in system_indexes
     )
@@ -119,7 +130,7 @@ def fit_messages_to_context(
         system_budget = budget - user_len
         user_budget = user_len
     else:
-        system_budget = min(system_len, budget // 3)
+        system_budget = system_len if system_len <= budget // 2 else budget // 3
         user_budget = budget - system_budget
     _apply_text_budget(fitted, system_indexes, system_budget, keep_tail=False)
     _apply_text_budget(fitted, other_indexes, user_budget, keep_tail=True)
@@ -164,7 +175,9 @@ def test_openai_connection() -> bool:
         logger.warning("OpenAI connection check failed")
         return False
     if response.status_code != 200:
-        logger.warning("OpenAI model access check failed", status_code=response.status_code)
+        logger.warning(
+            "OpenAI model access check failed", status_code=response.status_code
+        )
         return False
     return True
 
@@ -188,7 +201,9 @@ def complete_openai_chat(
     wire request so sampling uses the model defaults. Stop sequences are applied locally.
     """
     if not is_ai_usage_allowed(usage_feature):
-        return OpenAICompletion(failure=f"AI usage disabled for feature: {usage_feature}")
+        return OpenAICompletion(
+            failure=f"AI usage disabled for feature: {usage_feature}"
+        )
     if not OPENAI_API_KEY:
         return OpenAICompletion(failure="OpenAI API key is not configured")
     if not OPENAI_MODEL:
@@ -258,7 +273,14 @@ def complete_openai_chat(
             text = text.split(sequence, 1)[0].strip()
     if not text:
         return OpenAICompletion(failure="empty content")
-    return OpenAICompletion(text=text)
+    usage = data.get("usage") or {}
+    details = usage.get("input_tokens_details") or {}
+    return OpenAICompletion(
+        text=text,
+        input_tokens=usage.get("input_tokens"),
+        output_tokens=usage.get("output_tokens"),
+        cached_input_tokens=details.get("cached_tokens"),
+    )
 
 
 @handle_errors("calling OpenAI API", default_return=None)
@@ -273,7 +295,11 @@ def call_openai_api(
 ) -> str | None:
     """Return text from one policy-controlled Responses request."""
     completion = complete_openai_chat(
-        messages, max_tokens=max_tokens, temperature=temperature, timeout=timeout,
-        stop=stop, usage_feature=usage_feature,
+        messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        timeout=timeout,
+        stop=stop,
+        usage_feature=usage_feature,
     )
     return completion.text if isinstance(completion, OpenAICompletion) else None

@@ -21,9 +21,14 @@ from ai.chat.action_planner import answer_only_plan, clarify_plan
 from ai.chat.chatbot import AIChatBotSingleton
 from ai.chat.response_generator import get_response_generator
 from checkins.checkin_data_manager import store_checkin_response
-from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.command_handlers.shared_types import (
+    InteractionResponse,
+    ParsedCommand,
+)
 from communication.message_processing.command_parser import ParsingResult
-from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.conversation_flow_manager import (
+    conversation_manager,
+)
 from communication.message_processing.flows.flow_constants import FLOW_TASK_DUE_DATE
 from communication.message_processing.interaction_manager import (
     InteractionManager,
@@ -39,12 +44,10 @@ from tasks import create_task, load_active_tasks, save_active_tasks
 from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import TestUserFactory
 
-
 pytestmark = [pytest.mark.behavior, pytest.mark.ai]
 
 _FALSE_CRUD_REPLY = (
-    "I've created that task for you.\n"
-    "I can help you add another if you want."
+    "I've created that task for you.\n" "I can help you add another if you want."
 )
 
 
@@ -196,7 +199,9 @@ def test_everyday_create_task_phrase_offers_before_saving(test_data_dir):
     """Casual 'I should...' phrasing asks before creating a task."""
     user_id = _create_journey_user(test_data_dir, "journey-everyday-create")
 
-    result = handle_user_message(user_id, "i should pick up groceries tonight", "discord")
+    result = handle_user_message(
+        user_id, "i should pick up groceries tonight", "discord"
+    )
 
     assert result and result.message
     assert "want me to add" in result.message.lower()
@@ -394,11 +399,7 @@ def test_which_task_number_applies_pending_due_update(test_data_dir):
     result = handle_user_message(user_id, "1.", "discord")
     assert result and result.message
     assert "updated" in result.message.lower()
-    dated = [
-        task
-        for task in load_active_tasks(user_id)
-        if runtime_task_due_date(task)
-    ]
+    dated = [task for task in load_active_tasks(user_id) if runtime_task_due_date(task)]
     assert len(dated) == 1
     assert find_false_crud_claims(result.message) == []
 
@@ -471,9 +472,7 @@ def test_add_note_during_due_date_flow_keeps_flow(test_data_dir):
     """Adding a note to 'that' during due-date follow-up keeps the due-date prompt."""
     user_id = _create_journey_user(test_data_dir, "journey-note-in-flow")
     conversation_manager.user_states.pop(user_id, None)
-    created = handle_user_message(
-        user_id, "dont forget to email the school", "discord"
-    )
+    created = handle_user_message(user_id, "dont forget to email the school", "discord")
     assert created and not created.completed
     assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_DUE_DATE
 
@@ -579,7 +578,7 @@ def test_disabled_tasks_prompt_and_reply_stay_within_capabilities(
         user_id, "can you create a task for me"
     )
     system_content = messages[0]["content"]
-    assert "task management is disabled" in system_content
+    assert "task management is disabled" in messages[-1]["content"]
     assert "ACTION BOUNDARIES" in system_content
 
     ensure_patch, api_patch = _use_mocked_openai_api(chatbot, _FALSE_CRUD_REPLY)

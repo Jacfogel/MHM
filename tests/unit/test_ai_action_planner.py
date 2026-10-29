@@ -17,7 +17,6 @@ from core.response_tracking import store_chat_interaction
 from tests.test_helpers.test_utilities import TestUserFactory
 from user.context_manager import user_context_manager
 
-
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
 
 
@@ -173,7 +172,9 @@ def test_build_planning_messages_are_compact_and_omit_chat_categories():
     assert "[data_honesty]" not in system
     assert "[action_boundaries]" not in system
     assert "You are a command parser" not in system
-    assert len(system) < 2300
+    assert "TITLE (required)" in system
+    assert "ordered ACTION blocks" in system
+    assert len(system) < 16000
 
 
 def test_plan_from_message_uses_ai_when_available(monkeypatch):
@@ -215,9 +216,7 @@ def test_plan_from_message_defaults_when_ai_unavailable():
         ai_chatbot=ai_chatbot,
     )
 
-    assert plan == answer_only_plan(
-        "list my tasks", planning_method="ai_unavailable"
-    )
+    assert plan == answer_only_plan("list my tasks", planning_method="ai_unavailable")
 
 
 def test_parse_multi_action_plan_builds_ordered_requests():
@@ -542,7 +541,11 @@ def test_multi_action_plan_text_routes_through_executor(test_data_dir):
     assert result is not None
     assert task_title in result.response.message
     task = next(
-        (item for item in load_active_tasks(user_id) if item.get("title") == task_title),
+        (
+            item
+            for item in load_active_tasks(user_id)
+            if item.get("title") == task_title
+        ),
         None,
     )
     assert task is not None

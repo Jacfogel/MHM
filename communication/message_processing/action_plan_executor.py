@@ -6,9 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ai.chat.action_planner import get_action_planner
-from ai.client.openai_client import call_openai_api
 from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
-from ai.context.assembly import assemble_action_result_messages
 from ai.fallback.conversational import (
     is_simple_greeting,
     reply_cites_checkin_statistics,
@@ -41,8 +39,12 @@ class ActionExecutionResult:
     metadata: Any | None = None
 
 
-@handle_errors("combining handler responses", default_return=InteractionResponse("Done.", True))
-def _combine_handler_responses(responses: list[InteractionResponse]) -> InteractionResponse:
+@handle_errors(
+    "combining handler responses", default_return=InteractionResponse("Done.", True)
+)
+def _combine_handler_responses(
+    responses: list[InteractionResponse],
+) -> InteractionResponse:
     """Merge sequential handler replies into one user-visible response."""
     if not responses:
         return InteractionResponse("Done.", True)
@@ -298,29 +300,27 @@ class ActionPlanExecutor:
         ):
             return handler_response
 
-        result_metadata = metadata.to_dict()
-        messages = assemble_action_result_messages(
-            user_id,
-            action.source_message,
-            result_metadata,
+        from communication.message_processing.response_enhancer import (
+            _should_skip_ai_enhancement,
         )
-        if not messages or len(messages) < 2:
-            return handler_response
 
-        raw = call_openai_api(
-            messages=messages,
-            max_tokens=120,
-            temperature=0.4,
-            timeout=6,
-            usage_feature=AIUsageFeature.RESPONSE_ENHANCEMENT,
+        if _should_skip_ai_enhancement(action.action_name):
+            return handler_response
+        result_metadata = metadata.to_dict()
+        result_metadata["handler_message"] = handler_response.message
+        from communication.message_processing.response_enhancer import (
+            generate_result_text,
         )
-        enhanced_text = (raw or "").strip()
+
+        enhanced_text = (
+            generate_result_text(user_id, action.source_message, result_metadata) or ""
+        )
         if len(enhanced_text) <= 10:
             return handler_response
         grounded = f"{source}\n{handler_response.message or ''}\n{result_metadata}"
-        if reply_cites_checkin_statistics(enhanced_text) and not reply_cites_checkin_statistics(
-            grounded
-        ):
+        if reply_cites_checkin_statistics(
+            enhanced_text
+        ) and not reply_cites_checkin_statistics(grounded):
             return handler_response
         handler_response.message = enhanced_text
         return handler_response

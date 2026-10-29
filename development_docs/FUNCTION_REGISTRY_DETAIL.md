@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-28 01:08:24
+> **Last Generated**: 2026-10-28 17:47:55
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,16 +15,16 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 313
-- **Functions Found**: 3238
-- **Methods Found**: 1649
+- **Files Scanned**: 314
+- **Functions Found**: 3241
+- **Methods Found**: 1648
 - **Classes Found**: 290
-- **Total Items**: 4887
-- **Functions Documented**: 2884
-- **Methods Documented**: 1470
+- **Total Items**: 4889
+- **Functions Documented**: 2887
+- **Methods Documented**: 1469
 - **Classes Documented**: 223
-- **Total Documented**: 4354
-- **Template-Generated**: 72
+- **Total Documented**: 4356
+- **Template-Generated**: 70
 - **Last Updated**: 2026-10-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (689)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (911)
+### **Communication Functions** (912)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (555)
@@ -80,19 +80,22 @@ Test functions and testing utilities.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
 - [OK] `_format_planning_user_content(user_message, recent_turns)` - Build the compact user-role payload for the action planner.
 - [OK] `_missing_field_question(field_name)` - Return a calm clarification question for a missing planner field.
+- [OK] `_needs_assistant_reference(message)` - Do not send a previous assistant reply for self-contained requests.
 - [OK] `_normalize_action_name(raw_action, known_intents)` - Normalize ACTION lines to live parser intent names.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
 - [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
 - [OK] `_parse_plan_structure(text)` - Parse shared planner fields and ordered per-action blocks.
 - [OK] `_planner_grounding_text(source_message, recent_turns)` - Combine the current message with recent user turns for entity grounding.
+- [OK] `_recent_assistant_turns_for_planning(user_id)` - Load only the latest assistant reply for explicitly selected follow-ups.
 - [OK] `_recent_user_turns_for_planning(user_id, current_message)` - Return the last few distinct user turns, excluding the current message.
+- [OK] `_selected_assistant_grounding(source, assistant_turns)` - Ground entities only in a suggestion the user explicitly selects.
 - [OK] `_trim_planner_output(planner_output)` - Drop common local-model trailing junk after the first plan block.
 - [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
 - [OK] `build_planning_messages(self, user_id, user_message)` - Build compact OpenAI messages for action planning.
 
-Full context envelopes are omitted so local models with ~2k context can
-run planning. At most two recent user turns are included so follow-ups
+Full context envelopes are omitted to keep planning focused.
+At most two recent user turns are included so follow-ups
 like "add that as a task" can reuse a title the user already stated.
 - [OK] `clarify_plan(source_message, question)` - Return a clarification plan with one user-facing question.
 - [OK] `get_action_planner()` - Return the shared action planner.
@@ -103,8 +106,8 @@ like "add that as a task" can reuse a title the user already stated.
 - [OK] `ActionPlanner` - Plan product-AI responses and optional app actions from user messages.
   - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build compact OpenAI messages for action planning.
 
-Full context envelopes are omitted so local models with ~2k context can
-run planning. At most two recent user turns are included so follow-ups
+Full context envelopes are omitted to keep planning focused.
+At most two recent user turns are included so follow-ups
 like "add that as a task" can reuse a title the user already stated.
   - [OK] `ActionPlanner.plan_from_message(self, user_message)` - Call the model (when available) and parse an action plan.
   - [OK] `ActionPlanner.plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
@@ -242,6 +245,7 @@ answer with the stated fact instead of a vague or forgetful reply.
 **Functions:**
 - [OK] `_first_nonempty_line_looks_like_user_prose(text)` - Return whether the first meaningful response line looks like natural prose.
 - [OK] `_line_is_letter_signoff(line)` - True when a line is a letter closing, signature, soft closer, or meta note.
+- [OK] `_needs_content_repair(response)` - Recognize empty deflections; never replace an answer just for its topic.
 - [OK] `_response_is_mostly_instruction_leak(text)` - True when the remaining text looks like leaked prompt instructions, not chat.
 - [OK] `_response_starts_with_code_artifact(text)` - Return whether the response begins with a leaked code artifact.
 - [OK] `_truncate_at_first_leak(text, patterns)` - Return text truncated before the earliest leak pattern match.
@@ -738,6 +742,7 @@ Check-in analytics and envelope summaries are handled before generic keyword sup
 Names only. Required fields stay on the planning path.
 - [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
 - [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
+- [OK] `to_planning_field_contract(self)` - Describe supported entities from the canonical catalog.
 - [OK] `to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
 
 Names only (comma-separated). Common task/check-in/profile actions are
@@ -751,6 +756,7 @@ Required-field checks happen in the planner parser.
 
 Names only. Required fields stay on the planning path.
   - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
+  - [OK] `AIActionCatalog.to_planning_field_contract(self)` - Describe supported entities from the canonical catalog.
   - [OK] `AIActionCatalog.to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
 
 Names only (comma-separated). Common task/check-in/profile actions are
@@ -766,7 +772,6 @@ Required-field checks happen in the planner parser.
 
 #### `ai/prompts/command_interpreter.py`
 **Functions:**
-- [OK] `__init__(self)` - Special Python method
 - [OK] `_is_code_or_fence_line(line_stripped)` - True for import/def/class/comment/fence lines that should not become commands.
 - [OK] `_is_nlp_boilerplate_line(line_stripped)` - True for interpreter-style boilerplate leftover in natural-language responses.
 - [OK] `create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
@@ -780,7 +785,6 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
 **Classes:**
 - [OK] `CommandInterpreter` - Detect command-oriented prompts and extract structured command candidates.
-  - [OK] `CommandInterpreter.__init__(self)` - Special Python method
   - [OK] `CommandInterpreter.create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
   - [OK] `CommandInterpreter.detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
   - [OK] `CommandInterpreter.ensure_structured_command_response(self, response, user_prompt)` - Keep command-mode output machine-readable when the model answers in prose.
@@ -815,8 +819,6 @@ AI modules must call this registry helper instead of importing
 - [OK] `_extract_action_summary(context_view, action_catalog)` - Return generated action capability text from a catalog or context view.
 - [OK] `_extract_context_prompt_text(context_view)` - Return prompt text from an AIContextEnvelope-like object or plain dict.
 - [OK] `_load_assistant_system_prompt_text()` - Load optional custom override prompt or defer to product_ai/persona.txt.
-- [OK] `_load_command_format_instructions()` - Return ACTION-format instructions from command.txt without the action list.
-- [OK] `_load_command_prompt_text()` - Load the command-parser system prompt from resources/prompts/command.txt.
 - [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
 - [OK] `_load_product_ai_category_text(category)` - Load one product-AI prompt category file.
 - [OK] `_max_tokens_for_product_flow(flow_name)` - Return default max-token budget for a product-AI prompt flow.
@@ -842,7 +844,6 @@ Returns:
 
 Returns:
     Dictionary mapping prompt types to descriptions
-- [OK] `get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
 - [OK] `get_persona_prompt_text()` - Return canonical persona category text for simple (non-composed) prompts.
 - [OK] `get_prompt(self, prompt_type)` - Return the command-parser prompt. Persona/chat prompts use other APIs.
 - [OK] `get_prompt_manager()` - Get the global prompt manager instance
@@ -886,7 +887,6 @@ Returns:
 
 Returns:
     Dictionary mapping prompt types to descriptions
-  - [OK] `PromptManager.get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
   - [OK] `PromptManager.get_prompt(self, prompt_type)` - Return the command-parser prompt. Persona/chat prompts use other APIs.
   - [OK] `PromptManager.get_prompt_template(self, prompt_type)` - Get the full prompt template for the given type
 
@@ -905,6 +905,10 @@ Args:
 Returns:
     True if template was removed, False if not found
 - [OK] `PromptTemplate` - Template for AI prompts
+
+#### `ai/prompts/planning.py`
+**Functions:**
+- [OK] `build_planning_system_prompt()` - Build action instructions from the canonical catalog and caller contract.
 
 #### `ai/usage_policy.py`
 **Functions:**
@@ -3869,6 +3873,7 @@ Returns an early InteractionResponse or a converted message for continued parsin
 **Functions:**
 - [OK] `_should_skip_ai_enhancement(intent)` - Return True when AI must not rewrite a deterministic command response.
 - [OK] `enhance_response_with_ai(user_id, response, parsed_command)` - Enhance a structured response with AI contextual information.
+- [OK] `generate_result_text(user_id, source, metadata)` - Send exactly one result prompt and retain the handler reply on failure.
 
 #### `communication/message_processing/structured_command_dispatcher.py`
 **Functions:**

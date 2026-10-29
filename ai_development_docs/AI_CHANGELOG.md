@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-28 - OpenAI prompt and context review **COMPLETED**
+- Unified catalog-backed action prompts, field requirements, and output budgets; separated runtime data from instructions and preserved relevant conversation context, including explicitly selected assistant suggestions.
+- Removed duplicated response enhancement, aligned persona loading/reloading and task prompts, and stopped canned repairs from overwriting valid facts, focused advice, emotional replies, stories, or feature restrictions. Execution checks and deterministic fallbacks remain authoritative.
+- Added a synthetic live evaluation runner with raw/final responses, timing, and token use: the baseline exposed four repair regressions; the corrected suite passed 30/30 checks plus 2/2 failed-result checks, without executing actions or writing user accounts.
+- Completed strict Tier 3 audit follow-through: repaired stale tests, missing error handling, the circular dependency, registry/documentation drift, and Ruff/Pyright findings. Regenerated documentation; reviewed high-fan-out hubs without cosmetic refactoring. Removed the temporary review document after consolidating lasting guidance in the AI system guide.
+
 ### 2026-10-28 - Nightly marker and email-socket failures **COMPLETED**
 - Task-simplify and task-response tests now carry the required category and domain markers that failed nightly policy checks on Oct 26-28.
 - Email initialization and recovery tests mock IMAP, so a live Gmail socket can no longer time out and fail a later nightly test during garbage collection.
@@ -110,12 +116,6 @@ Guidelines:
 - Live Google sign-in failures were traced to the headless gateway running with outbound HTTPS blocked (`WinError 5`/`WinError 10013`). The restricted process was replaced with a normally networked service; Google provider discovery, authorization startup, client credentials, and the production callback now validate successfully.
 - Home shows the most recent six conversation turns or every turn from the last 48 hours, whichever is greater. Each More click expands by another six turns or another 48 hours, whichever reveals more, and disappears when the full retained conversation is visible.
 - The cache-busted website update was deployed to `mhm.jacfogel.com`. All 135 browser tests and all 40 website account-service tests pass.
-
-### 2026-10-16 - Private logging and self-contained installs hardened **COMPLETED**
-- Runtime logs no longer record user-authored message bodies; communication, AI, service, and response-tracking paths retain only safe operational metadata, backed by a static privacy regression guard.
-- Package metadata now declares the runtime, UI, and development dependencies, includes shipped resources, styles, fonts, and website assets, and consistently supports Python 3.11 across metadata, CI, type checking, and setup documentation.
-- Logger exception forwarding preserves traceback detail while supporting redacted exception messages. OAuth failures omit codes, state, tokens, and other secrets; shipped-resource path helpers now use centralized fail-fast error handling with failure-path tests.
-- Risk-focused Discord and health tests cover unknown and returning users, blocked DMs, failed sends, account creation/linking outcomes, invalid health mutations, reauthentication, and route registration. The previously unreachable confirmation-code modal now opens from an ephemeral Discord button, validates six ASCII digits, and submits without exposing the identifier or code in logs. Focused branch coverage is 99% for inbound routing, 97% for onboarding, and 100% for health routes; the Tier 3 development-tools repair passes 1,665 tests, and Ruff and Pyright are clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
