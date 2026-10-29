@@ -486,41 +486,59 @@ class TestResponseEnhancer:
         response = InteractionResponse("You did great.")
         parsed = ParsedCommand("encouragement", {}, 0.9, "cheer me up")
         mock_bot = MagicMock()
-        mock_bot.generate_response.return_value = (
-            "You are making steady progress — keep going!"
-        )
-        out = enhance_response_with_ai(
-            "user-1",
-            response,
-            parsed,
-            ai_chatbot=mock_bot,
-            enable_ai_enhancement=True,
-        )
+        mock_bot.is_ai_available.return_value = True
+        with patch(
+            "communication.message_processing.response_enhancer.is_ai_usage_allowed",
+            return_value=True,
+        ), patch(
+            "communication.message_processing.response_enhancer.generate_result_text",
+            return_value="You are making steady progress — keep going!",
+        ):
+            out = enhance_response_with_ai(
+                "user-1",
+                response,
+                parsed,
+                ai_chatbot=mock_bot,
+                enable_ai_enhancement=True,
+            )
         assert "steady progress" in out.message
+        mock_bot.generate_response.assert_not_called()
 
     def test_system_content_keeps_original(self):
         response = InteractionResponse("Original reply.")
         parsed = ParsedCommand("encouragement", {}, 0.9, "help")
         mock_bot = MagicMock()
-        mock_bot.generate_response.return_value = (
-            "System response: You are a chatbot assistant."
-        )
-        out = enhance_response_with_ai(
-            "user-1",
-            response,
-            parsed,
-            ai_chatbot=mock_bot,
-            enable_ai_enhancement=True,
-        )
+        mock_bot.is_ai_available.return_value = True
+        with patch(
+            "communication.message_processing.response_enhancer.is_ai_usage_allowed",
+            return_value=True,
+        ), patch(
+            "communication.message_processing.response_enhancer.generate_result_text",
+            return_value="System response: You are a chatbot assistant.",
+        ):
+            out = enhance_response_with_ai(
+                "user-1",
+                response,
+                parsed,
+                ai_chatbot=mock_bot,
+                enable_ai_enhancement=True,
+            )
         assert out.message == "Original reply."
+        mock_bot.generate_response.assert_not_called()
 
     def test_long_enhancement_truncates_at_sentence(self):
         response = InteractionResponse("Short.")
         parsed = ParsedCommand("encouragement", {}, 0.9, "help")
         mock_bot = MagicMock()
+        mock_bot.is_ai_available.return_value = True
         long_text = "A" * 500 + ". " + "B" * 900
-        mock_bot.generate_response.return_value = long_text
         with patch(
+            "communication.message_processing.response_enhancer.is_ai_usage_allowed",
+            return_value=True,
+        ), patch(
+            "communication.message_processing.response_enhancer.generate_result_text",
+            return_value=long_text,
+        ), patch(
             "communication.message_processing.response_enhancer.AI_MAX_RESPONSE_LENGTH",
             600,
         ):
@@ -533,20 +551,29 @@ class TestResponseEnhancer:
             )
         assert len(out.message) <= 602
         assert out.message.endswith(".")
+        assert out.message != long_text
 
     def test_enhancement_failure_keeps_original(self):
         response = InteractionResponse("Safe fallback.")
         parsed = ParsedCommand("encouragement", {}, 0.9, "help")
         mock_bot = MagicMock()
-        mock_bot.generate_response.side_effect = TimeoutError("slow")
-        out = enhance_response_with_ai(
-            "user-1",
-            response,
-            parsed,
-            ai_chatbot=mock_bot,
-            enable_ai_enhancement=True,
-        )
+        mock_bot.is_ai_available.return_value = True
+        with patch(
+            "communication.message_processing.response_enhancer.is_ai_usage_allowed",
+            return_value=True,
+        ), patch(
+            "communication.message_processing.response_enhancer.generate_result_text",
+            side_effect=TimeoutError("slow"),
+        ):
+            out = enhance_response_with_ai(
+                "user-1",
+                response,
+                parsed,
+                ai_chatbot=mock_bot,
+                enable_ai_enhancement=True,
+            )
         assert out.message == "Safe fallback."
+        mock_bot.generate_response.assert_not_called()
 
 
 @pytest.mark.unit

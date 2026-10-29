@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-29 - Nightly result-rewrite tests **COMPLETED**
+- Result-reply tests now call `generate_result_text` instead of the removed executor helpers and chat `generate_response`.
+- Task confirmations stay exact. Eligible actions can still be rewritten, and ungrounded check-in statistics are still dropped.
+- **Verification**: 24 focused checks pass. Targeted Ruff passes. Local `nightly-test-suite --strict` passed 6,358 tests with no failures.
+
 ### 2026-10-28 - OpenAI prompt and context review **COMPLETED**
 - Unified catalog-backed action prompts, field requirements, and output budgets; separated runtime data from instructions and preserved relevant conversation context, including explicitly selected assistant suggestions.
 - Removed duplicated response enhancement, aligned persona loading/reloading and task prompts, and stopped canned repairs from overwriting valid facts, focused advice, emotional replies, stories, or feature restrictions. Execution checks and deterministic fallbacks remain authoritative.
@@ -111,11 +116,6 @@ Guidelines:
 ### 2026-10-16 - Nightly policy checks match the test tree **COMPLETED**
 - Nightly failures since October 13 were policy scans, not product failures. The escape-path test no longer names the production users directory, and cleanup comments no longer do either.
 - Worker user-store cleanup tests now carry the `user` domain marker, so the slow domain-marker scan passes in the nightly suite.
-
-### 2026-10-16 - Social sign-in connectivity and home history fixed **COMPLETED**
-- Live Google sign-in failures were traced to the headless gateway running with outbound HTTPS blocked (`WinError 5`/`WinError 10013`). The restricted process was replaced with a normally networked service; Google provider discovery, authorization startup, client credentials, and the production callback now validate successfully.
-- Home shows the most recent six conversation turns or every turn from the last 48 hours, whichever is greater. Each More click expands by another six turns or another 48 hours, whichever reveals more, and disappears when the full retained conversation is visible.
-- The cache-busted website update was deployed to `mhm.jacfogel.com`. All 135 browser tests and all 40 website account-service tests pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

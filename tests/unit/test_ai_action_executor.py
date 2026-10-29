@@ -230,116 +230,149 @@ def test_execute_multi_action_plan_stops_on_incomplete_follow_up():
 
 
 def test_execute_action_plan_applies_result_aware_when_enhancement_disabled():
-    """Planner path rewrites handler output even when enable_ai_enhancement is False."""
+    """Eligible planner actions are rewritten even when enable_ai_enhancement is False."""
     executor = ActionPlanExecutor()
     plan = AIActionPlan(
         response_intent="execute_action",
         actions=(
             AIActionRequest(
-                action_name="list_tasks",
+                action_name="log_win",
                 entities={},
                 confidence=0.95,
-                source_message="show my tasks",
+                source_message="I finished the hard part",
             ),
         ),
-        source_message="show my tasks",
+        source_message="I finished the hard part",
         planning_method="test",
     )
-    handler_response = InteractionResponse("Here are your tasks: Buy milk", True)
+    handler_response = InteractionResponse("Saved: finished the hard part.", True)
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
     with patch(
         "communication.message_processing.action_plan_executor.dispatch_structured_command",
         return_value=handler_response,
-    ):
-        with patch(
-            "communication.message_processing.action_plan_executor.assemble_action_result_messages",
-            return_value=[
-                {"role": "system", "content": "Product AI flow: action_result_response"},
-                {"role": "user", "content": "show my tasks"},
-            ],
-        ) as assemble:
-            with patch(
-                "communication.message_processing.action_plan_executor.call_openai_api",
-                return_value="You have one task on your list: buy milk.",
-            ) as rewrite:
-                result = executor.execute_plan(
-                    plan,
-                    "user-1",
-                    "discord",
-                    command_parser=MagicMock(),
-                    ai_chatbot=ai_chatbot,
-                    enable_ai_enhancement=False,
-                    command_definitions={},
-                )
+    ), patch(
+        "communication.message_processing.action_plan_executor.is_ai_usage_allowed",
+        return_value=True,
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+        return_value="You finished the hard part. That counts.",
+    ) as rewrite:
+        result = executor.execute_plan(
+            plan,
+            "user-1",
+            "discord",
+            command_parser=MagicMock(),
+            ai_chatbot=ai_chatbot,
+            enable_ai_enhancement=False,
+            command_definitions={},
+        )
 
     assert result is not None
-    assert result.response.message == "You have one task on your list: buy milk."
-    assemble.assert_called_once()
+    assert result.response.message == "You finished the hard part. That counts."
     rewrite.assert_called_once()
     ai_chatbot.generate_response.assert_not_called()
 
 
 def test_execute_multi_action_plan_applies_result_aware_to_each_action():
-    """Multi-action plans rewrite every completed handler reply, then combine."""
+    """Eligible multi-action plans rewrite every completed handler reply, then combine."""
     executor = ActionPlanExecutor()
     plan = AIActionPlan(
         response_intent="execute_action",
         actions=(
             AIActionRequest(
-                action_name="update_task",
-                entities={"task_identifier": "1", "priority": "high"},
-                confidence=0.95,
-                source_message="update task 1 priority high",
-            ),
-            AIActionRequest(
-                action_name="list_tasks",
+                action_name="log_win",
                 entities={},
                 confidence=0.95,
-                source_message="show my tasks",
+                source_message="I finished the hard part",
+            ),
+            AIActionRequest(
+                action_name="reflect_win",
+                entities={},
+                confidence=0.95,
+                source_message="what did I just finish",
             ),
         ),
-        source_message="update task 1 priority high and show my tasks",
+        source_message="I finished the hard part and what did I just finish",
         planning_method="test",
     )
-    update_response = InteractionResponse("Task 1 updated to high priority.", True)
-    list_response = InteractionResponse("Tasks: Weekly laundry (high)", True)
+    first_response = InteractionResponse("Saved the win.", True)
+    second_response = InteractionResponse("You finished the hard part.", True)
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
     with patch(
         "communication.message_processing.action_plan_executor.dispatch_structured_command",
-        side_effect=[update_response, list_response],
-    ):
-        with patch(
-            "communication.message_processing.action_plan_executor.assemble_action_result_messages",
-            return_value=[
-                {"role": "system", "content": "Product AI flow: action_result_response"},
-                {"role": "user", "content": "user prompt"},
-            ],
-        ) as assemble:
-            with patch(
-                "communication.message_processing.action_plan_executor.call_openai_api",
-                side_effect=[
-                    "Done — task 1 is now high priority.",
-                    "Your tasks: Weekly laundry, marked high priority.",
-                ],
-            ) as rewrite:
-                result = executor.execute_plan(
-                    plan,
-                    "user-1",
-                    "discord",
-                    command_parser=MagicMock(),
-                    ai_chatbot=ai_chatbot,
-                    enable_ai_enhancement=False,
-                    command_definitions={},
-                )
+        side_effect=[first_response, second_response],
+    ), patch(
+        "communication.message_processing.action_plan_executor.is_ai_usage_allowed",
+        return_value=True,
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+        side_effect=[
+            "Done — that win is saved.",
+            "You just finished the hard part.",
+        ],
+    ) as rewrite:
+        result = executor.execute_plan(
+            plan,
+            "user-1",
+            "discord",
+            command_parser=MagicMock(),
+            ai_chatbot=ai_chatbot,
+            enable_ai_enhancement=False,
+            command_definitions={},
+        )
 
     assert result is not None
-    assert "Done — task 1 is now high priority." in result.response.message
-    assert "Your tasks: Weekly laundry, marked high priority." in result.response.message
-    assert assemble.call_count == 2
+    assert "Done — that win is saved." in result.response.message
+    assert "You just finished the hard part." in result.response.message
     assert rewrite.call_count == 2
     ai_chatbot.generate_response.assert_not_called()
+
+
+@pytest.mark.parametrize("action_name", ["list_tasks", "update_task", "create_task"])
+def test_deterministic_task_actions_keep_handler_text(action_name):
+    """Task confirmations stay exact even when a result rewrite is available."""
+    executor = ActionPlanExecutor()
+    plan = AIActionPlan(
+        response_intent="execute_action",
+        actions=(
+            AIActionRequest(
+                action_name=action_name,
+                entities={},
+                confidence=0.95,
+                source_message="task request",
+            ),
+        ),
+        source_message="task request",
+        planning_method="test",
+    )
+    handler_response = InteractionResponse("Handler text stays.", True)
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = True
+    with patch(
+        "communication.message_processing.action_plan_executor.dispatch_structured_command",
+        return_value=handler_response,
+    ), patch(
+        "communication.message_processing.action_plan_executor.is_ai_usage_allowed",
+        return_value=True,
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+        return_value="This rewrite must not replace the handler.",
+    ) as rewrite:
+        result = executor.execute_plan(
+            plan,
+            "user-1",
+            "discord",
+            command_parser=MagicMock(),
+            ai_chatbot=ai_chatbot,
+            enable_ai_enhancement=False,
+            command_definitions={},
+        )
+
+    assert result is not None
+    assert result.response.message == "Handler text stays."
+    rewrite.assert_not_called()
 
 
 def test_execute_action_plan_skips_result_aware_when_ai_unavailable():
@@ -349,111 +382,102 @@ def test_execute_action_plan_skips_result_aware_when_ai_unavailable():
         response_intent="execute_action",
         actions=(
             AIActionRequest(
-                action_name="list_tasks",
+                action_name="log_win",
                 entities={},
                 confidence=0.95,
-                source_message="show my tasks",
+                source_message="I finished the hard part",
             ),
         ),
-        source_message="show my tasks",
+        source_message="I finished the hard part",
         planning_method="test",
     )
-    handler_response = InteractionResponse("Here are your tasks.", True)
+    handler_response = InteractionResponse("Saved: finished the hard part.", True)
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = False
 
     with patch(
         "communication.message_processing.action_plan_executor.dispatch_structured_command",
         return_value=handler_response,
-    ):
-        with patch(
-            "communication.message_processing.action_plan_executor.assemble_action_result_messages",
-        ) as assemble:
-            result = executor.execute_plan(
-                plan,
-                "user-1",
-                "discord",
-                command_parser=MagicMock(),
-                ai_chatbot=ai_chatbot,
-                enable_ai_enhancement=True,
-                command_definitions={},
-            )
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+    ) as rewrite:
+        result = executor.execute_plan(
+            plan,
+            "user-1",
+            "discord",
+            command_parser=MagicMock(),
+            ai_chatbot=ai_chatbot,
+            enable_ai_enhancement=True,
+            command_definitions={},
+        )
 
     assert result is not None
-    assert result.response.message == "Here are your tasks."
-    assemble.assert_not_called()
+    assert result.response.message == "Saved: finished the hard part."
+    rewrite.assert_not_called()
     ai_chatbot.generate_response.assert_not_called()
 
 
 def test_result_rewrite_drops_unrelated_breakfast_reply():
-    """A failed or off-topic rewrite must not replace the handler message."""
+    """A check-in statistic must not replace an unrelated handler message."""
     executor = ActionPlanExecutor()
-    handler_response = InteractionResponse("Here are your tasks.", True)
+    handler_response = InteractionResponse("Saved: finished the hard part.", True)
     action = AIActionRequest(
-        action_name="list_tasks",
+        action_name="log_win",
         entities={},
         confidence=0.9,
-        source_message="show my tasks",
+        source_message="I finished the hard part",
     )
     metadata = MagicMock()
-    metadata.to_dict.return_value = {"action_name": "list_tasks"}
+    metadata.to_dict.return_value = {"action_name": "log_win"}
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
 
     with patch(
-        "communication.message_processing.action_plan_executor.assemble_action_result_messages",
-        return_value=[
-            {"role": "system", "content": "rules"},
-            {"role": "user", "content": "show my tasks"},
-        ],
+        "communication.message_processing.action_plan_executor.is_ai_usage_allowed",
+        return_value=True,
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+        return_value="Julie, I notice you've been eating breakfast 40% of the time.",
     ):
-        with patch(
-            "communication.message_processing.action_plan_executor.call_openai_api",
-            return_value="Julie, I notice you've been eating breakfast 40% of the time.",
-        ):
-            result = executor._generate_result_aware_response(
-                "user-1",
-                action,
-                handler_response,
-                metadata,
-                ai_chatbot=ai_chatbot,
-            )
+        result = executor._generate_result_aware_response(
+            "user-1",
+            action,
+            handler_response,
+            metadata,
+            ai_chatbot=ai_chatbot,
+        )
 
-    assert result.message == "Here are your tasks."
+    assert result.message == "Saved: finished the hard part."
 
 
-def test_result_rewrite_keeps_a_breakfast_task_confirmation():
+def test_result_rewrite_keeps_a_breakfast_mention_without_statistics():
     """Naming breakfast is fine when the reply is not a check-in statistic."""
     executor = ActionPlanExecutor()
-    handler_response = InteractionResponse("Added: buy breakfast.", True)
+    handler_response = InteractionResponse("Saved: buy breakfast.", True)
     action = AIActionRequest(
-        action_name="create_task",
+        action_name="log_win",
         entities={},
         confidence=0.9,
         source_message="add that",
     )
     metadata = MagicMock()
-    metadata.to_dict.return_value = {"action_name": "create_task", "title": "buy breakfast"}
+    metadata.to_dict.return_value = {"action_name": "log_win", "title": "buy breakfast"}
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
 
     with patch(
-        "communication.message_processing.action_plan_executor.assemble_action_result_messages",
-        return_value=[
-            {"role": "system", "content": "rules"},
-            {"role": "user", "content": "add that"},
-        ],
+        "communication.message_processing.action_plan_executor.is_ai_usage_allowed",
+        return_value=True,
+    ), patch(
+        "communication.message_processing.response_enhancer.generate_result_text",
+        return_value="I added breakfast to your list.",
     ):
-        with patch(
-            "communication.message_processing.action_plan_executor.call_openai_api",
-            return_value="I added breakfast to your list.",
-        ):
-            result = executor._generate_result_aware_response(
-                "user-1",
-                action,
-                handler_response,
-                metadata,
-                ai_chatbot=ai_chatbot,
-            )
+        result = executor._generate_result_aware_response(
+            "user-1",
+            action,
+            handler_response,
+            metadata,
+            ai_chatbot=ai_chatbot,
+        )
 
     assert result.message == "I added breakfast to your list."

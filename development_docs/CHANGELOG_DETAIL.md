@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-10-29 - Nightly result-rewrite tests follow the current enhancer
+- **Fix**: The October 29 nightly suite failed six tests that still patched `assemble_action_result_messages` and `call_openai_api` on the action-plan executor, and one enhancement test that still expected `generate_response`. Result text is produced by `response_enhancer.generate_result_text`. Task actions keep their handler wording. Eligible actions can still be rewritten when AI is available, including when the rule-parser enhancement flag is off. Check-in statistics are still rejected when they are not grounded in the action.
+- **Verification**: 24 focused executor, enhancer, and prompt-review checks pass. Targeted Ruff passes. Local `nightly-test-suite --strict` finished clean: 6,229 parallel and 129 serial tests passed, with no failures.
+
 ### 2026-10-28 - OpenAI prompt and context review
 - **Action interpretation**: Consolidated the planner and command APIs around the catalog-backed contract in [planning.py](../ai/prompts/planning.py). Prompts now describe required/optional fields, distinguish single-action callers from ordered multiple actions, and use appropriate output budgets. Malformed prose cannot be converted into a task creation; non-task fields survive extraction. Retired the old file-based command prompt and unused format accessor, and removed the planner/interpreter circular dependency.
 - **Context and trust boundaries**: [assembly.py](../ai/context/assembly.py) preserves bounded user/assistant roles and keeps runtime reference data outside system instructions. Context selection honors relevant domains and feature state. With explicit user approval, follow-up planning may use the most recent assistant reply; only a selected suggestion or accepted single clear offer can ground new entity text. Historical text cannot authorize actions or prove execution. Older turns are dropped before truncating instructions, and oversized execution results retain the handler reply.
