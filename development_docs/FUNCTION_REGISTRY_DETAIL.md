@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-28 17:47:55
+> **Last Generated**: 2026-11-03 23:53:10
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 314
-- **Functions Found**: 3241
+- **Files Scanned**: 315
+- **Functions Found**: 3243
 - **Methods Found**: 1648
 - **Classes Found**: 290
-- **Total Items**: 4889
-- **Functions Documented**: 2887
+- **Total Items**: 4891
+- **Functions Documented**: 2889
 - **Methods Documented**: 1469
 - **Classes Documented**: 223
-- **Total Documented**: 4356
+- **Total Documented**: 4358
 - **Template-Generated**: 70
-- **Last Updated**: 2026-10-28
+- **Last Updated**: 2026-11-03
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -151,8 +151,9 @@ Integrates with existing UserContext and UserPreferences systems.
 
 The local model is loaded with a small context window. A greeting does not
 need that packet, and a failed call used to fall through to a habit statistic.
-- [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
+- [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message from the selected data source.
+Profile messages use recent deliveries to avoid repetition and request
+fresh generation. Uses longer timeout since this is not real-time.
 
 When skip_cache is True (admin test sends), bypass the response cache and
 ask the model for fresh wording so back-to-back tests are not identical.
@@ -202,8 +203,9 @@ Integrates with existing UserContext and UserPreferences systems.
 
 The local model is loaded with a small context window. A greeting does not
 need that packet, and a failed call used to fall through to a habit statistic.
-  - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
+  - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message from the selected data source.
+Profile messages use recent deliveries to avoid repetition and request
+fresh generation. Uses longer timeout since this is not real-time.
 
 When skip_cache is True (admin test sends), bypass the response cache and
 ask the model for fresh wording so back-to-back tests are not identical.
@@ -230,6 +232,10 @@ answer with the stated fact instead of a vague or forgetful reply.
 - [OK] `interaction_type_for_mode(mode)` - Map generate_response mode strings to interaction types.
 **Classes:**
 - [OK] `AIInteractionType` - Why the system is calling AI and what shape of output is expected.
+
+#### `ai/chat/profile_message_variety.py`
+**Functions:**
+- [OK] `build_profile_variety_prompt(user_id)` - Supply bounded repetition examples, without treating them as profile facts.
 
 #### `ai/chat/response_generator.py`
 **Functions:**
@@ -714,6 +720,7 @@ Check-in analytics and envelope summaries are handled before generic keyword sup
 
 #### `ai/fallback/personalized.py`
 **Functions:**
+- [OK] `_profile_fallback(user_id, context, name_prefix)` - Choose across profile details and avoid recently delivered fallback wording.
 - [OK] `build_personalized_message(user_id)` - Provide fallback personalized messages when AI model is not available.
 
 #### `ai/fallback/profile_helpers.py`
@@ -4606,7 +4613,7 @@ were restless rather than short.
 - [OK] `_streak_reply_phrase(streak, metric)` - Keep the streak, with the rounded middle value in parentheses.
 - [OK] `build_personalized_checkin_context(user_id)` - Build scheduled-message context from recent check-ins only.
 - [OK] `build_personalized_google_health_context(user_id)` - Build scheduled-message context from Google Health signals only.
-- [OK] `build_personalized_profile_context(user_id)` - Build scheduled-message context from non-medical profile preferences.
+- [OK] `build_personalized_profile_context(user_id)` - Build bounded scheduled-message context from the user's profile fields.
 - [OK] `build_recent_health_patterns(user_id)` - Return 'Recent wellness patterns: ...' for scheduled messages and chat.
 
 Includes rounded sleep/steps/active minutes and multi-day streaks when

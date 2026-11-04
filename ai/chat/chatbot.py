@@ -828,8 +828,9 @@ class AIChatBotSingleton:
         skip_cache: bool = False,
     ) -> str:
         """
-        Generate a personalized message by examining the user's recent responses
-        (check-in data). Uses longer timeout since this is not real-time.
+        Generate a personalized message from the selected data source.
+        Profile messages use recent deliveries to avoid repetition and request
+        fresh generation. Uses longer timeout since this is not real-time.
 
         When skip_cache is True (admin test sends), bypass the response cache and
         ask the model for fresh wording so back-to-back tests are not identical.
@@ -845,6 +846,7 @@ class AIChatBotSingleton:
 
         from core.health_context_builder import (
             PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS,
+            PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS,
             build_personalized_checkin_context,
             build_personalized_google_health_context,
             build_personalized_profile_context,
@@ -861,9 +863,12 @@ class AIChatBotSingleton:
                 details={"source": source},
             )
         context_builder = context_builders[source]
-        user_summary = context_builder(user_id)[
-            :PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS
-        ]
+        context_limit = (
+            PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS
+            if source == "profile"
+            else PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS
+        )
+        user_summary = context_builder(user_id)[:context_limit]
 
         source_rules = {
             "checkin": (
@@ -879,8 +884,12 @@ class AIChatBotSingleton:
                 "HRV numbers, or device names."
             ),
             "profile": (
-                "Use only the profile preferences in the Data block. Do not infer recent "
-                "mood, check-in answers, sleep, activity, or Google Health patterns."
+                "Use only the profile information in the Data block. Respect supplied "
+                "pronouns and gender identity. Use loved ones and custom fields only when "
+                "relevant; do not list or gratuitously repeat sensitive details. Medical "
+                "profile details are background context, not a basis for diagnosis or "
+                "treatment advice. Do not infer recent mood, check-in answers, sleep, "
+                "activity, Google Health patterns, or the current state of relationships."
             ),
         }
         instruction = (
@@ -892,6 +901,13 @@ class AIChatBotSingleton:
         )
         if prompt_prefix:
             instruction = f"{prompt_prefix} {instruction}"
+        if source == "profile":
+            from ai.chat.profile_message_variety import build_profile_variety_prompt
+
+            instruction += build_profile_variety_prompt(user_id)
+            # Static profiles must not produce cached scheduled deliveries.
+            # The unique marker below also avoids generate_response's cache.
+            skip_cache = True
         if skip_cache:
             instruction += (
                 f" Use fresh wording distinct from any prior message "

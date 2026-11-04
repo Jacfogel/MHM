@@ -9,6 +9,7 @@ phrases (no HR/HRV numbers).
 from __future__ import annotations
 
 import math
+import json
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -688,6 +689,12 @@ def _format_health_signal_coarse(signal: dict) -> str:
 
 PERSONALIZED_CHECKIN_LOOKBACK_DAYS = 7
 PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS = 700
+# Separate profile limits keep every populated field represented even when
+# earlier fields are long: seven standard fields plus two extended fields
+# and their labels fit within the overall profile budget.
+PERSONALIZED_PROFILE_FIELD_MAX_CHARS = 1000
+PERSONALIZED_PROFILE_EXTENDED_FIELD_MAX_CHARS = 2000
+PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS = 12000
 
 
 @handle_errors("building recent health patterns for AI context", default_return="")
@@ -748,23 +755,40 @@ def build_personalized_google_health_context(user_id: str) -> str:
 
 @handle_errors("building personalized profile context", default_return="")
 def build_personalized_profile_context(user_id: str) -> str:
-    """Build scheduled-message context from non-medical profile preferences."""
+    """Build bounded scheduled-message context from the user's profile fields."""
     from core import get_user_data
 
     context = get_user_data(user_id, "context").get("context") or {}
     fields = (
         ("Preferred name", context.get("preferred_name")),
+        ("Pronouns", context.get("pronouns")),
+        ("Gender identity", context.get("gender_identity")),
         ("Interests", context.get("interests")),
         ("Goals", context.get("goals")),
         ("Encouraging activities", context.get("activities_for_encouragement")),
+        ("Loved ones", context.get("loved_ones")),
+        ("Custom fields", context.get("custom_fields")),
         ("Notes for support", context.get("notes_for_ai")),
     )
     parts = []
     for label, value in fields:
-        if isinstance(value, list):
+        if not value:
+            continue
+        if isinstance(value, dict) or (
+            isinstance(value, list) and any(isinstance(item, dict) for item in value)
+        ):
+            text = json.dumps(value, ensure_ascii=False)
+        elif isinstance(value, list):
             text = ", ".join(str(item).strip() for item in value if str(item).strip())
         else:
             text = str(value or "").strip()
         if text:
-            parts.append(f"{label}: {text[:300]}")
+            limit = (
+                PERSONALIZED_PROFILE_EXTENDED_FIELD_MAX_CHARS
+                if label in {"Custom fields", "Notes for support"}
+                else PERSONALIZED_PROFILE_FIELD_MAX_CHARS
+            )
+            if len(text) > limit:
+                text = text[: limit - 3] + "..."
+            parts.append(f"{label}: {text}")
     return "; ".join(parts) or "No profile preferences are available yet."

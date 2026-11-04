@@ -561,6 +561,48 @@ class TestAIChatBotHelpers:
         assert "Interests: gardening" in prompt
         assert "Recent check-ins" not in prompt
 
+    def test_profile_messages_request_fresh_generation_with_recent_deliveries(
+        self, chatbot_instance
+    ):
+        with (
+            patch.object(chatbot_instance, "openai_available", True),
+            patch("ai.chat.chatbot.is_ai_usage_allowed", return_value=True),
+            patch(
+                "core.health_context_builder.build_personalized_profile_context",
+                return_value="Interests: gardening",
+            ),
+            patch(
+                "ai.chat.profile_message_variety.get_recent_messages",
+                return_value=[{"sent_text": "Enjoy your garden today."}],
+            ),
+            patch.object(chatbot_instance.response_cache, "get") as cache_get,
+            patch.object(chatbot_instance.response_cache, "set") as cache_set,
+            patch.object(chatbot_instance, "generate_response", return_value="Fresh message") as generate,
+        ):
+            chatbot_instance.generate_personalized_message("user123", source="profile")
+            chatbot_instance.generate_personalized_message("user123", source="profile")
+
+        cache_get.assert_not_called()
+        cache_set.assert_not_called()
+        prompts = [call.args[0] for call in generate.call_args_list]
+        assert len(prompts) == 2
+        assert prompts[0] != prompts[1]
+        assert all("Enjoy your garden today." in prompt for prompt in prompts)
+
+    def test_profile_prompt_keeps_extended_profile_context(self, chatbot_instance):
+        summary = "Interests: " + "gardening " * 100 + "\nNotes for support: Keep it gentle."
+        with (
+            patch.object(chatbot_instance, "openai_available", True),
+            patch("ai.chat.chatbot.is_ai_usage_allowed", return_value=True),
+            patch("core.health_context_builder.build_personalized_profile_context", return_value=summary),
+            patch("ai.chat.profile_message_variety.get_recent_messages", return_value=[]),
+            patch.object(chatbot_instance, "generate_response", return_value="Hello") as generate,
+        ):
+            chatbot_instance.generate_personalized_message("user123", source="profile")
+        prompt = generate.call_args.args[0]
+        assert "Notes for support: Keep it gentle." in prompt
+        assert "Respect supplied pronouns and gender identity" in prompt
+
     def test_personalized_message_unsupported_source_raises_validation_error(
         self, chatbot_instance
     ):

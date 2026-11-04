@@ -579,5 +579,57 @@ def test_personalized_context_builders_keep_sources_separate():
     assert "Preferred name: River" in profile
     assert "Interests: gardening" in profile
     assert "Goals: rest" in profile
-    assert "private diagnosis" not in profile
+    assert '"health_conditions": ["private diagnosis"]' in profile
     assert "check-in" not in profile.lower()
+
+
+def test_personalized_profile_includes_identity_relationships_and_custom_fields():
+    from core.health_context_builder import build_personalized_profile_context
+
+    with patch("core.get_user_data", return_value={"context": {
+        "preferred_name": "River",
+        "pronouns": ["they", "them"],
+        "gender_identity": ["nonbinary"],
+        "loved_ones": [{"name": "Sam", "relationship": "sibling", "notes": "Enjoys hiking"}],
+        "custom_fields": {"health_conditions": ["migraine"], "allergies_sensitivities": ["pollen"]},
+        "notes_for_ai": ["Please keep suggestions gentle."],
+    }}):
+        profile = build_personalized_profile_context("profile-user")
+    assert "Pronouns: they, them" in profile
+    assert "Gender identity: nonbinary" in profile
+    assert '"name": "Sam"' in profile
+    assert '"relationship": "sibling"' in profile
+    assert '"notes": "Enjoys hiking"' in profile
+    assert '"health_conditions": ["migraine"]' in profile
+    assert '"allergies_sensitivities": ["pollen"]' in profile
+    assert "Notes for support: Please keep suggestions gentle." in profile
+
+
+def test_personalized_profile_caps_leave_room_for_every_field():
+    from core.health_context_builder import (
+        PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS,
+        build_personalized_profile_context,
+    )
+
+    fields = (
+        "preferred_name", "pronouns", "gender_identity", "interests", "goals",
+        "activities_for_encouragement", "loved_ones", "custom_fields", "notes_for_ai",
+    )
+    context = {field: "x" * 5000 for field in fields}
+    with patch("core.get_user_data", return_value={"context": context}):
+        profile = build_personalized_profile_context("profile-user")
+    assert len(profile) < PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS
+    for label in (
+        "Preferred name", "Pronouns", "Gender identity", "Interests", "Goals",
+        "Encouraging activities", "Loved ones", "Custom fields", "Notes for support",
+    ):
+        assert f"{label}: " in profile
+    assert "Notes for support: " + "x" * 1997 + "..." in profile
+    assert "Interests: " + "x" * 997 + "..." in profile
+
+
+def test_personalized_profile_handles_missing_fields():
+    from core.health_context_builder import build_personalized_profile_context
+
+    with patch("core.get_user_data", return_value={"context": {}}):
+        assert build_personalized_profile_context("new-user") == "No profile preferences are available yet."

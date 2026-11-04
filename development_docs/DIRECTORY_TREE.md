@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-10-28 17:48:51
+> **Last Generated**: 2026-11-03 23:53:59
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -13,7 +13,6 @@ Volume serial number is 5EAC-07BC
 C:.
 |   .env.example
 |   .ruff.toml
-|   AI_PROMPT_REVIEW.md
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
 |   DEVELOPMENT_WORKFLOW.md
@@ -43,6 +42,7 @@ C:.
 |   |   |   chatbot.py
 |   |   |   conversation_coherence.py
 |   |   |   interaction_types.py
+|   |   |   profile_message_variety.py
 |   |   |   response_generator.py
 |   |   |   response_postprocess.py
 |   |   |   wellness_status.py
@@ -1114,6 +1114,7 @@ C:.
 |   |   |   test_product_ai_prompt_composition.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py
+|   |   |   test_profile_message_variety.py
 |   |   |   test_profile_service.py
 |   |   |   test_profile_v2_schemas.py
 |   |   |   test_prompt_audit_remediation.py

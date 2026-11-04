@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-04 - Varied profile messages and expanded context **COMPLETED**
+- Profile messages receive up to five recent profile deliveries as repetition examples, vary their focus and writing approach, and request fresh generation instead of cached wording. Fallbacks choose across interests, goals, and encouraging activities and avoid recent exact repeats when alternatives exist.
+- Added pronouns, gender identity, loved ones, and custom fields to scheduled profile context. Limits are now 1,000 characters per standard field, 2,000 each for custom fields and support notes, and 12,000 overall; check-in and Google Health limits remain unchanged.
+- Both variety helpers use shared error handling with safe defaults. Regenerated function registries, dependency documentation, and directory trees.
+- **Verification**: 90 focused tests passed for the message/context changes; six variety tests passed after adding failure-path coverage. Documentation generation completed successfully. Live message quality was not evaluated.
+
 ### 2026-10-29 - Nightly result-rewrite tests **COMPLETED**
 - Result-reply tests now call `generate_result_text` instead of the removed executor helpers and chat `generate_response`.
 - Task confirmations stay exact. Eligible actions can still be rewritten, and ungrounded check-in statistics are still dropped.
@@ -112,10 +118,6 @@ Guidelines:
 - Notebook creates and mutations use lock-scoped read-modify-write transactions; lists persist final completion states in one write, and concurrent edits no longer overwrite one another.
 - Ambiguous short IDs or titles never select the first entry; command handlers ask for an exact short ID. Website GET routes derive all views from one worker-thread snapshot.
 - The regenerated function registry includes the new ambiguity helper. The full quick suite passes 6,213 tests with no failures, Ruff passes, and project-wide Pyright reports no warnings.
-
-### 2026-10-16 - Nightly policy checks match the test tree **COMPLETED**
-- Nightly failures since October 13 were policy scans, not product failures. The escape-path test no longer names the production users directory, and cleanup comments no longer do either.
-- Worker user-store cleanup tests now carry the `user` domain marker, so the slow domain-marker scan passes in the nightly suite.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
