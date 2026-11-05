@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-03 23:53:59
+> **Last Generated**: 2026-11-05 13:23:31
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -912,6 +912,7 @@ C:.
 |   |   |   test_account_management.py
 |   |   |   test_browser_javascript_suite.py
 |   |   |   test_error_handling_improvements.py
+|   |   |   test_health_reconnect_recovery.py
 |   |   |   test_health_scheduler_job.py
 |   |   |   test_notebook_validation_integration.py
 |   |   |   test_orphaned_reminder_cleanup.py
@@ -937,6 +938,7 @@ C:.
 |   |   |   |   conftest_logging_impl.py
 |   |   |   |   conftest_mocks.py
 |   |   |   |   conftest_user_data.py
+|   |   |   |   nightly_diagnostics.py
 |   |   |   |   test_helpers.py
 |   |   |   |   test_isolation.py
 |   |   |   |   __init__.py

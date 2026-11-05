@@ -242,6 +242,7 @@ def test_sync_success_clears_reconnect_notice_and_failures(test_data_dir):
             "updated_at": "2026-06-27 12:00:00",
             "consecutive_failures": 4,
             "reconnect_notice_sent": True,
+            "reconnect_notice_website_sent": True,
             "last_error": "previous auth failure",
             "last_scheduled_slot": "morning",
         },
@@ -264,6 +265,7 @@ def test_sync_success_clears_reconnect_notice_and_failures(test_data_dir):
     state = load_sync_state(user_id) or {}
     assert state.get("consecutive_failures") == 0
     assert state.get("reconnect_notice_sent") is False
+    assert state.get("reconnect_notice_website_sent") is False
     assert not state.get("last_error")
     assert state.get("last_scheduled_slot") == "evening"
 

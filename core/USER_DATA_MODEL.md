@@ -148,7 +148,7 @@ This file is the canonical v2 task collection. Active/completed state lives in e
 - `health/google_health_auth.json` - OAuth tokens and refresh metadata (**sensitive**; never log token values; optional Fernet encryption via `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY`, field `tokens_encrypted`).
 - `health/daily_summaries.json` - v2 collection of normalized daily raw metrics (sleep, steps, HR/HRV).
 - `health/health_signals.json` - v2 collection of derived wellness signals and `message_guidance` tokens.
-- `health/sync_state.json` - last sync timestamps, error counts, baseline metadata, `last_scheduled_slot` (per-user timezone slot dedupe), `reconnect_notice_sent`.
+- `health/sync_state.json` - last sync timestamps, error counts, baseline metadata, `last_scheduled_slot` (per-user timezone slot dedupe), `reconnect_notice_sent` (primary-channel acknowledgement), and `reconnect_notice_website_sent` (independent website copy). Pending auth warnings are retried while auto-paused; both acknowledgement flags reset after successful sync.
 
 Access via `integrations.google_health.data_handlers` (uses `storage.user_item_storage`). Feature flag: `account.json` -> `features.google_health` (`enabled` | `disabled` | `paused`). Delete all local health data with `delete_user_health_data()` in the same module.
 

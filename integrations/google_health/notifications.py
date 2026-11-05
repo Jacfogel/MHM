@@ -39,10 +39,7 @@ def is_auth_sync_failure(error: str) -> bool:
 
 @handle_errors("sending Google Health reconnect notice", default_return=False)
 def send_reconnect_notice(user_id: str) -> bool:
-    """Send a one-time low-key reconnect message on the user's primary channel.
-
-    The website copy is stored only after that channel accepts the notice.
-    """
+    """Attempt primary delivery; persisted health state owns notification retries."""
     if is_google_health_testing_mode():
         logger.debug(f"Skipping reconnect notice in testing mode for user {user_id}")
         return False
@@ -83,11 +80,9 @@ def send_reconnect_notice(user_id: str) -> bool:
         RECONNECT_NOTICE_TEXT,
         user_id=user_id,
         category="health",
+        _queue_on_failure=False,
     )
     if success is True or success == CHANNEL_SEND_UNCONFIRMED:
-        from communication.communication_channels.website.inbox import deliver_to_website
-
-        deliver_to_website(user_id, RECONNECT_NOTICE_TEXT, "health")
         logger.info(f"Sent Google Health reconnect notice to user {user_id}")
         return True
     logger.warning(
@@ -101,15 +96,27 @@ def maybe_send_reconnect_notice(
     user_id: str, sync_state: dict, error: str
 ) -> dict:
     """
-    Send reconnect notice once when auto-pausing after auth failures.
+    Deliver independently to the website and primary channel once per auth failure.
 
-    Returns updated sync_state (may set reconnect_notice_sent).
+    Persist the returned state so incomplete delivery survives service restarts.
     """
     state = dict(sync_state or {})
-    if state.get("reconnect_notice_sent"):
-        return state
     if not is_auth_sync_failure(error):
         return state
-    if send_reconnect_notice(user_id):
-        state["reconnect_notice_sent"] = True
+    if (
+        not state.get("reconnect_notice_website_sent")
+        and not is_google_health_testing_mode()
+    ):
+        from communication.communication_channels.website.inbox import deliver_to_website
+
+        if deliver_to_website(user_id, RECONNECT_NOTICE_TEXT, "health"):
+            state["reconnect_notice_website_sent"] = True
+    if not state.get("reconnect_notice_sent"):
+        preferences = get_user_data(user_id, "preferences").get("preferences") or {}
+        if (preferences.get("channel") or {}).get("type") == "website":
+            state["reconnect_notice_sent"] = bool(
+                state.get("reconnect_notice_website_sent")
+            )
+        elif send_reconnect_notice(user_id):
+            state["reconnect_notice_sent"] = True
     return state

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-03 23:53:10
+> **Last Generated**: 2026-11-05 13:22:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.1% [!] GOOD**
-- **Total Functions**: 3243
+- **Total Functions**: 3245
 - **Total Methods**: 1648
-- **Documented**: 4358/4891
+- **Documented**: 4360/4893
 - **Files Scanned**: 315
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -58,7 +58,7 @@ UI Operations Decision Tree:
 Core System Decision Tree:
 +-- `core/service.py` - Main service (75 functions)
 +-- `core/config.py` - Configuration (24 functions)
-`-- `scheduler/manager.py` - Scheduling (86/87 functions)```
+`-- `scheduler/manager.py` - Scheduling (87/88 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
 
@@ -170,7 +170,7 @@ Core System Decision Tree:
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `integrations/google_health/sync_manager.py` - 3/9 functions undocumented (67% coverage)
+- `integrations/google_health/sync_manager.py` - 3/10 functions undocumented (70% coverage)
 - `storage/user_data_validation.py` - 3/11 functions undocumented (73% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `ai/fallback/conversational.py` - 2/7 functions undocumented (71% coverage)
@@ -209,9 +209,9 @@ Most complex functions (may need refactoring):
 - `checkins/` -  (7 files, 155 functions)
 - `communication/` - Communication channels and message processing (98 files, 1572 functions)
 - `core/` - System utilities and data management (53 files, 943 functions)
-- `integrations/` -  (13 files, 116 functions)
+- `integrations/` -  (13 files, 117 functions)
 - `messages/` -  (6 files, 63 functions)
-- `scheduler/` -  (9 files, 123 functions)
+- `scheduler/` -  (9 files, 124 functions)
 - `storage/` -  (17 files, 147 functions)
 - `tasks/` - Task management system (19 files, 210 functions)
 - `ui/` - User interface components (45 files, 1022 functions)

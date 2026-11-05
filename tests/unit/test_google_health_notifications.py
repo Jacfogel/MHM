@@ -311,7 +311,7 @@ def test_send_reconnect_notice_returns_false_when_send_fails(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.core
-def test_send_reconnect_notice_stores_website_copy_once_when_unconfirmed(monkeypatch):
+def test_send_reconnect_notice_accepts_unconfirmed_primary_delivery(monkeypatch):
     from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 
     monkeypatch.setenv("MHM_TESTING", "0")
@@ -332,7 +332,7 @@ def test_send_reconnect_notice_stores_website_copy_once_when_unconfirmed(monkeyp
         "communication.communication_channels.website.inbox.deliver_to_website"
     ) as deliver:
         assert send_reconnect_notice("user-1") is True
-    deliver.assert_called_once_with("user-1", RECONNECT_NOTICE_TEXT, "health")
+    deliver.assert_not_called()
 
 
 @pytest.mark.unit

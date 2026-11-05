@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-05 - Reminder and Google Health notification recovery
+- Prevented restart duplicates by checking persisted successful deliveries for the same category, period, and day before scheduling or sending. Existing delays remain unchanged; reminder-focused runs passed 23 and 49 tests.
+- Traced missing Google Health messages to October 4 token failures and auto-pause after the last October 3 sync/message. The reconnect warning failed and was never revisited; its original delivery error is no longer available. The personalized Google Health category is also absent from enabled preferences despite a saved schedule.
+- Persisted reconnect-warning recovery now retries paused accounts on health polls, independently acknowledges primary/website delivery, bypasses in-memory retries, and resets after successful sync. Disabled accounts and non-auth pauses remain silent. All 41 focused health tests and targeted Ruff checks pass; integration guide and data-model docs were updated.
+- Full-suite/live-service validation remains incomplete: the latest full run stalled after 1,152 recorded passes with no recorded failures and was interrupted; follow-up is in `TEST_PLAN.md`. Google reconnection and category re-enablement were not performed. Restart MHM to load the changes.
+
+
 ### 2026-11-05 - Nightly test fixes and crash diagnostics **COMPLETED**
 - Added required category/domain markers for nine profile/context tests and completed three logger mocks with the Google Health log path. Verification passes 49 affected/policy tests with normal logging and 17 logger tests with verbose logging; targeted Ruff passes.
 - Nightly diagnostics now record per-process collection/execution histories, random seeds, invocation arguments, environment versions, and stall/native stack traces without changing application log verbosity. Raw cores stay on the runner and are deleted after extraction; only stack traces are uploaded.
@@ -112,12 +119,6 @@ Guidelines:
 - A provider-neutral policy now supports global AI off and feature-level disable lists while preserving deterministic commands, reminders, and fallbacks.
 - Low-level HTTP calls and higher-level cache paths both enforce the policy; disabled features cannot make model requests or return old cached AI responses.
 - Planning now prioritizes optional AI and deterministic mood/energy rules. Provider billing and budget tracking stay outside MHM, and response-quality work is paused until the model changes.
-
-### 2026-10-17 - Adaptive task focus and reminder pressure **COMPLETED**
-- Home, scheduled reminders, and chat suggestions now use one deterministic backend focus policy with urgency guardrails, snooze awareness, subtask preference, time-of-day fit, and effort estimates.
-- Tasks retain five deferrals; repeated snoozes/skips surface a smaller step, **Simplify**, or due-date reconsideration. Discord actions are **Done**, **Snooze**, **Simplify**, and **Leave me alone** with unchanged underlying behavior.
-- One reliable-signal policy lowers pressure across task, motivational, and Google Health messages. Missing energy/health signals preserve existing behavior.
-- The new integrated regression set passes 138 Python checks and 41 browser/proxy tests; Ruff and targeted Pyright are clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

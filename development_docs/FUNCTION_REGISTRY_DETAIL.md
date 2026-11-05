@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-03 23:53:10
+> **Last Generated**: 2026-11-05 13:22:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3243
+- **Functions Found**: 3245
 - **Methods Found**: 1648
 - **Classes Found**: 290
-- **Total Items**: 4891
-- **Functions Documented**: 2889
+- **Total Items**: 4893
+- **Functions Documented**: 2891
 - **Methods Documented**: 1469
 - **Classes Documented**: 223
-- **Total Documented**: 4358
+- **Total Documented**: 4360
 - **Template-Generated**: 70
-- **Last Updated**: 2026-11-03
+- **Last Updated**: 2026-11-05
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -6066,12 +6066,10 @@ Blocks until callback or timeout. Intended for one-time connect.
 #### `integrations/google_health/notifications.py`
 **Functions:**
 - [OK] `is_auth_sync_failure(error)` - Return True when a sync error indicates OAuth/token refresh failure.
-- [OK] `maybe_send_reconnect_notice(user_id, sync_state, error)` - Send reconnect notice once when auto-pausing after auth failures.
+- [OK] `maybe_send_reconnect_notice(user_id, sync_state, error)` - Deliver independently to the website and primary channel once per auth failure.
 
-Returns updated sync_state (may set reconnect_notice_sent).
-- [OK] `send_reconnect_notice(user_id)` - Send a one-time low-key reconnect message on the user's primary channel.
-
-The website copy is stored only after that channel accepts the notice.
+Persist the returned state so incomplete delivery survives service restarts.
+- [OK] `send_reconnect_notice(user_id)` - Attempt primary delivery; persisted health state owns notification retries.
 
 #### `integrations/google_health/personalization_rules.py`
 **Functions:**
@@ -6119,6 +6117,7 @@ Returns empty list when confidence is low or data insufficient.
 #### `integrations/google_health/sync_manager.py`
 **Functions:**
 - [OK] `_google_health_feature_enabled(user_id)` - Return True when account.features.google_health is enabled.
+- [OK] `_retry_paused_reconnect_notice(user_id)` - Retry a saved auth warning on each poll without resuming health sync.
 - [OK] `main()` - Dev entry: python -m integrations.google_health.sync_manager --user-id ID
 - [MISSING] `merge_health_signals(existing, rebuilt)` - No description
 - [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
@@ -6320,7 +6319,7 @@ that supports both category-specific and cross-category queries.
 Args:
     user_id: The user ID
     category: Optional category filter (None = all categories)
-    limit: Maximum number of messages to return
+    limit: Maximum number of messages to return, or None for all matches
     days_back: Only include messages from last N days
 
 Returns:
@@ -6572,6 +6571,7 @@ waits until automated messages are enabled.
 - [OK] `_drop_sent_message_job(self, user_id, category, period_name)` - Remove the job that just finished without dropping sibling periods.
 - [OK] `_is_user_task_reminder_job(self, job, user_id)` - True when a job is a task reminder for this user.
 - [OK] `_message_job_matches_user_category(self, job_func, user_id, category)` - True for a message job registered for this user and category.
+- [OK] `_period_already_delivered_today(user_id, category, period_name)` - Use persisted deliveries so restarting cannot repeat a completed period.
 - [OK] `_period_window(tz, day, start_time, end_time)` - Return the timezone-aware start and end of a period on one calendar day.
 
 pytz needs ``localize()`` on a naive datetime. Passing ``tzinfo=`` directly

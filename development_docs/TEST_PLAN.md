@@ -32,6 +32,8 @@ This document is the canonical testing roadmap.
 
 ### 2.1 Reliability and fresh-audit confidence
 
+- [ ] Re-run the complete Windows suite for the November 5 reminder/Google Health recovery changes after diagnosing the local runner stall. The latest four-worker run stopped progressing after 1,152 passes with no failures recorded and was interrupted. All 41 focused Google Health tests pass, including saved-state recovery and destination-specific retry behavior; a complete suite pass and live-service reload remain unverified.
+
 **Status**: **ACTIVE**  
 **Priority**: High
 

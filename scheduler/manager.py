@@ -17,6 +17,7 @@ from core.billing import has_service_access
 from core.billing_notices import process_billing_notices
 from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
+from messages.message_data_manager import get_recent_messages
 from core.time_utilities import (
     now_datetime_full,
     now_timestamp_minute,
@@ -51,6 +52,22 @@ scheduler_logger = logger
 # schedule.every().day.at uses minute precision. Keep sends a few minutes apart
 # so neighboring windows, such as morning and check-in, can both fire.
 MESSAGE_CONFLICT_WINDOW = timedelta(minutes=5)
+
+
+@handle_errors("checking delivered schedule periods", default_return=False)
+def _period_already_delivered_today(
+    user_id: str, category: str, period_name: str | None
+) -> bool:
+    """Use persisted deliveries so restarting cannot repeat a completed period."""
+    if period_name is None:
+        return False
+    today = format_timestamp(localized_now_for_user(user_id), DATE_ONLY)
+    return any(
+        message.get("status") == "sent"
+        and message.get("time_period") == period_name
+        and str(message.get("sent_at") or "").split(" ")[0] == today
+        for message in get_recent_messages(user_id, category=category, limit=None)
+    )
 
 
 @handle_errors("building a schedule period window", default_return=None)
@@ -566,6 +583,12 @@ class SchedulerManager:
 
             # Check if this period is active (default to active if not specified)
             if period_data.get("active", True):
+                if _period_already_delivered_today(user_id, category, period_name):
+                    logger.info(
+                        f"Skipping completed period {period_name} for user {user_id}, "
+                        f"category {category}: already delivered today."
+                    )
+                    continue
                 # If 'days' is present, only schedule if today is in days or if days contains "ALL"
                 if "days" in period_data:
                     days = period_data["days"]
@@ -1073,6 +1096,13 @@ class SchedulerManager:
 
         attempt = 0
         outbound_message_id = None
+        if _period_already_delivered_today(user_id, category, period_name):
+            logger.info(
+                f"Skipping duplicate scheduled message for user {user_id}, "
+                f"category {category}, period {period_name}: already delivered today."
+            )
+            self._drop_sent_message_job(user_id, category, period_name)
+            return
         while attempt < retry_attempts:
             try:
                 send_kwargs = {

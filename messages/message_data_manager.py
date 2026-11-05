@@ -538,7 +538,7 @@ def delete_message(user_id, category, message_id):
 def get_recent_messages(
     user_id: str,
     category: str | None = None,
-    limit: int = 10,
+    limit: int | None = 10,
     days_back: int | None = None,
 ) -> list[dict[str, Any]]:
     """
@@ -550,7 +550,7 @@ def get_recent_messages(
     Args:
         user_id: The user ID
         category: Optional category filter (None = all categories)
-        limit: Maximum number of messages to return
+        limit: Maximum number of messages to return, or None for all matches
         days_back: Only include messages from last N days
 
     Returns:

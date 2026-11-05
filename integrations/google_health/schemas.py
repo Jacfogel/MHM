@@ -124,6 +124,7 @@ class SyncStateModel(BaseModel):
     last_error: str = ""
     consecutive_failures: int = 0
     reconnect_notice_sent: bool = False
+    reconnect_notice_website_sent: bool = False
     last_scheduled_slot: str = ""
     baseline_metadata: dict[str, Any] = Field(default_factory=dict)
 

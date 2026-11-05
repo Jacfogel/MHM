@@ -65,7 +65,7 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 - AI receives coarse guidance phrases plus rounded sleep/steps/active minutes and multi-day streaks when available (`core/health_context_builder.py`); never exact HR/HRV numbers or device names.
 - API failures: log internally, fall back to normal messages.
 - After repeated auth failures, feature auto-pauses (`GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD`).
-- When auto-pause is triggered by token refresh failure, MHM sends **one** low-key reconnect message on the user's primary channel (`sync_state.reconnect_notice_sent` prevents repeats until the next successful sync).
+- When token refresh failures auto-pause sync, MHM saves a pending reconnect warning before attempting delivery. Each scheduled health poll retries incomplete warnings for paused accounts without fetching health data. Primary-channel delivery (`sync_state.reconnect_notice_sent`) and the independent website copy (`reconnect_notice_website_sent`) are tracked separately and reset after a successful sync. Notice retries use this persisted state instead of the in-memory message retry queue. Disabled accounts and pauses caused by non-auth errors do not receive reconnect warnings.
 
 ## Derived signals (used for personalization)
 

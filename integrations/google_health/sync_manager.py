@@ -196,6 +196,7 @@ def sync_user_health_data(
                 "last_error": "",
                 "consecutive_failures": 0,
                 "reconnect_notice_sent": False,
+                "reconnect_notice_website_sent": False,
             }
         )
         if scheduled_slot_key:
@@ -220,6 +221,8 @@ def sync_user_health_data(
         )
         if failures >= GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD:
             pause_google_health_feature(user_id, reason=str(exc)[:200])
+            # Save the pending notice before attempting external delivery.
+            save_sync_state(user_id, sync_state)
             sync_state = maybe_send_reconnect_notice(
                 user_id, sync_state, str(exc)
             )
@@ -255,6 +258,7 @@ def sync_users_due_for_schedule() -> int:
     count = 0
     for user_id in get_all_user_ids():
         if not _google_health_feature_enabled(user_id):
+            _retry_paused_reconnect_notice(user_id)
             continue
         if not has_valid_auth(user_id):
             continue
@@ -274,6 +278,25 @@ def sync_users_due_for_schedule() -> int:
                 f"(slot {slot_key})"
             )
     return count
+
+
+@handle_errors("retrying paused Google Health reconnect notice", default_return=None)
+def _retry_paused_reconnect_notice(user_id: str) -> None:
+    """Retry a saved auth warning on each poll without resuming health sync."""
+    account = get_user_data(user_id, "account").get("account") or {}
+    if (account.get("features") or {}).get("google_health") != "paused":
+        return
+    state = load_sync_state(user_id) or {}
+    if (
+        int(state.get("consecutive_failures") or 0)
+        < GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD
+    ):
+        return
+    updated = maybe_send_reconnect_notice(
+        user_id, state, str(state.get("last_error") or "")
+    )
+    if updated != state:
+        save_sync_state(user_id, updated)
 
 
 @handle_errors("running Google Health sync CLI", default_return=None)

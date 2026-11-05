@@ -189,3 +189,73 @@ class TestScheduleUserJobs:
 
         assert scheduled is not False
         mock_period.assert_called_once_with("user-1", "checkin", "morning")
+
+@pytest.mark.unit
+@pytest.mark.scheduler
+class TestCompletedPeriodRestart:
+    @pytest.mark.parametrize(
+        "status,period,sent_at,expected",
+        [
+            ("sent", "CPAP", "2026-11-05 02:19:04", True),
+            ("failed", "CPAP", "2026-11-05 02:19:04", False),
+            ("sent", "afternoon", "2026-11-05 02:19:04", False),
+            ("sent", "CPAP", "2026-11-04 02:19:04", False),
+        ],
+    )
+    def test_only_completed_period_today_blocks_repeat(
+        self, status, period, sent_at, expected
+    ):
+        from scheduler.manager import _period_already_delivered_today
+        from core.time_utilities import load_and_localize_datetime
+
+        with (
+            patch(
+                "scheduler.manager.localized_now_for_user",
+                return_value=load_and_localize_datetime("2026-11-05 02:22:00"),
+            ),
+            patch(
+                "scheduler.manager.get_recent_messages",
+                return_value=[
+                    {"status": status, "time_period": period, "sent_at": sent_at}
+                ],
+            ),
+        ):
+            assert (
+                _period_already_delivered_today("user-1", "health", "CPAP") is expected
+            )
+
+    def test_restart_skips_delivered_cpap_but_keeps_afternoon(self, scheduler_manager):
+        with (
+            patch("scheduler.manager._automated_category_allowed", return_value=True),
+            patch(
+                "scheduler.manager.get_schedule_time_periods",
+                return_value={
+                    "CPAP": {"active": True, "days": ["ALL"]},
+                    "afternoon": {"active": True, "days": ["ALL"]},
+                },
+            ),
+            patch(
+                "scheduler.manager._period_already_delivered_today",
+                side_effect=lambda user, category, period: period == "CPAP",
+            ),
+            patch.object(scheduler_manager, "cleanup_old_tasks"),
+            patch.object(
+                scheduler_manager, "schedule_message_for_period"
+            ) as schedule_period,
+        ):
+            scheduler_manager.schedule_daily_message_job("user-1", "health")
+        schedule_period.assert_called_once_with("user-1", "health", "afternoon")
+
+    def test_existing_retry_does_not_repeat_completed_period(self, scheduler_manager):
+        with (
+            patch("scheduler.manager._automated_category_allowed", return_value=True),
+            patch(
+                "scheduler.manager._period_already_delivered_today", return_value=True
+            ),
+            patch.object(scheduler_manager, "_drop_sent_message_job") as drop,
+        ):
+            scheduler_manager.handle_sending_scheduled_message(
+                "user-1", "health", period_name="CPAP", allow_deferral=False
+            )
+        scheduler_manager.delivery.handle_message_sending.assert_not_called()
+        drop.assert_called_once_with("user-1", "health", "CPAP")
