@@ -583,6 +583,8 @@ def test_personalized_context_builders_keep_sources_separate():
     assert "check-in" not in profile.lower()
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 def test_personalized_profile_includes_identity_relationships_and_custom_fields():
     from core.health_context_builder import build_personalized_profile_context
 
@@ -605,6 +607,8 @@ def test_personalized_profile_includes_identity_relationships_and_custom_fields(
     assert "Notes for support: Please keep suggestions gentle." in profile
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 def test_personalized_profile_caps_leave_room_for_every_field():
     from core.health_context_builder import (
         PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS,
@@ -628,6 +632,8 @@ def test_personalized_profile_caps_leave_room_for_every_field():
     assert "Interests: " + "x" * 997 + "..." in profile
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 def test_personalized_profile_handles_missing_fields():
     from core.health_context_builder import build_personalized_profile_context
 

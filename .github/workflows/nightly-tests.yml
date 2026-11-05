@@ -34,6 +34,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            gdb \
             libdbus-1-3 \
             libegl1 \
             libgl1 \
@@ -54,8 +55,44 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev,ui]"
 
+      - name: Prepare nightly diagnostics
+        run: |
+          mkdir -p tests/logs/nightly_diagnostics "$RUNNER_TEMP/mhm-native-cores"
+          # Keep raw process memory outside all uploaded artifact paths.
+          printf '%s\n' "$RUNNER_TEMP/mhm-native-cores/core.%e.%p.%t" | sudo tee /proc/sys/kernel/core_pattern
+          python -VV > tests/logs/nightly_diagnostics/environment.txt
+          python -m pip freeze > tests/logs/nightly_diagnostics/dependencies.txt
+          uname -a >> tests/logs/nightly_diagnostics/environment.txt
+          cat /etc/os-release >> tests/logs/nightly_diagnostics/environment.txt
+          git rev-parse HEAD >> tests/logs/nightly_diagnostics/environment.txt
+          dpkg-query -W > tests/logs/nightly_diagnostics/system-packages.txt
+
       - name: Run nightly full test suite
-        run: python development_tools/run_development_tools.py nightly-test-suite --strict
+        env:
+          PYTEST_PLUGINS: tests.test_helpers.test_support.nightly_diagnostics
+          PYTEST_ADDOPTS: "-o faulthandler_timeout=180"
+          PYTHONFAULTHANDLER: "1"
+        run: |
+          ulimit -c unlimited
+          ulimit -a > tests/logs/nightly_diagnostics/process-limits.txt
+          python development_tools/run_development_tools.py nightly-test-suite --strict
+
+      - name: Extract native crash backtraces
+        if: always()
+        run: |
+          mkdir -p tests/logs/nightly_diagnostics
+          shopt -s nullglob
+          for core in "$RUNNER_TEMP"/mhm-native-cores/core.*; do
+            # Retain stack frames without arguments or local variable values.
+            timeout 120s gdb --batch -nx \
+              -ex "set pagination off" \
+              -iex "set print frame-arguments none" \
+              -ex "info sharedlibrary" \
+              -ex "thread apply all bt" \
+              "$(command -v python)" "$core" \
+              > "tests/logs/nightly_diagnostics/$(basename "$core").backtrace.txt" 2>&1 || true
+            rm -f -- "$core"
+          done
 
       - name: Summarize nightly results on failure
         if: failure()
@@ -93,3 +130,4 @@ jobs:
             development_tools/tests/jsons/run_test_suite_nightly_results.json
             development_tools/tests/jsons/test_suite_junit/
             development_tools/reports/logs/ai_dev_tools.log
+            tests/logs/

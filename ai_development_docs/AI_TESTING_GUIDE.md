@@ -120,6 +120,13 @@ If you need new helpers or fixtures, define them in the shared locations above r
 
 ## 4. Running Automated Tests
 
+The nightly workflow loads `tests.test_helpers.test_support.nightly_diagnostics`
+to retain per-process collection order, execution history, random seeds, and
+environment versions in the `nightly-test-suite-results` artifact. Three-minute
+test stalls emit Python stack traces. Native crashes produce stack traces
+without argument/local values; temporary raw cores stay on the runner and are
+deleted after extraction. See section 4 of the paired testing guide for replay.
+
 Full-suite environments require Node.js 20 or newer. The serial pytest bridge
 at `tests/integration/test_browser_javascript_suite.py` runs every
 `website/*.test.mjs` file and converts Node failures into pytest failures.

@@ -2,7 +2,11 @@
 
 from unittest.mock import patch
 
+import pytest
+
 from ai.chat.profile_message_variety import build_profile_variety_prompt
+
+pytestmark = [pytest.mark.unit, pytest.mark.ai]
 
 
 def test_variety_uses_only_bounded_recent_profile_deliveries():

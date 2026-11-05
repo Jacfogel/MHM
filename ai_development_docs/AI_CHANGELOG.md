@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-05 - Nightly test fixes and crash diagnostics **COMPLETED**
+- Added required category/domain markers for nine profile/context tests and completed three logger mocks with the Google Health log path. Verification passes 49 affected/policy tests with normal logging and 17 logger tests with verbose logging; targeted Ruff passes.
+- Nightly diagnostics now record per-process collection/execution histories, random seeds, invocation arguments, environment versions, and stall/native stack traces without changing application log verbosity. Raw cores stay on the runner and are deleted after extraction; only stack traces are uploaded.
+- Verified the recorder locally, including abrupt-exit durability, and on Ubuntu with six focused tests and a controlled native crash. Workflow YAML and shell syntax checks pass. The full suite was not rerun after the fixes; workflow changes are not yet active on main.
+- The original Qt crash remains unexplained: 12 local parallel widget runs and two full Linux diagnostic runs did not reproduce it. The Linux runs exposed the marker regression and verbose-only logger mock failures addressed here.
+
 ### 2026-11-04 - Varied profile messages and expanded context **COMPLETED**
 - Profile messages receive up to five recent profile deliveries as repetition examples, vary their focus and writing approach, and request fresh generation instead of cached wording. Fallbacks choose across interests, goals, and encouraging activities and avoid recent exact repeats when alternatives exist.
 - Added pronouns, gender identity, loved ones, and custom fields to scheduled profile context. Limits are now 1,000 characters per standard field, 2,000 each for custom fields and support notes, and 12,000 overall; check-in and Google Health limits remain unchanged.
@@ -112,12 +118,6 @@ Guidelines:
 - Tasks retain five deferrals; repeated snoozes/skips surface a smaller step, **Simplify**, or due-date reconsideration. Discord actions are **Done**, **Snooze**, **Simplify**, and **Leave me alone** with unchanged underlying behavior.
 - One reliable-signal policy lowers pressure across task, motivational, and Google Health messages. Missing energy/health signals preserve existing behavior.
 - The new integrated regression set passes 138 Python checks and 41 browser/proxy tests; Ruff and targeted Pyright are clean.
-
-### 2026-10-17 - Notebook persistence and reference safety hardened **COMPLETED**
-- Notebook logs retain only safe operational metadata, and the privacy guard now scans every Python runtime package.
-- Notebook creates and mutations use lock-scoped read-modify-write transactions; lists persist final completion states in one write, and concurrent edits no longer overwrite one another.
-- Ambiguous short IDs or titles never select the first entry; command handlers ask for an exact short ID. Website GET routes derive all views from one worker-thread snapshot.
-- The regenerated function registry includes the new ambiguity helper. The full quick suite passes 6,213 tests with no failures, Ruff passes, and project-wide Pyright reports no warnings.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

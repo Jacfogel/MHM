@@ -140,6 +140,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
             mock_paths.return_value = {
                 'main_file': str(log_dir / "main.log"),
                 'communication_manager_file': str(log_file),
+                'google_health_file': str(log_dir / "google_health.log"),
                 'backup_dir': str(backup_dir),
                 'errors_file': str(log_dir / "errors.log"),
                 'discord_file': str(log_dir / "discord.log"),
@@ -191,6 +192,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'ai_file': str(log_dir / "ai.log"),
                 'user_activity_file': str(log_dir / "user_activity.log"),
                 'communication_manager_file': str(log_dir / "communication_manager.log"),
+                'google_health_file': str(log_dir / "google_health.log"),
                 'email_file': str(log_dir / "email.log"),
                 'ui_file': str(log_dir / "ui.log"),
                 'file_ops_file': str(log_dir / "file_ops.log"),
@@ -450,6 +452,7 @@ class TestLoggerCoverageExpansionPhase3Simple:
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
             mock_paths.return_value = {
                 'main_file': str(log_dir / "app.log"),
+                'google_health_file': str(log_dir / "google_health.log"),
                 'discord_file': str(log_dir / "discord.log"),
                 'ai_file': str(log_dir / "ai.log"),
                 'backup_dir': str(backup_dir),

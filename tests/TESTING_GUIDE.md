@@ -259,6 +259,23 @@ In parallel execution mode (pytest-xdist):
 
 ## 4. Running Automated Tests
 
+Nightly crash diagnostics are included in the `nightly-test-suite-results`
+GitHub Actions artifact under `tests/logs/nightly_diagnostics/`. Each pytest
+process records its collection order, test starts, phase results, finishes,
+random seed, and invocation arguments in a separate JSONL file. Compare starts
+and finishes to identify an unfinished test and the tests that preceded it on
+the same worker. Use the recorded seed with `--randomly-seed=<seed>` and replay
+that worker's test sequence serially on Linux with
+`--randomly-dont-reorganize` before reducing the reproducer.
+Match the Python, pip dependency, and system package versions saved alongside
+the histories. Loading this recorder does not change application log verbosity.
+
+Tests stalled for three minutes emit Python stack traces. On Linux, native
+crashes also produce GDB backtraces with argument and local variable values
+omitted. Raw core files are temporary runner files, excluded from artifacts,
+and deleted after stack extraction. Native stack extraction has not been
+validated on Windows; it runs only in the Ubuntu nightly workflow.
+
 This section covers how to run automated tests in standard scenarios. It intentionally focuses on a few blessed entry points.
 
 Install Node.js 20 or newer before running the full suite. A serial pytest bridge
