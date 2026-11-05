@@ -75,10 +75,7 @@ jobs:
         run: |
           ulimit -c unlimited
           ulimit -a > tests/logs/nightly_diagnostics/process-limits.txt
-          python -m pytest tests/unit/test_profile_message_variety.py -q -n 2 --dist=loadscope --randomly-seed=517
-          # Diagnostic-branch-only validation of native crash extraction.
-          python -c "import os; os.abort()" || true
-          test -n "$(find "$RUNNER_TEMP/mhm-native-cores" -name 'core.*' -print -quit)"
+          python development_tools/run_development_tools.py nightly-test-suite --strict
 
       - name: Extract native crash backtraces
         if: always()
@@ -89,19 +86,13 @@ jobs:
             # Retain stack frames without arguments or local variable values.
             timeout 120s gdb --batch -nx \
               -ex "set pagination off" \
-              -ex "set print frame-arguments none" \
+              -iex "set print frame-arguments none" \
               -ex "info sharedlibrary" \
               -ex "thread apply all bt" \
               "$(command -v python)" "$core" \
               > "tests/logs/nightly_diagnostics/$(basename "$core").backtrace.txt" 2>&1 || true
             rm -f -- "$core"
           done
-
-      - name: Verify native crash diagnostics
-        run: |
-          test -n "$(find tests/logs/nightly_diagnostics -name '*.backtrace.txt' -print -quit)"
-          grep -l 'Program terminated with signal SIGABRT' tests/logs/nightly_diagnostics/*.backtrace.txt
-          test -z "$(find "$RUNNER_TEMP/mhm-native-cores" -name 'core.*' -print -quit)"
 
       - name: Summarize nightly results on failure
         if: failure()
