@@ -10,7 +10,8 @@ env:
   MHM_TESTING: "1"
   PYTHONUNBUFFERED: "1"
   QT_QPA_PLATFORM: offscreen
-  TEST_VERBOSE_LOGS: "1"
+  TEST_VERBOSE_LOGS: "0"
+  PYTEST_PLUGINS: "tests.test_helpers.test_support.nightly_trace"
   PYTEST_ADDOPTS: "-o faulthandler_timeout=180"
   PYTHONFAULTHANDLER: "1"
 
@@ -26,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.11.17"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
