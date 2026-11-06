@@ -112,6 +112,27 @@ def clear_welcomed_status(
     return True  # Already not in the list, so success
 
 
+@handle_errors("finding retained Discord account for welcome", default_return=None)
+def get_returning_discord_user_id(discord_user_id: str) -> str | None:
+    """Recognize only a retained account still linked to this Discord identity.
+
+    Welcome history is not identity evidence. Non-creating reads also reject a
+    stale index pointing at deleted account data without reconstructing it.
+    """
+    from core import get_user_id_by_identifier
+    from storage.user_data_read import get_user_data
+
+    if not discord_user_id or not str(discord_user_id).isdecimal():
+        return None
+    user_id = get_user_id_by_identifier(discord_user_id)
+    if not user_id:
+        return None
+    account = get_user_data(user_id, "account", auto_create=False).get("account", {})
+    if account and str(account.get("discord_user_id", "")) == str(discord_user_id):
+        return user_id
+    return None
+
+
 # not_duplicate: get_welcome_message
 @handle_errors("getting welcome message", default_return="")
 def get_welcome_message(
@@ -121,7 +142,7 @@ def get_welcome_message(
     is_authorization: bool = False,
 ) -> str:
     """
-    Get a channel-agnostic welcome message for a new user.
+    Get onboarding copy, or a reconnect acknowledgement for a linked Discord account.
 
     Args:
         channel_identifier: The user's channel-specific identifier
@@ -132,6 +153,14 @@ def get_welcome_message(
     Returns:
         str: Welcome message text
     """
+    if (is_authorization and channel_type == "discord"
+            and get_returning_discord_user_id(channel_identifier)):
+        return (
+            "👋 **Welcome back to MHM!**\n\n"
+            "Your Discord account is still linked. Your saved preferences are ready.\n\n"
+            "Try `/tasks`, `/checkin`, or `/help` to continue."
+        )
+
     if is_authorization:
         # User just authorized/connected the app
         message = """👋 **Welcome to MHM (Motivational Health Messages)!**

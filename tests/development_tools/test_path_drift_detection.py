@@ -21,6 +21,33 @@ PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("suffix", ["#2-rules", "?view=raw", "?view=raw#2-rules"])
+def test_markdown_suffix_does_not_turn_link_label_into_missing_path(tmp_path, suffix):
+    """A valid anchored/query href is checked as a file, not its filename label."""
+    (tmp_path / "core").mkdir()
+    (tmp_path / "core" / "GUIDE.md").write_text("## 2. Rules\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text(
+        f"See [GUIDE.md](core/GUIDE.md{suffix}) for the rules.\n",
+        encoding="utf-8",
+    )
+    analyzer = PathDriftAnalyzer(project_root=str(tmp_path), use_cache=False)
+    assert analyzer.check_path_drift() == {}
+    assert analyzer.check_markdown_link_targets() == {}
+
+
+@pytest.mark.unit
+def test_missing_anchored_href_is_still_reported(tmp_path):
+    """Ignoring a URL suffix must not hide a genuinely absent destination."""
+    (tmp_path / "README.md").write_text(
+        "See [Rules](core/MISSING.md?view=raw#2-rules).\n", encoding="utf-8"
+    )
+    analyzer = PathDriftAnalyzer(project_root=str(tmp_path), use_cache=False)
+    issues = analyzer.check_markdown_link_targets()
+    assert "core/MISSING.md?view=raw#2-rules" in str(issues)
+    assert "Missing markdown link target" in str(issues)
+
+
+@pytest.mark.unit
 class TestPathDriftDetection:
     """Test path drift detection."""
     

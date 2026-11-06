@@ -310,11 +310,29 @@ def main():
         ),
     )
 
+    parser.add_argument(
+        "--check-section-links", action="store_true",
+        help="Report section-anchor resolution and unanchored numbered citations (advisory).",
+    )
+    parser.add_argument(
+        "--section-path", action="append", default=[],
+        help="Repository-relative Markdown path to inventory; repeat as needed. Defaults to configured docs.",
+    )
     args = parser.parse_args()
 
     checker = DocumentationSyncChecker()
 
     results = checker.run_checks()
+
+    if args.check_section_links:
+        from development_tools.docs.section_reference_validation import scan_section_references
+
+        paths = args.section_path or _resolve_example_marker_scan_paths(checker.paired_docs)
+        records = scan_section_references(checker.project_root, paths)
+        results["details"]["section_references"] = records
+        results["summary"]["section_reference_hint_count"] = sum(
+            record["status"] != "resolved" for record in records
+        )
 
     if args.check_example_markers:
         from development_tools.docs.example_marker_validation import (
@@ -335,6 +353,12 @@ def main():
         print(json.dumps(results, indent=2))
     else:
         checker.print_report(results)
+        if args.check_section_links:
+            print("\nSECTION REFERENCES (advisory; no files changed):")
+            for record in results["details"]["section_references"]:
+                if record["status"] != "resolved":
+                    print(f"   {record['source']}:{record['line']} -> "
+                          f"{record['destination']}#{record['anchor']}: {record['status']}")
         if args.check_example_markers:
             ex = results["details"].get("example_marker_findings") or {}
             if ex:

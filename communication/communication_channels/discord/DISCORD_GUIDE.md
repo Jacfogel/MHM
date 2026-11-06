@@ -7,9 +7,9 @@
 
 This guide describes how the Discord channel is wired into the MHM communication layer: bot lifecycle, event handling, UI views, webhook-based onboarding, configuration, and how it interacts with the channel-agnostic message-processing core.
 
-For overall communication architecture, see section 2. "Architecture Layers" in [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md).  
-For system-wide architecture, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](../../../ARCHITECTURE.md).  
-For error-handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md).
+For overall communication architecture, see section 2. "Architecture Layers" in [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md#2-architecture-layers).
+For system-wide architecture, see section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](../../../ARCHITECTURE.md#4-key-modules-and-responsibilities).
+For error-handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#2-logging-architecture).
 
 ---
 
@@ -84,7 +84,7 @@ Bot event wrappers also track:
 - `on_disconnect` - Logs disconnects and runs cleanup where registered.
 - `on_error` - Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system.
 
-When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md).
+When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
 
 ---
 
@@ -126,7 +126,7 @@ UI views are adapters between Discord's UI and the core message pipeline:
   - "Done" - Routes `complete task {task_id}` through the interaction manager.
   - "Snooze" - Routes `snooze task {task_id}` through the interaction manager, then shows 1 hour, tonight or tomorrow morning, next week, and custom.
   - "More" - Sends a brief help message including a short task ID, completion examples, snooze, skip, and simplify commands.
-  - "Leave me alone" - Routes `skip task {task_id}` through the interaction manager. Repeating tasks roll to the next occurrence; one-off tasks stay due and wait until tomorrow morning.
+  - To skip instead, type `skip task <task ID>` using the ID shown in the reminder. Repeating tasks roll to the next occurrence; one-off tasks stay due and wait until tomorrow morning.
   - "Break down with AI" - Suggests smaller steps and lets the user save selected steps under the unchanged original task.
 
 Each button callback:
@@ -178,6 +178,7 @@ The current implementation of `verify_webhook_signature` is a **placeholder**. I
 - Generates a personalized welcome message, usually including:
   - A brief explanation of what MHM does.  
   - A prompt or link to create or link an account.  
+- For an authorization reconnect, `get_returning_discord_user_id` reuses the existing identity lookup and reads the account with `auto_create=False`. A retained account whose saved `discord_user_id` matches receives a short welcome-back acknowledgement and no create/link buttons. Welcome history alone, missing account data, or a different/unlinked identity uses normal onboarding. Recognition does not create accounts or change preferences.
 - Tracks welcomed users in `data/welcome_tracking.json` (via `communication/core/welcome_manager.py`) to avoid sending multiple welcome messages to the same user.
 
 Canonical behavior requirements live under `specs/`. Index: [specs/SPECS_GUIDE.md](../../../specs/SPECS_GUIDE.md).
@@ -191,7 +192,7 @@ Canonical behavior requirements live under `specs/`. Index: [specs/SPECS_GUIDE.m
 | [discord-checkin-flow.md](../../../specs/discord-checkin-flow.md) | Check-in prompts, buttons, retry-safe delivery |
 | [discord-task-reminder-flow.md](../../../specs/discord-task-reminder-flow.md) | Task reminders and reminder action buttons |
 
-The webhook path is the *preferred* way to detect initial authorization and includes create/link buttons on the welcome DM. If webhook delivery fails, `communication/communication_channels/discord/bot.py` may send a text-only welcome from `/start` or first interaction heuristics (see [discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md) for fallback scenarios).
+The webhook path is the *preferred* way to detect initial authorization and includes create/link buttons on the welcome DM for unlinked users; retained linked accounts receive the reconnect acknowledgement without setup buttons. If webhook delivery fails, `communication/communication_channels/discord/bot.py` may send a text-only welcome from `/start` or first interaction heuristics (see [discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md) for fallback scenarios).
 
 ---
 
@@ -240,7 +241,7 @@ Where slash commands or prefixed commands are implemented:
 Any changes to command behavior should be reflected in:
 
 - The core interaction handlers.  
-- Relevant tests in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md) (sections 2 and 6).  
+- Relevant tests in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#2-test-layout-and-types) (sections 2 and 6).
 - This section if the mapping strategy changes.
 
 ---
@@ -299,7 +300,7 @@ Use log levels consistently:
 - `error` for failed operations that impact a specific user or event.  
 - `debug` for diagnostic details.
 
-See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md) for detailed behavior.
+See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#2-logging-architecture) for detailed behavior.
 
 ### 8.2. Error Handling
 
@@ -324,7 +325,7 @@ When modifying the Discord channel:
 
 - **Manual tests**
   - Use the manual testing guides for channel-specific flows:
-    - Section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md).  
+    - Section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
     - [MANUAL_TESTING_GUIDE.md](../../../tests/MANUAL_TESTING_GUIDE.md) and related Discord-specific sections.
 
 - **Webhook onboarding**

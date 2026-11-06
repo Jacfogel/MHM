@@ -9,12 +9,12 @@
 > **Last Updated**: 2026-05-01
 
 See [README.md](README.md) for navigation and project overview.  
-See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) and section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md) for environment setup and running the app.
+See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md#2-virtual-environment-best-practices) and section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended) for environment setup and running the app.
 For supporting details on logging, testing, and error handling, see:
 
-- Section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  
-- Section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
-- Section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  
+- Section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture)
+- Section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#2-test-layout-and-types)
+- Section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md#2-architecture-overview)
 
 ---
 
@@ -24,7 +24,7 @@ This section describes the top-level directories. It should match the actual pro
 
 - `ai/`  
   AI integration modules, including optional OpenAI integration and local helpers for
-  context building or summarization. See the "Overview" section in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md)
+  context building or summarization. See the "Overview" section in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md#1-overview)
   if present.
 
 - `ai_development_docs/`  
@@ -55,7 +55,7 @@ This section describes the top-level directories. It should match the actual pro
   plans. See section 1. Overview in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for change history.
 
 - `logs/`  
-  Application and component logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
+  Application and component logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture)
   for the detailed logging scheme.
 
 - `notebook/`
@@ -84,7 +84,7 @@ This section describes the top-level directories. It should match the actual pro
 - `tests/`
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
   `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
-  "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+  "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
 
 - `ui/`  
   PySide6 admin application:
@@ -130,7 +130,7 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 - Additional JSON files and subdirectories (for example `checkins.json`,
   `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
 
-**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations` facade plus `user_data_user_info` / `user_data_backup` / `user_data_index` / `user_data_summaries`, `schedule_runtime`, `schedule_period_normalize`, `schedule_document_defaults`) and v2 envelope-in-memory account/preferences/schedules versus remaining inner shapes (context/tags/chat), see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
+**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations` facade plus `user_data_user_info` / `user_data_backup` / `user_data_index` / `user_data_summaries`, `schedule_runtime`, `schedule_period_normalize`, `schedule_document_defaults`) and v2 envelope-in-memory account/preferences/schedules versus remaining inner shapes (context/tags/chat), see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map).
 
 Important rules:
 
@@ -150,7 +150,7 @@ Important rules:
    Describe what they are for, how they are written, and which module owns them.
 
 For more validation and schema details, see the relevant models and helpers in
-`storage/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+`storage/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
 
 ### 2.1. User Data Flow Diagram
 
@@ -259,7 +259,7 @@ Data handling in MHM is designed around safety and clarity.
 
 - Legacy compatibility and migration  
   - When you need to support an old on-disk format, add a clearly marked legacy path.  
-  - Use the legacy compatibility logging pattern described in section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+  - Use the legacy compatibility logging pattern described in section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#7-legacy-compatibility-logging-standard).
 
 When adding new data or changing existing structures:
 
@@ -267,7 +267,7 @@ When adding new data or changing existing structures:
 2. Decide whether it belongs under `data/users/` or `resources/`. Only use `user/` for
    instance-level configuration that truly applies to the whole installation.  
 3. Add validation logic and tests (see section 6. "Writing and Extending Tests" in
-   [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)).  
+   [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#6-writing-and-extending-tests)).
 4. Document the new files here and in any relevant guides.
 
 ---
@@ -298,18 +298,18 @@ listing of every file.
   Central configuration loader. Reads environment variables (typically from `.env` via
   `python-dotenv`), validates them, and exposes configuration to the rest of the system.
   For configuration details and validation patterns, see section 5. Configuration
-  (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+  (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#5-configuration-environment-variables).
 
 - `core/logger.py`  
   Central logging setup. Provides component loggers and attaches handlers to the
   appropriate log files under `logs/`. For log levels, file layout, and rotation rules,
   see section 2. Logging Architecture and section 4. Component Log Files and Layout in
-  [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+  [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
 
 - `core/error_handling.py`  
   Shared error handling logic and decorators. Connects error handling to logging and, where
   applicable, to basic metrics. For the broader design and patterns, see section 2.
-  Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+  Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
 
 - `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, and `storage/user_data_validation.py`
   Read and write user data in a safe and consistent way, with validation and optional
@@ -380,7 +380,7 @@ The goal is that when you see a dialog in the UI, you can easily find:
 3. The implementation that attaches behavior.
 
 If you add new dialogs or widgets, follow the same pattern. Only update this section if you
-introduce a new convention. For UI testing and manual QA, see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+introduce a new convention. For UI testing and manual QA, see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
 
 ---
 
@@ -420,10 +420,10 @@ differences between Discord, email, and the UI.
 
 - Use established logging and error handling patterns.  
   Prefer `core/logger.py` and `core/error_handling.py` plus the guidance in section 2.
-  Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2. Architecture Overview in
-  [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) instead of ad-hoc prints or try/except blocks.
+  Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture) and section 2. Architecture Overview in
+  [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) instead of ad-hoc prints or try/except blocks.
 
 - Learn by small steps.  
   The architecture is built to support safe, incremental changes. Make one change at a time,
   observe its impact, and use logging and tests to confirm behavior. For overall development
-  process, see section 2. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+  process, see section 3. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#3-standards-and-templates).

@@ -16,6 +16,7 @@ from communication.core.welcome_manager import (
     mark_as_welcomed as _mark_as_welcomed,
     clear_welcomed_status as _clear_welcomed_status,
     get_welcome_message as _get_welcome_message,
+    get_returning_discord_user_id,
 )
 
 logger = get_component_logger("discord")
@@ -70,7 +71,7 @@ def get_welcome_message(
 
 
 @handle_errors("creating welcome message view with buttons", default_return=None)
-def get_welcome_message_view(discord_user_id: str) -> "discord.ui.View":
+def get_welcome_message_view(discord_user_id: str) -> "discord.ui.View | None":
     """
     Create a Discord View with buttons for account creation and linking.
 
@@ -80,6 +81,9 @@ def get_welcome_message_view(discord_user_id: str) -> "discord.ui.View":
     Returns:
         discord.ui.View with buttons for account actions
     """
+    if get_returning_discord_user_id(discord_user_id):
+        return None
+
     import discord
 
     class WelcomeView(discord.ui.View):

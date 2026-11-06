@@ -61,7 +61,8 @@ def load_active_tasks(user_id: str) -> list[dict[str, Any]]:
     if not is_valid_user_id(user_id):
         logger.error(f"Invalid user_id for load_active_tasks: {user_id}")
         return []
-    ensure_task_directory(user_id)
+    # The v2 loader initializes a missing file through centralized storage.
+    # Avoid resolving and checking the same directory twice on every read.
     v2_tasks = _load_v2_tasks(user_id)
     return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "active"]
 
@@ -90,7 +91,7 @@ def load_completed_tasks(user_id: str) -> list[dict[str, Any]]:
     if not is_valid_user_id(user_id):
         logger.error(f"Invalid user_id for load_completed_tasks: {user_id}")
         return []
-    ensure_task_directory(user_id)
+    # _load_v2_tasks also handles first-use directory/file initialization.
     v2_tasks = _load_v2_tasks(user_id)
     return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "completed"]
 

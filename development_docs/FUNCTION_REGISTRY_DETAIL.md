@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 22:20:40
+> **Last Generated**: 2026-11-05 23:18:25
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3251
+- **Functions Found**: 3252
 - **Methods Found**: 1654
 - **Classes Found**: 291
-- **Total Items**: 4905
-- **Functions Documented**: 2904
+- **Total Items**: 4906
+- **Functions Documented**: 2905
 - **Methods Documented**: 1480
 - **Classes Documented**: 224
-- **Total Documented**: 4384
+- **Total Documented**: 4385
 - **Template-Generated**: 72
 - **Last Updated**: 2026-11-05
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (689)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (911)
+### **Communication Functions** (912)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (562)
@@ -3164,7 +3164,11 @@ Args:
 
 Returns:
     bool: True if successful
-- [OK] `get_welcome_message(channel_identifier, channel_type, username, is_authorization)` - Get a channel-agnostic welcome message for a new user.
+- [OK] `get_returning_discord_user_id(discord_user_id)` - Recognize only a retained account still linked to this Discord identity.
+
+Welcome history is not identity evidence. Non-creating reads also reject a
+stale index pointing at deleted account data without reconstructing it.
+- [OK] `get_welcome_message(channel_identifier, channel_type, username, is_authorization)` - Get onboarding copy, or a reconnect acknowledgement for a linked Discord account.
 
 Args:
     channel_identifier: The user's channel-specific identifier

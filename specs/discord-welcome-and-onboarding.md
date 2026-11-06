@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord welcome messaging and create/link account onboarding  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-05-16  
+> **Last Updated**: 2026-11-05
 > **Implementation**: `communication/core/welcome_manager.py`, `communication/communication_channels/discord/onboarding/welcome_handler.py`, `communication/communication_channels/discord/webhooks/handler.py`, `communication/communication_channels/discord/onboarding/account_flow_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/command_handlers/account_handler.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md)  
 > **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`  
@@ -33,7 +33,7 @@ The system SHALL treat "welcomed" as a per-Discord-user flag that lasts from a s
 - **AND** the bot instance and event loop are available  
 - **WHEN** `handle_application_authorized` runs  
 - **THEN** the system schedules a welcome DM with authorization-style copy (`is_authorization=True`)  
-- **AND** attaches a `WelcomeView` with "Create a New Account" and "Link to Existing Account" buttons (`timeout=None`)  
+- **AND** attaches a `WelcomeView` with "Create a New Account" and "Link to Existing Account" buttons (`timeout=None`) when no retained account is linked to that Discord identity; a retained linked account receives the reconnect acknowledgement without setup buttons
 - **AND** calls `mark_as_welcomed` after a successful DM send  
 
 #### Scenario: Already welcomed on authorization
@@ -86,14 +86,32 @@ If the webhook path does not run, the bot MAY send a **text-only** authorization
 
 ### 3.3. Requirement: Welcome message content (authorization)
 
-Authorization-style welcome copy from `communication/core/welcome_manager.py` SHALL instruct the user to create or link an MHM account and mention tasks, check-ins, and help entry points.
+Authorization-style welcome copy from `communication/core/welcome_manager.py` SHALL instruct an unlinked user to create or link an MHM account and mention tasks, check-ins, and help entry points. A retained account linked to the same Discord identity SHALL instead receive a short reconnect acknowledgement with task, check-in, and help entry points.
 
 #### Scenario: Authorization copy
 
 - **GIVEN** `is_authorization=True` when building the welcome message  
+- **AND** no retained account is linked to this Discord identity
 - **WHEN** the message is returned to Discord adapters  
 - **THEN** it describes creating or linking an account  
 - **AND** references tasks, check-ins, and `/help` (or equivalent)  
+
+#### Scenario: Retained account reconnects
+
+- **GIVEN** an existing retained MHM account has the same `discord_user_id`
+- **WHEN** its authorization welcome is built
+- **THEN** the message acknowledges the existing link and preserves saved preferences
+- **AND** the webhook sends no create/link setup buttons
+- **AND** no account is created, duplicated, or relinked
+
+#### Scenario: Deleted or unlinked account is not recognized as returning
+
+- **GIVEN** old welcome history or a stale index exists
+- **AND** the account is absent or its saved Discord identity differs
+- **WHEN** authorization is handled
+- **THEN** normal create/link onboarding remains available
+- **AND** recognition uses a non-creating account read
+- **AND** deleted user data is not reconstructed or retained for recognition
 
 ### 3.4. Requirement: Welcome action buttons (webhook and WelcomeView)
 

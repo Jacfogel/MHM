@@ -66,7 +66,7 @@ When adding a test:
 
 For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
-For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
 
 ---
 
@@ -207,7 +207,7 @@ When focusing on a small subset:
   pytest -m "integration and not slow"
   ```
 
-If you add or change command-line options, update `run_tests.py`, `pytest.ini`, and section 4 of [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+If you add or change command-line options, update `run_tests.py`, `pytest.ini`, and section 4 of [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#4-running-automated-tests).
 
 ---
 
@@ -244,7 +244,7 @@ Coverage:
   - Focus on critical paths (scheduling, delivery, error handling, AI behavior).
   - Do not chase 100% coverage at the cost of clarity.
 
-For rationale and examples, see sections 5.1-5.3 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+For rationale and examples, see sections 5.1-5.3 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#51-parallel-execution).
 
 ---
 
@@ -265,7 +265,7 @@ Placement rules:
 
 ### 6.2. Marker standards
 
-Keep markers aligned with section 6.2 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md). Three layers - do not mix them:
+Keep markers aligned with section 6.2 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#62-marker-standards). Three layers - do not mix them:
 
 **Category (required - exactly one):** `unit`, `integration`, `behavior`, `ui` - suite layer.
 
@@ -349,10 +349,10 @@ On any test failure:
 
 Routing to other AI docs:
 
-- See Section 2 ("Architecture Overview") and section 3 ("Usage Patterns") in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) for required error-handling constraints and routing.
-- See Section 2 ("Logging Architecture") and section 3 ("Log Levels and When to Use Them") in [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md) for required logging behavior when writing or testing code.
+- See section 2. "Architecture Overview" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 3. "Usage Patterns" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md#3-usage-patterns) for required error-handling constraints and routing.
+- See section 2. "Logging Architecture" in [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md#2-logging-architecture) and section 3. "Log Levels and When to Use Them" in [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md#3-log-levels-and-when-to-use-them) for required logging behavior when writing or testing code.
 
-Refer to section 7 of [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) for detailed troubleshooting guidance.
+Refer to section 7 of [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#7-debugging-and-troubleshooting) for detailed troubleshooting guidance.
 
 ---
 
@@ -376,7 +376,7 @@ Routing:
     - Section 4. "Scheduling & Reminder Manual Tests".
     - Section 10. "Automated checklist map" (run the named pytest files; leftover gaps in `tests/behavior/test_manual_*.py`).
 - For Discord checklist coverage (tasks, notebook, onboarding):
-  - Run [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py) plus the mapped files in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6.
+  - Run [test_discord_manual_checklist.py](../tests/behavior/test_discord_manual_checklist.py) plus the mapped files in [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md#4-automated-checklist-map) sections 4 and 6.
   - Live Discord is optional for tone and the real client.
 - For AI conversation and functionality testing:
   - Safety, routing, and capability limits: [test_ai_user_journeys.py](../tests/behavior/test_ai_user_journeys.py) (in `python run_tests.py`; no live OpenAI requests).
@@ -418,4 +418,4 @@ During parallel test execution, system memory usage can reach 95-98%, which is n
 - Run tests in smaller batches (`--mode fast`)
 - For heavy-test triage, use the optional local profiler or OS/`tracemalloc` tools
 
-For detailed explanations and usage examples, see section 9 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+For detailed explanations and usage examples, see section 9 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#9-memory-profiling-and-resource-management).

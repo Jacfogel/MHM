@@ -34,8 +34,8 @@ For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../d
 
 Use this guide only after you understand the general documentation and development rules:
 
-- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md).
-- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md).
+- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
+- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first).
 
 **When adding legacy compatibility code (temporary compatibility only):**
 

@@ -75,7 +75,7 @@ Reference specs from [PLANS.md](../development_docs/PLANS.md) or [TODO.md](../TO
 
 Each spec must begin with a metadata block. Use full paths from the project root in **Implementation** and **Related** lines (per [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 3.7).
 
-[EXAMPLE] Topic spec body sections (unnumbered headings): **Purpose**, **Requirements** (with `### Requirement:` and `#### Scenario:` subheadings), **Out of scope**, **Manual test checklist**, **Related documentation**. See [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md) for a full example.
+[EXAMPLE] Topic spec body sections (unnumbered headings): **Purpose**, **Requirements** (with `### Requirement:` and `#### Scenario:` subheadings), **Out of scope**, **Manual test checklist**, **Related documentation**. See [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md#6-related-documentation) for a full example.
 
 ### 4.1. Requirement and scenario wording
 

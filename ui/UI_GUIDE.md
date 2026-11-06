@@ -7,8 +7,8 @@
 
 This document is internal to the MHM project.
 
-See [README.md](../README.md), section 1 **"Navigation"** and section 7 **"Project Structure"** for documentation index and directory layout.  
-See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 1 **"Safety First"** and section 3 **"Development Process"** before changing UI code.
+See [README.md](../README.md#2-navigation-start-here), section 2. "Navigation (Start Here)", and [README.md](../README.md#8-project-structure), section 8. "Project Structure", for the documentation index and directory layout.
+See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#1-safety-first), section 1. "Safety First", and [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#3-development-process), section 3. "Development Process" before changing UI code.
 
 ---
 
@@ -47,8 +47,8 @@ If you ever use `pyside6-uic` directly (for debugging), **re-run** `python ui/ge
 4. **Test**:
    - Verify basic layout and behavior in the PySide6 UI.
    - Confirm integration with service processes and communication channels, as described in:
-     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 4 **"Testing Strategy"**  
-     - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md), section 6 **"Running Tests"**
+     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#4-testing-strategy), section 4 **"Testing Strategy"**
+     - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#4-running-automated-tests), section 4. "Running Automated Tests"
 
 ---
 
@@ -153,8 +153,8 @@ Core UI layout:
 
 Where relevant, follow the error-handling and logging patterns described in:
 
-- [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md), section 2 **"Architecture Overview"**  
-- [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md), section 3 **"Component Loggers and Layout"**
+- [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview), section 2 **"Architecture Overview"**
+- [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout), section 4. "Component Log Files and Layout"
 
 ---
 
@@ -162,7 +162,7 @@ Where relevant, follow the error-handling and logging patterns described in:
 
 Open **Admin > AI Controls** without selecting an account. The dialog edits installation-wide global and feature switches, preserves feature selections when AI is off, and can restore environment defaults. Save applies to subsequent model requests in desktop and service processes; Cancel does not write changes, and a failed save keeps the draft open. These controls do not belong in website user settings.
 
-The layout source is `ui/designs/ai_controls_dialog.ui`, generated into `ui/generated/ai_controls_dialog_pyqt.py`. Behavior lives in `ui/dialogs/ai_controls_dialog.py`. The shared schema and dependency-light reader live in `core/ai_usage_configuration.py`; `core/ai_usage_settings.py` provides the environment fallback and atomic persistence through the runtime storage layer. Configuration validation uses the same schema reader without importing the AI runtime. See [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) Section 6.2 for precedence, storage, and failure behavior.
+The layout source is `ui/designs/ai_controls_dialog.ui`, generated into `ui/generated/ai_controls_dialog_pyqt.py`. Behavior lives in `ui/dialogs/ai_controls_dialog.py`. The shared schema and dependency-light reader live in `core/ai_usage_configuration.py`; `core/ai_usage_settings.py` provides the environment fallback and atomic persistence through the runtime storage layer. Configuration validation uses the same schema reader without importing the AI runtime. See [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#62-optional-ai-usage-controls) Section 6.2 for precedence, storage, and failure behavior.
 
 ## 3. Usage Pattern
 

@@ -254,7 +254,7 @@ The error handler should be the primary place that final log messages and struct
 Error handling integrates with:
 
 - **Logging configuration**  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) for how errors flow into `logs/errors.log` and component logs.
+  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) for how errors flow into `logs/errors.log` and component logs.
 
 - **Environment flags**  
   - Test mode (`MHM_TESTING`) can change how aggressively errors are surfaced during tests versus production, and is evaluated inside logging utilities wrapped with `@handle_errors`.
@@ -345,7 +345,7 @@ Migration guidelines:
   - Add `@handle_errors` at the top of the stack where control enters that flow.  
 - Consolidate repeated error handling logic into the shared error handler and helper functions.
 
-Legacy compatibility should follow the logging patterns described in section 5. "Error Message Guidelines" and section 8. "Monitoring and Debugging" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) when retaining old entry points or behaviors.
+Legacy compatibility should follow the logging patterns described in section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#7-legacy-compatibility-logging-standard) when retaining old entry points or behaviors.
 
 ---
 
@@ -398,13 +398,13 @@ These examples are intentionally simple; real code should use the shared helpers
 For related topics:
 
 - Logging implementation guidance  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
 
 - Testing patterns and expectations  
-  - See section 1. "Testing Philosophy and Priorities" and section 3. "Test Types and Structure" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+  - See section 1. "Purpose and Scope" and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
 
 - Development workflow and emergency procedures  
-  - See section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md).
+  - See section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#6-emergency-procedures).
 
 - AI system behavior and LM Studio fallbacks  
   - See [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md).

@@ -57,7 +57,7 @@ Copy-Item .env.example .env
 
 **Note**: The `.env` file is in `.cursorignore` for security (contains API keys and passwords).
 
-### 1.4. Step 5: Launch the Application
+### 1.4. Step 4: Launch the Application
 ```powershell
 # For human users (UI interface)
 python run_mhm.py
@@ -110,6 +110,25 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 - Slash and bang commands are equivalent; use whichever is more convenient.
 - If you forget the exact command, typing the mapped text (for example, "show my tasks") works the same way.
 - Check-in related commands (`/checkin`, `/restart`, `/clear`, `/cancel`) operate on the conversation flow system.
+
+### 3.1. Replying by email
+
+1. Ask the administrator to associate your sender address with your MHM account.
+2. Keep the MHM service running with email configured using
+   [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#4-email-configuration),
+   section 4. "Email configuration".
+3. Reply to the original task reminder or check-in email. Write your new answer
+   above the quoted history so MHM can extract it and retain the thread context.
+4. Wait for the reply. Inbox checks normally run every 30 seconds; connection
+   failures increase that interval until polling recovers. Email uses text
+   replies rather than the Discord buttons described above.
+
+If MHM says it found no new text, reply again with only your answer above the
+quoted message. If it says the address is unregistered, have the administrator
+check the account's saved email address. For delivery or polling failures, check
+[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout), section 4.
+"Component Log Files and Layout", and correct the SMTP/IMAP configuration before
+retrying.
 
 ## 4. Alternative Launch Methods
 
@@ -255,7 +274,7 @@ python -m pip install -e ".[ui]" --force-reinstall
 **A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`
 
 **Q: Where are my logs stored?**
-**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for details.
+**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout) for details.
 
 **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your script and the underlying interpreter. The process running your actual code is the one that matters; the system Python is a harmless artifact.

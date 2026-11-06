@@ -208,7 +208,7 @@ If the Windows Task Scheduler becomes polluted during development (for example, 
 
 Test logging must be isolated from production logs. Tests must write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or user data directories.
 
-Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
+Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) (see section 2. "Logging Architecture" in that guide).
 
 #### Test log files
 
@@ -804,8 +804,8 @@ Then:
 
 For error handling and logging details:
 
-- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
-- See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
+- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
+- See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
 
 Align tests with those patterns:
 
@@ -847,7 +847,7 @@ That guide provides:
 - How to record results and file issues.
 - Triggers that indicate when manual testing is required.
 
-After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md) section 10. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
+After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md#10-automated-checklist-map) section 10. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
 
 #### 8.2.1. Google Health mocks and live checks
 
@@ -863,7 +863,7 @@ Discord checklist behavior is automated. After task, notebook, routing, or onboa
 - [test_discord_task_reminder_followup.py](behavior/test_discord_task_reminder_followup.py)
 - [test_notebook_handler_behavior.py](behavior/test_notebook_handler_behavior.py)
 
-The command cheat sheet and item-to-test map live in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) (sections 4 and 6). Live Discord is optional for tone and the real client (bot online, expired buttons).
+The command cheat sheet and item-to-test map live in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md#4-automated-checklist-map) (sections 4 and 6). Live Discord is optional for tone and the real client (bot online, expired buttons).
 
 ### 8.4. AI functionality testing
 

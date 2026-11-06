@@ -127,10 +127,10 @@ def handle_application_authorized(
             logger.debug(f"User {discord_user_id} already welcomed")
             return True
 
-        # Check if user already has an account (for logging purposes)
-        from core import get_user_id_by_identifier
+        # Reconnect only to a retained account with the same channel identity.
+        from communication.core.welcome_manager import get_returning_discord_user_id
 
-        internal_user_id = get_user_id_by_identifier(discord_user_id)
+        internal_user_id = get_returning_discord_user_id(discord_user_id)
 
         if internal_user_id:
             logger.debug(

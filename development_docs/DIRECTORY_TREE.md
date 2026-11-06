@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 22:21:54
+> **Last Generated**: 2026-11-05 23:19:49
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -363,6 +363,7 @@ C:.
 |   |   |   fix_documentation_links.py
 |   |   |   fix_version_sync.py
 |   |   |   generate_directory_tree.py
+|   |   |   section_reference_validation.py
 |   |   |   __init__.py
 |   |   |
 |   +---error_handling
@@ -687,6 +688,7 @@ C:.
 |   |   |   test_discord_bot_behavior.py
 |   |   |   test_discord_checkin_retry_behavior.py
 |   |   |   test_discord_manual_checklist.py
+|   |   |   test_discord_reconnect_welcome.py
 |   |   |   test_discord_task_reminder_followup.py
 |   |   |   test_dynamic_checkin_behavior.py
 |   |   |   test_email_bot_behavior.py
@@ -705,6 +707,7 @@ C:.
 |   |   |   test_manual_startup_shutdown.py
 |   |   |   test_message_analytics_behavior.py
 |   |   |   test_message_behavior.py
+|   |   |   test_message_processing_profile.py
 |   |   |   test_message_route_classifier_behavior.py
 |   |   |   test_natural_language_command_detection.py
 |   |   |   test_natural_language_handler_behavior.py
@@ -881,6 +884,7 @@ C:.
 |   |   |   test_run_dev_tools.py
 |   |   |   test_run_test_coverage_helpers.py
 |   |   |   test_run_test_suite_helpers.py
+|   |   |   test_section_reference_validation.py
 |   |   |   test_service_utilities.py
 |   |   |   test_sharded_static_analysis.py
 |   |   |   test_sharded_static_scan_wiring.py
@@ -1154,6 +1158,7 @@ C:.
 |   |   |   test_task_focus.py
 |   |   |   test_task_links.py
 |   |   |   test_task_occurrence_skip.py
+|   |   |   test_task_read_initialization.py
 |   |   |   test_task_reference.py
 |   |   |   test_task_reminder_deferrals.py
 |   |   |   test_task_reminder_snooze.py

@@ -9,7 +9,7 @@
 
 This guide describes how to run and interpret the **AI functionality test suite**.
 
-Use it when you change AI-related behavior (prompts, context building, caching, routing, integrations), or when manual AI behavior testing (see section 7 of [MANUAL_TESTING_GUIDE.md](../MANUAL_TESTING_GUIDE.md)) indicates regressions.
+Use it when you change AI-related behavior (prompts, context building, caching, routing, integrations), or when manual AI behavior testing (see section 7 of [MANUAL_TESTING_GUIDE.md](../MANUAL_TESTING_GUIDE.md#7-ai-behavior-manual-tests)) indicates regressions.
 
 ---
 

@@ -21,9 +21,9 @@
   - This AI doc: high-level routing and constraints.
 - When you need more detail, jump to:
   - Running the app and environment commands:
-    - [HOW_TO_RUN.md](../HOW_TO_RUN.md), section 1. "Quick Start (Recommended)" and section 4. "Alternative Launch Methods".
-    - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 2. "Virtual Environment Best Practices".
-    - [ARCHITECTURE.md](../ARCHITECTURE.md), section 4. "Key Modules and Responsibilities" (entry points).
+    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#1-quick-start-recommended), section 1. "Quick Start (Recommended)" and section 4. "Alternative Launch Methods".
+    - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#2-virtual-environment-best-practices), section 2. "Virtual Environment Best Practices".
+    - [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities), section 4. "Key Modules and Responsibilities" (entry points).
   - Testing:
     - [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md) (routing for which tests to run and which commands to use).
   - Logging:
@@ -56,14 +56,14 @@
 - When giving instructions:
   - Prefer small, reversible changes instead of broad refactors.
   - Do not invent new entry points; use the ones documented in:
-    - [HOW_TO_RUN.md](../HOW_TO_RUN.md), section 1.5. "Step 5: Launch the Application" and section 4. "Alternative Launch Methods".
-    - [ARCHITECTURE.md](../ARCHITECTURE.md), section 4. "Key Modules and Responsibilities" (run_mhm/run_headless).
+    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#14-step-4-launch-the-application), section 1.4. "Step 4: Launch the Application" and section 4. "Alternative Launch Methods".
+    - [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities), section 4. "Key Modules and Responsibilities" (run_mhm/run_headless).
 - For crashes, confusing errors, or suspected configuration issues, route to:
-  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 6. "Emergency Procedures".
-  - [HOW_TO_RUN.md](../HOW_TO_RUN.md), section 6. "Troubleshooting".
+  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#6-emergency-procedures), section 6. "Emergency Procedures".
+  - [HOW_TO_RUN.md](../HOW_TO_RUN.md#6-troubleshooting), section 6. "Troubleshooting".
   - [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).
   - [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md).
-- For the full safety checklist, see section 1. "Safety First" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md).
+- For the full safety checklist, see section 1. "Safety First" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#1-safety-first).
 
 ---
 
@@ -109,7 +109,7 @@ When implementing:
 When documenting:
 
 - Decide which docs to update using [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md).
-- Keep H2 headings aligned across doc pairs as described in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md), section 3. "Documentation Synchronization Checklist".
+- Keep H2 headings aligned across doc pairs as described in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist), section 4. "Documentation Synchronization Checklist".
 - When touching config or list-like structures, consult [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) for canonical sources and consolidation principles.
 ## 4. Testing Strategy
 
@@ -159,7 +159,7 @@ Use these patterns for frequent change types. Keep responses concise and route t
 
 **Ruff and Pyright**
 
-- When they conflict, prefer **Pyright** on type and attribute issues (it understands types and attribute existence). Use a targeted `# noqa` for Ruff when you keep code type-correct (for example, module monkeypatching). For style-only conflicts, follow Ruff and adjust types or add a narrow `# type: ignore` with a comment. See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 5.4. "Static Analysis (Ruff and Pyright)", for detail.
+- When they conflict, prefer **Pyright** on type and attribute issues (it understands types and attribute existence). Use a targeted `# noqa` for Ruff when you keep code type-correct (for example, module monkeypatching). For style-only conflicts, follow Ruff and adjust types or add a narrow `# type: ignore` with a comment. See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#54-static-analysis-ruff-and-pyright), section 5.4. "Static Analysis (Ruff and Pyright)", for detail.
 
 When the user asks high-level questions like:
 
@@ -182,28 +182,28 @@ answer briefly and route to the appropriate AI doc:
 When things look broken or confusing:
 
 - For environment or startup failures:
-  - [HOW_TO_RUN.md](../HOW_TO_RUN.md), section 6. "Troubleshooting".
-  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 2. "Virtual Environment Best Practices".
+  - [HOW_TO_RUN.md](../HOW_TO_RUN.md#6-troubleshooting), section 6. "Troubleshooting".
+  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#2-virtual-environment-best-practices), section 2. "Virtual Environment Best Practices".
 - For unexpected tracebacks, crashes, or repeated errors:
   - [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).
-  - [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md).
+  - [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md#9-best-practices).
 - For failing or flaky tests:
   - [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md).
-  - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md), section 7. "Debugging and Troubleshooting".
+  - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#7-debugging-and-troubleshooting), section 7. "Debugging and Troubleshooting".
 - For documentation that appears inconsistent with behavior:
   - [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md).
-  - [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md), section 4. "Documentation Synchronization Checklist".
-- For the full emergency checklist, see section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md).
+  - [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist), section 4. "Documentation Synchronization Checklist".
+- For the full emergency checklist, see section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#6-emergency-procedures).
 
 ---
 
 ## 7. Learning Resources
 
 - Beginners should be pointed to:
-  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 7. "Learning Resources".
+  - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#7-learning-resources), section 7. "Learning Resources".
 - For deeper understanding of structure and data flow:
-  - [ARCHITECTURE.md](../ARCHITECTURE.md), section 1. "Directory Overview" and section 2. "User Data Model".
-  - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) for quick routing.
+  - [ARCHITECTURE.md](../ARCHITECTURE.md#1-directory-overview), section 1. "Directory Overview" and section 2. "User Data Model".
+  - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md#2-user-data-model) for quick routing.
 - For learning about testing, logging, and error handling:
   - [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md), [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md), and [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) for routing.
 
@@ -220,18 +220,18 @@ Keep guidance brief and always route to the human docs for long explanations.
   - Invent new file layouts, entry points, or global patterns that are not already documented.
   - Duplicate large sections of human docs inside AI docs; instead, point back to the correct section.
 
-For a fuller list of tips and examples, see section 8. "Success Tips" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md).
+For a fuller list of tips and examples, see section 8. "Success Tips" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#8-success-tips).
 
 ---
 
 ## 9. Git Workflow (PowerShell-Safe)
 
-- Git guidance should be aligned with section 9. "Git Workflow (PowerShell-Safe)" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md).
+- Git guidance should be aligned with section 9. "Git Workflow (PowerShell-Safe)" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#9-git-workflow-powershell-safe).
 - High-level rules for AI assistance:
   - Do not suggest complex branching strategies unless the user asks; default to simple `main`-based workflows.
   - Prefer commands that are safe in PowerShell on Windows.
   - Encourage small, frequent commits with clear messages summarizing the change.
-- When users need more detailed Git instructions, always route them back to [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 9, instead of inventing new workflows here.
+- When users need more detailed Git instructions, always route them back to [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#9-git-workflow-powershell-safe), section 9, instead of inventing new workflows here.
 
 ---
 
@@ -255,6 +255,6 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-**Note**: Standard audits write `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/CONSOLIDATED_REPORT.md`. With `--dev-tools-only`, Tier 3 writes `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` instead so scoped runs do not overwrite full-repo status files. See paired [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) section 10 for the human-facing recipe.
+**Note**: Standard audits write `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/CONSOLIDATED_REPORT.md`. With `--dev-tools-only`, Tier 3 writes `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` instead so scoped runs do not overwrite full-repo status files. See paired [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe) section 10 for the human-facing recipe.
 
 For detailed tool usage and output locations, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).

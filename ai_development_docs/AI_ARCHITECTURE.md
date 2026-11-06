@@ -17,33 +17,33 @@ Typical questions and starting points:
 - User data access or schema changes  
   -> `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py`
   -> Details: see section 2. User Data Model and section 3. Data Handling Patterns in
-     [ARCHITECTURE.md](../ARCHITECTURE.md).
+     [ARCHITECTURE.md](../ARCHITECTURE.md#3-data-handling-patterns).
 
 - UI layout, dialogs, or widgets  
   -> `ui/ui_app_qt.py`, `ui/dialogs/`, `ui/widgets/`  
-  -> Details: see section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md).
+  -> Details: see section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md#5-ui-architecture-and-naming-conventions).
 
 - Scheduling or reminder logic  
   -> `core/service.py`, `scheduler/`, `tasks/`
-  -> Details: see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md).
+  -> Details: see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
 
 - Channel behavior (Discord, email, etc.)  
   -> `communication/` modules  
   -> Details: see section 4. Key Modules and Responsibilities and section 6.
-     Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md), plus section 2.
-     Channel Layers and Boundaries in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md).
+     Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md#6-channel-agnostic-architecture), plus section 2.
+     Architecture Layers in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md#2-architecture-layers).
 
 - Configuration and environment variables  
   -> `.env`, `.env.example`, `core/config.py`  
   -> Details: see configuration notes in section 4. Key Modules and Responsibilities in
-     [ARCHITECTURE.md](../ARCHITECTURE.md), section 2.4. "Configuration and .env" in
-     [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), and section 1.4. "Configure Environment (Optional)"
-     in [HOW_TO_RUN.md](../HOW_TO_RUN.md).
+     [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities), section 2.4. "Configuration and .env" in
+     [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#24-configuration-and-env), and section 1.3. "Step 3: Configure Environment (Optional)"
+     in [HOW_TO_RUN.md](../HOW_TO_RUN.md#13-step-3-configure-environment-optional).
 
 - Logging and error handling  
   -> `core/logger.py`, `core/error_handling.py`, `logs/`  
-  -> Details: see section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and
-     section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
+  -> Details: see section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and
+     section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
 
 ---
 
@@ -67,7 +67,7 @@ Top-level routing only; do not duplicate full descriptions here.
 - `tasks/` - reminder and task definitions.  
 - `tests/` - tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery
   in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).  
-- `logs/` - runtime logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
+- `logs/` - runtime logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
 - `styles/` - QSS themes.  
 - `user/` - instance-level preferences and settings.
 
@@ -100,9 +100,9 @@ Preserve these patterns when generating or editing code:
   - Per-user instances: `data/users/{user_id}/messages/`.
 
 - Legacy and migration  
-  - Use explicit legacy compatibility branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+  - Use explicit legacy compatibility branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#7-legacy-compatibility-logging-standard).
 
-If you need full rationale or examples, see section 3. Data Handling Patterns in [ARCHITECTURE.md](../ARCHITECTURE.md).
+If you need full rationale or examples, see section 3. Data Handling Patterns in [ARCHITECTURE.md](../ARCHITECTURE.md#3-data-handling-patterns).
 
 ---
 
@@ -119,19 +119,19 @@ Use this list to anchor AI changes to the right modules.
   background service.  
 - `core/service.py` - background service implementation and lifecycle.  
 - `core/config.py` - configuration loader and validator (reads `.env` via python-dotenv).
-  See section 2.4. "Configuration and .env" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) and
-  section 1.4. "Configure Environment (Optional)" in [HOW_TO_RUN.md](../HOW_TO_RUN.md).  
+  See section 2.4. "Configuration and .env" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#24-configuration-and-env) and
+  section 1.3. "Step 3: Configure Environment (Optional)" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#13-step-3-configure-environment-optional).
 - `core/logger.py` - logging configuration and component loggers. See section 2.
-  Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
+  Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
 - `core/error_handling.py` - shared error handling decorators and integration with logging and
-  basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
+  basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
 - `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py` - user data entry points.
 - `communication/` - channel orchestrators and adapters that turn service events into messages on
   Discord, email, etc.  
 - `tasks/` - task and reminder definitions used by schedulers.  
 - `ui/ui_app_qt.py` - UI shell that wires dialogs to the service.
 
-For more detailed descriptions, see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md).
+For more detailed descriptions, see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
 
 ---
 
@@ -150,7 +150,7 @@ AI rules:
 - For a new dialog or widget, follow the existing naming patterns and update [ARCHITECTURE.md](../ARCHITECTURE.md)
   only if conventions change.
 
-Details and examples live in section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md).
+Details and examples live in section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md#5-ui-architecture-and-naming-conventions).
 
 ---
 
@@ -165,9 +165,9 @@ When adding or modifying channel behavior:
 
 Reference material:
 
-- Section 6. Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md).  
+- Section 6. Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md#6-channel-agnostic-architecture).
 - Section 1. Core Principle and section 2. Channel Layers and Boundaries in
-  [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md).
+  [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md#1-core-principle).
 
 ---
 
@@ -175,9 +175,9 @@ Reference material:
 
 - Use `run_mhm.py` for UI workflows and `run_headless_service.py` for headless workflows.  
 - Use logs under `logs/` and error handling in `core/error_handling.py` to debug issues.
-  See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and section 2.
-  Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
+  See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 2.
+  Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
 - Keep `ai_*` docs in sync with their human counterparts at the H2 level (use the documentation
   sync checker).  
 - For any non-trivial refactor, read the relevant section in [ARCHITECTURE.md](../ARCHITECTURE.md) before editing
-  code. For overall documentation workflow, see section 2. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md).
+  code. For overall documentation workflow, see section 3. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#3-standards-and-templates).

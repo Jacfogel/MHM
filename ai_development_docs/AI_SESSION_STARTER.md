@@ -22,12 +22,12 @@ When you attach to MHM, do this first:
 
 2. **Locate the relevant AI guide**  
    - For development work, start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md), especially:
-     - Section 1 "Safety First"
-     - Section 3 "Standard Development Cycle"
-     - Section 10 "Standard Audit Recipe" (when to run audit commands)
+     - Section 1 "Safety First" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first)
+     - Section 3 "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process)
+     - Section 10 "Standard Audit Recipe" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe) (when to run audit commands)
    - For documentation changes, use [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md), especially:
-     - Section 3 "Documentation Synchronization Checklist"
-     - Section 5 "Generated Documentation Standards"
+     - Section 4 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist)
+     - Section 6 "Generated Documentation Standards" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#6-generated-documentation-standards)
    - **For development tools, audits, or reports**: When the user's task touches dev tools, audits, coverage, or analysis, route to [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) as the primary reference. This includes:
      - Running audits or status checks
      - Understanding tool tiers and trust levels
@@ -48,8 +48,8 @@ When you attach to MHM, do this first:
 Use these AI docs as your primary routing table; they, in turn, point to detailed human docs:
 
 - **Development workflow** - [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md)  
-  - Section 1 "Safety First" - constraints and guardrails.  
-  - Section 3 "Standard Development Cycle" - step-by-step development loop.
+  - Section 1 "Safety First" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first) - constraints and guardrails.
+  - Section 3 "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process) - step-by-step development loop.
 
 - **Architecture** - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md)  
   - For where modules live, key services, and high-level boundaries.
@@ -58,15 +58,15 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
   - For where logs live and how to extend logging safely.
 
 - **Testing** - [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)  
-  - Section 4 "Test Layout and Discovery" - where tests live and how to add new ones.
+  - Section 2 "Test Layout and Types" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md#2-test-layout-and-types) - where tests live and how to add new ones.
 
 - **Error handling** - [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md)  
   - For how to use `MHMError` and structure error handling.
 
 - **Development tooling** - [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)  
-  - Section 1 "Main Entry Point" - `development_tools/run_development_tools.py` commands.  
-  - Section 2 "Fast Mode vs Full Mode" - when to use `audit` vs `audit --full`.  
-  - Section 3 "Generated Outputs" - where reports and status files live.  
+  - Section 2 "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite) - `development_tools/run_development_tools.py` commands.
+  - Section 3 "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) - when to use `audit` vs `audit --full`.
+  - Section 3 "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) - where reports and status files live.
   - Check `development_tools/shared/standard_exclusions.py` (and config) before running tools so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` stay skipped.
 
 - **Legacy compatibility** - [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md)  
@@ -86,7 +86,7 @@ Follow these high-level rules whenever you propose or describe changes:
    - Prefer extending existing docs, tests, and modules over inventing new top-level structures.
 
 2. **Keep AI vs human docs aligned**  
-  - For paired docs, H2 headings must match as a set (see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md)).  
+  - For paired docs, H2 headings must match as a set (see section 4 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist)).
    - AI docs summarize and route; human docs contain detailed explanations.
 
 3. **Avoid partial or speculative edits**  
@@ -108,14 +108,14 @@ Use this as a routing table for common request types.
 ### 4.1. "Help me edit documentation"
 
 - Start with [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md), sections:
-  - 3 "Documentation Synchronization Checklist"  
-  - 4 "Maintenance Guidelines"  
+  - 4 "Documentation Synchronization Checklist"
+  - 5 "Maintenance Guidelines"
 - Then open the relevant human doc (for example, `DOCUMENTATION_GUIDE.md`, `logs/LOGGING_GUIDE.md`, `tests/TESTING_GUIDE.md`).  
 - Keep AI docs short; push detailed narrative into the human docs.
 
 ### 4.2. "Help me refactor or clean up code"
 
-- Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md), especially section 1 "Safety First" and section 3 "Standard Development Cycle".  
+- Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first), especially section 1 "Safety First" and section 3 "Development Process".
 - Use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for commands to run audits and checks.  
 - For legacy-related refactors, also use [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md) and the legacy tools described there.
 

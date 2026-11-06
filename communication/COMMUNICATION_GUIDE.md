@@ -7,10 +7,10 @@
 
 This guide describes how messages flow through MHM independent of channel (Discord, email, future channels), how the communication modules are structured, and how to extend them without leaking channel-specific behavior into core logic.
 
-For the system-wide view, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](../ARCHITECTURE.md).  
-For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md).  
+For the system-wide view, see section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
+For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#2-discord-channel-architecture).
 For user-visible behavior requirements, see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) and Discord topic specs listed in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md) (welcome, routing, check-ins, reminders, delivery, lifecycle).  
-For error handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+For error handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
 
 ---
 
@@ -94,7 +94,7 @@ Key modules (names may vary slightly, but responsibilities are stable):
   - Manages multi-step flows (check-ins, onboarding, etc.).  
   - Keeps minimal state needed between messages.
 
-See section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) for how errors in these modules should be classified and handled.
+See section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity) for how errors in these modules should be classified and handled.
 
 ### 2.4. Channel Base and Adapters (`communication/communication_channels/`)
 
@@ -110,7 +110,7 @@ The base layer defines contracts and utilities:
 Each channel then implements an adapter under `communication/communication_channels/{channel}/`, consistent with:
 
 - **Discord**:  
-  - Event wiring, bot lifecycle, and views are documented in section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md).
+  - Event wiring, bot lifecycle, and views are documented in section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#2-discord-channel-architecture).
 
 - **Email** (if present):  
   - Outbound messaging and any inbound handling should follow the same adapter pattern.
@@ -126,7 +126,7 @@ Each channel then implements an adapter under `communication/communication_chann
   - Return a safe fallback message to the user, or  
   - Fail quietly while logging, if the event is optional.
 
-See section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) for the canonical patterns.
+See section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) for the canonical patterns.
 
 ### 3.2. Logging
 
@@ -187,7 +187,7 @@ Follow this checklist when adding a new channel or significantly changing an exi
 
 1. **Understand the core flow**  
    - Re-read section 2. "Architecture Layers" in this guide.  
-   - Re-read section 2. "High-Level Architecture" in [ARCHITECTURE.md](../ARCHITECTURE.md).
+   - Re-read section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
 
 2. **Define the channel adapter surface**  
    - Decide how incoming events map to:
@@ -212,8 +212,8 @@ Follow this checklist when adding a new channel or significantly changing an exi
    - See [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) for patterns.
 
 5. **Add tests**  
-   - Unit tests for parsing and core interactions - see section 2. "Test Layout and Types" and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).  
-   - Manual channel-specific tests - see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) and [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md).
+   - Unit tests for parsing and core interactions - see section 2. "Test Layout and Types" and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
+   - Manual channel-specific tests - see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview) and [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md).
 
 6. **Document the channel**  
    - Add or update `{CHANNEL}_GUIDE.md` under `communication/communication_channels/{channel}/`.  
@@ -273,7 +273,7 @@ Use this layout as the template when adding new channels.
 
 - **Discord**  
   - Fully wired into the channel-agnostic pipeline via `event_handler`, the Discord bot, and view adapters for check-ins and task reminders.   
-  - Webhook-based onboarding is implemented on the Discord side; see section 5. "Webhook-Based Authorization and Welcome Flow" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md).
+  - Webhook-based onboarding is implemented on the Discord side; see section 5. "Webhook-Based Authorization and Welcome Flow" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#5-webhook-based-authorization-and-welcome-flow).
 
 - **Email and other channels**  
   - May be partially implemented; ensure any changes align with the patterns in sections 2-5 above.

@@ -41,11 +41,11 @@ These variables control where MHM reads/writes local state.
 
 ### 2.1. Profile JSON v2
 
-Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0.
+Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map) section 0.
 
-**Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
+**Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files) section 2.0.
 
-**Deterministic message pressure** (optional): `preferences.message_pressure_settings` stores `quiet_mode_until` (canonical local timestamp or null), `automatic_energy_rules` (boolean), and `low_energy_threshold` (1-4). Missing values preserve the shipped defaults: quiet mode off, automatic energy rules on, threshold 2. These are user settings, not environment variables or AI prompt controls. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
+**Deterministic message pressure** (optional): `preferences.message_pressure_settings` stores `quiet_mode_until` (canonical local timestamp or null), `automatic_energy_rules` (boolean), and `low_energy_threshold` (1-4). Missing values preserve the shipped defaults: quiet mode off, automatic energy rules on, threshold 2. These are user settings, not environment variables or AI prompt controls. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files) section 2.0.
 
 ---
 
@@ -92,7 +92,7 @@ Each of these controls where a specific component writes logs:
 
 ## 4. Email configuration
 
-Email is supported primarily for outbound automated messages.
+Email supports outbound messages through SMTP and inbound text replies through IMAP while the service is running. Replies from a registered email address use the shared interaction handlers; task/check-in threading preserves the matching context.
 
 - `EMAIL_SMTP_USERNAME`
 - `EMAIL_SMTP_PASSWORD`
@@ -101,7 +101,7 @@ Email is supported primarily for outbound automated messages.
 - `EMAIL_IMAP_SERVER`
 - `EMAIL_IMAP_PORT`
 
-**Breaks if wrong:** outbound email fails; errors should appear in the configured log files.
+**Breaks if wrong:** SMTP failures prevent delivery; IMAP failures prevent incoming replies from being processed. Errors appear in the configured email and error logs.
 
 The browser account gateway also uses these SMTP credentials for verification
 codes, with SMTP over TLS on port 465, matching the current email adapter.

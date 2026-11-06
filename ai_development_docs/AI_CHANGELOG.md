@@ -23,12 +23,18 @@ Template:
 Guidelines:
 - Keep entries concise
 - Focus on what was accomplished and why it matters
-- Limit entries to 1 per chat session. Exceptions may be made for multiple unrelated changes
+- Limit entries to 1 per chat session; update the existing session entry as work progresses.
 - Maintain chronological order (most recent first)
 - REMOVE OLDER ENTRIES when adding new ones to keep context short
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2026-11-05 - TODO progress: task processing, reconnects, and documentation
+- Removed duplicate task-read initialization. Local task-list medians improved from 5.29 to 4.19 ms (Discord) and 5.27 to 3.84 ms (email); task completion improved modestly. Provider/network time is excluded; check-in/fallback gains are not claimed.
+- Retained accounts linked to the same Discord identity receive a short reconnect acknowledgement without setup buttons. Non-creating account reads reject stale/unlinked/missing identities without reconstructing data or changing preferences; restart MHM to load the change.
+- Corrected setup/email/button guidance and expanded precise references. Added optional read-only `--check-section-links` / `--section-path` inventory: 177 resolved references, no broken anchors, 36 advisory hints. Remaining guide/reference review stays in TODO 3.1/4.4/4.5; completed TODO 3.2/4.3 and the finished checker subtask were removed.
+- Validation: 20 task/profile checks, 28 welcome checks, 25 tooling checks, and targeted Ruff passed; six reconnect checks passed again after encoding repair. Path/link regression checks also pass after fixing heading/query suffix handling; static docs were regenerated and path-drift analysis now reports zero issues instead of 103. A standard Tier 2 audit passed and refreshed the generated status reports, clearing the drift, registry, and completed-TODO warnings. No full audit or live delivery was run. A broader welcome run was stopped; a focused async attempt timed out in Windows event-loop/socketpair setup before application code. Focused view/delivery checks mock loop-bound dependencies.
 
 ### 2026-11-05 - Optional AI, health sync, and TODO cleanup **COMPLETED**
 - Added manual-only AI controls and per-request task-breakdown authorization; global off and feature disables remain authoritative. Desktop Health Sync Now runs in the background, prevents duplicate actions, and offers reconnect/retry guidance, including revoked credentials retained on disk.
@@ -104,12 +110,6 @@ Guidelines:
 - Quiet-mode shortcuts use the saved Phrases morning start time and account timezone. Focus/reminders explain quiet mode, energy thresholds, and a restart-stable 30-minute recovery hold after today's low-energy answer. Disabling energy rules bypasses the hold; health-signal cooldowns remain separate follow-up work.
 - Shared reminder date fields now live in tasks/task_reminder_state.py, removing the scheduler/snooze cycle. Reminder/snooze/skip and cleanup checks pass 143 tests. Explanation failures return safe empty text; the function registry includes the new helpers.
 - Desktop controls validation passes 126 focused policy/chatbot/configuration/admin tests, a final 17 settings/dialog tests, and earlier 91 desktop-shell regression checks. Ruff and Pyright pass; the rendered dialog was visually reviewed. Restart desktop and service once to load the feature; later policy saves apply without restarting. Earlier quiet-mode checks passed 90 tests; a broader website-service run stalled and was stopped.
-
-### 2026-10-25 - Discord reminder actions and snooze delivery repaired **COMPLETED**
-- Snooze, Skip, Simplify, and continued check-in replies preserve their deterministic text. Unavailable AI enhancement returns no replacement text instead of exposing an offline reply and internal action catalog.
-- Discord restores saved task reminder buttons at startup. Custom Snooze rejects unrecognized dates while accepting clock-only and weekday/time phrases.
-- Snoozes retain seconds through scheduling and restart recovery; one-time jobs remove themselves after delivery, including failure, and remain compatible with task/orphan cleanup. Scheduling failures report that the snooze was saved but the reminder could not be scheduled.
-- Verification: the earlier action fixes passed 75 targeted tests; the final scheduling changes passed separate runs of 75 reminder/task-flow tests and 19 time/cleanup tests. Targeted Ruff checks passed. Restart the bot to apply the changes.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

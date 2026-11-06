@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 22:20:48
+> **Last Generated**: 2026-11-05 23:18:39
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 313
-- **Total Imports Found**: 2819
+- **Total Imports Found**: 2821
 - **Dependencies Documented**: 313 (100% coverage)
 - **Standard Library Imports**: 810 (28.7%)
 - **Third-Party Imports**: 235 (8.3%)
-- **Local Imports**: 1774 (62.9%)
+- **Local Imports**: 1776 (63.0%)
 - **Last Updated**: 2026-11-05
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 810 imports (28.7%)
 - **Third-Party**: 235 imports (8.3%)
-- **Local**: 1774 imports (62.9%)
+- **Local**: 1776 imports (63.0%)
 
 ## Module Dependencies by Directory
 
@@ -2164,7 +2164,7 @@
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.discord.onboarding.account_flow_handler (start_account_creation_flow, start_account_linking_flow)` (NEW)
-    - `communication.core.welcome_manager (clear_welcomed_status, get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `communication.core.welcome_manager (clear_welcomed_status, get_returning_discord_user_id, get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -2370,8 +2370,8 @@
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.discord.onboarding.welcome_handler (get_welcome_message, get_welcome_message_view)` (NEW)
-    - `communication.core.welcome_manager (clear_welcomed_status, has_been_welcomed, mark_as_welcomed)` (NEW)
-    - `core (get_user_id_by_identifier, update_user_account)` (NEW)
+    - `communication.core.welcome_manager (clear_welcomed_status, get_returning_discord_user_id, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `core (update_user_account)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (_is_testing_environment, get_component_logger)` (NEW)
   - **Standard Library**:
@@ -2799,11 +2799,13 @@
 - **Purpose**: Communication channel implementation for welcome_manager
 - **Dependencies**:
   - **Local**:
+    - `core (get_user_id_by_identifier)` (NEW)
     - `core.config (BASE_DATA_DIR)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_timestamp_full, now_timestamp_utc_iso)` (NEW)
     - `storage.runtime_state_storage (get_runtime_state_path, load_runtime_state_json, save_runtime_state_json)`
+    - `storage.user_data_read (get_user_data)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
     - `typing (Any)`
@@ -2812,7 +2814,7 @@
   - `communication/communication_channels/discord/webhooks/handler.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.time_utilities
+- Added: core, core.config, core.error_handling, core.logger, core.time_utilities, storage.user_data_read
 - Removed: communication/communication_channels/discord/onboarding/welcome_handler.py, communication/communication_channels/discord/webhooks/handler.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -6585,6 +6587,7 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
+  - `communication/core/welcome_manager.py`
   - `core/__init__.py`
   - `core/schedule_document_defaults.py`
   - `core/service.py`

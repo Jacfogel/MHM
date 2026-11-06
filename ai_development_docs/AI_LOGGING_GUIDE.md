@@ -29,7 +29,7 @@ High-level rules:
 
 Where to look:
 
-- Directory layout and key modules -> section 4. "Key Modules and Responsibilities" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
+- Directory layout and key modules -> section 4. "Key Modules and Responsibilities" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md#4-key-modules-and-responsibilities).
 
 Common component names (mapped in `core/logger.py`):
 
@@ -56,14 +56,14 @@ Core behavior:
 
 Routing:
 
-- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).  
-- See section 2.3 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) for what actually enters `errors.log`.
+- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
+- See section 2.3 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#23-where-error--critical-go) for what actually enters `errors.log`.
 
 ---
 
 ## 4. Component Log Files and Layout
 
-- Directory overview -> section 1. "Directory Overview" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
+- Directory overview -> section 1. "Directory Overview" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md#1-directory-overview).
 
 Key patterns:
 
@@ -76,13 +76,13 @@ When adding a new component:
 
 1. Add or reuse a component name in the `log_file_map` inside `core/logger.py`.  
 2. Use `get_component_logger("<name>")` in the relevant module.  
-3. Update section 4. Component Log Files and Layout in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) if the new component is permanent.
+3. Update section 4. Component Log Files and Layout in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout) if the new component is permanent.
 
 ---
 
 ## 5. Configuration (Environment Variables)
 
-Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (see Section 3 Logging and Section 10 Testing settings).
+Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#3-logging), section 3. "Logging", and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#10-testing-settings), section 10. "Testing settings".
 
 Where behavior is configured:
 
@@ -92,7 +92,7 @@ Where behavior is configured:
 Do not introduce new logging environment variables without updating:
 
 - [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md)
-- Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md)
+- Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#5-configuration-environment-variables)
 - The constants in `core/config.py`
 
 **Development tools vs core logging**: Python under `development_tools/` should use `development_tools.shared.logging.get_dev_tools_logger` (default file under `development_tools/reports/logs/`, with rotated copies under `development_tools/reports/logs/backups/`). The dev-tools log rotates at 1 MB by default; override with `DEV_TOOLS_LOG_MAX_BYTES` for isolated runs. **`core/logger.py` does not route file handlers into `development_tools/`**; it always resolves paths from `core.config` (normal `logs/` layout) except in pytest/test modes. `MHM_DEV_TOOLS_RUN=1` may still raise component log **levels** during audits to reduce INFO noise, but log **paths** stay on the standard app tree.
@@ -105,7 +105,7 @@ Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers
 - Rotated files are moved into `LOG_BACKUP_DIR` (e.g. `logs/backups/`) with a date suffix.  
 - Backups older than 7 days are compressed and moved to `LOG_ARCHIVE_DIR` (e.g. `logs/archive/`) as `.gz`; archives older than 30 days are removed.
 
-**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
+**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#61-backup-vs-archive) and [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
 
 Where to look:
 
@@ -115,7 +115,7 @@ Where to look:
 AI usage:
 
 - Don't reimplement rotation; call existing helpers or adjust configuration.  
-- If you change rotation policies, update section 6 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) to match.
+- If you change rotation policies, update section 6 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#6-log-rotation-backups-and-archival) to match.
 
 ---
 
@@ -123,7 +123,7 @@ AI usage:
 
 For any legacy path that you **must** keep temporarily:
 
-- Follow the comment+warning pattern documented in section 7. Legacy Compatibility Logging Standard in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
+- Follow the comment+warning pattern documented in section 7. Legacy Compatibility Logging Standard in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#7-legacy-compatibility-logging-standard).
 - Log at `WARNING` so usage is visible in the component log (WARNING does **not** enter `errors.log`).  
 - Include a clear removal condition and steps in the comment block.
 
@@ -131,7 +131,7 @@ AI rules:
 
 - Never introduce a legacy path without:  
   - A migration plan, and  
-  - A `LEGACY COMPATIBILITY` comment block as defined in section 7 of [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
+  - A `LEGACY COMPATIBILITY` comment block as defined in section 7 of [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#7-legacy-compatibility-logging-standard).
 - Coordinate with the error-handling patterns in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) when legacy behavior impacts error reporting.
 
 ---
@@ -147,7 +147,7 @@ AI usage:
 - When proposing automated cleanup tasks, rely on:  
   - `cleanup_old_logs()` and `compress_old_logs()` in `core/logger.py`.  
   - `cleanup_old_archives()` for long-term archive trimming.  
-- Keep retention thresholds and schedules aligned with section 8 of [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+- Keep retention thresholds and schedules aligned with section 8 of [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#8-maintenance-and-cleanup).
 
 ---
 
@@ -158,9 +158,9 @@ High-level rules:
 - Always use component loggers (via `get_component_logger`) in new code.  
 - Log structured context (key-value pairs) instead of concatenated strings where useful.  
 - Never log secrets, tokens, or PHI/PII.  
-- Make log messages line up with error categories from section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
+- Make log messages line up with error categories from section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
 - Respect testing flags (`MHM_TESTING`, `TEST_VERBOSE_LOGS`) and don't force real log paths during tests.  
-- **Noise reduction**: Tools/short-lived processes log init and prompt load at DEBUG; FLOW_STATE_LOAD with 0 user states and scheduler heartbeat are at DEBUG. See section 9.7 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+- **Noise reduction**: Tools/short-lived processes log init and prompt load at DEBUG; FLOW_STATE_LOAD with 0 user states and scheduler heartbeat are at DEBUG. See section 9.7 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#31-debug).
 
 Cross-doc routing:
 
@@ -174,11 +174,11 @@ Cross-doc routing:
 
 This section intentionally **does not** duplicate code samples. Use it as a map:
 
-- Basic component logger usage -> section 10.1. Basic component logger in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
-- Logging handled errors with context -> section 10.2. Logging a handled error with context in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
-- Legacy compatibility example -> section 10.3. Legacy compatibility example in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
+- Basic component logger usage -> section 10.1. Basic component logger in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#101-basic-component-logger).
+- Logging handled errors with context -> section 10.2. Logging a handled error with context in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#102-logging-a-handled-error-with-context).
+- Legacy compatibility example -> section 10.3. Legacy compatibility example in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#103-legacy-compatibility-example).
 
 If you need new patterns:
 
-1. Sketch them in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) under section 10. Usage Examples.  
+1. Sketch them in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#10-usage-examples) under section 10. Usage Examples.
 2. Add a short pointer here (one bullet) that routes AI back to the new example.

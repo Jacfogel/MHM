@@ -201,7 +201,7 @@ This section is a hub for Discord manual testing. The canonical, detailed task-r
 
 ### 6.1. When to run Discord tests
 
-After Discord task, notebook, routing, or onboarding changes, run the mapped pytest files in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) sections 4 and 6 (start with `pytest tests/behavior/test_discord_manual_checklist.py`). Live Discord is optional for tone and the real client.
+After Discord task, notebook, routing, or onboarding changes, run the mapped pytest files in [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md#4-automated-checklist-map) sections 4 and 6 (start with `pytest tests/behavior/test_discord_manual_checklist.py`). Live Discord is optional for tone and the real client.
 
 ### 6.2. High-level Discord checklist
 
@@ -306,7 +306,7 @@ Examples of triggers:
 
 When in doubt:
 
-1. Check section 1 of [TESTING_GUIDE.md](TESTING_GUIDE.md) to understand the testing philosophy.
+1. Check section 1 of [TESTING_GUIDE.md](TESTING_GUIDE.md#1-purpose-and-scope) to understand the testing philosophy.
 2. Decide which parts of this manual guide apply to your change.
 3. Run the mapped pytest in section 10 for the relevant subsets of sections 2-7, plus any detailed steps in subordinate guides:
    - [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md).

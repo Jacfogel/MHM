@@ -25,7 +25,7 @@ Use this section to decide what to open or reference next.
 
 ### 1.2. When editing documentation
 
-- If the target doc is paired, follow section 4 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md).
+- If the target doc is paired, follow section 4 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
 - Prefer using documentation tooling (for example `python development_tools/run_development_tools.py doc-sync`) rather than guessing.
 
 ## 2. Documentation Categories
@@ -142,7 +142,7 @@ New items and progressed items in plan files ([PLANS.md](../development_docs/PLA
 
 - Paired docs (first-line and detailed counterparts) must share the same H2 heading set.
 - Any H2 structural change in one doc must be mirrored in the other doc immediately.
-- **Canonical source**: `development_tools_config.json` -> `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 4.1.
+- **Canonical source**: `development_tools_config.json` -> `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#41-paired-documentation-files-canonical-list) section 4.1.
 
 ### 4.2. Synchronization workflow (practical)
 
@@ -170,6 +170,24 @@ If docs and code disagree:
 - Do not silently "fix" one side without noting the discrepancy.
 
 ### 4.5. Automated tools
+
+
+For an optional read-only section-link inventory, run:
+
+```powershell
+python development_tools/docs/analyze_documentation_sync.py --json --check-section-links
+python development_tools/docs/analyze_documentation_sync.py --json --check-section-links --section-path HOW_TO_RUN.md --section-path DEVELOPMENT_WORKFLOW.md
+```
+
+The first command uses configured documentation paths; repeat `--section-path`
+for a curated scope. JSON records source path/line, destination, actual heading,
+and anchor status. Missing anchors are definite findings; unanchored numbered
+citations are conservative hints requiring manual review. The heuristic checks
+same-line inline links and ATX headings; it does not prove that every behavioral
+reference is precise or interpret multiline prose. Historical/generated files,
+metadata, fenced examples, and bare navigation links are skipped. Advisory counts
+do not change the paired-doc status, and the check never rewrites files.
+
 
 Prefer using the development tools suite for enforcement:
 - `python development_tools/run_development_tools.py doc-sync`
@@ -207,7 +225,7 @@ Prefer using the development tools suite for enforcement:
 ### 6.1. Identification requirements
 
 Generated docs must clearly identify themselves as generated and must not be hand-edited.
-See section 6.1 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) for the canonical metadata formats.
+See section 6.1 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#61-identification-requirements) for the canonical metadata formats.
 
 ### 6.2. Maintenance rules
 

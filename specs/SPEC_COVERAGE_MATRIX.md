@@ -153,6 +153,8 @@ Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 | Scenario | Status | Evidence / next action |
 |---|---|---|
 | Primary welcome on app authorization (webhook) | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py), [tests/unit/test_webhook_handler_gap_coverage.py](../tests/unit/test_webhook_handler_gap_coverage.py) |
+| Retained account reconnects | Automated | [test_discord_reconnect_welcome.py](../tests/behavior/test_discord_reconnect_welcome.py) verifies acknowledgement, omitted setup buttons, and unchanged account/preferences. |
+| Deleted or unlinked account is not recognized as returning | Automated | [test_discord_reconnect_welcome.py](../tests/behavior/test_discord_reconnect_welcome.py) verifies stale/missing/mismatched identities and no data reconstruction. |
 | Already welcomed on authorization | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py) |
 | Deauthorize clears welcomed flag | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py), [tests/behavior/test_welcome_manager_behavior.py](../tests/behavior/test_welcome_manager_behavior.py) |
 | Welcome scheduling failure still marks welcomed | Automated | [tests/behavior/test_webhook_handler_behavior.py](../tests/behavior/test_webhook_handler_behavior.py), [tests/unit/test_webhook_handler_gap_coverage.py](../tests/unit/test_webhook_handler_gap_coverage.py) |

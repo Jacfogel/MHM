@@ -27,21 +27,9 @@ No standalone high-priority items remain in this list. Active product plans reta
 - *Next steps*:
   - [ ] Inventory links to specific behavior that omit the destination heading; record source path, destination path, and actual heading.
   - [ ] Update those links to include the existing section number, title, and anchor; verify targets rather than inventing section numbers.
-  - [ ] Inspect existing doc-sync checks before adding tooling. Add a report-only check for unresolved section anchors and ambiguous behavior references if it fills a real gap; do not automatically rewrite prose.
 - *Done when*: In-scope behavior references resolve to real headings and paired guides agree. The section-reference standard is already present in DOCUMENTATION_GUIDE.md section 3.3.
+- *Progress (2026-11-05)*: Expanded verified references across root, AI, and module guides; corrected stale architecture, testing, logging, setup, and session-starter headings. Added `analyze_documentation_sync.py --json --check-section-links` with repeatable `--section-path` scoping. The configured-doc inventory records source/line/destination/heading and currently resolves 177 references with zero broken anchors and 36 unanchored-reference hints. Pairing checks pass and 25 tooling tests pass. Remaining: review those hints (including navigation/other-document false positives), finish multiline/multiple-section citations and number/title normalization; the checker does not interpret prose or automatically rewrite it.
 - *Why it helps*: Readers can find the exact rule without searching an entire guide.
-- *Estimated effort*: Medium
-
-### 3.2. Profile and improve message processing
-
-- *Created*: 2026-11-05 (clarified existing item)
-- *Scope*: `communication/message_processing/interaction_manager.py`, command parsing, and dispatch to Discord/email. Measure deterministic command handling separately from provider/network latency.
-- *Next steps*:
-  - [ ] Capture a repeatable baseline for task-list, task-completion, check-in, and fallback messages using isolated fixture users and mocked delivery.
-  - [ ] Record median/tail latency, repeated user-data reads, and slow stages; select the largest measured local bottleneck.
-  - [ ] Apply one bounded improvement and compare against the same workload. Preserve command routing, delivery ordering, and fresh user settings.
-- *Done when*: A before/after report identifies the bottleneck, demonstrates improvement, and records behavior verification. Do not set arbitrary latency targets before measuring.
-- *Why it helps*: Reduces avoidable delays without confusing network latency with local processing cost.
 - *Estimated effort*: Medium
 
 ## 4. Low priority / deferred
@@ -70,17 +58,6 @@ No standalone high-priority items remain in this list. Active product plans reta
 - *Why it helps*: Keeps the service stable during extended use.
 - *Estimated effort*: Medium
 
-### 4.3. Distinguish returning Discord accounts during authorization
-
-- *Created*: 2026-11-05 (clarified existing item)
-- *Scope*: `communication/core/welcome_manager.py` and Discord onboarding/account linking. Current shared welcome behavior remains acceptable until selected.
-- *Next steps*:
-  - [ ] Define returning as an existing retained MHM account reconnecting the same channel identity; deleted data must not be reconstructed or retained just to recognize a returning user.
-  - [ ] Reuse the existing account-link lookup to select a short reconnect acknowledgement versus first-time onboarding.
-  - [ ] Verify new, reconnecting, unlinked, and deleted-account paths without duplicating accounts or overwriting preferences.
-- *Done when*: Reconnects retain existing preferences and use the intended acknowledgement; first-time setup still collects required information.
-- *Estimated effort*: Small-Medium
-
 ### 4.4. Refresh user-facing setup and feature instructions
 
 - *Created*: 2026-11-05 (clarified existing item)
@@ -89,6 +66,7 @@ No standalone high-priority items remain in this list. Active product plans reta
   - [ ] Walk through startup, account linking, task-list actions, check-ins, email replies, and health reconnect instructions against current controls and command help.
   - [ ] Replace obsolete button labels, screenshots, commands, and setup steps; update the corresponding AI guide where paired.
   - [ ] Use shared configuration references rather than duplicating environment-setting definitions.
+- *Progress (2026-11-05)*: Corrected outbound-only email claims in README/configuration reference, added verified email reply and recovery instructions in HOW_TO_RUN section 3.1, corrected startup step numbering and its AI workflow reference, and removed the obsolete Discord skip-button instruction. Remaining: complete startup/linking/task/check-in/health walkthrough and corresponding guide-reference verification.
 - *Done when*: Each supported flow has one current set of steps and all referenced controls/commands exist.
 - *Why it helps*: Prevents users following instructions for removed behavior.
 - *Estimated effort*: Small-Medium
@@ -97,6 +75,7 @@ No standalone high-priority items remain in this list. Active product plans reta
 
 - *Created*: 2026-11-05 (clarified existing deferred item)
 - *Status*: Deferred until a recurring support issue or guide refresh supplies evidence.
+- *Progress (2026-11-05)*: Guide refresh supplied two concrete email recovery cases: no new reply text and an unregistered sender. HOW_TO_RUN section 3.1 now documents checks and recovery verified against inbound processing. Other troubleshooting areas remain deferred.
 - *Scope*: Existing startup, Discord, email, UI, and Google Health troubleshooting sections; avoid a duplicate standalone guide.
 - *Next steps*:
   - [ ] Collect reproducible symptoms and relevant log locations for startup/configuration errors, Discord linking, email replies, and health reconnects.

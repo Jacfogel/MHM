@@ -107,11 +107,11 @@ def is_external_or_anchor_href(href: str) -> bool:
 
 def split_href_path_suffix(href: str) -> tuple[str, str]:
     """Split an href into local path and anchor/query suffix."""
-    for separator in ("#", "?"):
-        if separator in href:
-            href_path, suffix = href.split(separator, 1)
-            return href_path, f"{separator}{suffix}"
-    return href, ""
+    positions = [href.index(separator) for separator in ("#", "?") if separator in href]
+    if not positions:
+        return href, ""
+    start = min(positions)
+    return href[:start], href[start:]
 
 
 def iter_markdown_files_for_link_targets(project_root: Path) -> Iterator[tuple[Path, str]]:
@@ -684,6 +684,9 @@ class PathDriftAnalyzer:
                                 if len(match) >= 2:
                                     link_text = match[0] if match[0] else ""
                                     url_part = match[1] if match[1] else ""
+                                    # Fragments and queries identify a location within
+                                    # a file, not part of its filesystem name.
+                                    url_part, _ = split_href_path_suffix(url_part)
 
                                     # Skip if URL part is a valid file reference (has full path or exists)
                                     if url_part and not url_part.startswith(

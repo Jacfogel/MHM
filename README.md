@@ -70,8 +70,8 @@ This list reflects **implemented functionality**, not aspirational goals.
 - **Discord (Primary, Production)**  
   Discord is the primary supported channel. Most interactive features are designed around Discord's two-way messaging capabilities.
 
-- **Email (Limited Support)**  
-  Email is supported for automated outbound messages only. Interactive features that require two-way communication are limited or unavailable via email.
+- **Email**
+  Email supports scheduled messages and inbound text replies while the service is running. Replies to task reminders and check-ins route back to the matching task or check-in. See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#4-email-configuration), section 4. "Email configuration", for SMTP and IMAP setup.
 
 - **Telegram**  
   Telegram has been almost entirely removed from the project and there are no current plans to reintroduce it.

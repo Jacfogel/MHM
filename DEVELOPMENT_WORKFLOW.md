@@ -13,19 +13,19 @@
 This section summarizes the most common tasks and where to look for detail.
 
 - Project overview and navigation  
-  - See section 3. "Quick Start" in [README.md](README.md).
+  - See section 2. "Navigation (Start Here)" in [README.md](README.md#2-navigation-start-here).
 
 - Environment setup and running the app  
-  - See section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md) for environment setup and first-run commands.
+  - See section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended) for environment setup and first-run commands.
 
 - Running tests  
-  - See section 1. "Testing Philosophy and Priorities" and section 2. "Test Layout and Discovery" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+  - See section 1. "Purpose and Scope" and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#1-purpose-and-scope).
 
 - Updating documentation  
-  - See section 1. "Documentation Categories" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+  - See section 2. "Documentation Categories" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#2-documentation-categories).
 
 - Architecture and data flow  
-  - See section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](ARCHITECTURE.md).
+  - See section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](ARCHITECTURE.md#4-key-modules-and-responsibilities).
 
 - If you are unsure what to do next  
   - Start with "Development Process" below, then consult the relevant guide for testing, docs, or logging.
@@ -93,7 +93,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
    - Ensure the summarized change appears in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
 
 7. **Use the Audit-First Protocol for docs**  
-   - Before editing documentation, consult section 3. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) so Audit-First instructions remain effective.
+   - Before editing documentation, consult section 4. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist) so Audit-First instructions remain effective.
 
 8. **Ask for help early**  
    - When something feels risky or confusing, stop, collect a short description and errors, and ask for help instead of guessing.
@@ -144,7 +144,7 @@ deactivate
 ### 2.3. Troubleshooting
 
 - **"python: command not found" or wrong version**  
-  - Confirm Python is installed and on PATH; see section 5. "Troubleshooting" in [HOW_TO_RUN.md](HOW_TO_RUN.md) if setup fails.
+  - Confirm Python is installed and on PATH; see section 6. "Troubleshooting" in [HOW_TO_RUN.md](HOW_TO_RUN.md#6-troubleshooting) if setup fails.
 
 - **Import errors after pulling recent changes**  
   - Run `python -m pip install -e ".[dev,ui]" --force-reinstall` inside `(.venv)`.
@@ -207,14 +207,14 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Work in **small, testable increments**.  
 - Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
 - Use consistent imports and the official helpers (for example, `get_user_data()` from `core` or `storage.user_data_read`).
-- Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)).
+- Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture) and section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md#2-architecture-overview)).
 
 ### 3.3. Step 3: Test
 
 - Start with targeted tests that cover the change directly.  
 - Expand outward: unit -> integration -> behavior -> UI flows.  
-- Use `python run_tests.py` for broad runs, and see section 6. "Running Tests" and section 7. "Parallel Execution" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) for details and parallel-safe practices.  
-- For features that depend on Discord or email, perform minimal manual verification as described in section 9. "Manual Testing Procedures" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+- Use `python run_tests.py` for broad runs, and see section 4. "Running Automated Tests" and section 5. "Parallel Execution and Coverage" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#4-running-automated-tests) for details and parallel-safe practices.
+- For features that depend on Discord or email, perform minimal manual verification as described in section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
 
 ### 3.4. Step 4: Document
 
@@ -237,7 +237,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Test after every meaningful change, even if small.  
 - Start with unit-level checks, then expand to integration and behavior tests.  
 - Confirm UI workflows and communication channels still behave correctly for affected features.  
-- For details and commands, see "Quick Reference" and section 6. "Running Tests" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+- For details and commands, see "Quick Reference" and section 4. "Running Automated Tests" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#4-running-automated-tests).
 
 ### 4.2. Test Categories
 

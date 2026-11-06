@@ -24,7 +24,7 @@ safely.
 
 -   **Environment setup and run commands**  
     See the "Quick Start (Recommended)" and "Environment Setup" sections
-    in [HOW_TO_RUN.md](HOW_TO_RUN.md).
+    in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended).
 
 -   **Configuration (.env and core/config.py)**  
     See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for the canonical list of config values, what they do, and common failure modes.
@@ -340,7 +340,7 @@ Exceptions:
 
 Changelog files, plan files, TODO.md, and behavior spec topic files under
 `specs/<topic>.md` are excluded from numbering as they have their own
-structure (see [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md) section 4.2).
+structure (see [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md#42-heading-and-numbering-rules) section 4.2).
 
 Q&A headings and step headings should be converted to bold text instead
 of additional numbered headings.
@@ -588,6 +588,24 @@ If docs and code disagree:
 -   Do not silently "fix" one side without noting the discrepancy.
 
 ### 4.5. Automated tools
+
+
+For an optional read-only section-link inventory, run:
+
+```powershell
+python development_tools/docs/analyze_documentation_sync.py --json --check-section-links
+python development_tools/docs/analyze_documentation_sync.py --json --check-section-links --section-path HOW_TO_RUN.md --section-path DEVELOPMENT_WORKFLOW.md
+```
+
+The first command uses configured documentation paths; repeat `--section-path`
+for a curated scope. JSON records source path/line, destination, actual heading,
+and anchor status. Missing anchors are definite findings; unanchored numbered
+citations are conservative hints requiring manual review. The heuristic checks
+same-line inline links and ATX headings; it does not prove that every behavioral
+reference is precise or interpret multiline prose. Historical/generated files,
+metadata, fenced examples, and bare navigation links are skipped. Advisory counts
+do not change the paired-doc status, and the check never rewrites files.
+
 
 ``` bash
 python development_tools/run_development_tools.py doc-sync
