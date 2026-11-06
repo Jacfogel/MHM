@@ -849,6 +849,12 @@ That guide provides:
 
 After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md) section 10. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
 
+#### 8.2.1. Google Health mocks and live checks
+
+Set `MHM_TESTING=1` for isolated tests: `integrations/google_health/testing.py` guards live OAuth/API calls. Keep test accounts and health storage under the test data directory. Mock responses at the client/auth boundary when exercising sync behavior rather than contacting Google or using real tokens. If testing the network adapter itself, patch its transport and explicitly control the testing-mode guard as the existing client tests do.
+
+Run `.venv/Scripts/python.exe -m pytest tests/unit/test_google_health_client.py tests/unit/test_google_health_auth.py tests/unit/test_google_health_sync_manager.py tests/unit/test_health_context_builder.py tests/integration/test_health_reconnect_recovery.py -q --no-cov` for a focused offline slice. These cover API/auth behavior, sync, context, and reconnect recovery; real consent, token refresh against Google, and visual layout still need live checks. Never copy production credentials into fixtures.
+
 ### 8.3. Discord-specific testing
 
 Discord checklist behavior is automated. After task, notebook, routing, or onboarding changes, run:

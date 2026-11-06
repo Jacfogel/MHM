@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 20:49:06
+> **Last Generated**: 2026-11-05 22:20:48
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -4401,7 +4401,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/flows/note_flow.py, messages/message_data_manager.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py
+- Removed: communication/command_handlers/notebook_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/flows/note_flow.py, communication/reminders/reminder_dispatcher.py, messages/message_data_manager.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5946,7 +5946,7 @@
     - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, is_google_health_enabled)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `integrations.google_health.auth (build_authorization_url, run_oauth_connect_flow)` (NEW)
+    - `integrations.google_health.auth (DEAD_REFRESH_TOKEN_ERROR, build_authorization_url, run_oauth_connect_flow)` (NEW)
     - `integrations.google_health.data_handlers (delete_user_health_data, has_valid_auth, load_sync_state)` (NEW)
     - `integrations.google_health.sync_manager (sync_user_health_data)` (NEW)
   - **Standard Library**:
@@ -6887,7 +6887,7 @@
   - **Local**:
     - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
     - `ai.client.openai_client (call_openai_api)` (NEW)
-    - `ai.usage_policy (AIUsageFeature, is_ai_usage_allowed)` (NEW)
+    - `ai.usage_policy (AIUsageFeature, AIUsageMode, get_ai_usage_mode, is_ai_usage_allowed)` (NEW)
     - `core.config (AI_COMMAND_PARSING_TIMEOUT)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)

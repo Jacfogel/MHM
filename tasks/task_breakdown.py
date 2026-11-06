@@ -105,8 +105,19 @@ def next_open_step_id(user_id: str, task_id: str) -> str:
 
 
 @handle_errors("suggesting smaller task steps", default_return=None)
-def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
-    """Ask the model for a few concrete steps under this task."""
+def suggest_breakdown(
+    user_id: str, task_id: str, *, explicit_request: bool = False
+) -> TaskBreakdownResult | None:
+    """Suggest steps for an active top-level task without saving subtasks.
+
+    ``user_id`` is the internal account ID; ``task_id`` identifies its parent.
+    Only an explicit user command/button should set ``explicit_request=True``;
+    manual mode requires it, and global off/feature disables always win.
+    Validation failures return an unsuccessful result. Policy/provider failures
+    set ``unavailable=True`` and offer manual entry; unexpected errors return
+    None. A successful result contains filtered titles for review, not approval
+    to persist them. Suggestions may use the provider but never save task data.
+    """
     if not user_id or not task_id:
         return TaskBreakdownResult(False, "I need a task to break down.")
     from tasks.task_data_manager import get_task_by_id
@@ -135,16 +146,16 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         )
     from ai.chat.chatbot import get_ai_chatbot
     from ai.client.openai_client import call_openai_api
-    from ai.usage_policy import AIUsageFeature, is_ai_usage_allowed
+    from ai.usage_policy import AIUsageFeature, AIUsageMode, get_ai_usage_mode, is_ai_usage_allowed
     from core.config import AI_COMMAND_PARSING_TIMEOUT
 
-    if not is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN):
+    if not is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN, explicit_request=explicit_request):
         return TaskBreakdownResult(
             False,
             "AI task breakdown is turned off. You can still add your own smaller step.",
             unavailable=True,
         )
-    if not get_ai_chatbot().is_ai_available():
+    if get_ai_usage_mode() is not AIUsageMode.MANUAL and not get_ai_chatbot().is_ai_available():
         logger.info("Skipping task breakdown because the model is unavailable")
         return TaskBreakdownResult(
             False,
@@ -179,6 +190,7 @@ def suggest_breakdown(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         temperature=0.2,
         timeout=AI_COMMAND_PARSING_TIMEOUT,
         usage_feature=AIUsageFeature.TASK_BREAKDOWN,
+        explicit_request=explicit_request,
     )
     existing_titles = {
         str(child.get("title") or "").strip().casefold() for child in existing
@@ -205,7 +217,14 @@ def add_task_subtasks(
     task_id: str,
     titles: list[str] | None,
 ) -> TaskBreakdownResult | None:
-    """Save chosen steps as tasks under the original task. The original title stays."""
+    """Persist reviewed titles as active subtasks under this user's parent task.
+
+    Filters invalid/duplicate titles and enforces the open-step limit. Children
+    inherit the parent's due date, priority, and tags; the parent stays intact.
+    No AI call is required. Returns a result describing saved steps or a normal
+    validation/storage failure; unexpected errors return None. Each child is
+    created separately: a failed later write does not roll back earlier saves.
+    """
     if not user_id or not task_id:
         return TaskBreakdownResult(False, "I need a task to add steps to.")
     from tasks.task_data_manager import get_task_by_id
@@ -280,7 +299,12 @@ def add_task_subtasks(
 
 @handle_errors("detaching a task step", default_return=None)
 def detach_task_step(user_id: str, task_id: str) -> TaskBreakdownResult | None:
-    """Clear parent_id so this step stands on its own."""
+    """Persist removal of parent_id from an active step owned by ``user_id``.
+
+    Keeps the step's other fields, updates its timestamp, and returns a result.
+    Missing, completed, or already independent tasks return validation messages;
+    a failed save returns an unsuccessful result and unexpected errors return None.
+    """
     if not user_id or not task_id:
         return TaskBreakdownResult(False, "I need a step to separate.")
     from core.time_utilities import now_timestamp_full

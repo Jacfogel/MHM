@@ -10,6 +10,7 @@ class AIUsageMode(StrEnum):
     """Supported global AI execution modes."""
 
     AUTOMATIC = "automatic"
+    MANUAL = "manual"
     OFF = "off"
 
 
@@ -34,25 +35,40 @@ def _normalized_token(value: object) -> str:
 
 @handle_errors("reading the configured AI usage mode", default_return=AIUsageMode.OFF)
 def get_ai_usage_mode() -> AIUsageMode:
-    """Return the configured mode, failing closed for an invalid value."""
+    """Read the current shared mode; invalid or unreadable policy returns OFF."""
     return AIUsageMode(_normalized_token(read_ai_usage_settings()["mode"]))
 
 
 @handle_errors("reading disabled AI features", default_return=set())
 def get_disabled_ai_features() -> set[str]:
-    """Return normalized feature names disabled by configuration."""
+    """Read disabled feature names without mutating saved settings.
+
+    Errors return an empty set for diagnostics. This helper is not an execution
+    authorization check; callers must use is_ai_usage_allowed, which fails closed.
+    """
     return set(read_ai_usage_settings()["disabled_features"])
 
 
 @handle_errors("checking the AI usage policy", default_return=False)
 def is_ai_usage_allowed(
     feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
+    *,
+    explicit_request: bool = False,
 ) -> bool:
-    """Return whether an automatic model call is allowed for ``feature``."""
+    """Allow manual task breakdown only when its caller marks an explicit request.
+
+    Authorization belongs to this invocation, never to conversation text or saved
+    state. Global off and feature disables also apply to explicit requests.
+    """
     settings = read_ai_usage_settings()
-    if _normalized_token(settings["mode"]) != AIUsageMode.AUTOMATIC.value:
-        return False
+    mode = _normalized_token(settings["mode"])
     feature_name = _normalized_token(feature)
+    if mode != AIUsageMode.AUTOMATIC.value and not (
+        mode == AIUsageMode.MANUAL.value
+        and explicit_request is True
+        and feature_name == AIUsageFeature.TASK_BREAKDOWN.value
+    ):
+        return False
     return feature_name not in settings["disabled_features"]
 
 
@@ -76,11 +92,8 @@ def usage_feature_for_response_mode(mode: str | None) -> AIUsageFeature:
 def get_ai_usage_policy_status() -> dict[str, object]:
     """Return non-secret policy state for status and diagnostics."""
     settings = read_ai_usage_settings()
-    mode = (
-        AIUsageMode.AUTOMATIC
-        if _normalized_token(settings["mode"]) == AIUsageMode.AUTOMATIC.value
-        else AIUsageMode.OFF
-    )
+    token = _normalized_token(settings["mode"])
+    mode = next((item for item in AIUsageMode if item.value == token), AIUsageMode.OFF)
     disabled = sorted(settings["disabled_features"])
     return {
         "mode": mode.value,

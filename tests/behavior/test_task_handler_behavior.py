@@ -228,7 +228,7 @@ class TestTaskHandlerBehavior:
         )
         monkeypatch.setattr(
             "tasks.task_breakdown.suggest_breakdown",
-            lambda user_id, task_id: TaskBreakdownResult(
+            lambda user_id, task_id, *, explicit_request: TaskBreakdownResult(
                 True,
                 "Here are a few smaller steps.",
                 steps=["Wipe the counter", "Take out the trash"],

@@ -52,6 +52,32 @@ class _ConnectFlowWorker(QObject):
         self.finished.emit(success, error)
 
 
+class _SyncFlowWorker(QObject):
+    """Run the shared blocking sync operation outside the UI thread."""
+
+    finished = Signal(bool)
+
+    @handle_errors("initializing Google Health sync worker", re_raise=True)
+    def __init__(self, user_id: str) -> None:
+        super().__init__()
+        self.user_id = user_id
+
+    @handle_errors("running Google Health sync worker", default_return=None)
+    def run(self) -> None:
+        """Always report completion, including unexpected backend failures."""
+        success = False
+        try:
+            success = self._sync()
+        finally:
+            self.finished.emit(success)
+
+
+    @handle_errors("performing Google Health desktop sync", default_return=False)
+    def _sync(self) -> bool:
+        """Return a safe failure result while the outer worker owns completion."""
+        return bool(sync_health_integration(self.user_id))
+
+
 class GoogleHealthSettingsDialog(QDialog):
     """Per-user Google Health connect panel for the admin UI."""
 
@@ -62,6 +88,9 @@ class GoogleHealthSettingsDialog(QDialog):
         """Build the connect panel for ``user_id`` (admin UI)."""
         super().__init__(parent)
         self.user_id = user_id
+        self._sync_thread: QThread | None = None
+        self._sync_worker: _SyncFlowWorker | None = None
+        self._sync_success = False
         self._connect_thread: QThread | None = None
         self._connect_worker: _ConnectFlowWorker | None = None
 
@@ -122,6 +151,9 @@ class GoogleHealthSettingsDialog(QDialog):
 
     @handle_errors("refreshing Google Health status display", default_return=None)
     def refresh_status(self) -> None:
+        if self._sync_thread is not None:
+            self._set_actions_enabled(False)
+            return
         ready, readiness_error = get_connect_readiness()
         if not ready:
             self.status_view.setPlainText(readiness_error)
@@ -141,7 +173,7 @@ class GoogleHealthSettingsDialog(QDialog):
 
         self.status_view.setPlainText(format_status_text(status))
         self._set_actions_enabled(True)
-        self.btn_connect.setEnabled(not status.connected)
+        self.btn_connect.setEnabled(not status.connected or status.reconnect_required)
 
     @handle_errors("setting Google Health dialog action state", default_return=None)
     def _set_actions_enabled(self, enabled: bool) -> None:
@@ -157,7 +189,7 @@ class GoogleHealthSettingsDialog(QDialog):
 
     @handle_errors("starting Google Health connect from admin UI", default_return=None)
     def start_connect(self) -> None:
-        if not self.user_id:
+        if not self.user_id or self._sync_thread is not None or self._connect_thread is not None:
             return
 
         ready, error = get_connect_readiness()
@@ -255,17 +287,60 @@ class GoogleHealthSettingsDialog(QDialog):
 
     @handle_errors("syncing Google Health from admin UI", default_return=None)
     def sync_now(self) -> None:
-        if not self.user_id:
+        """Start one sync; keep account controls locked until its thread exits."""
+        if not self.user_id or self._sync_thread is not None or self._connect_thread is not None:
             return
-        if sync_health_integration(self.user_id):
-            self.refresh_status()
+        self._sync_success = False
+        self._set_actions_enabled(False)
+        self.status_view.setPlainText("Syncing Google Health… Please wait.")
+        self._sync_thread = QThread(self)
+        self._sync_worker = _SyncFlowWorker(self.user_id)
+        self._sync_worker.moveToThread(self._sync_thread)
+        self._sync_thread.started.connect(self._sync_worker.run)
+        self._sync_worker.finished.connect(self._on_sync_result)
+        self._sync_worker.finished.connect(self._sync_thread.quit)
+        self._sync_worker.finished.connect(self._sync_worker.deleteLater)
+        self._sync_thread.finished.connect(self._on_sync_finished)
+        self._sync_thread.finished.connect(self._sync_thread.deleteLater)
+        self._sync_thread.start()
+
+    @handle_errors("recording Google Health sync result", default_return=None)
+    def _on_sync_result(self, success: bool) -> None:
+        """Remember the result while retaining worker references until exit."""
+        self._sync_success = success
+
+    @handle_errors("finishing Google Health desktop sync", default_return=None)
+    def _on_sync_finished(self) -> None:
+        """Refresh persisted status and explain the next action on failure."""
+        self._sync_thread = None
+        self._sync_worker = None
+        self.refresh_status()
+        self.user_changed.emit()
+        if self._sync_success:
             QMessageBox.information(self, "Google Health", "Sync completed.")
             return
-        QMessageBox.warning(
-            self,
-            "Google Health",
-            "Sync did not complete. Check status and connection.",
-        )
+        status = get_health_integration_status(self.user_id)
+        if status is not None and (not status.connected or status.reconnect_required):
+            message = "Reconnect Google Health using Connect, then try Sync Now again."
+        elif status is not None and status.feature_state != "enabled":
+            message = "Health is paused or disabled. Enable it before syncing; reconnect if requested in status."
+        else:
+            message = "Sync did not complete. Check your connection and status, then try again."
+        QMessageBox.warning(self, "Google Health", message)
+
+    @handle_errors("closing Google Health dialog", default_return=None)
+    def done(self, result: int) -> None:
+        """Keep the dialog alive while its background worker owns a thread."""
+        if self._sync_thread is None:
+            super().done(result)
+
+    @handle_errors("handling Google Health dialog close", default_return=None)
+    def closeEvent(self, event) -> None:
+        """Do not destroy a running sync thread when the window is closed."""
+        if self._sync_thread is not None:
+            event.ignore()
+            return
+        super().closeEvent(event)
 
     @handle_errors("deleting Google Health data from admin UI", default_return=None)
     def delete_data(self) -> None:

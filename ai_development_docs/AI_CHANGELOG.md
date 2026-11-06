@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-05 - Optional AI, health sync, and TODO cleanup **COMPLETED**
+- Added manual-only AI controls and per-request task-breakdown authorization; global off and feature disables remain authoritative. Desktop Health Sync Now runs in the background, prevents duplicate actions, and offers reconnect/retry guidance, including revoked credentials retained on disk.
+- Clarified TODO scopes and completion criteria, moved test-performance measurement to TEST_PLAN section 2.9, closed completed AI/sync/contract tasks, and filled Health mocking/context documentation gaps. Documented policy, persistence, routing, and recovery contracts; synchronized configuration/spec guidance and regenerated registry/dependency documentation.
+- Fixed five TODO paths, standardized worker/close-hook error handling while preserving completion signals, updated the explicit-request test mock, and resolved optional-thread type warnings. Reviewed the routing facade advisory as a false positive and documented a narrow exclusion.
+- Validation: focused runs passed 45 AI/settings/UI/task checks, 2 manual-breakdown checks, 33 client/policy checks, 54 Health checks, and 67 task/UI checks (overlapping coverage); the previously failing node also passed with two workers. Ruff passed; doc-sync, Pyright, and targeted error-handling/facade checks reported zero findings. Broader Discord runs stalled; no live-provider verification. Full audit interrupted at the user's request before Tier 3; future full audits belong to the user.
+
 ### 2026-11-05 - Clearer task reminders and simpler Discord controls
 - Shortened the gentle reminder heading, moved the priority emoji beside the title, added the short task ID below priority, and removed the automatic smaller-step closing suggestion.
 - Removed the Discord "Leave me alone" button and the due-date reassurance from the snooze-choice prompt. Snooze behavior and the text skip command remain unchanged.
@@ -104,26 +110,6 @@ Guidelines:
 - Discord restores saved task reminder buttons at startup. Custom Snooze rejects unrecognized dates while accepting clock-only and weekday/time phrases.
 - Snoozes retain seconds through scheduling and restart recovery; one-time jobs remove themselves after delivery, including failure, and remain compatible with task/orphan cleanup. Scheduling failures report that the snooze was saved but the reminder could not be scheduled.
 - Verification: the earlier action fixes passed 75 targeted tests; the final scheduling changes passed separate runs of 75 reminder/task-flow tests and 19 time/cleanup tests. Targeted Ruff checks passed. Restart the bot to apply the changes.
-
-### 2026-10-21 - Task reminders repeat on later days **COMPLETED**
-- `reminder_sent_on` blocks a second reminder for the same task on the user's local date. The next day can send again, and a pending snooze still arrives.
-- Tasks stuck with `reminder_sent` and no date are eligible again. Task and check-in schedules no longer receive an all-day window; message categories still do. Existing all-day task periods were removed from every account. This account's reminders stay in the 14:00-16:00 window.
-- Focused scheduler and snooze tests cover the same-day, next-day, and snooze cases.
-
-### 2026-10-20 - Nightly notebook inbox test stays date-stable **COMPLETED**
-- The October 19 nightly suite failed one test: after clearing tags, a grocery list seeded on September 19 was older than the 30-day inbox window.
-- Website note fixtures now use the current timestamp, and mocked edits refresh `updated_at` the same way real notebook saves do.
-- The notes route tests pass. Inbox behavior is unchanged.
-
-### 2026-10-19 - Quiet mode and energy rules are user-controlled **COMPLETED**
-- Website **Support mode** now stores a clear quiet-mode end time plus an on/off switch and threshold for deterministic check-in energy rules.
-- Quiet mode pauses scheduled encouragement and check-ins, but still permits due, overdue, urgent, and critical task reminders with gentler wording; manual actions remain available.
-- The saved energy rule drives both task ranking and reminder copy without inferring mood from chat or requesting an LLM. Next work is better rule explanations, cooldowns, and an "until tomorrow" shortcut.
-
-### 2026-10-19 - Optional AI controls centralized **COMPLETED**
-- A provider-neutral policy now supports global AI off and feature-level disable lists while preserving deterministic commands, reminders, and fallbacks.
-- Low-level HTTP calls and higher-level cache paths both enforce the policy; disabled features cannot make model requests or return old cached AI responses.
-- Planning now prioritizes optional AI and deterministic mood/energy rules. Provider billing and budget tracking stay outside MHM, and response-quality work is paused until the model changes.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

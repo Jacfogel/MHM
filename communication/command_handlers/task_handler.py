@@ -1317,7 +1317,7 @@ class TaskManagementHandler(InteractionHandler):
                 return InteractionResponse("That step could not be added.", False)
             return InteractionResponse(result.message, result.success)
         PENDING_SIMPLIFY.pop(user_id, None)
-        result = suggest_breakdown(user_id, task_id)
+        result = suggest_breakdown(user_id, task_id, explicit_request=True)
         if not result or not result.success or not result.steps:
             return InteractionResponse(
                 (result.message if result else "MHM could not suggest smaller steps just now.")

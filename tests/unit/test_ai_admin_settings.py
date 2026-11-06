@@ -124,3 +124,12 @@ def test_enabling_ai_in_desktop_requires_model_configuration(monkeypatch):
     valid, errors, _warnings = config.validate_ai_configuration()
     assert not valid
     assert "OPENAI_BASE_URL is not configured" in errors
+
+
+def test_manual_mode_is_persisted_and_feature_disables_win():
+    assert save_ai_usage_settings("manual", [])
+    assert read_ai_usage_settings()["mode"] == "manual"
+    assert not is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN)
+    assert is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN, explicit_request=True)
+    assert save_ai_usage_settings("manual", ["task_breakdown"])
+    assert not is_ai_usage_allowed(AIUsageFeature.TASK_BREAKDOWN, explicit_request=True)

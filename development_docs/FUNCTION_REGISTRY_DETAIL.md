@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 20:49:02
+> **Last Generated**: 2026-11-05 22:20:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3244
-- **Methods Found**: 1647
-- **Classes Found**: 290
-- **Total Items**: 4891
-- **Functions Documented**: 2890
-- **Methods Documented**: 1468
-- **Classes Documented**: 223
-- **Total Documented**: 4358
-- **Template-Generated**: 70
+- **Functions Found**: 3251
+- **Methods Found**: 1654
+- **Classes Found**: 291
+- **Total Items**: 4905
+- **Functions Documented**: 2904
+- **Methods Documented**: 1480
+- **Classes Documented**: 224
+- **Total Documented**: 4384
+- **Template-Generated**: 72
 - **Last Updated**: 2026-11-05
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (911)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (555)
+### **User Interface Functions** (562)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (28)
@@ -920,10 +920,16 @@ Returns:
 #### `ai/usage_policy.py`
 **Functions:**
 - [OK] `_normalized_token(value)` - Return a configuration token in its canonical comparison form.
-- [OK] `get_ai_usage_mode()` - Return the configured mode, failing closed for an invalid value.
+- [OK] `get_ai_usage_mode()` - Read the current shared mode; invalid or unreadable policy returns OFF.
 - [OK] `get_ai_usage_policy_status()` - Return non-secret policy state for status and diagnostics.
-- [OK] `get_disabled_ai_features()` - Return normalized feature names disabled by configuration.
-- [OK] `is_ai_usage_allowed(feature)` - Return whether an automatic model call is allowed for ``feature``.
+- [OK] `get_disabled_ai_features()` - Read disabled feature names without mutating saved settings.
+
+Errors return an empty set for diagnostics. This helper is not an execution
+authorization check; callers must use is_ai_usage_allowed, which fails closed.
+- [OK] `is_ai_usage_allowed(feature)` - Allow manual task breakdown only when its caller marks an explicit request.
+
+Authorization belongs to this invocation, never to conversation text or saved
+state. Global off and feature disables also apply to explicit requests.
 - [OK] `usage_feature_for_response_mode(mode)` - Map chatbot response modes to cost-control feature names.
 **Classes:**
 - [OK] `AIUsageFeature` - Product features that may make a model request.
@@ -3807,13 +3813,29 @@ Returns:
 - [OK] `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
 - [MISSING] `_is_valid_intent(self, intent)` - No description
 - [OK] `_try_partial_structured_command(self, user_id, parsing_result, channel_type)` - Run rule-based command dispatch when planner failed but parse had usable intent.
-- [MISSING] `get_available_commands(self, user_id)` - No description
-- [MISSING] `get_command_definitions(self)` - No description
-- [MISSING] `get_interaction_manager()` - No description
-- [MISSING] `get_slash_command_map(self)` - No description
-- [MISSING] `get_user_suggestions(self, user_id, context)` - No description
-- [OK] `handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
-- [MISSING] `handle_user_message(user_id, message, channel_type)` - No description
+- [OK] `get_available_commands(self, user_id)` - Return handler-keyed help, examples, and supported discovery intents.
+
+``user_id`` is retained for the shared interface; discovery does not
+execute commands or change user data. Errors return an empty mapping.
+- [OK] `get_command_definitions(self)` - Return serializable command definitions for channel discovery.
+- [OK] `get_interaction_manager()` - Lazily construct and reuse the process-wide parser/handler manager.
+- [OK] `get_slash_command_map(self)` - Return canonical slash-name to command-text mappings without dispatch.
+- [OK] `get_user_suggestions(self, user_id, context)` - Read contextual follow-up suggestions; return [] on failure.
+- [OK] `handle_message(self, user_id, message, channel_type)` - Route one message for an internal MHM user and return an InteractionResponse.
+
+Prefix commands and active flows run before command parsing; confident
+commands dispatch to deterministic handlers. Optional chat/planning paths
+retain their own AI policy checks and fallbacks. Handlers may persist
+user changes or advance a pending flow; this method is not a preview.
+It returns content for the channel adapter to deliver, rather than
+sending the returned reply itself. Unexpected errors produce a completed
+retry response; ``completed=False`` can indicate a pending interaction.
+- [OK] `handle_user_message(user_id, message, channel_type)` - Route a linked user's message and mirror non-website exchanges to the inbox.
+
+Returns the handler response for delivery by the caller; command handlers may
+persist changes. Website calls skip mirroring to avoid a duplicate exchange.
+Unexpected routing or mirroring errors return a completed retry response;
+callers must not assume a failure response rolls back handler side effects.
 - [OK] `slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 **Classes:**
 - [OK] `InteractionManager` - Main manager for handling user interactions across all channels.
@@ -3825,11 +3847,22 @@ Returns:
   - [OK] `InteractionManager._handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
   - [MISSING] `InteractionManager._is_valid_intent(self, intent)` - No description
   - [OK] `InteractionManager._try_partial_structured_command(self, user_id, parsing_result, channel_type)` - Run rule-based command dispatch when planner failed but parse had usable intent.
-  - [MISSING] `InteractionManager.get_available_commands(self, user_id)` - No description
-  - [MISSING] `InteractionManager.get_command_definitions(self)` - No description
-  - [MISSING] `InteractionManager.get_slash_command_map(self)` - No description
-  - [MISSING] `InteractionManager.get_user_suggestions(self, user_id, context)` - No description
-  - [OK] `InteractionManager.handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
+  - [OK] `InteractionManager.get_available_commands(self, user_id)` - Return handler-keyed help, examples, and supported discovery intents.
+
+``user_id`` is retained for the shared interface; discovery does not
+execute commands or change user data. Errors return an empty mapping.
+  - [OK] `InteractionManager.get_command_definitions(self)` - Return serializable command definitions for channel discovery.
+  - [OK] `InteractionManager.get_slash_command_map(self)` - Return canonical slash-name to command-text mappings without dispatch.
+  - [OK] `InteractionManager.get_user_suggestions(self, user_id, context)` - Read contextual follow-up suggestions; return [] on failure.
+  - [OK] `InteractionManager.handle_message(self, user_id, message, channel_type)` - Route one message for an internal MHM user and return an InteractionResponse.
+
+Prefix commands and active flows run before command parsing; confident
+commands dispatch to deterministic handlers. Optional chat/planning paths
+retain their own AI policy checks and fallbacks. Handlers may persist
+user changes or advance a pending flow; this method is not a preview.
+It returns content for the channel adapter to deliver, rather than
+sending the returned reply itself. Unexpected errors produce a completed
+retry response; ``completed=False`` can indicate a pending interaction.
   - [OK] `InteractionManager.slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 
 #### `communication/message_processing/message_route_classifier.py`
@@ -6120,11 +6153,27 @@ Returns empty list when confidence is low or data insufficient.
 - [MISSING] `merge_health_signals(existing, rebuilt)` - No description
 - [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
 - [MISSING] `pause_google_health_feature(user_id)` - No description
-- [OK] `sync_all_enabled_users()` - Run sync for every user with google_health enabled (ignores schedule slots).
-- [OK] `sync_user_health_data(user_id)` - Sync Google Health data for one user.
+- [OK] `sync_all_enabled_users()` - Synchronously sync enabled accounts regardless of schedule; count successes.
 
-Skips when globally disabled, testing mode, feature not enabled, or no auth.
-- [OK] `sync_users_due_for_schedule()` - Sync enabled users whose local wall-clock schedule slot is due.
+Global disable/testing mode returns zero. Per-user guards and failure recovery
+are those of sync_user_health_data; a failure does not stop later accounts.
+- [OK] `sync_user_health_data(user_id)` - Fetch and persist one internal user's daily summaries, signals, and status.
+
+Returns False for skipped or failed work, True after the save sequence runs
+(including an empty fetch). ``force`` bypasses global/testing guards only;
+the account feature and saved-auth guards still apply. A successful scheduled
+call records ``scheduled_slot_key``; failures leave the slot available to retry.
+
+A data-read 401 triggers one forced token refresh and retry. Failures record
+error/count state; reaching the threshold pauses the feature and may send a
+reconnect notice. Summary, signal, and status writes are separate operations,
+not a transaction; False does not guarantee rollback, and write helpers may
+handle their own errors. Provider calls are blocking: UI callers need a worker.
+- [OK] `sync_users_due_for_schedule()` - Sync due local-time slots and return the number of successful users.
+
+Disabled/testing installations return zero. Paused users may retry pending
+reconnect notices without resuming data sync. Slot keys advance only after
+successful sync so a failed slot can retry on a later scheduler poll.
 - [MISSING] `upsert_daily_summaries(existing, incoming)` - No description
 
 #### `integrations/google_health/testing.py`
@@ -7142,12 +7191,30 @@ Returns:
 - [OK] `_open_children(tasks, parent_id)` - Return active tasks saved under this parent.
 - [OK] `_parent_id(task)` - Return the parent task id, or an empty string when this task is top-level.
 - [OK] `_task_id(task)` - Return the task id, or an empty string when it is missing.
-- [OK] `add_task_subtasks(user_id, task_id, titles)` - Save chosen steps as tasks under the original task. The original title stays.
-- [OK] `detach_task_step(user_id, task_id)` - Clear parent_id so this step stands on its own.
+- [OK] `add_task_subtasks(user_id, task_id, titles)` - Persist reviewed titles as active subtasks under this user's parent task.
+
+Filters invalid/duplicate titles and enforces the open-step limit. Children
+inherit the parent's due date, priority, and tags; the parent stays intact.
+No AI call is required. Returns a result describing saved steps or a normal
+validation/storage failure; unexpected errors return None. Each child is
+created separately: a failed later write does not roll back earlier saves.
+- [OK] `detach_task_step(user_id, task_id)` - Persist removal of parent_id from an active step owned by ``user_id``.
+
+Keeps the step's other fields, updates its timestamp, and returns a result.
+Missing, completed, or already independent tasks return validation messages;
+a failed save returns an unsuccessful result and unexpected errors return None.
 - [OK] `next_open_step(user_id, task)` - Return the oldest open step under this task, if it has one.
 - [OK] `next_open_step_id(user_id, task_id)` - Return the id of the oldest open step under this task, or an empty string.
 - [OK] `parse_task_step_lines(text)` - Keep short, unique task titles from a model reply.
-- [OK] `suggest_breakdown(user_id, task_id)` - Ask the model for a few concrete steps under this task.
+- [OK] `suggest_breakdown(user_id, task_id)` - Suggest steps for an active top-level task without saving subtasks.
+
+``user_id`` is the internal account ID; ``task_id`` identifies its parent.
+Only an explicit user command/button should set ``explicit_request=True``;
+manual mode requires it, and global off/feature disables always win.
+Validation failures return an unsuccessful result. Policy/provider failures
+set ``unavailable=True`` and offer manual entry; unexpected errors return
+None. A successful result contains filtered titles for review, not approval
+to persist them. Suggestions may use the provider but never save task data.
 **Classes:**
 - [OK] `TaskBreakdownResult` - Suggested steps, or the subtasks that were saved.
 
@@ -7733,30 +7800,45 @@ Returns:
 #### `ui/dialogs/google_health_settings_dialog.py`
 **Functions:**
 - [OK] `__init__(self, user_id)` - Special Python method
+- [OK] `__init__(self, user_id)` - Special Python method
 - [OK] `__init__(self, parent, user_id)` - Build the connect panel for ``user_id`` (admin UI).
 - [MISSING] `_on_connect_finished(self, success, error)` - No description
+- [OK] `_on_sync_finished(self)` - Refresh persisted status and explain the next action on failure.
+- [OK] `_on_sync_result(self, success)` - Remember the result while retaining worker references until exit.
 - [MISSING] `_set_actions_enabled(self, enabled)` - No description
+- [OK] `_sync(self)` - Return a safe failure result while the outer worker owns completion.
+- [OK] `closeEvent(self, event)` - Do not destroy a running sync thread when the window is closed.
 - [MISSING] `delete_data(self)` - No description
+- [OK] `done(self, result)` - Keep the dialog alive while its background worker owns a thread.
 - [MISSING] `enable_health(self)` - No description
 - [MISSING] `pause_health(self)` - No description
 - [MISSING] `refresh_status(self)` - No description
 - [MISSING] `run(self)` - No description
+- [OK] `run(self)` - Always report completion, including unexpected backend failures.
 - [MISSING] `start_connect(self)` - No description
-- [MISSING] `sync_now(self)` - No description
+- [OK] `sync_now(self)` - Start one sync; keep account controls locked until its thread exits.
 **Classes:**
 - [OK] `GoogleHealthSettingsDialog` - Per-user Google Health connect panel for the admin UI.
   - [OK] `GoogleHealthSettingsDialog.__init__(self, parent, user_id)` - Build the connect panel for ``user_id`` (admin UI).
   - [MISSING] `GoogleHealthSettingsDialog._on_connect_finished(self, success, error)` - No description
+  - [OK] `GoogleHealthSettingsDialog._on_sync_finished(self)` - Refresh persisted status and explain the next action on failure.
+  - [OK] `GoogleHealthSettingsDialog._on_sync_result(self, success)` - Remember the result while retaining worker references until exit.
   - [MISSING] `GoogleHealthSettingsDialog._set_actions_enabled(self, enabled)` - No description
+  - [OK] `GoogleHealthSettingsDialog.closeEvent(self, event)` - Do not destroy a running sync thread when the window is closed.
   - [MISSING] `GoogleHealthSettingsDialog.delete_data(self)` - No description
+  - [OK] `GoogleHealthSettingsDialog.done(self, result)` - Keep the dialog alive while its background worker owns a thread.
   - [MISSING] `GoogleHealthSettingsDialog.enable_health(self)` - No description
   - [MISSING] `GoogleHealthSettingsDialog.pause_health(self)` - No description
   - [MISSING] `GoogleHealthSettingsDialog.refresh_status(self)` - No description
   - [MISSING] `GoogleHealthSettingsDialog.start_connect(self)` - No description
-  - [MISSING] `GoogleHealthSettingsDialog.sync_now(self)` - No description
+  - [OK] `GoogleHealthSettingsDialog.sync_now(self)` - Start one sync; keep account controls locked until its thread exits.
 - [OK] `_ConnectFlowWorker` - Background worker that runs the blocking OAuth connect flow.
   - [OK] `_ConnectFlowWorker.__init__(self, user_id)` - Special Python method
   - [MISSING] `_ConnectFlowWorker.run(self)` - No description
+- [OK] `_SyncFlowWorker` - Run the shared blocking sync operation outside the UI thread.
+  - [OK] `_SyncFlowWorker.__init__(self, user_id)` - Special Python method
+  - [OK] `_SyncFlowWorker._sync(self)` - Return a safe failure result while the outer worker owns completion.
+  - [OK] `_SyncFlowWorker.run(self)` - Always report completion, including unexpected backend failures.
 
 #### `ui/dialogs/message_editor_dialog.py`
 **Functions:**

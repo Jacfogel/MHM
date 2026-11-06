@@ -142,8 +142,8 @@ AI_CUDA_WARMUP = (
 AI_CACHE_RESPONSES = os.getenv("AI_CACHE_RESPONSES", "true").lower() == "true"
 
 # AI Usage Policy Configuration
-# ``automatic`` preserves current behavior. ``off`` keeps deterministic product
-# features and fallbacks available while preventing model requests.
+# ``automatic`` preserves current behavior; ``manual`` allows explicit task
+# breakdown only. ``off`` prevents model requests while keeping core behavior.
 AI_USAGE_MODE = os.getenv("AI_USAGE_MODE", "automatic").strip().lower()
 AI_DISABLED_FEATURES = os.getenv("AI_DISABLED_FEATURES", "")
 
@@ -528,7 +528,7 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
                 ],
                 "source": "environment",
             }
-        valid_usage_modes = {"automatic", "off"}
+        valid_usage_modes = {"automatic", "manual", "off"}
         if ai_controls["source"] == "invalid":
             errors.append(
                 "Desktop AI controls could not be loaded. "
@@ -536,7 +536,7 @@ def validate_ai_configuration() -> tuple[bool, list[str], list[str]]:
             )
         if ai_controls["mode"] not in valid_usage_modes:
             errors.append(
-                "AI_USAGE_MODE must be one of: automatic, off"
+                "AI_USAGE_MODE must be one of: automatic, manual, off"
             )
 
         valid_usage_features = set(AI_FEATURE_LABELS)

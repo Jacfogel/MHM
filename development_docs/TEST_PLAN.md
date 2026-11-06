@@ -263,6 +263,18 @@ This document is the canonical testing roadmap.
 
 ---
 
+### 2.9 Performance and memory measurement
+
+**Status**: Planned; moved from TODO.md on 2026-11-05.
+**Priority**: Low/Medium
+
+- [ ] Establish a repeatable serial and parallel test workload with the same selected test nodes, worker count, machine, and environment.
+- [ ] Record wall time, peak Python parent/worker process memory, and Windows available/cached memory before, during, and after the run. Distinguish process retention from reusable OS file cache; do not clear caches as a routine optimization.
+- [ ] Compare a warm repeat with the initial run; retain commands, workload size, and measurements in the testing report.
+- [ ] Add opt-in timing/memory instrumentation only where measurements reveal a gap. Keep normal test output quiet and avoid machine-specific absolute pass/fail thresholds.
+
+**Acceptance**: A reproducible baseline identifies whether worker concurrency, application retention, or OS cache behavior explains pressure. Any optimization must preserve test isolation and application usability. Application message latency and service memory improvements remain in TODO.md sections 3.2 and 4.2.
+
 ## 3. Completed / Condensed History
 
 Detailed February and March session notes were intentionally removed from the active roadmap. Use changelogs and archived plan history for exact command outputs.

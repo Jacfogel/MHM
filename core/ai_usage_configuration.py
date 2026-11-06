@@ -43,7 +43,7 @@ def read_ai_usage_override(base_dir: str | Path) -> dict | None:
     mode = saved.get("mode")
     disabled = saved.get("disabled_features")
     if (
-        mode not in ("automatic", "off")
+        mode not in ("automatic", "manual", "off")
         or not isinstance(disabled, list)
         or any(
             not isinstance(item, str) or item not in AI_FEATURE_LABELS

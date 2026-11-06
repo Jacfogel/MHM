@@ -16,7 +16,9 @@ from core.config import (
 )
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from integrations.google_health.auth import build_authorization_url, run_oauth_connect_flow
+from integrations.google_health.auth import (
+    DEAD_REFRESH_TOKEN_ERROR, build_authorization_url, run_oauth_connect_flow,
+)
 from integrations.google_health.data_handlers import (
     delete_user_health_data,
     has_valid_auth,
@@ -35,6 +37,7 @@ class HealthIntegrationStatus:
     connected: bool
     last_success_at: str
     has_recent_error: bool
+    reconnect_required: bool = False
 
 
 @handle_errors("reading Google Health integration status", default_return=None)
@@ -48,6 +51,7 @@ def get_health_integration_status(user_id: str) -> HealthIntegrationStatus | Non
         connected=has_valid_auth(user_id),
         last_success_at=str(sync_state.get("last_success_at") or "never"),
         has_recent_error=bool(sync_state.get("last_error")),
+        reconnect_required=DEAD_REFRESH_TOKEN_ERROR in str(sync_state.get("last_error") or ""),
     )
 
 
@@ -166,4 +170,6 @@ def format_status_text(status: HealthIntegrationStatus) -> str:
         lines.append(
             "A recent sync had an issue (logged internally). Messages stay normal until fixed."
         )
+    if status.reconnect_required:
+        lines.append("Reconnect required: use Connect Google Health to authorize again.")
     return "\n".join(lines)

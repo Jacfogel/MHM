@@ -381,3 +381,18 @@ def test_sync_health_integration_forces_sync(test_data_dir):
     ) as sync:
         assert sync_health_integration(user_id) is True
     sync.assert_called_once_with(user_id, force=True)
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_saved_revocation_is_visible_without_discarding_tokens():
+    from integrations.google_health.auth import DEAD_REFRESH_TOKEN_ERROR
+    with patch("integrations.google_health.user_settings.get_user_data", return_value={
+        "account": {"features": {"google_health": "paused"}},
+    }), patch("integrations.google_health.user_settings.has_valid_auth", return_value=True), patch(
+        "integrations.google_health.user_settings.load_sync_state", return_value={"last_error": DEAD_REFRESH_TOKEN_ERROR}
+    ):
+        status = get_health_integration_status("user-1")
+    assert status.connected
+    assert status.reconnect_required
+    assert "Reconnect required" in format_status_text(status)

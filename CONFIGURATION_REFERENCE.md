@@ -186,7 +186,7 @@ API billing is separate from ChatGPT subscriptions; manage spending through Open
 
 ### 6.2. Optional AI usage controls
 
-- `AI_USAGE_MODE` - `automatic` (default) permits configured model features; `off` prevents model requests while deterministic commands, reminders, and fallbacks continue. Model connection settings are not required when this is `off`.
+- `AI_USAGE_MODE` - `automatic` (default) permits configured model features; `manual` permits only an explicit task-breakdown request (Discord **Break down with AI** or the deterministic simplify-task command), with no automatic calls; `off` prevents model requests while deterministic commands, reminders, and fallbacks continue. Model connection settings are not required when this is `off`.
 - `AI_DISABLED_FEATURES` - optional comma-separated list of model-backed features to disable. Supported names are `conversation`, `command_interpretation`, `personalized_messages`, `action_planning`, `response_enhancement`, `task_breakdown`, and `task_effort`.
 
 Desktop administrators can use **Admin > AI Controls** to save a global switch and feature switches for the whole installation. These controls are not user preferences and do not appear on the website. Saved desktop overrides take precedence over these environment defaults. Select **Use environment defaults** and save to return to the environment policy.

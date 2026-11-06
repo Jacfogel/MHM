@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 20:49:02
+> **Last Generated**: 2026-11-05 22:20:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.1% [!] GOOD**
-- **Total Functions**: 3244
-- **Total Methods**: 1647
-- **Documented**: 4358/4891
+### **Documentation Coverage: 89.4% [!] GOOD**
+- **Total Functions**: 3251
+- **Total Methods**: 1654
+- **Documented**: 4384/4905
 - **Files Scanned**: 315
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -35,7 +35,7 @@ AI Operations Decision Tree:
 +-- `user/context_manager.py` - Context for AI (14 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (81 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
-`-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
+`-- `communication/message_processing/interaction_manager.py` - Main interaction flow (26/30 functions)```
 
 ### **[COMM] Need Communication/Channels?**
 ```
@@ -90,7 +90,7 @@ Core System Decision Tree:
 - `NaturalLanguageSettingsWidget` (ui/widgets/natural_language_settings_widget.py)
 - ... and 6 more
 
-### **Dialog Pattern** (21 found)
+### **Dialog Pattern** (22 found)
 **Purpose**: Modal user interaction windows
 **Location**: `ui/dialog_actions.py`, `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`
 **Pattern**: 
@@ -102,7 +102,7 @@ Core System Decision Tree:
 - `DialogActions` (ui/dialog_actions.py)
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- ... and 18 more
+- ... and 19 more
 
 ### **Context Manager Pattern** (1 found)
 **Purpose**: Safe resource management
@@ -160,11 +160,11 @@ Core System Decision Tree:
 - `communication/communication_channels/discord/events/connection_health.py` - 26/26 functions undocumented (0% coverage)
 - `storage/user_data_operations.py` - 22/24 functions undocumented (8% coverage)
 - `core/profile_v2_schemas.py` - 22/56 functions undocumented (61% coverage)
-- `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `communication/communication_channels/discord/ui/task_list_ui.py` - 18/26 functions undocumented (31% coverage)
 - `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/communication_channels/discord/ui/rich_delivery.py` - 16/28 functions undocumented (43% coverage)
+- `ui/dialogs/google_health_settings_dialog.py` - 16/36 functions undocumented (56% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 
 ### **Medium Priority** (Partial Coverage)
@@ -214,7 +214,7 @@ Most complex functions (may need refactoring):
 - `scheduler/` -  (9 files, 124 functions)
 - `storage/` -  (17 files, 147 functions)
 - `tasks/` - Task management system (19 files, 210 functions)
-- `ui/` - User interface components (45 files, 1022 functions)
+- `ui/` - User interface components (45 files, 1036 functions)
 - `user/` - User context and preferences (5 files, 52 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

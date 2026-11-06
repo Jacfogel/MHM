@@ -266,6 +266,14 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - **AND** cancelling saves nothing and ends the matching pending text confirmation
 - **AND** successful saving ends the review; another account cannot use it
 
+#### Scenario: Manual-only AI
+
+- **GIVEN** AI is in manual-only mode and task breakdown is enabled
+- **WHEN** the linked user requests **Break down with AI**
+- **THEN** the request may generate task suggestions for review
+- **AND** automatic conversation, interpretation, enhancement, and effort-estimate requests remain blocked
+- **AND** this authorization applies only to the requested breakdown; global off and feature disables still block it
+
 #### Scenario: AI is disabled or unavailable
 
 - **GIVEN** global AI is off, task-breakdown AI is disabled, or the model is unavailable

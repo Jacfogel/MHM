@@ -117,3 +117,14 @@ def test_admin_menu_action_is_connected_to_the_admin_dialog(controls):
         window.status_timer.stop()
         window.close()
         window.deleteLater()
+
+
+def test_manual_mode_survives_save_and_reopen(controls):
+    controls.ui.useEnvironmentCheckBox.setChecked(False)
+    controls.ui.manualOnlyCheckBox.setChecked(True)
+    controls.save_settings()
+    assert read_ai_usage_settings()["mode"] == "manual"
+    reopened = AIControlsDialog()
+    assert reopened.ui.allowAICheckBox.isChecked()
+    assert reopened.ui.manualOnlyCheckBox.isChecked()
+    reopened.close()

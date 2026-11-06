@@ -79,10 +79,20 @@ class InteractionManager:
             True,
         ),
     )
+    # devtools: ignore[facade-shims]: canonical routing implementation; adapter in docstring describes its caller
     def handle_message(
         self, user_id: str, message: str, channel_type: str = "discord"
     ) -> InteractionResponse:
-        """Main entry point for handling user messages."""
+        """Route one message for an internal MHM user and return an InteractionResponse.
+
+        Prefix commands and active flows run before command parsing; confident
+        commands dispatch to deterministic handlers. Optional chat/planning paths
+        retain their own AI policy checks and fallbacks. Handlers may persist
+        user changes or advance a pending flow; this method is not a preview.
+        It returns content for the channel adapter to deliver, rather than
+        sending the returned reply itself. Unexpected errors produce a completed
+        retry response; ``completed=False`` can indicate a pending interaction.
+        """
         if not message or not message.strip():
             return InteractionResponse(
                 "I didn't receive a message. How can I help you today?", True
@@ -209,10 +219,12 @@ class InteractionManager:
 
     @handle_errors("getting slash command map")
     def get_slash_command_map(self) -> dict[str, str]:
+        """Return canonical slash-name to command-text mappings without dispatch."""
         return build_slash_command_map(self._command_definitions)
 
     @handle_errors("getting command definitions")
     def get_command_definitions(self) -> list[dict[str, str]]:
+        """Return serializable command definitions for channel discovery."""
         return command_definitions_as_dicts(self._command_definitions)
 
     @handle_errors(
@@ -251,6 +263,11 @@ class InteractionManager:
 
     @handle_errors("getting available commands", default_return={})
     def get_available_commands(self, user_id: str) -> dict[str, Any]:
+        """Return handler-keyed help, examples, and supported discovery intents.
+
+        ``user_id`` is retained for the shared interface; discovery does not
+        execute commands or change user data. Errors return an empty mapping.
+        """
         commands = {}
         for handler_name, handler in self.interaction_handlers.items():
             commands[handler_name] = {
@@ -281,6 +298,7 @@ class InteractionManager:
 
     @handle_errors("getting user suggestions", default_return=[])
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
+        """Read contextual follow-up suggestions; return [] on failure."""
         return get_user_suggestions(user_id, context)
 
     # not_duplicate: intent_validation_delegates
@@ -351,6 +369,7 @@ _interaction_manager_instance = None
 
 @handle_errors("getting interaction manager")
 def get_interaction_manager() -> InteractionManager:
+    """Lazily construct and reuse the process-wide parser/handler manager."""
     global _interaction_manager_instance
     if _interaction_manager_instance is None:
         _interaction_manager_instance = InteractionManager()
@@ -367,6 +386,13 @@ def get_interaction_manager() -> InteractionManager:
 def handle_user_message(
     user_id: str, message: str, channel_type: str = "discord"
 ) -> InteractionResponse:
+    """Route a linked user's message and mirror non-website exchanges to the inbox.
+
+    Returns the handler response for delivery by the caller; command handlers may
+    persist changes. Website calls skip mirroring to avoid a duplicate exchange.
+    Unexpected routing or mirroring errors return a completed retry response;
+    callers must not assume a failure response rolls back handler side effects.
+    """
     response = get_interaction_manager().handle_message(user_id, message, channel_type)
     if channel_type != "website":
         from communication.communication_channels.website.inbox import (

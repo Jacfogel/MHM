@@ -194,13 +194,14 @@ def complete_openai_chat(
     *,
     stop: list[str] | None = None,
     usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
+    explicit_request: bool = False,
 ) -> OpenAICompletion:
     """Request bounded text; keep errors on this call and never log credentials.
 
     Temperature is retained in the application interface, but omitted from the
     wire request so sampling uses the model defaults. Stop sequences are applied locally.
     """
-    if not is_ai_usage_allowed(usage_feature):
+    if not is_ai_usage_allowed(usage_feature, explicit_request=explicit_request):
         return OpenAICompletion(
             failure=f"AI usage disabled for feature: {usage_feature}"
         )
@@ -292,6 +293,7 @@ def call_openai_api(
     *,
     stop: list[str] | None = None,
     usage_feature: AIUsageFeature | str = AIUsageFeature.GENERIC,
+    explicit_request: bool = False,
 ) -> str | None:
     """Return text from one policy-controlled Responses request."""
     completion = complete_openai_chat(
@@ -301,5 +303,6 @@ def call_openai_api(
         timeout=timeout,
         stop=stop,
         usage_feature=usage_feature,
+        explicit_request=explicit_request,
     )
     return completion.text if isinstance(completion, OpenAICompletion) else None

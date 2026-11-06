@@ -48,6 +48,12 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 5. First sync runs immediately; `features.google_health` set to `enabled`.
 6. Scheduler syncs 1–2× daily with automatic token refresh. Sync times (`GOOGLE_HEALTH_SYNC_TIMES`, default `06:30,18:00`) use the user's **account timezone**, checked every 30 minutes.
 
+### Desktop manual sync
+
+For a selected user, open **Google Health** and choose **Sync Now**. Sync runs in the background; the panel stays responsive and disables its account actions until it finishes. Repeated clicks do not start another sync. Wait for completion before closing the panel. Success refreshes the saved status. A connection failure prompts a retry; a paused/disabled account needs **Enable** first. If saved credentials were revoked, **Connect** becomes available and the panel asks you to reconnect before retrying. A missing connection also offers **Connect**.
+
+The desktop calls the same sync operation as `sync health`; it does not change the schedule or bypass the account's enabled/paused state. Manual sync can update error state and trigger the existing automatic pause/reconnect-notice behavior.
+
 ## Commands (optional — not required daily)
 
 | Command | Purpose |
@@ -130,7 +136,7 @@ V0/V1 shipped; the implementation plan is archived. When reviewing live behavior
 
 **Ops tip:** Temporarily raise `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` (default `3`) to backfill history for baselines faster.
 
-Deferred low-priority follow-ups (admin Sync now, `health_personalization` prefs, `getIdentity`, pagination/baseline knobs, doc gaps) live in [TODO.md](../../TODO.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](../../archive/HEALTH_INTEGRATION_PLAN.md).
+Deferred low-priority follow-ups (`health_personalization` prefs, `getIdentity`, pagination/baseline knobs) live in [TODO.md](../../TODO.md). Historical plan: [HEALTH_INTEGRATION_PLAN.md](../../archive/HEALTH_INTEGRATION_PLAN.md).
 
 ## Module map
 

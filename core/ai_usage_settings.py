@@ -53,7 +53,7 @@ def save_ai_usage_settings(
             AI_SETTINGS_FILE, {"schema_version": 1, "use_environment": True}
         )
     if (
-        mode not in ("automatic", "off")
+        mode not in ("automatic", "manual", "off")
         or not isinstance(disabled_features, list)
         or any(
             not isinstance(item, str) or item not in AI_FEATURE_LABELS

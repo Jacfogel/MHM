@@ -15,6 +15,7 @@
     <property name="title"><string>Desktop admin overrides</string></property>
     <layout class="QVBoxLayout" name="policyLayout">
      <item><widget class="QCheckBox" name="allowAICheckBox"><property name="text"><string>Allow AI features</string></property></widget></item>
+     <item><widget class="QCheckBox" name="manualOnlyCheckBox"><property name="text"><string>Only use AI when I request task breakdown</string></property></widget></item>
      <item><widget class="QGroupBox" name="featuresGroup">
       <property name="title"><string>Allowed features</string></property>
       <layout class="QVBoxLayout" name="featuresLayout">
@@ -23,14 +24,14 @@
        <item><widget class="QCheckBox" name="personalizedMessagesCheckBox"><property name="text"><string>Personalized messages</string></property></widget></item>
        <item><widget class="QCheckBox" name="actionPlanningCheckBox"><property name="text"><string>Action planning</string></property></widget></item>
        <item><widget class="QCheckBox" name="responseEnhancementCheckBox"><property name="text"><string>Response enhancement</string></property></widget></item>
-       <item><widget class="QCheckBox" name="taskBreakdownCheckBox"><property name="text"><string>Task breakdown (Simplify)</string></property></widget></item>
+       <item><widget class="QCheckBox" name="taskBreakdownCheckBox"><property name="text"><string>Break down with AI</string></property></widget></item>
        <item><widget class="QCheckBox" name="taskEffortCheckBox"><property name="text"><string>Task effort estimates</string></property></widget></item>
       </layout>
      </widget></item>
     </layout>
    </widget></item>
    <item><widget class="QLabel" name="behaviorLabel">
-    <property name="text"><string>Turning AI off keeps core commands, reminders, and fallbacks available. Disabled features do not return cached AI replies. Save applies to new requests in the desktop app and running service; requests already in progress may finish.</string></property>
+    <property name="text"><string>Manual-only mode permits requested task breakdown and blocks other AI calls. Turning AI off keeps core commands, reminders, and fallbacks available. Disabled features do not return cached AI replies. Save applies to new requests in the desktop app and running service; requests already in progress may finish.</string></property>
     <property name="wordWrap"><bool>true</bool></property>
    </widget></item>
    <item><widget class="QDialogButtonBox" name="buttonBox"><property name="standardButtons"><set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set></property></widget></item>

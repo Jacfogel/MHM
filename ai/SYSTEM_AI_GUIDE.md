@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-10-28
+> **Last Updated**: 2026-11-05
 
 ## 1. Overview
 
@@ -200,6 +200,10 @@ Product-AI context is envelope-first. Derived check-in metrics are computed once
 
 If context cannot be built (for example, missing data, file corruption), envelope builders fall back to safe empty sections rather than failing the entire AI request.
 
+#### 4.1.1. Google Health context
+
+`ai/context/service.py` builds the health section through `core/health_context_builder.py`; `ai/context/assembly.py` appends selected health guidance. The builder respects disabled/paused account feature state and signal availability. Tone guidance is coarse, while recent-pattern text can include rounded sleep hours, steps, active minutes, and streaks. These are wellness context, not medical interpretation; prompts must not diagnose or recommend treatment. Separate `use_in_messages` / `use_in_chat` preferences remain deferred in TODO.md section 4.1. See `tests/unit/test_health_context_builder.py` for the implemented context contracts.
+
 ### 4.2. Conversation history and recent activity
 
 Conversation history lives through:
@@ -325,12 +329,13 @@ Do not bypass these helpers or call OpenAI directly from other modules.
 - Desktop **Admin > AI Controls** owns installation-wide global and feature switches. They are administrator settings, excluded from website user settings.
 - Saved overrides in `BASE_DATA_DIR/ai_usage_settings.json` take precedence over environment defaults, apply to subsequent policy checks across processes, and fail closed when unreadable. The desktop dialog can restore environment defaults. Requests already in progress may finish.
 - `AI_USAGE_MODE=automatic` preserves normal model use.
+- `AI_USAGE_MODE=manual` blocks automatic calls and allows only explicitly requested task breakdown. Desktop Admin > AI Controls exposes the same choice. Global off and task-breakdown disables still win.
 - `AI_USAGE_MODE=off` prevents model requests while deterministic handlers and fallbacks continue.
-- `AI_DISABLED_FEATURES` disables selected automatic features: conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
+- `AI_DISABLED_FEATURES` disables selected features: conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
 
 `ai/client/openai_client.py` enforces the policy immediately before HTTP requests. Higher-level chatbot paths check it before reading the AI response cache, so disabling a feature cannot return an older generated response. Direct feature callers pass their `AIUsageFeature` when requesting a completion.
 
-The policy intentionally does not implement billing budgets or price tracking; the future provider owns those controls. A manual-only mode is deferred until MHM has an explicit user-facing action that can authorize one request.
+The policy intentionally does not implement billing budgets or price tracking; the provider owns those controls. Explicit authorization is passed as `explicit_request=True` from the task handler through `suggest_breakdown` to the client for that request only. Other features cannot use this flag to bypass manual mode. Manual breakdown calls the client directly without chatbot availability initialization, which is blocked for automatic use in manual mode; client failures retain the own-step fallback.
 
 ---
 

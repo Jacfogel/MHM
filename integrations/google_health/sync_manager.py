@@ -136,9 +136,18 @@ def sync_user_health_data(
     scheduled_slot_key: str | None = None,
 ) -> bool:
     """
-    Sync Google Health data for one user.
+    Fetch and persist one internal user's daily summaries, signals, and status.
 
-    Skips when globally disabled, testing mode, feature not enabled, or no auth.
+    Returns False for skipped or failed work, True after the save sequence runs
+    (including an empty fetch). ``force`` bypasses global/testing guards only;
+    the account feature and saved-auth guards still apply. A successful scheduled
+    call records ``scheduled_slot_key``; failures leave the slot available to retry.
+
+    A data-read 401 triggers one forced token refresh and retry. Failures record
+    error/count state; reaching the threshold pauses the feature and may send a
+    reconnect notice. Summary, signal, and status writes are separate operations,
+    not a transaction; False does not guarantee rollback, and write helpers may
+    handle their own errors. Provider calls are blocking: UI callers need a worker.
     """
     if not GOOGLE_HEALTH_ENABLED and not force:
         return False
@@ -232,7 +241,11 @@ def sync_user_health_data(
 
 @handle_errors("syncing all enabled users", default_return=0)
 def sync_all_enabled_users() -> int:
-    """Run sync for every user with google_health enabled (ignores schedule slots)."""
+    """Synchronously sync enabled accounts regardless of schedule; count successes.
+
+    Global disable/testing mode returns zero. Per-user guards and failure recovery
+    are those of sync_user_health_data; a failure does not stop later accounts.
+    """
     if not GOOGLE_HEALTH_ENABLED:
         return 0
     if is_google_health_testing_mode():
@@ -247,7 +260,12 @@ def sync_all_enabled_users() -> int:
 
 @handle_errors("syncing users due for scheduled health sync", default_return=0)
 def sync_users_due_for_schedule() -> int:
-    """Sync enabled users whose local wall-clock schedule slot is due."""
+    """Sync due local-time slots and return the number of successful users.
+
+    Disabled/testing installations return zero. Paused users may retry pending
+    reconnect notices without resuming data sync. Slot keys advance only after
+    successful sync so a failed slot can retry on a later scheduler poll.
+    """
     if not GOOGLE_HEALTH_ENABLED:
         return 0
     if is_google_health_testing_mode():

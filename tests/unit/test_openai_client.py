@@ -16,7 +16,7 @@ def configured(monkeypatch):
     monkeypatch.setattr(client, "OPENAI_API_KEY", "test-key")
     monkeypatch.setattr(client, "OPENAI_BASE_URL", "https://api.openai.com/v1")
     monkeypatch.setattr(client, "OPENAI_MODEL", "gpt-5.4-mini")
-    monkeypatch.setattr(client, "is_ai_usage_allowed", lambda *args: True)
+    monkeypatch.setattr(client, "is_ai_usage_allowed", lambda *args, **kwargs: True)
 
 
 def response_body(text="Hello"):
@@ -82,7 +82,7 @@ def test_timeout_is_sanitized(configured):
 def test_policy_and_missing_key_never_make_http_requests(configured, monkeypatch, disabled):
     """Unavailable credentials and policy off block readiness and generation."""
     if disabled:
-        monkeypatch.setattr(client, "is_ai_usage_allowed", lambda *args: False)
+        monkeypatch.setattr(client, "is_ai_usage_allowed", lambda *args, **kwargs: False)
     else:
         monkeypatch.setattr(client, "OPENAI_API_KEY", "")
     with patch.object(client.requests, "get") as get, patch.object(client.requests, "post") as post:

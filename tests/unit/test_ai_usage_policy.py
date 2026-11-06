@@ -111,7 +111,7 @@ class TestAIUsageConfigurationValidation:
             valid, errors, _warnings = config.validate_ai_configuration()
 
         assert valid is False
-        assert "AI_USAGE_MODE must be one of: automatic, off" in errors
+        assert "AI_USAGE_MODE must be one of: automatic, manual, off" in errors
 
     def test_unknown_disabled_feature_is_a_warning(self):
         with patch.object(config, "AI_DISABLED_FEATURES", "conversation, mystery"):
@@ -132,3 +132,31 @@ class TestAIUsageConfigurationValidation:
         assert not any("OPENAI" in error for error in errors)
         assert not any("OPENAI" in warning for warning in warnings)
 
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+@pytest.mark.parametrize("mode,disabled,explicit,feature,allowed", [
+    ("manual", [], True, "task_breakdown", True),
+    ("manual", [], False, "task_breakdown", False),
+    ("manual", ["task_breakdown"], True, "task_breakdown", False),
+    ("off", [], True, "task_breakdown", False),
+    ("manual", [], True, "conversation", False),
+    ("manual", [], True, "generic", False),
+])
+def test_explicit_request_policy_at_http_boundary(mode, disabled, explicit, feature, allowed):
+    from ai.usage_policy import get_ai_usage_policy_status
+    with (
+        patch("ai.usage_policy.read_ai_usage_settings", return_value={
+            "mode": mode, "disabled_features": disabled, "source": "environment",
+        }),
+        patch("ai.client.openai_client.OPENAI_API_KEY", "test-key"),
+        patch("ai.client.openai_client.OPENAI_MODEL", "test-model"),
+        patch("ai.client.openai_client.requests.post") as request,
+    ):
+        request.return_value.status_code = 200
+        request.return_value.json.return_value = {"output": []}
+        complete_openai_chat([], usage_feature=feature, explicit_request=explicit)
+        assert request.called is allowed
+        assert get_ai_usage_policy_status()["mode"] == mode
+        assert not get_ai_usage_policy_status()["automatic_calls_allowed"]

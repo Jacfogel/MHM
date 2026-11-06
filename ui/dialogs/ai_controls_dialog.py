@@ -49,7 +49,8 @@ class AIControlsDialog(QDialog):
     @handle_errors("populating desktop AI controls", re_raise=True)
     def _populate_policy(self, settings: dict) -> None:
         """Display the global switch and preserve feature choices when AI is off."""
-        self.ui.allowAICheckBox.setChecked(settings["mode"] == "automatic")
+        self.ui.allowAICheckBox.setChecked(settings["mode"] in ("automatic", "manual"))
+        self.ui.manualOnlyCheckBox.setChecked(settings["mode"] == "manual")
         for feature, control in self.feature_controls.items():
             control.setChecked(feature not in settings["disabled_features"])
 
@@ -64,13 +65,15 @@ class AIControlsDialog(QDialog):
     def _sync_controls(self, _checked: bool = False) -> None:
         """Disable inactive controls without discarding the feature selections."""
         self.ui.policyGroup.setEnabled(not self.ui.useEnvironmentCheckBox.isChecked())
+        self.ui.manualOnlyCheckBox.setEnabled(self.ui.allowAICheckBox.isChecked())
         self.ui.featuresGroup.setEnabled(self.ui.allowAICheckBox.isChecked())
 
     @handle_errors("saving desktop AI controls dialog", default_return=None)
     def save_settings(self) -> None:
         """Persist valid choices and keep the draft open if storage fails."""
         if not save_ai_usage_settings(
-            "automatic" if self.ui.allowAICheckBox.isChecked() else "off",
+            ("manual" if self.ui.manualOnlyCheckBox.isChecked() else "automatic")
+            if self.ui.allowAICheckBox.isChecked() else "off",
             [
                 feature
                 for feature, control in self.feature_controls.items()

@@ -314,3 +314,29 @@ class TestTaskBreakdown:
         assert "Find the phone number" in message
         assert "Part of Call the dentist" in message
         assert "Bring the insurance card" not in message
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+@pytest.mark.parametrize("reply,success", [("Find the number\nMake the call", True), (None, False)])
+def test_manual_breakdown_uses_explicit_request_without_chatbot(test_data_dir, monkeypatch, reply, success):
+    from unittest.mock import Mock
+    from tasks import create_task
+    user_id = _fresh_user_id("manual_breakdown")
+    assert TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
+    task_id = create_task(user_id, title="Call the dentist")
+    monkeypatch.setattr("ai.usage_policy.read_ai_usage_settings", lambda: {
+        "mode": "manual", "disabled_features": [], "source": "environment",
+    })
+    chatbot = Mock(side_effect=AssertionError("Automatic chatbot must stay inactive"))
+    request = Mock(return_value=reply)
+    monkeypatch.setattr("ai.chat.chatbot.get_ai_chatbot", chatbot)
+    monkeypatch.setattr("ai.client.openai_client.call_openai_api", request)
+    assert suggest_breakdown(user_id, task_id).unavailable
+    request.assert_not_called()
+    result = suggest_breakdown(user_id, task_id, explicit_request=True)
+    assert result.success is success
+    assert result.unavailable is (not success)
+    assert request.call_args.kwargs["explicit_request"] is True
+    assert request.call_args.kwargs["usage_feature"] == "task_breakdown"
+    chatbot.assert_not_called()
