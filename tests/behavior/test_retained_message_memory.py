@@ -8,6 +8,9 @@ import pytest
 
 from ai.client.cache_manager import ContextCache
 from user.context_manager import UserContextManager
+from core.logger import get_component_logger
+
+logger = get_component_logger(__name__)
 
 
 @pytest.mark.behavior
@@ -40,7 +43,7 @@ def test_repeated_message_retention(monkeypatch):
                     manager.add_conversation_exchange(uid, text, text + "reply")
                     cache.set(uid, {"message": text + "context"})
             sample(f"batch-{batch+1}")
-        print("MEMORY containers", len(cache.cache), len(manager.conversation_history))
+        logger.info(f"MEMORY containers: cache={len(cache.cache)} conversations={len(manager.conversation_history)}")
         clock[0] += 7200
         # Maintenance is the same explicit sweep used for cache lifecycle checks.
         cache.clear_expired()
@@ -48,7 +51,7 @@ def test_repeated_message_retention(monkeypatch):
             manager.clear_expired()
         sample("idle-expiry")
         for phase, live, rss in samples:
-            print(f"MEMORY {phase}: python_bytes={live} rss_bytes={rss}")
+            logger.info(f"MEMORY {phase}: python_bytes={live} rss_bytes={rss}")
         if hasattr(cache, "max_size"):
             assert len(cache.cache) <= cache.max_size
             assert not manager.conversation_history

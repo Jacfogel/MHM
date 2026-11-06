@@ -14,6 +14,9 @@ from tests.behavior.test_communication_interaction_manager_behavior import (
     _create_fast_interaction_manager,
 )
 from tests.test_helpers.test_utilities import TestUserFactory
+from core.logger import get_component_logger
+
+logger = get_component_logger(__name__)
 
 
 @pytest.mark.slow
@@ -61,7 +64,7 @@ def test_local_message_processing_profile(test_data_dir, monkeypatch, redundant_
                 assert any(task["id"] == task_id for task in task_service.load_completed_tasks(user_id))
             if iteration >= 5:
                 samples.append(elapsed)
-        print(f"PROFILE {channel} before={redundant_setup} {message!r}: median_ms={statistics.median(samples):.3f} "
+        logger.info(f"PROFILE {channel} before={redundant_setup} {message!r}: median_ms={statistics.median(samples):.3f} "
               f"p95_ms={sorted(samples)[9]:.3f}")
         conversation_manager.user_states.pop(user_id, None)
         if message.startswith("complete task"):
@@ -71,7 +74,7 @@ def test_local_message_processing_profile(test_data_dir, monkeypatch, redundant_
         profile.disable()
     output = io.StringIO()
     pstats.Stats(profile, stream=output).sort_stats("cumulative").print_stats(25)
-    print(output.getvalue())
+    logger.info(output.getvalue())
     assert delivery.call_count == 60
     assert all(call.args[2] == channel for call in delivery.call_args_list)
     conversation_manager.user_states.pop(user_id, None)

@@ -6,6 +6,9 @@ import pytest
 
 from core.profile_v2_schemas import PreferencesV2EnvelopeModel
 from integrations.google_health import client, auth, signal_builder
+from core.logger import get_component_logger
+
+logger = get_component_logger(__name__)
 
 pytestmark = [pytest.mark.unit, pytest.mark.integrations]
 
@@ -107,7 +110,7 @@ def test_complete_pagination_measured_before_and_after(monkeypatch, page_size, e
         records = client.list_data_points("token", "daily-resting-heart-rate", page_size=page_size)
     assert [r["id"] for r in records] == list(range(1440))
     assert counts == {"daily-resting-heart-rate": expected}
-    print(f"PAGINATION page_size={page_size}: pages={counts}")
+    logger.info(f"PAGINATION page_size={page_size}: pages={counts}")
 
 
 def test_sleep_page_size_stays_within_provider_cap(monkeypatch):

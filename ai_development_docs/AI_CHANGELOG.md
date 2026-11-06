@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-06 - Investigate nightly run 160
+- Reproduced the no-print policy failure and moved the three measurement files to component INFO logging; 25 focused checks, targeted Ruff, and Tier 2 audit pass.
+- Native diagnostics place the separate worker crash after successful session finish, inside PySide6/Qt application destruction during interpreter exit. Originating object/test remains unknown; Linux replay details and remaining full-suite validation are tracked in TEST_PLAN 2.8. No crash fix or full-suite pass is claimed.
+
 ### 2026-11-06 - Finish TODO health, memory, and documentation work
 - Added independently persisted message/chat health preferences and desktop controls; authenticated health identity is saved only after verification. Connect failure cannot enable an account; first sync now follows enablement.
 - Added sync page counts, complete non-sleep pagination with 1,000-record pages (sleep cap 25), and a validated 7-90-day historical baseline window, default 14, excluding future/target dates and retaining sparse-history safeguards.
