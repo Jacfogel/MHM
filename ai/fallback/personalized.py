@@ -104,7 +104,13 @@ def build_personalized_message(
             build_user_facing_signal_wellness_snippet,
         )
 
-        health_note = build_user_facing_signal_wellness_snippet(user_id)
+        from core.health_signals import health_personalization_allowed
+
+        health_note = (
+            build_user_facing_signal_wellness_snippet(user_id)
+            if health_personalization_allowed(user_id, surface="messages")
+            else ""
+        )
         if health_note:
             return (
                 f"{name_prefix}{health_note} Be gentle with yourself and choose what feels manageable.",

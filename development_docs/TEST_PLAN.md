@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-09-03  
+> **Last Updated**: 2026-11-06  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -253,6 +253,10 @@ This document is the canonical testing roadmap.
   - whether it is active or monitor-only
 - [ ] Close stale suspects with a date and evidence note.
 
+**Current evidence (2026-11-06)**: `python run_tests.py --mode all --full --workers 2` did not complete successfully. Product parallel execution lost a worker around 18% and xdist rescheduling raised `KeyError: <WorkerController gw2>`; system memory was around 95%, which is concurrent evidence rather than a confirmed cause. The full run reported 2,980 passes, 1 failure, 2 errors, and 27 skips; 1,694 of those passes were the development-tools parallel phase. Its serial development-tools phase exited 4 because the product conftest loaded instead of the required development-tools configuration. Keep the full reliability gate open; re-run product with one worker or serially and repair the development-tools serial command/config isolation separately. Evidence is under `tests/logs/backups/pytest_console_output_2026-11-06_00-31-05.txt` and `tests/logs/pytest_console_output.txt`.
+
+The serial node `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_multiple_checkin_attempts_only_log_once` reproduced an unawaited dispatch coroutine warning (rerun log under `tests/logs/failure_reruns/2026-11-06_00-31-04/`). Its fixture used a synchronous mock for an async Discord send. The fixture now uses an awaitable mock and consumes the dispatch coroutine without starting a real event loop; the focused rerun passed, including that node (115 checks total across the selected files). A separate message-pressure check compared a lowercase substring with a capitalized heading; it now checks the text case-insensitively while retaining the content assertions.
+
 **Known recurring/special cases to keep in mind**:
 - `tests/development_tools/test_tool_wrappers_cache_helpers.py` had an intermittent Tier 3/dev-tools coverage failure noted in prior plans. Reproduce under the same execution mode before changing assertions.
 - Shared log/temp-path failures should be treated as harness-isolation issues first.
@@ -273,7 +277,7 @@ This document is the canonical testing roadmap.
 - [ ] Compare a warm repeat with the initial run; retain commands, workload size, and measurements in the testing report.
 - [ ] Add opt-in timing/memory instrumentation only where measurements reveal a gap. Keep normal test output quiet and avoid machine-specific absolute pass/fail thresholds.
 
-**Acceptance**: A reproducible baseline identifies whether worker concurrency, application retention, or OS cache behavior explains pressure. Any optimization must preserve test isolation and application usability. Application message latency and service memory improvements remain in TODO.md sections 3.2 and 4.2.
+**Acceptance**: A reproducible baseline identifies whether worker concurrency, application retention, or OS cache behavior explains pressure. Any optimization must preserve test isolation and application usability. Application message latency and service-state retention improvements are complete; measurements are recorded in [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md#2026-11-06---finish-todo-health-memory-and-documentation-work). This section retains test-worker and OS-cache measurement work.
 
 ## 3. Completed / Condensed History
 
@@ -289,7 +293,7 @@ Detailed February and March session notes were intentionally removed from the ac
 - Added/backfilled coverage cache metadata and regression tests for old cache payload shapes.
 - Closed the spurious SIGINT investigation:
   - a single SIGINT is ignored
-  - pressing Ctrl+C twice within 2 seconds stops the run
+  - the historical two-tap stop shortcut was superseded: `run_tests.py` now defaults to five distinct taps within 2 seconds (see its runner constants)
   - old runner-side SIGINT/console hardening was removed
 - Moved old broad suspect lists to refresh-on-recurrence instead of keeping them as active tasks.
 

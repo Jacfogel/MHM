@@ -12,7 +12,7 @@ pytestmark = [pytest.mark.core]
 
 def _baseline_summaries(*, with_quality: bool = False, with_active: bool = False):
     summaries = []
-    for day in range(1, 15):
+    for day in range(13, 27):
         row = {
             "date": f"2026-06-{day:02d}",
             "sleep_duration_minutes": 420,

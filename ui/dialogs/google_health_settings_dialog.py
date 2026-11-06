@@ -10,6 +10,7 @@ import webbrowser
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import (
     QDialog,
+    QCheckBox,
     QHBoxLayout,
     QLabel,
     QMessageBox,
@@ -19,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.error_handling import handle_errors
+from core import get_user_data, update_user_preferences
 from core.logger import get_component_logger
 from integrations.google_health.user_settings import (
     delete_health_integration,
@@ -112,6 +114,22 @@ class GoogleHealthSettingsDialog(QDialog):
         self.status_view.setMaximumHeight(160)
         layout.addWidget(self.status_view)
 
+        self.use_in_messages = QCheckBox("Use health data in scheduled messages")
+        self.use_in_chat = QCheckBox("Use health data in chat")
+        preferences = (
+            ((get_user_data(user_id, "preferences", auto_create=False) or {}).get("preferences") or {})
+            if user_id else {}
+        )
+        personalization = preferences.get("health_personalization") or {}
+        self.use_in_messages.setChecked(personalization.get("use_in_messages", True) is True)
+        self.use_in_chat.setChecked(personalization.get("use_in_chat", True) is True)
+        layout.addWidget(self.use_in_messages)
+        layout.addWidget(self.use_in_chat)
+        self.btn_save_personalization = QPushButton("Save Personalization")
+        self.btn_save_personalization.clicked.connect(self.save_personalization)
+        self.btn_save_personalization.setEnabled(bool(user_id))
+        layout.addWidget(self.btn_save_personalization)
+
         row_connect = QHBoxLayout()
         self.btn_connect = QPushButton("Connect Google Health")
         self.btn_connect.clicked.connect(self.start_connect)
@@ -148,6 +166,20 @@ class GoogleHealthSettingsDialog(QDialog):
         layout.addLayout(row_close)
 
         self.refresh_status()
+
+    @handle_errors("saving health personalization preferences", default_return=None)
+    def save_personalization(self) -> None:
+        """Save independent opt-outs without enabling the account feature."""
+        if not self.user_id:
+            return
+        if not update_user_preferences(self.user_id, {"health_personalization": {
+            "use_in_messages": self.use_in_messages.isChecked(),
+            "use_in_chat": self.use_in_chat.isChecked(),
+        }}, auto_create=False):
+            QMessageBox.warning(self, "Google Health", "Could not save personalization. Try again.")
+            return
+        self.user_changed.emit()
+        QMessageBox.information(self, "Google Health", "Personalization preferences saved.")
 
     @handle_errors("refreshing Google Health status display", default_return=None)
     def refresh_status(self) -> None:
@@ -206,7 +238,7 @@ class GoogleHealthSettingsDialog(QDialog):
             self,
             "Connect Google Health",
             "This opens your browser for a one-time Google sign-in.\n\n"
-            "When the browser says you're connected, return here and click Refresh Status.\n\n"
+            "After browser approval, return here and wait for the connection result.\n\n"
             "Open the authorization page now?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )

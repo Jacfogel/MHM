@@ -86,12 +86,16 @@ def run_connect_flow(user_id: str) -> tuple[bool, str]:
     Returns (success, error_message).
     """
     try:
-        run_oauth_connect_flow(user_id)
-        sync_user_health_data(user_id, force=True)
+        if not run_oauth_connect_flow(user_id):
+            return False, "Google Health connection could not be verified or saved. Reconnect and retry."
         account = get_user_data(user_id, "account").get("account") or {}
         features = dict(account.get("features") or {})
         features["google_health"] = "enabled"
-        update_user_account(user_id, {"features": features})
+        if not update_user_account(user_id, {"features": features}):
+            return False, "Could not enable Google Health for this account."
+        # The sync account guard is authoritative, even for force=True.
+        if not sync_user_health_data(user_id, force=True):
+            logger.warning("Google Health connected, but first sync needs a retry")
         return True, ""
     except Exception as exc:
         logger.warning(f"Google Health connect flow failed for user {user_id}: {exc}")

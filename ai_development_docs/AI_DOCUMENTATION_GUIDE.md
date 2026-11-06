@@ -25,7 +25,7 @@ Use this section to decide what to open or reference next.
 
 ### 1.2. When editing documentation
 
-- If the target doc is paired, follow section 4 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
+- If the target doc is paired, follow section 4. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
 - Prefer using documentation tooling (for example `python development_tools/run_development_tools.py doc-sync`) rather than guessing.
 
 ## 2. Documentation Categories
@@ -95,7 +95,7 @@ AI docs should:
 - Format: trailing period and space required.
 
 Exceptions:
-- Changelogs, plan files, [TODO.md](../TODO.md), and spec topic files under `specs/<topic>.md` are excluded from numbering (see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md)).
+- Changelogs, plan files, [TODO.md](../TODO.md), and spec topic files under `specs/<topic>.md` are excluded from numbering (see section 4.2. "Heading and numbering rules" in [SPECS_GUIDE.md](../specs/SPECS_GUIDE.md#42-heading-and-numbering-rules)).
 
 ### 3.6. Example marking standards
 
@@ -142,7 +142,7 @@ New items and progressed items in plan files ([PLANS.md](../development_docs/PLA
 
 - Paired docs (first-line and detailed counterparts) must share the same H2 heading set.
 - Any H2 structural change in one doc must be mirrored in the other doc immediately.
-- **Canonical source**: `development_tools_config.json` -> `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#41-paired-documentation-files-canonical-list) section 4.1.
+- **Canonical source**: `development_tools_config.json` -> `constants.paired_docs`. For the human-readable list, see [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#41-paired-documentation-files-canonical-list), section 4.1. "Paired documentation files (canonical list)".
 
 ### 4.2. Synchronization workflow (practical)
 
@@ -225,7 +225,7 @@ Prefer using the development tools suite for enforcement:
 ### 6.1. Identification requirements
 
 Generated docs must clearly identify themselves as generated and must not be hand-edited.
-See section 6.1 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#61-identification-requirements) for the canonical metadata formats.
+See section 6.1. "Identification requirements" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#61-identification-requirements) for the canonical metadata formats.
 
 ### 6.2. Maintenance rules
 

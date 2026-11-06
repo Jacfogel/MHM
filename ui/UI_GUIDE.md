@@ -47,7 +47,7 @@ If you ever use `pyside6-uic` directly (for debugging), **re-run** `python ui/ge
 4. **Test**:
    - Verify basic layout and behavior in the PySide6 UI.
    - Confirm integration with service processes and communication channels, as described in:
-     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#4-testing-strategy), section 4 **"Testing Strategy"**
+     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#4-testing-strategy), section 4. "Testing Strategy" **"Testing Strategy"**
      - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#4-running-automated-tests), section 4. "Running Automated Tests"
 
 ---
@@ -153,7 +153,7 @@ Core UI layout:
 
 Where relevant, follow the error-handling and logging patterns described in:
 
-- [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview), section 2 **"Architecture Overview"**
+- [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview), section 2. "Architecture Overview" **"Architecture Overview"**
 - [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout), section 4. "Component Log Files and Layout"
 
 ---
@@ -162,7 +162,7 @@ Where relevant, follow the error-handling and logging patterns described in:
 
 Open **Admin > AI Controls** without selecting an account. The dialog edits installation-wide global and feature switches, preserves feature selections when AI is off, and can restore environment defaults. Save applies to subsequent model requests in desktop and service processes; Cancel does not write changes, and a failed save keeps the draft open. These controls do not belong in website user settings.
 
-The layout source is `ui/designs/ai_controls_dialog.ui`, generated into `ui/generated/ai_controls_dialog_pyqt.py`. Behavior lives in `ui/dialogs/ai_controls_dialog.py`. The shared schema and dependency-light reader live in `core/ai_usage_configuration.py`; `core/ai_usage_settings.py` provides the environment fallback and atomic persistence through the runtime storage layer. Configuration validation uses the same schema reader without importing the AI runtime. See [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#62-optional-ai-usage-controls) Section 6.2 for precedence, storage, and failure behavior.
+The layout source is `ui/designs/ai_controls_dialog.ui`, generated into `ui/generated/ai_controls_dialog_pyqt.py`. Behavior lives in `ui/dialogs/ai_controls_dialog.py`. The shared schema and dependency-light reader live in `core/ai_usage_configuration.py`; `core/ai_usage_settings.py` provides the environment fallback and atomic persistence through the runtime storage layer. Configuration validation uses the same schema reader without importing the AI runtime. See [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#62-optional-ai-usage-controls), section 6.2. "Optional AI usage controls" for precedence, storage, and failure behavior.
 
 ## 3. Usage Pattern
 

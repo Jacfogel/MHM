@@ -65,7 +65,7 @@ def test_cooldown_keeps_urgent_work_visible_and_explains_actual_rule():
         energy_cooldown=True,
         pressure_explanation=policy.explanation,
     )
-    assert "gentle task reminder" in text
+    assert "gentle task reminder" in text.casefold()
     assert "30 minutes" in text
     assert "energy is low" not in text
 

@@ -244,7 +244,7 @@ Coverage:
   - Focus on critical paths (scheduling, delivery, error handling, AI behavior).
   - Do not chase 100% coverage at the cost of clarity.
 
-For rationale and examples, see sections 5.1-5.3 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#51-parallel-execution).
+For rationale and examples, see section 5.1. "Parallel execution" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#51-parallel-execution), section 5.2. "The `no_parallel` marker" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#52-the-no_parallel-marker), and section 5.3. "Coverage" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#53-coverage).
 
 ---
 
@@ -265,7 +265,7 @@ Placement rules:
 
 ### 6.2. Marker standards
 
-Keep markers aligned with section 6.2 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#62-marker-standards). Three layers - do not mix them:
+Keep markers aligned with section 6.2. "Marker standards" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#62-marker-standards). Three layers - do not mix them:
 
 **Category (required - exactly one):** `unit`, `integration`, `behavior`, `ui` - suite layer.
 
@@ -418,4 +418,4 @@ During parallel test execution, system memory usage can reach 95-98%, which is n
 - Run tests in smaller batches (`--mode fast`)
 - For heavy-test triage, use the optional local profiler or OS/`tracemalloc` tools
 
-For detailed explanations and usage examples, see section 9 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#9-memory-profiling-and-resource-management).
+For detailed explanations and usage examples, see section 9. "Memory Profiling and Resource Management" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#9-memory-profiling-and-resource-management).

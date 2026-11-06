@@ -335,6 +335,10 @@ def health_wellness_snippet_from_context(
     guidance_summary: str | None = None,
 ) -> str:
     """Return user-facing wellness text from envelope context or live health signals."""
+    from core.health_signals import health_personalization_allowed
+
+    if user_id and not health_personalization_allowed(user_id, surface="chat"):
+        return ""
     summary = (guidance_summary or "").strip()
     if not summary and context:
         summary = str(context.get("health_guidance_summary") or "").strip()
@@ -743,6 +747,10 @@ def build_personalized_checkin_context(user_id: str) -> str:
 @handle_errors("building personalized Google Health context", default_return="")
 def build_personalized_google_health_context(user_id: str) -> str:
     """Build scheduled-message context from Google Health signals only."""
+    from core.health_signals import health_personalization_allowed
+
+    if not health_personalization_allowed(user_id, surface="messages"):
+        return "No recent Google Health data available."
     sections = []
     patterns = build_recent_health_patterns(user_id)
     if patterns:

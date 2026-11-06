@@ -257,5 +257,5 @@ Notes:
 
 ---
 
-**Note**: For detailed test plan information and test structure, see [TESTING_GUIDE.md](TESTING_GUIDE.md#3-fixtures-utilities-and-safety), especially section 2.3 "Development tools tests" and section 3 "Fixtures, Utilities, and Safety".
+**Note**: For detailed test plan information and test structure, see section 2.2. "Test types" in [TESTING_GUIDE.md](TESTING_GUIDE.md#22-test-types) and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
 

@@ -8,7 +8,7 @@ Verifies:
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from datetime import datetime
 import uuid
 
@@ -413,14 +413,28 @@ class TestDiscordCheckinRetryBehavior:
         mock_discord_bot.channel_type.return_value = "async"
 
         # First call fails, second succeeds
-        mock_discord_bot.send_message = Mock(side_effect=[False, True])
+        mock_discord_bot.send_message = AsyncMock(side_effect=[False, True])
+
+        def run_ready_coroutine(coro):
+            # All channel I/O is an immediately completing AsyncMock. Consume the
+            # real dispatch coroutine without starting a Windows background loop.
+            try:
+                coro.send(None)
+            except StopIteration as done:
+                return done.value
+            finally:
+                coro.close()
+            pytest.fail("Mocked Discord dispatch unexpectedly waited for real I/O")
 
         comm_manager._channels_dict["discord"] = mock_discord_bot
 
         # Mock logger
         with patch(
             "communication.core.channel_orchestrator.get_component_logger"
-        ) as mock_get_logger:
+        ) as mock_get_logger, patch.object(
+            comm_manager, "send_message_sync__run_async_sync",
+            side_effect=run_ready_coroutine,
+        ):
             mock_user_logger = Mock()
             mock_get_logger.return_value = mock_user_logger
 

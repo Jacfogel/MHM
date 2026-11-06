@@ -112,8 +112,8 @@ Each channel then implements an adapter under `communication/communication_chann
 - **Discord**:  
   - Event wiring, bot lifecycle, and views are documented in section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#2-discord-channel-architecture).
 
-- **Email** (if present):  
-  - Outbound messaging and any inbound handling should follow the same adapter pattern.
+- **Email**:
+  - SMTP delivery and IMAP reply polling use the email adapter. User instructions and verified recovery steps live in section 3.1. "Replying by email" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#31-replying-by-email). Keep the service running and reply from the address registered to the account.
 
 ---
 
@@ -126,7 +126,7 @@ Each channel then implements an adapter under `communication/communication_chann
   - Return a safe fallback message to the user, or  
   - Fail quietly while logging, if the event is optional.
 
-See section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) for the canonical patterns.
+See section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#3-usage-patterns) for the canonical patterns.
 
 ### 3.2. Logging
 
@@ -135,7 +135,7 @@ See section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR
   - Core communication flow (e.g., `communication`).  
   - Channel-specific operations (e.g., `discord`, `email`).
 
-See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md` for the logging structure and file layout.
+See section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout) for the logging structure and file layout.
 
 ### 3.3. Channel-Agnostic Message Handling
 
@@ -209,11 +209,11 @@ Follow this checklist when adding a new channel or significantly changing an exi
 4. **Integrate logging and error handling**  
    - Wrap appropriate boundaries with `handle_errors`.  
    - Use `get_component_logger('{channel}')` consistently.  
-   - See [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) for patterns.
+   - See section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#3-usage-patterns) and section 9. "Best Practices" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#9-best-practices) for patterns.
 
 5. **Add tests**  
-   - Unit tests for parsing and core interactions - see section 2. "Test Layout and Types" and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
-   - Manual channel-specific tests - see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview) and [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md).
+   - Unit tests for parsing and core interactions - see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types) and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#6-writing-and-extending-tests).
+   - Manual channel-specific tests - see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview) and [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md#6-discord-manual-tests).
 
 6. **Document the channel**  
    - Add or update `{CHANNEL}_GUIDE.md` under `communication/communication_channels/{channel}/`.  
@@ -244,7 +244,7 @@ Use this layout as the template when adding new channels.
 
 - **Channel-agnostic core**  
   - Message parsing and routing are shared across channels.  
-  - Error-handling and logging follow centralized patterns as documented in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+  - Error-handling and logging follow centralized patterns in section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#3-usage-patterns) and section 9. "Best Practices" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#9-best-practices).
   - Architecture review on 2026-05-24 found that the package boundaries are broadly correct: shared parsing, conversation state, command handlers, retry, and dispatch orchestration are separate from concrete Discord/email SDK code.
   - The same cleanup pass moved the main known adapter leaks out of `CommunicationManager`: inbound email polling/replies now live in `communication/communication_channels/email/`, recipient resolution lives in `communication/delivery/`, Discord direct-send shortcuts were removed from the orchestrator, and rich reminder/check-in views are created through channel-local factories.
 
@@ -275,7 +275,7 @@ Use this layout as the template when adding new channels.
   - Fully wired into the channel-agnostic pipeline via `event_handler`, the Discord bot, and view adapters for check-ins and task reminders.   
   - Webhook-based onboarding is implemented on the Discord side; see section 5. "Webhook-Based Authorization and Welcome Flow" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#5-webhook-based-authorization-and-welcome-flow).
 
-- **Email and other channels**  
-  - May be partially implemented; ensure any changes align with the patterns in sections 2-5 above.
+- **Email**
+  - SMTP delivery and IMAP reply polling are implemented. Follow section 3.1. "Replying by email" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#31-replying-by-email) for sender registration, threading, and recovery steps. New channels should use the same adapter boundaries.
 
 When making structural changes to the communication module, keep this guide updated and ensure all cross-references (especially section numbers) remain valid.

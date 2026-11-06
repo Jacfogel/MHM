@@ -41,11 +41,11 @@ These variables control where MHM reads/writes local state.
 
 ### 2.1. Profile JSON v2
 
-Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map) section 0.
+Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map), section 0. "User data and schedule module map"
 
-**Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files) section 2.0.
+**Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files), section 2.0. "Top-level JSON files"
 
-**Deterministic message pressure** (optional): `preferences.message_pressure_settings` stores `quiet_mode_until` (canonical local timestamp or null), `automatic_energy_rules` (boolean), and `low_energy_threshold` (1-4). Missing values preserve the shipped defaults: quiet mode off, automatic energy rules on, threshold 2. These are user settings, not environment variables or AI prompt controls. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files) section 2.0.
+**Deterministic message pressure** (optional): `preferences.message_pressure_settings` stores `quiet_mode_until` (canonical local timestamp or null), `automatic_energy_rules` (boolean), and `low_energy_threshold` (1-4). Missing values preserve the shipped defaults: quiet mode off, automatic energy rules on, threshold 2. These are user settings, not environment variables or AI prompt controls. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#20-top-level-json-files), section 2.0. "Top-level JSON files"
 
 ---
 
@@ -159,7 +159,7 @@ If Telegram is being removed, these should remain unused/ignored in code.
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_CLIENT_SECRET` - Discord application's OAuth2 client secret; keep this on the gateway host and never expose it to browser code.
 - `DISCORD_OAUTH_REDIRECT_URI` - exact Discord OAuth2 callback URL. Defaults to `${WEB_PUBLIC_ORIGIN}/api/auth/discord/callback` when blank.
-- `DISCORD_PUBLIC_KEY`
+- `DISCORD_PUBLIC_KEY` - ed25519 key checked by the webhook HTTP server; missing keys skip verification in development. Keep it configured for exposed webhooks.
 - `DISCORD_AUTO_NGROK` - default in code is `false`; when `true`, the bot spawns ngrok for the webhook port (requires ngrok v3+ authtoken on the machine or the child exits immediately).
 - `DISCORD_WEBHOOK_PORT`
 
@@ -249,6 +249,7 @@ Action planner (on by default):
 - `GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES` - refresh before expiry (default `10`)
 - `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` - optional Fernet key; encrypts OAuth tokens in `google_health_auth.json` when set (generate via `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`)
 - `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` - idempotent re-fetch window (default `3`)
+- `GOOGLE_HEALTH_BASELINE_WINDOW_DAYS` - prior calendar-day baseline window (default `14`, valid range `7`-`90`); excludes the target day and future dates. Sparse history is not extended past this window. Fewer than 7 valid baseline days gives low confidence and no personalization guidance; 7-13 gives medium and 14 or more high confidence.
 - `GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD` - auto-pause after N failures (default `5`)
 - `LOG_GOOGLE_HEALTH_FILE` - component log path
 
@@ -321,7 +322,8 @@ The context cache controls reuse of recently computed AI context to reduce recom
 - `CONTEXT_CACHE_MAX_SIZE`  
   **Used for**: upper bound on the number of cached context entries.  
   **Behavior**:
-  - When the cache exceeds this size, older entries may be evicted (implementation-defined).
+  - ContextCache evicts the least recently accessed entry at capacity and clears expired entries on writes; explicit `clear_expired()` also releases idle entries. Response-cache writes remove expired replies before capacity eviction.
+  - In-memory chat sessions separately retain up to 100 users, 20 exchanges each, and expire after one hour of inactivity. Expiry is checked on the next session read/write or explicit sweep; saved chat interactions remain available through the normal context loader.
   **Breaks if wrong**:
   - Too low: cache provides little benefit.
   - Too high: unnecessary memory growth.

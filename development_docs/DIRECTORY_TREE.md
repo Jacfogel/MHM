@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 23:19:49
+> **Last Generated**: 2026-11-06 01:08:22
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -405,6 +405,7 @@ C:.
 |   |   |   ai_prompt_result_check.json
 |   |   |   analyze_system_signals.py
 |   |   |   decision_support.py
+|   |   |   documentation_section_review.json
 |   |   |   generate_consolidated_report.py
 |   |   |   quick_status.py
 |   |   |   __init__.py
@@ -718,6 +719,7 @@ C:.
 |   |   |   test_profile_handler_behavior.py
 |   |   |   test_quantitative_analytics_expansion.py
 |   |   |   test_response_tracking_behavior.py
+|   |   |   test_retained_message_memory.py
 |   |   |   test_scheduler_behavior.py
 |   |   |   test_scheduler_coverage_expansion.py
 |   |   |   test_schedule_handler_behavior.py
@@ -1082,6 +1084,7 @@ C:.
 |   |   |   test_google_health_client.py
 |   |   |   test_google_health_config.py
 |   |   |   test_google_health_data_handlers.py
+|   |   |   test_google_health_followups.py
 |   |   |   test_google_health_notifications.py
 |   |   |   test_google_health_sync_manager.py
 |   |   |   test_google_health_token_crypto.py

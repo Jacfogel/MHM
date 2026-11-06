@@ -1,0 +1,3045 @@
+{
+  "summary": {
+    "total_issues": 0,
+    "files_affected": 0,
+    "status": "PASS",
+    "section_reference_hint_count": 16
+  },
+  "details": {
+    "paired_doc_issues": 0,
+    "paired_docs": {},
+    "section_references": [
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 12,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "2-virtual-environment-best-practices",
+        "heading": "2. Virtual Environment Best Practices",
+        "candidate_headings": [
+          "2. Virtual Environment Best Practices"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 12,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "1-quick-start-recommended",
+        "heading": "1. Quick Start (Recommended)",
+        "candidate_headings": [
+          "2. Alternative Commands"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 16,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 17,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 27,
+        "destination": "ai/SYSTEM_AI_GUIDE.md",
+        "anchor": "1-overview",
+        "heading": "1. Overview",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 86,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 86,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 132,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "0-user-data-and-schedule-module-map",
+        "heading": "0. User data and schedule module map",
+        "candidate_headings": [
+          "0. User data and schedule module map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 152,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "3. Fixtures, Utilities, and Safety"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 269,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "6-writing-and-extending-tests",
+        "heading": "6. Writing and Extending Tests",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 311,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 382,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "8-manual-and-channel-specific-testing-overview",
+        "heading": "8. Manual and Channel-Specific Testing Overview",
+        "candidate_headings": [
+          "8. Manual and Channel-Specific Testing Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 423,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ARCHITECTURE.md",
+        "line": 428,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "3-standards-and-templates",
+        "heading": "3. Standards and Templates",
+        "candidate_headings": [
+          "3. Standards and Templates"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "CONFIGURATION_REFERENCE.md",
+        "line": 44,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "0-user-data-and-schedule-module-map",
+        "heading": "0. User data and schedule module map",
+        "candidate_headings": [
+          "0. User data and schedule module map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "CONFIGURATION_REFERENCE.md",
+        "line": 46,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "20-top-level-json-files",
+        "heading": "2.0. Top-level JSON files",
+        "candidate_headings": [
+          "2.0. Top-level JSON files"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "CONFIGURATION_REFERENCE.md",
+        "line": 48,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "20-top-level-json-files",
+        "heading": "2.0. Top-level JSON files",
+        "candidate_headings": [
+          "2.0. Top-level JSON files"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "CONFIGURATION_REFERENCE.md",
+        "line": 144,
+        "destination": "website/README.md",
+        "anchor": "live-mode-cutover-and-rollback",
+        "heading": "Live-mode cutover and rollback",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 16,
+        "destination": "README.md",
+        "anchor": "2-navigation-start-here",
+        "heading": "2. Navigation (Start Here)",
+        "candidate_headings": [
+          "2. Navigation (Start Here)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 19,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "1-quick-start-recommended",
+        "heading": "1. Quick Start (Recommended)",
+        "candidate_headings": [
+          "1. Quick Start (Recommended)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 22,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "1-purpose-and-scope",
+        "heading": "1. Purpose and Scope",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 22,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 25,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "2-documentation-categories",
+        "heading": "2. Documentation Categories",
+        "candidate_headings": [
+          "2. Documentation Categories"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 28,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 96,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 147,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "6-troubleshooting",
+        "heading": "6. Troubleshooting",
+        "candidate_headings": [
+          "6. Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 192,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "2-running-the-tool-suite",
+        "heading": "2. Running the Tool Suite",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 210,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 216,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "4-running-automated-tests",
+        "heading": "4. Running Automated Tests",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 216,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "5-parallel-execution-and-coverage",
+        "heading": "5. Parallel Execution and Coverage",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 217,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "8-manual-and-channel-specific-testing-overview",
+        "heading": "8. Manual and Channel-Specific Testing Overview",
+        "candidate_headings": [
+          "8. Manual and Channel-Specific Testing Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 240,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "4-running-automated-tests",
+        "heading": "4. Running Automated Tests",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DEVELOPMENT_WORKFLOW.md",
+        "line": 279,
+        "destination": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "anchor": "2-process",
+        "heading": "2. Process",
+        "candidate_headings": [
+          "2. Process"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "DOCUMENTATION_GUIDE.md",
+        "line": 27,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "1-quick-start-recommended",
+        "heading": "1. Quick Start (Recommended)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "DOCUMENTATION_GUIDE.md",
+        "line": 29,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "13-step-3-configure-environment-optional",
+        "heading": "1.3. Step 3: Configure Environment (Optional)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "DOCUMENTATION_GUIDE.md",
+        "line": 345,
+        "destination": "specs/SPECS_GUIDE.md",
+        "anchor": "42-heading-and-numbering-rules",
+        "heading": "4.2. Heading and numbering rules",
+        "candidate_headings": [
+          "4.2. Heading and numbering rules"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 114,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "44-account-linking-tasks-and-check-ins",
+        "heading": "4.4. Account linking, tasks, and check-ins",
+        "candidate_headings": [
+          "4.4. Account linking, tasks, and check-ins"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 114,
+        "destination": "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
+        "anchor": "user-flow",
+        "heading": "User flow",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 120,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "4-email-configuration",
+        "heading": "4. Email configuration",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 166,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "3-audit-modes-and-outputs",
+        "heading": "3. Audit Modes and Outputs",
+        "candidate_headings": [
+          "3. Audit Modes and Outputs"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 183,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 212,
+        "destination": "development_tools/AI_STATUS.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 212,
+        "destination": "development_tools/AI_PRIORITIES.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 212,
+        "destination": "development_tools/CONSOLIDATED_REPORT.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 286,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "1-how-configuration-is-loaded",
+        "heading": "1. How configuration is loaded",
+        "candidate_headings": [
+          "1. How configuration is loaded"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 288,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "62-optional-ai-usage-controls",
+        "heading": "6.2. Optional AI usage controls",
+        "candidate_headings": [
+          "6.2. Optional AI usage controls"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "HOW_TO_RUN.md",
+        "line": 290,
+        "destination": "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
+        "anchor": "troubleshooting",
+        "heading": "Troubleshooting",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "README.md",
+        "line": 74,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "4-email-configuration",
+        "heading": "4. Email configuration",
+        "candidate_headings": [
+          "4. Email configuration"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "README.md",
+        "line": 146,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "4-alternative-launch-methods",
+        "heading": "4. Alternative Launch Methods",
+        "candidate_headings": [
+          "4. Alternative Launch Methods"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "TODO.md",
+        "line": 29,
+        "destination": "development_docs/TEST_PLAN.md",
+        "anchor": "28-intermittent-failure-triage",
+        "heading": "2.8 Intermittent failure triage",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "TODO.md",
+        "line": 29,
+        "destination": "development_docs/PLANS.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 21,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "1-directory-overview",
+        "heading": "1. Directory Overview",
+        "candidate_headings": [
+          "1. Directory Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 380,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "6-openai-and-ai-behavior",
+        "heading": "6. OpenAI and AI behavior",
+        "candidate_headings": [
+          "6. OpenAI and AI behavior"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 380,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "12-context-cache-behavior-canonical-semantics",
+        "heading": "12. Context cache behavior (canonical semantics)",
+        "candidate_headings": [
+          "6. OpenAI and AI behavior"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 402,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 402,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 403,
+        "destination": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 432,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "1-purpose-and-scope",
+        "heading": "1. Purpose and Scope",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 432,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai/SYSTEM_AI_GUIDE.md",
+        "line": 457,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "4-component-log-files-and-layout",
+        "heading": "4. Component Log Files and Layout",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 19,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "2-user-data-model",
+        "heading": "2. User Data Model",
+        "candidate_headings": [
+          "2. User Data Model"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 20,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "3-data-handling-patterns",
+        "heading": "3. Data Handling Patterns",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 24,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "5-ui-architecture-and-naming-conventions",
+        "heading": "5. UI Architecture and Naming Conventions",
+        "candidate_headings": [
+          "5. UI Architecture and Naming Conventions"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 28,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 32,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 33,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "6-channel-agnostic-architecture",
+        "heading": "6. Channel-Agnostic Architecture",
+        "candidate_headings": [
+          "2. User Data Model"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 34,
+        "destination": "communication/COMMUNICATION_GUIDE.md",
+        "anchor": "2-architecture-layers",
+        "heading": "2. Architecture Layers",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 39,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 40,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "24-configuration-and-env",
+        "heading": "2.4. Configuration and .env",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 41,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "13-step-3-configure-environment-optional",
+        "heading": "1.3. Step 3: Configure Environment (Optional)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 46,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 105,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "3-data-handling-patterns",
+        "heading": "3. Data Handling Patterns",
+        "candidate_headings": [
+          "3. Data Handling Patterns"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 122,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "24-configuration-and-env",
+        "heading": "2.4. Configuration and .env",
+        "candidate_headings": [
+          "2.4. Configuration and .env"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 123,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "13-step-3-configure-environment-optional",
+        "heading": "1.3. Step 3: Configure Environment (Optional)",
+        "candidate_headings": [
+          "1.3. Step 3: Configure Environment (Optional)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 127,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 134,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 153,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "5-ui-architecture-and-naming-conventions",
+        "heading": "5. UI Architecture and Naming Conventions",
+        "candidate_headings": [
+          "5. UI Architecture and Naming Conventions"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 168,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "6-channel-agnostic-architecture",
+        "heading": "6. Channel-Agnostic Architecture",
+        "candidate_headings": [
+          "6. Channel-Agnostic Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 169,
+        "destination": "communication/COMMUNICATION_GUIDE.md",
+        "anchor": "1-core-principle",
+        "heading": "1. Core Principle",
+        "candidate_headings": [
+          "1. Core Principle"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 170,
+        "destination": "communication/COMMUNICATION_GUIDE.md",
+        "anchor": "2-architecture-layers",
+        "heading": "2. Architecture Layers",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 179,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 183,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "3-standards-and-templates",
+        "heading": "3. Standards and Templates",
+        "candidate_headings": [
+          "3. Standards and Templates"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 185,
+        "destination": "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
+        "anchor": "personalization-preferences",
+        "heading": "Personalization preferences",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ARCHITECTURE.md",
+        "line": 187,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "12-context-cache-behavior-canonical-semantics",
+        "heading": "12. Context cache behavior (canonical semantics)",
+        "candidate_headings": [
+          "12. Context cache behavior (canonical semantics)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_BACKUP_GUIDE.md",
+        "line": 43,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "8-backup-scope-expectations",
+        "heading": "8. Backup scope expectations",
+        "candidate_headings": [
+          "8. Backup scope expectations"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_BACKUP_GUIDE.md",
+        "line": 45,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "9-backups-and-developer-diagnostics",
+        "heading": "9. Backups and developer diagnostics",
+        "candidate_headings": [
+          "9. Backups and developer diagnostics"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 24,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "1-quick-start-recommended",
+        "heading": "1. Quick Start (Recommended)",
+        "candidate_headings": [
+          "1. Quick Start (Recommended)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 24,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "4-alternative-launch-methods",
+        "heading": "4. Alternative Launch Methods",
+        "candidate_headings": [
+          "1. Quick Start (Recommended)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 25,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "2-virtual-environment-best-practices",
+        "heading": "2. Virtual Environment Best Practices",
+        "candidate_headings": [
+          "2. Virtual Environment Best Practices"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 26,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 59,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "14-step-4-launch-the-application",
+        "heading": "1.4. Step 4: Launch the Application",
+        "candidate_headings": [
+          "1.4. Step 4: Launch the Application"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 59,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "4-alternative-launch-methods",
+        "heading": "4. Alternative Launch Methods",
+        "candidate_headings": [
+          "1.4. Step 4: Launch the Application"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 60,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 62,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "6-emergency-procedures",
+        "heading": "6. Emergency Procedures",
+        "candidate_headings": [
+          "6. Emergency Procedures"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 63,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "6-troubleshooting",
+        "heading": "6. Troubleshooting",
+        "candidate_headings": [
+          "6. Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 66,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 112,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 162,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "54-static-analysis-ruff-and-pyright",
+        "heading": "5.4. Static Analysis (Ruff and Pyright)",
+        "candidate_headings": [
+          "5.4. Static Analysis (Ruff and Pyright)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 185,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "6-troubleshooting",
+        "heading": "6. Troubleshooting",
+        "candidate_headings": [
+          "6. Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 186,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "2-virtual-environment-best-practices",
+        "heading": "2. Virtual Environment Best Practices",
+        "candidate_headings": [
+          "2. Virtual Environment Best Practices"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 189,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "9-best-practices",
+        "heading": "9. Best Practices",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 192,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "7-debugging-and-troubleshooting",
+        "heading": "7. Debugging and Troubleshooting",
+        "candidate_headings": [
+          "7. Debugging and Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 195,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 196,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "6-emergency-procedures",
+        "heading": "6. Emergency Procedures",
+        "candidate_headings": [
+          "6. Emergency Procedures"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 200,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "67-safe-recovery-for-configuration-and-ai-controls",
+        "heading": "6.7. Safe recovery for configuration and AI controls",
+        "candidate_headings": [
+          "6.7. Safe recovery for configuration and AI controls"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 200,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "44-account-linking-tasks-and-check-ins",
+        "heading": "4.4. Account linking, tasks, and check-ins",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 200,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "31-replying-by-email",
+        "heading": "3.1. Replying by email",
+        "candidate_headings": [
+          "6.7. Safe recovery for configuration and AI controls"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 205,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "7-learning-resources",
+        "heading": "7. Learning Resources",
+        "candidate_headings": [
+          "7. Learning Resources"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 207,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "1-directory-overview",
+        "heading": "1. Directory Overview",
+        "candidate_headings": [
+          "1. Directory Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 207,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "2-user-data-model",
+        "heading": "2. User Data Model",
+        "candidate_headings": [
+          "1. Directory Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 208,
+        "destination": "ai_development_docs/AI_ARCHITECTURE.md",
+        "anchor": "2-user-data-model",
+        "heading": "2. User Data Model",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 225,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "8-success-tips",
+        "heading": "8. Success Tips",
+        "candidate_headings": [
+          "8. Success Tips"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 231,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "9-git-workflow-powershell-safe",
+        "heading": "9. Git Workflow (PowerShell-Safe)",
+        "candidate_headings": [
+          "9. Git Workflow (PowerShell-Safe)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 236,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "9-git-workflow-powershell-safe",
+        "heading": "9. Git Workflow (PowerShell-Safe)",
+        "candidate_headings": [
+          "9. Git Workflow (PowerShell-Safe)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "line": 260,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "10-standard-audit-recipe",
+        "heading": "10. Standard Audit Recipe",
+        "candidate_headings": [
+          "10. Standard Audit Recipe"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "line": 28,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "line": 98,
+        "destination": "TODO.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "line": 98,
+        "destination": "specs/SPECS_GUIDE.md",
+        "anchor": "42-heading-and-numbering-rules",
+        "heading": "4.2. Heading and numbering rules",
+        "candidate_headings": [
+          "4.2. Heading and numbering rules"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "line": 145,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "41-paired-documentation-files-canonical-list",
+        "heading": "4.1. Paired documentation files (canonical list)",
+        "candidate_headings": [
+          "4.1. Paired documentation files (canonical list)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "line": 228,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "61-identification-requirements",
+        "heading": "6.1. Identification requirements",
+        "candidate_headings": [
+          "6.1. Identification requirements"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 22,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "1-purpose-and-design-principles",
+        "heading": "1. Purpose and Design Principles",
+        "candidate_headings": [
+          "1. Purpose and Design Principles"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 28,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 34,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "26-service-startup-mhmservice",
+        "heading": "2.6. Service startup (`MHMService`)",
+        "candidate_headings": [
+          "2.6. Service startup (`MHMService`)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 52,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "3. Usage Patterns"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 76,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 94,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "5-error-message-guidelines",
+        "heading": "5. Error Message Guidelines",
+        "candidate_headings": [
+          "5. Error Message Guidelines"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 112,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "6-configuration-and-integration",
+        "heading": "6. Configuration and Integration",
+        "candidate_headings": [
+          "6. Configuration and Integration"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 118,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "6-configuration-and-integration",
+        "heading": "6. Configuration and Integration",
+        "candidate_headings": [
+          "6. Configuration and Integration"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 133,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "7-testing-error-handling",
+        "heading": "7. Testing Error Handling",
+        "candidate_headings": [
+          "7. Testing Error Handling"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 133,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "7. Debugging and Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 157,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "8-monitoring-and-debugging",
+        "heading": "8. Monitoring and Debugging",
+        "candidate_headings": [
+          "8. Monitoring and Debugging"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 175,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "9-legacy-and-migration",
+        "heading": "9. Legacy and Migration",
+        "candidate_headings": [
+          "9. Legacy and Migration"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 194,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "10-examples",
+        "heading": "10. Examples",
+        "candidate_headings": [
+          "10. Examples"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 203,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "2-logging-architecture",
+        "heading": "2. Logging Architecture",
+        "candidate_headings": [
+          "2. Logging Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 203,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "4-component-log-files-and-layout",
+        "heading": "4. Component Log Files and Layout",
+        "candidate_headings": [
+          "2. Logging Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 204,
+        "destination": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "anchor": "7-debugging-and-troubleshooting",
+        "heading": "7. Debugging and Troubleshooting",
+        "candidate_headings": [
+          "7. Debugging and Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "line": 204,
+        "destination": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "7. Debugging and Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 31,
+        "destination": "development_docs/LEGACY_REFERENCE_REPORT.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 31,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "2-running-the-tool-suite",
+        "heading": "2. Running the Tool Suite",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 31,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "3-audit-modes-and-outputs",
+        "heading": "3. Audit Modes and Outputs",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 37,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 38,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 38,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "3-development-process",
+        "heading": "3. Development Process",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 93,
+        "destination": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "anchor": "4-running-automated-tests",
+        "heading": "4. Running Automated Tests",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 114,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "2-running-the-tool-suite",
+        "heading": "2. Running the Tool Suite",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 114,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "3-audit-modes-and-outputs",
+        "heading": "3. Audit Modes and Outputs",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "line": 114,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "4-tool-catalog-and-tiering",
+        "heading": "4. Tool Catalog and Tiering",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 32,
+        "destination": "ai_development_docs/AI_ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 59,
+        "destination": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 59,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "52-log-messages",
+        "heading": "5.2. Log messages",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 66,
+        "destination": "ai_development_docs/AI_ARCHITECTURE.md",
+        "anchor": "1-directory-overview",
+        "heading": "1. Directory Overview",
+        "candidate_headings": [
+          "1. Directory Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 85,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "3-logging",
+        "heading": "3. Logging",
+        "candidate_headings": [
+          "3. Logging"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 85,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "10-testing-settings",
+        "heading": "10. Testing settings",
+        "candidate_headings": [
+          "3. Logging"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 108,
+        "destination": "ai_development_docs/AI_BACKUP_GUIDE.md",
+        "anchor": "1-log-rotation-system",
+        "heading": "1. Log Rotation System",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "line": 161,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 25,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 26,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "3-development-process",
+        "heading": "3. Development Process",
+        "candidate_headings": [
+          "3. Development Process"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 27,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "10-standard-audit-recipe",
+        "heading": "10. Standard Audit Recipe",
+        "candidate_headings": [
+          "10. Standard Audit Recipe"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 29,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 30,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "6-generated-documentation-standards",
+        "heading": "6. Generated Documentation Standards",
+        "candidate_headings": [
+          "6. Generated Documentation Standards"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 51,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 52,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "3-development-process",
+        "heading": "3. Development Process",
+        "candidate_headings": [
+          "3. Development Process"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 61,
+        "destination": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 67,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "2-running-the-tool-suite",
+        "heading": "2. Running the Tool Suite",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 68,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "3-audit-modes-and-outputs",
+        "heading": "3. Audit Modes and Outputs",
+        "candidate_headings": [
+          "3. Audit Modes and Outputs"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 69,
+        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "3-audit-modes-and-outputs",
+        "heading": "3. Audit Modes and Outputs",
+        "candidate_headings": [
+          "3. Audit Modes and Outputs"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 89,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 111,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "4-documentation-synchronization-checklist",
+        "heading": "4. Documentation Synchronization Checklist",
+        "candidate_headings": [
+          "4. Documentation Synchronization Checklist"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 112,
+        "destination": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "anchor": "5-maintenance-guidelines",
+        "heading": "5. Maintenance Guidelines",
+        "candidate_headings": [
+          "5. Maintenance Guidelines"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 118,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 118,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "3-development-process",
+        "heading": "3. Development Process",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_SESSION_STARTER.md",
+        "line": 170,
+        "destination": "core/USER_DATA_MODEL.md",
+        "anchor": "3-access-rules-developer-contract",
+        "heading": "3. Access rules (developer contract)",
+        "candidate_headings": [
+          "3. Access rules (developer contract)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 69,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 210,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "4-running-automated-tests",
+        "heading": "4. Running Automated Tests",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 247,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "51-parallel-execution",
+        "heading": "5.1. Parallel execution",
+        "candidate_headings": [
+          "5.1. Parallel execution"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 247,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "52-the-no_parallel-marker",
+        "heading": "5.2. The `no_parallel` marker",
+        "candidate_headings": [
+          "5.1. Parallel execution"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 247,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "53-coverage",
+        "heading": "5.3. Coverage",
+        "candidate_headings": [
+          "5.1. Parallel execution"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 268,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "62-marker-standards",
+        "heading": "6.2. Marker standards",
+        "candidate_headings": [
+          "6.2. Marker standards"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 352,
+        "destination": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 352,
+        "destination": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 353,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "2-logging-architecture",
+        "heading": "2. Logging Architecture",
+        "candidate_headings": [
+          "2. Logging Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 353,
+        "destination": "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "anchor": "3-log-levels-and-when-to-use-them",
+        "heading": "3. Log Levels and When to Use Them",
+        "candidate_headings": [
+          "2. Logging Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 355,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "7-debugging-and-troubleshooting",
+        "heading": "7. Debugging and Troubleshooting",
+        "candidate_headings": [
+          "7. Debugging and Troubleshooting"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 379,
+        "destination": "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+        "anchor": "4-automated-checklist-map",
+        "heading": "4. Automated checklist map",
+        "candidate_headings": [
+          "4. Automated checklist map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ai_development_docs/AI_TESTING_GUIDE.md",
+        "line": 421,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "9-memory-profiling-and-resource-management",
+        "heading": "9. Memory Profiling and Resource Management",
+        "candidate_headings": [
+          "9. Memory Profiling and Resource Management"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 10,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 11,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "2-discord-channel-architecture",
+        "heading": "2. Discord Channel Architecture",
+        "candidate_headings": [
+          "2. Discord Channel Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 13,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 97,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 113,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "2-discord-channel-architecture",
+        "heading": "2. Discord Channel Architecture",
+        "candidate_headings": [
+          "2. Discord Channel Architecture"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 116,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "31-replying-by-email",
+        "heading": "3.1. Replying by email",
+        "candidate_headings": [
+          "3.1. Replying by email"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 129,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 129,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 190,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 212,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "3. Usage Patterns"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 215,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 215,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "6-writing-and-extending-tests",
+        "heading": "6. Writing and Extending Tests",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 216,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "8-manual-and-channel-specific-testing-overview",
+        "heading": "8. Manual and Channel-Specific Testing Overview",
+        "candidate_headings": [
+          "8. Manual and Channel-Specific Testing Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 216,
+        "destination": "tests/MANUAL_TESTING_GUIDE.md",
+        "anchor": "6-discord-manual-tests",
+        "heading": "6. Discord Manual Tests",
+        "candidate_headings": [
+          "8. Recording Results & Issue Creation"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 247,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "3. Usage Patterns"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 276,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "5-webhook-based-authorization-and-welcome-flow",
+        "heading": "5. Webhook-Based Authorization and Welcome Flow",
+        "candidate_headings": [
+          "5. Webhook-Based Authorization and Welcome Flow"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/COMMUNICATION_GUIDE.md",
+        "line": 279,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "31-replying-by-email",
+        "heading": "3.1. Replying by email",
+        "candidate_headings": [
+          "3.1. Replying by email"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 10,
+        "destination": "communication/COMMUNICATION_GUIDE.md",
+        "anchor": "2-architecture-layers",
+        "heading": "2. Architecture Layers",
+        "candidate_headings": [
+          "2. Architecture Layers"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 11,
+        "destination": "ARCHITECTURE.md",
+        "anchor": "4-key-modules-and-responsibilities",
+        "heading": "4. Key Modules and Responsibilities",
+        "candidate_headings": [
+          "4. Key Modules and Responsibilities"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 12,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 87,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 87,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 146,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "31-replying-by-email",
+        "heading": "3.1. Replying by email",
+        "candidate_headings": [
+          "3.1. Replying by email"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 182,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "52-discord-primary-channel",
+        "heading": "5.2. Discord (primary channel)",
+        "candidate_headings": [
+          "5.2. Discord (primary channel)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 254,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 254,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "6-writing-and-extending-tests",
+        "heading": "6. Writing and Extending Tests",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 264,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "52-discord-primary-channel",
+        "heading": "5.2. Discord (primary channel)",
+        "candidate_headings": [
+          "5.2. Discord (primary channel)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 270,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "6-configuration-and-integration",
+        "heading": "6. Configuration and Integration",
+        "candidate_headings": [
+          "5. Error Message Guidelines"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 301,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 301,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "3-usage-patterns",
+        "heading": "3. Usage Patterns",
+        "candidate_headings": [
+          "4. Error Categories and Severity"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 311,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 311,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "6-writing-and-extending-tests",
+        "heading": "6. Writing and Extending Tests",
+        "candidate_headings": [
+          "2. Test Layout and Types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 315,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "8-manual-and-channel-specific-testing-overview",
+        "heading": "8. Manual and Channel-Specific Testing Overview",
+        "candidate_headings": [
+          "8. Manual and Channel-Specific Testing Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "line": 334,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "52-discord-primary-channel",
+        "heading": "5.2. Discord (primary channel)",
+        "candidate_headings": [
+          "5.2. Discord (primary channel)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "core/ERROR_HANDLING_GUIDE.md",
+        "line": 404,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "1-purpose-and-scope",
+        "heading": "1. Purpose and Scope",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "core/ERROR_HANDLING_GUIDE.md",
+        "line": 404,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "2-test-layout-and-types",
+        "heading": "2. Test Layout and Types",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "core/ERROR_HANDLING_GUIDE.md",
+        "line": 407,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "6-emergency-procedures",
+        "heading": "6. Emergency Procedures",
+        "candidate_headings": [
+          "6. Emergency Procedures"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 36,
+        "destination": "development_docs/PLANS.md",
+        "anchor": "64-ai-development-tools",
+        "heading": "6.4 AI development tools",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 36,
+        "destination": "development_tools/AI_PRIORITIES.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 70,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "86-import-boundary-portability",
+        "heading": "8.6. Import boundary (portability)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 71,
+        "destination": "TODO.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 72,
+        "destination": "development_docs/TASKS_PLAN.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 73,
+        "destination": "development_tools/AI_PRIORITIES.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 74,
+        "destination": "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 76,
+        "destination": "ai/SYSTEM_AI_GUIDE.md",
+        "anchor": "41-context-envelope-and-user-context-manager",
+        "heading": "4.1. Context envelope and user context manager",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 337,
+        "destination": "development_tools/AI_PRIORITIES.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PLANS.md",
+        "line": 337,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "86-import-boundary-portability",
+        "heading": "8.6. Import boundary (portability)",
+        "candidate_headings": [
+          "8.6. Import boundary (portability)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_docs/PRODUCT_LIST_OF_LISTS.md",
+        "line": 63,
+        "destination": "development_tools/LIST_OF_LISTS.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [
+          "2. Audit tiers"
+        ],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_docs/PRODUCT_LIST_OF_LISTS.md",
+        "line": 63,
+        "destination": "development_docs/PLANS.md",
+        "anchor": "2-sources-of-truth",
+        "heading": "2. Sources of Truth",
+        "candidate_headings": [
+          "2. Sources of Truth"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 54,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "23-command-summary",
+        "heading": "2.3. Command Summary",
+        "candidate_headings": [
+          "2.3. Command Summary"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 69,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "2-running-the-tool-suite",
+        "heading": "2. Running the Tool Suite",
+        "candidate_headings": [
+          "2. Running the Tool Suite"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 170,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "10-standard-audit-recipe",
+        "heading": "10. Standard Audit Recipe",
+        "candidate_headings": [
+          "10. Standard Audit Recipe"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 254,
+        "destination": "development_tools/LIST_OF_LISTS.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 274,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "6-generated-file-metadata-standards",
+        "heading": "6. Generated File Metadata Standards",
+        "candidate_headings": [
+          "6. Generated File Metadata Standards"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 290,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "7-output-storage-standards",
+        "heading": "7. Output Storage Standards",
+        "candidate_headings": [
+          "7. Output Storage Standards"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 304,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "8-exclusion-rules",
+        "heading": "8. Exclusion Rules",
+        "candidate_headings": [
+          "8. Exclusion Rules"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 312,
+        "destination": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "anchor": "1-standards",
+        "heading": "1. Standards",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 312,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "9-directory-taxonomy-and-configuration-surface-phase-1",
+        "heading": "9. Directory taxonomy and configuration surface (Phase 1)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 315,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "9-directory-taxonomy-and-configuration-surface-phase-1",
+        "heading": "9. Directory taxonomy and configuration surface (Phase 1)",
+        "candidate_headings": [
+          "9. Directory taxonomy and configuration surface (Phase 1)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 323,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 325,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 325,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 327,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 329,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 343,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "101-gap-analysis-alignment-v6-b-013---closed-2026-07-28",
+        "heading": "10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)",
+        "candidate_headings": [
+          "10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 20,
+        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
+        "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
+        "candidate_headings": [
+          "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 258,
+        "destination": "HOW_TO_RUN.md",
+        "anchor": "516-completion-log-lines-issues",
+        "heading": "5.1.6. Completion log lines (`issues=`)",
+        "candidate_headings": [
+          "5.1.6. Completion log lines (`issues=`)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 265,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "10-standard-audit-recipe",
+        "heading": "10. Standard Audit Recipe",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 369,
+        "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "anchor": "10-standard-audit-recipe",
+        "heading": "10. Standard Audit Recipe",
+        "candidate_headings": [
+          "10. Standard Audit Recipe"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 423,
+        "destination": "development_tools/AI_PRIORITIES.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 423,
+        "destination": "development_docs/PLANS.md",
+        "anchor": "64-ai-development-tools",
+        "heading": "6.4 AI development tools",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 498,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "31-metadata-for-md-documentation-files",
+        "heading": "3.1. Metadata for `.md` documentation files",
+        "candidate_headings": [
+          "3.1. Metadata for `.md` documentation files"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 600,
+        "destination": "development_docs/PLANS.md",
+        "anchor": "64-ai-development-tools",
+        "heading": "6.4 AI development tools",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 639,
+        "destination": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        "anchor": "1-standards",
+        "heading": "1. Standards",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "line": 720,
+        "destination": "TODO.md",
+        "anchor": "",
+        "heading": null,
+        "candidate_headings": [],
+        "status": "unanchored_section_reference"
+      },
+      {
+        "source": "specs/SPECS_GUIDE.md",
+        "line": 76,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "37-file-path-reference-standards",
+        "heading": "3.7. File path reference standards",
+        "candidate_headings": [
+          "3.7. File path reference standards"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "specs/SPECS_GUIDE.md",
+        "line": 78,
+        "destination": "specs/discord-welcome-and-onboarding.md",
+        "anchor": "6-related-documentation",
+        "heading": "6. Related documentation",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "specs/SPECS_GUIDE.md",
+        "line": 94,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "39-dating-convention-for-plan-and-todo-items",
+        "heading": "3.9. Dating convention for plan and TODO items",
+        "candidate_headings": [
+          "3.9. Dating convention for plan and TODO items"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "specs/SPECS_GUIDE.md",
+        "line": 136,
+        "destination": "development_tools/LIST_OF_LISTS.md",
+        "anchor": "4-documentation-lists",
+        "heading": "4. Documentation lists",
+        "candidate_headings": [
+          "6. Config and shared constants"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "specs/SPECS_GUIDE.md",
+        "line": 142,
+        "destination": "DOCUMENTATION_GUIDE.md",
+        "anchor": "24-behavior-specifications",
+        "heading": "2.4. Behavior specifications",
+        "candidate_headings": [
+          "2.4. Behavior specifications"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "specs/discord-task-reminder-flow.md",
+        "line": 287,
+        "destination": "development_docs/NOTES_PLAN.md",
+        "anchor": "55-revisit-skip-integration-only-if-the-product-value-is-clear",
+        "heading": "5.5 Revisit skip integration only if the product value is clear",
+        "candidate_headings": [],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+        "line": 260,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "22-test-types",
+        "heading": "2.2. Test types",
+        "candidate_headings": [
+          "2.2. Test types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+        "line": 260,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "3-fixtures-utilities-and-safety",
+        "heading": "3. Fixtures, Utilities, and Safety",
+        "candidate_headings": [
+          "2.2. Test types"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+        "line": 481,
+        "destination": "development_docs/TASKS_PLAN.md",
+        "anchor": "1-live-discord-validation-for-task-creation-follow-up-flows",
+        "heading": "1. Live Discord validation for task creation follow-up flows",
+        "candidate_headings": [
+          "1. Live Discord validation for task creation follow-up flows"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+        "line": 481,
+        "destination": "development_docs/NOTES_PLAN.md",
+        "anchor": "41-validate-and-polish-live-discord-pagination",
+        "heading": "4.1 Validate and polish live Discord pagination",
+        "candidate_headings": [
+          "1. Current Use / Fit"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/MANUAL_TESTING_GUIDE.md",
+        "line": 204,
+        "destination": "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+        "anchor": "4-automated-checklist-map",
+        "heading": "4. Automated checklist map",
+        "candidate_headings": [
+          "4. Automated checklist map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/MANUAL_TESTING_GUIDE.md",
+        "line": 309,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "1-purpose-and-scope",
+        "heading": "1. Purpose and Scope",
+        "candidate_headings": [
+          "1. Purpose and Scope"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/TESTING_GUIDE.md",
+        "line": 807,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/TESTING_GUIDE.md",
+        "line": 807,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "4-error-categories-and-severity",
+        "heading": "4. Error Categories and Severity",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/TESTING_GUIDE.md",
+        "line": 850,
+        "destination": "tests/MANUAL_TESTING_GUIDE.md",
+        "anchor": "10-automated-checklist-map",
+        "heading": "10. Automated checklist map",
+        "candidate_headings": [
+          "10. Automated checklist map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/TESTING_GUIDE.md",
+        "line": 866,
+        "destination": "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+        "anchor": "4-automated-checklist-map",
+        "heading": "4. Automated checklist map",
+        "candidate_headings": [
+          "4. Automated checklist map"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md",
+        "line": 12,
+        "destination": "tests/MANUAL_TESTING_GUIDE.md",
+        "anchor": "7-ai-behavior-manual-tests",
+        "heading": "7. AI Behavior Manual Tests",
+        "candidate_headings": [
+          "7. AI Behavior Manual Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 10,
+        "destination": "README.md",
+        "anchor": "2-navigation-start-here",
+        "heading": "2. Navigation (Start Here)",
+        "candidate_headings": [
+          "2. Navigation (Start Here)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 10,
+        "destination": "README.md",
+        "anchor": "8-project-structure",
+        "heading": "8. Project Structure",
+        "candidate_headings": [
+          "2. Navigation (Start Here)"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 11,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "1-safety-first",
+        "heading": "1. Safety First",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 11,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "3-development-process",
+        "heading": "3. Development Process",
+        "candidate_headings": [
+          "1. Safety First"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 50,
+        "destination": "DEVELOPMENT_WORKFLOW.md",
+        "anchor": "4-testing-strategy",
+        "heading": "4. Testing Strategy",
+        "candidate_headings": [
+          "4. Testing Strategy"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 51,
+        "destination": "tests/TESTING_GUIDE.md",
+        "anchor": "4-running-automated-tests",
+        "heading": "4. Running Automated Tests",
+        "candidate_headings": [
+          "4. Running Automated Tests"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 156,
+        "destination": "core/ERROR_HANDLING_GUIDE.md",
+        "anchor": "2-architecture-overview",
+        "heading": "2. Architecture Overview",
+        "candidate_headings": [
+          "2. Architecture Overview"
+        ],
+        "status": "resolved"
+      },
+      {
+        "source": "ui/UI_GUIDE.md",
+        "line": 165,
+        "destination": "CONFIGURATION_REFERENCE.md",
+        "anchor": "62-optional-ai-usage-controls",
+        "heading": "6.2. Optional AI usage controls",
+        "candidate_headings": [
+          "6.2. Optional AI usage controls"
+        ],
+        "status": "resolved"
+      }
+    ]
+  }
+}

@@ -143,7 +143,7 @@ MHM can use the OpenAI API for optional AI features:
 - If the API key is missing or the model is unavailable, MHM still works
   as a scheduler/reminder system.
 - The headless service supports start/stop/status and diagnostic commands;
-  see [HOW_TO_RUN.md](HOW_TO_RUN.md) for details.
+  see section 4. "Alternative Launch Methods" in [HOW_TO_RUN.md](HOW_TO_RUN.md#4-alternative-launch-methods) for details.
 - For deeper AI details, see the AI sections in [ARCHITECTURE.md](ARCHITECTURE.md),
   the `ai/` package, and [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 

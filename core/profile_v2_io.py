@@ -357,6 +357,8 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
         }
         if inner.get("natural_language_defaults") is not None:
             payload["natural_language_defaults"] = inner.get("natural_language_defaults")
+        if inner.get("health_personalization") is not None:
+            payload["health_personalization"] = inner.get("health_personalization")
         return payload
 
     if document_type == "schedules":

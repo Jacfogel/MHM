@@ -7,11 +7,13 @@ Rule-based baselines and confidence — no medical inference.
 from __future__ import annotations
 
 import statistics
+from datetime import timedelta
 from typing import Any
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from core.time_utilities import now_timestamp_full, parse_timestamp_full, parse_date_only
+from core.config import GOOGLE_HEALTH_BASELINE_WINDOW_DAYS
 from integrations.google_health.personalization_rules import apply_personalization_rules
 from integrations.google_health.schemas import (
     DailySummaryModel,
@@ -21,7 +23,7 @@ from integrations.google_health.schemas import (
 
 logger = get_component_logger("google_health")
 
-BASELINE_WINDOW_DAYS = 14
+BASELINE_WINDOW_DAYS = GOOGLE_HEALTH_BASELINE_WINDOW_DAYS
 MIN_BASELINE_DAYS_MEDIUM = 7
 MIN_BASELINE_DAYS_HIGH = 14
 
@@ -123,6 +125,7 @@ def compute_baseline_stats(
     efficiency: list[float] = []
     restorative_shares: list[float] = []
     active_minutes: list[float] = []
+    valid_days: set[str] = set()
 
     for item in summaries:
         day = item.get("date")
@@ -132,6 +135,11 @@ def compute_baseline_stats(
             model = DailySummaryModel.model_validate(item)
         except Exception:
             continue
+        if day and any(value is not None for value in (
+            model.sleep_duration_minutes, model.steps, model.resting_hr_bpm,
+            model.hrv_rmssd_ms, model.sleep_efficiency_pct, model.active_minutes,
+        )):
+            valid_days.add(str(day))
         if model.sleep_duration_minutes is not None:
             sleep_minutes.append(float(model.sleep_duration_minutes))
         if model.steps is not None:
@@ -148,7 +156,7 @@ def compute_baseline_stats(
         if model.active_minutes is not None:
             active_minutes.append(float(model.active_minutes))
 
-    days_used = len({s.get("date") for s in summaries if s.get("date") != exclude_date})
+    days_used = len(valid_days)
     return {
         "days_used": days_used,
         "sleep_minutes_median": _median(sleep_minutes),
@@ -281,7 +289,16 @@ def build_signal_for_date(
     except Exception:
         return None
 
-    baselines = compute_baseline_stats(summaries, exclude_date=target_date)
+    target = parse_timestamp_full(f"{target_date} 00:00:00")
+    if target is None:
+        return None
+    cutoff = (target - timedelta(days=max(7, min(BASELINE_WINDOW_DAYS, 90)))).date().isoformat()
+    history = [
+        item for item in summaries
+        if cutoff <= str(item.get("date") or "") < target_date
+        and parse_date_only(str(item.get("date") or "")) is not None
+    ]
+    baselines = compute_baseline_stats(history, exclude_date=target_date)
     days_used = baselines.get("days_used") or 0
     confidence = _confidence_from_baseline_days(days_used)
 

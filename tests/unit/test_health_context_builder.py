@@ -560,7 +560,8 @@ def test_personalized_context_builders_keep_sources_separate():
             return_value="Use a gentle tone.",
         ),
     ):
-        health = build_personalized_google_health_context("source-test")
+        with patch("core.health_signals.health_personalization_allowed", return_value=True):
+            health = build_personalized_google_health_context("source-test")
     assert health == "Recent wellness patterns: sleep looked solid. Use a gentle tone."
     assert "check-in" not in health.lower()
 

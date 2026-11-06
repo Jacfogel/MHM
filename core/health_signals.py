@@ -37,6 +37,16 @@ def is_personalization_active(user_id: str) -> bool:
     return get_google_health_feature_state(user_id) == "enabled"
 
 
+@handle_errors("checking health personalization preference", default_return=False)
+def health_personalization_allowed(user_id: str, *, surface: str) -> bool:
+    """Read fresh per-surface permission without overriding the account flag."""
+    if surface not in {"messages", "chat"} or not is_personalization_active(user_id):
+        return False
+    preferences = get_user_data(user_id, "preferences").get("preferences") or {}
+    settings = preferences.get("health_personalization") or {}
+    return settings.get(f"use_in_{surface}", True) is True
+
+
 @handle_errors("getting today health signal", default_return=None)
 def get_today_signal(user_id: str) -> dict[str, Any] | None:
     if not is_personalization_active(user_id):
@@ -93,6 +103,8 @@ def resolve_active_health_signal(user_id: str) -> dict[str, Any] | None:
 
 @handle_errors("getting message guidance for user", default_return=[])
 def get_message_guidance(user_id: str) -> list[str]:
+    if not health_personalization_allowed(user_id, surface="messages"):
+        return []
     signal = resolve_active_health_signal(user_id)
     if not signal:
         return []

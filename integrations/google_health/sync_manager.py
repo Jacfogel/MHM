@@ -25,6 +25,7 @@ from integrations.google_health.auth import (
 from integrations.google_health.client import (
     fetch_daily_summaries,
     is_unauthenticated_health_error,
+    track_request_counts,
 )
 from integrations.google_health.data_handlers import (
     has_valid_auth,
@@ -172,9 +173,13 @@ def sync_user_health_data(
             if not token:
                 raise CommunicationError(DEAD_REFRESH_TOKEN_ERROR)
             try:
-                incoming = fetch_daily_summaries(
-                    token, lookback_days=GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS
-                )
+                with track_request_counts() as page_counts:
+                    try:
+                        incoming = fetch_daily_summaries(
+                            token, lookback_days=GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS
+                        )
+                    finally:
+                        logger.info(f"Google Health sync page requests: {page_counts}")
                 break
             except CommunicationError as exc:
                 if force_refresh or not is_unauthenticated_health_error(exc):

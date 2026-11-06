@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-06 - Finish TODO health, memory, and documentation work
+- Added independently persisted message/chat health preferences and desktop controls; authenticated health identity is saved only after verification. Connect failure cannot enable an account; first sync now follows enablement.
+- Added sync page counts, complete non-sleep pagination with 1,000-record pages (sleep cap 25), and a validated 7-90-day historical baseline window, default 14, excluding future/target dates and retaining sparse-history safeguards.
+- Bounded context/session retention. The isolated state workload retained about 2.1 MB after two batches versus 41.3 MB before, then about 47 KB after explicit expiry; this excludes live providers and test-worker/OS pressure. Finished reference/guide/recovery refreshes; detailed evidence is in the paired changelog.
+- Validation: 115 focused rerun checks, targeted Ruff, and standard Tier 2 audit pass. All five standalone TODO items are implemented and removed; test reliability remains in TEST_PLAN. Full run was incomplete: 2,980 passes, 1 failure, 2 errors, 27 skips; development-tools parallel phase passed 1,694. Worker/xdist and serial configuration issues remain in TEST_PLAN 2.8. No live service or delivery was run.
+
 ### 2026-11-05 - TODO progress: task processing, reconnects, and documentation
 - Removed duplicate task-read initialization. Local task-list medians improved from 5.29 to 4.19 ms (Discord) and 5.27 to 3.84 ms (email); task completion improved modestly. Provider/network time is excluded; check-in/fallback gains are not claimed.
 - Retained accounts linked to the same Discord identity receive a short reconnect acknowledgement without setup buttons. Non-creating account reads reject stale/unlinked/missing identities without reconstructing data or changing preferences; restart MHM to load the change.

@@ -104,12 +104,14 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 | Check-in | `/checkin`, `!checkin` | `start checkin` | Starts a check-in flow. |
 | Restart check-in | `/restart`, `!restart` | `restart checkin` | Restarts an in-progress check-in. |
 | Clear flows | `/clear`, `!clear` | `clear flows` | Clears stuck conversation flows. |
-| Cancel | `/cancel`, `!cancel` | `/cancel` | Cancels the current flow immediately. |
+| Cancel | `/cancel`, `!cancel` | `cancel` | Cancels the current flow immediately. |
 
 **Notes**
 - Slash and bang commands are equivalent; use whichever is more convenient.
 - If you forget the exact command, typing the mapped text (for example, "show my tasks") works the same way.
 - Check-in related commands (`/checkin`, `/restart`, `/clear`, `/cancel`) operate on the conversation flow system.
+
+For Discord account linking, task selection, and check-in buttons, follow section 4.4. "Account linking, tasks, and check-ins" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md#44-account-linking-tasks-and-check-ins). For health connect/reconnect and preferences, follow "User flow" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#user-flow).
 
 ### 3.1. Replying by email
 
@@ -126,7 +128,7 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 If MHM says it found no new text, reply again with only your answer above the
 quoted message. If it says the address is unregistered, have the administrator
 check the account's saved email address. For delivery or polling failures, check
-[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout), section 4.
+[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout), section 4. "Component Log Files and Layout"
 "Component Log Files and Layout", and correct the SMTP/IMAP configuration before
 retrying.
 
@@ -161,7 +163,7 @@ If you run the development tools full audit on this or another PC:
 
 - **Dependencies**: `python -m pip install -e ".[dev,ui]"` installs the application, desktop UI, and audit tools, including `pytest-cov`.
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
-- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
+- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See section 3. "Audit Modes and Outputs" in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) for audit behavior.
 
 - **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. `audit --full` does **not** regenerate coverage. For scoped status files only, use `audit --full --dev-tools-only` (still does not refresh coverage).
 
@@ -178,7 +180,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
 | Tier 3 but only dev-tools tests + scoped DEV_TOOLS_* reports (no coverage) | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Subtree Tier 2 MVP (`--audit-scope`; no AI_* overwrite) | `python development_tools/run_development_tools.py audit --audit-scope communication/` |
-| Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
+| Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit)) |
 
 **Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
@@ -278,6 +280,14 @@ python -m pip install -e ".[ui]" --force-reinstall
 
 **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your script and the underlying interpreter. The process running your actual code is the one that matters; the system Python is a harmless artifact.
+
+### 6.7. Safe recovery for configuration and AI controls
+
+If startup reports configuration errors, read the named setting in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#1-how-configuration-is-loaded), section 1. "How configuration is loaded", correct the matching `.env` entry, and restart the service. Check `logs/errors.log`, `logs/app.log`, and the relevant component log using section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout). Expected result: configuration validation passes and the service starts; preserve account files while fixing settings.
+
+If the **AI Controls** dialog says controls could not be read and AI is off, the saved administrator policy is invalid or unreadable. Open **AI Controls**, choose valid overrides (or **Use environment defaults**), and save. To keep AI off during recovery, leave **Allow AI features** unchecked and save that valid policy. If saving fails, the dialog keeps the draft open: check the data-directory permissions and `logs/errors.log`, then retry. Expected result: reopening the dialog shows the saved policy and new requests follow it. Do not delete user data or manually remove the policy file as a routine repair. Environment defaults may enable AI, so review them before saving. See section 6.2. "Optional AI usage controls" in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#62-optional-ai-usage-controls).
+
+If the desktop appears frozen during health sync, wait for its background operation to finish; **Sync Now** disables duplicate account actions until completion. Use **Refresh Status** afterward and follow "Troubleshooting" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#troubleshooting). Expect either a refreshed success time or a reconnect/retry message, without deleting the account.
 
 ## 7. Next Steps
 - **Project Overview**: See [README.md](README.md) for features and architecture

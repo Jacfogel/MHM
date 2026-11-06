@@ -254,7 +254,7 @@ The error handler should be the primary place that final log messages and struct
 Error handling integrates with:
 
 - **Logging configuration**  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) for how errors flow into `logs/errors.log` and component logs.
+  - See section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout) for how errors flow into `logs/errors.log` and component logs.
 
 - **Environment flags**  
   - Test mode (`MHM_TESTING`) can change how aggressively errors are surfaced during tests versus production, and is evaluated inside logging utilities wrapped with `@handle_errors`.
@@ -398,10 +398,10 @@ These examples are intentionally simple; real code should use the shared helpers
 For related topics:
 
 - Logging implementation guidance  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
+  - See section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
 
 - Testing patterns and expectations  
-  - See section 1. "Purpose and Scope" and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
+  - See section 1. "Purpose and Scope" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#1-purpose-and-scope) and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
 
 - Development workflow and emergency procedures  
   - See section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#6-emergency-procedures).

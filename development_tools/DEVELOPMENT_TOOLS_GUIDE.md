@@ -17,7 +17,7 @@ Use this guide when you need:
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
-**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy reference tracking) that no existing tools provide. See [TODO.md](../TODO.md) for evaluation tasks for complementary tools.
+**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy reference tracking) that no existing tools provide. See section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit) for the evaluation decisions.
 
 ---
 
@@ -255,7 +255,7 @@ Pipeline artifacts:
 - Report generation code accesses data from `details` section
 - This standardization enables consistent data aggregation, easier tool integration, and simplified report generation.
 
-**Audit completion lines (`Completed <tool>: PASS issues=N`)** (see also [HOW_TO_RUN.md](../HOW_TO_RUN.md#516-completion-log-lines-issues) Section 5.1.6):
+**Audit completion lines (`Completed <tool>: PASS issues=N`)** (see also [HOW_TO_RUN.md](../HOW_TO_RUN.md#516-completion-log-lines-issues), section 5.1.6. "Completion log lines (`issues=`)"):
 
 - **`PASS` / `FAIL`** indicates whether the orchestration run for that tool **completed successfully** (`success` in the tool result), not whether `total_issues` is zero.
 - When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
@@ -366,7 +366,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 
 ## 5. Operating Standards and Maintenance
 
-- Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
+- Follow the audit-first workflow (see section 10. "Standard Audit Recipe" in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe)) before touching documentation or infrastructure
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Duplicate function analysis** (`development_tools/functions/analyze_duplicate_functions.py`):
   - **Exclusion**: Prefer `# devtools: ignore[duplicate-functions]: <reason>` near the function. Legacy aliases still work: `# duplicate_functions_exclude` and `# duplicate functions exclude`.
@@ -420,7 +420,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: live triage via [AI_PRIORITIES.md](AI_PRIORITIES.md) / [PLANS.md](../development_docs/PLANS.md) Section 6.4; historical backlog in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); document shipped changes in both changelogs; keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: live triage via [AI_PRIORITIES.md](AI_PRIORITIES.md) / [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools"; historical backlog in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); document shipped changes in both changelogs; keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -597,7 +597,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or add a documented `host.*` adapter; do not add host-package static imports under `development_tools/**`.
 
-**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md) Section 6.4 for the extraction roadmap.
+**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.
 
 ### 8.7. Pytest isolation (portability)
 
@@ -636,7 +636,7 @@ Tier 3 (`development_tools/tests/run_test_suite.py`), tools coverage, and GitHub
 
 **Phased migration** (when restructuring): (1) clarify docs + ownership map (this section); (2) compatibility shims if modules move; (3) migrate imports and remove shims. Core CLI entrypoints (`run_development_tools.py`, `audit` tiers) should keep working throughout.
 
-**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
+**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow section 1. "Standards" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#1-standards) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
 **Pyright config**: Single SSOT is **`[tool.pyright]`** in `pyproject.toml` (IDE / Pylance / default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` was removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py`.
 

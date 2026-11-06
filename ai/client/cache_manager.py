@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_RESPONSE_CACHE_TTL
+from core.config import AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_RESPONSE_CACHE_TTL, CONTEXT_CACHE_MAX_SIZE
 
 # Route cache manager logs to AI component
 cache_logger = get_component_logger("ai")
@@ -107,6 +107,10 @@ class ResponseCache:
 
         with self._lock:
             # Clean up if cache is full
+            for expired in _expired_keys_from_items(
+                self.cache.items(), self.ttl, lambda entry: entry.timestamp
+            ):
+                self._remove_entry(expired)
             if len(self.cache) >= self.max_size:
                 self._cleanup_lru()
 
@@ -250,10 +254,11 @@ class ContextCache:
     """Cache for user context information"""
 
     @handle_errors("initializing context cache", default_return=None)
-    def __init__(self, ttl: int | None = None):
+    def __init__(self, ttl: int | None = None, max_size: int | None = None):
         """Initialize the context cache"""
         self.cache: dict[str, tuple[dict[str, Any], float]] = {}
         self.ttl = ttl or CONTEXT_CACHE_TTL
+        self.max_size = max(1, CONTEXT_CACHE_MAX_SIZE if max_size is None else max_size)
         self._lock = threading.Lock()
 
     @handle_errors("getting cached context", default_return=None)
@@ -265,6 +270,8 @@ class ContextCache:
             if user_id in self.cache:
                 context, timestamp = self.cache[user_id]
                 if current_time - timestamp < self.ttl:
+                    # Dict order tracks recent access without retaining another map.
+                    self.cache[user_id] = self.cache.pop(user_id)
                     return context
                 else:
                     # Expired, remove
@@ -278,6 +285,13 @@ class ContextCache:
         current_time = time.time()
 
         with self._lock:
+            for expired in _expired_keys_from_items(
+                self.cache.items(), self.ttl, lambda value: value[1]
+            ):
+                del self.cache[expired]
+            self.cache.pop(user_id, None)
+            while len(self.cache) >= self.max_size:
+                del self.cache[next(iter(self.cache))]
             self.cache[user_id] = (context, current_time)
 
     # not_duplicate: cache_lifecycle_methods

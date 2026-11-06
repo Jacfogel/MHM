@@ -8,6 +8,8 @@ Context reads use ``build_chatbot_context_dict`` with optional session overlay.
 """
 
 from typing import Any
+import time
+import threading
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -21,9 +23,24 @@ class UserContextManager:
     """Tracks per-session chat exchanges and overlays them on envelope-backed context."""
 
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
-    def __init__(self):
+    def __init__(self, *, max_users: int = 100, session_ttl: int = 3600):
         """Initialize conversation history storage for in-memory session exchanges."""
         self.conversation_history: dict[str, list[dict]] = {}
+        self.max_users = max(1, max_users)
+        self.session_ttl = max(1, session_ttl)
+        self._session_access: dict[str, float] = {}
+        self._lock = threading.RLock()
+
+    @handle_errors("expiring inactive conversation sessions", default_return=None)
+    def clear_expired(self):
+        """Release idle session state; persisted chat interactions are unaffected."""
+        with self._lock:
+            now = time.monotonic()
+            expired = [uid for uid, stamp in self._session_access.items()
+                       if now - stamp >= self.session_ttl]
+            for uid in expired:
+                self.conversation_history.pop(uid, None)
+                self._session_access.pop(uid, None)
 
     @handle_errors("building context with session overlay", default_return=None)
     def build_context_with_session_overlay(
@@ -64,16 +81,17 @@ class UserContextManager:
     @handle_errors("getting conversation history", default_return=[])
     def _get_conversation_history(self, user_id: str) -> list[dict[str, str]]:
         """Return recent in-memory session exchanges for this user."""
-        return self.conversation_history.get(user_id, [])[-5:]
+        with self._lock:
+            self.clear_expired()
+            if user_id in self.conversation_history:
+                self._session_access[user_id] = time.monotonic()
+            return self.conversation_history.get(user_id, [])[-5:]
 
     @handle_errors("adding conversation exchange")
     def add_conversation_exchange(
         self, user_id: str, user_message: str, ai_response: str
     ):
         """Add a conversation exchange to in-memory session history."""
-        if user_id not in self.conversation_history:
-            self.conversation_history[user_id] = []
-
         exchange = {
             "timestamp": now_timestamp_full(),
             "user_message": user_message,
@@ -82,12 +100,18 @@ class UserContextManager:
             "response_length": len(ai_response),
         }
 
-        self.conversation_history[user_id].append(exchange)
-
-        if len(self.conversation_history[user_id]) > 20:
-            self.conversation_history[user_id] = self.conversation_history[user_id][
-                -20:
-            ]
+        with self._lock:
+            self.clear_expired()
+            if user_id not in self.conversation_history:
+                while len(self.conversation_history) >= self.max_users:
+                    oldest = min(self.conversation_history,
+                                 key=lambda uid: self._session_access.get(uid, 0))
+                    self.conversation_history.pop(oldest)
+                    self._session_access.pop(oldest, None)
+                self.conversation_history[user_id] = []
+            self.conversation_history[user_id].append(exchange)
+            self.conversation_history[user_id] = self.conversation_history[user_id][-20:]
+            self._session_access[user_id] = time.monotonic()
 
         logger.debug(f"Added conversation exchange for user {user_id}")
 

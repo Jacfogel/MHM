@@ -377,7 +377,7 @@ When adding new concurrent behavior around AI calls, reuse these locks instead o
 
 ## 7. Configuration and Feature Flags
 
-Configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md).
+AI configuration semantics are defined in section 6. "OpenAI and AI behavior" in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#6-openai-and-ai-behavior); cache lifecycle semantics are in section 12. "Context cache behavior (canonical semantics)" in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#12-context-cache-behavior-canonical-semantics).
 
 All AI-related configuration is loaded in `core/config.py`. When changing AI behavior:
 
@@ -399,7 +399,7 @@ AI components rely heavily on the centralized error handling system:
 
 For detailed patterns, see:
 
-- Section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
+- section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
 - [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity) for AI-facing routing rules and constraints.
 
 ### 8.1. Typical AI-specific fallbacks
@@ -429,7 +429,7 @@ When extending behavior:
 The AI subsystem is covered both by general tests and AI-specific functionality tests.
 
 - For overall testing strategy and layout, see:
-  - Section 1. "Purpose and Scope" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#1-purpose-and-scope).
+  - section 1. "Purpose and Scope" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#1-purpose-and-scope) and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
 - For AI-specific functional tests, see:
   - [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](../tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md) for behavior-focused AI test flows.
   - [MANUAL_TESTING_GUIDE.md](../tests/MANUAL_TESTING_GUIDE.md) and [MANUAL_DISCORD_TEST_GUIDE.md](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for channel-specific manual checks.
@@ -453,7 +453,7 @@ AI-related logs are routed to component loggers named:
 
 For logging details, see:
 
-- Section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
+- section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
 - [AI_LOGGING_GUIDE.md](../ai_development_docs/AI_LOGGING_GUIDE.md#4-component-log-files-and-layout) for AI-specific logging rules and patterns.
 
 When debugging:

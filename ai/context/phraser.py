@@ -281,6 +281,10 @@ def append_checkin_summary(parts: list[str], user_id: str) -> None:
 @handle_errors("appending health guidance", default_return=None)
 def append_health_guidance(parts: list[str], user_id: str) -> None:
     """Append recent wellness patterns then tone guidance for chat prompts."""
+    from core.health_signals import health_personalization_allowed
+
+    if not health_personalization_allowed(user_id, surface="chat"):
+        return
     from core.health_context_builder import (
         build_recent_health_patterns,
         build_safe_health_guidance_summary,

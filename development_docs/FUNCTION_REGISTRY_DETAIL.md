@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 23:18:25
+> **Last Generated**: 2026-11-06 01:07:54
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3252
-- **Methods Found**: 1654
-- **Classes Found**: 291
-- **Total Items**: 4906
-- **Functions Documented**: 2905
-- **Methods Documented**: 1480
-- **Classes Documented**: 224
-- **Total Documented**: 4385
+- **Functions Found**: 3258
+- **Methods Found**: 1656
+- **Classes Found**: 292
+- **Total Items**: 4914
+- **Functions Documented**: 2911
+- **Methods Documented**: 1482
+- **Classes Documented**: 225
+- **Total Documented**: 4393
 - **Template-Generated**: 72
-- **Last Updated**: 2026-11-05
+- **Last Updated**: 2026-11-06
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,16 +39,16 @@
 
 ## Function Categories
 
-### **Core System Functions** (689)
+### **Core System Functions** (690)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (912)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (562)
+### **User Interface Functions** (563)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (28)
+### **User Management Functions** (29)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (195)
@@ -298,7 +298,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 #### `ai/client/cache_manager.py`
 **Functions:**
 - [OK] `__init__(self, max_size, ttl)` - Initialize the response cache
-- [OK] `__init__(self, ttl)` - Initialize the context cache
+- [OK] `__init__(self, ttl, max_size)` - Initialize the context cache
 - [OK] `_cleanup_lru(self)` - Remove least recently used items
 - [OK] `_expired_keys_from_items(items, ttl, timestamp_getter)` - Return cache keys whose stored timestamp is outside the configured TTL.
 - [OK] `_generate_key(self, prompt, user_id, prompt_type)` - Generate cache key from prompt, user context, and prompt type
@@ -321,7 +321,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 **Classes:**
 - [OK] `CacheEntry` - Entry in the response cache
 - [OK] `ContextCache` - Cache for user context information
-  - [OK] `ContextCache.__init__(self, ttl)` - Initialize the context cache
+  - [OK] `ContextCache.__init__(self, ttl, max_size)` - Initialize the context cache
   - [OK] `ContextCache.clear(self)` - Clear all cached contexts
   - [OK] `ContextCache.clear_expired(self)` - Remove all expired contexts
   - [OK] `ContextCache.get(self, user_id)` - Get cached context for a user
@@ -4675,6 +4675,7 @@ Never includes HR/HRV numbers.
 - [OK] `get_latest_usable_signal(user_id)` - Return the newest non-low-confidence signal within the recent window.
 - [MISSING] `get_message_guidance(user_id)` - No description
 - [MISSING] `get_today_signal(user_id)` - No description
+- [OK] `health_personalization_allowed(user_id)` - Read fresh per-surface permission without overriding the account flag.
 - [MISSING] `is_personalization_active(user_id)` - No description
 - [OK] `resolve_active_health_signal(user_id)` - Today's signal when synced; otherwise the latest usable recent signal.
 - [MISSING] `should_avoid_productivity_pressure(user_id)` - No description
@@ -5179,6 +5180,7 @@ Context, tags, and chat_interactions still unwrap to inner shapes.
 - [MISSING] `FeaturesV2Model` - No description
   - [OK] `FeaturesV2Model._coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
   - [OK] `FeaturesV2Model._coerce_google_health(cls, value)` - Normalize google_health to enabled, disabled, or paused.
+- [OK] `HealthPersonalizationModel` - Independent opt-outs; the account health feature remains authoritative.
 - [MISSING] `PeriodV2Model` - No description
   - [OK] `PeriodV2Model._valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
   - [OK] `PeriodV2Model._valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
@@ -6072,12 +6074,15 @@ Blocks until callback or timeout. Intended for one-time connect.
 - [OK] `_parse_api_date(value)` - Normalize API date values to YYYY-MM-DD strings.
 - [OK] `_parse_duration_minutes(value)` - Parse Google Health duration fields into whole minutes.
 - [OK] `_parse_iso_datetime(raw)` - Parse ISO-8601 timestamps from Google Health API responses.
+- [OK] `_record_request(endpoint)` - Count a page attempt without recording tokens, records, or identities.
 - [OK] `_resolve_data_type_spec(data_type)` - Resolve endpoint slug and filter prefix for a data type key.
 - [OK] `_sleep_payload(point)` - Return nested sleep object or the point itself when sleep is top-level.
 - [OK] `fetch_daily_summaries(access_token)` - Fetch and normalize daily summaries for the lookback window.
+- [OK] `get_verified_health_user_id(access_token)` - Accept only healthUserId from the authenticated users/me/identity response.
 - [OK] `is_unauthenticated_health_error(error)` - Return True when a Google Health API call failed with HTTP 401.
 - [OK] `list_daily_rollups(access_token, data_type)` - Fetch daily rollup totals in <=14-day civil chunks (Google API limit).
 - [OK] `list_data_points(access_token, data_type)` - List data points for a data type (users/me).
+- [OK] `track_request_counts()` - Collect endpoint page counts for one sync without sharing users' state.
 **Classes:**
 - [MISSING] `_Fetcher` - No description
 
@@ -7819,6 +7824,7 @@ Returns:
 - [MISSING] `refresh_status(self)` - No description
 - [MISSING] `run(self)` - No description
 - [OK] `run(self)` - Always report completion, including unexpected backend failures.
+- [OK] `save_personalization(self)` - Save independent opt-outs without enabling the account feature.
 - [MISSING] `start_connect(self)` - No description
 - [OK] `sync_now(self)` - Start one sync; keep account controls locked until its thread exits.
 **Classes:**
@@ -7834,6 +7840,7 @@ Returns:
   - [MISSING] `GoogleHealthSettingsDialog.enable_health(self)` - No description
   - [MISSING] `GoogleHealthSettingsDialog.pause_health(self)` - No description
   - [MISSING] `GoogleHealthSettingsDialog.refresh_status(self)` - No description
+  - [OK] `GoogleHealthSettingsDialog.save_personalization(self)` - Save independent opt-outs without enabling the account feature.
   - [MISSING] `GoogleHealthSettingsDialog.start_connect(self)` - No description
   - [OK] `GoogleHealthSettingsDialog.sync_now(self)` - Start one sync; keep account controls locked until its thread exits.
 - [OK] `_ConnectFlowWorker` - Background worker that runs the blocking OAuth connect flow.
@@ -9042,6 +9049,7 @@ Args:
 - [OK] `build_context_with_session_overlay(self, user_id)` - Build envelope-backed chatbot context with in-memory session exchanges overlaid.
 
 Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
+- [OK] `clear_expired(self)` - Release idle session state; persisted chat interactions are unaffected.
 - [OK] `format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
 - [OK] `get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 **Classes:**
@@ -9053,6 +9061,7 @@ Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
   - [OK] `UserContextManager.build_context_with_session_overlay(self, user_id)` - Build envelope-backed chatbot context with in-memory session exchanges overlaid.
 
 Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
+  - [OK] `UserContextManager.clear_expired(self)` - Release idle session state; persisted chat interactions are unaffected.
   - [OK] `UserContextManager.format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
   - [OK] `UserContextManager.get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 

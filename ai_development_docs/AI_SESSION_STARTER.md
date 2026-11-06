@@ -107,15 +107,15 @@ Use this as a routing table for common request types.
 
 ### 4.1. "Help me edit documentation"
 
-- Start with [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md), sections:
-  - 4 "Documentation Synchronization Checklist"
-  - 5 "Maintenance Guidelines"
+- Start with these sections in the documentation guide:
+  - Section 4. "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist)
+  - Section 5. "Maintenance Guidelines" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#5-maintenance-guidelines)
 - Then open the relevant human doc (for example, `DOCUMENTATION_GUIDE.md`, `logs/LOGGING_GUIDE.md`, `tests/TESTING_GUIDE.md`).  
 - Keep AI docs short; push detailed narrative into the human docs.
 
 ### 4.2. "Help me refactor or clean up code"
 
-- Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first), especially section 1 "Safety First" and section 3 "Development Process".
+- Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first), especially section 1. "Safety First" and section 3. "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process).
 - Use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for commands to run audits and checks.  
 - For legacy-related refactors, also use [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md) and the legacy tools described there.
 
@@ -167,7 +167,7 @@ Use this as a routing table for common request types.
 
 #### 3.2. Data flow patterns
 
-User data persistence guarantees and access rules are defined in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
+User data persistence guarantees and access rules are defined in section 3. "Access rules (developer contract)" in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md#3-access-rules-developer-contract).
 
 - User data: `data/users/{user_id}/` -> helper APIs -> UI / communication surfaces.
 - Messages: `resources/default_messages/` -> per-user `messages/` directories.

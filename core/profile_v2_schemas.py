@@ -297,6 +297,14 @@ class AccountV2EnvelopeModel(BaseModel):
         }
 
 
+class HealthPersonalizationModel(BaseModel):
+    """Independent opt-outs; the account health feature remains authoritative."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+    use_in_messages: bool = True
+    use_in_chat: bool = True
+
+
 class PreferencesV2EnvelopeModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -308,6 +316,9 @@ class PreferencesV2EnvelopeModel(BaseModel):
     task_settings: dict[str, Any] | None = None
     message_pressure_settings: dict[str, Any] | None = None
     natural_language_defaults: dict[str, Any] | None = None
+    health_personalization: HealthPersonalizationModel = Field(
+        default_factory=HealthPersonalizationModel
+    )
 
     @field_validator("updated_at")
     @classmethod

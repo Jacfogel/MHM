@@ -67,13 +67,13 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Model slice is recent titles, pinned entries, and a short summary when untitled; Home shows recent titles |
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode and explicit energy controls are complete; select the next task-system slice |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
-| AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
+| AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
 | Cost-aware optional AI | **COMPLETED** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Global, feature, and manual-only controls completed 2026-11-05 |
 | Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode shortcuts and energy recovery cooldown shipped; evaluate health-signal cooldowns separately |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
 | Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
-| Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
+| Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md#41-context-envelope-and-user-context-manager) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 | Trial and monthly subscription | **IMPLEMENTED** | 2026-10-09 | This file Section 7.3 | 30-day trial, Stripe-hosted monthly plan, replay-safe reconciled webhooks, delivery gating, and one-time billing notices |
@@ -334,7 +334,7 @@ These plans should not be duplicated in detail here.
 - Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
 - Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.
 
-**Triage**: generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 8.6. V6 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
+**Triage**: generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6. V6 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 ---
 

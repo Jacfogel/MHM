@@ -23,8 +23,10 @@ safely.
     and navigation.
 
 -   **Environment setup and run commands**  
-    See the "Quick Start (Recommended)" and "Environment Setup" sections
-    in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended).
+    See section 1. "Quick Start (Recommended)" in
+    [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended), especially section
+    1.3. "Step 3: Configure Environment (Optional)" in
+    [HOW_TO_RUN.md](HOW_TO_RUN.md#13-step-3-configure-environment-optional).
 
 -   **Configuration (.env and core/config.py)**  
     See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for the canonical list of config values, what they do, and common failure modes.
@@ -340,7 +342,7 @@ Exceptions:
 
 Changelog files, plan files, TODO.md, and behavior spec topic files under
 `specs/<topic>.md` are excluded from numbering as they have their own
-structure (see [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md#42-heading-and-numbering-rules) section 4.2).
+structure (see [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md#42-heading-and-numbering-rules), section 4.2. "Heading and numbering rules").
 
 Q&A headings and step headings should be converted to bold text instead
 of additional numbered headings.

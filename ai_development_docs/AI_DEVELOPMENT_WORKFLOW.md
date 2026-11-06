@@ -21,7 +21,7 @@
   - This AI doc: high-level routing and constraints.
 - When you need more detail, jump to:
   - Running the app and environment commands:
-    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#1-quick-start-recommended), section 1. "Quick Start (Recommended)" and section 4. "Alternative Launch Methods".
+    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#1-quick-start-recommended), section 1. "Quick Start (Recommended)" and section 4. "Alternative Launch Methods" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#4-alternative-launch-methods).
     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#2-virtual-environment-best-practices), section 2. "Virtual Environment Best Practices".
     - [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities), section 4. "Key Modules and Responsibilities" (entry points).
   - Testing:
@@ -56,7 +56,7 @@
 - When giving instructions:
   - Prefer small, reversible changes instead of broad refactors.
   - Do not invent new entry points; use the ones documented in:
-    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#14-step-4-launch-the-application), section 1.4. "Step 4: Launch the Application" and section 4. "Alternative Launch Methods".
+    - [HOW_TO_RUN.md](../HOW_TO_RUN.md#14-step-4-launch-the-application), section 1.4. "Step 4: Launch the Application" and section 4. "Alternative Launch Methods" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#4-alternative-launch-methods).
     - [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities), section 4. "Key Modules and Responsibilities" (run_mhm/run_headless).
 - For crashes, confusing errors, or suspected configuration issues, route to:
   - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#6-emergency-procedures), section 6. "Emergency Procedures".
@@ -197,12 +197,14 @@ When things look broken or confusing:
 
 ---
 
+For invalid desktop AI policies, use section 6.7. "Safe recovery for configuration and AI controls" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#67-safe-recovery-for-configuration-and-ai-controls): save a valid off policy or review environment defaults in **AI Controls**. Preserve user data; failed saves keep the draft open. For linking, tasks, and check-ins, use section 4.4. "Account linking, tasks, and check-ins" in [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md#44-account-linking-tasks-and-check-ins). Email reply instructions remain in section 3.1. "Replying by email" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#31-replying-by-email).
+
 ## 7. Learning Resources
 
 - Beginners should be pointed to:
   - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#7-learning-resources), section 7. "Learning Resources".
 - For deeper understanding of structure and data flow:
-  - [ARCHITECTURE.md](../ARCHITECTURE.md#1-directory-overview), section 1. "Directory Overview" and section 2. "User Data Model".
+  - [ARCHITECTURE.md](../ARCHITECTURE.md#1-directory-overview), section 1. "Directory Overview" and section 2. "User Data Model" in [ARCHITECTURE.md](../ARCHITECTURE.md#2-user-data-model).
   - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md#2-user-data-model) for quick routing.
 - For learning about testing, logging, and error handling:
   - [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md), [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md), and [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) for routing.

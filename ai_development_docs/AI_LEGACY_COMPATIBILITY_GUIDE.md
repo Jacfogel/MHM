@@ -6,8 +6,8 @@
 > **Style**: Minimal, reference-only, tool-focused
 
 > For detailed explanations, rationale, and examples, see:
-> - Section 3.5 "Automated tools" in DOCUMENTATION_GUIDE.md
-> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in AI_DEVELOPMENT_TOOLS_GUIDE.md
+> - Section 4.5 "Automated tools" in DOCUMENTATION_GUIDE.md
+> - Section 3 "Audit Modes and Outputs" and section 4 "Tool Catalog and Tiering" in AI_DEVELOPMENT_TOOLS_GUIDE.md
 
 ## Quick Reference
 
@@ -28,14 +28,14 @@ python development_tools/run_development_tools.py legacy
 
 **Canonical inventory:** `development_tools/config/jsons/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
 
-For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
+For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs).
 
 ## 1. Standards
 
 Use this guide only after you understand the general documentation and development rules:
 
-- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
-- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first).
+- Documentation and pairing rules: see section 4. "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
+- Development workflow and safety: see section 1. "Safety First" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first) and section 3. "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process).
 
 **When adding legacy compatibility code (temporary compatibility only):**
 
@@ -90,7 +90,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 4. **Remove & Test** - only after verification is clean
 
    - Remove the legacy code and `LEGACY COMPATIBILITY` markers.
-   - Run the standard test suite (see section 4 "Test Layout and Discovery" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)).
+   - Run the standard test suite (see section 4. "Running Automated Tests" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md#4-running-automated-tests)).
    - Start the service and confirm normal behavior.
    - Update changelogs or relevant docs to record the removal.
    - Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).
@@ -111,7 +111,7 @@ Before you delete a legacy item:
 
 ## 4. Tools
 
-These tools underlie this guide. For detailed behavior and additional commands, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
+These tools underlie this guide. For detailed behavior and additional commands, see section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite), section 3. "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs), and section 4. "Tool Catalog and Tiering" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#4-tool-catalog-and-tiering).
 
 - `development_tools/legacy/fix_legacy_references.py`:
   - `--scan`: scan for all legacy patterns.

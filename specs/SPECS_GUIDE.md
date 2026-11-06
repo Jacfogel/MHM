@@ -73,7 +73,7 @@ Reference specs from [PLANS.md](../development_docs/PLANS.md) or [TODO.md](../TO
 
 ## 4. Spec File Template
 
-Each spec must begin with a metadata block. Use full paths from the project root in **Implementation** and **Related** lines (per [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 3.7).
+Each spec must begin with a metadata block. Use full paths from the project root in **Implementation** and **Related** lines (per [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#37-file-path-reference-standards), section 3.7. "File path reference standards").
 
 [EXAMPLE] Topic spec body sections (unnumbered headings): **Purpose**, **Requirements** (with `### Requirement:` and `#### Scenario:` subheadings), **Out of scope**, **Manual test checklist**, **Related documentation**. See [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md#6-related-documentation) for a full example.
 
@@ -91,7 +91,7 @@ This guide (`SPECS_GUIDE.md`) uses numbered sections so it can be referenced fro
 
 ### 4.3. Metadata dates
 
-Update **Last Updated** on the spec when requirements or scenarios change (same `YYYY-MM-DD` convention as plan items in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) section 3.9).
+Update **Last Updated** on the spec when requirements or scenarios change (same `YYYY-MM-DD` convention as plan items in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#39-dating-convention-for-plan-and-todo-items), section 3.9. "Dating convention for plan and TODO items").
 
 ---
 
@@ -133,13 +133,13 @@ Behavior spec files are registered in [`development_tools/config/development_too
 - `constants.fix_version_sync_directories` - `specs/` root for version-sync directory scans.
 - `path_drift.ignored_path_patterns` - heading fragments that are not file paths (for example "Behavior specifications", "Manual test checklist").
 
-When you add a new spec file, append its path to `fix_version_sync.docs` and document it in section 6 of this guide. See [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) section 4.
+When you add a new spec file, append its path to `fix_version_sync.docs` and document it in section 6 of this guide. See [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md#4-documentation-lists), section 4. "Documentation lists"
 
 ---
 
 ## 8. Related Documentation
 
-- [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) - section 2.4, behavior specifications category
+- [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#24-behavior-specifications) - section 2.4, behavior specifications category
 - [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - AI routing to specs
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture
 - [communication/communication_channels/discord/DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) - Discord adapter details

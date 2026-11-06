@@ -389,7 +389,7 @@ Typical options:
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
-**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See [TEST_PLAN.md](../development_docs/TEST_PLAN.md) Section 5.6.1 for details.
+**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. `run_tests.py` defaults to **five distinct Ctrl+C taps within 2 seconds**; near-simultaneous signals are debounced. Its progress message reports how many more taps are needed. The runner constants in `run_tests.py` are authoritative.
 
 **Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full`). Example:
 
@@ -804,8 +804,8 @@ Then:
 
 For error handling and logging details:
 
-- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
-- See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
+- See section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
+- See section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
 
 Align tests with those patterns:
 
@@ -847,7 +847,7 @@ That guide provides:
 - How to record results and file issues.
 - Triggers that indicate when manual testing is required.
 
-After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md#10-automated-checklist-map) section 10. Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
+After startup, schedule, reminder, UI, email, or Google Health changes, run the mapped pytest in [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md#10-automated-checklist-map), section 10. "Automated checklist map" Live checks remain for real inboxes, OAuth, visual layout, and AI tone.
 
 #### 8.2.1. Google Health mocks and live checks
 

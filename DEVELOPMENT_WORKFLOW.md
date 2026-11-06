@@ -19,7 +19,7 @@ This section summarizes the most common tasks and where to look for detail.
   - See section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended) for environment setup and first-run commands.
 
 - Running tests  
-  - See section 1. "Purpose and Scope" and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#1-purpose-and-scope).
+  - See section 1. "Purpose and Scope" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#1-purpose-and-scope) and section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#2-test-layout-and-types).
 
 - Updating documentation  
   - See section 2. "Documentation Categories" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#2-documentation-categories).
@@ -189,7 +189,7 @@ Key groups of settings in `.env`:
 
 For configuration validation and a summary of active settings:
 - Use `validate_all_configuration()` and `print_configuration_report()` from `core/config.py` directly in code
-- Use the AI dev tools `config` command (see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)) to validate that development tools are using configuration consistently
+- Use the AI dev tools `config` command (see section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite)) to validate that development tools are using configuration consistently
 
 ## 3. Development Process
 
@@ -213,7 +213,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 
 - Start with targeted tests that cover the change directly.  
 - Expand outward: unit -> integration -> behavior -> UI flows.  
-- Use `python run_tests.py` for broad runs, and see section 4. "Running Automated Tests" and section 5. "Parallel Execution and Coverage" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#4-running-automated-tests) for details and parallel-safe practices.
+- Use `python run_tests.py` for broad runs, and see section 4. "Running Automated Tests" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#4-running-automated-tests) and section 5. "Parallel Execution and Coverage" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#5-parallel-execution-and-coverage) for details and parallel-safe practices.
 - For features that depend on Discord or email, perform minimal manual verification as described in section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
 
 ### 3.4. Step 4: Document
@@ -276,7 +276,7 @@ For AI-optimized testing instructions and patterns, see the matching sections in
 4. Run targeted and regression tests after each step.  
 5. Update imports and documentation to reflect the new structure.  
 6. If you change test or logging patterns, update the associated guides.
-7. For legacy compatibility work, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) and treat compatibility code as temporary bridge code only.
+7. For legacy compatibility work, follow section 2. "Process" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#2-process) and treat compatibility code as temporary bridge code only.
 
 ### 5.4. Static Analysis (Ruff and Pyright)
 

@@ -31,7 +31,7 @@ Key components (see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.
 - **Recovery strategies**: `FileNotFoundRecovery`, `JSONDecodeRecovery`, `NetworkRecovery`, `ConfigurationRecovery`.  
 - **`ErrorHandler`**: central object with `handle_error(error, context, operation, user_friendly=True) -> bool`.  
 - **Decorator**: `handle_errors(operation=None, context=None, user_friendly=True, default_return=None, re_raise=False)` for wrapping entry points. Use `re_raise=True` when there is no safe default (e.g. lazy import helpers); the error is logged/handled then re-raised.  
-- **Service startup (`MHMService`)**: Bootstrap raises `CommunicationError` or `SchedulerError` with structured `details` (including `stage`) for subsystem failures. `MHMService.start()` treats `CommunicationError`, `SchedulerError`, `ConfigurationError`, and `core.config.ConfigValidationError` as fatal startup failures (CRITICAL logging before shutdown). Do not expect a `core.InitializationError` export; see section 2.6 in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#26-service-startup-mhmservice).
+- **Service startup (`MHMService`)**: Bootstrap raises `CommunicationError` or `SchedulerError` with structured `details` (including `stage`) for subsystem failures. `MHMService.start()` treats `CommunicationError`, `SchedulerError`, `ConfigurationError`, and `core.config.ConfigValidationError` as fatal startup failures (CRITICAL logging before shutdown). Do not expect a `core.InitializationError` export; see section 2.6. "Service startup (`MHMService`)" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#26-service-startup-mhmservice).
 
 Constraints:
 
@@ -154,7 +154,7 @@ Do not design new error mechanisms that are hard or impossible to test.
 
 ## 8. Monitoring and Debugging
 
-For debugging guidance, rely on section 8. "Monitoring and Debugging" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#8-monitoring-and-debugging) and section 8. "Monitoring and Debugging" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#34-error).
+For debugging guidance, rely on section 8. "Monitoring and Debugging" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#8-monitoring-and-debugging) and section 3.4. "ERROR" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#34-error).
 
 AI rules:
 

@@ -360,7 +360,7 @@ def test_oauth_callback_handler_stores_code():
     handler.do_GET()
     assert auth._OAuthCallbackHandler.auth_code == "the-code"
     handler._respond.assert_called_once_with(
-        200, "Google Health connected. You can close this window."
+        200, "Authorization received. Return to MHM to check the connection."
     )
 
 

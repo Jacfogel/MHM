@@ -8,11 +8,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from contextlib import suppress
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Literal
 
 import requests
+import re
 
 from core.config import GOOGLE_HEALTH_API_BASE_URL
 from core.error_handling import CommunicationError, handle_errors
@@ -45,6 +48,44 @@ DATA_TYPE_SPECS: dict[str, tuple[str, FilterMode]] = {
 }
 
 DATA_TYPES = tuple(DATA_TYPE_SPECS.keys())
+_REQUEST_COUNTS: ContextVar[dict[str, int] | None] = ContextVar("health_request_counts", default=None)
+
+
+@contextmanager
+def track_request_counts():
+    """Collect endpoint page counts for one sync without sharing users' state."""
+    counts: dict[str, int] = {}
+    token = _REQUEST_COUNTS.set(counts)
+    try:
+        yield counts
+    finally:
+        _REQUEST_COUNTS.reset(token)
+
+
+@handle_errors("recording Google Health page count", default_return=None)
+def _record_request(endpoint: str) -> None:
+    """Count a page attempt without recording tokens, records, or identities."""
+    counts = _REQUEST_COUNTS.get()
+    if counts is not None:
+        counts[endpoint] = counts.get(endpoint, 0) + 1
+
+
+@handle_errors("fetching Google Health identity", default_return=None, re_raise=True)
+def get_verified_health_user_id(access_token: str) -> str | None:
+    """Accept only healthUserId from the authenticated users/me/identity response."""
+    if is_google_health_testing_mode():
+        return None
+    response = requests.get(
+        f"{GOOGLE_HEALTH_API_BASE_URL}/users/me/identity",
+        headers={"Authorization": f"Bearer {access_token}"}, timeout=30,
+    )
+    if response.status_code != 200:
+        raise _health_api_error("identity", response.status_code)
+    payload = response.json()
+    identifier = payload.get("healthUserId") if isinstance(payload, dict) else None
+    if not isinstance(identifier, str) or not re.fullmatch(r"[A-Za-z0-9-]{1,63}", identifier):
+        raise CommunicationError("Google Health identity response lacks a valid healthUserId")
+    return identifier
 
 
 @handle_errors("building Google Health API error", re_raise=True)
@@ -141,13 +182,17 @@ def list_data_points(
     *,
     start_time: datetime | None = None,
     end_time: datetime | None = None,
-    page_size: int = 25,
+    page_size: int | None = None,
 ) -> list[dict[str, Any]]:
     """List data points for a data type (users/me)."""
     if is_google_health_testing_mode():
         return []
 
     endpoint, filter_prefix, filter_mode = _resolve_data_type_spec(data_type)
+    # Sleep has a provider cap of 25; other supported list types allow 10,000.
+    limit = 25 if endpoint == "sleep" else 10000
+    page_size = min(max(1, page_size if page_size is not None else
+                        (25 if endpoint == "sleep" else 1000)), limit)
     parent = f"users/me/dataTypes/{endpoint}"
     url = f"{GOOGLE_HEALTH_API_BASE_URL}/{parent}/dataPoints"
     params: dict[str, Any] = {"pageSize": page_size}
@@ -162,6 +207,7 @@ def list_data_points(
     headers = {"Authorization": f"Bearer {access_token}"}
     collected: list[dict[str, Any]] = []
     page_token: str | None = None
+    pages = 0
 
     while True:
         if page_token:
@@ -169,6 +215,7 @@ def list_data_points(
         elif "pageToken" in params:
             del params["pageToken"]
 
+        _record_request(endpoint)
         response = requests.get(url, headers=headers, params=params, timeout=30)
         if response.status_code != 200:
             body_preview = (response.text or "")[:300]
@@ -179,13 +226,17 @@ def list_data_points(
             raise _health_api_error(endpoint, response.status_code, kind="list")
 
         payload = response.json()
+        pages += 1
         batch = payload.get("dataPoints") or payload.get("data points") or []
         collected.extend(batch)
         page_token = payload.get("nextPageToken") or None
         if not page_token:
             break
 
-    logger.info(f"Google Health listed {len(collected)} data point(s) for {endpoint}")
+    logger.info(
+        f"Google Health listed {len(collected)} data point(s) for {endpoint}; "
+        f"pages={pages} page_size={page_size}"
+    )
     return collected
 
 
@@ -256,6 +307,7 @@ def _list_daily_rollups_single(
         elif "pageToken" in body:
             del body["pageToken"]
 
+        _record_request(f"{endpoint}:dailyRollUp")
         response = requests.post(url, headers=headers, json=body, timeout=60)
         if response.status_code != 200:
             body_preview = (response.text or "")[:300]

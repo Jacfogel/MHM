@@ -60,4 +60,4 @@
 
 ## 6. Relation to LIST_OF_LISTS
 
-Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md) Section 2.
+Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md#2-sources-of-truth) Section 2.

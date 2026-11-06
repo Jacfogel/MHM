@@ -84,7 +84,7 @@ Bot event wrappers also track:
 - `on_disconnect` - Logs disconnects and runs cleanup where registered.
 - `on_error` - Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system.
 
-When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview).
+When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#3-usage-patterns).
 
 ---
 
@@ -110,9 +110,9 @@ Guild and interaction events are handled in `events/lifecycle.py` (`handle_guild
 UI views are adapters between Discord's UI and the core message pipeline:
 
 - `get_checkin_view(user_id)` in `ui/checkin_view.py` returns a `discord.ui.View` with:
-  - "Cancel Check-in" - Routes `/cancel` through the interaction manager. :contentReference[oaicite:22]{index=22}  
-  - "Skip Question" - Routes `skip` through the interaction manager. :contentReference[oaicite:23]{index=23}  
-  - "More" - Sends static help text explaining how check-ins work. :contentReference[oaicite:24]{index=24}  
+  - "Cancel Check-in" - Routes `/cancel` through the interaction manager.
+  - "Skip Question" - Routes `skip` through the interaction manager.
+  - "More" - Sends static help text explaining how check-ins work.
 
 - `get_create_hub_view(user_id)` in `ui/create_item_ui.py` returns a `discord.ui.View` with:
   - The accompanying `create` / `new` / `add` message labels the first row as tasks. Template names and aliases are not listed in that message (use `list task templates` for the keyword list, including Meds and Appt).
@@ -134,6 +134,16 @@ Each button callback:
 - Is wrapped with `handle_errors` from `core.error_handling`, supplying a clear context string.  
 - Resolves the internal user ID using `core.get_user_id_by_identifier` and the Discord user ID.  
 - Uses `handle_user_message(internal_user_id, command_text, "discord")` to keep all real logic in the shared pipeline.
+
+---
+
+### 4.4. Account linking, tasks, and check-ins
+
+1. Send `start` (or `/start`) to open the welcome flow. Choose **Create a New Account** for a new account, or **Link to Existing Account** for a retained account. A recognized linked account receives the shorter welcome-back message.
+2. For linking, enter your **Account ID or contact** (UUID, registered email, Discord ID, or phone). If a confirmation code is sent, choose **Enter confirmation code** and submit the **Confirmation Code**. Finish that verification before expecting the account's tasks or check-ins. A lookup error means the identifier needs correction; creating another account does not repair a link.
+3. Send `show my tasks` or `/tasks`. Select a task from the dropdown. **Show More** loads another page when available; dropdown numbers match that page. A reminder offers **Done**, **Snooze**, **More**, and **Break down with AI**. To skip, type `skip task <task ID>`; there is no reminder Skip button. Use the short ID shown by **More** or the list.
+4. Send `start checkin` or `/checkin`, then answer each question in the same conversation. **Skip Question** skips just that question; **Cancel Check-in** stops the flow. **More** explains the controls. Use `restart checkin` or `/restart` to restart; `clear flows` or `/clear` clears a stuck flow before starting again.
+5. Type `help` or `/help` for current examples. Email uses text replies instead of these Discord controls; see section 3.1. "Replying by email" in [HOW_TO_RUN.md](../../../HOW_TO_RUN.md#31-replying-by-email).
 
 ---
 
@@ -169,7 +179,7 @@ In development, this server may be started in a background thread when the bot b
   - Sends a welcome DM via the running bot instance.  
   - Records that the user has been welcomed to avoid duplicates.
 
-The current implementation of `verify_webhook_signature` is a **placeholder**. It logs and performs basic checks but does not yet perform full ed25519 verification against Discord's public key. Before using this flow in production, upgrade this to a proper ed25519 implementation and update this section accordingly.
+The HTTP server in `webhooks/server.py` verifies the ed25519 signature over timestamp + request body with PyNaCl when `DISCORD_PUBLIC_KEY` is configured. Invalid signatures or unavailable verification dependencies are rejected. A missing key skips verification in development. The older `verify_webhook_signature` helper performs only basic checks; it is not the HTTP server's signature-verification boundary. Configure the key for an exposed endpoint; see section 5.2. "Discord (primary channel)" in [CONFIGURATION_REFERENCE.md](../../../CONFIGURATION_REFERENCE.md#52-discord-primary-channel).
 
 ### 5.3. Welcome Handler and Tracking
 
@@ -241,7 +251,7 @@ Where slash commands or prefixed commands are implemented:
 Any changes to command behavior should be reflected in:
 
 - The core interaction handlers.  
-- Relevant tests in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#2-test-layout-and-types) (sections 2 and 6).
+- Relevant tests in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#2-test-layout-and-types), section 2. "Test Layout and Types", and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#6-writing-and-extending-tests).
 - This section if the mapping strategy changes.
 
 ---
@@ -251,36 +261,13 @@ Any changes to command behavior should be reflected in:
 > **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](../../../CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
 
 
-Discord-related configuration lives in `core.config` and `.env` keys. Key variables include:
+Discord credentials, webhook key/port, and tunnel setting are defined in section 5.2. "Discord (primary channel)" in [CONFIGURATION_REFERENCE.md](../../../CONFIGURATION_REFERENCE.md#52-discord-primary-channel). Copy the matching `.env.example` entries rather than keeping a second definition here.
 
-- `DISCORD_BOT_TOKEN`  
-  - Required. Bot token used to authenticate with Discord.  
-  - Must **never** be hard-coded in source; only loaded from environment.
-
-- `DISCORD_APPLICATION_ID`  
-  - Optional but recommended.  
-  - Used for slash command registration and some application-level operations.
-
-- `DISCORD_PUBLIC_KEY`  
-  - Intended for webhook signature verification (webhook server).  
-  - Currently used as a placeholder; proper ed25519 verification is not yet implemented.  
-  - Before production use of webhooks, implement real signature verification.
-
-- `DISCORD_WEBHOOK_PORT`  
-  - Port on which the webhook HTTP server listens (default e.g. 8080).  
-  - If exposing this externally (or via ngrok), this port must be reachable from Discord.
-
-- `DISCORD_AUTO_NGROK`  
-  - When `true`, the bot starts an ngrok HTTP tunnel to `DISCORD_WEBHOOK_PORT` for local webhook development.  
-  - Requirements:
-    - ngrok is installed and on the PATH.  
-    - **ngrok v3+**: run `ngrok config add-authtoken <token>` once (token from the ngrok dashboard); without it, the process exits immediately with code 1. Check `logs/discord.log` for the captured stderr line.  
-    - Configure the tunnel's public URL in the Discord Developer Portal if Discord must reach your machine.  
-  - If you already run ngrok manually, set `DISCORD_AUTO_NGROK=false` to avoid duplicate tunnels.
+For local ngrok use, install ngrok and configure its authtoken on this machine before enabling automatic startup. If it exits immediately, inspect the captured stderr in `logs/discord.log`. Configure the tunnel URL in the Discord Developer Portal, and avoid starting both a manual and automatic tunnel for the same port.
 
 When changing or adding configuration:
 
-- Update `.env.example` and related documentation (e.g., section 5. "Configuration (Environment Variables)" in `logs/LOGGING_GUIDE.md` and section 6. "Configuration and Integration" in `core/ERROR_HANDLING_GUIDE.md`) as appropriate.  
+- Update `.env.example` and related documentation (e.g., section 5. "Configuration (Environment Variables)" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#5-configuration-environment-variables) and section 6. "Configuration and Integration" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#6-configuration-and-integration)) as appropriate.
 - Avoid introducing new Discord-specific environment keys unless necessary.
 
 ---
@@ -300,7 +287,7 @@ Use log levels consistently:
 - `error` for failed operations that impact a specific user or event.  
 - `debug` for diagnostic details.
 
-See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#2-logging-architecture) for detailed behavior.
+See section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout) for detailed behavior.
 
 ### 8.2. Error Handling
 
@@ -311,7 +298,7 @@ Most functions that touch Discord APIs or user-facing behavior should be wrapped
 
 Use clear context strings (e.g., `"creating check-in view"`, `"handling Discord message event"`) to make log messages and error categories easier to interpret.
 
-For guidance on error categories and severity, see section 4. "Error Categories and Severity" and section 3. "Usage Patterns" in `core/ERROR_HANDLING_GUIDE.md`.
+For guidance on error categories and severity, see section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity) and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md#3-usage-patterns).
 
 ### 8.3. Testing
 
@@ -321,11 +308,11 @@ When modifying the Discord channel:
   - Add unit tests for:
     - Event handler behavior (e.g., handling of missing internal user IDs).  
     - Parsing and routing behaviors that interact with the core pipeline.
-  - See section 2. "Test Layout and Types" and section 6. "Writing and Extending Tests" in `tests/TESTING_GUIDE.md`.
+  - See section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#2-test-layout-and-types) and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#6-writing-and-extending-tests).
 
 - **Manual tests**
   - Use the manual testing guides for channel-specific flows:
-    - Section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
+    - section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md#8-manual-and-channel-specific-testing-overview).
     - [MANUAL_TESTING_GUIDE.md](../../../tests/MANUAL_TESTING_GUIDE.md) and related Discord-specific sections.
 
 - **Webhook onboarding**
@@ -337,3 +324,11 @@ When modifying the Discord channel:
 Keep this section up to date when new major flows (like additional interactive views or webhook event types) are added.
 
 ---
+
+### 8.4. Troubleshooting account and conversation controls
+
+**Account not found while linking:** check the exact UUID/contact in the existing account; submit it again through **Link to Existing Account**. If a code was sent, use **Enter confirmation code** rather than repeating account creation. Check `logs/discord.log`, `logs/communication_manager.log`, and `logs/errors.log` for the failing lookup/delivery. Expected result: confirmation succeeds and `show my tasks` reads the existing account.
+
+**Buttons fail after a restart or a task is no longer found:** send `/tasks` for a fresh list, select the current task, and retry from its current controls. A task-breakdown review expires after five minutes; request a new review before saving steps. Expected result: the current dropdown/reminder acts on the displayed task ID. Preserve the account and task files.
+
+**A check-in seems stuck:** try `/cancel`; if the flow remains stuck, use `/clear`, then `/checkin` to start again. Use `/restart` when you intentionally want to restart the active check-in. Check `logs/discord.log` and `logs/communication_manager.log` if the bot does not reply. Expected result: a new question or cancellation acknowledgement. Channel credentials and service startup checks are in section 5.2. "Discord (primary channel)" in [CONFIGURATION_REFERENCE.md](../../../CONFIGURATION_REFERENCE.md#52-discord-primary-channel); log locations are in section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).

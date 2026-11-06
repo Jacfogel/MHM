@@ -224,8 +224,20 @@ def ensure_valid_access_token(
 @handle_errors("persisting OAuth tokens for user", default_return=False)
 def save_tokens_for_user(user_id: str, token_data: dict[str, Any]) -> bool:
     """Store token response after initial connect."""
+    from integrations.google_health.client import get_verified_health_user_id
+
+    access_token = token_data.get("access_token")
+    if not isinstance(access_token, str) or not access_token:
+        return False
+    # Resolve before changing saved credentials. A failed reconnect keeps the old
+    # connection intact, and token-response fields are never treated as identity.
+    health_user_id = get_verified_health_user_id(access_token)
     now = now_timestamp_full()
     auth = load_auth(user_id) or {}
+    if (health_user_id and auth.get("google_user_id")
+            and auth["google_user_id"] != health_user_id
+            and not token_data.get("refresh_token")):
+        raise CommunicationError("A different Google Health account requires a new refresh token")
     auth.update(
         {
             "access_token": token_data.get("access_token", ""),
@@ -235,6 +247,7 @@ def save_tokens_for_user(user_id: str, token_data: dict[str, Any]) -> bool:
             "scopes": get_google_health_oauth_scopes(),
             "connected_at": auth.get("connected_at") or now,
             "last_refresh_at": now,
+            "google_user_id": health_user_id or "",
         }
     )
     return save_auth(user_id, auth)
@@ -266,7 +279,7 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
             self._respond(400, "Missing authorization code.")
             return
         _OAuthCallbackHandler.auth_code = code
-        self._respond(200, "Google Health connected. You can close this window.")
+        self._respond(200, "Authorization received. Return to MHM to check the connection.")
 
     @handle_errors("responding to OAuth callback", default_return=None)
     def _respond(self, status: int, message: str) -> None:
@@ -322,5 +335,6 @@ def run_oauth_connect_flow(
     if not token_data:
         raise CommunicationError("Failed to exchange authorization code")
 
-    save_tokens_for_user(user_id, token_data)
+    if not save_tokens_for_user(user_id, token_data):
+        raise CommunicationError("Failed to verify or save Google Health connection")
     return token_data

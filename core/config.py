@@ -442,6 +442,9 @@ GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES = int(
 GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS = int(
     os.getenv("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS", "3")
 )
+GOOGLE_HEALTH_BASELINE_WINDOW_DAYS = int(
+    os.getenv("GOOGLE_HEALTH_BASELINE_WINDOW_DAYS", "14")
+)
 GOOGLE_HEALTH_API_BASE_URL = os.getenv(
     "GOOGLE_HEALTH_API_BASE_URL", "https://health.googleapis.com/v4"
 )
@@ -701,6 +704,9 @@ def validate_google_health_configuration() -> tuple[bool, list[str], list[str]]:
         errors.append("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS must be at least 1")
     elif GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS > 30:
         warnings.append("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS is very high (> 30)")
+
+    if not 7 <= GOOGLE_HEALTH_BASELINE_WINDOW_DAYS <= 90:
+        errors.append("GOOGLE_HEALTH_BASELINE_WINDOW_DAYS must be between 7 and 90")
 
     if GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES < 1:
         errors.append("GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES must be at least 1")

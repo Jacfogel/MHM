@@ -96,6 +96,21 @@ class TestGoogleHealthSettingsDialog:
             assert dialog.btn_enable.isEnabled() is False
         dialog.deleteLater()
 
+    def test_personalization_save_uses_selected_user_without_enabling_health(self, qapp):
+        with patch("ui.dialogs.google_health_settings_dialog.get_user_data", return_value={
+            "preferences": {"health_personalization": {"use_in_messages": False, "use_in_chat": True}}
+        }):
+            stack, dialog = _open_dialog()
+        with stack, patch("ui.dialogs.google_health_settings_dialog.update_user_preferences", return_value=True) as save, patch.object(QMessageBox, "information"):
+            assert not dialog.use_in_messages.isChecked()
+            assert dialog.use_in_chat.isChecked()
+            dialog.use_in_chat.setChecked(False)
+            dialog.save_personalization()
+            save.assert_called_once_with("user-1", {"health_personalization": {
+                "use_in_messages": False, "use_in_chat": False,
+            }}, auto_create=False)
+        dialog.deleteLater()
+
     def test_refresh_status_when_status_missing(self, qapp):
         stack, dialog = _open_dialog(load_status=None)
         with stack:

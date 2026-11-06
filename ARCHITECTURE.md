@@ -13,7 +13,7 @@ See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md]
 For supporting details on logging, testing, and error handling, see:
 
 - Section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture)
-- Section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#2-test-layout-and-types)
+- section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#2-test-layout-and-types)
 - Section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md#2-architecture-overview)
 
 ---
@@ -83,8 +83,7 @@ This section describes the top-level directories. It should match the actual pro
 
 - `tests/`
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
-  `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
-  "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
+  `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#2-test-layout-and-types) and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md#3-fixtures-utilities-and-safety).
 
 - `ui/`  
   PySide6 admin application:
@@ -130,7 +129,7 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 - Additional JSON files and subdirectories (for example `checkins.json`,
   `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
 
-**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations` facade plus `user_data_user_info` / `user_data_backup` / `user_data_index` / `user_data_summaries`, `schedule_runtime`, `schedule_period_normalize`, `schedule_document_defaults`) and v2 envelope-in-memory account/preferences/schedules versus remaining inner shapes (context/tags/chat), see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map).
+**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations` facade plus `user_data_user_info` / `user_data_backup` / `user_data_index` / `user_data_summaries`, `schedule_runtime`, `schedule_period_normalize`, `schedule_document_defaults`) and v2 envelope-in-memory account/preferences/schedules versus remaining inner shapes (context/tags/chat), see section 0. "User data and schedule module map" in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md#0-user-data-and-schedule-module-map).
 
 Important rules:
 
@@ -303,7 +302,7 @@ listing of every file.
 - `core/logger.py`  
   Central logging setup. Provides component loggers and attaches handlers to the
   appropriate log files under `logs/`. For log levels, file layout, and rotation rules,
-  see section 2. Logging Architecture and section 4. Component Log Files and Layout in
+  see section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in
   [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
 
 - `core/error_handling.py`  

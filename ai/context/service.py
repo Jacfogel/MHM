@@ -419,6 +419,10 @@ def _build_notebook_context(user_id: str) -> dict[str, Any]:
 @handle_errors("building health context", default_return={})
 def _build_health_context(user_id: str) -> dict[str, Any]:
     """Build safe AI-facing health guidance context."""
+    from core.health_signals import health_personalization_allowed
+
+    if not health_personalization_allowed(user_id, surface="chat"):
+        return {"guidance_summary": "", "recent_patterns": "", "available": False}
     summary = build_safe_health_guidance_summary(user_id)
     recent_patterns = build_recent_health_patterns(user_id)
     return {

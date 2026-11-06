@@ -56,8 +56,8 @@ Core behavior:
 
 Routing:
 
-- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
-- See section 2.3 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#23-where-error--critical-go) for what actually enters `errors.log`.
+- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity) and section 5.2. "Log messages" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#52-log-messages).
+- See section 2.3. "Where ERROR / CRITICAL go" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#23-where-error--critical-go) for what actually enters `errors.log`.
 
 ---
 
@@ -87,7 +87,7 @@ Logging configuration semantics (env vars, defaults, failure modes) are defined 
 Where behavior is configured:
 
 - Logging-related settings live in `core/config.py` and are usually driven by `.env` values.
-- For human-facing operational guidance and full variable list, see [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+- For operational configuration and the full variable list, see section 5. "Configuration (Environment Variables)" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#5-configuration-environment-variables).
 
 Do not introduce new logging environment variables without updating:
 
@@ -105,7 +105,7 @@ Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers
 - Rotated files are moved into `LOG_BACKUP_DIR` (e.g. `logs/backups/`) with a date suffix.  
 - Backups older than 7 days are compressed and moved to `LOG_ARCHIVE_DIR` (e.g. `logs/archive/`) as `.gz`; archives older than 30 days are removed.
 
-**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#61-backup-vs-archive) and [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
+**Backup vs archive**: See section 6.1. "Backup vs archive" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#61-backup-vs-archive) and [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md#1-log-rotation-system) for how backup filenames relate to content and when files move to archive.
 
 Where to look:
 
@@ -115,7 +115,7 @@ Where to look:
 AI usage:
 
 - Don't reimplement rotation; call existing helpers or adjust configuration.  
-- If you change rotation policies, update section 6 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#6-log-rotation-backups-and-archival) to match.
+- If you change rotation policies, update section 6. "Log Rotation, Backups, and Archival" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#6-log-rotation-backups-and-archival) to match.
 
 ---
 
