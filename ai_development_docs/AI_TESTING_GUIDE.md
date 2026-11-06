@@ -126,6 +126,11 @@ environment versions in the `nightly-test-suite-results` artifact. Three-minute
 test stalls emit Python stack traces. Native crashes produce stack traces
 without argument/local values; temporary raw cores stay on the runner and are
 deleted after extraction. See section 4 of the paired testing guide for replay.
+Qt-enabled processes also record GC-visible QObject wrapper type, validity,
+ownership, and first-observed test/phase at setup/teardown, with full inventories
+at session finish, unconfigure, and before Qt's atexit cleanup. These are weakly
+tracked metadata, not creation stacks; no widget text or Qt method calls are
+recorded. A native core dump now fails the workflow even if xdist reports success.
 
 Full-suite environments require Node.js 20 or newer. The serial pytest bridge
 at `tests/integration/test_browser_javascript_suite.py` runs every

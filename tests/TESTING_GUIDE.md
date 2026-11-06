@@ -276,6 +276,23 @@ omitted. Raw core files are temporary runner files, excluded from artifacts,
 and deleted after stack extraction. Native stack extraction has not been
 validated on Windows; it runs only in the Ubuntu nightly workflow.
 
+The opt-in recorder also inventories GC-visible QObject wrappers after setup
+and teardown. `qt_snapshot` events contain changed/removed wrapper IDs, Python
+types, Shiboken validity/ownership/creation flags, and the first test/phase that
+observed each wrapper. Session finish, unconfigure, and `before_qt_atexit` include
+full inventories; the last also lists thread names/IDs/daemon flags. Snapshots
+start with a flushed `qt_snapshot_begin` event so an interrupted scan is visible.
+The atexit recorder is registered after Qt loads, placing it before Qt cleanup
+in Python's reverse callback order. Later application callbacks can still run
+before this snapshot. No QObject methods, names, text, properties, or object
+representations are read, and weak references do not keep wrappers alive.
+First observation is not a constructor trace; objects created and destroyed
+between snapshots and C++ objects without GC-visible wrappers may be missed.
+Use the final surviving IDs and their first-observed tests to reduce a replay.
+The native-backtrace step now returns failure whenever it finds a raw core,
+including crashes after an xdist worker has reported success. Artifact upload
+still runs on failure, and raw cores are still removed after extraction.
+
 This section covers how to run automated tests in standard scenarios. It intentionally focuses on a few blessed entry points.
 
 Install Node.js 20 or newer before running the full suite. A serial pytest bridge

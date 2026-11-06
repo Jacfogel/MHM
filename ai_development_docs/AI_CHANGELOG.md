@@ -31,6 +31,8 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-11-06 - Investigate nightly run 160
+- GitHub rerun passed 6,451 tests with 8 skips but repeated the Qt atexit crash. Added weakly tracked QObject validity/ownership and first-observation inventories at test/shutdown boundaries, plus a workflow failure gate for native core dumps. Linux validation of the new instrumentation remains pending; the crash remains open.
+- Instrumentation validation: five focused checks pass serially and with two workers, real offscreen Qt invalid-wrapper/atexit probe passes, clean/crash workflow guard probes pass, targeted Ruff and Tier 2 audit pass.
 - Reproduced the no-print policy failure and moved the three measurement files to component INFO logging; 25 focused checks, targeted Ruff, and Tier 2 audit pass.
 - Native diagnostics place the separate worker crash after successful session finish, inside PySide6/Qt application destruction during interpreter exit. Originating object/test remains unknown; Linux replay details and remaining full-suite validation are tracked in TEST_PLAN 2.8. No crash fix or full-suite pass is claimed.
 

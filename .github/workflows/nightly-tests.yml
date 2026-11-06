@@ -82,7 +82,9 @@ jobs:
         run: |
           mkdir -p tests/logs/nightly_diagnostics
           shopt -s nullglob
+          native_crash=0
           for core in "$RUNNER_TEMP"/mhm-native-cores/core.*; do
+            native_crash=1
             # Retain stack frames without arguments or local variable values.
             timeout 120s gdb --batch -nx \
               -ex "set pagination off" \
@@ -93,6 +95,11 @@ jobs:
               > "tests/logs/nightly_diagnostics/$(basename "$core").backtrace.txt" 2>&1 || true
             rm -f -- "$core"
           done
+          # xdist can report success before a worker crashes during atexit.
+          if [ "$native_crash" -ne 0 ]; then
+            echo "::error::Native crash detected after test execution; see nightly diagnostics."
+            exit 1
+          fi
 
       - name: Summarize nightly results on failure
         if: failure()
