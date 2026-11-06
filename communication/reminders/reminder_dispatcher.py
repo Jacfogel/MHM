@@ -9,6 +9,7 @@ from communication.core.message_send_result import (
     MessageSendResult,
 )
 from core.error_handling import handle_errors
+from core.ids import display_short_id
 from core.logger import get_component_logger
 
 logger = get_component_logger("communication_manager")
@@ -254,10 +255,10 @@ class TaskReminderDispatcher:
 
         is_low_energy = energy in {1, 2} if low_energy is None else low_energy
         heading = (
-            "A gentle task reminder" if gentle or is_low_energy else "Task Reminder"
+            "Gentle task reminder" if gentle or is_low_energy else "Task Reminder"
         )
-        message = f"💡 **{heading}:** {priority_emoji}\n\n"
-        message += f"**{title}**\n"
+        message = f"💡 **{heading}:**\n\n"
+        message += f"{priority_emoji} **{title}**\n"
         if isinstance(focus_step, dict):
             parent_title = str(task.get("title") or "").strip()
             if parent_title:
@@ -270,6 +271,11 @@ class TaskReminderDispatcher:
             message += f"📅 **Due:** {due_date}\n"
 
         message += f"⚡ **Priority:** {priority.title()}\n"
+        short_id = display_short_id(
+            short_id=task.get("short_id"), record_id=task.get("id"), kind="task"
+        )
+        if short_id:
+            message += f"**Task ID:** `{short_id}`\n"
         reason = explain_task_focus(
             shown, energy=energy, low_energy=is_low_energy and not energy_cooldown
         )
@@ -277,8 +283,6 @@ class TaskReminderDispatcher:
             message += f"\n**Why this one:** {reason}"
         if pressure_explanation:
             message += f"\n{pressure_explanation}"
-        if gentle or is_low_energy:
-            message += "\n\nA smaller step is enough today—use **Break down with AI** if that would help."
         deferral_advice = repeated_deferral_advice(task, focus_step=focus_step)
         if deferral_advice:
             message += f"\n\n{deferral_advice}"

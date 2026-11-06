@@ -124,7 +124,6 @@ class TestTaskReminderView:
             "Done",
             "Snooze",
             "More",
-            "Leave me alone",
             "Break down with AI",
         ]
         break_button = next(
@@ -219,22 +218,6 @@ class TestTaskReminderView:
             await button.callback(interaction)
         message = interaction.followup.send.call_args.args[0]
         assert "account" in message.lower()
-
-    @pytest.mark.asyncio
-    async def test_skip_button_routes_skip_command(self, mock_interaction_factory):
-        view = get_task_reminder_view("user-1", "task-1", "Call dentist")
-        button = next(child for child in view.children if child.label == "Leave me alone")
-        interaction = mock_interaction_factory()
-        fake_response = type("Resp", (), {"message": "Okay. I skipped this time."})()
-        with (
-            patch("core.get_user_id_by_identifier", return_value="user-1"),
-            patch(
-                "communication.message_processing.interaction_manager.handle_user_message",
-                return_value=fake_response,
-            ) as handle_message,
-        ):
-            await button.callback(interaction)
-        handle_message.assert_called_once_with("user-1", "skip task task-1", "discord")
 
     @pytest.mark.asyncio
     async def test_break_down_button_suggests_steps(self, mock_interaction_factory):

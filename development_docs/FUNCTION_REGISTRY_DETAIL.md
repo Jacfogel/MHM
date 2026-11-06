@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 13:22:50
+> **Last Generated**: 2026-11-05 20:49:02
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3245
-- **Methods Found**: 1648
+- **Functions Found**: 3244
+- **Methods Found**: 1647
 - **Classes Found**: 290
-- **Total Items**: 4893
-- **Functions Documented**: 2891
-- **Methods Documented**: 1469
+- **Total Items**: 4891
+- **Functions Documented**: 2890
+- **Methods Documented**: 1468
 - **Classes Documented**: 223
-- **Total Documented**: 4360
+- **Total Documented**: 4358
 - **Template-Generated**: 70
 - **Last Updated**: 2026-11-05
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (689)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (912)
+### **Communication Functions** (911)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (555)
@@ -2533,7 +2533,6 @@ Returns:
 - [OK] `remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
 - [OK] `restore_task_reminder_views(client)` - Register saved task buttons so old reminder messages survive a restart.
 - [OK] `simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
-- [OK] `skip_button(self, interaction, button)` - Skip this occurrence through the shared task command path.
 - [OK] `snooze_custom(self, interaction, button)` - Open a modal so the user can type a custom snooze time.
 - [OK] `snooze_next_week(self, interaction, button)` - Snooze the reminder until next week.
 - [OK] `snooze_one_hour(self, interaction, button)` - Snooze the reminder for one hour.
@@ -2558,7 +2557,6 @@ Args:
   - [OK] `TaskReminderView.more_button(self, interaction, button)` - Handle More button click - show additional information
   - [OK] `TaskReminderView.remind_later_button(self, interaction, button)` - Handle Remind Me Later by asking when to ping again.
   - [OK] `TaskReminderView.simplify_button(self, interaction, button)` - Suggest smaller steps and let the user save them as subtasks.
-  - [OK] `TaskReminderView.skip_button(self, interaction, button)` - Skip this occurrence through the shared task command path.
 - [MISSING] `TaskSnoozeChoiceView` - No description
   - [OK] `TaskSnoozeChoiceView.__init__(self, user_id, task_id, task_title)` - Store the task to snooze for the choice buttons.
   - [OK] `TaskSnoozeChoiceView._run_snooze_command(self, interaction, command)` - Defer and run a channel-agnostic snooze command.

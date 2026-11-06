@@ -417,15 +417,18 @@ class TestChannelOrchestratorHelpers:
             "title": "File taxes",
             "priority": "high",
             "due": {"date": "2026-10-17"},
+            "short_id": "t692f6d",
         }
 
         message = self.manager.task_reminder_dispatcher.create_task_reminder_message(
             task, energy=1, gentle=True
         )
 
-        assert "gentle task reminder" in message.lower()
+        assert message.startswith("💡 **Gentle task reminder:**\n\n🔴 **File taxes**\n")
         assert "Why this one" in message
-        assert "Break down with AI" in message
+        assert "**Task ID:** `t692f6d`" in message
+        assert "A smaller step is enough today" not in message
+        assert "Break down with AI" not in message
 
     def test_repeated_deferrals_change_task_reminder_guidance(self):
         """Repeated snoozes replace identical copy with a useful next action."""

@@ -176,34 +176,6 @@ def get_task_reminder_view(
             await interaction.response.send_message(more_info, ephemeral=True)
 
         @discord.ui.button(
-            label="Leave me alone",
-            style=discord.ButtonStyle.secondary,
-            custom_id=f"task_skip_{user_id}_{task_id}",
-            row=1,
-        )
-        @handle_errors("skipping task occurrence from reminder", context={"component": "discord"})
-        async def skip_button(
-            self, interaction: discord.Interaction, button: discord.ui.Button
-        ):
-            """Skip this occurrence through the shared task command path."""
-            await interaction.response.defer()
-            from communication.message_processing.interaction_manager import (
-                handle_user_message,
-            )
-            from core import get_user_id_by_identifier
-
-            internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
-            if not internal_user_id:
-                await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
-                )
-                return
-            response = handle_user_message(
-                internal_user_id, f"skip task {self.task_id}", "discord"
-            )
-            await interaction.followup.send(response.message, ephemeral=True)
-
-        @discord.ui.button(
             label="Break down with AI",
             style=discord.ButtonStyle.primary,
             custom_id=f"task_simplify_{user_id}_{task_id}",

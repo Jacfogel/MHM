@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-05 - Clearer task reminders and simpler Discord controls
+- Shortened the gentle reminder heading, moved the priority emoji beside the title, added the short task ID below priority, and removed the automatic smaller-step closing suggestion.
+- Removed the Discord "Leave me alone" button and the due-date reassurance from the snooze-choice prompt. Snooze behavior and the text skip command remain unchanged.
+- Updated reminder-format and button tests. Six focused tests passed for the initial wording/layout changes; the later combined run stalled and was stopped, leaving final verification incomplete.
+
 ### 2026-11-05 - Reminder and Google Health notification recovery
 - Prevented restart duplicates by checking persisted successful deliveries for the same category, period, and day before scheduling or sending. Existing delays remain unchanged; reminder-focused runs passed 23 and 49 tests.
 - Traced missing Google Health messages to October 4 token failures and auto-pause after the last October 3 sync/message. The reconnect warning failed and was never revisited; its original delivery error is no longer available. The personalized Google Health category is also absent from enabled preferences despite a saved schedule.

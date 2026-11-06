@@ -1230,7 +1230,6 @@ class TaskManagementHandler(InteractionHandler):
         )
         return InteractionResponse(
             f"When should I remind you about **{title}**?\n"
-            "The due date stays the same.\n"
             f"Choose 1 hour, {tonight_label.lower()}, next week, or a custom time "
             f"like `snooze task {short_id} until Friday 3pm`.",
             False,

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-05 13:22:53
+> **Last Generated**: 2026-11-05 20:49:06
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 313
-- **Total Imports Found**: 2820
+- **Total Imports Found**: 2819
 - **Dependencies Documented**: 313 (100% coverage)
 - **Standard Library Imports**: 810 (28.7%)
 - **Third-Party Imports**: 235 (8.3%)
-- **Local Imports**: 1775 (62.9%)
+- **Local Imports**: 1774 (62.9%)
 - **Last Updated**: 2026-11-05
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 810 imports (28.7%)
 - **Third-Party**: 235 imports (8.3%)
-- **Local**: 1775 imports (62.9%)
+- **Local**: 1774 imports (62.9%)
 
 ## Module Dependencies by Directory
 
@@ -3585,6 +3585,7 @@
     - `communication.core (channel_orchestrator)` (NEW)
     - `communication.core.message_send_result (CHANNEL_SEND_UNCONFIRMED, MessageSendResult)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.ids (display_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_pressure (resolve_message_pressure, task_reminder_allowed_during_quiet_mode, user_quiet_mode_is_active)` (NEW)
     - `scheduler.user_timezone (user_local_now_naive)` (NEW)
@@ -3601,7 +3602,7 @@
   - `communication/reminders/__init__.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.email.bot, communication.communication_channels.interaction_view_factory, communication.communication_channels.website.inbox, communication.core, communication.core.message_send_result, core.error_handling, core.logger, core.message_pressure, scheduler.user_timezone, tasks, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_focus, tasks.task_reminder_deferrals
+- Added: communication.communication_channels.email.bot, communication.communication_channels.interaction_view_factory, communication.communication_channels.website.inbox, communication.core, communication.core.message_send_result, core.error_handling, core.ids, core.logger, core.message_pressure, scheduler.user_timezone, tasks, tasks.task_breakdown, tasks.task_data_handlers, tasks.task_focus, tasks.task_reminder_deferrals
 - Removed: communication/core/channel_orchestrator.py, communication/reminders/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4392,6 +4393,7 @@
   - `communication/command_handlers/notebook_handler.py`
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/message_processing/flows/note_flow.py`
+  - `communication/reminders/reminder_dispatcher.py`
   - `messages/message_data_manager.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
