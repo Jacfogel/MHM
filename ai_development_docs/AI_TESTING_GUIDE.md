@@ -110,7 +110,9 @@ the test lifetime, after creating QApplication. It preserves existing windows,
 disposes new top-level widgets (including detached rows), and delivers only
 DeferredDelete events. Autouse fixtures now cover user-profile coverage,
 dialog behavior, account creation, task settings, task CRUD, signal integration,
-and task management tests, finishing after their dialog/widget fixtures.
+task management, widget behavior, and UI widget coverage-expansion tests,
+finishing after their dialog/widget fixtures. In the coverage-expansion fixture,
+native deferred deletion precedes Python garbage collection.
 Other UI modules still need evidence-based review.
 
 - Headline rule: test logging must be isolated. Write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or real user data directories.

@@ -23,7 +23,9 @@ from unittest.mock import patch
 
 # PySide6 imports for testing
 from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QCoreApplication, QEvent, Qt
+from shiboken6 import isValid
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 # Import widget classes
 from ui.widgets.tag_widget import TagWidget
@@ -86,12 +88,10 @@ class TestUIWidgetsCoverageExpansion:
             }
     
     @pytest.fixture(autouse=True)
-    def cleanup_widgets(self):
-        """Ensure widgets are properly cleaned up after each test."""
-        yield
-        # Force garbage collection to clean up any remaining widgets
-        # Note: This may trigger warnings about unawaited coroutines from async mocks
-        # These are expected in test environments and are filtered in pytest.ini
+    def cleanup_widgets(self, app):
+        """Destroy native widgets before collecting their Python reference cycles."""
+        with qt_widget_scope():
+            yield
         import gc
         gc.collect()
 
@@ -632,7 +632,8 @@ class TestUIWidgetsCoverageExpansion:
             
             # Test widget destruction
             widget.deleteLater()
-            # Note: Actual destruction is handled by Qt event loop
+            QCoreApplication.sendPostedEvents(widget, QEvent.Type.DeferredDelete)
+            assert not isValid(widget)
 
     # ============================================================================
     # Performance Tests

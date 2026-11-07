@@ -22,6 +22,7 @@ import json
 import uuid
 from pathlib import Path
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 # Do not modify sys.path; rely on package imports
 
@@ -46,6 +47,13 @@ def qapp():
         app = QApplication([])
     yield app
     # Don't quit the app as it might be used by other tests
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Complete deferred deletion after all widget fixtures have torn down."""
+    with qt_widget_scope():
+        yield
 
 
 class TestTagWidgetBehavior:
