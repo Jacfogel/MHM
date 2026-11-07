@@ -22,6 +22,8 @@
 
 When Discord UI or parsing changes, optionally check task picker/details, creation follow-ups, parsed due dates/titles, template modals, and create-hub buttons. Use [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) and the [manual Discord guide](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for the relevant validation paths.
 
+**Current evidence (2026-11-07)**: All 20 task-list UI tests pass, including picker/details, follow-up delegation, account checks, and button callbacks. Windows async setup required local loopback access; the restricted run timed out in `socket.socketpair()` before reaching an async test body. Live rendering and the other optional flows above remain unverified by this focused file.
+
 ## Deferred Attachments
 
 **Status**: DEFERRED

@@ -6,6 +6,7 @@
 > **See [development_docs/CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the full history**
 
 ## Overview
+
 This file is a lightweight summary of recent changes for AI collaborators. It provides essential context without overwhelming detail. For the complete historical record, see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md).
 
 ## How to Update This File
@@ -29,6 +30,14 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2026-11-07 - Strengthen test runner isolation and policy boundaries **COMPLETED**
+- Both serial runner paths now use the tools pytest configuration/conftest boundary; regression tests cover standalone tools and full-suite modes.
+- Focused validation: 15 tests passed and marker analysis passed. The real one-worker tools run reached 72 passes before memory exceeded 98%; stopped it and the concurrent audit. Complete-suite/audit validation remains open in TEST_PLAN.md.
+- Monitoring follow-up: closed domain-marker monitoring after analyzer/policy validation, retaining routine maintenance. Notebook/help (23) and task-list UI (20) tests pass; Windows async tests needed local loopback access. Production log sizes stayed unchanged. Live checks remain open; only the user runs full audits.
+- Added product AST boundary guards for time APIs, stream JSON storage, and core/UI imports; documented exact exceptions and scanner limits. Five health time calls now use canonical helpers; 33 policy and 62 existing health/time checks pass, plus Ruff/marker/diff checks. Completed roadmap items moved to maintenance; no full audit or live reload for this follow-up.
+- Fixed boundary-test links in both testing guides and clarified prose for path scanning; narrowed AST node types to remove the Pyright warning without suppression. All 15 core/UI checks pass; follow-up uses doc-sync/Pyright only.
+- Health follow-up: transition tests reproduced future-dated signals affecting pressure; fallback now excludes future dates. Health cooldown evaluation moves to monitoring; an extra timer awaits live evidence of intraday oscillation and must respect immediate opt-out. User's clear full audit is recorded separately from complete-suite/live gates; no agent full audit.
 
 ### 2026-11-07 - Audit and standardize development planning documents **COMPLETED**
 - Removed completed planning items, corrected stale statuses/behavior, and preserved unfinished work found inside completed summaries. Windows suite reliability and live validation remain open; audit scope is explicit.
@@ -120,11 +129,6 @@ Guidelines:
 - Explicit positive HTTP timeout clears Bandit B113. Removed unused OpenAI manager wrappers; client readiness remains authoritative. Clarified sampling documentation and repaired eight historical broken links.
 - 167 focused regressions pass, with clean Ruff/Pyright checks. Restart MHM to load updated libraries.
 - **Audit refresh**: Standard analyzers now report zero dependency vulnerabilities, Bandit issues, duplicate groups, facade/shim candidates, and Markdown link-target hints. Regenerated documentation and cached status/priority reports; documentation sync passes. Full Tier 3 audit and coverage regeneration were not rerun.
-
-### 2026-10-28 - Two-message notebook append sessions **COMPLETED**
-- Reference-only `!append` now starts a persisted append session; the next reply adds to the existing note or journal entry. One-message commands remain supported.
-- Cancel, skip, and timeout leave content unchanged; lists and invalid references are rejected before starting.
-- **Verification**: 95 notebook behavior and handler checks pass. Targeted Ruff and Pyright checks pass. Restart the service to load the new flow.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

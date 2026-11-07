@@ -12,7 +12,7 @@ from typing import Any
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import DATE_ONLY, now_datetime_full, parse_timestamp_full
+from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full, parse_timestamp_full
 from integrations.google_health.data_handlers import load_health_signals
 
 logger = get_component_logger("google_health")
@@ -51,7 +51,7 @@ def health_personalization_allowed(user_id: str, *, surface: str) -> bool:
 def get_today_signal(user_id: str) -> dict[str, Any] | None:
     if not is_personalization_active(user_id):
         return None
-    today = now_datetime_full().strftime(DATE_ONLY)
+    today = format_timestamp(now_datetime_full(), DATE_ONLY)
     doc = load_health_signals(user_id)
     if not doc:
         return None
@@ -65,7 +65,7 @@ def get_today_signal(user_id: str) -> dict[str, Any] | None:
 def get_latest_usable_signal(
     user_id: str, *, max_age_days: int = 2
 ) -> dict[str, Any] | None:
-    """Return the newest non-low-confidence signal within the recent window."""
+    """Return the newest non-low-confidence signal from the cutoff through today."""
     if not is_personalization_active(user_id):
         return None
     doc = load_health_signals(user_id)
@@ -84,7 +84,7 @@ def get_latest_usable_signal(
         signal_date = _parse_signal_date(str(signal.get("date") or ""))
         if signal_date is None:
             continue
-        if signal_date.date() < cutoff:
+        if not cutoff <= signal_date.date() <= today:
             continue
         candidates.append((signal_date, signal))
 

@@ -763,6 +763,10 @@ When using an exception, add a short comment explaining:
 
 ### 6.5. Quality expectations
 
+Product architectural boundaries have three focused guards: [test_time_api_policy.py](unit/test_time_api_policy.py), [test_user_data_json_policy.py](unit/test_user_data_json_policy.py), and [test_core_ui_import_policy.py](unit/test_core_ui_import_policy.py). Run them directly with pytest after changes to time APIs, storage, or module dependencies. The shared AST scanner reads product packages and root application entry points without importing them; tests, scripts, and development tools are outside this product policy scope. New product packages must be added to `PRODUCT_ROOTS` in `tests/test_helpers/source_policy.py`. The scanner resolves import aliases but does not follow arbitrary runtime reassignment or computed dynamic imports.
+
+Only `core/time_utilities.py` may directly call the clock/format/parse APIs. JSON `load`/`dump` is restricted to documented storage primitives, with exact path/function/API exceptions for shared resources, backup metadata, recovery primitives, and service request IPC; new functions in those files receive no automatic exception. `loads`/`dumps` is in-memory serialization and outside this policy. Keep exceptions narrow, reasoned, and current (a test rejects stale JSON call exceptions). Core imports of `ui` are forbidden with no exceptions. Failures include the source path, line, and the approved replacement boundary.
+
 - Tests must be **deterministic**:
   - Avoid using real time (or use time-freezing utilities).
   - Avoid using real network calls or external services.

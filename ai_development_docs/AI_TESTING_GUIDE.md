@@ -302,6 +302,7 @@ Keep markers aligned with section 6.2. "Marker standards" in [TESTING_GUIDE.md](
 Policy guard tests:
 
 - Policy guardrails are enforced by tests in `tests/unit/test_test_policy_guards.py`.
+- Product boundaries are enforced by [test_time_api_policy.py](../tests/unit/test_time_api_policy.py), [test_user_data_json_policy.py](../tests/unit/test_user_data_json_policy.py), and [test_core_ui_import_policy.py](../tests/unit/test_core_ui_import_policy.py). They scan product packages and root application entry points without importing them; tests, scripts, and development tools are outside this product policy scope. Run these three files directly with pytest after boundary changes. JSON stream access is denied by default outside documented storage primitives; non-user resources, backup metadata, recovery, and request IPC have exact function/API exceptions. In-memory JSON serialization is outside scope. The scanner resolves import aliases, not runtime reassignment or computed dynamic imports. Core/UI has no exceptions.
 - When adding/refactoring tests, keep these policies green (no `assert True` placeholders, no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, `no_parallel` reason requirements, **category** markers, and **product-domain** markers aligned with `development_tools/tests/analyze_test_markers.py` / `test_markers.domain_markers` in config).
 - Tier 3 audits run `analyze_test_markers --check` and fail when category or domain marker gaps are reported.
 

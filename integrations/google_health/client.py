@@ -20,7 +20,7 @@ import re
 from core.config import GOOGLE_HEALTH_API_BASE_URL
 from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from core.time_utilities import format_timestamp, now_datetime_utc, now_timestamp_full
 from integrations.google_health.schemas import DailySummaryModel, SleepStagesSummaryModel
 from integrations.google_health.testing import is_google_health_testing_mode
 
@@ -150,8 +150,8 @@ def _build_filter(
             f'AND {filter_prefix}.date < "{end_exclusive}"'
         )
 
-    start_iso = start_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    end_iso = end_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    start_iso = format_timestamp(start_time.astimezone(timezone.utc), "%Y-%m-%dT%H:%M:%SZ")
+    end_iso = format_timestamp(end_time.astimezone(timezone.utc), "%Y-%m-%dT%H:%M:%SZ")
     if filter_mode == "session_end":
         field = f"{filter_prefix}.interval.end_time"
     else:
@@ -797,7 +797,7 @@ def fetch_daily_summaries(
     if is_google_health_testing_mode():
         return []
 
-    end = datetime.now(timezone.utc)
+    end = now_datetime_utc()
     start = end - timedelta(days=max(lookback_days, 1))
     by_date: dict[str, dict[str, Any]] = {}
 

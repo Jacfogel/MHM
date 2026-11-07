@@ -31,7 +31,9 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 ### 2.1 Reliability and fresh-audit confidence
 
-- [ ] Complete the local Windows reliability gate after resolving the product worker/xdist and development-tools serial configuration failures. Section 2.8 owns the current evidence and reproduction details. The November 5 Google Health changes have focused validation; complete-suite validation and live-service reload remain unverified.
+**Latest audit evidence (2026-11-07)**: The user reports a clear full audit; generated [AI_STATUS.md](../development_tools/AI_STATUS.md) and [CONSOLIDATED_REPORT.md](../development_tools/CONSOLIDATED_REPORT.md) agree. This supersedes the earlier interrupted audit attempt, but does not establish the separate complete-suite/slow-test or live-service gates. Full audits are run by the user; agent work uses focused validation and hands off any required full-audit gate.
+
+- [ ] Complete the local Windows reliability gate after resolving the product worker/xdist failure and validating the repaired development-tools serial configuration through a complete run. Section 2.8 owns the current evidence and reproduction details. The November 5 Google Health changes have focused validation; complete-suite validation and live-service reload remain unverified.
 
 **Status**: **ACTIVE**  
 **Priority**: High
@@ -39,7 +41,7 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 **Goal**: Make the full audit and normal test runs trustworthy enough that a failure usually means a real regression, not test harness noise.
 
 **Current work**:
-- [ ] Run a fresh full audit after each significant test-harness change:
+- [ ] Hand significant test-harness changes back to the user for a fresh full audit after focused checks:
   - `python development_tools/run_development_tools.py audit --full`
 - [ ] When a failure appears flaky, capture:
   - failing node
@@ -63,7 +65,7 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 **Goal**: Tests should not pollute production logs, leave uncontrolled artifacts, or depend on shared mutable paths. The intentional dev-tools mirror in `logs/ai_dev_tools.log` is the operational exception.
 
 **Current work**:
-- [ ] Confirm fresh runs do not write normal test traffic to production logs except the intentional dev-tools mirror.
+- [ ] Confirm complete runner runs do not write normal test traffic to production logs except the intentional dev-tools mirror; the focused 2026-11-07 monitoring checks left all production `.log` file sizes unchanged (snapshots in `tests/logs/monitoring_production_log_metadata_{before,after}.json`).
 - [ ] Monitor fresh test logs for recurring `Access is denied`, `PermissionError`, or `WinError 123` failures.
 - [ ] Continue migrating tests that write shared paths to per-test `tmp_path` or fixture-owned directories.
 - [ ] Investigate any `xdist_worker_crash_output` recurrence before widening parallel execution.
@@ -72,63 +74,6 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 - [ ] Fresh full-audit/test-tool runs show no new production-log pollution outside the intentional mirror.
 - [ ] Fresh full-audit/test-tool runs show no recurring Windows cleanup/path errors.
 - [ ] New tests use isolated file/log paths by default.
-
----
-
-### 2.3 Domain-attribution pytest markers
-
-**Status**: **MONITORING** (reviewed 2026-11-07)
-**Priority**: Medium
-
-**Policy context**: Domain attribution is enforced by `test_pytest_tests_have_required_domain_marker` in `tests/unit/test_test_policy_guards.py`. The guard fails on missing configured domain markers; this is no longer a warn-first rollout. The guard is marked `slow`, so the default Tier 3 quick profile does not execute it.
-
-**Maintenance**:
-- Run `python development_tools/tests/analyze_test_markers.py --check` when adding or reorganizing tests.
-- Keep category markers (`unit`, `behavior`, `integration`, `ui`) separate from product-domain markers configured by the domain mapper.
-- Repair gaps reported by the analyzer or the enforced policy guard; no new rollout wave is required unless the taxonomy changes.
-
-**Acceptance**: Marker analysis reports no missing required markers, and the complete-suite policy guard passes.
-
----
-
-### 2.4 Policy boundary tests
-
-**Status**: **ACTIVE**  
-**Priority**: Medium
-
-**Goal**: Add static policy tests that prevent known architectural drift from returning.
-
-#### Time API boundary
-
-- [ ] Add policy tests that flag direct `datetime.now()`, `strftime()`, and `strptime()` usage outside `core/time_utilities.py`, except for explicit documented exceptions.
-- [ ] Include tests for source scanning behavior and allowlist behavior.
-
-**Why it matters**: Prevents timestamp drift, inconsistent persisted formats, and non-deterministic tests.
-
-#### User-data JSON access boundary
-
-- [ ] Add policy tests that flag ad-hoc per-user `json.load()` / `json.dump()` access outside approved storage/user-data helpers.
-- [ ] Use the current storage package names in the allowlist, including approved modules such as:
-  - `storage/user_data_read.py`
-  - `storage/user_data_write.py`
-  - `storage/user_data_registry.py`
-  - `storage/user_item_storage.py`
-  - other low-level storage modules only if they are deliberately approved
-- [ ] Avoid old references to `core/user_data_*` unless compatibility wrappers actually exist and are still approved.
-
-**Why it matters**: Prevents bypassing validation, normalization, backup, cache, and persistence invariants.
-
-#### Core/UI import boundary
-
-- [ ] Add a static policy test that fails if `core/**/*.py` imports `ui.*`.
-- [ ] Allow no exceptions unless the exception is temporary, documented, and has a removal plan.
-
-**Why it matters**: Keeps core business logic independent from the PySide/admin UI layer.
-
-**Acceptance**:
-- [ ] Each policy has a focused test file.
-- [ ] Allowlists are small, explicit, and documented.
-- [ ] Failure messages tell the developer exactly what to change.
 
 ---
 
@@ -220,12 +165,14 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 **Still open: local Windows runner reliability**
 
-**Latest local Windows evidence (2026-11-06)**: `python run_tests.py --mode all --full --workers 2` did not complete successfully. Product parallel execution lost a worker around 18% and xdist rescheduling raised `KeyError: <WorkerController gw2>`; system memory was around 95%, which is concurrent evidence rather than a confirmed cause. The full run reported 2,980 passes, 1 failure, 2 errors, and 27 skips; 1,694 of those passes were the development-tools parallel phase. Its serial development-tools phase exited 4 because the product conftest loaded instead of the required development-tools configuration. Keep the full reliability gate open; re-run product with one worker or serially and repair the development-tools serial command/config isolation separately. Evidence is under `tests/logs/backups/pytest_console_output_2026-11-06_00-31-05.txt` and `tests/logs/pytest_console_output.txt`.
+**Follow-up evidence (2026-11-07)**: Reproduced the development-tools configuration rejection with an unisolated collection command. Both serial command paths in `run_tests.py` now use the tools pytest configuration and conftest boundary, matching parallel execution. Seven runner regression/interrupt tests and eight existing tools-isolation tests pass; marker analysis passes. Isolated serial collection exits 5 because all 1,695 tools tests are deselected by `no_parallel`, which the runner already accepts as an empty phase. The actual `--mode development_tools --workers 1 --quick` attempt reached 72 passes and no failures before system memory crossed the runner's 98% termination threshold. Cleanup reported a taskkill credential error; the run and concurrent full-audit attempt were interrupted. Neither establishes a completed runner/audit pass. Evidence: `tests/logs/plan_action_tools_runner.txt`, `tests/logs/devtools_serial_unisolated.txt`, and `tests/logs/devtools_serial_collection.txt`. Re-run broad gates separately with sufficient available memory; do not infer that the historical worker crash has the same cause.
+
+**Earlier local Windows evidence (2026-11-06)**: `python run_tests.py --mode all --full --workers 2` did not complete successfully. Product parallel execution lost a worker around 18% and xdist rescheduling raised `KeyError: <WorkerController gw2>`; system memory was around 95%, which is concurrent evidence rather than a confirmed cause. The full run reported 2,980 passes, 1 failure, 2 errors, and 27 skips; 1,694 of those passes were the development-tools parallel phase. Its serial development-tools phase exited 4 because the product conftest loaded instead of the required development-tools configuration. Keep the full reliability gate open; re-run product with one worker or serially and repair the development-tools serial command/config isolation separately. Evidence is under `tests/logs/backups/pytest_console_output_2026-11-06_00-31-05.txt` and `tests/logs/pytest_console_output.txt`.
 
 **Earlier run (2026-11-05)**: The four-worker run stalled after 1,152 passes with no failures recorded and was interrupted. This predates the November 6 attempt above and is retained only as history; it is not the latest reliability result. Live-service reload also remains unverified.
 
 **Follow-up rules**:
-- [ ] Reproduce local product worker/xdist and development-tools serial configuration failures using the commands above before changing assertions or widening concurrency.
+- [ ] Reproduce the local product worker/xdist failure before changing assertions or widening concurrency; validate the repaired tools serial path in a completed runner invocation.
 - [ ] Treat shared log/temp-path failures as harness-isolation issues first.
 - [ ] Revisit `tests/development_tools/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
 - [ ] Keep each new suspect's node, observation date, reproducer, execution mode, and hypothesis; close stale entries with evidence.
@@ -316,6 +263,8 @@ After a test-tool or full-audit run:
 Follow the shared [maintenance rules](PLANS.md#10-maintenance-rules) and [status vocabulary](PLANS.md#3-status-vocabulary).
 
 - Keep testing roadmap work here; use short pointers when implementation belongs in another plan.
+- Keep the product boundary guards green: `python -m pytest tests/unit/test_time_api_policy.py tests/unit/test_user_data_json_policy.py tests/unit/test_core_ui_import_policy.py -q`. Preserve documented exception reasons, current storage paths, scanner coverage, and actionable failure messages; core/UI imports have no exceptions. Scope and limitations live in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#65-quality-expectations). Reopen roadmap work only for a new gap or boundary change.
+- Marker attribution is routine maintenance: run `python development_tools/tests/analyze_test_markers.py --check` after adding or reorganizing tests and keep category markers separate from configured domain markers. Preserve `test_pytest_tests_have_required_domain_marker` in `tests/unit/test_test_policy_guards.py`; it is marked `slow` and needs an explicit focused invocation when the quick profile excludes it. Reopen roadmap work only for new gaps or a taxonomy change.
 - Retain recurring failure evidence with its node, command, execution mode, observation date, and hypothesis. Close stale suspects with evidence rather than keeping long historical failure lists.
 
 ---

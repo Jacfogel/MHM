@@ -81,6 +81,8 @@ Pagination follows every `nextPageToken`, including when a page is short or empt
 
 Most fields are categorical; AI pattern text may also use rounded `sleep_hours`, `steps`, and `active_minutes`, plus streak phrases derived across recent signal days.
 
+When today's signal is unavailable, health message pressure may use a non-low-confidence signal from the previous two calendar days. Future dates and older dates are excluded from this fallback. Corrected guidance and health personalization opt-out apply to the next pressure decision. Health guidance has no extra recovery timer; the 30-minute low-energy recovery hold belongs to explicit check-in answers and remains independent of health opt-out.
+
 | Field | Source metrics | Purpose |
 |-------|----------------|---------|
 | `sleep_recovery` | sleep duration | Short / typical / fuller night |

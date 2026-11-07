@@ -3626,6 +3626,8 @@ def main():
 
                 if not args.no_parallel:
                     no_parallel_cmd = [sys.executable, "-m", "pytest"]
+                    if phase_name == "Development Tools":
+                        no_parallel_cmd = _with_tools_pytest_isolation(no_parallel_cmd)
                     no_parallel_cmd.extend(["-W", "ignore::DeprecationWarning"])
                     no_parallel_cmd.extend(
                         [
@@ -3720,6 +3722,8 @@ def main():
 
                 # Create a separate command for no_parallel tests (serial execution)
                 no_parallel_cmd = [sys.executable, "-m", "pytest"]
+                if args.mode == "development_tools":
+                    no_parallel_cmd = _with_tools_pytest_isolation(no_parallel_cmd)
                 no_parallel_cmd.extend(["-W", "ignore::DeprecationWarning"])
                 no_parallel_cmd.extend(
                     [

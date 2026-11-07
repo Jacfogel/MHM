@@ -60,9 +60,9 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
 | Notebook system | **MONITORING** | Low | [NOTES_PLAN.md](NOTES_PLAN.md) | Shipped baseline; optional live visual checks when UI changes; extensions deferred |
 | Task system | **MONITORING** | Low | [TASKS_PLAN.md](TASKS_PLAN.md) | Shipped capabilities; optional live validation; future extensions await selection |
-| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Windows reliability, log isolation, marker maintenance, policy tests, coverage growth |
+| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Complete-suite Windows reliability, log isolation, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
-| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Evaluate cooldowns for health-derived pressure changes |
+| Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
@@ -130,15 +130,15 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 ### 5.3 Deterministic mood and energy rules
 
-**Status**: **ACTIVE**
-**Priority**: High
+**Status**: **MONITORING**
+**Priority**: Low
 **Started**: 2026-10-19
 
 **Use / fit**: Adapt task selection and reminder pressure without relying on an LLM. Rules must be explicit, inspectable, and user-controlled.
 
-**Next slices**:
+**Current policy**: The 30-minute recovery hold applies only to explicit check-in energy. Health guidance is re-evaluated from the current usable daily signal (today or a fallback up to two days old); corrected data and health opt-out take effect on the next decision. Future, expired, or low-confidence fallback signals must not create pressure guidance. Preserve these transitions with [test_health_pressure_transitions.py](../tests/unit/test_health_pressure_transitions.py).
 
-- [ ] Evaluate cooldowns for health-derived pressure changes separately; the shipped cooldown covers explicit check-in energy only.
+**Deferred extension / revisit trigger**: No additional health cooldown is selected. Revisit if live use shows repeated pressure changes after intraday syncs or users ask for a gradual transition. Define the signal-change trigger, duration, reset/expiry behavior, restart persistence, and immediate opt-out override before implementing a separate health timer. A daily fallback already bridges missing-today data; it is not an energy-recovery cooldown.
 
 **Guardrails**: Never hide urgent work; never infer mood from ordinary chat text; never require AI to evaluate the rules.
 
@@ -178,8 +178,6 @@ These plans should not be duplicated in detail here.
 
 - Full-audit reliability.
 - Test artifact/log isolation.
-- Maintenance of enforced domain-attribution markers.
-- Static policy tests for time utilities, user-data JSON access, and core/UI boundaries.
 - No-parallel marker reduction only when stability is preserved.
 - Coverage growth in high-value domains.
 

@@ -20,7 +20,7 @@ from core.health_signals import (
     is_personalization_active,
     resolve_active_health_signal,
 )
-from core.time_utilities import DATE_ONLY, parse_timestamp_full
+from core.time_utilities import DATE_ONLY, format_timestamp, parse_timestamp_full
 from integrations.google_health.data_handlers import load_health_signals
 from integrations.google_health.personalization_rules import (
     GUIDANCE_AVOID_NAG,
@@ -151,7 +151,7 @@ def _consecutive_streak_signals(
         return []
     matched: list[dict[str, Any]] = []
     for offset in range(lookback_days):
-        day = (end.date() - timedelta(days=offset)).strftime(DATE_ONLY)
+        day = format_timestamp(end - timedelta(days=offset), DATE_ONLY)
         signal = signals_by_date.get(day)
         if not signal or not predicate(signal):
             break
