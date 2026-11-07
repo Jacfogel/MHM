@@ -314,6 +314,29 @@ The native-backtrace step now returns failure whenever it finds a raw core,
 including crashes after an xdist worker has reported success. Artifact upload
 still runs on failure, and raw cores are still removed after extraction.
 
+For binding-level isolation, dispatch the nightly workflow with input
+`qt_refcount_probe=true`. This skips the full suite and runs separate Python
+3.11 jobs installing only PySide6-Essentials/shiboken6 6.11.2, 6.11.3, or 6.12.0. The
+standalone `tests/test_helpers/test_support/qt_refcount_probe.py` compares a
+plain Python function returning None with small batches of QObject.setObjectName
+calls, measuring sys.getrefcount(None). No MHM imports, pytest, QApplication,
+background threads, or shutdown bypass are used. Run `42403486795` on Python
+3.11.18 measured Qt deltas 0/0/0 for 6.11.2 and -1/-32/-128 for 6.12.0 at
+1/32/128 calls; Python control deltas were zero for both. The affected binding
+loses one None reference per tested void method call. This directly identifies
+a PySide6/Shiboken 6.12.0 defect matching the nightly none_dealloc abort.
+The affected-version probe returns failure on substantial reference loss, so
+that diagnostic workflow is expected to be red. On Python 3.12+ the script
+explicitly reports that immortal None prevents a comparable refcount verdict.
+Both `pyproject.toml` and `requirements.txt` exclude PySide6 6.12.0. In an
+affected virtual environment, run `python -m pip install -e ".[dev,ui]"` or
+`python -m pip install -r requirements.txt` to apply the constraint and replace
+the affected binding family. Linux/Python 3.11 resolution currently selects
+6.11.3 for PySide6, Essentials, Addons, and shiboken6 together. The diagnostic
+matrix also tests 6.11.3; a clean full Linux nightly run remains required before
+closing the shutdown reliability issue. The intentionally failing 6.12.0 probe
+is a positive control and remains isolated from the normal nightly run.
+
 This section covers how to run automated tests in standard scenarios. It intentionally focuses on a few blessed entry points.
 
 Install Node.js 20 or newer before running the full suite. A serial pytest bridge

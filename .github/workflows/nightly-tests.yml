@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pyside: ["6.11.2", "6.12.0"]
+        pyside: ["6.11.2", "6.11.3", "6.12.0"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

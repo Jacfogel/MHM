@@ -29,7 +29,7 @@ cryptography>=50.0.0  # Fernet encryption for Google Health tokens at rest; pip-
 
 # UI dependencies
 
-PySide6>=6.5.0  # For Qt-based UI (replacing tkinter)
+PySide6>=6.5.0,!=6.12.0  # 6.12.0 loses Py_None references on Python 3.11; probe 42403486795
 PyOpenGL>=3.1.7  # OpenGL bindings required for Qt on headless systems
 PyOpenGL-accelerate>=3.1.7  # Optional OpenGL acceleration
 

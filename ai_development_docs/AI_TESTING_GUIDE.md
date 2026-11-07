@@ -147,6 +147,18 @@ at session finish, unconfigure, and before Qt's atexit cleanup. These are weakly
 tracked metadata, not creation stacks; no widget text or Qt method calls are
 recorded. A native core dump now fails the workflow even if xdist reports success.
 
+The opt-in workflow input `qt_refcount_probe=true` runs only an isolated Python
+3.11 QtCore comparison (6.11.2, 6.11.3, and defective 6.12.0), without MHM or pytest. Run
+`tests/test_helpers/test_support/qt_refcount_probe.py` directly to inspect
+None-reference changes. GitHub experiment `42403486795` confirms one lost
+reference per QObject.setObjectName call on 6.12.0 and zero on 6.11.2.
+The 6.12.0 probe intentionally fails on detected reference loss; this is not a
+full-suite result. Python 3.12's immortal None cannot clear a Python 3.11 defect.
+Both installation manifests exclude PySide6 6.12.0. Reinstall from requirements
+or the project UI extra to replace an existing affected install; the Qt family
+uses matching dependency versions. Linux/Python 3.11 dry resolution selects
+PySide6, Essentials, Addons, and shiboken6 6.11.3 together.
+
 Full-suite environments require Node.js 20 or newer. The serial pytest bridge
 at `tests/integration/test_browser_javascript_suite.py` runs every
 `website/*.test.mjs` file and converts Node failures into pytest failures.
