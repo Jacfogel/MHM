@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-07 - Resolve OAuthlib and pyasn1 advisory findings
+- Fixed all five reproduced pip-audit findings by raising both manifests and the local environment to oauthlib 4.0.1 / pyasn1 0.6.5. Fresh scan: zero known vulnerabilities; pip check passes.
+- All 72 focused Google Health auth/client checks plus real ASN.1/Google-auth/offline OAuth smoke checks pass. Canonical security cache refreshed and Tier 2 audit/report regeneration passes. Changes are local; no full-suite rerun or push yet.
+
 ### 2026-11-06 - Investigate nightly run 160
 - 2026-11-07: full fixed-environment Linux run `42404010183` passed without native cores. Removed temporary Qt inventories, associated tests, probe script, and comparison workflow/input; kept dependency/lifecycle fixes, lightweight history, stall traces, and native-core failure detection. Updated guides/plan/removal inventory. All 33 focused two-worker checks, Ruff, and Tier 2 audit pass; cleanup edits remain local.
 - 2026-11-07 remediation: both dependency manifests now exclude PySide6 6.12.0. Linux/Python 3.11 dry resolution selects matched 6.11.3 packages; the isolated comparison now includes 6.11.3 plus good/bad controls. Full fixed-environment Linux validation remains pending.
