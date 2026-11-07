@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.error_handling import UserInterfaceError
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 from ui.widgets.checkin_settings_widget import (
     CheckinSettingsWidget,
     build_custom_question_payload,
@@ -36,6 +37,13 @@ def qapp():
     if app is None:
         app = QApplication([])
     return app
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Dispose temporary controls, layouts, and rows after each helper test."""
+    with qt_widget_scope():
+        yield
 
 
 @pytest.mark.unit
@@ -117,11 +125,15 @@ class TestCheckinSettingsWidgetHelpers:
         layout1.addWidget(QLabel("first"))
         clear_layout_widgets(layout1)
         layout2 = QVBoxLayout(container)
-        layout2.addWidget(QLabel("second"))
+        try:
+            layout2.addWidget(QLabel("second"))
 
-        assert container.layout() is layout1
-        assert layout1.count() == 0
-        assert layout2.count() == 1
+            assert container.layout() is layout1
+            assert layout1.count() == 0
+            assert layout2.count() == 1
+        finally:
+            # Qt rejected this second layout, so the container does not own it.
+            layout2.deleteLater()
 
     def test_category_combo_label_uses_name_or_key(self):
         assert category_combo_label("mental_health") == "Mental Health"

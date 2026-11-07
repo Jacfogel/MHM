@@ -303,7 +303,12 @@ fixtures are also delivered. This scope is applied in the user-profile coverage,
 dialog behavior, account creation, task settings widget, task CRUD dialog,
 signal integration, task management dialog, widget behavior, and UI widget
 coverage-expansion modules. Native widget deletion runs before Python garbage
-collection in the widget coverage fixture. Other UI modules have
+collection in the widget coverage fixture. Simple widget behavior and check-in
+settings helper tests also apply the scope. The helper inventories top-level
+widgets, not arbitrary orphaned QObjects; a layout rejected by Qt because its
+container already has a layout needs explicit disposal. The check-in helper
+regression queues that intentionally orphaned second layout in a finally block
+so deferred teardown reclaims it even after a failed assertion. Other UI modules have
 not yet been migrated; review their recorded retention before expanding scope.
 The native-backtrace step now returns failure whenever it finds a raw core,
 including crashes after an xdist worker has reported success. Artifact upload

@@ -112,7 +112,10 @@ DeferredDelete events. Autouse fixtures now cover user-profile coverage,
 dialog behavior, account creation, task settings, task CRUD, signal integration,
 task management, widget behavior, and UI widget coverage-expansion tests,
 finishing after their dialog/widget fixtures. In the coverage-expansion fixture,
-native deferred deletion precedes Python garbage collection.
+native deferred deletion precedes Python garbage collection. Simple widget
+behavior and check-in settings helper tests also use the scope. Standalone
+layouts rejected by Qt must be explicitly queued for deletion: the scope
+discovers top-level widgets, not orphaned non-widget QObjects.
 Other UI modules still need evidence-based review.
 
 - Headline rule: test logging must be isolated. Write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or real user data directories.

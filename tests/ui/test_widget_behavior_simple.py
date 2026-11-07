@@ -13,6 +13,7 @@ import pytest
 import json
 from pathlib import Path
 from PySide6.QtWidgets import QApplication
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 
 # Do not modify sys.path; rely on package imports
@@ -25,6 +26,13 @@ def qapp():
     if app is None:
         app = QApplication([])
     yield app
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Deliver queued widget deletion before the next synchronous test starts."""
+    with qt_widget_scope():
+        yield
 
 
 class TestTagWidgetBasicBehavior:
