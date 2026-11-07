@@ -10,7 +10,7 @@ import pytest
 
 from tests.test_helpers.test_support import nightly_diagnostics as diagnostics
 
-pytestmark = [pytest.mark.unit, pytest.mark.suite]
+pytestmark = [pytest.mark.unit, pytest.mark.suite, pytest.mark.ui]
 
 
 @pytest.fixture
