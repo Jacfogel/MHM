@@ -103,6 +103,16 @@ Factory-return and ID rules:
 
 Test logging:
 
+Synchronous Qt tests must process deferred deletion during fixture teardown;
+`deleteLater()` alone does not destroy a widget without event-loop delivery.
+Use `qt_widget_scope` from `tests.test_helpers.test_support.qt_cleanup` around
+the test lifetime, after creating QApplication. It preserves existing windows,
+disposes new top-level widgets (including detached rows), and delivers only
+DeferredDelete events. Autouse fixtures now cover user-profile coverage,
+dialog behavior, account creation, task settings, task CRUD, signal integration,
+and task management tests, finishing after their dialog/widget fixtures.
+Other UI modules still need evidence-based review.
+
 - Headline rule: test logging must be isolated. Write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or real user data directories.
 - Two main log files: `test_run.log` (test execution) and `test_consolidated.log` (component logs).
 - `TEST_VERBOSE_LOGS` controls verbosity: 0=WARNING only, 1=INFO for tests, 2=DEBUG for all.

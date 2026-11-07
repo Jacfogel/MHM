@@ -105,6 +105,15 @@ def qapp():
     # Don't quit the app as it might be used by other tests
 
 
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Dispose new windows and nested dialogs while preserving QApplication."""
+    from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
+
+    with qt_widget_scope():
+        yield
+
+
 class TestAccountCreationDialogRealBehavior:
     """Test account creation dialog with real behavior verification."""
 

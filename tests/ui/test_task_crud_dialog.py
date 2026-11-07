@@ -12,7 +12,9 @@ ensure_qt_runtime()
 import pytest
 from unittest.mock import patch
 from PySide6.QtWidgets import QAbstractItemView, QApplication, QMessageBox
-from PySide6.QtCore import QItemSelectionModel, Qt
+from PySide6.QtCore import QCoreApplication, QEvent, QItemSelectionModel, Qt
+from shiboken6 import isValid
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 # Set headless mode for Qt - use monkeypatch in tests instead of direct assignment
 
@@ -82,6 +84,12 @@ def _v2_runtime_task(
 
 class TestTaskCrudDialog:
     """Test TaskCrudDialog functionality."""
+
+    @pytest.fixture(autouse=True)
+    def dispose_test_widgets(self, qt_app):
+        """Finish deferred deletion after directly constructed CRUD dialogs."""
+        with qt_widget_scope():
+            yield
     
     @pytest.fixture
     def qt_app(self, monkeypatch):
@@ -690,8 +698,8 @@ class TestTaskCrudDialog:
                     # Test cleanup
                     dialog.deleteLater()
                     
-                    # Verify dialog was marked for deletion
-                    # Note: This is a basic test - actual cleanup verification would be more complex
+                    QCoreApplication.sendPostedEvents(dialog, QEvent.Type.DeferredDelete)
+                    assert not isValid(dialog)
 
     @pytest.mark.ui
     def test_tables_use_extended_row_selection(self, qt_app, test_data_dir):

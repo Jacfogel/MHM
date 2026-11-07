@@ -289,6 +289,20 @@ representations are read, and weak references do not keep wrappers alive.
 First observation is not a constructor trace; objects created and destroyed
 between snapshots and C++ objects without GC-visible wrappers may be missed.
 Use the final surviving IDs and their first-observed tests to reduce a replay.
+For synchronous widget tests, `deleteLater()` only schedules destruction;
+without a running event loop, pending deletion can accumulate until interpreter
+exit. Wrap the test lifetime in `qt_widget_scope` from
+`tests.test_helpers.test_support.qt_cleanup` after creating QApplication.
+An autouse fixture should enter this scope before dialog fixtures are created
+and leave after their teardown. It preserves pre-existing top-level widgets,
+schedules newly created windows/standalone mock-layout widgets/detached rows
+for deletion, and explicitly delivers DeferredDelete events. It does not close
+windows through user confirmation handlers, process timers/general events, or
+destroy the shared QApplication. Pending deletions already queued by other
+fixtures are also delivered. This scope is applied in the user-profile coverage,
+dialog behavior, account creation, task settings widget, task CRUD dialog,
+signal integration, and task management dialog modules. Other UI modules have
+not yet been migrated; review their recorded retention before expanding scope.
 The native-backtrace step now returns failure whenever it finds a raw core,
 including crashes after an xdist worker has reported success. Artifact upload
 still runs on failure, and raw cores are still removed after extraction.

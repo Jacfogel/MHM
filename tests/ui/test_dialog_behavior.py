@@ -22,6 +22,7 @@ import json
 from pathlib import Path
 from PySide6.QtWidgets import QApplication, QDialog
 from PySide6.QtTest import QTest
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 # Project imports rely on pytest and conftest path setup
 
@@ -42,6 +43,13 @@ def qapp():
         app = QApplication([])
     yield app
     # Don't quit the app as it might be used by other tests
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Deliver deferred deletion after each dialog test's fixture teardown."""
+    with qt_widget_scope():
+        yield
 
 
 class TestUserProfileDialogBehavior:

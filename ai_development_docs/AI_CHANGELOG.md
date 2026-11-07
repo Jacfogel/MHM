@@ -31,6 +31,8 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-11-06 - Investigate nightly run 160
+- Reviewed six more retained UI modules and applied scoped widget teardown. Their 126 serial checks pass before/after; live wrappers fell from 14,153 to QApplication plus QCommonStyle, with no test dialogs/widgets left. Combined two-worker validation passes 154 parallel-capable checks; the five no-parallel cases passed serially. Task CRUD now asserts actual destruction. Ruff/Tier 2 audit pass; full Linux crash validation remains pending and changes are local.
+- Confirmed missing DeferredDelete delivery in user-profile coverage fixtures: 28 passing tests retained 27 dialogs/17,115 valid wrappers. Scoped teardown now leaves only QApplication live; 31 serial and 33 two-worker checks pass, plus Ruff/Tier 2 audit. Other UI modules and Linux crash validation remain open; cleanup changes are local.
 - GitHub rerun passed 6,451 tests with 8 skips but repeated the Qt atexit crash. Added weakly tracked QObject validity/ownership and first-observation inventories at test/shutdown boundaries, plus a workflow failure gate for native core dumps. Linux validation of the new instrumentation remains pending; the crash remains open.
 - Instrumentation validation: five focused checks pass serially and with two workers, real offscreen Qt invalid-wrapper/atexit probe passes, clean/crash workflow guard probes pass, targeted Ruff and Tier 2 audit pass.
 - Reproduced the no-print policy failure and moved the three measurement files to component INFO logging; 25 focused checks, targeted Ruff, and Tier 2 audit pass.

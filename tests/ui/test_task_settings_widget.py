@@ -55,6 +55,15 @@ def widget_no_user(qapp):
     return TaskSettingsWidget(parent=None, user_id=None)
 
 
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Reclaim returned widgets as well as rows detached during a test."""
+    from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
+
+    with qt_widget_scope():
+        yield
+
+
 class TestTaskSettingsWidgetInitialization:
     """Test task settings widget initialization."""
     

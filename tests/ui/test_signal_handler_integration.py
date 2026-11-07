@@ -45,8 +45,8 @@ from PySide6.QtWidgets import QApplication
 def qapp():
     """Create QApplication instance for UI testing.
     
-    Changed from session scope to function scope to prevent Qt object accumulation
-    across tests, which was causing memory leaks in batch runs.
+    Reuse the process-wide application; scoped widget teardown below prevents
+    accumulation. Function scope alone does not deliver deferred deletion.
     """
     app = QApplication.instance()
     if app is None:
@@ -56,6 +56,15 @@ def qapp():
     app.processEvents()
     # Note: We don't quit the app here because other tests might need it
     # The app will be cleaned up when the process exits
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Deliver deferred deletion before the qapp fixture's general event pass."""
+    from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
+
+    with qt_widget_scope():
+        yield
 
 
 class TestAccountCreatorDialogSignalHandlers:

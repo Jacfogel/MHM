@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 
 from ui.dialogs.user_profile_dialog import UserProfileDialog
 from tests.test_helpers.test_utilities import TestUserFactory
+from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
 
 
 # Create QApplication instance for testing
@@ -25,6 +26,13 @@ def qapp():
     if app is None:
         app = QApplication([])
     yield app
+
+
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Flush deferred deletion after dialog fixtures and reclaim standalone rows."""
+    with qt_widget_scope():
+        yield
 
 
 class TestUserProfileDialogCoverageExpansion:
@@ -591,4 +599,3 @@ class TestUserProfileDialogCoverageExpansion:
                 
                 # Verify error was handled
                 mock_critical.assert_called_once()
-    

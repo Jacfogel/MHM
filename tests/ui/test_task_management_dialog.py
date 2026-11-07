@@ -37,6 +37,15 @@ def qapp():
     # Don't quit the app as it might be used by other tests
 
 
+@pytest.fixture(autouse=True)
+def dispose_test_widgets(qapp):
+    """Dispose dialogs returned by fixtures and created directly in tests."""
+    from tests.test_helpers.test_support.qt_cleanup import qt_widget_scope
+
+    with qt_widget_scope():
+        yield
+
+
 @pytest.fixture(name="test_user")
 def task_management_user(test_data_dir):
     """Create a test user for task management tests."""
