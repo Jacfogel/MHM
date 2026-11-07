@@ -4,283 +4,36 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-10-27
+> **Last Updated**: 2026-11-07
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
-**Use / fit**: Discord is the primary task interface. Tasks are not yet a daily habit, but they need to work well enough that creating, updating, and following up on tasks feels low-friction from a phone. Current priority is usability: natural-language creation, follow-up prompts, templates/quick actions, and useful task context. AI-based suggestions stay deferred until the AI/command-parsing overhaul.
+## Role of This File
 
----
+- **Purpose**: Own the task-system roadmap for creating, updating, and following up on tasks.
+- **Scope**: Track unresolved task work, optional live validation, and future extensions such as attachments, dependencies, batch operations, and advanced views.
+- **Priorities**: Keep task use easy from a phone, with Discord as the primary task interface; select broader extensions when product needs justify them.
+- **Related sources**: Use [PLANS.md](PLANS.md) for the planning index, task help/code/tests for current behavior, and [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for history. Coordinate shared work with [NOTES_PLAN.md](NOTES_PLAN.md); follow the [maintenance rules](#maintenance-rules).
 
-## Current State
+## Monitoring
 
-The task system is no longer just basic CRUD. As of the May 16 snapshot, the current implementation includes:
+**Status**: MONITORING
+**Priority**: Low
 
-- `tasks/` package with `task_data_handlers.py`, `task_data_manager.py`, `task_schemas.py`, `task_service.py`, and `task_validation.py`.
-- V2 task schema with `status`, `priority`, `due`, `reminders`, `recurrence`, and `completion` sections.
-- Valid priorities: `low`, `medium`, `high`, `urgent`, `critical`.
-- Task updates support fields including `title`, `description`, `category`, `status`, due fields, reminders, priority, tags, and recurrence fields. Tasks do not have a group field.
-- Task IDs and short IDs are supported for lookup/display.
-- Recurring tasks are implemented and documented for Discord discoverability.
-- Discord task creation can trigger follow-up flows for due date/time, priority, and reminders.
-- Task list filtering supports due soon, overdue, high priority, priority, and tag filters.
-- Task statistics/analytics entry points exist, but advanced analytics remain long-term.
+When Discord UI or parsing changes, optionally check task picker/details, creation follow-ups, parsed due dates/titles, template modals, and create-hub buttons. Use [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) and the [manual Discord guide](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for the relevant validation paths.
 
-**Not freshly verified here**: live Discord behaviour for task picker/detail UI. Automated unit coverage in [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py); live steps in [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) §6.1.D.
+## Deferred Attachments
 
----
-
-## Active Priorities
-
-### 1. Live Discord validation for task creation follow-up flows
-
-**Status**: Automated (2026-08-23); optional live visual check  
-**Priority**: Low  
-**Why it matters**: Follow-up flows are the Discord task path. Pytest now covers the old manual checklist.
-
-**Validate**:
-- [x] Creating a task without a due date starts the due date/time follow-up (`test_nt_call_dentist_skip_due_date_shows_priority_buttons`)
-- [x] Due date follow-up supports skip, skip-all, cancel, and date/time input (`test_discord_flow_cancel_clears_created_task`; `test_due_date_undo_deletes_task`)
-- [x] Creating a task with a due date but no explicit priority starts the priority follow-up (`test_discord_task_creation_triggers_reminder_followup`)
-- [x] Priority follow-up supports low/medium/high/critical, skip, and skip-all (`test_nt_skip_due_date_high_saves_without_reminder_prompt`)
-- [x] Creating a task with enough due/priority data starts the reminder follow-up (`test_discord_reminder_followup_complete_flow`)
-- [x] Reminder windows use the due time (`test_discord_tomorrow_at_2pm_reminder_uses_due_time`)
-- [x] A second task can start after the first flow completes (`test_discord_multiple_tasks_in_sequence`)
-- [x] Flow state clears after skip/cancel/completion (same tests)
-
-**Acceptance**:
-- Task creation can be completed from Discord without the desktop UI.
-- Optional follow-up questions do not trap the user in a flow.
-
----
-
-### 2. Broader natural-language task creation
-
-**Status**: Planned  
-**Priority**: High  
-**Why it matters**: Discord task creation should accept ordinary phrasing, not just command-like syntax.
-
-**Already done**:
-- Recurring-task natural language basics for phrases such as daily/weekly/monthly/yearly, interval recurrence, weekdays, and time phrases.
-
-**Remaining**:
-- [x] Improve non-recurring due-date parsing, especially phrases like `this week`, `before Friday`, `after work` / `after school`, and `tonight` (2026-05-22: `command_parser._extract_task_entities`, `task_service.parse_relative_date`).
-- [x] Improve title extraction so due dates, recurrence, priority, and tags are not accidentally included in task titles (2026-05-22: metadata stripped into `clean_title`).
-- [x] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent` (2026-05-22; `urgent` maps to priority `urgent`, not `high`).
-- [x] Support tag extraction without making command parsing brittle (`#tag` and `key:value` via `parse_tags_from_text`). Task and notebook groups were removed 2026-09-24.
-- [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
-- [x] Everyday phrasing for create/complete/list/append/update (2026-08-26): `i should...`, `dont forget to...`, `mark X done`, `what is on my list`, `create a task for laundry`, `I completed the dentist task`, `add a note to the dentist task: ...`, `add X to my list`, `i gotta...`, `show overdue tasks`. Follow-up: `i still need to...`, `i'm supposed to...`, `don't let me forget to...`, `make sure i...`, `show my list`, `what's left`, `cross off X`, `i'm done with X`.
-- [x] Pronoun follow-ups for the task you just mentioned or created (2026-08-28): `make that due tomorrow`, `that's urgent`, `mark that done`, `add a note to that: ...`. Ambiguous "that" asks which task instead of matching stray letters in other titles. Completing a task does not make "that" jump to a leftover task. After the which-task prompt, a number (`1.`) or the task name applies the remembered update.
-- [x] Thinking-out-loud create offers (2026-08-28): `i should...`, `i gotta...`, `i need to...` ask "Want me to add ... to your task list?" before saving. Explicit phrases (`dont forget to`, `add X to my list`, `remind me to`) still create immediately. Bot replies say "task list" so they are not confused with notebook lists.
-- [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
-
----
-
-### 2.1 Improve task command discovery
-
-**Status**: Completed (2026-05-22)  
-**Priority**: High
-
-**Delivered**:
-- [x] Expanded `TaskManagementHandler.get_help()` (`TASK_HELP_TEXT`) — create, list, complete/update, shortcuts, tags, due phrases, follow-up note.
-- [x] Expanded `get_examples()` with natural-language samples aligned with §2 parser.
-- [x] `help tasks` / `examples tasks` route through the task handler (single source in `HelpHandler`).
-- [x] Tests: `test_task_handler_behavior.py`, `test_command_discovery_help.py`.
-
-**Acceptance**:
-- A user can discover task use from `help tasks` without developer docs.
-
----
-
-**§2 acceptance**:
-- Messages like `dont forget to email the school` and `add laundry to my list` create useful structured tasks without manual cleanup.
-- Thinking-out-loud phrases like `I should pick up groceries tonight` and `i gotta water the plants` ask before saving.
-
----
-
-### 3. Task templates and quick actions
-
-**Status**: Shipped — built-ins, Discord prefills, and account-owned templates are available
-**Priority**: Medium/High  
-**Why it matters**: Templates reduce friction for repeated task types, especially health, household, appointments, and chores.
-
-**Shipped (2026-05-27)**:
-- [x] Template model in `tasks/task_templates.py` (`TaskTemplate`, aliases, five built-ins).
-- [x] Built-in templates: medication, appointment, phone_call, cleaning, paperwork.
-- [x] Prefill title, description, priority, due/time defaults, tags, recurrence (medication daily).
-- [x] Service helpers: `build_task_data_from_template`, `create_task_from_template`, `list_task_templates`.
-- [x] Commands: `task template <name>`, `create task from template <name>`, `list task templates`; help text updated.
-- [x] Tests: `tests/unit/test_task_templates.py`, behavior tests in `test_task_handler_behavior.py`.
-- [x] Create hub buttons in `create_item_ui.py` (immediate create).
-
-**Shipped (2026-08-26)**:
-- [x] Template buttons open a prefilled Discord modal (title, details, due, tags). Submit uses `create_task_from_template` so recurrence/priority defaults stay.
-- [x] `list task templates` attaches the same create-hub buttons as `create` / `new` / `add`.
-- [x] Relative due phrases from the modal (`tomorrow`, `tomorrow at 2pm`) parse as overrides.
-
-**Shipped (2026-10-04)**:
-- [x] Account-owned custom templates are stored under task settings with bounded validation.
-- [x] The website task settings editor can add, edit, and remove up to 20 reusable templates.
-- [x] Saved templates appear in the website task picker and work through `task template <name_with_underscores>` in chat/Discord.
-- [x] The desktop/admin app can add, edit, and remove the same account-owned templates and prefill its new-task form from built-in or personal templates.
-- [x] Custom template reads are account-scoped; invalid saved definitions cannot break the built-in templates.
-
-**Remaining**:
-- [ ] Live Discord visual check of template modals and create hub buttons. (2026-08-30: hub is Call/Clean/Forms/Custom task then notes; Call/Clean prefills match live forms.)
-
-**Acceptance**:
-- Common tasks can be created with fewer words/clicks than a normal task.
-
----
-
-### 4. Task notes, links, and lightweight attachments
-
-**Status**: Planned  
-**Priority**: Medium/High  
-**Why it matters**: Many tasks need context: a link, a phone number, a screenshot reference, a form name, or short notes.
-
-**Implement in stages**:
-- [x] Treat `description` as the first version of task notes; improve commands/help around it (2026-06-24: help text, `update task … note …`, detail display).
-- [x] Add `append note to task` / `add note to task` command support (2026-06-24).
-- [x] Accept `add a note to the <task>: <text>` so notes append to a task instead of creating a notebook note (2026-08-26).
-- [x] Add URL/link capture as structured task metadata (`links` on `TaskV2Model`; 2026-08-27).
-- [ ] Defer file/image attachments until storage and Discord upload handling are designed.
-
-**Acceptance**:
-- A task can hold enough context that the user does not need to search chat history to remember what it means.
-
----
-
-### 4.1 Reminder snooze, skip, and simplify
-
-**Status**: Shipped (2026-09-15)  
-**Priority**: High  
-**Why it matters**: "Not now" should delay the ping, not pretend the work is due later.
-
-**Shipped**:
-- [x] Discord **Snooze** asks when: 1 hour, tonight (or tomorrow morning if it is already evening/night), next week, or a custom time.
-- [x] Channel-agnostic `snooze_task_reminder` stores `reminder_snooze_until` and reschedules the reminder without changing `due`.
-- [x] Typed commands such as `snooze that for 1 hour` and `snooze dentist until Friday 3pm`.
-- [x] **Skip** this occurrence (2026-09-15): repeating tasks roll to the next due date without a completed copy; one-off tasks stay due and wait until tomorrow morning.
-- [x] **Simplify** (2026-09-15): rewrite the title to a smaller next step; previous title is kept in notes; due date unchanged.
-
-**Acceptance**:
-- Snooze changes when MHM pings, not when the task is due.
-- Skip does not pretend the work was done.
-- Simplify makes the next step smaller without moving the due date.
-
----
-
-### 4.2 Smaller steps as subtasks
-
-**Status**: Shipped (2026-09-27)  
-**Priority**: High  
-**Why it matters**: A hard task is easier to start when the bigger title stays and the next actions are visible.
-
-**Shipped**:
-- [x] **Break down with AI** asks the model for a few concrete steps.
-- [x] The steps you keep are saved as subtasks. The original title stays.
-- [x] Home focuses on an open subtask when the bigger task has one.
-- [x] Subtasks are one level deep. The parent stays open until you mark it done.
-- [x] Discord **Break down with AI**, and `simplify` in Discord or email, save steps under the original task.
-- [x] Completing or deleting the parent completes or deletes its steps (2026-09-27).
-- [x] A repeating task keeps those step titles on the next occurrence (2026-09-27).
-- [x] A reminder for a task with an open step names that step and says which task it is part of. Done finishes the step. Later and Skip still apply to the parent reminder (2026-09-27).
-- [x] A normal sentence such as `break that into steps` or `break it down` starts the same breakdown as `simplify` (2026-09-27).
-- [x] Restoring a finished task can bring its finished steps back. The choice is on the website, the desktop restore dialog, and Discord or email (2026-09-27).
-- [x] Home and the Tasks page can add a step you type. A step can become its own task (2026-09-27).
-
-**Acceptance**:
-- Suggesting steps does not rename the original task.
-- A subtask cannot contain its own subtasks.
-- Finishing or deleting the bigger task finishes or deletes its steps.
-- Restoring the bigger task leaves its steps finished unless you ask to bring them back.
-- The next occurrence of a repeating task still has those steps.
-
----
-
-### 4.3 Adaptive focus and reminder pressure
-
-**Status**: COMPLETED
-**Priority**: High
-**Why it matters**: MHM should choose one useful next action consistently, respect genuinely urgent work, and reduce pressure when the user's current signals call for it.
-
-**Shipped (2026-10-17)**:
-- [x] Added one backend focus policy for scheduled task reminders and chat suggestions, based on priority, due proximity, time-of-day tags, reminder snoozes, subtasks, and a local effort estimate.
-- [x] Scheduled reminders use today's check-in energy and reliable Google Health message guidance. Low-energy selection prefers a short task or unfinished subtask only among tasks in the same urgency band.
-- [x] Overdue, critical, urgent, high-priority, and due-today work stays ahead of less urgent work even when it is larger.
-- [x] Reminder copy explains why the task remains the focus. Gentle mode lowers expectations and points to **Break down with AI**, which is a primary first-row Discord action.
-- [x] Chat suggestions use the selected task or subtask instead of the generic `Help with tasks` suggestion.
-- [x] Missing or low-confidence energy/health data leaves the established reminder tone unchanged.
-
-**Completed slices (2026-10-17)**:
-- [x] Record at most five reminder deferrals per task. After repeated snoozes or skips, name the next open subtask, offer **Break down with AI**, and, after three deferrals on a dated task, suggest reconsidering the due date instead of repeating identical copy.
-- [x] Coordinate pressure across task reminders, motivational messages, and Google Health messages so `avoid_nagging_movement_prompts` and related reliable guidance reduce message pressure as one policy.
-- [x] Move the Home focus card onto `/api/tasks/focus`, which returns the deterministic backend decision used by chat and scheduled reminders.
-- [x] Use the plainer Discord labels **Done**, **Snooze**, **Break down with AI**, and **Leave me alone** while preserving the current complete, snooze, breakdown, and skip actions.
-
-**User-control slice (2026-10-19)**:
-- [x] Add website **Support mode** with a clear quiet-mode end time, an automatic-energy-rules switch, and a configurable low-energy threshold from 1 through 4.
-- [x] Pause scheduled encouragement and check-ins during quiet mode while allowing due, overdue, urgent, and critical task reminders with gentle wording.
-- [x] Apply the saved energy threshold to both task focus ranking and reminder wording; disabling the rule leaves check-in energy available without changing pressure.
-- [x] Keep manual replies and actions available, and never infer energy or quiet mode from ordinary chat text.
-
-**Quiet-mode follow-up (2026-10-27)**:
-- [x] Support mode shortcuts end quiet mode tomorrow at the saved Phrases morning start time, or turn it off, after saving.
-- [x] Focus and reminder explanations name quiet mode, the configured energy rule, or a 30-minute recovery hold after today's low-energy answer.
-- [x] Energy recovery holds are derived from saved check-ins, survive restart, preserve urgency, and are bypassed when automatic energy rules are disabled. Health-signal cooldowns remain a separate follow-up in PLANS.md Section 5.3.
-
-**Acceptance**:
-- The same user state produces the same urgency guardrails in Home, chat, and scheduled reminders.
-- Low energy changes effort preference and wording, never whether urgent work is disclosed.
-- Missing or unreliable wellness signals do not invent a mood or health state.
-- Repeated deferrals cause a useful change in action or copy rather than another identical prompt.
-
----
-
-## Technical Backlog
-
-### 5. Shared item organization with Notebook
-
-**Status**: Planned  
+**Status**: DEFERRED
 **Priority**: Medium
 
-Notebook and tasks both use concepts like tags, short IDs, search/list views, and item mutation. Avoid creating separate incompatible systems. Groups were removed from both on 2026-09-24.
+File/image attachments require a selected storage, retention, and Discord upload design before implementation.
 
-**Tasks**:
-- [x] Task and notebook groups were removed 2026-09-24. Tags remain the labels.
-- [x] Reuse or align with `core/tags.py` for tag normalization (2026-06-24: `sanitize_task_tags` on create/update, case-insensitive tag filter, schema validator, parser tag text).
-- [ ] Consider a shared ID helper if short-ID behavior diverges between tasks and notebook.
-- [ ] Avoid moving task behaviour into notebook-specific modules.
+## Future Extensions
 
----
+### 1. Task dependencies / blocked-by relationships
 
-### 5.1 User-customizable natural-language timeframes
-
-**Status**: Completed (2026-06-27); implementation redesign only if prioritized
-**Priority**: Medium  
-**Why it matters**: Parser and `parse_relative_date` currently use fixed defaults (for example `tonight` → 18:00, `after work` / `after school` → 17:00, weekend `this week` → end of the coming week). Different schedules and time zones need per-user settings.
-
-**Implemented**:
-- [x] Add preference fields under task settings (for example in `preferences.json` / `task_settings`): `tonight_start_time`, `after_work_school_time` (shared default for “after work” and “after school”), `time_of_day_defaults` (morning/afternoon/evening/night), and optionally `weekend_this_week_means_coming_week` (boolean, default true) (2026-06-24).
-- [x] Load preferences in `task_service.parse_relative_date` and `command_parser._extract_task_entities` via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) instead of hard-coded constants (2026-06-24 core helper; 2026-06-27 moved to preferences root).
-- [x] Expose settings via Discord command and/or desktop UI (2026-06-27: `show phrase settings`, `set tonight to 8pm`; admin **Phrase Settings** dialog — not in task widget).
-- [x] Document new fields in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (2026-06-24).
-- [x] Add unit tests with mocked per-user preference payloads (2026-06-24: [`test_natural_language_defaults.py`](../tests/unit/test_natural_language_defaults.py)).
-
-**Acceptance**:
-- A user can change what “tonight” and “after work/school” mean without code changes.
-- Defaults remain sensible when preferences are unset.
-
-The website now exposes these settings as well. The current implementation is not a new feature gap; any replacement should be a deliberate UX or architecture redesign rather than a parallel settings system.
-
-**Note (2026-05-22)**: Current shipped defaults — `tonight` 18:00, `after work` / `after school` 17:00, Sat/Sun `this week` → Sunday at end of the coming week.
-
----
-
-### 6. Task dependencies / blocked-by relationships
-
-**Status**: Planned  
+**Status**: PLANNED
 **Priority**: Medium
 
 **Implement later**:
@@ -291,17 +44,12 @@ The website now exposes these settings as well. The current implementation is no
 
 ---
 
-### 7. Batch task operations
+### 2. Batch task operations
 
-**Status**: Active
+**Status**: DEFERRED (extensions only; reviewed 2026-11-07)
 **Priority**: Low/Medium
 
-**Shipped on the website and desktop/admin app**:
-- [x] Batch complete, restore, and delete.
-- [x] Bulk priority changes (2026-10-04), also available in the desktop/admin app.
-- [x] Confirmation UX for destructive batch deletion.
-
-**Implement later if task usage grows**:
+**Deferred extensions; revisit if task usage grows**:
 - [ ] Batch archive, if task archiving is introduced.
 - [ ] Bulk tag assignment.
 
@@ -311,20 +59,17 @@ The website now exposes these settings as well. The current implementation is no
 
 ### Context-aware and mood-aware reminders
 
-**Status**: Deferred  
+**Status**: DEFERRED
 **Reason**: Overlaps with the broader mood-aware support plan and should wait until foundational task usage is stronger.
 
 Future ideas:
 - location-aware reminders
 - calendar-linked reminders
-- low-energy mode
-- difficulty/energy matching
-- gentler reminders when overwhelmed
 
 ### Smart task suggestions and AI optimization
 
-**Status**: Deferred  
-**Reason**: Wait for AI/command-parsing overhaul.
+**Status**: DEFERRED
+**Reason**: Broader predictive suggestions and optimization have no selected product slice.
 
 Future ideas:
 - suggested tasks based on patterns
@@ -333,20 +78,20 @@ Future ideas:
 
 ### Advanced views and analytics
 
-**Status**: Deferred  
+**Status**: DEFERRED
 **Reason**: Useful later, not needed before Discord task creation is reliable.
 
 Future ideas:
 - calendar view
 - kanban view
-- focus mode
+- additional focus views beyond the shipped Home/backend focus policy
 - completion trends
 - recurring-task streaks
 - overdue priority escalation
 
 ### Sync, export, and backup enhancements
 
-**Status**: Deferred  
+**Status**: DEFERRED
 **Reason**: Basic task persistence exists; broader sync/backup should align with the storage/user-data roadmap.
 
 Future ideas:
@@ -354,21 +99,6 @@ Future ideas:
 - cloud sync
 - cross-device access
 - backup confidence checks specific to task data
-
----
-
-## Completed / Removed from Active Planning
-
-These are no longer active roadmap items. Keep details in changelog/test history instead of expanding them here.
-
-- Recurring task model and runtime support.
-- Recurring-task Discord discoverability and help examples.
-- Recurring natural-language basics.
-- Core task CRUD.
-- Task reminder system foundations.
-- Task V2 schema foundation.
-- Task service facade foundation.
-- Task due date, priority, and reminder follow-up flow implementation in code.
 
 ---
 
@@ -383,3 +113,23 @@ pytest tests/behavior/test_task_reminder_followup_behavior.py tests/integration/
 ```
 
 Before a larger merge, run the normal full project validation/audit path.
+
+## Maintenance Rules
+
+Follow the shared [maintenance rules](PLANS.md#10-maintenance-rules) and [status vocabulary](PLANS.md#3-status-vocabulary).
+
+- Keep task behavior in task/shared modules; reuse existing shared tag and ID helpers for extensions.
+- Coordinate health-derived pressure changes with [PLANS.md](PLANS.md#53-deterministic-mood-and-energy-rules) and keep shared task/notebook work consistent with [NOTES_PLAN.md](NOTES_PLAN.md).
+
+---
+
+## Next Review Checklist
+
+Use this checklist when reviewing or updating this plan; reset it for each review.
+
+- [ ] Verify remaining items against current code, tests, reports, and changelogs; distinguish automated evidence from unverified live behavior.
+- [ ] Before removing completed work, preserve any unfinished work, deferred ideas, validation limits, and guardrails in the appropriate surviving section.
+- [ ] Remove fully completed items and completion-history lists; keep implementation history in changelogs.
+- [ ] Confirm each remaining item's status, priority, scope, and acceptance or revisit criteria are accurate.
+- [ ] Confirm links and section references resolve, related plan summaries agree, and current metrics come from generated reports.
+- [ ] Confirm attachment, dependency, batch, and other deferred extensions still reflect product needs and their dependencies.

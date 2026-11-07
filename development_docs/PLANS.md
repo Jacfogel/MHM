@@ -2,9 +2,9 @@
 
 > **File**: `development_docs/PLANS.md`  
 > **Audience**: Human Developer & AI Collaborators  
-> **Purpose**: Top-level index for active, delegated, planned, deferred, and completed MHM planning work  
+> **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-10-28
+> **Last Updated**: 2026-11-07
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -12,16 +12,10 @@
 
 ## 1. Role of This File
 
-`PLANS.md` is the **top-level planning index** for MHM.
-
-Use this file to answer:
-
-- What major plans exist?
-- Which plans are active now?
-- Where does detailed work belong?
-- Which old plans are completed, archived, or deferred?
-
-Do **not** use this file as a dumping ground for long implementation checklists. Detailed work belongs in the child plan files, `TODO.md`, generated audit reports, or changelogs.
+- **Purpose**: Provide the top-level planning index for MHM: which plans exist, their current status, and where detailed work belongs.
+- **Scope**: Track unresolved cross-cutting work and short summaries of child plans, including accepted future work and intentionally deferred ideas.
+- **Priorities**: Keep ownership and status clear so the next work can be selected from current evidence.
+- **Related sources**: Keep detailed roadmaps in their child plans and small standalone tasks in [TODO.md](../TODO.md). Use the sources in Section 2 for implementation references, live metrics, and changelog history. Maintenance rules are in Section 10.
 
 ---
 
@@ -51,75 +45,31 @@ Use these statuses consistently across plan files:
 - **PLANNED** - accepted future work, but not the current focus.
 - **DEFERRED** - intentionally postponed until a dependency, priority shift, or usage signal changes.
 - **MONITORING** - no active implementation; watch logs, audits, or live behavior.
-- **COMPLETED** - done; keep detail in changelogs, not active plans.
+- Completed work is removed from plans; keep its history in changelogs.
 - **ARCHIVED** - old plan retained only as historical context.
 
 Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSIDERATION`, or `PARTIALLY COMPLETE` in new planning sections. If nuance is needed, put it in a short note under one of the statuses above.
 
 ---
 
-## 4. Current Active Plan Index
+## 4. Current Plan Index
 
 | Plan | Status | Priority | Where details live | Current focus |
 |------|--------|----------|--------------------|---------------|
-| Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
+| Flow/check-in scheduled-send stability | **MONITORING** | Low | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
-| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Model slice is recent titles, pinned entries, and a short summary when untitled; Home shows recent titles |
-| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode and explicit energy controls are complete; select the next task-system slice |
-| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
+| Notebook system | **MONITORING** | Low | [NOTES_PLAN.md](NOTES_PLAN.md) | Shipped baseline; optional live visual checks when UI changes; extensions deferred |
+| Task system | **MONITORING** | Low | [TASKS_PLAN.md](TASKS_PLAN.md) | Shipped capabilities; optional live validation; future extensions await selection |
+| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Windows reliability, log isolation, marker maintenance, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
-| Cost-aware optional AI | **COMPLETED** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | Global, feature, and manual-only controls completed 2026-11-05 |
-| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Quiet-mode shortcuts and energy recovery cooldown shipped; evaluate health-signal cooldowns separately |
+| Deterministic mood and energy rules | **ACTIVE** | High | This file Section 5.3 + [TASKS_PLAN.md](TASKS_PLAN.md) | Evaluate cooldowns for health-derived pressure changes |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
-| Discord package reorg / bot.py split | **COMPLETED** | Medium | This file Section 5.0.3 + [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) | Subpackages shipped; `bot.py` thinned to host |
-| Split user_data_operations | **COMPLETED** | Medium | This file Section 5.0.4 | Facade + backup/index/summaries/user-info modules |
-| Context analysis consolidation | **COMPLETED** | High | This file Section 5.0.5 + [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md#41-context-envelope-and-user-context-manager) Section 4.1 | One check-in analysis core on the envelope; chat/UI share wellness |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
-| Trial and monthly subscription | **IMPLEMENTED** | 2026-10-09 | This file Section 7.3 | 30-day trial, Stripe-hosted monthly plan, replay-safe reconciled webhooks, delivery gating, and one-time billing notices |
-| Talk to MHM on the website | **COMPLETED** | Later | This file Section 7.4 | Signed-in conversation uses the shared Discord/email message path |
 
 ---
 
 ## 5. Active Top-Level Plans
-
-### 5.0 System AI overhaul (interaction-type separation)
-
-**Status**: **COMPLETED**  
-**Completed**: 2026-05-19  
-**Spec**: [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md)
-
-**Outcome**: Conversational, command-interpretation, clarification, and fallback paths are separated; `ai/chatbot.py` orchestrates LM Studio and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. `get_ai_chatbot()` remains the stable API for `communication/`. Detail and phase history are in the spec and changelogs (2026-05-18 through 2026-05-19).
-
----
-
-### 5.0.1 Cost-aware optional AI
-
-**Status**: **COMPLETED** (2026-11-05)
-**Priority**: High  
-**Started**: 2026-10-19
-**Tracking**: Completed implementation summarized here; history in the changelogs.
-
-**Use / fit**: Keep MHM useful at no model cost for as long as practical. Deterministic handlers remain authoritative. AI is optional and must be easy to disable globally or for individual product features with OpenAI replacing LM Studio (2026-10-28).
-
-**Admin ownership (2026-10-27)**: Global and feature-level AI switches belong in the desktop admin UI. They are administrator controls and must not appear in website user settings. Environment configuration remains an operational fallback.
-
-**Workstreams** (in recommended order):
-
-1. **Central execution policy** - Every model request passes through one policy boundary. `AI_USAGE_MODE=off` prevents model requests, while deterministic commands, reminders, and fallbacks continue.
-2. **Feature-level controls** - `AI_DISABLED_FEATURES` can independently disable conversation, command interpretation, personalized messages, action planning, response enhancement, task breakdown, or model-based task-effort estimates.
-3. **Manual-only controls** - Discord task details now expose **Break down with AI**, routing directly to task suggestions with a review before saving. `AI_USAGE_MODE=manual` now permits this explicit request and the deterministic simplify-task command while blocking automatic AI. Global off and feature disables remain authoritative; authorization is scoped to the request.
-4. **Provider replacement boundary** - OpenAI now replaces LM Studio; keep the existing global and feature controls authoritative for every provider call (2026-10-28).
-
-**First slice shipped (2026-10-19)**: `ai/usage_policy.py`, the shared client boundary, and chatbot cache checks enforce `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Configuration validation fails closed for an invalid mode and does not require model connection settings when AI is off.
-
-**Desktop admin controls shipped (2026-10-27)**: Admin > AI Controls exposes one installation-wide global switch and the seven feature switches. Saved overrides use `ai_usage_settings.json` under `BASE_DATA_DIR`; reads are fresh for each policy decision, including new requests in a running service. Use environment defaults returns control to `AI_USAGE_MODE` and `AI_DISABLED_FEATURES`. Corrupt saved controls fail closed and configuration validation explains how to repair them. The website has no AI policy settings. Manual-only semantics shipped on 2026-11-05, including a desktop checkbox and enforcement at the HTTP boundary.
-
-**Out of scope**: MHM will not duplicate provider billing, budgets, or price tracking. The selected provider owns monetary limits. MHM owns only whether a feature may request AI.
-
-**Provider changed (2026-10-28); quality work still deferred until separately selected**: Prompt tuning, response-quality work, NLP expansion, live tone review, and generalized AI response-time optimization. Completed command parity, everyday phrasing, action boundaries, and pronoun follow-ups remain in place.
-
----
 
 ### 5.0.2 Appropriate coupling reductions
 
@@ -130,72 +80,28 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Triage rubric**: High-coupling audit flag = unique local fan-out **> 10**, excluding package `__init__.py` re-export hubs. Legitimate composition hubs (orchestrator, chatbot, interaction_manager, `core.service`) keep their fan-out. Fix only **inappropriate** edges (wrong direction, private-API reach, domain -> composition-root locators).
 
-**Done this pass**:
-- Moved reminder handoff date fields into `tasks/task_reminder_state.py`; scheduling, snoozing, and recurrence skips share the helper without importing `scheduler.task_reminders` back from the task actions. (2026-10-27)
-- Public `get_first_checkin_question_text` on check-in flow; `core.service_requests` no longer calls private conversation-flow helpers.
-- `scheduler.runtime_access` holds the process SchedulerManager handle; `tasks.task_data_manager` no longer imports `core.service`.
-- Coupling analyzer threshold raised to > 10 with `__init__.py` exclusion; AI_PRIORITIES action text updated for triage (not hub shrink).
-- Public notebook flow start APIs on `NoteFlowMixin` (`start_note_body_flow`, `start_journal_body_flow`, `start_list_items_flow`, `start_entry_edit_flow`, `get_note_body_flow_data`); `notebook_handler` no longer writes `conversation_manager.user_states` or calls `_save_user_states`.
-
 **Later candidates** (not automatic refactors): storage -> feature-domain managers; duplicated multi-domain reads in `ai/context`; optional delivery ownership for AI personalized send only if ownership pressure appears; optional hub vs inappropriate-edge classification in the analyzer.
 
----
+**Additional deferred cleanup candidates**:
 
-### 5.0.3 Discord package reorg and bot.py split
+- Consider direct imports from `storage/user_data_index.py` for high-traffic `update_user_index` callers only if ownership or dependency pressure justifies the change; do not reopen the completed facade split.
+- `ai/context/phraser.py` still has the test helper `append_checkin_summary(parts, user_id)` loading rows by user ID. Consider moving those tests to envelope-based inputs only if this helper causes duplication or maintenance pressure; production chat already uses envelope wrappers.
 
-**Status**: **COMPLETED**  
-**Priority**: Medium  
-**Started**: 2026-08-11  
-**Completed**: 2026-08-11  
-**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) module refactor candidates (`discord/bot.py`) + high-fan-out triage
-
-**Outcome**: `communication/communication_channels/discord/` uses `events/`, `ui/`, `onboarding/`, `webhooks/` subpackages. Tiny helpers merged; rich delivery, connection health, command registration, and ngrok extracted from `bot.py` (now ~545-line BaseChannel host). Stable paths kept: `discord.bot.DiscordBot`, `discord.interaction_views`. Retired flat module paths recorded in `DEPRECATION_INVENTORY.json` (`discord_flat_module_paths_2026_08_11`) via search-and-close (no long-lived bridges).
-
----
-
-### 5.0.4 Split user_data_operations
-
-**Status**: **COMPLETED**  
-**Priority**: Medium  
-**Started**: 2026-08-16  
-**Completed**: 2026-08-16  
-**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) large-module split (`storage/user_data_operations.py`)
-
-**Outcome**: Ops/admin work lives in focused modules; [`storage/user_data_operations.py`](../storage/user_data_operations.py) is a thin `UserDataManager` facade with re-exports. Implementation: [`user_data_user_info.py`](../storage/user_data_user_info.py) (leaf), [`user_data_backup.py`](../storage/user_data_backup.py), [`user_data_index.py`](../storage/user_data_index.py), [`user_data_summaries.py`](../storage/user_data_summaries.py). Existing `from storage.user_data_operations import ...` call sites unchanged. Optional later: point high-traffic `update_user_index` callers at `user_data_index` directly.
-
----
-
-### 5.0.5 Context analysis consolidation
-
-**Status**: **COMPLETED**  
-**Priority**: High  
-**Started**: 2026-08-22  
-**Completed**: 2026-08-22
-
-**Outcome**: Check-in metrics have one calculator in [`checkins/analysis.py`](../checkins/analysis.py). `AIContextEnvelope.analytics` stores `checkin_analysis` once. Chat assembly, fallback, chatbot summary dict, and `CheckinAnalytics.get_wellness_score` consume that analysis. Wellness weights are mood 30 / energy 20 / habits 30 / sleep 20; missing components are omitted and renormalized. `generate_contextual_response` builds one envelope and passes it through. `UserContextManager` remains session overlay only.
-
-**Leftover**: [`phraser.append_checkin_summary(parts, user_id)`](../ai/context/phraser.py) still loads rows by user id for tests; production chat uses the envelope wrappers.
 
 ---
 
 ### 5.1 Flow/check-in scheduled-send stability
 
-**Status**: **ACTIVE / MONITORING**  
-**Priority**: High  
+**Status**: **MONITORING**
+**Priority**: Low
 **Started**: 2026-02-22  
 **Spec**: [discord-checkin-flow.md](../specs/discord-checkin-flow.md)
 
 **Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most: selecting the right number of questions from the right lists, responding dynamically, saving results properly, and supporting flexible response formats.
 
-**Completed baseline and first user-control slice**:
-
-- Deferral and cooldown behavior implemented in runtime.
-- One-time retry scheduling implemented.
-- Unit/behavior coverage exists for the February 2026 stability slice.
-
 **Remaining work**:
 
-- [ ] Live Discord manual validation for active-flow deferral, 10-minute cooldown, and retry behavior.
+- Optional live Discord observation of active-flow deferral, 10-minute cooldown, and retry behavior when delivery/flow behavior changes. Use the [manual Discord guide](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for visual checks and the focused automated tests for behavior validation.
 - [ ] Monitor logs for legacy warnings in check-in flow paths.
 - [ ] Monitor `MESSAGE_SELECTION` diagnostics.
 - [ ] Move recurring concrete follow-ups to [TODO.md](../TODO.md) if they become standalone tasks.
@@ -209,12 +115,6 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Started**: 2025-11-20
 
 **Use / fit**: Error-handling validation helps because this is a beginner/AI-assisted codebase. The practical goal is not theoretical perfection; it is clearer failures, useful but not overly noisy logs, and better user-facing messages.
-
-**Completed baseline**:
-
-- Error-handling audit tooling exists.
-- Current Phase 1/2 audit queues have been reduced in prior quick-audit cycles.
-- Coverage status is tracked through generated reports rather than copied here.
 
 **Remaining work**:
 
@@ -236,62 +136,35 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Use / fit**: Adapt task selection and reminder pressure without relying on an LLM. Rules must be explicit, inspectable, and user-controlled.
 
-**Completed baseline**:
-
-- The shared task-focus policy already prefers smaller work within the same urgency band when reliable low-energy or health signals are present.
-- Reliable `avoid_nagging_movement_prompts` guidance already softens pressure across task, motivational, and Google Health messages.
-- Missing or low-confidence signals preserve established behavior instead of guessing.
-- Website **Support mode** stores a user-chosen quiet-mode end time. While active, scheduled encouragement and check-ins pause; task reminders continue only for due, overdue, urgent, or critical work and use gentle wording.
-- Users can disable automatic energy adaptation or choose a low-energy threshold from 1 through 4. The same saved rule drives task ranking and reminder wording.
-- Manual replies and actions remain available during quiet mode. Rules use saved preferences and reliable check-in/health data only, never ordinary chat text or an LLM judgment.
-
 **Next slices**:
 
-- [x] Add a manual quiet mode with a clear custom end time.
-- [x] Add an "until tomorrow morning" quiet-mode shortcut using the saved morning start time in Phrases, plus a manual off shortcut. Both apply when saved. (2026-10-27)
-- [x] Define which scheduled messages quiet mode suppresses, softens, or allows because they are genuinely urgent.
-- [x] Expose explicit user preferences for energy thresholds and automatic gentle-mode behavior.
-- [x] Explain quiet mode, the configured energy threshold, and recovery cooldown in task focus and reminder decisions. (2026-10-27)
-- [x] Keep support gentle for 30 minutes after a low-energy answer today when a higher answer arrives; derive the hold from saved check-ins so restarts agree. Missing energy does not create a hold; disabling automatic energy rules bypasses it immediately. (2026-10-27)
 - [ ] Evaluate cooldowns for health-derived pressure changes separately; the shipped cooldown covers explicit check-in energy only.
 
 **Guardrails**: Never hide urgent work; never infer mood from ordinary chat text; never require AI to evaluate the rules.
 
 ---
 
-## 6. Delegated Active Plans
+## 6. Child Plans
 
 These plans should not be duplicated in detail here.
 
 ### 6.1 Notebook system
 
-**Status**: **ACTIVE**  
-**Priority**: High  
+**Status**: **MONITORING**
+**Priority**: Low
 **Detailed plan**: [NOTES_PLAN.md](NOTES_PLAN.md)
 
-**Current focus**:
-
-- The model notebook slice is titles of recent entries, pinned entries, and a short summary when an entry has no title. Home shows a few recent titles under capture.
-- Groups were removed 2026-09-24. Tags remain. Discord and the website notebook page are both current surfaces.
-- Everyday capture phrasing, `!edit`, Show More, and help text are shipped. Optional live Discord checks are visual only.
-- Bulk organization, database search, and event entries stay deferred.
+**Current focus**: Optional visual checks when Discord rendering/help changes. Bulk organization, database search, and events remain deferred in the child plan.
 
 ---
 
 ### 6.2 Task system
 
-**Status**: **ACTIVE**  
-**Priority**: High  
+**Status**: **MONITORING**
+**Priority**: Low
 **Detailed plan**: [TASKS_PLAN.md](TASKS_PLAN.md)
 
-**Current focus**:
-
-- Broader natural-language task creation beyond recurring-task basics (everyday phrases shipped 2026-08-26, including `i still need to`, `show my list`, `cross off`).
-- Pronoun follow-ups shipped 2026-08-28 (`make that due tomorrow`, `that's urgent`, `mark that done`).
-- Templates: Discord buttons open a prefilled modal (2026-08-26); create hub shows Call, Clean, Forms, Custom task, then green notes (2026-08-30); account-owned templates are editable in website and desktop task settings and available to both task pickers and `task template` commands (2026-10-04).
-- Website and desktop task selection support batch complete, restore, delete, and priority changes (2026-10-04).
-- Task notes shipped; structured web links shipped 2026-08-27; file/image attachments remaining.
-- Reminder snooze shipped 2026-09-14 (1 hour / tonight or tomorrow morning / next week / custom). Skip and Simplify shipped 2026-09-15.
+**Current focus**: Optional live checks after UI/parser changes. Attachments, dependencies, and batch extensions await a selected product slice; detailed scope belongs in the child plan.
 
 ---
 
@@ -305,7 +178,7 @@ These plans should not be duplicated in detail here.
 
 - Full-audit reliability.
 - Test artifact/log isolation.
-- Domain-attribution pytest markers.
+- Maintenance of enforced domain-attribution markers.
 - Static policy tests for time utilities, user-data JSON access, and core/UI boundaries.
 - No-parallel marker reduction only when stability is preserved.
 - Coverage growth in high-value domains.
@@ -319,12 +192,7 @@ These plans should not be duplicated in detail here.
 **Started**: 2026-09-13  
 **Destination**: separate git repo after the in-repo guest package is honest.
 
-**Current increment (logical split)**:
-
-- Host backup drill/health uses `host.backup_manager_module` via [`host_hooks.py`](../development_tools/shared/host_hooks.py); portable default skips.
-- Import boundary forbids all host prefixes from `local_module_prefixes` except `development_tools`.
-- Tools tests use [`development_tools/pytest.ini`](../development_tools/pytest.ini) (`confcutdir` stops host `tests/conftest.py`). Host `pytest.ini` ignores `tests/development_tools/`.
-- Remaining V6 item **B-016** (`--audit-scope` beyond Tier 2) stays parked; do not reopen Radon/pydeps/pre-commit without a new plan.
+**Deferred scope**: Remaining V6 item **B-016** (`--audit-scope` beyond Tier 2) stays parked; do not reopen Radon/pydeps/pre-commit without a new plan.
 
 **Still in this repo before a sibling-repo cut**:
 
@@ -383,56 +251,6 @@ Accepted future work. Not the current focus. Active check-in, task, and notebook
 
 ---
 
-### 7.3 Trial and monthly subscription
-
-**Status**: **IMPLEMENTED**
-**Added**: 2026-09-22  
-**Priority**: Later
-
-**Use / fit**: New accounts get 30 days of the full service, then a monthly subscription. Stripe hosts payment collection, and pre-billing accounts keep working without a charge.
-
-**Scaffold** (in order):
-
-1. Store billing on the account document (`AccountV2EnvelopeModel`): `trial_ends_at` (`created_at` plus 30 days), `subscription_status` (`trialing`, `active`, `past_due`, `canceled`, `comped`), and the payment-provider customer id. Do not store card numbers. `metadata` can hold the provider id until those fields are first-class.
-2. Use Stripe Checkout for one monthly price, and a webhook for paid, renewal-failed, and canceled events. MHM never sees the card.
-3. During `trialing` or `active` or `comped`, sends work as they do now. After the trial, or after a short grace period when a renewal fails, stop scheduled messages, check-ins, and task reminders. Keep the account and its data. Resume sends when status returns to `active`.
-4. Mark the existing personal alpha account `comped` so daily use does not depend on billing.
-5. The website shows days left in the trial, then a subscribe link. Send one notice before the trial ends and one when sends are paused, on whatever channel that user already uses.
-
-**Out of scope for this scaffold**: annual plans, multiple price tiers, team accounts, and usage-based billing.
-
-**Implemented 2026-10-07**: account fields, a 30-day trial for new accounts,
-Stripe-hosted Checkout and Customer Portal sessions, signed snapshot webhooks,
-three-day configurable payment grace, account-page status/actions, and runtime
-gates for scheduled messages, check-ins, and task reminders. Pre-billing accounts
-default to `comped`, preserving alpha access. Automatic one-time channel notices
-before expiry and when pausing were added on 2026-10-09, along with replay-safe
-event tracking, current-Subscription reconciliation for out-of-order Stripe events,
-and explicit live-mode cutover/rollback guidance. The onboarding billing step also
-explains when less than 48 hours remain and Checkout must charge immediately.
-
----
-
-### 7.4 Talk to MHM on the website
-
-**Status**: **COMPLETED**
-**Added**: 2026-09-23  
-**Completed**: 2026-09-24  
-**Priority**: Later
-
-**Use / fit**: Discord and email already accept a normal message: help, status, "add a task," or an open conversation. The home page now has that same conversation. Check-in answers, tasks, and the notebook stay on their own pages.
-
-**What shipped**:
-
-1. The signed-in home page shows the conversation, the reply, and suggestion buttons that send that suggestion text back.
-2. Each message goes through `handle_user_message` with the `website` channel. It is not labeled as Discord. Outbound messages also copy onto that channel for every user, beside email or Discord.
-3. An active check-in or task flow stays in charge, the same way Discord and email do, because the website uses that shared handler.
-4. Tasks, Notebook, and Check-in remain the places for those jobs. Home is the open conversation, not a second copy of those screens.
-
-**Leave in place for now**: Account deletion stays a request through Discord or email. The browser keeps the visible transcript for the current visit only. Scheduled messages in Talk to MHM can be marked More like this or Not for me, the same as a Discord reaction.
-
----
-
 ## 8. Deferred / Low-Priority Plans
 
 These are real ideas, but they are **not current implementation priorities**.
@@ -455,12 +273,8 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ### 8.2 Message analytics, deduplication, and proactive intelligence
 
-**Status**: **DEFERRED / MONITORING**  
+**Status**: **DEFERRED**
 **Priority**: Low/Medium
-
-**Completed baseline**:
-
-- Message frequency analytics foundation exists and was documented in prior changelog history.
 
 **Why deferred**:
 
@@ -479,14 +293,8 @@ These are real ideas, but they are **not current implementation priorities**.
 
 ### 8.3 UI polish and validation
 
-**Status**: **DEFERRED / OPPORTUNISTIC**  
+**Status**: **DEFERRED**
 **Priority**: Low
-
-**Completed baseline**:
-
-- PySide6/Qt migration foundation completed.
-- Dialogs and widgets exist.
-- Main UI behavior coverage exists.
 
 **Why deferred**:
 
@@ -510,10 +318,6 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 **Status**: **DEFERRED**  
 **Priority**: Low
 
-**Completed baseline**:
-
-- Email integration was completed and documented in changelog history.
-
 **Why deferred**:
 
 - Discord is primary.
@@ -529,57 +333,43 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 
 ### 8.5 Smart home integration
 
-**Status**: **ARCHIVED / FUTURE ONLY**  
+**Status**: **ARCHIVED**
 **Priority**: None currently
 
 This remains a long-term idea from the broader project vision, not a current MHM implementation plan.
 
 ---
 
-## 9. Completed / Archived Plans
+### 8.6 AI quality and response-time work
 
-Keep details in changelogs, not here.
+**Status**: **DEFERRED**
+**Priority**: Low
 
-| Plan / workstream | Status | Notes |
-|-------------------|--------|-------|
-| MHM Refactor Continuation Plan | **COMPLETED** | Completed 2026-05-05; removed from active planning. |
-| Runtime JSON storage classification/migration/service flag cleanup | **COMPLETED** | Completed 2026-05-11; follow-ups belong in TODO or storage docs. |
-| Soft channel-boundary review | **COMPLETED** | Completed 2026-05-11; future boundary policy belongs in TEST_PLAN/TODO. |
-| Backup Reliability and Restore Confidence Plan | **COMPLETED** | Completed 2026-05-11; future issues should become specific TODO items. |
-| Top-level storage package move | **COMPLETED** | Completed 2026-05-14; `storage/` is the current package for user-data persistence helpers. |
-| Account management system improvements | **ARCHIVED** | Core account creation and feature enablement complete; remaining edge cases belong in TODO. |
-| UI migration foundation/dialogs/widgets | **COMPLETED** | UI polish/testing remains deferred/opportunistic. |
-| Email integration | **COMPLETED** | Cross-channel sync remains deferred. |
-| Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
-| System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
-| Product AI context/action refactor | **COMPLETED** | Completed 2026-07-17; archived [PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md); runtime contracts in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md). |
-| AI development tools improvement plan V6 | **ARCHIVED** | Archived 2026-07-28 to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); residual B-016 in Section 6.4 / TODO. |
-| Google Health integration (V0/V1) | **ARCHIVED** | Archived 2026-07-28 to [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md); live docs in [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md); deferred leftovers in [TODO.md](../TODO.md). |
+Prompt tuning, response-quality work, NLP expansion, live model tone review, and generalized AI response-time optimization await a separately selected slice. Coordinate with the deferral in [TODO.md](../TODO.md); provider replacement and optional-AI controls do not close these independent ideas.
 
 ---
 
-## 10. Plan Maintenance Rules
+## 10. Maintenance Rules
 
-When updating plans:
+These shared rules apply to this index and all child plans.
 
-1. Keep `PLANS.md` as an index, not a long backlog.
-2. Put detailed roadmap items in the relevant child plan.
-3. Put small standalone tasks in [TODO.md](../TODO.md).
-4. Move completed implementation history to changelogs.
-5. Use live generated reports for metrics instead of copying stale counts into plan files.
-6. Use current package/module names from the codebase; do not preserve old paths for nostalgia.
-7. Add dates to new items and status changes using `YYYY-MM-DD`.
-8. When a plan becomes mostly completed, collapse it here and move remaining concrete work to the correct child plan or TODO.
+- Keep plans focused on unresolved work, monitoring, and deferred ideas. Remove fully completed items and completion-history sections; keep implementation history in changelogs.
+- Before deleting a section or checked item, extract any unfinished work, deferred ideas, validation limits, and guardrails into the appropriate surviving section.
+- Give each remaining item a clear scope, status, priority, and acceptance criteria or a monitoring/deferred revisit trigger. Use the status vocabulary in Section 3.
+- Keep detailed work in its owning plan and small standalone tasks in [TODO.md](../TODO.md). Use short cross-references instead of duplicate checklists.
+- Cite current code, tests, reports, and changelogs for evidence. Distinguish automated validation from unverified live behavior; use generated reports for current metrics.
+- Use current paths and terminology. Update links and related plan summaries when moving work, and record review/status dates as `YYYY-MM-DD`.
+- Keep `PLANS.md` as a concise index. Remove an index entry when its work is fully complete; retain only unresolved work in the owning plan or TODO.
 
 ---
 
 ## 11. Next Review Checklist
 
-Use this checklist during the next planning cleanup:
+Use this checklist when reviewing or updating this plan; reset it for each review.
 
-- [ ] Confirm all child links still resolve.
-- [ ] Confirm `PLANS.md` still references V6, not V5, for AI development tools.
-- [ ] Confirm completed work is not re-expanded into active sections.
-- [ ] Confirm deferred items still deserve to exist.
-- [ ] Confirm active plan summaries match their child plans.
-- [ ] Confirm generated reports, not copied metrics, are used for current audit/coverage status.
+- [ ] Verify remaining items against current code, tests, reports, and changelogs; distinguish automated evidence from unverified live behavior.
+- [ ] Before removing completed work, preserve any unfinished work, deferred ideas, validation limits, and guardrails in the appropriate surviving section.
+- [ ] Remove fully completed items and completion-history lists; keep implementation history in changelogs.
+- [ ] Confirm each remaining item's status, priority, scope, and acceptance or revisit criteria are accurate.
+- [ ] Confirm links and section references resolve, related plan summaries agree, and current metrics come from generated reports.
+- [ ] Confirm child-plan ownership and index statuses match, and the AI development-tools pointer identifies the current roadmap and archived history.

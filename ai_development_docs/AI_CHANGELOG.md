@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-07 - Audit and standardize development planning documents **COMPLETED**
+- Removed completed planning items, corrected stale statuses/behavior, and preserved unfinished work found inside completed summaries. Windows suite reliability and live validation remain open; audit scope is explicit.
+- Standardized all four plans' role sections, shared maintenance rules, and review checklists; repaired affected guide/spec links. Rules protect unfinished work before removing completed sections.
+- Plan links/fragments and diff checks pass; no tests or live-service checks rerun in this chat. Retained existing generated report updates and fast-forwarded local main to include ten nightly-fix commits.
+
 ### 2026-11-07 - Resolve OAuthlib and pyasn1 advisory findings
 - Fixed all five reproduced pip-audit findings by raising both manifests and the local environment to oauthlib 4.0.1 / pyasn1 0.6.5. Fresh scan: zero known vulnerabilities; pip check passes.
 - All 72 focused Google Health auth/client checks plus real ASN.1/Google-auth/offline OAuth smoke checks pass. Canonical security cache refreshed and Tier 2 audit/report regeneration passes. Changes are local; no full-suite rerun or push yet.
@@ -120,19 +125,6 @@ Guidelines:
 - Reference-only `!append` now starts a persisted append session; the next reply adds to the existing note or journal entry. One-message commands remain supported.
 - Cancel, skip, and timeout leave content unchanged; lists and invalid references are rejected before starting.
 - **Verification**: 95 notebook behavior and handler checks pass. Targeted Ruff and Pyright checks pass. Restart the service to load the new flow.
-
-### 2026-10-27 - Explicit Discord AI task breakdown **COMPLETED**
-- Audit follow-up: repaired the stale low-energy test patch and the Discord test's button-type warning. All 129 affected tests pass sequentially and in parallel; full Pyright and targeted Ruff are clean. Regenerated registry/dependency/tree docs. Full Tier 3 was not rerun.
-- Website and Discord share **Break down with AI**, **Add selected steps**, and **Add my own step** labels; reminder guidance and desktop AI controls match. Existing typed `simplify` aliases still work.
-- Task details add **Break down with AI** through the deterministic task handler, with unsaved suggestions, selected/all saving, own-step entry, and cancellation.
-- Global/feature disables prevent model initialization and availability probing; manual step entry works without AI. Review ownership and matching pending-confirmation cleanup are enforced. Manual-only configuration remains a follow-up.
-- All 114 focused task/Discord/policy tests, static checks, and documentation sync pass. Restart the service; live Discord validation remains manual.
-
-### 2026-10-27 - Desktop AI controls, quiet mode, and reminder dependencies **COMPLETED**
-- Desktop Admin > AI Controls owns installation-wide global and seven feature switches, with environment-default restoration. Atomic shared settings override the environment on subsequent decisions across processes; invalid saved controls fail closed, failed saves retain the draft, and Cancel writes nothing. These controls are excluded from website user settings.
-- Quiet-mode shortcuts use the saved Phrases morning start time and account timezone. Focus/reminders explain quiet mode, energy thresholds, and a restart-stable 30-minute recovery hold after today's low-energy answer. Disabling energy rules bypasses the hold; health-signal cooldowns remain separate follow-up work.
-- Shared reminder date fields now live in tasks/task_reminder_state.py, removing the scheduler/snooze cycle. Reminder/snooze/skip and cleanup checks pass 143 tests. Explanation failures return safe empty text; the function registry includes the new helpers.
-- Desktop controls validation passes 126 focused policy/chatbot/configuration/admin tests, a final 17 settings/dialog tests, and earlier 91 desktop-shell regression checks. Ruff and Pyright pass; the rendered dialog was visually reviewed. Restart desktop and service once to load the feature; later policy saves apply without restarting. Earlier quiet-mode checks passed 90 tests; a broader website-service run stalled and was stopped.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
