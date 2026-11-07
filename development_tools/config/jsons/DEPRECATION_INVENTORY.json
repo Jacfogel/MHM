@@ -693,6 +693,20 @@
       ],
       "replacement": "Discord emoji reactions in events/message_reactions.py",
       "note": "Removed More like this and Not for me buttons from scheduled Discord messages. Thumbs and smile or frown reactions still steer later messages."
+    },
+    {
+      "id": "qt_shutdown_investigation_instrumentation",
+      "removed_at": "2026-11-07",
+      "status": "removed",
+      "search_terms": [
+        "_qt_snapshot",
+        "_qt_before_exit",
+        "qt_refcount_probe",
+        "qt-refcount-probe",
+        "test_nightly_diagnostics.py"
+      ],
+      "replacement": "PySide6 6.12.0 exclusion, scoped widget teardown, lightweight nightly history and native-core failure gate",
+      "note": "Temporary GC inventories, atexit scans, probe script/matrix/input and inventory-specific tests removed after clean full Linux run 42404010183. Historical proof remains in GitHub runs 42403486795 and 42403966400 and changelogs. No compatibility fallback retained."
     }
   ],
   "global_sweep_keywords": [

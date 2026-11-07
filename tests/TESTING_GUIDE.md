@@ -276,19 +276,6 @@ omitted. Raw core files are temporary runner files, excluded from artifacts,
 and deleted after stack extraction. Native stack extraction has not been
 validated on Windows; it runs only in the Ubuntu nightly workflow.
 
-The opt-in recorder also inventories GC-visible QObject wrappers after setup
-and teardown. `qt_snapshot` events contain changed/removed wrapper IDs, Python
-types, Shiboken validity/ownership/creation flags, and the first test/phase that
-observed each wrapper. Session finish, unconfigure, and `before_qt_atexit` include
-full inventories; the last also lists thread names/IDs/daemon flags. Snapshots
-start with a flushed `qt_snapshot_begin` event so an interrupted scan is visible.
-The atexit recorder is registered after Qt loads, placing it before Qt cleanup
-in Python's reverse callback order. Later application callbacks can still run
-before this snapshot. No QObject methods, names, text, properties, or object
-representations are read, and weak references do not keep wrappers alive.
-First observation is not a constructor trace; objects created and destroyed
-between snapshots and C++ objects without GC-visible wrappers may be missed.
-Use the final surviving IDs and their first-observed tests to reduce a replay.
 For synchronous widget tests, `deleteLater()` only schedules destruction;
 without a running event loop, pending deletion can accumulate until interpreter
 exit. Wrap the test lifetime in `qt_widget_scope` from
@@ -314,28 +301,16 @@ The native-backtrace step now returns failure whenever it finds a raw core,
 including crashes after an xdist worker has reported success. Artifact upload
 still runs on failure, and raw cores are still removed after extraction.
 
-For binding-level isolation, dispatch the nightly workflow with input
-`qt_refcount_probe=true`. This skips the full suite and runs separate Python
-3.11 jobs installing only PySide6-Essentials/shiboken6 6.11.2, 6.11.3, or 6.12.0. The
-standalone `tests/test_helpers/test_support/qt_refcount_probe.py` compares a
-plain Python function returning None with small batches of QObject.setObjectName
-calls, measuring sys.getrefcount(None). No MHM imports, pytest, QApplication,
-background threads, or shutdown bypass are used. Run `42403486795` on Python
-3.11.18 measured Qt deltas 0/0/0 for 6.11.2 and -1/-32/-128 for 6.12.0 at
-1/32/128 calls; Python control deltas were zero for both. The affected binding
-loses one None reference per tested void method call. This directly identifies
-a PySide6/Shiboken 6.12.0 defect matching the nightly none_dealloc abort.
-The affected-version probe returns failure on substantial reference loss, so
-that diagnostic workflow is expected to be red. On Python 3.12+ the script
-explicitly reports that immortal None prevents a comparable refcount verdict.
-Both `pyproject.toml` and `requirements.txt` exclude PySide6 6.12.0. In an
-affected virtual environment, run `python -m pip install -e ".[dev,ui]"` or
-`python -m pip install -r requirements.txt` to apply the constraint and replace
-the affected binding family. Linux/Python 3.11 resolution currently selects
-6.11.3 for PySide6, Essentials, Addons, and shiboken6 together. The diagnostic
-matrix also tests 6.11.3; a clean full Linux nightly run remains required before
-closing the shutdown reliability issue. The intentionally failing 6.12.0 probe
-is a positive control and remains isolated from the normal nightly run.
+The temporary per-test Qt wrapper inventories, atexit scans, and binding
+comparison workflow were removed after full Linux run `42404010183` passed
+with no native core. The isolated experiments remain available in GitHub run
+logs `42403486795` and `42403966400`; their diagnosis is recorded in the
+changelogs. Both installation manifests exclude the defective PySide6 6.12.0.
+Apply the constraint in an affected virtual environment with
+`python -m pip install -e ".[dev,ui]"` or
+`python -m pip install -r requirements.txt`. Lightweight execution history,
+three-minute stall traces, and native-core extraction/failure detection remain
+available in the normal nightly workflow; no diagnostic-only input is required.
 
 This section covers how to run automated tests in standard scenarios. It intentionally focuses on a few blessed entry points.
 
