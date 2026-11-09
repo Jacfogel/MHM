@@ -65,7 +65,8 @@ class HealthHandler(InteractionHandler):
     @handle_errors(
         "connecting google health",
         default_return=InteractionResponse(
-            "Could not start Google Health connect. Check server logs.", True
+            "I couldn't start the Google Health connection. Try `health status`, then "
+            "`connect google health` again later. If it keeps failing, ask the person who manages MHM for help.", True
         ),
     )
     def _handle_connect(self, user_id: str) -> InteractionResponse:
@@ -81,6 +82,12 @@ class HealthHandler(InteractionHandler):
             return InteractionResponse(error, completed=True)
 
         auth_url = get_connect_authorization_url(user_id)
+        if not isinstance(auth_url, str) or not auth_url.strip():
+            logger.error(f"Google Health connection link unavailable: user_id={user_id}")
+            return InteractionResponse(
+                "I couldn't create the Google Health connection link. Try `health status`, "
+                "then `connect google health` again later.", True
+            )
         run_connect_flow_async(user_id, lambda _ok, _err: None)
 
         return InteractionResponse(
@@ -114,10 +121,18 @@ class HealthHandler(InteractionHandler):
 
     @handle_errors(
         "pausing google health",
-        default_return=InteractionResponse("Could not pause health personalization.", True),
+        default_return=InteractionResponse(
+            "I couldn't confirm health personalization was paused. Check `health status` "
+            "before trying `pause health` again.", True
+        ),
     )
     def _handle_pause(self, user_id: str) -> InteractionResponse:
-        pause_health_integration(user_id)
+        if not pause_health_integration(user_id):
+            logger.error(f"Health pause was not confirmed: user_id={user_id}")
+            return InteractionResponse(
+                "I couldn't confirm health personalization was paused. Check `health status` "
+                "before trying `pause health` again.", True
+            )
         return InteractionResponse(
             "Health personalization paused. Your data is kept; sync and tone adjustments stop until you re-enable.",
             completed=True,
@@ -143,10 +158,18 @@ class HealthHandler(InteractionHandler):
 
     @handle_errors(
         "deleting google health data",
-        default_return=InteractionResponse("Could not delete health data.", True),
+        default_return=InteractionResponse(
+            "I couldn't confirm all local health data was deleted. Check `health status` "
+            "before retrying `delete health data`; some steps may have completed.", True
+        ),
     )
     def _handle_delete(self, user_id: str) -> InteractionResponse:
-        delete_health_integration(user_id)
+        if not delete_health_integration(user_id):
+            logger.error(f"Health data deletion was not confirmed: user_id={user_id}")
+            return InteractionResponse(
+                "I couldn't confirm all local health data was deleted. Check `health status` "
+                "before retrying `delete health data`; some steps may have completed.", True
+            )
         return InteractionResponse(
             "Local Google Health data deleted and feature disabled.", completed=True
         )

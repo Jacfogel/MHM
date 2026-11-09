@@ -111,10 +111,9 @@ class CheckinHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle continuing a check-in"""
-        # This would integrate with the existing conversation manager
-        # For now, return a placeholder
         return InteractionResponse(
-            "Check-in continuation not yet implemented. Please use the existing /checkin command.",
+            "To continue a check-in, reply to the latest question in this chat. "
+            "If no question is open, use `/checkin` to start. Type `/cancel` to leave an open check-in.",
             True,
         )
 

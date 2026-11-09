@@ -211,7 +211,8 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "updating schedule",
         default_return=InteractionResponse(
-            "I'm having trouble updating your schedule. Please try again.", True
+            "I couldn't confirm the schedule change was saved. Send 'show my schedule' "
+            "to check which periods are active before retrying.", True
         ),
     )
     def _handle_update_schedule(
@@ -235,22 +236,27 @@ class ScheduleManagementHandler(InteractionHandler):
 
             periods = get_schedule_time_periods(user_id, category)
 
-            if action == "enable":
-                # Enable all periods
-                for period_name in periods:
-                    periods[period_name]["active"] = True
-                set_schedule_periods(user_id, category, periods)
+            if action in {"enable", "disable"}:
+                if not periods:
+                    return InteractionResponse(
+                        "There are no schedule periods to change in that category. "
+                        "Send 'show my schedule' to check your schedules before adding a period.", True
+                    )
+                periods = {
+                    name: {**period, "active": action == "enable"}
+                    for name, period in periods.items()
+                }
+                if not set_schedule_periods(user_id, category, periods):
+                    logger.error(
+                        f"Bulk schedule change was not confirmed: user_id={user_id}, action={action}"
+                    )
+                    return InteractionResponse(
+                        "I couldn't confirm the schedule change was saved. Send 'show my schedule' "
+                        "to check which periods are active before retrying.", True
+                    )
+                state = "enabled" if action == "enable" else "disabled"
                 return InteractionResponse(
-                    f"✅ All {category} schedule periods have been enabled.", True
-                )
-
-            elif action == "disable":
-                # Disable all periods
-                for period_name in periods:
-                    periods[period_name]["active"] = False
-                set_schedule_periods(user_id, category, periods)
-                return InteractionResponse(
-                    f"❌ All {category} schedule periods have been disabled.", True
+                    f"✅ All {category} schedule periods have been {state}.", True
                 )
 
             else:
@@ -261,9 +267,10 @@ class ScheduleManagementHandler(InteractionHandler):
                 )
 
         except Exception as e:
-            logger.error(f"Error updating schedule for user {user_id}: {e}")
+            logger.error(f"Error updating schedule for user {user_id}: {e}", exc_info=True)
             return InteractionResponse(
-                "I'm having trouble updating your schedule right now. Please try again.",
+                "I couldn't confirm the schedule change was saved. Send 'show my schedule' "
+                "to check which periods are active before retrying.",
                 True,
             )
 
@@ -314,7 +321,8 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "adding schedule period",
         default_return=InteractionResponse(
-            "I'm having trouble adding that schedule period. Please try again.", True
+            "I couldn't confirm the schedule period was added. Send 'show my schedule' "
+            "to check before adding it again.", True
         ),
     )
     def _handle_add_schedule_period(
@@ -383,8 +391,14 @@ class ScheduleManagementHandler(InteractionHandler):
 
             # Get existing periods and add new one
             periods = get_schedule_time_periods(user_id, category)
+            periods = dict(periods)
             periods[period_name] = period_data
-            set_schedule_periods(user_id, category, periods)
+            if not set_schedule_periods(user_id, category, periods):
+                logger.error(f"Schedule period add was not confirmed: user_id={user_id}")
+                return InteractionResponse(
+                    "I couldn't confirm the schedule period was added. Send 'show my schedule' "
+                    "to check before adding it again.", True
+                )
 
             # Format response
             days_str = ", ".join(days) if days != ["ALL"] else "all days"
@@ -408,15 +422,17 @@ class ScheduleManagementHandler(InteractionHandler):
             )
 
         except Exception as e:
-            logger.error(f"Error adding schedule period for user {user_id}: {e}")
+            logger.error(f"Error adding schedule period for user {user_id}: {e}", exc_info=True)
             return InteractionResponse(
-                f"I'm having trouble adding the schedule period: {str(e)}", True
+                "I couldn't confirm the schedule period was added. Send 'show my schedule' "
+                "to check before adding it again.", True
             )
 
     @handle_errors(
         "editing schedule period",
         default_return=InteractionResponse(
-            "I'm having trouble editing that schedule period. Please try again.", True
+            "I couldn't confirm your schedule changes were saved. Send 'show my schedule' "
+            "to check before retrying the edit.", True
         ),
     )
     def _handle_edit_schedule_period(
@@ -460,7 +476,7 @@ class ScheduleManagementHandler(InteractionHandler):
                 )
 
             # Curated suggestions when target is identified and exists, but times/days/active are missing
-            if not any([new_start_time, new_end_time, new_days, new_active]):
+            if not (new_start_time or new_end_time or new_days is not None or new_active is not None):
                 return InteractionResponse(
                     f"What would you like to update for '{period_name}' in {category.title()}?",
                     completed=False,
@@ -468,7 +484,9 @@ class ScheduleManagementHandler(InteractionHandler):
                 )
 
             # Get current period data
-            current_period = periods[period_name]
+            periods = dict(periods)
+            current_period = dict(periods[period_name])
+            periods[period_name] = current_period
 
             # Apply updates
             updates = []
@@ -514,7 +532,12 @@ class ScheduleManagementHandler(InteractionHandler):
                 updates.append(f"status to {status}")
 
             # Save changes
-            set_schedule_periods(user_id, category, periods)
+            if not set_schedule_periods(user_id, category, periods):
+                logger.error(f"Schedule period edit was not confirmed: user_id={user_id}")
+                return InteractionResponse(
+                    "I couldn't confirm your schedule changes were saved. Send 'show my schedule' "
+                    "to check before retrying the edit.", True
+                )
 
             if updates:
                 response = f"✅ Updated schedule period '{period_name}' in {category.title()}:\n"
@@ -541,9 +564,10 @@ class ScheduleManagementHandler(InteractionHandler):
                 )
 
         except Exception as e:
-            logger.error(f"Error editing schedule period for user {user_id}: {e}")
+            logger.error(f"Error editing schedule period for user {user_id}: {e}", exc_info=True)
             return InteractionResponse(
-                f"I'm having trouble editing the schedule period: {str(e)}", True
+                "I couldn't confirm your schedule changes were saved. Send 'show my schedule' "
+                "to check before retrying the edit.", True
             )
 
     @handle_errors(

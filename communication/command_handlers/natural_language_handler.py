@@ -83,7 +83,8 @@ class NaturalLanguageHandler(InteractionHandler):
     @handle_errors(
         "updating phrase settings",
         default_return=InteractionResponse(
-            "I'm having trouble updating phrase settings. Please try again.", True
+            "I couldn't confirm your phrase settings were saved. Check `show phrase settings` "
+            "before retrying the change.", True
         ),
     )
     def _handle_update(self, user_id: str, entities: dict[str, Any]) -> InteractionResponse:

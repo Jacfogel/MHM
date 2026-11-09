@@ -25,6 +25,10 @@ from communication.command_handlers.shared_types import (
 )
 from notebook.notebook_service import (
     AMBIGUOUS_ENTRY_REFERENCE,
+    INVALID_ENTRY_TITLE,
+    INVALID_LIST_ITEM_INDEX,
+    INVALID_LIST_TARGET,
+    MISSING_ENTRY_REFERENCE,
     add_entry_tags,
     add_item_to_list,
     append_entry_body,
@@ -47,6 +51,7 @@ from notebook.notebook_service import (
     set_list_item_done,
 )
 from notebook.notebook_schemas import Entry
+from notebook.notebook_validation import MAX_TITLE_LENGTH
 from core.ids import display_short_id
 
 logger = get_component_logger("communication_manager")
@@ -59,11 +64,37 @@ _AMBIGUOUS_ENTRY_MESSAGE = (
 )
 
 
-# ERROR_HANDLING_EXCLUDE: Pure response adapter used by guarded command handlers.
-def _entry_failure_response(result: Any, fallback: str) -> InteractionResponse:
-    """Ask for an exact ID when a notebook reference matched multiple entries."""
+# ERROR_HANDLING_EXCLUDE: Response adapter called by guarded command handlers.
+def _entry_failure_response(
+    result: Any, fallback: str, *, user_id: str | None = None,
+    operation: str | None = None,
+) -> InteractionResponse:
+    """Preserve known reference errors and log unconfirmed mutation outcomes."""
     if getattr(result, "error", None) == AMBIGUOUS_ENTRY_REFERENCE:
         return InteractionResponse(_AMBIGUOUS_ENTRY_MESSAGE, False)
+    if getattr(result, "error", None) == INVALID_ENTRY_TITLE:
+        return InteractionResponse(
+            f"Invalid notebook title. Use a title of {MAX_TITLE_LENGTH} characters or fewer "
+            "and keep longer text in the body. Keep a copy of your text before retrying.", True
+        )
+    if getattr(result, "error", None) == INVALID_LIST_ITEM_INDEX:
+        return InteractionResponse(
+            "Invalid item number for this list. Check `!show <list ID>` and use one "
+            "of its current item numbers, starting at 1.", True
+        )
+    if getattr(result, "error", None) == INVALID_LIST_TARGET:
+        return InteractionResponse(
+            "That notebook entry is not a list. Check `!recent` and retry using a list's exact short ID.", True
+        )
+    if operation:
+        if getattr(result, "error", None) == MISSING_ENTRY_REFERENCE:
+            return InteractionResponse(
+                "Notebook entry not found. Send `!recent` or `!archived` to find it, "
+                "then retry using its exact short ID.", True
+            )
+        logger.error(
+            f"Notebook change was not confirmed: operation={operation}, user_id={user_id}"
+        )
     return InteractionResponse(fallback, True)
 
 # Channel-neutral notebook help (single source for `help notebook` and handler.get_help).
@@ -312,7 +343,13 @@ class NotebookHandler(InteractionHandler):
             )
 
     # Create handlers
-    @handle_errors("handling create note")
+    @handle_errors(
+        "handling create note",
+        default_return=InteractionResponse(
+            "I couldn't confirm your note was saved. Keep a copy of your text and "
+            "check `!recent` before creating it again.", True
+        ),
+    )
     def _handle_create_note(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -377,11 +414,19 @@ class NotebookHandler(InteractionHandler):
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
         else:
-            return InteractionResponse(
-                "❌ Failed to create note. Please try again.", True
+            return _entry_failure_response(
+                result, "I couldn't confirm your note was saved. Keep a copy of your text and "
+                "check `!recent` before creating it again.",
+                user_id=user_id, operation="create note",
             )
 
-    @handle_errors("handling create quick note")
+    @handle_errors(
+        "handling create quick note",
+        default_return=InteractionResponse(
+            "I couldn't confirm your quick note was saved. Keep a copy and check "
+            "`!recent` before creating it again.", True
+        ),
+    )
     def _handle_create_quick_note(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -397,11 +442,19 @@ class NotebookHandler(InteractionHandler):
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
         else:
-            return InteractionResponse(
-                "❌ Failed to create quick note. Please try again.", True
+            return _entry_failure_response(
+                result, "I couldn't confirm your quick note was saved. Keep a copy and check "
+                "`!recent` before creating it again.",
+                user_id=user_id, operation="create quick note",
             )
 
-    @handle_errors("handling create list")
+    @handle_errors(
+        "handling create list",
+        default_return=InteractionResponse(
+            "I couldn't confirm your list was saved. Keep a copy of the items and "
+            "check `!recent` before creating it again.", True
+        ),
+    )
     def _handle_create_list(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -452,11 +505,19 @@ class NotebookHandler(InteractionHandler):
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
         else:
-            return InteractionResponse(
-                "❌ Failed to create list. Please try again.", True
+            return _entry_failure_response(
+                result, "I couldn't confirm your list was saved. Keep a copy of the items and "
+                "check `!recent` before creating it again.",
+                user_id=user_id, operation="create list",
             )
 
-    @handle_errors("handling create journal")
+    @handle_errors(
+        "handling create journal",
+        default_return=InteractionResponse(
+            "I couldn't confirm your journal entry was saved. Keep a copy of your writing "
+            "and check `!recent` before creating it again.", True
+        ),
+    )
     def _handle_create_journal(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -509,12 +570,17 @@ class NotebookHandler(InteractionHandler):
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
-        return InteractionResponse(
-            "Failed to save journal entry. Please try again.", True
+        return _entry_failure_response(
+            result, "I couldn't confirm your journal entry was saved. Keep a copy of your writing "
+            "and check `!recent` before creating it again.",
+            user_id=user_id, operation="create journal",
         )
 
     # Read handlers
-    @handle_errors("handling list recent")
+    @handle_errors(
+        'handling list recent',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!recent` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_list_recent(
         self, user_id: str, entities: dict[str, Any], notes_only: bool = False
     ) -> InteractionResponse:
@@ -524,6 +590,8 @@ class NotebookHandler(InteractionHandler):
         result = list_recent_entries(
             user_id, notes_only=notes_only, limit=MAX_NOTEBOOK_RESULTS
         )
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!recent` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:
@@ -580,7 +648,13 @@ class NotebookHandler(InteractionHandler):
         return InteractionResponse(self._format_entry_response(entry), True)
 
     # Update handlers
-    @handle_errors("handling append to entry")
+    @handle_errors(
+        "handling append to entry",
+        default_return=InteractionResponse(
+            "I couldn't confirm your text was appended. Keep a copy and use "
+            "`!show <entry ID>` to check before appending it again.", True
+        ),
+    )
     def _handle_append_to_entry(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -607,10 +681,18 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to append. Entry not found or invalid."
+                result, "I couldn't confirm your text was appended. Keep a copy and use "
+                "`!show <entry ID>` to check before appending it again.",
+                user_id=user_id, operation="append text",
             )
 
-    @handle_errors("handling set entry body")
+    @handle_errors(
+        "handling set entry body",
+        default_return=InteractionResponse(
+            "I couldn't confirm the entry text was replaced. Keep a copy of your new text "
+            "and check `!show <entry ID>` before retrying the edit.", True
+        ),
+    )
     def _handle_set_entry_body(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -634,7 +716,9 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to update. Entry not found or invalid."
+                result, "I couldn't confirm the entry text was replaced. Keep a copy of your new text "
+                "and check `!show <entry ID>` before retrying the edit.",
+                user_id=user_id, operation="replace text",
             )
 
     @handle_errors("handling edit entry session")
@@ -695,7 +779,13 @@ class NotebookHandler(InteractionHandler):
             suggestions=list(ENTRY_EDIT_SUGGESTIONS),
         )
 
-    @handle_errors("handling add tags")
+    @handle_errors(
+        "handling add tags",
+        default_return=InteractionResponse(
+            "I couldn't confirm the tags were added. Check `!show <entry ID>` "
+            "before retrying `!tag <entry ID> #tag`.", True
+        ),
+    )
     def _handle_add_tags(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -719,10 +809,18 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to add tags. Entry not found."
+                result, "I couldn't confirm the tags were added. Check `!show <entry ID>` "
+                "before retrying `!tag <entry ID> #tag`.",
+                user_id=user_id, operation="add tags",
             )
 
-    @handle_errors("handling remove tags")
+    @handle_errors(
+        "handling remove tags",
+        default_return=InteractionResponse(
+            "I couldn't confirm the tags were removed. Check `!show <entry ID>` "
+            "before trying to remove them again.", True
+        ),
+    )
     def _handle_remove_tags(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -745,10 +843,15 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to remove tags. Entry not found."
+                result, "I couldn't confirm the tags were removed. Check `!show <entry ID>` "
+                "before trying to remove them again.",
+                user_id=user_id, operation="remove tags",
             )
 
-    @handle_errors("handling search entries")
+    @handle_errors(
+        'handling search entries',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!s <search text>` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_search_entries(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -760,6 +863,8 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse("What would you like to search for?", False)
 
         result = search_entries_for_display(user_id, query, limit=100)
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!s <search text>` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:
@@ -785,13 +890,7 @@ class NotebookHandler(InteractionHandler):
             rich_data=rich_data,
         )
 
-    @handle_errors(
-        "applying notebook entry change",
-        default_return=InteractionResponse(
-            "Something went wrong with that notebook entry. Please try again.",
-            True,
-        ),
-    )
+    # error_handling_exclude: pin/archive command wrappers log and return recovery guidance
     def _apply_entry_ref_mutation(
         self,
         user_id: str,
@@ -818,13 +917,16 @@ class NotebookHandler(InteractionHandler):
                 f"✅ {action.capitalize()} '{entry.title or 'Untitled'}' ({short_id})",
                 True,
             )
-        return _entry_failure_response(result, failure_message)
+        return _entry_failure_response(
+            result, failure_message, user_id=user_id, operation=f"set {active_label}={flag}"
+        )
 
     # not_duplicate: notebook_pin_archive_entry_wrappers
     @handle_errors(
         "handling pin entry",
         default_return=InteractionResponse(
-            "Something went wrong pinning that notebook entry. Please try again.",
+            "I couldn't confirm the pin change. Check `!pinned` before retrying "
+            "`!pin <entry ID>` or `!unpin <entry ID>`.",
             True,
         ),
     )
@@ -840,14 +942,18 @@ class NotebookHandler(InteractionHandler):
             mutator=pin_notebook_entry,
             active_label="pinned",
             inactive_label="unpinned",
-            failure_message="❌ Failed to pin/unpin. Entry not found.",
+            failure_message=(
+                "I couldn't confirm the pin change. Check `!pinned` before retrying "
+                "`!pin <entry ID>` or `!unpin <entry ID>`."
+            ),
         )
 
     # not_duplicate: notebook_pin_archive_entry_wrappers
     @handle_errors(
         "handling archive entry",
         default_return=InteractionResponse(
-            "Something went wrong archiving that notebook entry. Please try again.",
+            "I couldn't confirm the archive change. Check `!archived` before retrying "
+            "`!archive <entry ID>` or `!unarchive <entry ID>`.",
             True,
         ),
     )
@@ -865,11 +971,20 @@ class NotebookHandler(InteractionHandler):
             mutator=archive_notebook_entry,
             active_label="archived",
             inactive_label="unarchived",
-            failure_message="❌ Failed to archive/unarchive. Entry not found.",
+            failure_message=(
+                "I couldn't confirm the archive change. Check `!archived` before retrying "
+                "`!archive <entry ID>` or `!unarchive <entry ID>`."
+            ),
         )
 
     # List item handlers
-    @handle_errors("handling add list item")
+    @handle_errors(
+        "handling add list item",
+        default_return=InteractionResponse(
+            "I couldn't confirm the item was added. Keep a copy and check "
+            "`!show <list ID>` before adding it again.", True
+        ),
+    )
     def _handle_add_list_item(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -892,10 +1007,18 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to add item. List not found or invalid."
+                result, "I couldn't confirm the item was added. Keep a copy and check "
+                "`!show <list ID>` before adding it again.",
+                user_id=user_id, operation="add list item",
             )
 
-    @handle_errors("handling toggle list item done")
+    @handle_errors(
+        "handling toggle list item done",
+        default_return=InteractionResponse(
+            "I couldn't confirm the item's completion changed. Check `!show <list ID>` "
+            "for its status and current item number before retrying.", True
+        ),
+    )
     def _handle_toggle_list_item_done(
         self, user_id: str, entities: dict[str, Any], done: bool | None = None
     ) -> InteractionResponse:
@@ -911,9 +1034,13 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse("Which item number?", False)
 
         try:
+            if isinstance(item_index, bool) or not isinstance(item_index, (str, int)):
+                return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
             item_index = int(item_index) - 1  # Convert to 0-based
+            if item_index < 0:
+                return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
         except (ValueError, TypeError):
-            return InteractionResponse("Invalid item number.", True)
+            return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
 
         result = set_list_item_done(user_id, entry_ref, item_index, done)
         entry = result.entry if result else None
@@ -927,10 +1054,18 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to toggle item. List not found or invalid."
+                result, "I couldn't confirm the item's completion changed. Check `!show <list ID>` "
+                "for its status and current item number before retrying.",
+                user_id=user_id, operation="set list item completion",
             )
 
-    @handle_errors("handling remove list item")
+    @handle_errors(
+        "handling remove list item",
+        default_return=InteractionResponse(
+            "I couldn't confirm the item was removed. Check `!show <list ID>` and its "
+            "current item numbers before retrying, since removing an item changes the numbering.", True
+        ),
+    )
     def _handle_remove_list_item(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -944,9 +1079,13 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse("Which item number?", False)
 
         try:
+            if isinstance(item_index, bool) or not isinstance(item_index, (str, int)):
+                return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
             item_index = int(item_index) - 1  # Convert to 0-based
+            if item_index < 0:
+                return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
         except (ValueError, TypeError):
-            return InteractionResponse("Invalid item number.", True)
+            return InteractionResponse("Invalid item number. Use a whole number starting at 1; check `!show <list ID>`.", True)
 
         result = delete_list_item(user_id, entry_ref, item_index)
         entry = result.entry if result else None
@@ -959,12 +1098,14 @@ class NotebookHandler(InteractionHandler):
             )
         else:
             return _entry_failure_response(
-                result, "❌ Failed to remove item. List not found or invalid."
+                result, "I couldn't confirm the item was removed. Check `!show <list ID>` and its "
+                "current item numbers before retrying, since removing an item changes the numbering.",
+                user_id=user_id, operation="remove list item",
             )
 
     @handle_errors(
         "building paginated list response",
-        default_return=InteractionResponse("Error building list.", True),
+        default_return=InteractionResponse("I couldn't display this notebook page. Try `!recent` again later.", True),
     )
     def _build_paginated_list_response(
         self,
@@ -1006,7 +1147,10 @@ class NotebookHandler(InteractionHandler):
             rich_data=rich_data,
         )
 
-    @handle_errors("handling list pinned")
+    @handle_errors(
+        'handling list pinned',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!pinned` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_list_pinned(
         self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
@@ -1016,6 +1160,8 @@ class NotebookHandler(InteractionHandler):
         page_request = _page_request(entities)
 
         result = list_pinned_entries(user_id, limit=100)
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!pinned` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:
@@ -1043,7 +1189,10 @@ class NotebookHandler(InteractionHandler):
             rich_data=rich_data,
         )
 
-    @handle_errors("handling list inbox")
+    @handle_errors(
+        'handling list inbox',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!inbox` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_list_inbox(
         self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
@@ -1053,6 +1202,8 @@ class NotebookHandler(InteractionHandler):
         page_request = _page_request(entities)
 
         result = list_inbox_entries(user_id, limit=100)
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!inbox` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:
@@ -1081,7 +1232,10 @@ class NotebookHandler(InteractionHandler):
         )
 
     # not_duplicate: handle_list_by_group_tag
-    @handle_errors("handling list by tag")
+    @handle_errors(
+        'handling list by tag',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!t <tag>` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_list_by_tag(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1093,6 +1247,8 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse("Which tag?", False)
 
         result = list_entries_by_tag(user_id, tag, limit=100)
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!t <tag>` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:
@@ -1105,7 +1261,10 @@ class NotebookHandler(InteractionHandler):
             page_request.limit,
         )
 
-    @handle_errors("handling list archived")
+    @handle_errors(
+        'handling list archived',
+        default_return=InteractionResponse("I couldn't load that notebook view. Try `!archived` again later. This does not mean your notebook is empty.", True),
+    )
     def _handle_list_archived(
         self, user_id: str, entities: dict[str, Any] | None = None
     ) -> InteractionResponse:
@@ -1115,6 +1274,8 @@ class NotebookHandler(InteractionHandler):
         page_request = _page_request(entities)
 
         result = list_archived_entries(user_id, limit=100)
+        if result is None or not getattr(result, "success", True):
+            return InteractionResponse("I couldn't load that notebook view. Try `!archived` again later. This does not mean your notebook is empty.", True)
         entries = result.entries
 
         if not entries:

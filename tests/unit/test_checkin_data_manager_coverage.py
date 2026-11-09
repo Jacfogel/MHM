@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from unittest.mock import Mock
 
 import pytest
 
@@ -13,6 +14,41 @@ from checkins.checkin_data_manager import (
     is_user_checkins_enabled,
     store_checkin_response,
 )
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
+@pytest.mark.parametrize("raises", [False, True])
+def test_failed_checkin_write_reports_failure_without_journal_copy(tmp_path, monkeypatch, raises):
+    from checkins import checkin_data_manager as manager
+    monkeypatch.setattr(manager, "get_user_file_path", lambda *_: str(tmp_path / "checkins.json"))
+    monkeypatch.setattr(manager, "load_json_data", lambda *_: {})
+    save = Mock(return_value=False)
+    if raises:
+        save.side_effect = OSError("write rejected")
+    journal = Mock()
+    monkeypatch.setattr(manager, "save_json_data", save)
+    monkeypatch.setattr(manager, "_save_text_answers_as_journal", journal)
+    assert manager.store_checkin_response("user-1", {"mood": 3}) is False
+    journal.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
+def test_checkin_retry_same_id_does_not_duplicate_record(tmp_path, monkeypatch):
+    from checkins import checkin_data_manager as manager
+    checkins_file = tmp_path / "checkins.json"
+    monkeypatch.setattr(manager, "get_user_file_path", lambda *_: str(checkins_file))
+    journal = Mock()
+    monkeypatch.setattr(manager, "_save_text_answers_as_journal", journal)
+    payload = {"id": "stable-checkin-id", "mood": 4}
+    assert manager.store_checkin_response("user-1", payload) is True
+    assert manager.store_checkin_response("user-1", payload) is True
+    rows = json.loads(checkins_file.read_text(encoding="utf-8"))["checkins"]
+    assert len(rows) == 1
+    assert rows[0]["id"] == "stable-checkin-id"
+    assert "id" not in rows[0]["responses"]
+    journal.assert_called_once()
 
 
 @pytest.mark.unit

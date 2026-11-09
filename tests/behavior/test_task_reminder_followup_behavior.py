@@ -208,6 +208,52 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
+    @pytest.mark.parametrize("missing_identifier", [False, True])
+    def test_cancel_reports_unconfirmed_task_removal(
+        self, test_data_dir, monkeypatch, missing_identifier
+    ):
+        """A failed undo must not claim the persisted task was never saved."""
+        from unittest.mock import Mock
+        from communication.message_processing.flows import task_flow
+
+        user_id = "test_cancel_task_removal_failure"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Task survives failed undo")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+        state = conversation_manager.user_states[user_id]
+        if missing_identifier:
+            state["data"].pop("task_identifier")
+        delete = Mock(return_value=False)
+        log_error = Mock()
+        monkeypatch.setattr("tasks.delete_task", delete)
+        monkeypatch.setattr(task_flow.logger, "error", log_error)
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id, state, "cancel"
+        )
+
+        assert completed
+        assert "not saved" not in reply.lower()
+        assert "may still appear" in reply
+        assert "list tasks" in reply
+        assert "delete task <number>" in reply
+        assert user_id not in conversation_manager.user_states
+        assert get_task_by_id(user_id, task_id) is not None
+        log_error.assert_called_once()
+        assert user_id in log_error.call_args.args[0]
+        if missing_identifier:
+            delete.assert_not_called()
+        else:
+            delete.assert_called_once_with(user_id, task_id)
+            assert task_id in log_error.call_args.args[0]
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
     def test_priority_back_returns_to_due_date_flow(self, test_data_dir):
         """Typed back/undo returns one step to the due-date question."""
         user_id = "test_priority_back_flow"
@@ -645,3 +691,47 @@ class TestTaskReminderFollowupBehavior:
         task = get_task_by_id(user_id, task_id)
         periods = runtime_task_scheduled_reminder_periods(task)
         assert periods, "Task should have scheduled reminder periods"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_reminder_save_missing_reload_gives_verification_guidance(
+        self, test_data_dir, monkeypatch
+    ):
+        """A missing read-back must not raise or claim the task still exists."""
+        from unittest.mock import Mock
+        from communication.message_processing.flows import task_flow
+
+        user_id = "test_reminder_missing_reload"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        due_date = format_timestamp(now_datetime_full() + timedelta(days=2), DATE_ONLY)
+        task_id = create_task(user_id=user_id, title="Reminder check", due_date=due_date)
+        task = get_task_by_id(user_id, task_id)
+        conversation_manager.start_task_reminder_followup(user_id, task_id)
+        monkeypatch.setattr(
+            conversation_manager, "_parse_reminder_periods_from_text",
+            Mock(return_value=[{"date": due_date, "start_time": "12:00", "end_time": "13:00"}]),
+        )
+        reload_task = Mock(side_effect=[task, None])
+        monkeypatch.setattr("tasks.get_task_by_id", reload_task)
+        update = Mock(return_value=True)
+        monkeypatch.setattr("tasks.update_task", update)
+        log_error = Mock()
+        monkeypatch.setattr(task_flow.logger, "error", log_error)
+
+        reply, completed = conversation_manager._handle_task_reminder_followup(
+            user_id, conversation_manager.user_states[user_id], "1 hour before"
+        )
+
+        assert completed
+        assert "couldn't verify" in reply
+        assert "list tasks" in reply
+        assert "created successfully" not in reply
+        assert user_id not in conversation_manager.user_states
+        assert reload_task.call_count == 2
+        update.assert_called_once()
+        log_error.assert_called_once()
+        assert user_id in log_error.call_args.args[0]
+        assert task_id in log_error.call_args.args[0]

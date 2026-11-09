@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-06 01:07:54
+> **Last Generated**: 2026-11-07 22:55:27
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.4% [!] GOOD**
-- **Total Functions**: 3258
-- **Total Methods**: 1656
-- **Documented**: 4393/4914
+- **Total Functions**: 3259
+- **Total Methods**: 1657
+- **Documented**: 4395/4916
 - **Files Scanned**: 315
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -191,7 +191,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `run_tests.py::main()` - Complexity: 2820
+1. [OK] `run_tests.py::main()` - Complexity: 2850
 2. [OK] `run_tests.py::run_command()` - Complexity: 2212
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1898
 4. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1537
@@ -207,7 +207,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (40 files, 437 functions)
 - `checkins/` -  (7 files, 155 functions)
-- `communication/` - Communication channels and message processing (98 files, 1571 functions)
+- `communication/` - Communication channels and message processing (98 files, 1573 functions)
 - `core/` - System utilities and data management (53 files, 944 functions)
 - `integrations/` -  (13 files, 120 functions)
 - `messages/` -  (6 files, 63 functions)

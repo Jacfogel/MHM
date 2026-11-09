@@ -382,7 +382,15 @@ def list_recent(
     user_id: str, n: int = 5, include_archived: bool = False
 ) -> list[Entry]:
     """Lists the N most recently updated entries."""
-    entries = load_entries(user_id)
+    return list_recent_from_snapshot(load_entries(user_id), n, include_archived)
+
+
+# error_handling_exclude: pure selector over an already validated snapshot
+def list_recent_from_snapshot(
+    entries: list[Entry], n: int = 5, include_archived: bool = False
+) -> list[Entry]:
+    """Select notebook entries without loading storage or suppressing read failures."""
+    entries = list(entries)
 
     if not include_archived:
         entries = [e for e in entries if _is_entry_active(e)]
@@ -877,7 +885,12 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
 @handle_errors("listing archived entries", default_return=[])
 def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists archived entries - up to limit (pagination handled in handler)."""
-    entries = load_entries(user_id)
+    return list_archived_from_snapshot(load_entries(user_id), limit)
+
+
+# error_handling_exclude: pure selector over an already validated snapshot
+def list_archived_from_snapshot(entries: list[Entry], limit: int = 100) -> list[Entry]:
+    """Select notebook entries without loading storage or suppressing read failures."""
     archived = [e for e in entries if _is_entry_archived(e)]
     archived.sort(
         key=lambda e: (
@@ -893,9 +906,13 @@ def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
 @handle_errors("listing entries by tag", default_return=[])
 def list_by_tag(user_id: str, tag: str, limit: int = 100) -> list[Entry]:
     """Lists entries with a specific tag - up to limit (pagination handled in handler)."""
-    from core.tags import normalize_tag
+    return list_by_tag_from_snapshot(load_entries(user_id), tag, limit)
 
-    entries = load_entries(user_id)
+
+# error_handling_exclude: pure selector over an already validated snapshot
+def list_by_tag_from_snapshot(entries: list[Entry], tag: str, limit: int = 100) -> list[Entry]:
+    """Select notebook entries without loading storage or suppressing read failures."""
+    from core.tags import normalize_tag
     normalized_tag = normalize_tag(tag)
 
     matching = [e for e in entries if normalized_tag in e.tags]

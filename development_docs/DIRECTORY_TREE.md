@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-06 01:08:22
+> **Last Generated**: 2026-11-07 22:55:58
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -664,6 +664,7 @@ C:.
 |   |   |   test_auto_cleanup_behavior.py
 |   |   |   test_backup_manager_behavior.py
 |   |   |   test_base_handler_behavior.py
+|   |   |   test_bulk_schedule_list_recovery.py
 |   |   |   test_chat_interaction_storage_real_scenarios.py
 |   |   |   test_checkin_analytics_behavior.py
 |   |   |   test_checkin_expiry_semantics.py
@@ -691,6 +692,7 @@ C:.
 |   |   |   test_discord_manual_checklist.py
 |   |   |   test_discord_reconnect_welcome.py
 |   |   |   test_discord_task_reminder_followup.py
+|   |   |   test_draft_save_recovery.py
 |   |   |   test_dynamic_checkin_behavior.py
 |   |   |   test_email_bot_behavior.py
 |   |   |   test_enhanced_command_parser_behavior.py
@@ -700,6 +702,7 @@ C:.
 |   |   |   test_health_handler_behavior.py
 |   |   |   test_interaction_handlers_behavior.py
 |   |   |   test_interaction_handlers_coverage_expansion.py
+|   |   |   test_link_health_failure_recovery.py
 |   |   |   test_logger_behavior.py
 |   |   |   test_logger_coverage_expansion.py
 |   |   |   test_logger_coverage_expansion_phase3_simple.py
@@ -712,7 +715,10 @@ C:.
 |   |   |   test_message_route_classifier_behavior.py
 |   |   |   test_natural_language_command_detection.py
 |   |   |   test_natural_language_handler_behavior.py
+|   |   |   test_notebook_failure_recovery.py
 |   |   |   test_notebook_handler_behavior.py
+|   |   |   test_notebook_read_failure_recovery.py
+|   |   |   test_notebook_storage_read_recovery.py
 |   |   |   test_observability_logging.py
 |   |   |   test_product_ai_envelope_qa_behavior.py
 |   |   |   test_profile_display_formatting.py
@@ -722,16 +728,19 @@ C:.
 |   |   |   test_retained_message_memory.py
 |   |   |   test_scheduler_behavior.py
 |   |   |   test_scheduler_coverage_expansion.py
+|   |   |   test_schedule_checkin_failure_recovery.py
 |   |   |   test_schedule_handler_behavior.py
 |   |   |   test_schedule_management_behavior.py
 |   |   |   test_schedule_suggestions.py
 |   |   |   test_service_behavior.py
 |   |   |   test_service_utilities_behavior.py
+|   |   |   test_settings_task_boundary_recovery.py
 |   |   |   test_static_logging_check.py
 |   |   |   test_task_behavior.py
 |   |   |   test_task_cleanup_bug.py
 |   |   |   test_task_crud_disambiguation.py
 |   |   |   test_task_error_handling.py
+|   |   |   test_task_failure_recovery.py
 |   |   |   test_task_handler_behavior.py
 |   |   |   test_task_management_coverage_expansion.py
 |   |   |   test_task_reminder_followup_behavior.py
@@ -932,6 +941,7 @@ C:.
 |   |       __init__.py
 |   |
 |   +---test_helpers
+|   |   |   source_policy.py
 |   |   |   website_javascript.py
 |   |   |   __init__.py
 |   |   |
@@ -945,6 +955,7 @@ C:.
 |   |   |   |   conftest_mocks.py
 |   |   |   |   conftest_user_data.py
 |   |   |   |   nightly_diagnostics.py
+|   |   |   |   qt_cleanup.py
 |   |   |   |   test_helpers.py
 |   |   |   |   test_isolation.py
 |   |   |   |   __init__.py
@@ -1060,6 +1071,7 @@ C:.
 |   |   |   test_conversation_coherence.py
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_core_ids.py
+|   |   |   test_core_ui_import_policy.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_account_flow.py
 |   |   |   test_discord_api_client.py
@@ -1091,6 +1103,7 @@ C:.
 |   |   |   test_google_health_user_settings.py
 |   |   |   test_health_context_builder.py
 |   |   |   test_health_personalization_rules.py
+|   |   |   test_health_pressure_transitions.py
 |   |   |   test_health_signal_builder.py
 |   |   |   test_health_sync_schedule.py
 |   |   |   test_interaction_handlers_helpers.py
@@ -1129,11 +1142,13 @@ C:.
 |   |   |   test_prompt_audit_remediation.py
 |   |   |   test_prompt_manager.py
 |   |   |   test_prompt_review_regressions.py
+|   |   |   test_qt_cleanup.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
 |   |   |   test_run_headless_service_launcher.py
 |   |   |   test_run_mhm_launcher.py
 |   |   |   test_run_tests_interrupts.py
+|   |   |   test_run_tests_suite_isolation.py
 |   |   |   test_scheduler_delivery_port.py
 |   |   |   test_scheduler_jobs.py
 |   |   |   test_scheduler_manager_coverage.py
@@ -1174,11 +1189,13 @@ C:.
 |   |   |   test_task_templates.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_test_user_factory.py
+|   |   |   test_time_api_policy.py
 |   |   |   test_time_utilities.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py
 |   |   |   test_user_data_handlers.py
 |   |   |   test_user_data_index_entries.py
+|   |   |   test_user_data_json_policy.py
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py

@@ -6,8 +6,49 @@ from uuid import uuid4
 import pytest
 
 import notebook.notebook_service as ns
+from notebook.notebook_validation import MAX_TITLE_LENGTH
 from notebook.notebook_schemas import Entry
 from notebook.notebook_data_manager import EntryReferenceResolution
+
+
+@pytest.mark.unit
+@pytest.mark.notebook
+@pytest.mark.parametrize("remove", [False, True])
+@pytest.mark.parametrize("index", [-1, 2, True])
+def test_list_service_rejects_invalid_zero_based_index_before_mutation(remove, index):
+    from notebook.notebook_schemas import ListItem
+    entry = Entry(kind="list", title="List", items=[
+        ListItem(text="First", order=0), ListItem(text="Last", order=1)
+    ])
+    method = ns.delete_list_item if remove else ns.set_list_item_done
+    persistence_name = "remove_list_item" if remove else "toggle_list_item_done"
+    with patch.object(ns, "resolve_notebook_entry", return_value=ns.NotebookEntryResult(entry, True)), \
+         patch.object(ns.data_manager, persistence_name) as persist:
+        result = method("user-1", str(entry.id), index) if remove else method("user-1", str(entry.id), index, True)
+    assert result.error == ns.INVALID_LIST_ITEM_INDEX
+    persist.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.notebook
+@pytest.mark.parametrize(
+    "create,persistence_name",
+    [
+        (ns.create_note_from_command, "create_note"),
+        (ns.create_quick_note_from_command, "create_note"),
+        (ns.create_list_from_command, "create_list"),
+        (ns.create_journal_from_command, "create_journal"),
+    ],
+)
+def test_notebook_creation_accepts_title_at_limit(create, persistence_name):
+    """Preflight validation must preserve the existing inclusive title limit."""
+    title = "A" * MAX_TITLE_LENGTH
+    entry = Entry(kind="note", title=title)
+    with patch.object(ns.data_manager, persistence_name, return_value=entry) as persist:
+        result = create("title-limit-user", {"title": title, "items": ["Item"]})
+    assert result.success
+    assert result.entry is entry
+    persist.assert_called_once()
 
 
 @pytest.mark.unit

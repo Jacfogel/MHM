@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-06 01:07:54
+> **Last Generated**: 2026-11-07 22:55:27
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3258
-- **Methods Found**: 1656
+- **Functions Found**: 3259
+- **Methods Found**: 1657
 - **Classes Found**: 292
-- **Total Items**: 4914
-- **Functions Documented**: 2911
-- **Methods Documented**: 1482
+- **Total Items**: 4916
+- **Functions Documented**: 2912
+- **Methods Documented**: 1483
 - **Classes Documented**: 225
-- **Total Documented**: 4393
+- **Total Documented**: 4395
 - **Template-Generated**: 72
-- **Last Updated**: 2026-11-06
+- **Last Updated**: 2026-11-07
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (690)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (912)
+### **Communication Functions** (913)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (563)
@@ -1071,7 +1071,7 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
 - [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
-- [OK] `store_checkin_response(user_id, response_data)` - Store one check-in response in the user's check-in log.
+- [OK] `store_checkin_response(user_id, response_data)` - Return whether the primary check-in was saved; repeated explicit IDs are idempotent.
 
 #### `checkins/checkin_dynamic_manager.py`
 **Functions:**
@@ -1516,7 +1516,7 @@ Returns:
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for tag-style list handlers.
-- [OK] `_entry_failure_response(result, fallback)` - Ask for an exact ID when a notebook reference matched multiple entries.
+- [OK] `_entry_failure_response(result, fallback)` - Preserve known reference errors and log unconfirmed mutation outcomes.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
@@ -3495,6 +3495,7 @@ Returns early response, rule_based_override for bypassed flow, or continue_parsi
 
 #### `communication/message_processing/flows/checkin_flow.py`
 **Functions:**
+- [OK] `_checkin_command_unavailable(self, user_id, command)` - Explain a read-command failure without ending the active check-in.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
 - [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
 - [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
@@ -3520,6 +3521,7 @@ Returns:
 - [OK] `get_first_checkin_question_text(self, user_id)` - Public API: first weighted check-in question text for a user (no active flow).
 **Classes:**
 - [MISSING] `CheckinFlowMixin` - No description
+  - [OK] `CheckinFlowMixin._checkin_command_unavailable(self, user_id, command)` - Explain a read-command failure without ending the active check-in.
   - [OK] `CheckinFlowMixin._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
   - [OK] `CheckinFlowMixin._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
   - [OK] `CheckinFlowMixin._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
@@ -4561,9 +4563,10 @@ Raises:
 
 Args:
     file_path: Path to the JSON file to load
+    recover: False returns None on read/parse failure without repairing or creating files.
 
 Returns:
-    dict/list: Loaded JSON data, or empty dict if loading failed
+    dict/list: Loaded JSON data; failures return an empty dict, or None with recover=False.
 - [OK] `save_json_data(data, file_path)` - Save data to a JSON file with comprehensive error handling.
 
 Args:
@@ -4672,7 +4675,7 @@ Never includes HR/HRV numbers.
 **Functions:**
 - [MISSING] `_parse_signal_date(date_value)` - No description
 - [MISSING] `get_google_health_feature_state(user_id)` - No description
-- [OK] `get_latest_usable_signal(user_id)` - Return the newest non-low-confidence signal within the recent window.
+- [OK] `get_latest_usable_signal(user_id)` - Return the newest non-low-confidence signal from the cutoff through today.
 - [MISSING] `get_message_guidance(user_id)` - No description
 - [MISSING] `get_today_signal(user_id)` - No description
 - [OK] `health_personalization_allowed(user_id)` - Read fresh per-surface permission without overriding the account flag.

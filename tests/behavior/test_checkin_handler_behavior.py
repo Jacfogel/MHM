@@ -312,10 +312,9 @@ class TestCheckinHandlerBehavior:
             response, InteractionResponse
         ), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert (
-            "not yet implemented" in response.message.lower()
-            or "use" in response.message.lower()
-        ), "Should indicate not implemented"
+        assert "reply to the latest question" in response.message
+        assert "/checkin" in response.message
+        assert "not yet implemented" not in response.message
 
     @pytest.mark.behavior
     @pytest.mark.communication

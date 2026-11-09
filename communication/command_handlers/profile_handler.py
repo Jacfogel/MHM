@@ -191,7 +191,13 @@ class ProfileHandler(InteractionHandler):
             ],
         )
 
-    @handle_errors("handling profile update")
+    @handle_errors(
+        "handling profile update",
+        default_return=InteractionResponse(
+            "I couldn't confirm your profile changes were saved. Check 'show my profile' "
+            "before retrying. Keep a copy of any text you were adding.", True
+        ),
+    )
     def _handle_update_profile(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -214,12 +220,16 @@ class ProfileHandler(InteractionHandler):
 
         result = apply_profile_updates(user_id, entities, get_data=get_user_data)
         if result.failed_field == "email":
+            logger.error(f"Profile email update was not confirmed: user_id={user_id}")
             return InteractionResponse(
-                "❌ Failed to update email. Please try again.", True
+                "I couldn't confirm your email change was saved. Check 'show my profile' "
+                "before submitting the change again.", True
             )
         if not result.success:
+            logger.error(f"Profile update was not confirmed: user_id={user_id}")
             return InteractionResponse(
-                "❌ Failed to update profile. Please try again.", True
+                "I couldn't confirm all your profile changes were saved. Check 'show my profile' "
+                "before retrying. Keep a copy of any text you were adding.", True
             )
         if result.updates:
             response = f"✅ Profile updated: {', '.join(result.updates)}"

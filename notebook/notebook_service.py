@@ -14,11 +14,16 @@ from core.error_handling import handle_errors
 from core.tags import parse_tags_from_text
 from core.time_utilities import now_timestamp_full
 from notebook import notebook_data_manager as data_manager
+from notebook.notebook_data_handlers import load_entries_for_query
 from notebook.notebook_schemas import Entry
+from notebook.notebook_validation import is_valid_entry_title
 
 MAX_NOTEBOOK_QUERY_RESULTS = 100
 AMBIGUOUS_ENTRY_REFERENCE = "ambiguous_reference"
 MISSING_ENTRY_REFERENCE = "not_found"
+INVALID_ENTRY_TITLE = "invalid_title"
+INVALID_LIST_ITEM_INDEX = "invalid_list_item_index"
+INVALID_LIST_TARGET = "not_a_list"
 
 
 @dataclass(frozen=True)
@@ -39,6 +44,7 @@ class NotebookListResult:
     query: str | None = None
     filter_name: str | None = None
     filter_value: str | None = None
+    success: bool = True
 
 
 @handle_errors(
@@ -149,6 +155,8 @@ def create_note_from_command(
 ) -> NotebookEntryResult:
     """Create a note from command entities and return a structured result."""
     fields = prepare_note_fields(entities)
+    if not is_valid_entry_title(fields.get("title")):
+        return NotebookEntryResult(None, False, INVALID_ENTRY_TITLE)
     entry = data_manager.create_note(user_id, **fields)
     return NotebookEntryResult(entry=entry, success=entry is not None)
 
@@ -159,6 +167,8 @@ def create_quick_note_from_command(
 ) -> NotebookEntryResult:
     """Create a quick note from command entities."""
     fields = prepare_quick_note_fields(entities)
+    if not is_valid_entry_title(fields.get("title")):
+        return NotebookEntryResult(None, False, INVALID_ENTRY_TITLE)
     entry = data_manager.create_note(user_id, **fields)
     return NotebookEntryResult(entry=entry, success=entry is not None)
 
@@ -169,6 +179,8 @@ def create_list_from_command(
 ) -> NotebookEntryResult:
     """Create a notebook list from command entities."""
     fields = prepare_list_fields(entities)
+    if not is_valid_entry_title(fields.get("title")):
+        return NotebookEntryResult(None, False, INVALID_ENTRY_TITLE)
     entry = data_manager.create_list(user_id, **fields)
     return NotebookEntryResult(entry=entry, success=entry is not None)
 
@@ -178,6 +190,8 @@ def create_journal_from_command(
     user_id: str, entities: dict[str, Any]
 ) -> NotebookEntryResult:
     """Create a journal entry from command entities."""
+    if not is_valid_entry_title(entities.get("title")):
+        return NotebookEntryResult(None, False, INVALID_ENTRY_TITLE)
     entry = data_manager.create_journal(
         user_id,
         title=entities.get("title"),
@@ -187,12 +201,12 @@ def create_journal_from_command(
     return NotebookEntryResult(entry=entry, success=entry is not None)
 
 
-@handle_errors("listing recent notebook entries", default_return=NotebookListResult([], 0))
+@handle_errors("listing recent notebook entries", default_return=NotebookListResult([], 0, success=False))
 def list_recent_entries(
     user_id: str, *, notes_only: bool = False, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """List recent notebook entries, optionally notes only."""
-    entries = data_manager.list_recent(user_id, n=limit)
+    entries = data_manager.list_recent_from_snapshot(load_entries_for_query(user_id), n=limit)
     if notes_only:
         entries = [entry for entry in entries if entry.kind == "note"]
     return NotebookListResult(
@@ -202,50 +216,50 @@ def list_recent_entries(
     )
 
 
-@handle_errors("searching notebook entries for display", default_return=NotebookListResult([], 0))
+@handle_errors("searching notebook entries for display", default_return=NotebookListResult([], 0, success=False))
 def search_entries_for_display(
     user_id: str, query: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """Search notebook entries for command display."""
-    entries = data_manager.search_entries(user_id, query, limit=limit)
+    entries = data_manager.search_entries_from_snapshot(load_entries_for_query(user_id), query, limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), query=query)
 
 
-@handle_errors("listing notebook entries by tag", default_return=NotebookListResult([], 0))
+@handle_errors("listing notebook entries by tag", default_return=NotebookListResult([], 0, success=False))
 def list_entries_by_tag(
     user_id: str, tag: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """List notebook entries with a tag."""
-    entries = data_manager.list_by_tag(user_id, tag, limit=limit)
+    entries = data_manager.list_by_tag_from_snapshot(load_entries_for_query(user_id), tag, limit=limit)
     return NotebookListResult(
         entries=entries, total=len(entries), filter_name="tag", filter_value=tag
     )
 
 
-@handle_errors("listing pinned notebook entries", default_return=NotebookListResult([], 0))
+@handle_errors("listing pinned notebook entries", default_return=NotebookListResult([], 0, success=False))
 def list_pinned_entries(
     user_id: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """List pinned notebook entries."""
-    entries = data_manager.list_pinned(user_id, limit=limit)
+    entries = data_manager.list_pinned_from_snapshot(load_entries_for_query(user_id), limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), filter_name="pinned")
 
 
-@handle_errors("listing notebook inbox entries", default_return=NotebookListResult([], 0))
+@handle_errors("listing notebook inbox entries", default_return=NotebookListResult([], 0, success=False))
 def list_inbox_entries(
     user_id: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """List notebook inbox entries."""
-    entries = data_manager.list_inbox(user_id, limit=limit)
+    entries = data_manager.list_inbox_from_snapshot(load_entries_for_query(user_id), limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), filter_name="inbox")
 
 
-@handle_errors("listing archived notebook entries", default_return=NotebookListResult([], 0))
+@handle_errors("listing archived notebook entries", default_return=NotebookListResult([], 0, success=False))
 def list_archived_entries(
     user_id: str, *, limit: int = MAX_NOTEBOOK_QUERY_RESULTS
 ) -> NotebookListResult:
     """List archived notebook entries."""
-    entries = data_manager.list_archived(user_id, limit=limit)
+    entries = data_manager.list_archived_from_snapshot(load_entries_for_query(user_id), limit=limit)
     return NotebookListResult(entries=entries, total=len(entries), filter_name="archived")
 
 
@@ -311,6 +325,9 @@ def set_list_item_done(
     user_id: str, entry_ref: str, item_index: int, done: bool
 ) -> NotebookEntryResult:
     """Set a notebook list item completion state."""
+    target = _resolve_list_item_target(user_id, entry_ref, item_index)
+    if not target.success:
+        return target
     entry = data_manager.toggle_list_item_done(user_id, entry_ref, item_index, done)
     return _operation_result(user_id, entry_ref, entry)
 
@@ -318,8 +335,24 @@ def set_list_item_done(
 @handle_errors("removing notebook list item", default_return=NotebookEntryResult(None, False))
 def delete_list_item(user_id: str, entry_ref: str, item_index: int) -> NotebookEntryResult:
     """Remove an item from a notebook list entry."""
+    target = _resolve_list_item_target(user_id, entry_ref, item_index)
+    if not target.success:
+        return target
     entry = data_manager.remove_list_item(user_id, entry_ref, item_index)
     return _operation_result(user_id, entry_ref, entry)
+
+
+# error_handling_exclude: called by guarded list-item service operations
+def _resolve_list_item_target(user_id: str, entry_ref: str, item_index: int) -> NotebookEntryResult:
+    """Require a strict zero-based index before the mixed-index data-manager API."""
+    result = resolve_notebook_entry(user_id, entry_ref)
+    if not result.success or result.entry is None:
+        return result
+    if result.entry.kind != "list":
+        return NotebookEntryResult(None, False, INVALID_LIST_TARGET)
+    if type(item_index) is not int or not 0 <= item_index < len(result.entry.items or []):
+        return NotebookEntryResult(None, False, INVALID_LIST_ITEM_INDEX)
+    return result
 
 
 # Compatibility wrappers for callers that still use data-manager-style names.

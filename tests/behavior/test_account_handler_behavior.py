@@ -805,7 +805,8 @@ class TestAccountHandlerBehavior:
         
         # Assert: Should handle failure gracefully
         assert response.completed is False, "Should not complete on creation failure"
-        assert 'failed' in response.message.lower() or 'error' in response.message.lower(), "Should indicate failure"
+        assert "couldn't confirm" in response.message
+        assert "check account status" in response.message
     
     @pytest.mark.behavior
     @pytest.mark.communication

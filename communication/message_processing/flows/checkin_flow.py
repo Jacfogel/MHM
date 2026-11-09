@@ -4,6 +4,7 @@
 
 import importlib
 import random
+import uuid
 from contextlib import suppress
 from datetime import timedelta
 
@@ -386,8 +387,9 @@ class CheckinFlowMixin(FlowStateMixin):
     @handle_errors(
         "completing checkin",
         default_return=(
-            "Thanks for completing your check-in! There was an issue saving your responses, but I've recorded what I could.",
-            True,
+            "I couldn't confirm your check-in was saved. Keep a copy of your answers. "
+            "Your check-in is still open; send 'retry' to try saving again, or `/cancel` to leave.",
+            False,
         ),
     )
     def _complete_checkin(self, user_id: str, user_state: dict) -> tuple[str, bool]:
@@ -401,7 +403,20 @@ class CheckinFlowMixin(FlowStateMixin):
         # Store the check-in data using modern function
         from checkins.checkin_data_manager import store_checkin_response
 
-        store_checkin_response(user_id, data)
+        user_state.setdefault("checkin_save_id", str(uuid.uuid4()))
+        user_state.setdefault("checkin_submitted_at", now_timestamp_full())
+        self._save_user_states()
+        payload = {
+            **data, "id": user_state["checkin_save_id"],
+            "submitted_at": user_state["checkin_submitted_at"],
+        }
+        if not store_checkin_response(user_id, payload):
+            logger.error(f"Check-in completion save was not confirmed: user_id={user_id}")
+            return (
+                "I couldn't confirm your check-in was saved. Keep a copy of your answers. "
+                "Your check-in is still open; send 'retry' to try saving again, or `/cancel` to leave.",
+                False,
+            )
 
         # Log user activity for check-in completion
         from core.logger import get_component_logger
@@ -478,7 +493,7 @@ class CheckinFlowMixin(FlowStateMixin):
             handler = get_interaction_handler("show_profile")
             if handler is None:
                 return (
-                    "I couldn't load the profile handler. Please try again.",
+                    self._checkin_command_unavailable(user_id, "profile"),
                     False,
                 )
             response = handler.handle_show_profile(user_id, {})
@@ -493,7 +508,7 @@ class CheckinFlowMixin(FlowStateMixin):
             handler = get_interaction_handler("show_analytics")
             if handler is None:
                 return (
-                    "I couldn't load the status handler. Please try again.",
+                    self._checkin_command_unavailable(user_id, "status"),
                     False,
                 )
             response = handler.handle_show_status(user_id, {})
@@ -508,7 +523,7 @@ class CheckinFlowMixin(FlowStateMixin):
             handler = get_interaction_handler("show_analytics")
             if handler is None:
                 return (
-                    "I couldn't load the analytics handler. Please try again.",
+                    self._checkin_command_unavailable(user_id, "analytics"),
                     False,
                 )
             response = handler.handle_show_analytics(user_id, {})
@@ -523,7 +538,7 @@ class CheckinFlowMixin(FlowStateMixin):
             handler = get_interaction_handler("show_schedule")
             if handler is None:
                 return (
-                    "I couldn't load the schedule handler. Please try again.",
+                    self._checkin_command_unavailable(user_id, "schedule"),
                     False,
                 )
             response = handler.handle_show_schedule(user_id, {})
@@ -538,18 +553,16 @@ class CheckinFlowMixin(FlowStateMixin):
             handler = get_interaction_handler("messages")
             if handler is None:
                 return (
-                    "I couldn't load the messages handler. Please try again.",
+                    self._checkin_command_unavailable(user_id, "messages"),
                     False,
                 )
             show_fn = getattr(handler, "handle_show_messages", None)
             if not callable(show_fn):
-                return ("Messages command is not available right now.", False)
+                return (self._checkin_command_unavailable(user_id, "messages"), False)
             response = show_fn(user_id, {})
-            msg = (
-                getattr(response, "message", str(response))
-                if response is not None
-                else ""
-            )
+            msg = getattr(response, "message", None)
+            if not isinstance(msg, str) or not msg.strip():
+                return (self._checkin_command_unavailable(user_id, "messages"), False)
             return (msg, False)
 
         # Unknown command
@@ -559,6 +572,16 @@ class CheckinFlowMixin(FlowStateMixin):
                 "You're currently in a check-in. Type `/help` for available commands or continue answering the questions.",
                 False,
             )
+    # error_handling_exclude: called only from the guarded check-in command dispatcher
+    def _checkin_command_unavailable(self, user_id: str, command: str) -> str:
+        """Explain a read-command failure without ending the active check-in."""
+        logger.error(f"Check-in read command unavailable: user_id={user_id}, command={command}")
+        return (
+            f"I couldn't show your {command} right now. Your check-in is still open. "
+            "Continue answering, or type `/help` for available commands. "
+            f"You can try `/{command}` again later."
+        )
+
     @handle_errors(
         "generating completion message",
         default_return="✅ Check-in complete! Thanks for taking the time. See you next time! 🌟",

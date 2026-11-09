@@ -63,7 +63,6 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_note
 
@@ -71,9 +70,11 @@ class NoteFlowMixin(FlowControlMixin):
             user_id, title=title, description=None, tags=tags
         )
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             return (NOTE_SAVED_TITLE_ONLY_TEMPLATE.format(title=title, short_id=short_id), True)
-        return ("Failed to save note. Please try again.", True)
+        logger.error(f"Notebook flow save was not confirmed: user_id={user_id}, operation=_finalize_note_without_body")
+        return ("I couldn't confirm this entry was saved. Your setup is still open. Keep a copy and check `!recent` before trying again, or `cancel` to leave.", False)
 
     # error_handling_exclude: called from decorated flow handlers
     def _finalize_journal_without_body(
@@ -83,7 +84,6 @@ class NoteFlowMixin(FlowControlMixin):
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
         tags = flow_data.get("tags", [])
-        self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_journal
 
@@ -91,12 +91,14 @@ class NoteFlowMixin(FlowControlMixin):
             user_id, title=title, description=None, tags=tags
         )
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             return (
                 JOURNAL_SAVED_TITLE_ONLY_TEMPLATE.format(title=title, short_id=short_id),
                 True,
             )
-        return ("Failed to save journal entry. Please try again.", True)
+        logger.error(f"Notebook flow save was not confirmed: user_id={user_id}, operation=_finalize_journal_without_body")
+        return ("I couldn't confirm this entry was saved. Your setup is still open. Keep a copy and check `!recent` before trying again, or `cancel` to leave.", False)
 
     # error_handling_exclude: called from decorated flow handlers
     def _finalize_list_from_state(
@@ -107,7 +109,6 @@ class NoteFlowMixin(FlowControlMixin):
         title = flow_data.get("title", "")
         items = flow_data.get("items", [])
         tags = flow_data.get("tags", [])
-        self._clear_flow_state(user_id, mark_completion=True)
 
         from notebook.notebook_data_manager import create_list
 
@@ -118,6 +119,7 @@ class NoteFlowMixin(FlowControlMixin):
             user_id, title=title, tags=tags, items=item_strings
         )
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             return (
                 LIST_SAVED_TEMPLATE.format(
@@ -125,7 +127,8 @@ class NoteFlowMixin(FlowControlMixin):
                 ),
                 True,
             )
-        return ("Failed to save list. Please try again.", True)
+        logger.error(f"Notebook flow save was not confirmed: user_id={user_id}, operation=_finalize_list_from_state")
+        return ("I couldn't confirm the list was saved. Your items are still in this setup. Keep a copy and check `!recent` before sending `end` to retry, or `cancel` to leave.", False)
 
     # error_handling_exclude: called from decorated flow handlers
     def _cancel_note_creation(self, user_id: str, user_state: dict) -> tuple[str, bool]:
@@ -203,8 +206,8 @@ class NoteFlowMixin(FlowControlMixin):
     @handle_errors(
         "handling note body flow",
         default_return=(
-            "I'm having trouble with the note flow. Please try again.",
-            True,
+            "I couldn't confirm the save. Keep a copy of your text and check your notebook before retrying. Type cancel to leave setup.",
+            False,
         ),
     )
     def _handle_note_body_flow(
@@ -241,9 +244,10 @@ class NoteFlowMixin(FlowControlMixin):
 
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
-        tags = flow_data.get("tags", [])
+        tags = list(flow_data.get("tags", []))
         body = message_text
-        self._clear_flow_state(user_id, mark_completion=True)
+        flow_data["draft_body"] = body
+        self._save_user_states()
 
         from notebook.notebook_data_manager import create_note
         from core.tags import parse_tags_from_text
@@ -257,18 +261,20 @@ class NoteFlowMixin(FlowControlMixin):
         )
 
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             response = NOTE_SAVED_WITH_BODY_TEMPLATE.format(title=title, short_id=short_id)
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return (response, True)
-        return ("Failed to save note. Please try again.", True)
+        logger.error(f"Notebook flow save was not confirmed: user_id={user_id}, operation=_handle_note_body_flow")
+        return ("I couldn't confirm this entry was saved. Your setup is still open. Keep a copy and check `!recent` before trying again, or `cancel` to leave.", False)
 
     @handle_errors(
         "handling journal body flow",
         default_return=(
-            "I'm having trouble with the journal flow. Please try again.",
-            True,
+            "I couldn't confirm the save. Keep a copy of your text and check your notebook before retrying. Type cancel to leave setup.",
+            False,
         ),
     )
     def _handle_journal_body_flow(
@@ -307,9 +313,10 @@ class NoteFlowMixin(FlowControlMixin):
 
         flow_data = user_state.get("data", {})
         title = flow_data.get("title", "")
-        tags = flow_data.get("tags", [])
+        tags = list(flow_data.get("tags", []))
         body = message_text
-        self._clear_flow_state(user_id, mark_completion=True)
+        flow_data["draft_body"] = body
+        self._save_user_states()
 
         from notebook.notebook_data_manager import create_journal
         from core.tags import parse_tags_from_text
@@ -323,6 +330,7 @@ class NoteFlowMixin(FlowControlMixin):
         )
 
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             response = JOURNAL_SAVED_WITH_BODY_TEMPLATE.format(
                 title=title, short_id=short_id
@@ -330,13 +338,14 @@ class NoteFlowMixin(FlowControlMixin):
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return (response, True)
-        return ("Failed to save journal entry. Please try again.", True)
+        logger.error(f"Notebook flow save was not confirmed: user_id={user_id}, operation=_handle_journal_body_flow")
+        return ("I couldn't confirm this entry was saved. Your setup is still open. Keep a copy and check `!recent` before trying again, or `cancel` to leave.", False)
 
     @handle_errors(
         "handling list items flow",
         default_return=(
-            "I'm having trouble with the list flow. Please try again.",
-            True,
+            "I couldn't confirm the save. Keep a copy of your text and check your notebook before retrying. Type cancel to leave setup.",
+            False,
         ),
     )
     def _handle_list_items_flow(
@@ -400,8 +409,8 @@ class NoteFlowMixin(FlowControlMixin):
     @handle_errors(
         "handling entry edit flow",
         default_return=(
-            "I'm having trouble with the edit flow. Please try again.",
-            True,
+            "I couldn't confirm the save. Keep a copy of your text and check your notebook before retrying. Type cancel to leave setup.",
+            False,
         ),
     )
     def _handle_entry_edit_flow(
@@ -448,7 +457,8 @@ class NoteFlowMixin(FlowControlMixin):
                 False,
             )
 
-        self._clear_flow_state(user_id, mark_completion=True)
+        flow_data["draft_body"] = body
+        self._save_user_states()
 
         from notebook.notebook_service import append_entry_body, replace_entry_body
 
@@ -456,14 +466,13 @@ class NoteFlowMixin(FlowControlMixin):
         result = save_body(user_id, entry_ref, body)
         entry = result.entry if result else None
         if entry:
+            self._clear_flow_state(user_id, mark_completion=True)
             short_id = self._entry_short_id(entry)
             title = entry.title or "Untitled"
             action = "Appended to" if appending else "Updated"
             return (f"✅ {action} '{title}' ({short_id})", True)
-        return (
-            "❌ Failed to update. Entry not found or cannot be edited (lists use item commands).",
-            True,
-        )
+        logger.error(f"Notebook edit save was not confirmed: user_id={user_id}")
+        return ("I couldn't confirm the edit was saved. Keep a copy of your text and check `!show <entry ID>` before sending the text again, or `cancel` to leave.", False)
 
     # not_duplicate: notebook flow persist (no task identifier/history)
     @handle_errors("starting notebook conversation flow", default_return=None)

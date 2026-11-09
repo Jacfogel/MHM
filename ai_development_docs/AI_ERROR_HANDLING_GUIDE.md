@@ -105,6 +105,26 @@ Key constraints:
 
 Do not embed stack traces or raw exceptions into user-visible strings.
 
+Task mutation failures should describe an unconfirmed outcome and direct users to check `list tasks` / task details before retrying. Preserve note/URL recovery guidance, return an `InteractionResponse` at command exception boundaries, and log operation/user/task context without content. A missing reminder read-back must not be dereferenced or reported as a confirmed save; see the paired guide, section 5.1.
+
+Notebook commands also return safe recovery replies for unconfirmed saves. Preserve structured missing/ambiguous-reference guidance rather than claiming every mutation failure is a missing entry. Use notebook check commands and text-copy guidance; log operation/user context without entry references or content. Pin/archive wrappers own their helper's exception reporting; see the paired guide, section 5.1.
+
+Notebook creation preflights normalized titles with the existing validator and returns an invalid-title result before persistence. Surface the canonical title limit and body-text guidance without raw validation errors.
+
+Schedule add/edit must check persistence results, avoid raw exceptions in replies, and copy loaded dictionaries before editing. Explicit inactive flags are changes. Unavailable check-in read commands retain the flow and give recovery guidance; empty/malformed messages responses must not produce blank replies or object representations.
+
+Check-in storage returns a confirmed-save boolean; completion retains answers on failure and reuses a persisted submission ID/time for idempotent retries. Do not claim partial recording or trigger notebook copies after a rejected primary save. Notebook flows retain drafts/items until saving succeeds or the user cancels; preserve copy/check-before-resubmit guidance. Profile update failures may be partial and must direct users to inspect their profile before retrying.
+
+Bulk schedule enable/disable checks writes and copies loaded period dictionaries; empty categories do not report success. Notebook list mutations preserve reference errors and return check-before-retry replies, especially after removal shifts numbering. Reject nonpositive, fractional, and boolean chat item numbers before mutation.
+
+List-item services preflight a strict zero-based range against the resolved list; do not let the data-manager's mixed-index normalization reinterpret a past-end command as the last item. Preserve distinct wrong-kind and invalid-index results.
+
+Health pause/delete checks boolean results and gives status-before-retry guidance for uncertain/partial outcomes. Linking fails closed on code-generation failure, registers pending codes only after delivery, binds verification to account/channel, rejects unsupported channels, and points invalid-code recovery to email. Delivery logs exclude addresses/codes; link-save failures suggest checking account status.
+
+Snooze/skip/simplify exceptions return usable task recovery replies. Phrase-setting write failures suggest inspecting saved settings while preserving validation guidance. Creation failures suggest checking account status before duplicating an account; reject blank preferred names. Google Health connect needs a nonempty URL before starting the background flow and uses nontechnical recovery replies.
+
+Notebook query results distinguish failures (`success=False`) from successful empty views. Six read services now use a strict validated snapshot plus shared selectors, so storage failures reach the flag instead of becoming `[]`. Missing files/valid empty collections remain empty; invalid or partly invalid files are preserved and rejected. Reuse `load_json_data(..., recover=False)` for non-repairing reads. Other tolerant-loader callers retain their separate limits.
+
 ---
 
 ## 6. Configuration and Integration

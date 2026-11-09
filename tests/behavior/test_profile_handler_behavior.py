@@ -583,7 +583,8 @@ class TestProfileHandlerBehavior:
         response = handler.handle(user_id, parsed_command)
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert "fail" in response.message.lower() or "error" in response.message.lower(), "Should indicate failure"
+        assert "couldn't confirm" in response.message
+        assert "show my profile" in response.message
         mock_update_context.assert_called_once()
     
     @pytest.mark.behavior

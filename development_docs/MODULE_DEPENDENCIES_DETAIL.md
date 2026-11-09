@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-06 01:07:56
+> **Last Generated**: 2026-11-07 22:55:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 313
-- **Total Imports Found**: 2835
+- **Total Imports Found**: 2837
 - **Dependencies Documented**: 313 (100% coverage)
-- **Standard Library Imports**: 816 (28.8%)
+- **Standard Library Imports**: 817 (28.8%)
 - **Third-Party Imports**: 235 (8.3%)
-- **Local Imports**: 1784 (62.9%)
-- **Last Updated**: 2026-11-06
+- **Local Imports**: 1785 (62.9%)
+- **Last Updated**: 2026-11-07
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 816 imports (28.8%)
+- **Standard Library**: 817 imports (28.8%)
 - **Third-Party**: 235 imports (8.3%)
-- **Local**: 1784 imports (62.9%)
+- **Local**: 1785 imports (62.9%)
 
 ## Module Dependencies by Directory
 
@@ -1542,7 +1542,8 @@
     - `core.time_format_constants (DATE_DISPLAY_MONTH_DAY)` (NEW)
     - `core.time_utilities (format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
-    - `notebook.notebook_service (AMBIGUOUS_ENTRY_REFERENCE, add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, list_archived_entries, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, resolve_notebook_entry, search_entries_for_display, set_list_item_done)` (NEW)
+    - `notebook.notebook_service (AMBIGUOUS_ENTRY_REFERENCE, INVALID_ENTRY_TITLE, INVALID_LIST_ITEM_INDEX, INVALID_LIST_TARGET, MISSING_ENTRY_REFERENCE, add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, list_archived_entries, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, resolve_notebook_entry, search_entries_for_display, set_list_item_done)` (NEW)
+    - `notebook.notebook_validation (MAX_TITLE_LENGTH)` (NEW)
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `typing (Any)`
@@ -1550,7 +1551,7 @@
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.ids, core.logger, core.pagination, core.tags, core.time_format_constants, core.time_utilities, notebook.notebook_service
+- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.ids, core.logger, core.pagination, core.tags, core.time_format_constants, core.time_utilities, notebook.notebook_service, notebook.notebook_validation
 - Removed: collections.abc, communication/command_handlers/interaction_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3125,6 +3126,7 @@
     - `datetime (timedelta)`
     - `importlib`
     - `random`
+    - `uuid`
 - **Used by**:
   - `communication/message_processing/conversation_flow_manager.py`
 
@@ -4330,7 +4332,7 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.health_signals (get_google_health_feature_state, health_personalization_allowed, is_personalization_active, resolve_active_health_signal)` (NEW)
-    - `core.time_utilities (DATE_ONLY, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, parse_timestamp_full)` (NEW)
     - `integrations.google_health.data_handlers (load_health_signals)` (NEW)
     - `integrations.google_health.personalization_rules (GUIDANCE_AVOID_NAG, GUIDANCE_AVOID_PRESSURE, GUIDANCE_GENTLE, GUIDANCE_LIGHT_MOVEMENT, GUIDANCE_LOW_EFFORT, GUIDANCE_REINFORCE, GUIDANCE_SHORT_WALK, GUIDANCE_SMALL_EXPECTATIONS, activity_effort_band)`
   - **Standard Library**:
@@ -4366,7 +4368,7 @@
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (DATE_ONLY, now_datetime_full, parse_timestamp_full)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_timestamp_full)` (NEW)
     - `integrations.google_health.data_handlers (load_health_signals)`
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -5721,7 +5723,7 @@
     - `core.config (GOOGLE_HEALTH_API_BASE_URL)` (NEW)
     - `core.error_handling (CommunicationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.time_utilities (format_timestamp, now_datetime_utc, now_timestamp_full)` (NEW)
     - `integrations.google_health.schemas (DailySummaryModel, SleepStagesSummaryModel)` (NEW)
     - `integrations.google_health.testing (is_google_health_testing_mode)` (NEW)
   - **Standard Library**:

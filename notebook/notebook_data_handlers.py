@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, FileOperationError
+from core.error_handling import handle_errors, FileOperationError, DataError
 from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, update_json_data
 from core.time_utilities import now_timestamp_full
@@ -85,6 +85,35 @@ def load_entries(user_id: str) -> list[Entry]:
     loaded_entries = _entries_from_payload(raw_data, user_id=user_id)
     logger.debug(f"Loaded {len(loaded_entries)} notebook entries for user {user_id}.")
     return loaded_entries
+
+
+# error_handling_exclude: query service boundaries log and convert read failures to results
+def load_entries_for_query(user_id: str) -> list[Entry]:
+    """Read a complete validated snapshot, treating only a missing file as empty."""
+    file_path = _get_notebook_file_path(user_id)
+    if file_path is None:
+        raise FileOperationError("Notebook location is unavailable", details={"user_id": user_id})
+    try:
+        file_path.stat()
+    except FileNotFoundError:
+        return []
+    except (OSError, UnicodeError) as exc:
+        raise FileOperationError(
+            "Notebook could not be read", details={"user_id": user_id, "exception_type": type(exc).__name__}
+        ) from None
+    payload = load_json_data(str(file_path), recover=False)
+    if payload is None:
+        raise FileOperationError("Notebook could not be read or parsed", details={"user_id": user_id})
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != V2_SCHEMA_VERSION
+        or not isinstance(payload.get("entries"), list)
+    ):
+        raise DataError("Notebook collection format is invalid", details={"user_id": user_id})
+    entries = _entries_from_payload(payload, user_id=user_id)
+    if len(entries) != len(payload["entries"]):
+        raise DataError("Notebook contains entries that could not be validated", details={"user_id": user_id})
+    return entries
 
 
 # ERROR_HANDLING_EXCLUDE: Pure conversion helper; callers own persistence failures.

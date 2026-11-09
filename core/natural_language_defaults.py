@@ -394,7 +394,8 @@ def _build_nl_defaults_patch(field: str, value: str) -> dict[str, Any] | None:
 @handle_errors(
     "applying natural-language defaults update",
     default_return=NaturalLanguageDefaultsUpdateResult(
-        success=False, error_message="Could not update phrase settings."
+        success=False, error_message="I couldn't confirm your phrase settings were saved. "
+        "Check `show phrase settings` before retrying the change."
     ),
 )
 def apply_natural_language_defaults_update(
@@ -434,9 +435,11 @@ def apply_natural_language_defaults_update(
     merged_nl = _merge_nl_defaults_patch(stored_nl, patch)
 
     if not save_preferences(user_id, {PREFERENCES_NL_KEY: merged_nl}):
+        logger.error(f"Phrase settings save was not confirmed: user_id={user_id}")
         return NaturalLanguageDefaultsUpdateResult(
             success=False,
-            error_message="Failed to save phrase settings. Please try again.",
+            error_message="I couldn't confirm your phrase settings were saved. "
+            "Check `show phrase settings` before retrying the change.",
         )
 
     field_key = normalize_nl_field_key(nl_field)

@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-07 - Improve command failure recovery guidance **COMPLETED**
+- Added actionable recovery replies and save confirmation across task, notebook, schedule, check-in, profile, account, and health commands.
+- Preserved drafts on failed saves, made check-in retries idempotent, and hardened account verification and notebook list numbering.
+- Notebook queries distinguish unreadable or invalid files from empty collections and preserve the original files.
+- Focused tests and lint passed. The user reported a clean full audit at the earlier task/notebook checkpoint.
+
 ### 2026-11-07 - Strengthen test runner isolation and policy boundaries **COMPLETED**
 - Both serial runner paths now use the tools pytest configuration/conftest boundary; regression tests cover standalone tools and full-suite modes.
 - Focused validation: 15 tests passed and marker analysis passed. The real one-worker tools run reached 72 passes before memory exceeded 98%; stopped it and the concurrent audit. Complete-suite/audit validation remains open in TEST_PLAN.md.
@@ -118,17 +124,6 @@ Guidelines:
 - Task-simplify and task-response tests now carry the required category and domain markers that failed nightly policy checks on Oct 26-28.
 - Email initialization and recovery tests mock IMAP, so a live Gmail socket can no longer time out and fail a later nightly test during garbage collection.
 - **Verification**: 15 focused checks pass, including both marker guards. Targeted Ruff passes. The full nightly suite was not rerun locally.
-
-### 2026-10-28 - OpenAI replaces LM Studio **COMPLETED**
-- OpenAI Responses API now serves optional model features, defaulting to configurable `gpt-5.4-mini`. Hosted model-access checks replace local loading and process management.
-- Existing AI policy and deterministic fallbacks remain authoritative; no key means fallback. Uses `store=false`, bounded inputs/output, sanitized failures, and rejection of partial/refused output.
-- **Live connection**: Existing local key is present, but OpenAI rejected it with HTTP 401. A valid local `OPENAI_API_KEY` and a desktop/service restart are required before live replies work. The synthetic test sent no user context.
-- **Verification**: 365 distinct focused checks pass across chatbot/policy/configuration, Responses transport, task planning, user journeys, command parsing, and Discord review suites. Full-project Pyright and targeted Ruff pass; docs generation and doc-sync succeed. Discord async checks require local Windows event-loop sockets; the restricted run stalled before test execution and the unrestricted mocked run passes all 13 checks. A full Tier 3 audit was not run.
-- **Credential follow-up**: Discord logs confirmed repeated 401 fallbacks because stale inherited Windows credentials overrode the replacement project key. OpenAI key resolution now prefers an explicit local `.env` setting (including blank), retaining process-environment support when no local key is set. 47 credential/configuration/policy/transport tests pass; targeted Ruff passes. Fresh-process model access and synthetic generation pass using the actual configuration without environment overrides. Restart the desktop app to reload the fix in its managed service.
-- Upgraded eight vulnerable dependencies to advisory-fixed versions and raised matching metadata floors. Fresh pip-audit is clean; pip check finds no conflicts.
-- Explicit positive HTTP timeout clears Bandit B113. Removed unused OpenAI manager wrappers; client readiness remains authoritative. Clarified sampling documentation and repaired eight historical broken links.
-- 167 focused regressions pass, with clean Ruff/Pyright checks. Restart MHM to load updated libraries.
-- **Audit refresh**: Standard analyzers now report zero dependency vulnerabilities, Bandit issues, duplicate groups, facade/shim candidates, and Markdown link-target hints. Regenerated documentation and cached status/priority reports; documentation sync passes. Full Tier 3 audit and coverage regeneration were not rerun.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

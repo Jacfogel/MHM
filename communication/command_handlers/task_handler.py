@@ -572,7 +572,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "handling task creation",
         default_return=InteractionResponse(
-            "I'm having trouble creating your task. Please try again.", True
+            "I couldn't confirm that your task was saved. Send 'list tasks' "
+            "to check before trying to create it again.", True
         ),
     )
     def _handle_create_task(
@@ -702,14 +703,17 @@ class TaskManagementHandler(InteractionHandler):
                     response, completed=False, suggestions=reminder_suggestions
                 )
         else:
+            logger.error(f"Task creation was not confirmed: user_id={user_id}")
             return InteractionResponse(
-                "❌ Failed to create task. Please try again.", True
+                "I couldn't confirm that your task was saved. Send 'list tasks' "
+                "to check before trying to create it again.", True
             )
 
     @handle_errors(
         "handling task creation from template",
         default_return=InteractionResponse(
-            "I'm having trouble creating that task from a template. Please try again.", True
+            "I couldn't finish creating the task from that template. Send 'list tasks' "
+            "to check whether it was saved before trying again.", True
         ),
     )
     def _handle_create_task_from_template(
@@ -744,8 +748,13 @@ class TaskManagementHandler(InteractionHandler):
             now_dt=now_datetime_full(),
         )
         if not task_data:
+            logger.error(
+                f"Task template preparation failed: user_id={user_id}, "
+                f"template_id={template.template_id}"
+            )
             return InteractionResponse(
-                "❌ Failed to build task from template. Please try again.", True
+                "I couldn't prepare a task from that template. Try 'list task templates' "
+                "to choose a template, or 'create task <title>' to add it directly.", True
             )
 
         merged_entities: dict[str, Any] = {
@@ -1093,7 +1102,13 @@ class TaskManagementHandler(InteractionHandler):
         return []
 
     # not_duplicate: task_mutation_handlers
-    @handle_errors("handling task reminder snooze")
+    @handle_errors(
+        "handling task reminder snooze",
+        default_return=InteractionResponse(
+            "I couldn't confirm the reminder was snoozed. Send 'list tasks' and check "
+            "the task's reminders before trying to snooze it again.", True
+        ),
+    )
     def _handle_snooze_task_reminder(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1246,7 +1261,13 @@ class TaskManagementHandler(InteractionHandler):
             },
         )
 
-    @handle_errors("handling skip task occurrence")
+    @handle_errors(
+        "handling skip task occurrence",
+        default_return=InteractionResponse(
+            "I couldn't confirm this occurrence was skipped. Send 'list tasks' and check "
+            "the task's status before trying 'skip task <number>' again.", True
+        ),
+    )
     def _handle_skip_task_occurrence(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1278,7 +1299,13 @@ class TaskManagementHandler(InteractionHandler):
         result = skip_task_occurrence(user_id, _task_identifier(task))
         return InteractionResponse(result.message, result.success)
 
-    @handle_errors("handling simplify task")
+    @handle_errors(
+        "handling simplify task",
+        default_return=InteractionResponse(
+            "I couldn't finish simplifying the task. Keep a copy of any step you entered, "
+            "then check 'list tasks' before adding smaller steps again.", True
+        ),
+    )
     def _handle_simplify_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1314,7 +1341,11 @@ class TaskManagementHandler(InteractionHandler):
             result = add_task_subtasks(user_id, task_id, [typed_step])
             PENDING_SIMPLIFY.pop(user_id, None)
             if not result:
-                return InteractionResponse("That step could not be added.", False)
+                logger.error(f"Task step creation was not confirmed: user_id={user_id}, task_id={task_id}")
+                return InteractionResponse(
+                    "I couldn't confirm the smaller step was added. Keep a copy and check "
+                    "'list tasks' before adding it again.", False
+                )
             return InteractionResponse(result.message, result.success)
         PENDING_SIMPLIFY.pop(user_id, None)
         result = suggest_breakdown(user_id, task_id, explicit_request=True)
@@ -1354,7 +1385,13 @@ class TaskManagementHandler(InteractionHandler):
             },
         )
 
-    @handle_errors("handling task completion")
+    @handle_errors(
+        "handling task completion",
+        default_return=InteractionResponse(
+            "I couldn't confirm the task was completed. Send 'list tasks' to check "
+            "its status before trying 'complete task <number>' again.", True
+        ),
+    )
     def _handle_complete_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1428,14 +1465,19 @@ class TaskManagementHandler(InteractionHandler):
         if _task_service().complete_task(user_id, _task_identifier(task)):
             return InteractionResponse(f"✅ Completed: {task['title']}", True)
         else:
+            logger.error(
+                f"Task completion was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}"
+            )
             return InteractionResponse(
-                "❌ Failed to complete task. Please try again.", True
+                "I couldn't confirm the task was completed. Send 'list tasks' to check "
+                "its status before trying 'complete task <number>' again.", True
             )
 
     @handle_errors(
         "handling task uncomplete (restore)",
         default_return=InteractionResponse(
-            "I'm having trouble restoring that task. Please try again.", True
+            "I couldn't confirm the task was restored. Send 'list tasks' to check "
+            "whether it is active before trying to restore it again.", True
         ),
     )
     def _handle_uncomplete_task(
@@ -1487,10 +1529,20 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(
                 f"✅ Restored to active: {task.get('title', 'Task')}", True
             )
-        return InteractionResponse("❌ Failed to restore task. Please try again.", True)
+        logger.error(f"Task restore was not confirmed: user_id={user_id}, task_id={task_id}")
+        return InteractionResponse(
+            "I couldn't confirm the task was restored. Send 'list tasks' to check "
+            "whether it is active before trying to restore it again.", True
+        )
 
     # not_duplicate: task_mutation_handlers
-    @handle_errors("handling task deletion")
+    @handle_errors(
+        "handling task deletion",
+        default_return=InteractionResponse(
+            "I couldn't confirm the task was deleted. Send 'list tasks' to check, "
+            "then 'delete task <number>' if it is still there.", True
+        ),
+    )
     def _handle_delete_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1502,8 +1554,10 @@ class TaskManagementHandler(InteractionHandler):
             if pending_id:
                 if _task_service().delete_task(user_id, pending_id):
                     return InteractionResponse("🗑️ Deleted.", True)
+                logger.error(f"Confirmed task deletion failed: user_id={user_id}, task_id={pending_id}")
                 return InteractionResponse(
-                    "❌ Failed to delete task. Please try again.", True
+                    "I couldn't confirm the task was deleted. Send 'list tasks' to check, "
+                    "then 'delete task <number>' if it is still there.", True
                 )
             else:
                 return InteractionResponse(
@@ -1547,12 +1601,20 @@ class TaskManagementHandler(InteractionHandler):
         if _task_service().delete_task(user_id, _task_identifier(task)):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
+            logger.error(f"Task deletion was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}")
             return InteractionResponse(
-                "❌ Failed to delete task. Please try again.", True
+                "I couldn't confirm the task was deleted. Send 'list tasks' to check, "
+                "then 'delete task <number>' if it is still there.", True
             )
 
     # not_duplicate: task_mutation_handlers
-    @handle_errors("handling task update")
+    @handle_errors(
+        "handling task update",
+        default_return=InteractionResponse(
+            "I couldn't confirm your task changes were saved. Send 'list tasks' "
+            "and check the task details before retrying the update.", True
+        ),
+    )
     def _handle_update_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1631,11 +1693,19 @@ class TaskManagementHandler(InteractionHandler):
         if _task_service().update_task(user_id, _task_identifier(task), updates):
             return InteractionResponse(f"✅ Updated: {task['title']}", True)
         else:
+            logger.error(f"Task update was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}")
             return InteractionResponse(
-                "❌ Failed to update task. Please try again.", True
+                "I couldn't confirm your task changes were saved. Send 'list tasks' "
+                "and check the task details before retrying the update.", True
             )
 
-    @handle_errors("handling append note to task")
+    @handle_errors(
+        "handling append note to task",
+        default_return=InteractionResponse(
+            "I couldn't confirm the note was added. Keep a copy of your note, "
+            "then send 'list tasks' and check the task details before adding it again.", True
+        ),
+    )
     def _handle_append_note_to_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1686,11 +1756,19 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(
                 f"✅ Note added to: {task['title']}", True
             )
+        logger.error(f"Task note append was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}")
         return InteractionResponse(
-            "❌ Failed to add note. Please try again.", True
+            "I couldn't confirm the note was added. Keep a copy of your note, "
+            "then send 'list tasks' and check the task details before adding it again.", True
         )
 
-    @handle_errors("handling add link to task")
+    @handle_errors(
+        "handling add link to task",
+        default_return=InteractionResponse(
+            "I couldn't confirm the link was added. Keep the URL, then send 'list tasks' "
+            "and check the task details before adding it again.", True
+        ),
+    )
     def _handle_add_link_to_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1755,9 +1833,19 @@ class TaskManagementHandler(InteractionHandler):
                 "That doesn't look like a web link. Use an http:// or https:// address.",
                 True,
             )
-        return InteractionResponse("❌ Failed to add link. Please try again.", True)
+        logger.error(f"Task link append was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}")
+        return InteractionResponse(
+            "I couldn't confirm the link was added. Keep the URL, then send 'list tasks' "
+            "and check the task details before adding it again.", True
+        )
 
-    @handle_errors("handling remove link from task")
+    @handle_errors(
+        "handling remove link from task",
+        default_return=InteractionResponse(
+            "I couldn't confirm the link was removed. Send 'list tasks' and check "
+            "the task details before trying 'remove link from task <number> <URL>' again.", True
+        ),
+    )
     def _handle_remove_link_from_task(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -1805,8 +1893,10 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(
                 f"I couldn't find that link on: {task['title']}", True
             )
+        logger.error(f"Task link removal was not confirmed: user_id={user_id}, task_id={_task_identifier(task)}")
         return InteractionResponse(
-            "❌ Failed to remove link. Please try again.", True
+            "I couldn't confirm the link was removed. Send 'list tasks' and check "
+            "the task details before trying 'remove link from task <number> <URL>' again.", True
         )
 
 

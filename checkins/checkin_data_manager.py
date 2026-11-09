@@ -58,6 +58,7 @@ def _build_v2_checkin_from_response_payload(response_data: dict[str, Any]) -> di
     responses = response_data.get("responses")
     if not isinstance(responses, dict):
         skipped = {
+            "id",
             "timestamp",
             "submitted_at",
             "sent_at",
@@ -118,19 +119,27 @@ def _coerce_v2_checkins_envelope_for_store(existing_data: Any) -> dict[str, Any]
     }
 
 
-@handle_errors("storing check-in response")
-def store_checkin_response(user_id: str, response_data: dict[str, Any]) -> None:
-    """Store one check-in response in the user's check-in log."""
+@handle_errors("storing check-in response", default_return=False)
+def store_checkin_response(user_id: str, response_data: dict[str, Any]) -> bool:
+    """Return whether the primary check-in was saved; repeated explicit IDs are idempotent."""
     log_file = get_user_file_path(user_id, "checkins")
     existing_data = load_json_data(log_file)
     envelope = _coerce_v2_checkins_envelope_for_store(existing_data)
     if envelope is None:
-        return
-    envelope["checkins"].append(_build_v2_checkin_from_response_payload(response_data))
+        return False
+    checkin = _build_v2_checkin_from_response_payload(response_data)
+    if not checkin:
+        return False
+    if any(row.get("id") == checkin["id"] for row in envelope["checkins"] if isinstance(row, dict)):
+        return True
+    envelope["checkins"].append(checkin)
     envelope["updated_at"] = now_timestamp_full()
-    save_json_data(envelope, log_file)
+    if not save_json_data(envelope, log_file):
+        logger.error(f"Check-in save was not confirmed: user_id={user_id}")
+        return False
     logger.debug(f"Stored v2 checkin response for user {user_id}")
     _save_text_answers_as_journal(user_id, response_data)
+    return True
 
 
 @handle_errors("saving check-in notes to the notebook", default_return=None)

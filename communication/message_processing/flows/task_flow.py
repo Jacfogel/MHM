@@ -114,8 +114,14 @@ class TaskFlowMixin(FlowControlMixin):
 
             if delete_task(user_id, task_id):
                 return (TASK_NOT_SAVED_MESSAGE, True)
+        logger.error(
+            f"Task setup cancelled but task removal was not confirmed: "
+            f"user_id={user_id}, task_id={task_id!r}"
+        )
         return (
-            "Task not saved. Couldn't remove the task, but setup was cancelled.",
+            "Setup cancelled, but I couldn't confirm the task was removed. "
+            "It may still appear in your tasks. Send 'list tasks' to check, "
+            "then 'delete task <number>' if it is still there.",
             True,
         )
 
@@ -350,13 +356,25 @@ class TaskFlowMixin(FlowControlMixin):
 
                     # Verify the task was updated correctly by reloading it
                     updated_task = get_task_by_id(user_id, task_id)
+                    if not updated_task:
+                        logger.error(
+                            f"Reminder save could not be verified because task reload failed: "
+                            f"user_id={user_id}, task_id={task_id}"
+                        )
+                        self._clear_flow_state(user_id, mark_completion=True)
+                        return (
+                            "I couldn't verify whether your reminders were saved. "
+                            "Send 'list tasks' and check the task details before "
+                            "setting reminders again.",
+                            True,
+                        )
                     has_scheduled = any(
                         isinstance(r, dict)
                         and r.get("kind") == "scheduled"
                         and r.get("period")
                         for r in (updated_task.get("reminders") or [])
                     )
-                    if not updated_task or not has_scheduled:
+                    if not has_scheduled:
                         logger.error(
                             f"Task {task_id} was not updated with reminder_periods after update_task returned True"
                         )

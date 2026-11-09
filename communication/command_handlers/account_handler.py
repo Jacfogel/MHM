@@ -56,7 +56,13 @@ class AccountManagementHandler(InteractionHandler):
                 True,
             )
 
-    @handle_errors("handling account creation")
+    @handle_errors(
+        "handling account creation",
+        default_return=InteractionResponse(
+            "I couldn't confirm your account was created. Try 'check account status' "
+            "before creating it again, to avoid a duplicate account.", False
+        ),
+    )
     def _handle_create_account(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -79,6 +85,10 @@ class AccountManagementHandler(InteractionHandler):
             )
 
         display_name = str(display_name).strip()
+        if not display_name:
+            return InteractionResponse(
+                "Please enter a preferred name with at least one non-space character.", False
+            )
         if len(display_name) > 100:
             return InteractionResponse(
                 "❌ Preferred name must be 100 characters or fewer.",
@@ -88,6 +98,7 @@ class AccountManagementHandler(InteractionHandler):
         # Extract channel-specific identifier (Discord ID, email, etc.)
         channel_identifier = entities.get("channel_identifier", "")
         channel_type = entities.get("channel_type", "discord")
+
 
         required_feature_fields = ("tasks_enabled", "checkins_enabled", "messages_enabled")
         missing_feature_fields = [
@@ -152,18 +163,27 @@ class AccountManagementHandler(InteractionHandler):
                     },
                 )
             else:
+                logger.error("Account creation was not confirmed")
                 return InteractionResponse(
-                    "❌ Failed to create account. Please try again or contact support.",
+                    "I couldn't confirm your account was created. Try 'check account status' "
+                    "before creating it again, to avoid a duplicate account.",
                     completed=False,
                 )
         except Exception as e:
             logger.error(f"Error creating account: {e}")
             return InteractionResponse(
-                "❌ An error occurred while creating your account. Please try again.",
+                "I couldn't confirm your account was created. Try 'check account status' "
+                "before creating it again, to avoid a duplicate account.",
                 completed=False,
             )
 
-    @handle_errors("handling account linking")
+    @handle_errors(
+        "handling account linking",
+        default_return=InteractionResponse(
+            "I couldn't finish account verification. Check 'check account status' before "
+            "trying 'link account' again. Keep verification codes private.", False
+        ),
+    )
     def _handle_link_account(
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
@@ -185,6 +205,12 @@ class AccountManagementHandler(InteractionHandler):
         confirmation_code = entities.get("confirmation_code")
         channel_identifier = entities.get("channel_identifier", user_id)
         channel_type = entities.get("channel_type", "discord")
+
+        if channel_type not in {"discord", "email"}:
+            return InteractionResponse(
+                "Account linking is available for Discord and email. Start linking from one of those channels.",
+                completed=False,
+            )
 
         # Step 1: User provides a canonical ID or contact identifier.
         if not account_identifier:
@@ -230,17 +256,14 @@ class AccountManagementHandler(InteractionHandler):
 
         # Step 2: User provides confirmation code
         if not confirmation_code:
+            _pending_link_operations.pop(channel_identifier, None)
             # Generate and send confirmation code (module-level helpers below)
             code = _generate_confirmation_code()
-
-            # Store pending operation (in-memory for now, could be moved to a proper store)
-            _pending_link_operations[channel_identifier] = {
-                "operation_type": "link",
-                "account_identifier": account_identifier,
-                "user_id": existing_user_id,
-                "confirmation_code": code,
-                "channel_type": channel_type,
-            }
+            if not code:
+                return InteractionResponse(
+                    "I couldn't start account verification. Please try 'link account' again later.",
+                    completed=False,
+                )
 
             # Send confirmation code (pass channel_identifier for Discord)
             code_sent = _send_confirmation_code(
@@ -251,6 +274,13 @@ class AccountManagementHandler(InteractionHandler):
             )
 
             if code_sent:
+                _pending_link_operations[channel_identifier] = {
+                    "operation_type": "link",
+                    "account_identifier": account_identifier,
+                    "user_id": existing_user_id,
+                    "confirmation_code": code,
+                    "channel_type": channel_type,
+                }
                 return InteractionResponse(
                     "✅ **Confirmation code sent!**\n\n"
                     "A confirmation code has been sent to the email address associated with your MHM account.\n"
@@ -265,8 +295,9 @@ class AccountManagementHandler(InteractionHandler):
                 )
             else:
                 return InteractionResponse(
-                    "❌ Could not send confirmation code. This account may not have an email address configured.\n"
-                    "Please contact support for assistance.",
+                    "I couldn't send the verification email, so linking has not started. "
+                    "Check the email address in your MHM account settings, then try 'link account' again. "
+                    "If the address is correct and this keeps happening, ask the person who manages MHM for help.",
                     completed=False,
                 )
 
@@ -275,13 +306,22 @@ class AccountManagementHandler(InteractionHandler):
 
         if not pending or pending["operation_type"] != "link":
             return InteractionResponse(
-                "❌ No pending account linking operation found. Please start over.",
+                "There is no verification waiting for this account. Start over with 'link account' "
+                "to request a new code by email.",
                 completed=False,
             )
 
-        if confirmation_code.strip() != pending["confirmation_code"]:
+        if pending["user_id"] != existing_user_id or pending["channel_type"] != channel_type:
             return InteractionResponse(
-                f"❌ Invalid confirmation code. Please check your {channel_type} and try again.",
+                "This verification belongs to a different account or channel. "
+                "Start 'link account' again for the account and channel you want to connect.",
+                completed=False,
+            )
+
+        if str(confirmation_code).strip() != pending["confirmation_code"]:
+            return InteractionResponse(
+                "Invalid confirmation code. Check the latest verification email sent to your MHM "
+                "account's email address and enter its code here.",
                 completed=False,
             )
 
@@ -297,7 +337,8 @@ class AccountManagementHandler(InteractionHandler):
 
             if not success:
                 return InteractionResponse(
-                    "❌ Failed to link account. Please try again or contact support.",
+                    "I couldn't confirm your account was linked. Try 'check account status' "
+                    "before submitting the code again.",
                     completed=False,
                 )
 
@@ -385,9 +426,8 @@ class AccountManagementHandler(InteractionHandler):
 _pending_link_operations: dict[str, dict[str, Any]] = {}
 
 
-@handle_errors("generating confirmation code", default_return="000000")
-@handle_errors("generating confirmation code", default_return="000000")
-def _generate_confirmation_code() -> str:
+@handle_errors("generating confirmation code", default_return=None)
+def _generate_confirmation_code() -> str | None:
     """Generate a 6-digit confirmation code"""
     return "".join(secrets.choice(string.digits) for _ in range(6))
 
@@ -456,11 +496,11 @@ MHM Team"""
             )
 
             if success:
-                logger.info(f"Sent confirmation code to {recipient} for user {user_id}")
+                logger.info(f"Sent account-linking verification email: user_id={user_id}")
                 return True
             else:
                 logger.error(
-                    f"Failed to send confirmation code to {recipient} for user {user_id}"
+                    f"Account-linking verification email delivery failed: user_id={user_id}"
                 )
                 return False
         else:

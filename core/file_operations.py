@@ -134,24 +134,36 @@ def determine_file_path(file_type, identifier):
 
 
 @handle_errors("loading JSON data", default_return={})
-def load_json_data(file_path):
+def load_json_data(file_path, *, recover: bool = True):
     """
     Load data from a JSON file with comprehensive error handling and auto-create user files if missing.
 
     Args:
         file_path: Path to the JSON file to load
+        recover: False returns None on read/parse failure without repairing or creating files.
 
     Returns:
-        dict/list: Loaded JSON data, or empty dict if loading failed
+        dict/list: Loaded JSON data; failures return an empty dict, or None with recover=False.
     """
     # Validate input
     if not file_path or not isinstance(file_path, str):
         logger.error(f"Invalid file_path: {file_path}")
-        return {}
+        return {} if recover else None
 
     if not file_path.strip():
         logger.error("Empty file_path provided")
-        return {}
+        return {} if recover else None
+
+    if not recover:
+        try:
+            with open(file_path, encoding="utf-8") as file:
+                return json.load(file)
+        except (OSError, UnicodeError, ValueError) as exc:
+            logger.error(
+                "JSON read failed without recovery",
+                exception_type=type(exc).__name__,
+            )
+            return None
 
     try:
         with open(file_path, encoding="utf-8") as file:
