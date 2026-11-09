@@ -6,6 +6,7 @@ Uses storage.user_item_storage for paths and I/O. No business logic.
 
 from typing import Any, cast
 
+from core.file_operations import update_json_data
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from storage.user_id import is_valid_user_id
@@ -78,6 +79,43 @@ def save_active_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
     completed_tasks = [task for task in v2_tasks if task.get("status") == "completed"]
     active_v2 = _runtime_tasks_to_v2(tasks, status="active")
     return _save_v2_tasks(user_id, active_v2 + completed_tasks)
+
+
+@handle_errors("adding tags to selected tasks", default_return=None)
+def add_tags_to_active_tasks(
+    user_id: str, task_ids: list[str], tags: list[str]
+) -> list[str] | None:
+    """Merge tags into selected active tasks in one file update."""
+    tasks_dir = get_user_subdir_path(user_id, TASKS_SUBDIR)
+    if tasks_dir is None:
+        return []
+    selected = set(task_ids)
+    matched = set()
+
+    # ERROR_HANDLING_EXCLUDE: Callback runs inside the guarded file update.
+    def apply(data):
+        timestamp = now_timestamp_full()
+        for task in data["tasks"]:
+            if (
+                not isinstance(task, dict)
+                or task.get("status") != "active"
+                or task.get("id") not in selected
+            ):
+                continue
+            matched.add(task["id"])
+            existing = task.get("tags") or []
+            merged = list(dict.fromkeys([*existing, *tags]))
+            if merged != existing:
+                task["tags"] = merged
+                task["updated_at"] = timestamp
+                data["updated_at"] = timestamp
+        return data
+
+    if not update_json_data(
+        tasks_dir / TASKS_V2_FILENAME, apply, default={**TASKS_V2_DEFAULT, "tasks": []}
+    ):
+        return None
+    return [task_id for task_id in task_ids if task_id in matched]
 
 
 @handle_errors("loading completed tasks", default_return=[])

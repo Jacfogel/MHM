@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-07 22:55:27
+> **Last Generated**: 2026-11-09 12:13:05
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 315
-- **Functions Found**: 3259
-- **Methods Found**: 1657
+- **Functions Found**: 3262
+- **Methods Found**: 1658
 - **Classes Found**: 292
-- **Total Items**: 4916
-- **Functions Documented**: 2912
-- **Methods Documented**: 1483
+- **Total Items**: 4920
+- **Functions Documented**: 2914
+- **Methods Documented**: 1484
 - **Classes Documented**: 225
-- **Total Documented**: 4395
+- **Total Documented**: 4398
 - **Template-Generated**: 72
-- **Last Updated**: 2026-11-07
+- **Last Updated**: 2026-11-09
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (690)
+### **Core System Functions** (691)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (913)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (29)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (195)
+### **Task Management Functions** (197)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -5926,11 +5926,13 @@ its methods as routes.
 - [OK] `find(entries, identifier, include_archived)` - Resolve a notebook entry identifier or raise a not-found response.
 - [OK] `note_view(entry)` - Return the stable, browser-safe representation of a notebook entry.
 - [OK] `notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
+- [OK] `notes_bulk(self, request)` - Apply an organization action to selected notebook entries.
 - [OK] `register_notes_routes(app, gateway)` - Register all notebook endpoints on a website gateway application.
 **Classes:**
 - [OK] `WebNotesRoutes` - Handle the notebook route family using shared gateway infrastructure.
   - [OK] `WebNotesRoutes.__init__(self, gateway)` - Special Python method
   - [OK] `WebNotesRoutes.notes_api(self, request)` - Handle authenticated website note routes through the notebook service.
+  - [OK] `WebNotesRoutes.notes_bulk(self, request)` - Apply an organization action to selected notebook entries.
 
 #### `core/web_settings.py`
 **Functions:**
@@ -7241,6 +7243,8 @@ to persist them. Suggestions may use the provider but never save task data.
 - [MISSING] `_runtime_tasks_to_v2(tasks)` - No description
 - [MISSING] `_save_v2_tasks(user_id, tasks)` - No description
 - [MISSING] `_task_v2_to_runtime(task)` - No description
+- [OK] `add_tags_to_active_tasks(user_id, task_ids, tags)` - Merge tags into selected active tasks in one file update.
+- [MISSING] `apply(data)` - No description
 - [OK] `ensure_task_directory(user_id)` - Ensure the task directory and default JSON files exist for a user.
 
 Returns:

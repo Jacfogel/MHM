@@ -472,7 +472,7 @@ button[aria-busy="true"] { cursor: wait; }
 .note-list { display: grid; gap: 12px; }
 .note-card { display: flex; justify-content: space-between; align-items: center; gap: 22px; padding: 22px 24px; background: white; border: 1px solid var(--border); border-radius: 16px; }
 .note-card.is-archived { background: #faf9fc; }
-.note-card-content { min-width: 0; }
+.note-card-content { flex: 1; min-width: 0; }
 .note-card h3 { margin-bottom: 6px; font-size: 1.15rem; }
 .note-card p { margin: 0 0 9px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 .entry-kind { display: inline-block; margin-bottom: 7px; padding: 3px 8px; border-radius: 999px; background: var(--lavender); color: var(--purple-dark); font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
@@ -526,8 +526,8 @@ button[aria-busy="true"] { cursor: wait; }
 .field-help { margin: 10px 0 0; color: var(--muted); font-size: .82rem; line-height: 1.4; }
 .task-list-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
 .task-list-tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 12px; }
-.task-bulk-actions { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .875rem; }
-.task-bulk-priority { display: inline-flex; align-items: center; gap: 7px; }
+.task-bulk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: var(--muted); font-size: .875rem; }
+.task-bulk-priority { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .task-bulk-priority select { min-width: 92px; padding: 8px 28px 8px 10px; }
 .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; background: var(--lavender); border-radius: 11px; }
 .task-tabs button { border: 0; border-radius: 8px; padding: 9px 15px; background: transparent; color: var(--muted); font-weight: 700; }

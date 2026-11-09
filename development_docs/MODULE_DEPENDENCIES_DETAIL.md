@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-07 22:55:30
+> **Last Generated**: 2026-11-09 12:13:07
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 313
-- **Total Imports Found**: 2837
+- **Total Imports Found**: 2843
 - **Dependencies Documented**: 313 (100% coverage)
-- **Standard Library Imports**: 817 (28.8%)
+- **Standard Library Imports**: 817 (28.7%)
 - **Third-Party Imports**: 235 (8.3%)
-- **Local Imports**: 1785 (62.9%)
-- **Last Updated**: 2026-11-07
+- **Local Imports**: 1791 (63.0%)
+- **Last Updated**: 2026-11-09
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 817 imports (28.8%)
+- **Standard Library**: 817 imports (28.7%)
 - **Third-Party**: 235 imports (8.3%)
-- **Local**: 1785 imports (62.9%)
+- **Local**: 1791 imports (63.0%)
 
 ## Module Dependencies by Directory
 
@@ -4286,6 +4286,7 @@
   - `storage/user_data_user_info.py`
   - `storage/user_data_write.py`
   - `storage/user_item_storage.py`
+  - `tasks/task_data_handlers.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.file_locking, core.logger, core.profile_v2_io, core.time_utilities, tasks.task_schemas
@@ -5586,10 +5587,10 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.tags (get_user_tags)` (NEW)
+    - `core.tags (get_user_tags, normalize_tag)` (NEW)
     - `core.time_utilities (parse_date_only, parse_time_only_minute)` (NEW)
     - `tasks.task_breakdown (add_task_subtasks, detach_task_step, suggest_breakdown)` (NEW)
-    - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks)` (NEW)
+    - `tasks.task_data_handlers (add_tags_to_active_tasks, load_active_tasks, load_completed_tasks)` (NEW)
     - `tasks.task_data_manager (get_task_by_id)` (NEW)
     - `tasks.task_effort (estimate_task_efforts)` (NEW)
     - `tasks.task_focus (choose_task_focus_for_user)` (NEW)
@@ -5599,7 +5600,7 @@
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
     - `tasks.task_service (complete_task, create_task, delete_task, get_tasks_due_soon, list_task_templates, load_active_tasks, load_completed_tasks, restore_task, update_task)` (NEW)
     - `tasks.task_simplify (simplify_task)` (NEW)
-    - `tasks.task_tag_helpers (sanitize_task_tags)` (NEW)
+    - `tasks.task_tag_helpers (is_valid_normalized_task_tag, sanitize_task_tags)` (NEW)
   - **Standard Library**:
     - `asyncio`
     - `functools (partial)`
@@ -6939,6 +6940,7 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.file_operations (update_json_data)` (NEW)
     - `core.ids (generate_short_id)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_timestamp_full, parse_timestamp_full)` (NEW)
@@ -6972,7 +6974,7 @@
   - `ui/dialogs/task_edit_dialog.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.ids, core.logger, core.time_utilities, storage.user_id
+- Added: core.error_handling, core.file_operations, core.ids, core.logger, core.time_utilities, storage.user_id
 - Removed: ai/context/phraser.py, communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_list_ui.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, communication/reminders/reminder_dispatcher.py, core/message_pressure.py, core/web_tasks.py, scheduler/task_reminders.py, tasks/task_breakdown.py, tasks/task_data_manager.py, tasks/task_focus.py, tasks/task_occurrence_skip.py, tasks/task_reference.py, tasks/task_reminder_deferrals.py, tasks/task_reminder_snooze.py, tasks/task_service.py, tasks/task_simplify.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

@@ -45,8 +45,9 @@ export default {
     }
     const taskFocus = url.pathname === '/api/tasks/focus';
     const taskEffort = url.pathname === '/api/tasks/effort';
-    const taskBulk = url.pathname.match(/^\/api\/tasks\/bulk\/(?:complete|restore|delete|priority)$/);
+    const taskBulk = url.pathname.match(/^\/api\/tasks\/bulk\/(?:complete|restore|delete|priority|tag)$/);
     const taskAction = !taskFocus && !taskEffort && !taskBulk && url.pathname.match(/^\/api\/tasks\/[^/]+(?:\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach))?$/);
+    const noteBulk = /^\/api\/notes\/bulk\/(?:tag|untag|archive)$/.test(url.pathname);
     const noteAction = url.pathname.match(/^\/api\/notes\/[^/]+(?:\/(?:archive|restore))?$/);
     const messageAction = url.pathname.match(/^\/api\/messages\/[^/]+\/[^/]+$/);
     const oauthStart = url.pathname.match(/^\/api\/auth\/oauth\/(?:google|facebook)\/start$/);
@@ -56,7 +57,7 @@ export default {
       : url.pathname;
     const methods = oauthStart || oauthCallback ? ['GET']
       : taskFocus || taskEffort ? ['GET']
-      : taskBulk ? ['POST']
+      : taskBulk || noteBulk ? ['POST']
       : taskAction
       ? (/\/(?:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach)$/.test(url.pathname) ? ['POST'] : ['PATCH', 'DELETE'])
       : noteAction

@@ -128,9 +128,9 @@ async def notes_gateway(monkeypatch):
 
         return update(uid, ref, apply)
 
-    def archive(uid, ref, archived=True):
+    def archive(uid, ref, archived=True, *, active_only=False):
         entry = find(uid, ref)
-        if not entry:
+        if not entry or (active_only and entry.status != 'active'):
             return None
         entry.status = "archived" if archived else "active"
         return entry
@@ -145,8 +145,8 @@ async def notes_gateway(monkeypatch):
     monkeypatch.setattr(manager, "set_entry_body", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "description", text)))
     monkeypatch.setattr(manager, "set_entry_title", lambda uid, ref, text: update(uid, ref, lambda entry: setattr(entry, "title", text.strip())))
     monkeypatch.setattr(manager, "set_list_items", lambda uid, ref, items: update(uid, ref, lambda entry: setattr(entry, "items", [SimpleNamespace(id=uuid4(), text=item["text"], done=item["done"], order=index) for index, item in enumerate(items)])))
-    monkeypatch.setattr(manager, "remove_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", [tag for tag in entry.tags if tag not in tags])))
-    monkeypatch.setattr(manager, "add_tags", lambda uid, ref, tags: update(uid, ref, lambda entry: setattr(entry, "tags", list(dict.fromkeys([*entry.tags, *tags])))))
+    monkeypatch.setattr(manager, "remove_tags", lambda uid, ref, tags, *, active_only=False: update(uid, ref, lambda entry: setattr(entry, "tags", [tag for tag in entry.tags if tag not in tags])))
+    monkeypatch.setattr(manager, "add_tags", lambda uid, ref, tags, *, active_only=False: update(uid, ref, lambda entry: setattr(entry, "tags", list(dict.fromkeys([*entry.tags, *tags])))))
     monkeypatch.setattr(manager, "pin_entry", lambda uid, ref, pinned: update(uid, ref, lambda entry: setattr(entry, "pinned", pinned)))
     monkeypatch.setattr(manager, "update_entry", update_entry)
     monkeypatch.setattr(manager, "archive_entry", archive)
@@ -162,6 +162,33 @@ async def notes_gateway(monkeypatch):
         challenge = (await (await client.post("/api/auth/request-code", json={"email": "river@example.com", "mode": "login"}, headers={"Origin": ORIGIN})).json())["challenge"]
         assert (await client.post("/api/auth/verify", json={"challenge": challenge, "code": sent[-1]}, headers={"Origin": ORIGIN})).status == 200
         yield client
+
+
+async def test_bulk_notebook_organization(notes_gateway):
+    client = notes_gateway
+    headers = {"Origin": ORIGIN}
+    existing = (await (await client.get("/api/notes")).json())["notes"]
+    ids = [entry["id"] for entry in existing]
+
+    for action, tags in (("tag", ["#Shared"]), ("untag", ["shared"])):
+        response = await client.post(
+            f"/api/notes/bulk/{action}",
+            json={"note_ids": [*ids, "missing"], "tags": tags},
+            headers=headers,
+        )
+        assert response.status == 200
+        assert await response.json() == {"changed": ids, "failed": ["missing"]}
+        notes = (await (await client.get("/api/notes")).json())["notes"]
+        originals = {entry["id"]: entry["tags"] for entry in existing}
+        for note in notes:
+            assert note["tags"] == originals[note["id"]] + (["shared"] if action == "tag" else [])
+
+    response = await client.post(
+        "/api/notes/bulk/archive", json={"note_ids": ids}, headers=headers
+    )
+    assert await response.json() == {"changed": ids, "failed": []}
+    archived = (await (await client.get("/api/notes?status=archived")).json())["notes"]
+    assert {note["id"] for note in archived} == set(ids)
 
 
 async def test_note_create_edit_search_and_archive(notes_gateway):

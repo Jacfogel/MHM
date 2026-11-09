@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Your notebook — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=workflow-polish-1" />
+  <link rel="stylesheet" href="styles.css?v=bulk-organization-1" />
   <script src="script.js?v=dialog-2" defer></script>
   <script src="app.js?v=discord-1" defer></script>
-  <script src="notes.js?v=error-recovery-1" defer></script>
+  <script src="notes.js?v=bulk-organization-1" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,6 +41,16 @@
           <button id="entry-create-submit" class="button" type="submit">Save note <span aria-hidden="true">→</span></button>
         </form>
         <div class="note-list-header"><div class="task-tabs" id="note-tabs" role="tablist" aria-label="Notebook views"><button type="button" role="tab" aria-selected="true" data-note-view="active">Active</button><button type="button" role="tab" aria-selected="false" data-note-view="pinned">Pinned</button><button type="button" role="tab" aria-selected="false" data-note-view="inbox">Inbox</button><button type="button" role="tab" aria-selected="false" data-note-view="archived">Archived</button></div><div class="notebook-filters"><button id="notes-refresh" class="plain-button" type="button">Refresh notebook</button><label class="note-search"><span class="sr-only">Search notebook</span><input id="note-search" type="search" placeholder="Search notebook" /></label><label><span class="sr-only">Browse by tag</span><select id="note-tag-filter"><option value="">All tags</option></select></label></div></div>
+        <div id="note-bulk-controls" class="task-bulk-actions" hidden>
+          <span id="note-selected-count" aria-live="polite">0 selected</span>
+          <form id="note-bulk-tags" class="task-bulk-priority">
+            <label for="note-bulk-tag-input">Tags</label>
+            <input id="note-bulk-tag-input" required maxlength="1000" placeholder="health, ideas" />
+            <button id="note-bulk-tag" class="plain-button" type="submit" value="tag" disabled>Add tags</button>
+            <button id="note-bulk-untag" class="plain-button" type="submit" value="untag" disabled>Remove tags</button>
+          </form>
+          <button id="note-bulk-archive" class="plain-button" type="button" disabled>Archive selected</button>
+        </div>
         <div id="note-list" class="note-list"></div><div id="note-empty" class="task-empty" hidden><strong id="note-empty-title">No entries here yet.</strong><span id="note-empty-help"></span><button id="note-clear-filters" class="plain-button" type="button" hidden>Clear search and filters</button></div>
       </div>
     </section>

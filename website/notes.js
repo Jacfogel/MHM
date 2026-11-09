@@ -18,6 +18,15 @@
   const createHelp = document.getElementById('entry-create-help');
   const search = document.getElementById('note-search');
   const tagFilter = document.getElementById('note-tag-filter');
+  const bulkControls = document.getElementById('note-bulk-controls');
+  const bulkTags = document.getElementById('note-bulk-tags');
+  const bulkTagInput = document.getElementById('note-bulk-tag-input');
+  const bulkTag = document.getElementById('note-bulk-tag');
+  const bulkUntag = document.getElementById('note-bulk-untag');
+  const bulkArchive = document.getElementById('note-bulk-archive');
+  const selectedCount = document.getElementById('note-selected-count');
+  const selected = new Set();
+  let bulkSaving = false;
   let view = 'active';
   let notes = [];
   let existingTags = [];
@@ -175,7 +184,35 @@
     }
   }
 
+  function updateSelection() {
+    bulkControls.hidden = view === 'archived' || !notes.some(note => note.status === 'active');
+    selectedCount.textContent = `${selected.size} selected`;
+    for (const control of [bulkTag, bulkUntag, bulkArchive]) {
+      control.disabled = bulkSaving || !selected.size;
+    }
+  }
+
+  async function runBulk(action, tags) {
+    if (bulkSaving || view === 'archived' || !selected.size) return;
+    if (action === 'archive' && !window.confirm(`Archive ${selected.size} selected entries?`)) return;
+    const payload = { note_ids: [...selected] };
+    if (tags) payload.tags = tags;
+    bulkSaving = true;
+    updateSelection();
+    try {
+      const result = await api(`/api/notes/bulk/${action}`, 'POST', payload);
+      await load();
+      showStatus(`${result.changed.length} updated. ${result.failed.length ? `${result.failed.length} could not be updated.` : ''}`.trim(), Boolean(result.failed.length));
+    } catch (error) {
+      showStatus(error.message, true);
+    } finally {
+      bulkSaving = false;
+      updateSelection();
+    }
+  }
+
   function render() {
+    updateSelection();
     list.replaceChildren();
     count.textContent = `${notes.length} ${view} ${notes.length === 1 ? 'entry' : 'entries'}`;
     empty.hidden = notes.length !== 0;
@@ -246,6 +283,26 @@
       } else {
         actions.append(button('Restore', 'plain-button', () => archive(note, 'restore')));
       }
+      if (note.status === 'active') {
+        const selection = document.createElement('label');
+        selection.className = 'task-select';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = selected.has(note.id);
+        checkbox.setAttribute('aria-label', `Select ${note.title || 'untitled entry'}`);
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked && selected.size >= 100) {
+            checkbox.checked = false;
+            showStatus('Choose up to 100 entries at a time.', true);
+            return;
+          }
+          if (checkbox.checked) selected.add(note.id);
+          else selected.delete(note.id);
+          updateSelection();
+        });
+        selection.append(checkbox);
+        article.append(selection);
+      }
       article.append(content, actions);
       list.append(article);
     }
@@ -267,6 +324,7 @@
         'MHM could not load your notebook. Your entries were not changed. Check your connection, then use Refresh.',
       );
       if (request !== loadRequest || requestedView !== view || requestedQuery !== search.value.trim() || requestedTag !== tagFilter.value) return;
+      selected.clear();
       notes = result.notes || [];
       existingTags = result.tags || [];
       populateTagPicker(document.getElementById('note-existing-tag'), existingTags);
@@ -467,6 +525,8 @@
     const tab = event.target.closest('button[data-note-view]');
     if (!tab || !tab.closest('#note-tabs')) return;
     view = tab.dataset.noteView;
+    selected.clear();
+    updateSelection();
     syncTabs();
     load();
   });
@@ -474,6 +534,12 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(load, 250);
   });
+  bulkTags.addEventListener('submit', event => {
+    event.preventDefault();
+    const tags = bulkTagInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
+    runBulk(event.submitter === bulkUntag ? 'untag' : 'tag', tags);
+  });
+  bulkArchive.addEventListener('click', () => runBulk('archive'));
   tagFilter.addEventListener('change', load);
   clearFilters.addEventListener('click', () => {
     search.value = '';

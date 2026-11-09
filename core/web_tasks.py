@@ -728,18 +728,47 @@ class WebTaskRoutes:
             and type(data.get("restore_steps")) is bool
         )
         priority_payload = action == "priority" and extra == {"priority"}
-        if extra and not (restore_payload or priority_payload):
+        tag_payload = action == "tag" and extra == {"tags"}
+        if extra and not (restore_payload or priority_payload or tag_payload):
             raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
         if (
             not isinstance(task_ids, list)
             or not 1 <= len(task_ids) <= 100
-            or len(set(task_ids)) != len(task_ids)
             or any(
                 not isinstance(task_id, str) or not 1 <= len(task_id) <= 100
                 for task_id in task_ids
             )
+            or len(set(task_ids)) != len(task_ids)
         ):
             raise web.HTTPBadRequest(text="Choose between 1 and 100 unique tasks.")
+        if action == "tag":
+            from core.tags import normalize_tag
+            from tasks.task_data_handlers import add_tags_to_active_tasks
+            from tasks.task_tag_helpers import is_valid_normalized_task_tag
+
+            tags = data.get("tags")
+            if not isinstance(tags, list) or not tags or any(
+                not isinstance(tag, str) or not is_valid_normalized_task_tag(normalize_tag(tag))
+                for tag in tags
+            ):
+                raise web.HTTPBadRequest(
+                    text="Enter tags of up to 50 characters using letters, numbers, hyphens, underscores, or colons."
+                )
+            self.gateway.throttle(("tasks-bulk", uid), 20, 60)
+            changed = await asyncio.to_thread(
+                add_tags_to_active_tasks, uid, task_ids, [normalize_tag(tag) for tag in tags]
+            )
+            if changed is None:
+                raise web.HTTPServiceUnavailable(
+                    text="MHM could not save those tags. Refresh your tasks and try again."
+                )
+            if not changed:
+                raise web.HTTPNotFound(text="None of those active tasks could be tagged.")
+            return web.json_response({
+                "ok": True, "changed": changed,
+                "failed": [task_id for task_id in task_ids if task_id not in changed],
+            })
+
         from functools import partial
 
         from tasks.task_service import (
@@ -905,7 +934,7 @@ def register_task_routes(app, gateway):
     app.router.add_post("/api/tasks", routes.tasks_api)
     app.router.add_get("/api/task-templates", routes.task_templates)
     app.router.add_post(
-        "/api/tasks/bulk/{action:complete|restore|delete|priority}", routes.tasks_bulk
+        "/api/tasks/bulk/{action:complete|restore|delete|priority|tag}", routes.tasks_bulk
     )
     app.router.add_route("PATCH", "/api/tasks/{task_id}", routes.tasks_api)
     app.router.add_route("DELETE", "/api/tasks/{task_id}", routes.tasks_api)

@@ -31,6 +31,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-09 - Website bulk task and notebook actions **COMPLETED**
+- Add tags to selected active tasks while preserving their existing tags.
+- Add or remove tags and archive selected active notebook entries. Bulk requests identify entries they could not update.
+- All 51 focused website tests passed. Backend test runs had no confirmed final result.
+
 ### 2026-11-07 - Improve command failure recovery guidance **COMPLETED**
 - Added actionable recovery replies and save confirmation across task, notebook, schedule, check-in, profile, account, and health commands.
 - Preserved drafts on failed saves, made check-in retries idempotent, and hardened account verification and notebook list numbering.
@@ -119,11 +124,6 @@ Guidelines:
 - Removed duplicated response enhancement, aligned persona loading/reloading and task prompts, and stopped canned repairs from overwriting valid facts, focused advice, emotional replies, stories, or feature restrictions. Execution checks and deterministic fallbacks remain authoritative.
 - Added a synthetic live evaluation runner with raw/final responses, timing, and token use: the baseline exposed four repair regressions; the corrected suite passed 30/30 checks plus 2/2 failed-result checks, without executing actions or writing user accounts.
 - Completed strict Tier 3 audit follow-through: repaired stale tests, missing error handling, the circular dependency, registry/documentation drift, and Ruff/Pyright findings. Regenerated documentation; reviewed high-fan-out hubs without cosmetic refactoring. Removed the temporary review document after consolidating lasting guidance in the AI system guide.
-
-### 2026-10-28 - Nightly marker and email-socket failures **COMPLETED**
-- Task-simplify and task-response tests now carry the required category and domain markers that failed nightly policy checks on Oct 26-28.
-- Email initialization and recovery tests mock IMAP, so a live Gmail socket can no longer time out and fail a later nightly test during garbage collection.
-- **Verification**: 15 focused checks pass, including both marker guards. Targeted Ruff passes. The full nightly suite was not rerun locally.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-09 - Website bulk task and notebook actions
+- **Tasks** — Added tag assignment to the selection controls in `website/tasks.html` and `website/tasks.js`. The authenticated route in `core/web_tasks.py` validates tags and merges them into selected active tasks in one storage update.
+- **Notebook** — Added selection controls in `website/notes.html` and `website/notes.js` for adding tags, removing tags, and archiving active entries. The authenticated routes in `core/web_notes.py` reuse existing notebook mutations and return successful and failed IDs.
+- **Roadmap** — Updated `TASKS_PLAN.md` and `NOTES_PLAN.md` to reflect the shipped actions. Batch task archiving still depends on a task archive workflow.
+- **Verification** — All 51 focused website tests passed, including the bulk route proxy test. Python compilation and diff checks passed. Backend test runs had no confirmed final result.
+
 ### 2026-11-07 - Improve command failure recovery guidance
 - **Fix**: Task follow-up cancellation no longer claims "Task not saved" when deletion returns false or the task reference is missing. It explains that the task may remain and gives `list tasks` / `delete task <number>` recovery instructions. The failure logs user/task identifiers without exposing them in the reply; follow-up still ends as requested.
 - **Validation**: All 19 tests in `tests/behavior/test_task_reminder_followup_behavior.py` pass, including new failed-deletion and missing-reference cases that verify the persisted task, cleared flow, recovery guidance, and error log. Targeted Ruff and diff checks pass. Live Discord rendering was not exercised.

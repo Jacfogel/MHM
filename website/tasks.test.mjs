@@ -124,6 +124,7 @@ async function tasksPage(fetchImpl, { confirm = () => true } = {}) {
   const ids = [
     'tasks-status', 'tasks-workspace', 'task-list', 'task-empty', 'tasks-count', 'task-list-summary',
     'task-create-form', 'task-due-soon', 'task-select-all', 'task-selected-count',
+    'task-bulk-tags', 'task-bulk-tag-input', 'task-bulk-tag-apply',
     'task-bulk-priority-controls', 'task-bulk-priority', 'task-bulk-priority-apply',
     'task-bulk-primary', 'task-bulk-delete', 'task-title', 'task-description', 'task-due-date',
     'task-due-time', 'task-priority', 'task-recurrence', 'task-recurrence-options',
@@ -379,7 +380,7 @@ test('selected active tasks can receive one priority in bulk', async () => {
   assert.match(html, /id="task-bulk-priority-apply"/);
   assert.match(source, /runBulk\('priority', \{ priority: bulkPriority\.value \}\)/);
   assert.match(source, /bulkPriorityControls\.hidden = view !== 'active'/);
-  assert.match(source, /action !== 'priority' && !window\.confirm/);
+  assert.match(source, /!\['priority', 'tag'\]\.includes\(action\) && !window\.confirm/);
 });
 
 test('task list supports selecting or clearing every visible task', async () => {

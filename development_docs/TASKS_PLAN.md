@@ -51,9 +51,8 @@ File/image attachments require a selected storage, retention, and Discord upload
 **Status**: DEFERRED (extensions only; reviewed 2026-11-07)
 **Priority**: Low/Medium
 
-**Deferred extensions; revisit if task usage grows**:
+- [x] Add tags to selected active tasks from the website.
 - [ ] Batch archive, if task archiving is introduced.
-- [ ] Bulk tag assignment.
 
 ---
 

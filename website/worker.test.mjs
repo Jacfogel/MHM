@@ -272,6 +272,30 @@ test('notes routes forward dynamic IDs and archive actions', async () => {
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test('bulk task tagging and notebook organization forward POST requests', async () => {
+  const originalFetch = globalThis.fetch;
+  const paths = [];
+  globalThis.fetch = async target => {
+    paths.push(target.pathname);
+    return Response.json({ changed: [], failed: [] });
+  };
+  try {
+    const bulkPaths = [
+      '/api/tasks/bulk/tag', '/api/notes/bulk/tag',
+      '/api/notes/bulk/untag', '/api/notes/bulk/archive',
+    ];
+    for (const path of bulkPaths) {
+      const response = await worker.fetch(new Request(url + path, {
+        method: 'POST',
+        headers: { Origin: url, Cookie: 'mhm_session=owned', 'Content-Type': 'application/json' },
+        body: '{}',
+      }), env);
+      assert.equal(response.status, 200);
+    }
+    assert.deepEqual(paths, bulkPaths);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('message library routes preserve categories and allow bounded edits', async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];

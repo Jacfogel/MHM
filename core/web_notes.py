@@ -51,6 +51,42 @@ class WebNotesRoutes:
         self.gateway = gateway
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by gateway middleware.
+    async def notes_bulk(self, request):
+        """Apply an organization action to selected notebook entries."""
+        from core.tags import normalize_tags
+        from notebook import notebook_data_manager as notes
+
+        uid, _ = await self.gateway.authenticated_account(request)
+        action = request.match_info["action"]
+        data = await self.gateway.body(request)
+        note_ids = data.get("note_ids")
+        expected = {"note_ids"} if action == "archive" else {"note_ids", "tags"}
+        if (
+            set(data) != expected
+            or not isinstance(note_ids, list)
+            or not 1 <= len(note_ids) <= 100
+            or any(not isinstance(note_id, str) or not 1 <= len(note_id) <= 100 for note_id in note_ids)
+            or len(set(note_ids)) != len(note_ids)
+        ):
+            raise web.HTTPBadRequest(text="Choose between 1 and 100 unique entries.")
+        tags = data.get("tags", [])
+        if action != "archive" and (
+            not isinstance(tags, list)
+            or any(not isinstance(tag, str) for tag in tags)
+            or not normalize_tags(tags)
+        ):
+            raise web.HTTPBadRequest(text="Enter at least one tag.")
+
+        self.gateway.throttle(("notes-bulk", uid), 20, 60)
+        changed = await asyncio.to_thread(
+            notes.organize_entries, uid, note_ids, action, normalize_tags(tags)
+        )
+        return web.json_response({
+            "changed": changed,
+            "failed": [note_id for note_id in note_ids if note_id not in changed],
+        })
+
+    # ERROR_HANDLING_EXCLUDE: Route failures are translated by gateway middleware.
     async def notes_api(self, request):
         """Handle authenticated website note routes through the notebook service."""
         uid, _ = await self.gateway.authenticated_account(request)
@@ -337,6 +373,7 @@ def register_notes_routes(app, gateway):
     routes = WebNotesRoutes(gateway)
     app.router.add_get("/api/notes", routes.notes_api)
     app.router.add_post("/api/notes", routes.notes_api)
+    app.router.add_post("/api/notes/bulk/{action:tag|untag|archive}", routes.notes_bulk)
     app.router.add_route("PATCH", "/api/notes/{note_id}", routes.notes_api)
     app.router.add_post(
         "/api/notes/{note_id}/{action:archive|restore}", routes.notes_api

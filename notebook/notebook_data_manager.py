@@ -599,7 +599,7 @@ def set_entry_title(user_id: str, ref: str, title: str) -> Entry | None:
 
 
 @handle_errors("adding tags to entry")
-def add_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
+def add_tags(user_id: str, ref: str, tags: list[str], *, active_only: bool = False) -> Entry | None:
     """Adds tags to an entry."""
     normalized_tags = normalize_tags(tags)
 
@@ -611,11 +611,11 @@ def add_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
                 entry.tags.append(tag)
         return True
 
-    return _mutate_entry(user_id, ref, apply)
+    return _mutate_entry(user_id, ref, apply, active_only=active_only)
 
 
 @handle_errors("removing tags from entry")
-def remove_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
+def remove_tags(user_id: str, ref: str, tags: list[str], *, active_only: bool = False) -> Entry | None:
     """Removes tags from an entry."""
     normalized_tags = normalize_tags(tags)
 
@@ -625,7 +625,7 @@ def remove_tags(user_id: str, ref: str, tags: list[str]) -> Entry | None:
         entry.tags = [tag for tag in entry.tags if tag not in normalized_tags]
         return True
 
-    return _mutate_entry(user_id, ref, apply)
+    return _mutate_entry(user_id, ref, apply, active_only=active_only)
 
 
 @handle_errors("pinning entry")
@@ -641,7 +641,7 @@ def pin_entry(user_id: str, ref: str, pinned: bool = True) -> Entry | None:
 
 
 @handle_errors("archiving entry")
-def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None:
+def archive_entry(user_id: str, ref: str, archived: bool = True, *, active_only: bool = False) -> Entry | None:
     """Archives or unarchives an entry."""
     # ERROR_HANDLING_EXCLUDE: Mutation callback runs inside _mutate_entry.
     def apply(entry: Entry) -> bool:
@@ -652,7 +652,23 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
             entry.pinned = False
         return True
 
-    return _mutate_entry(user_id, ref, apply)
+    return _mutate_entry(user_id, ref, apply, active_only=active_only)
+
+
+@handle_errors("organizing selected notebook entries", default_return=[])
+def organize_entries(user_id: str, note_ids: list[str], action: str, tags: list[str]) -> list[str]:
+    """Apply an organization operation to each selected entry."""
+    from functools import partial
+
+    operation = {
+        "tag": partial(add_tags, tags=tags),
+        "untag": partial(remove_tags, tags=tags),
+        "archive": archive_entry,
+    }[action]
+    return [
+        note_id for note_id in note_ids
+        if operation(user_id, note_id, active_only=True) is not None
+    ]
 
 
 # Search operations

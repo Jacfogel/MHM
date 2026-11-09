@@ -393,6 +393,29 @@ async def test_task_mutation_failures_explain_state_and_recovery(
     )
 
 
+async def test_bulk_tag_storage_preserves_existing_tags_and_completed_tasks(tmp_path, monkeypatch):
+    import json
+    from tasks import task_data_handlers as storage
+
+    monkeypatch.setattr(storage, "get_user_subdir_path", lambda *_: tmp_path)
+    path = tmp_path / storage.TASKS_V2_FILENAME
+    path.write_text(json.dumps({
+        **storage.TASKS_V2_DEFAULT,
+        "tasks": [
+            {"id": "active", "status": "active", "tags": ["original"]},
+            {"id": "complete", "status": "completed", "tags": ["original"]},
+        ],
+    }), encoding="utf-8")
+
+    for _ in range(2):
+        assert storage.add_tags_to_active_tasks(
+            "existing", ["active", "complete", "missing"], ["new"]
+        ) == ["active"]
+    tasks = json.loads(path.read_text(encoding="utf-8"))["tasks"]
+    assert tasks[0]["tags"] == ["original", "new"]
+    assert tasks[1]["tags"] == ["original"]
+
+
 async def test_task_bulk_actions(task_gateway):
     client, _, _ = task_gateway
     ids = []

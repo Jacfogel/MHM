@@ -27,16 +27,9 @@ When Discord rendering or help changes, optionally check Show More styling, expi
 
 ### 2.1 Bulk organization
 
-**Status**: DEFERRED
-**Priority**: Low
+**Status**: IMPLEMENTED on the website
 
-**Possible operations**:
-
-- bulk tag
-- bulk untag
-- bulk archive
-
-**Rule**: Do not implement bulk operations until normal single-entry notebook use feels smooth. Groups are not part of this work.
+Select active notebook entries to add tags, remove tags, or archive them together.
 
 ---
 
@@ -67,7 +60,6 @@ Do not create `notebook_search.py`, SQLite, or FTS just because the old roadmap 
 Old plan proposed:
 
 - `core/item_filters.py`
-- `core/item_tags.py`
 - `core/item_groups.py`
 
 Do not add these yet just to satisfy the old roadmap. Extract them only when tasks, notebook, and future events are clearly duplicating behavior.
