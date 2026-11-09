@@ -24,6 +24,7 @@
   const bulkTag = document.getElementById('note-bulk-tag');
   const bulkUntag = document.getElementById('note-bulk-untag');
   const bulkArchive = document.getElementById('note-bulk-archive');
+  const selectionActions = document.getElementById('note-selection-actions');
   const selectedCount = document.getElementById('note-selected-count');
   const selected = new Set();
   let bulkSaving = false;
@@ -186,7 +187,10 @@
 
   function updateSelection() {
     bulkControls.hidden = view === 'archived' || !notes.some(note => note.status === 'active');
-    selectedCount.textContent = `${selected.size} selected`;
+    selectedCount.textContent = selected.size
+      ? `${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} selected`
+      : 'Select entries to make changes together';
+    selectionActions.hidden = selected.size === 0;
     for (const control of [bulkTag, bulkUntag, bulkArchive]) {
       control.disabled = bulkSaving || !selected.size;
     }

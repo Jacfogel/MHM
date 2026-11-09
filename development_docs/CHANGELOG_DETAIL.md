@@ -36,7 +36,9 @@ When adding new changes, follow this format:
 - **Tasks** — Added tag assignment to the selection controls in `website/tasks.html` and `website/tasks.js`. The authenticated route in `core/web_tasks.py` validates tags and merges them into selected active tasks in one storage update.
 - **Notebook** — Added selection controls in `website/notes.html` and `website/notes.js` for adding tags, removing tags, and archiving active entries. The authenticated routes in `core/web_notes.py` reuse existing notebook mutations and return successful and failed IDs.
 - **Roadmap** — Updated `TASKS_PLAN.md` and `NOTES_PLAN.md` to reflect the shipped actions. Batch task archiving still depends on a task archive workflow.
-- **Verification** — All 51 focused website tests passed, including the bulk route proxy test. Python compilation and diff checks passed. Backend test runs had no confirmed final result.
+- **Selection UI** — Grouped bulk actions in a panel that appears after selection. The task list shows how many tasks are selected, and **Change priority** stays disabled until a new priority is chosen.
+- **Deployment** — Pushing to the connected GitHub branch triggers the Cloudflare website build. Restarting the MHM service updates the backend separately. The live website build was not verified.
+- **Verification** — All 51 focused website tests passed after the UI update, including the bulk route proxy test. Python compilation and diff checks passed for the initial feature. Backend test runs had no confirmed final result.
 
 ### 2026-11-07 - Improve command failure recovery guidance
 - **Fix**: Task follow-up cancellation no longer claims "Task not saved" when deletion returns false or the task reference is missing. It explains that the task may remain and gives `list tasks` / `delete task <number>` recovery instructions. The failure logs user/task identifiers without exposing them in the reply; follow-up still ends as requested.

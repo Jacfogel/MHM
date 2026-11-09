@@ -18,6 +18,7 @@ const MHMTaskInput = Object.freeze({
   const tabs = [...document.querySelectorAll('[data-task-view]')];
   const dueSoon = document.getElementById('task-due-soon');
   const selectAll = document.getElementById('task-select-all');
+  const selectionActions = document.getElementById('task-selection-actions');
   const selectedCount = document.getElementById('task-selected-count');
   const bulkPriorityControls = document.getElementById('task-bulk-priority-controls');
   const bulkPriority = document.getElementById('task-bulk-priority');
@@ -294,10 +295,13 @@ const MHMTaskInput = Object.freeze({
     selectAll.disabled = tasks.length === 0;
     selectAll.textContent = allSelected ? 'Clear selection' : 'Select all';
     selectAll.setAttribute('aria-pressed', String(allSelected));
-    selectedCount.textContent = `${selected.size} selected`;
+    selectedCount.textContent = selected.size
+      ? `${selected.size} ${selected.size === 1 ? 'task' : 'tasks'} selected`
+      : 'Select tasks to make changes together';
+    selectionActions.hidden = selected.size === 0;
     bulkPrimary.disabled = selected.size === 0;
     bulkDelete.disabled = selected.size === 0;
-    bulkPriorityApply.disabled = selected.size === 0;
+    bulkPriorityApply.disabled = selected.size === 0 || !bulkPriority.value;
     bulkTagApply.disabled = selected.size === 0;
   }
 
@@ -315,6 +319,7 @@ const MHMTaskInput = Object.freeze({
     }
     try {
       const result = await api(`/api/tasks/bulk/${action}`, 'POST', payload);
+      if (action === 'priority') bulkPriority.value = '';
       await load();
       showStatus(result.failed && result.failed.length ? `${result.changed.length} updated; ${result.failed.length} unchanged. Refresh the list and try those tasks again.` : `${result.changed.length} ${result.changed.length === 1 ? 'task' : 'tasks'} updated.`);
     } catch (error) { showStatus(error.message, true); }
@@ -657,7 +662,10 @@ const MHMTaskInput = Object.freeze({
     const tags = bulkTagInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
     runBulk('tag', { tags });
   });
-  bulkPriorityApply.addEventListener('click', () => runBulk('priority', { priority: bulkPriority.value }));
+  bulkPriority.addEventListener('change', updateBulkActions);
+  bulkPriorityApply.addEventListener('click', () => {
+    if (bulkPriority.value) runBulk('priority', { priority: bulkPriority.value });
+  });
   bulkDelete.addEventListener('click', () => runBulk('delete'));
   for (const picker of document.querySelectorAll('input[type="date"], input[type="time"]')) {
     picker.addEventListener('pointerdown', event => {

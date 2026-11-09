@@ -123,7 +123,7 @@ async function settle() {
 async function tasksPage(fetchImpl, { confirm = () => true } = {}) {
   const ids = [
     'tasks-status', 'tasks-workspace', 'task-list', 'task-empty', 'tasks-count', 'task-list-summary',
-    'task-create-form', 'task-due-soon', 'task-select-all', 'task-selected-count',
+    'task-create-form', 'task-due-soon', 'task-selection-actions', 'task-select-all', 'task-selected-count',
     'task-bulk-tags', 'task-bulk-tag-input', 'task-bulk-tag-apply',
     'task-bulk-priority-controls', 'task-bulk-priority', 'task-bulk-priority-apply',
     'task-bulk-primary', 'task-bulk-delete', 'task-title', 'task-description', 'task-due-date',

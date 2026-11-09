@@ -97,7 +97,7 @@ async function page(fetchImpl, { confirm = () => true } = {}) {
     'entry-description-field', 'entry-description-label', 'entry-list-field', 'entry-create-items',
     'entry-create-submit', 'entry-create-heading', 'entry-create-help', 'note-search',
     'note-tag-filter', 'note-existing-tag', 'note-tags', 'note-title', 'note-description',
-    'note-bulk-controls', 'note-bulk-tags', 'note-bulk-tag-input', 'note-bulk-tag',
+    'note-bulk-controls', 'note-selection-actions', 'note-bulk-tags', 'note-bulk-tag-input', 'note-bulk-tag',
     'note-bulk-untag', 'note-bulk-archive', 'note-selected-count',
     'entry-add-item', 'note-tabs', 'notes-refresh', 'note-extra-fields', 'note-more-options',
   ];

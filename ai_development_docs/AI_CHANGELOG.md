@@ -34,7 +34,8 @@ Guidelines:
 ### 2026-11-09 - Website bulk task and notebook actions **COMPLETED**
 - Add tags to selected active tasks while preserving their existing tags.
 - Add or remove tags and archive selected active notebook entries. Bulk requests identify entries they could not update.
-- All 51 focused website tests passed. Backend test runs had no confirmed final result.
+- Bulk actions appear after selecting tasks or notebook entries. Priority requires an explicit choice before **Change priority** becomes available.
+- All 51 focused website tests passed after the UI update. Backend verification had no confirmed final result.
 
 ### 2026-11-07 - Improve command failure recovery guidance **COMPLETED**
 - Added actionable recovery replies and save confirmation across task, notebook, schedule, check-in, profile, account, and health commands.
