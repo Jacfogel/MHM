@@ -142,7 +142,8 @@ def test_update_profile_date_of_birth_loved_ones_and_email_failure(monkeypatch):
         },
     )
     assert response.completed is True
-    assert "Failed to update email" in response.message
+    assert "couldn't confirm your email change was saved" in response.message
+    assert "Check 'show my profile' before submitting the change again" in response.message
     assert any(call[0] == "account" for call in saved_calls)
 
 

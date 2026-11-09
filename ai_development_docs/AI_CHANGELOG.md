@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-09 - Complete test reliability and Google Health validation **COMPLETED**
+
+- Fixed the stale nightly profile assertion. All 33 focused profile tests passed.
+- Recorded consecutive clean Tier 3 audits, 6,728 Windows product passes, 1,694 development-tools passes, and 21 slow-test passes.
+- Verified the live restart and signed-in Google Health sync. Removed completed test-plan section 2.1 and retained worker-loss triage in section 2.8.
+
 ### 2026-11-09 - Website bulk task and notebook actions **COMPLETED**
 - Add tags to selected active tasks while preserving their existing tags.
 - Add or remove tags and archive selected active notebook entries. Bulk requests identify entries they could not update.
@@ -119,12 +125,6 @@ Guidelines:
 - Result-reply tests now call `generate_result_text` instead of the removed executor helpers and chat `generate_response`.
 - Task confirmations stay exact. Eligible actions can still be rewritten, and ungrounded check-in statistics are still dropped.
 - **Verification**: 24 focused checks pass. Targeted Ruff passes. Local `nightly-test-suite --strict` passed 6,358 tests with no failures.
-
-### 2026-10-28 - OpenAI prompt and context review **COMPLETED**
-- Unified catalog-backed action prompts, field requirements, and output budgets; separated runtime data from instructions and preserved relevant conversation context, including explicitly selected assistant suggestions.
-- Removed duplicated response enhancement, aligned persona loading/reloading and task prompts, and stopped canned repairs from overwriting valid facts, focused advice, emotional replies, stories, or feature restrictions. Execution checks and deterministic fallbacks remain authoritative.
-- Added a synthetic live evaluation runner with raw/final responses, timing, and token use: the baseline exposed four repair regressions; the corrected suite passed 30/30 checks plus 2/2 failed-result checks, without executing actions or writing user accounts.
-- Completed strict Tier 3 audit follow-through: repaired stale tests, missing error handling, the circular dependency, registry/documentation drift, and Ruff/Pyright findings. Regenerated documentation; reviewed high-fan-out hubs without cosmetic refactoring. Removed the temporary review document after consolidating lasting guidance in the AI system guide.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

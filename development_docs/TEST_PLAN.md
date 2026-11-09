@@ -29,34 +29,6 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 ## 2. Current Testing Priorities
 
-### 2.1 Reliability and fresh-audit confidence
-
-**Latest audit evidence (2026-11-07)**: The user reports a clear full audit; generated [AI_STATUS.md](../development_tools/AI_STATUS.md) and [CONSOLIDATED_REPORT.md](../development_tools/CONSOLIDATED_REPORT.md) agree. This supersedes the earlier interrupted audit attempt, but does not establish the separate complete-suite/slow-test or live-service gates. Full audits are run by the user; agent work uses focused validation and hands off any required full-audit gate.
-
-- [ ] Complete the local Windows reliability gate after resolving the product worker/xdist failure and validating the repaired development-tools serial configuration through a complete run. Section 2.8 owns the current evidence and reproduction details. The November 5 Google Health changes have focused validation; complete-suite validation and live-service reload remain unverified.
-
-**Status**: **ACTIVE**  
-**Priority**: High
-
-**Goal**: Make the full audit and normal test runs trustworthy enough that a failure usually means a real regression, not test harness noise.
-
-**Current work**:
-- [ ] Hand significant test-harness changes back to the user for a fresh full audit after focused checks:
-  - `python development_tools/run_development_tools.py audit --full`
-- [ ] When a failure appears flaky, capture:
-  - failing node
-  - command used
-  - whether it failed serially, parallel, or both
-  - most recent recurrence date
-  - current hypothesis
-- [ ] Keep active suspect lists short. Close stale suspects when they have not recurred in recent audit/test evidence.
-
-**Acceptance**:
-- [ ] Full Tier 3/audit path is clean on consecutive relevant reruns.
-- [ ] Any recurring failure has repro metadata and an owner/hypothesis.
-
----
-
 ### 2.2 Harness isolation and log cleanliness
 
 **Status**: **MONITORING**  
@@ -163,16 +135,16 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 **Goal**: Keep an evidence-backed suspect queue; close resolved failures without retaining temporary instrumentation.
 
-**Still open: local Windows runner reliability**
+**Windows runner validation (2026-11-09)**
 
-**Follow-up evidence (2026-11-07)**: Reproduced the development-tools configuration rejection with an unisolated collection command. Both serial command paths in `run_tests.py` now use the tools pytest configuration and conftest boundary, matching parallel execution. Seven runner regression/interrupt tests and eight existing tools-isolation tests pass; marker analysis passes. Isolated serial collection exits 5 because all 1,695 tools tests are deselected by `no_parallel`, which the runner already accepts as an empty phase. The actual `--mode development_tools --workers 1 --quick` attempt reached 72 passes and no failures before system memory crossed the runner's 98% termination threshold. Cleanup reported a taskkill credential error; the run and concurrent full-audit attempt were interrupted. Neither establishes a completed runner/audit pass. Evidence: `tests/logs/plan_action_tools_runner.txt`, `tests/logs/devtools_serial_unisolated.txt`, and `tests/logs/devtools_serial_collection.txt`. Re-run broad gates separately with sufficient available memory; do not infer that the historical worker crash has the same cause.
+- `python run_tests.py --mode all --workers 2` passed with normal local loopback access (6,728 passed, 28 skipped). The restricted run lost `gw1` near 18% after 1,224 passes, with event-loop startup timeouts and about 86% memory usage. No failing node was captured. Restricted loopback is the working hypothesis for this recurrence.
+- `python run_tests.py --mode development_tools --workers 1 --quick` passed 1,694 tests. The repaired serial phase loaded the tools configuration and completed with no eligible tests. All 21 separately selected tools slow tests passed.
+- The user-run Tier 3 audit passed both tracks. The [Linux nightly](https://github.com/Jacfogel/MHM/actions/runs/42643342985) failed on one stale profile assertion. After the fix, all 33 focused profile tests passed.
 
-**Earlier local Windows evidence (2026-11-06)**: `python run_tests.py --mode all --full --workers 2` did not complete successfully. Product parallel execution lost a worker around 18% and xdist rescheduling raised `KeyError: <WorkerController gw2>`; system memory was around 95%, which is concurrent evidence rather than a confirmed cause. The full run reported 2,980 passes, 1 failure, 2 errors, and 27 skips; 1,694 of those passes were the development-tools parallel phase. Its serial development-tools phase exited 4 because the product conftest loaded instead of the required development-tools configuration. Keep the full reliability gate open; re-run product with one worker or serially and repair the development-tools serial command/config isolation separately. Evidence is under `tests/logs/backups/pytest_console_output_2026-11-06_00-31-05.txt` and `tests/logs/pytest_console_output.txt`.
-
-**Earlier run (2026-11-05)**: The four-worker run stalled after 1,152 passes with no failures recorded and was interrupted. This predates the November 6 attempt above and is retained only as history; it is not the latest reliability result. Live-service reload also remains unverified.
+**Earlier Windows evidence** — The November 6 `--mode all --full --workers 2` run lost a worker near 18% and raised an xdist rescheduling `KeyError`. Its cause remains unknown. The same run exposed the tools serial configuration error, which the November 7 isolation fix addressed. The first tools retry hit the 98% memory cutoff before the November 9 pass. See `tests/logs/backups/pytest_console_output_2026-11-06_00-31-05.txt` for the historical worker failure.
 
 **Follow-up rules**:
-- [ ] Reproduce the local product worker/xdist failure before changing assertions or widening concurrency; validate the repaired tools serial path in a completed runner invocation.
+- [ ] If worker loss recurs with normal loopback access, capture the active node and worker diagnostics before changing assertions or widening concurrency.
 - [ ] Treat shared log/temp-path failures as harness-isolation issues first.
 - [ ] Revisit `tests/development_tools/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
 - [ ] Keep each new suspect's node, observation date, reproducer, execution mode, and hypothesis; close stale entries with evidence.
