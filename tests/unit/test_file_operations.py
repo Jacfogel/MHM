@@ -215,138 +215,27 @@ class TestFileOperations:
     @pytest.mark.unit
     @pytest.mark.file_io
     @pytest.mark.regression
-    def test_save_json_data_permission_error(self, test_data_dir):
-        """Test saving JSON data with permission error.
-        
-        On Windows: Tests against a path that should fail (invalid path or system directory).
-        On Unix: Creates a read-only directory to test permission handling.
-        
-        Note: This test validates that permission errors are handled correctly. If running
-        with elevated privileges (admin on Windows), the test may be able to write to protected
-        locations, which would invalidate the permission test. The test detects this and
-        adjusts accordingly.
-        """
-        import platform
+    def test_save_json_data_permission_error(self, tmp_path):
+        """A denied write leaves the original file intact and no partial files."""
         import stat
-        import tempfile
-        
-        is_windows = platform.system() == 'Windows'
-        
-        if is_windows:
-            # On Windows, we can't reliably make a directory read-only for the owner
-            # Instead, test against a path that should fail (system directory that requires elevation)
-            # Note: C:\Windows\System32 typically requires admin rights to write
-            # But since we can't guarantee admin rights, we'll use a more reliable approach:
-            # Create a directory, make a file read-only, then try to overwrite it
-            protected_dir = tempfile.mkdtemp(dir=test_data_dir)
-            protected_path = os.path.join(protected_dir, 'test.json')
-            
-            # Create the file first and make it read-only
-            try:
-                with open(protected_path, 'w') as f:
-                    f.write('existing')
-                os.chmod(protected_path, stat.S_IREAD)  # Read-only file
-            except Exception:
-                # If we can't create a read-only file, check if we have elevated privileges
-                # by attempting to write to a system directory
-                test_system_path = 'C:\\Windows\\System32\\test_permission_check_temp.json'
-                try:
-                    # Try to write to System32 to detect elevated privileges
-                    with open(test_system_path, 'w') as f:
-                        f.write('test')
-                    os.remove(test_system_path)
-                    # If we can write to System32, we're running with elevated privileges
-                    # In this case, use a read-only file approach instead
-                    pytest.skip("Running with elevated privileges - cannot reliably test permission errors with system directories")
-                except (PermissionError, OSError):
-                    # Good - we don't have elevated privileges, can use System32 path for test
-                    protected_path = 'C:\\Windows\\System32\\test_permission_check.json'
-                    protected_dir = 'C:\\Windows\\System32'
-        else:
-            # Unix: Create a read-only directory
-            protected_dir = tempfile.mkdtemp(dir=test_data_dir)
-            protected_path = os.path.join(protected_dir, 'test.json')
-            
-            # Make the directory read-only
-            os.chmod(protected_dir, 0o555)  # Read and execute only
-            
-            # Verify we can't write to the protected directory
-            test_write_file = os.path.join(protected_dir, 'test_write_permission.json')
-            try:
-                with open(test_write_file, 'w') as f:
-                    f.write('test')
-                os.remove(test_write_file)  # Clean up if we somehow succeeded
-                # If we get here, the permission test setup failed
-                pytest.skip("Could not create read-only directory for permission test")
-            except (PermissionError, OSError):
-                # This is expected - we shouldn't be able to write to read-only directory
-                pass
-        
+
+        protected_path = tmp_path / "test.json"
+        protected_path.write_text("existing", encoding="utf-8")
+        original_mode = protected_path.stat().st_mode
+        protected_path.chmod(stat.S_IREAD)
         try:
-            # Attempt to save to the protected location
-            # This should handle the permission error gracefully
-            # Note: save_json_data uses @handle_errors which may catch and log the error
-            # but still return False or raise FileOperationError
             try:
-                result = save_json_data({'test': 'data'}, protected_path)
-            except Exception:
-                # FileOperationError or other exception is acceptable for permission errors
-                result = False
-            
-            # [OK] VERIFY REAL BEHAVIOR: On permission error, either:
-            # 1. save_json_data returns False (handled by @handle_errors)
-            # 2. save_json_data raises an exception (caught above)
-            # 3. If it returns True, the file should NOT actually exist
-            if result is True:
-                # If save_json_data returns True, verify the file was NOT actually created
-                # (or if it exists, it wasn't overwritten with our test data)
-                if os.path.exists(protected_path):
-                    # File exists - check if it contains our test data (it shouldn't on permission error)
-                    try:
-                        with open(protected_path) as f:
-                            content = f.read()
-                        # If file was read-only and couldn't be overwritten, content should be original
-                        if is_windows and 'existing' in content:
-                            # File couldn't be overwritten - that's the expected behavior
-                            pass
-                        else:
-                            # File was written despite permission error - this is the bug we're checking for
-                            raise AssertionError(f"File was created/overwritten at protected path despite permission error: {protected_path}")
-                    except Exception:
-                        # Can't read file - that's fine, just verify it wasn't our test data
-                        pass
-                # If file doesn't exist, that's also fine - permission error prevented creation
-            else:
-                # save_json_data returned False - that's the expected behavior for permission errors
-                assert result is False, "save_json_data should return False on permission error"
-            
-            # [OK] VERIFY REAL BEHAVIOR: Check that no partial temp files were created
-            # Only check for .tmp files - the original test.json file should remain (it's read-only)
-            if os.path.exists(protected_dir) and not protected_dir.startswith('C:\\Windows'):
-                temp_files = [f for f in os.listdir(protected_dir) if f.endswith('.tmp') and 'test' in f]
-                assert len(temp_files) == 0, f"No temporary .tmp files should be left behind: {temp_files}"
-            
+                with protected_path.open("r+b"):
+                    pytest.skip("Current user can write to a read-only file")
+            except PermissionError:
+                pass
+
+            assert save_json_data({"test": "data"}, protected_path) is False
+            assert protected_path.read_text(encoding="utf-8") == "existing"
+            assert not list(tmp_path.glob("*.tmp"))
         finally:
-            # Restore permissions and clean up (only for temp directories we created)
-            if not protected_dir.startswith('C:\\Windows'):
-                try:
-                    if os.path.exists(protected_path):
-                        if is_windows:
-                            os.chmod(protected_path, stat.S_IREAD | stat.S_IWRITE)
-                        else:
-                            os.chmod(protected_path, 0o644)
-                    if os.path.exists(protected_dir):
-                        if is_windows:
-                            os.chmod(protected_dir, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
-                        else:
-                            os.chmod(protected_dir, 0o755)
-                    # Clean up the test directory
-                    import shutil
-                    shutil.rmtree(protected_dir, ignore_errors=True)
-                except Exception:
-                    # Best effort cleanup - ignore errors
-                    pass
-    
+            protected_path.chmod(original_mode)
+
     @pytest.mark.unit
     @pytest.mark.file_io
     @pytest.mark.critical

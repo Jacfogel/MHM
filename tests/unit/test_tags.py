@@ -3,12 +3,11 @@ Unit tests for `core.tags`, covering normalization, parsing, and user tag persis
 """
 
 import json
-import shutil
 import uuid
-from pathlib import Path
 
 import pytest
 
+from core import config
 from core import tags as tags_module
 from core.tags import (
     add_user_tag,
@@ -36,12 +35,10 @@ def unique_user_id():
 
 
 @pytest.fixture
-def user_dir(test_data_dir, unique_user_id):
-    """Provide a user directory path and clean it up after the test."""
-    path = Path(test_data_dir) / "users" / unique_user_id
-    yield path
-    if path.exists():
-        shutil.rmtree(path, ignore_errors=True)
+def user_dir(tmp_path, monkeypatch, unique_user_id):
+    """Keep tag files in the test's own data directory."""
+    monkeypatch.setattr(config, "BASE_DATA_DIR", str(tmp_path))
+    return tmp_path / "users" / unique_user_id
 
 
 @pytest.mark.unit

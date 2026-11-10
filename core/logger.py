@@ -106,14 +106,19 @@ def _get_log_paths_for_environment():
     # In test mode, always use test-specific log roots. This prevents
     # cross-test env leakage (e.g., MHM_DEV_TOOLS_RUN=1) from breaking
     # tests that assert logs are under per-test directories.
-    if _is_testing_environment():
-        # Use test-specific paths
-        base_dir = Path(os.getenv("LOGS_DIR", "tests/logs"))
+    testing = _is_testing_environment()
+    if testing or os.getenv("MHM_DEV_TOOLS_RUN") == "1":
+        if testing:
+            base_dir = Path(os.getenv("LOGS_DIR", "tests/logs"))
+        else:
+            base_dir = Path(
+                os.getenv("DEV_TOOLS_LOGS_DIR", "development_tools/reports/logs")
+            ) / "runtime"
         backup_dir = base_dir / "backups"
         archive_dir = base_dir / "archive"
 
         # Allow override of main file via environment variable in tests
-        main_file_env = os.getenv("LOG_MAIN_FILE")
+        main_file_env = os.getenv("LOG_MAIN_FILE") if testing else None
         main_file = Path(main_file_env) if main_file_env else base_dir / "app.log"
 
         return {
@@ -140,9 +145,7 @@ def _get_log_paths_for_environment():
             "ai_dev_tools_file": str(base_dir / "ai_dev_tools.log"),
         }
 
-    # Use centralized paths from config - import locally to avoid circular import
-    # (Do not route core logging under development_tools/; dev-tools use
-    # development_tools.shared.logging and set DEV_TOOLS_LOGS_DIR themselves.)
+    # Use centralized production paths. Import locally to avoid circular imports.
     import core.config as config
 
     return {

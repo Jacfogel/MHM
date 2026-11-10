@@ -8,6 +8,7 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 import json
 import os
 import shutil
+import tempfile
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -18,7 +19,6 @@ from development_tools.shared.host_hooks import (
     load_host_backup_manager,
 )
 from development_tools.shared.logging import get_dev_tools_logger
-from development_tools.shared.time_helpers import now_timestamp_filename
 
 logger = get_dev_tools_logger("development_tools")
 
@@ -1732,8 +1732,7 @@ class CommandsMixin:
             drill_cfg = policy.restore_drill
             drill_root = resolve_policy_path(self.project_root, drill_cfg.temp_restore_root)
             drill_root.mkdir(parents=True, exist_ok=True)
-            restore_destination = drill_root / f"restore_drill_{now_timestamp_filename()}"
-            restore_destination.mkdir(parents=True, exist_ok=True)
+            restore_destination = Path(tempfile.mkdtemp(prefix="restore_drill_", dir=drill_root))
 
             selected_backup_path = backup_path
             if not selected_backup_path:

@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-11-07
+> **Last Updated**: 2026-11-09
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -28,26 +28,6 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 ---
 
 ## 2. Current Testing Priorities
-
-### 2.2 Harness isolation and log cleanliness
-
-**Status**: **MONITORING**  
-**Priority**: High
-
-**Goal**: Tests should not pollute production logs, leave uncontrolled artifacts, or depend on shared mutable paths. The intentional dev-tools mirror in `logs/ai_dev_tools.log` is the operational exception.
-
-**Current work**:
-- [ ] Confirm complete runner runs do not write normal test traffic to production logs except the intentional dev-tools mirror; the focused 2026-11-07 monitoring checks left all production `.log` file sizes unchanged (snapshots in `tests/logs/monitoring_production_log_metadata_{before,after}.json`).
-- [ ] Monitor fresh test logs for recurring `Access is denied`, `PermissionError`, or `WinError 123` failures.
-- [ ] Continue migrating tests that write shared paths to per-test `tmp_path` or fixture-owned directories.
-- [ ] Investigate any `xdist_worker_crash_output` recurrence before widening parallel execution.
-
-**Acceptance**:
-- [ ] Fresh full-audit/test-tool runs show no new production-log pollution outside the intentional mirror.
-- [ ] Fresh full-audit/test-tool runs show no recurring Windows cleanup/path errors.
-- [ ] New tests use isolated file/log paths by default.
-
----
 
 ### 2.5 No-parallel marker reduction
 

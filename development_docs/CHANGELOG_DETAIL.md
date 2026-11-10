@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-09 - Isolate audit logs and test files
+
+- **Audit isolation** - Routed core logs from dev-tools runs to `development_tools/reports/logs/runtime/` by default. Backup restore drills now use a unique temporary directory per run and remove it afterward. The intentional production dev-tools mirror is still supported.
+- **Test isolation** - Moved the read-only file regression and tag persistence tests to per-test `tmp_path` directories. The logger routing test now patches and calls the same module instance when earlier tests reload it.
+- **Verification** - Both product tracks passed in the Tier 3 rerun. Fresh JUnit reports recorded 1,007 parallel and 10 serial tests with zero failures or errors. The earlier Windows tag-file replacement error and worker exits did not recur. Both restore drills wrote to the isolated runtime log, and production log modification times predated the audit. Removed completed section 2.2 from [TEST_PLAN.md](TEST_PLAN.md).
+
 ### 2026-11-09 - Complete test reliability and Google Health validation
 
 - **Nightly fix** - Updated the profile test to verify the recovery guidance for an unconfirmed email save. All 33 focused profile tests passed.

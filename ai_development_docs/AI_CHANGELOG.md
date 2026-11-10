@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-09 - Isolate audit logs and test files **COMPLETED**
+
+- Routed dev-tools runtime logs outside production and gave each backup restore drill its own temporary directory.
+- Moved read-only file and tag tests to per-test directories and fixed an order-dependent logger test.
+- The Tier 3 rerun passed both product tracks with no observed production-log writes or recurrence of the Windows path error or worker exits. Removed completed test-plan section 2.2.
+
 ### 2026-11-09 - Complete test reliability and Google Health validation **COMPLETED**
 
 - Fixed the stale nightly profile assertion. All 33 focused profile tests passed.
@@ -120,11 +126,6 @@ Guidelines:
 - Added pronouns, gender identity, loved ones, and custom fields to scheduled profile context. Limits are now 1,000 characters per standard field, 2,000 each for custom fields and support notes, and 12,000 overall; check-in and Google Health limits remain unchanged.
 - Both variety helpers use shared error handling with safe defaults. Regenerated function registries, dependency documentation, and directory trees.
 - **Verification**: 90 focused tests passed for the message/context changes; six variety tests passed after adding failure-path coverage. Documentation generation completed successfully. Live message quality was not evaluated.
-
-### 2026-10-29 - Nightly result-rewrite tests **COMPLETED**
-- Result-reply tests now call `generate_result_text` instead of the removed executor helpers and chat `generate_response`.
-- Task confirmations stay exact. Eligible actions can still be rewritten, and ungrounded check-in statistics are still dropped.
-- **Verification**: 24 focused checks pass. Targeted Ruff passes. Local `nightly-test-suite --strict` passed 6,358 tests with no failures.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

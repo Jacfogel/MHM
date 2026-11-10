@@ -11,13 +11,13 @@ import sys
 import logging
 import time
 import uuid
+from importlib import import_module
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 from core.logger import (
 
     _is_testing_environment,
-    _get_log_paths_for_environment,
     PytestContextLogFormatter,
     apply_test_context_formatter_to_all_loggers,
     ComponentLogger,
@@ -78,14 +78,19 @@ class TestTestingEnvironmentDetection:
             assert not result, "Should return False when not testing"
 
     @pytest.mark.unit
-    def test_dev_tools_run_does_not_route_core_logs_under_development_tools(self):
-        """MHM_DEV_TOOLS_RUN must not send core.logger file paths into development_tools/."""
-        with patch.dict(os.environ, {"MHM_DEV_TOOLS_RUN": "1"}, clear=False), patch(
-            "core.logger._is_testing_environment", return_value=False
-        ), patch("core.logger._is_dev_tools_run", return_value=True):
-            paths = _get_log_paths_for_environment()
-        base_norm = Path(paths["base_dir"]).as_posix().replace("\\", "/")
-        assert "development_tools/" not in base_norm
+    def test_dev_tools_run_isolates_core_logs(self, tmp_path):
+        # Other tests can replace core.logger after collection.
+        logger_module = import_module("core.logger")
+        with patch.dict(os.environ, {
+            "MHM_DEV_TOOLS_RUN": "1",
+            "DEV_TOOLS_LOGS_DIR": str(tmp_path),
+        }), patch.object(
+            logger_module, "_is_testing_environment", return_value=False
+        ):
+            paths = logger_module._get_log_paths_for_environment()
+        assert Path(paths["base_dir"]) == tmp_path / "runtime"
+        assert Path(paths["file_ops_file"]) == tmp_path / "runtime" / "file_ops.log"
+        assert Path(paths["errors_file"]) == tmp_path / "runtime" / "errors.log"
 
 
 @pytest.mark.core
