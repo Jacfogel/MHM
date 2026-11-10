@@ -403,7 +403,8 @@ def snooze_task_reminder(
     if not _schedule_snooze_fire(user_id, str(refreshed.get("id") or task_id), until):
         return TaskReminderSnoozeResult(
             False,
-            "I saved the snooze, but could not schedule the reminder. Please try again.",
+            "I saved the snooze, but could not schedule the reminder. "
+            "Set a separate reminder if you need an alert at that time.",
             until=until,
         )
     title = str(refreshed.get("title") or "that task")

@@ -570,7 +570,9 @@ async def start_account_linking_flow(
                     error_type=type(error).__name__,
                 )
                 await modal_interaction.response.send_message(
-                    "❌ An error occurred. Please try again.", ephemeral=True
+                    "❌ MHM couldn't start linking your account. "
+                    "Send `/start` and choose **Link to Existing Account** to try again.",
+                    ephemeral=True,
                 )
 
     # Send modal via response (modals must be sent via response, not followup)

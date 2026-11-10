@@ -192,7 +192,11 @@ class TestDiscordInteractionRouter:
         ):
             await _handle_suggestion_button(MagicMock(), interaction, "suggestion_0")
 
-        assert "not found" in interaction.followup.send.await_args.args[0].lower()
+        interaction.followup.send.assert_awaited_once_with(
+            "❌ MHM couldn't find an account linked to your Discord profile. "
+            "Send `/start` to create or link an account.",
+            ephemeral=True,
+        )
 
     @pytest.mark.asyncio
     async def test_suggestion_button_success_with_intent_payload(self):

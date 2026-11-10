@@ -123,6 +123,7 @@ class TestSnoozeTaskReminder:
         assert not result.success
         assert "saved the snooze" in result.message
         assert "could not schedule" in result.message
+        assert "Set a separate reminder" in result.message
 
     def test_snooze_schedules_the_full_saved_timestamp(self):
         task = {"id": "task-1", "title": "Dentist", "status": "active"}

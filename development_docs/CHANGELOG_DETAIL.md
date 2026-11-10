@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-10 - Clarify recovery messages and verify backup and notebook behavior
+
+- **Feature** — Discord suggestion buttons direct users without a linked account to `/start`. The account-linking form directs users to reopen **Link to Existing Account** after an unexpected error. The task snooze reply distinguishes a saved snooze from a scheduling failure and suggests a separate alert. Updated the existing regression assertions and the recovery guidance in [PLANS.md](PLANS.md).
+- **Feature** — Backup tests use dedicated paths for missing and empty user directories. The missing-directory test verifies recreation and now runs in parallel. The empty-directory test verifies the backup contains an empty users payload and remains serial pending log-path and parallel checks. Updated [TEST_PLAN.md](TEST_PLAN.md) with the remaining marker count and [NOTES_PLAN.md](NOTES_PLAN.md) with the notebook baseline.
+- **Verification** — All 17 snooze tests and 150 notebook tests passed. Both backup validation tests passed in repeated two-worker runs, including a run that excluded serial-only tests after the marker was removed. The empty-user backup test passed in isolation. The Discord pytest runs were still pending at the last check.
+- **Impact** — Users receive a specific next step when Discord account actions or snooze scheduling fail. Backup tests verify filesystem outcomes with fixture-owned paths.
+
 ### 2026-11-09 - Isolate audit logs and test files
 
 - **Audit isolation** - Routed core logs from dev-tools runs to `development_tools/reports/logs/runtime/` by default. Backup restore drills now use a unique temporary directory per run and remove it afterward. The intentional production dev-tools mirror is still supported.

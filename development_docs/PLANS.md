@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-07
+> **Last Updated**: 2026-11-10
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -120,7 +120,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 - [ ] Improve user-facing error messages where failures are currently vague or cryptic.
 - [ ] Improve log messages where failures lack enough context to debug quickly.
-- [ ] Add recovery strategies only where they are actually useful.
+- [ ] Add recovery guidance where users can act on it. For partial failures like a saved task snooze with no scheduled alert, keep the saved state explicit and avoid suggesting a retry that could record a second action.
 - [ ] Add structured context payloads where they reduce debugging time.
 - [ ] Review direct `handle_error` calls when generated reports surface them.
 

@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-10 - Recovery messages and focused test validation **COMPLETED**
+
+- Added specific recovery steps for Discord account errors and task snoozes whose alerts fail to schedule.
+- Isolated two backup tests and removed one serial-only marker after repeated two-worker validation. Updated the parent, test, and notebook plans with current guidance and evidence.
+- Passed 17 snooze tests, 150 notebook tests, both backup validation tests under two workers, and the empty-user backup test in isolation. Discord pytest results were pending at the last check.
+
 ### 2026-11-09 - Isolate audit logs and test files **COMPLETED**
 
 - Routed dev-tools runtime logs outside production and gave each backup restore drill its own temporary directory.

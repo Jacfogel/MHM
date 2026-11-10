@@ -453,7 +453,9 @@ async def test_linking_modal_converts_handler_exception_to_safe_response(monkeyp
     await modal.on_submit(submission)
 
     submission.response.send_message.assert_awaited_once_with(
-        "❌ An error occurred. Please try again.", ephemeral=True
+        "❌ MHM couldn't start linking your account. "
+        "Send `/start` and choose **Link to Existing Account** to try again.",
+        ephemeral=True,
     )
     assert (
         "sensitive provider detail"

@@ -130,7 +130,8 @@ async def _handle_suggestion_button(
             f"No internal user ID found for Discord user {discord_user_id}"
         )
         await interaction.followup.send(
-            "❌ User account not found. Please try again.",
+            "❌ MHM couldn't find an account linked to your Discord profile. "
+            "Send `/start` to create or link an account.",
             ephemeral=True,
         )
         return

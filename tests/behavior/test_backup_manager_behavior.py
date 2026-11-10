@@ -643,19 +643,16 @@ class TestBackupManagerBehavior:
         # Verify validation passes
         assert is_valid is True
 
-    @pytest.mark.no_parallel  # removes shared tests/data/users tree
-    def test_validate_system_state_with_missing_user_dir_real_behavior(self):
-        """Test system state validation with missing user directory."""
-        # Remove user directory (robustly under parallel runs on Windows)
-        if os.path.exists(self.user_data_dir):
-            with contextlib.suppress(Exception):
-                shutil.rmtree(self.user_data_dir, ignore_errors=True)
+    def test_validate_system_state_with_missing_user_dir_real_behavior(self, monkeypatch):
+        """Validation recreates a missing user directory on a fresh install."""
+        fresh_data_dir = os.path.join(self.test_data_dir, "fresh_install")
+        missing_users_dir = os.path.join(fresh_data_dir, "users")
+        monkeypatch.setattr(core.config, "BASE_DATA_DIR", fresh_data_dir)
+        monkeypatch.setattr(core.config, "USER_INFO_DIR_PATH", missing_users_dir)
 
-        # Validate system state
-        is_valid = validate_system_state()
-
-        # Verify validation fails (the validation may still pass if user directory is recreated)
-        assert isinstance(is_valid, bool)
+        assert not os.path.exists(missing_users_dir)
+        assert validate_system_state() is True
+        assert os.path.isdir(missing_users_dir)
 
     @pytest.mark.no_parallel
     def test_perform_safe_operation_real_behavior(self):
@@ -770,25 +767,12 @@ class TestBackupManagerBehavior:
         # The backup manager may still create the backup even with invalid paths
         assert backup_path is not None or backup_path is None
 
-    @pytest.mark.no_parallel  # clears shared tests/data/users tree for empty-dir scenario
-    def test_backup_manager_with_empty_user_directory_real_behavior(self):
-        """Test backup manager with empty user directory."""
-        # Remove all user data
-        if os.path.exists(self.user_data_dir):
-            # Robust deletion under Windows/parallel runs
-            try:
-                shutil.rmtree(self.user_data_dir)
-            except Exception:
-                for root, dirs, files in os.walk(self.user_data_dir, topdown=False):
-                    for fname in files:
-                        with contextlib.suppress(Exception):
-                            os.remove(os.path.join(root, fname))
-                    for dname in dirs:
-                        with contextlib.suppress(Exception):
-                            os.rmdir(os.path.join(root, dname))
-                with contextlib.suppress(Exception):
-                    os.rmdir(self.user_data_dir)
-        os.makedirs(self.user_data_dir, exist_ok=True)
+    @pytest.mark.no_parallel  # Backup creation also reads configured log paths.
+    def test_backup_manager_with_empty_user_directory_real_behavior(self, monkeypatch):
+        """Create a valid backup with an empty user directory."""
+        empty_users_dir = os.path.join(self.test_data_dir, "empty_users")
+        os.mkdir(empty_users_dir)
+        monkeypatch.setattr(core.config, "USER_INFO_DIR_PATH", empty_users_dir)
 
         # Create backup
         backup_path = self.backup_manager.create_backup("empty_users_backup")
@@ -797,6 +781,7 @@ class TestBackupManagerBehavior:
         assert backup_path is not None
         assert os.path.exists(backup_path)
 
-        # Verify backup contains manifest (user data may still be present from existing users)
+        # Verify the manifest and the empty users payload.
         manifest_path = os.path.join(backup_path, "manifest.json")
         assert os.path.exists(manifest_path)
+        assert os.listdir(os.path.join(backup_path, "users")) == []
