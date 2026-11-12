@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-12
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -127,23 +127,12 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 **Follow-up rules**:
 - [ ] If worker loss recurs with normal loopback access, capture the active node and worker diagnostics before changing assertions or widening concurrency.
+- [ ] If full-suite memory pressure recurs, sample worker private memory over time and Windows standby cache where available. Keep any added instrumentation opt-in and preserve test isolation and application usability.
 - [ ] Treat shared log/temp-path failures as harness-isolation issues first.
 - [ ] Revisit `development_tools/tool_tests/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
 - [ ] Keep each new suspect's node, observation date, reproducer, execution mode, and hypothesis; close stale entries with evidence.
 
 ---
-
-### 2.9 Performance and memory measurement
-
-**Status**: Planned; moved from TODO.md on 2026-11-05.
-**Priority**: Low/Medium
-
-- [ ] Establish a repeatable serial and parallel test workload with the same selected test nodes, worker count, machine, and environment.
-- [ ] Record wall time, peak Python parent/worker process memory, and Windows available/cached memory before, during, and after the run. Distinguish process retention from reusable OS file cache; do not clear caches as a routine optimization.
-- [ ] Compare a warm repeat with the initial run; retain commands, workload size, and measurements in the testing report.
-- [ ] Add opt-in timing/memory instrumentation only where measurements reveal a gap. Keep normal test output quiet and avoid machine-specific absolute pass/fail thresholds.
-
-**Acceptance**: A reproducible baseline identifies whether worker concurrency, application retention, or OS cache behavior explains pressure. Any optimization must preserve test isolation and application usability. This section retains test-worker and OS-cache measurement work.
 
 ## 4. Validation Gates
 

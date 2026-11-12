@@ -32,6 +32,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Windows test performance baseline
+
+- **Feature** - Measured a fixed 138-test product workload in serial and with two workers, including warm repeats. All four runs passed. Two workers reduced wall time from about 54 to 31 seconds and raised peak combined working set by about 207 MiB.
+- **Impact** - The focused workload gives future complete-suite investigations a comparison point for the cost of an additional worker.
+
 ### 2026-11-12 - Report portability, test coverage, and task skip recovery
 
 - The development tools generate and read both report pairs in host-configured locations. Summary links follow detail overrides, and scanners apply exclusions to paths within the selected project.

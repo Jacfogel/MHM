@@ -31,6 +31,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Windows test performance baseline **COMPLETED**
+
+- Established a 138-test Windows baseline for serial and two-worker runs. Closed the baseline task and kept the full-suite memory-pressure trigger in intermittent failure triage.
+
 ### 2026-11-12 - Report portability, test coverage, and task skip recovery **COMPLETED**
 
 - Report scripts and analyzers use the host configuration. Integration tests exercise custom folders, detail overrides, and relative summary links.
