@@ -599,6 +599,8 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Report paths**. The function registry and module dependency generators use `paths.development_docs_dir` for detail reports and `paths.ai_docs_dir` for AI summaries. Set `analyze_function_registry.registry_path` or `analyze_module_dependencies.dependency_doc_path` to override an individual detail report. Relative paths resolve under the selected project root. The analyzers read the same detail paths, and each summary links to its detail report.
 
+**Coverage paths**. Set `coverage.json_dir` for product and development-tools coverage snapshots, the last-good snapshot, and rotated JSON. The Markdown report defaults to the filename shown in [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md), under `paths.development_docs_dir`. Set `coverage.detail_report_path` to override it. Relative paths resolve under the selected project root.
+
 **Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.
 
 ### 8.7. Pytest isolation (portability)

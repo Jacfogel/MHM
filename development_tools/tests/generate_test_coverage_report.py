@@ -118,7 +118,7 @@ class TestCoverageReportGenerator:
 
         # Coverage plan file (TEST_COVERAGE_REPORT.md)
         self.coverage_plan_file = (
-            self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
+            config.get_coverage_report_path(self.project_root)
         )
 
     def _source_domains_from_coverage_ini(self) -> list[str]:
@@ -403,10 +403,15 @@ class TestCoverageReportGenerator:
         generated_timestamp = now_timestamp_full()
         test_markers_section = self.generate_test_markers_section()
 
+        report_path = self.coverage_plan_file
+        if report_path.is_relative_to(self.project_root):
+            report_path = report_path.relative_to(self.project_root)
+        file_line = f"> **File**: `{report_path.as_posix()}`"
+
         # Standard generated header
         standard_header = f"""# Test Coverage Report
 
-> **File**: `development_docs/TEST_COVERAGE_REPORT.md`
+{file_line}
 > **Generated**: This file is auto-generated. Do not edit manually.
 > **Last Generated**: {generated_timestamp}
 > **Source**: `python development_tools/tests/generate_test_coverage_report.py` - Test Coverage Report Generator
@@ -448,7 +453,7 @@ class TestCoverageReportGenerator:
 
             # Check if file has standard generated header
             has_standard_header = (
-                "> **File**: `development_docs/TEST_COVERAGE_REPORT.md`" in content
+                file_line in content
                 and "> **Generated**: This file is auto-generated" in content
                 and "> **Source**:" in content
             )
@@ -731,8 +736,7 @@ class TestCoverageReportGenerator:
                 )
 
         # Regenerate JSON report after combine to ensure it reflects combined data
-        # Use the same location as generate_test_coverage.py (development_tools/tests/jsons/coverage.json)
-        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
         jsons_dir.mkdir(parents=True, exist_ok=True)
         coverage_output = jsons_dir / "coverage.json"
 
@@ -790,8 +794,7 @@ def main():
     parser.add_argument(
         "--coverage-json",
         type=str,
-        default="development_tools/tests/jsons/coverage.json",
-        help="Path to coverage.json file (default: development_tools/tests/jsons/coverage.json)",
+        help="Path to coverage.json (defaults to the configured coverage JSON directory)",
     )
     parser.add_argument(
         "--summary", action="store_true", help="Print coverage summary to stdout"
@@ -799,25 +802,17 @@ def main():
 
     args = parser.parse_args()
 
-    # Load coverage data
-    # Resolve path relative to project root if it's a relative path
-    coverage_json_path = Path(args.coverage_json)
-    if not coverage_json_path.is_absolute():
-        # Assume relative to project root (where script is run from)
-        # When run via run_script, cwd is project_root, so relative paths work
-        # But we also need to handle when run directly, so resolve from script location
-        script_project_root = Path(__file__).parent.parent.parent
-        coverage_json_path = script_project_root / coverage_json_path
+    project_root = config.get_project_root().resolve()
+    coverage_json_path = (
+        project_root / args.coverage_json
+        if args.coverage_json
+        else config.get_coverage_json_dir(project_root) / "coverage.json"
+    )
 
     if not coverage_json_path.exists():
         logger.error(f"Coverage JSON file not found: {coverage_json_path}")
         logger.error("Run test coverage first to generate coverage data")
         return 1
-
-    # Determine project root from coverage.json path
-    # coverage.json is at: project_root/development_tools/tests/jsons/coverage.json
-    # So we need to go up 4 levels: coverage.json -> jsons -> tests -> development_tools -> project_root
-    project_root = coverage_json_path.parent.parent.parent.parent
 
     # Load coverage data
     try:

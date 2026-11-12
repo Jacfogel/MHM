@@ -269,8 +269,7 @@ class CoverageMetricsRegenerator:
         self.dev_tools_coverage_data_file: Path = (
             self.project_root / "development_tools" / "tests" / ".coverage_dev_tools"
         )
-        # Store coverage_dev_tools.json in development_tools/tests/jsons/
-        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
         jsons_dir.mkdir(parents=True, exist_ok=True)
         self.dev_tools_coverage_json: Path = jsons_dir / "coverage_dev_tools.json"
         self.dev_tools_coverage_html_dir: Path | None = (
@@ -724,7 +723,7 @@ class CoverageMetricsRegenerator:
         )
 
     def _last_good_coverage_path(self) -> Path:
-        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
         return _last_good_coverage_json_path_fn(jsons_dir)
 
     def _store_last_good_coverage(self, payload: dict[str, Any]) -> None:
@@ -1018,8 +1017,7 @@ class CoverageMetricsRegenerator:
         # requires development_tools/pytest.ini, so those tests run in a second
         # process and their coverage data is combined into coverage.json.
 
-        # Store coverage.json in development_tools/tests/jsons/ instead of root
-        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
         jsons_dir.mkdir(parents=True, exist_ok=True)
         coverage_output = jsons_dir / "coverage.json"
         if not cached_coverage_json and coverage_output.exists():
@@ -4672,7 +4670,7 @@ class CoverageMetricsRegenerator:
             meta["dev_tools_subset_from"] = "unified_main_coverage.json"
             subset["_metadata"] = meta
         out_path = (
-            root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+            config.get_coverage_json_dir(root) / "coverage_dev_tools.json"
         )
         out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -5219,11 +5217,7 @@ class CoverageMetricsRegenerator:
                 return {}
 
             main_cov = (
-                self.project_root
-                / "development_tools"
-                / "tests"
-                / "jsons"
-                / "coverage.json"
+                config.get_coverage_json_dir(self.project_root) / "coverage.json"
             )
             if main_cov.exists():
                 self._write_dev_tools_coverage_json_from_main(main_cov)
@@ -5292,6 +5286,7 @@ def main():
 def _run_coverage_cli(args: argparse.Namespace) -> None:
     parallel_enabled = not args.no_parallel
     regenerator = CoverageMetricsRegenerator(
+        project_root=str(config.get_project_root()),
         parallel=parallel_enabled,
         num_workers=args.workers if parallel_enabled else None,
         use_domain_cache=not args.no_domain_cache,

@@ -711,6 +711,20 @@ def get_coverage_tool_config() -> dict[str, Any]:
     return result
 
 
+def get_coverage_json_dir(project_root: Path) -> Path:
+    """Resolve the shared location for coverage snapshots and their archives."""
+    directory = _get_external_value(
+        "coverage.json_dir", "development_tools/tests/jsons"
+    )
+    return project_root / directory
+
+
+def get_coverage_report_path(project_root: Path) -> Path:
+    """Resolve the detailed coverage Markdown report for the selected host."""
+    default = Path(get_paths_config()["development_docs_dir"]) / "TEST_COVERAGE_REPORT.md"
+    return project_root / _get_external_value("coverage.detail_report_path", default)
+
+
 SUITE_PROFILES: dict[str, dict[str, Any]] = {
     "quick": {"exclude_markers": ["e2e", "slow"]},
     "full": {"exclude_markers": ["e2e"], "timeout_seconds": 3600},

@@ -31,6 +31,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Configurable coverage report paths **COMPLETED**
+
+- Share the host-configured coverage snapshot directory and Markdown report path across coverage execution, report generation, audit readers, and snapshot cleanup.
+
 ### 2026-11-12 - Windows test performance baseline **COMPLETED**
 
 - Established a 138-test Windows baseline for serial and two-worker runs. Closed the baseline task and kept the full-suite memory-pressure trigger in intermittent failure triage.

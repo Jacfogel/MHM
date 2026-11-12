@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-12
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -195,7 +195,7 @@ These plans should not be duplicated in detail here.
 **Still in this repo before a sibling-repo cut**:
 
 - Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
-- Migrate the remaining report paths to host config. The function registry and module dependency tools already share configured paths between their generators and readers.
+- Migrate the remaining report paths to host config. The function registry, module dependency, and coverage tools already share configured paths between their generators and readers.
 - Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
 - Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.
 

@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from development_tools.config import get_coverage_json_dir, get_coverage_report_path
 from development_tools.shared.logging import get_dev_tools_logger
 
 logger = get_dev_tools_logger("development_tools")
@@ -1185,7 +1186,7 @@ class AuditOrchestrationMixin:
         cache_fragment = f" cache={cache_state}" if cache_state else ""
         detail_fragment = ""
         if tool_name == "generate_test_coverage_report" and success:
-            detail_fragment = " detailed_report=development_docs/TEST_COVERAGE_REPORT.md"
+            detail_fragment = f" detailed_report={get_coverage_report_path(self.project_root)}"
         elif tool_name == "generate_legacy_reference_report" and success:
             detail_fragment = " detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md"
         pip_audit_fragment = ""
@@ -1229,9 +1230,9 @@ class AuditOrchestrationMixin:
     def _extract_coverage_cache_metadata(self, tool_name: str) -> dict[str, str]:
         """Extract cache mode metadata for coverage tools from coverage JSON metadata."""
         if tool_name == 'run_test_coverage':
-            coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage.json'
+            coverage_file = get_coverage_json_dir(self.project_root) / "coverage.json"
         elif tool_name == 'generate_dev_tools_coverage':
-            coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'
+            coverage_file = get_coverage_json_dir(self.project_root) / "coverage_dev_tools.json"
         else:
             return {}
         if not coverage_file.exists():

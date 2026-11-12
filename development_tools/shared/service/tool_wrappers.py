@@ -15,6 +15,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
+from development_tools.config import get_coverage_json_dir, get_coverage_report_path
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools import config as dev_config
 
@@ -129,6 +130,9 @@ class ToolWrappersMixin:
             "generate_function_registry",
             "generate_module_dependencies",
             "analyze_module_dependencies",
+            "analyze_test_coverage",
+            "generate_test_coverage_report",
+            "run_test_coverage",
         }:
             env["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(self.project_root)
             report_config = self.config_path or dev_config.get_loaded_config_file_path()
@@ -1377,11 +1381,7 @@ class ToolWrappersMixin:
 
         # Check if coverage.json exists
         coverage_json = (
-            self.project_root
-            / "development_tools"
-            / "tests"
-            / "jsons"
-            / "coverage.json"
+            get_coverage_json_dir(self.project_root) / "coverage.json"
         )
         if not coverage_json.exists():
             error_msg = "coverage.json not found. Run run_test_coverage first to generate coverage data."
@@ -1392,11 +1392,11 @@ class ToolWrappersMixin:
             result = self.run_script("generate_test_coverage_report", timeout=300)
             if result.get("success"):
                 test_coverage_report = (
-                    self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
+                    get_coverage_report_path(self.project_root)
                 )
                 if test_coverage_report.exists():
                     logger.debug(
-                        f"Test coverage report generated: {test_coverage_report.relative_to(self.project_root)}"
+                        f"Test coverage report generated: {test_coverage_report}"
                     )
                     return {
                         "success": True,

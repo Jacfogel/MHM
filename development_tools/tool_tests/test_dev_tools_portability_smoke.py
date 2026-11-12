@@ -282,3 +282,32 @@ def test_copied_devtools_cli_audit_quick_succeeds_on_external_project(tmp_path):
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "run_mhm.py" not in (proc.stdout + proc.stderr)
+
+@pytest.mark.unit
+def test_coverage_report_uses_host_paths(tmp_path):
+    """The wrapper and report subprocess use the same host configuration."""
+    config_path = tmp_path / "host-config.json"
+    host_config = _minimal_external_config()
+    host_config["coverage"] = {
+        "json_dir": "artifacts/snapshots",
+        "detail_report_path": "reports/quality/coverage.md",
+    }
+    config_path.write_text(json.dumps(host_config), encoding="utf-8")
+    snapshot = tmp_path / "artifacts" / "snapshots" / "coverage.json"
+    snapshot.parent.mkdir(parents=True)
+    summary = {"num_statements": 4, "covered_lines": 3, "missing_lines": 1}
+    snapshot.write_text(
+        json.dumps({"files": {"example.py": {"summary": summary}}, "totals": summary}),
+        encoding="utf-8",
+    )
+
+    service_module = load_development_tools_module("shared.service")
+    service = service_module.AIToolsService(
+        project_root=str(tmp_path), config_path=str(config_path)
+    )
+    result = service.run_generate_test_coverage_report()
+
+    assert result["success"], result
+    report = tmp_path / "reports" / "quality" / "coverage.md"
+    assert "reports/quality/coverage.md" in report.read_text(encoding="utf-8")
+    assert service._load_coverage_summary()["overall"]["coverage"] == 75.0

@@ -226,14 +226,13 @@ class ProjectCleanup:
                 if scoped_report.is_file():
                     artifacts.append(scoped_report)
         tests_jsons = dev_tools_dir / "tests" / "jsons"
-        if tests_jsons.exists():
-            for name in (
-                "coverage_dev_tools.json",
-                "generate_dev_tools_coverage_results.json",
-            ):
-                p = tests_jsons / name
-                if p.is_file():
-                    artifacts.append(p)
+        for path in (
+            config.get_coverage_json_dir(self.project_root) / "coverage_dev_tools.json",
+            tests_jsons / "coverage_dev_tools.json",
+            tests_jsons / "generate_dev_tools_coverage_results.json",
+        ):
+            if path.is_file():
+                artifacts.append(path)
         return self._dedupe_artifact_paths(artifacts)
 
     def _iter_full_repo_only_tool_cache_artifacts(self) -> list[Path]:
@@ -323,6 +322,11 @@ class ProjectCleanup:
 
         # Coverage JSON artifacts used as warm-run inputs.
         tests_jsons = dev_tools_dir / "tests" / "jsons"
+        coverage_dir = config.get_coverage_json_dir(self.project_root)
+        for name in ("coverage.json", "coverage_dev_tools.json", "coverage_last_good.json"):
+            path = coverage_dir / name
+            if path.is_file():
+                artifacts.append(path)
         if tests_jsons.exists():
             for file_path in tests_jsons.glob("coverage*.json"):
                 if file_path.is_file():

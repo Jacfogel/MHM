@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
 
+from development_tools.config import get_coverage_json_dir, get_coverage_report_path
 from development_tools.shared.host_hooks import (
     HostBackupLoadError,
     load_host_backup_manager,
@@ -235,7 +236,7 @@ class CommandsMixin:
 
         latest = 0.0
         exclude_prefixes = exclude_prefixes or []
-        exclude_paths_normalized = {path.replace("\\", "/") for path in (exclude_paths or [])}
+        excluded = {self.project_root / path for path in (exclude_paths or [])}
         name_markers = tuple(
             marker.lower() for marker in (exclude_name_contains or ()) if marker
         )
@@ -244,7 +245,7 @@ class CommandsMixin:
                 if not path.is_file():
                     continue
                 normalized = str(path.relative_to(self.project_root)).replace("\\", "/")
-                if normalized in exclude_paths_normalized:
+                if path in excluded:
                     continue
                 if any(normalized.startswith(prefix) for prefix in exclude_prefixes):
                     continue
@@ -637,7 +638,7 @@ class CommandsMixin:
         Storage / cache tool name is ``generate_dev_tools_coverage`` (see tool_metadata._TOOLS).
         """
         logger.debug("Generating dev tools coverage (development_tools/tests)...")
-        dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        dev_tools_coverage_file = get_coverage_json_dir(self.project_root) / "coverage_dev_tools.json"
         dev_tools_patterns = [
             "development_tools/**/*.py",
             "development_tools/tool_tests/**/*.py",
@@ -1243,7 +1244,7 @@ class CommandsMixin:
     def run_coverage_regeneration(self):
         """Regenerate test coverage data"""
         logger.debug("Generating test coverage (main project tests)...")
-        main_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
+        main_coverage_file = get_coverage_json_dir(self.project_root) / "coverage.json"
         main_coverage_patterns = [
             "*.py",
             "core/**/*.py",
@@ -2462,9 +2463,10 @@ class CommandsMixin:
             "*.md",
             "development_docs/**/*.md",
             "ai_development_docs/**/*.md",
+            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
         ]
         generated_docs = [
-            "development_docs/TEST_COVERAGE_REPORT.md",
+            str(get_coverage_report_path(self.project_root)),
             "development_docs/LEGACY_REFERENCE_REPORT.md",
         ]
         return self._latest_mtime_for_patterns(

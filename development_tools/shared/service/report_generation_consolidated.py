@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from development_tools.config import get_coverage_report_path
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.exclusion_utilities import is_constructor_name
 
@@ -1329,7 +1330,7 @@ class ConsolidatedReportDocumentMixin:
                     f"    - **Modules with Lowest Coverage**: {', '.join(file_descriptions)}"
                 )
                 cov_path = (
-                    self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
+                    get_coverage_report_path(self.project_root)
                 )
                 if cov_path.exists():
                     href = self._markdown_href_from_dev_tools_report(cov_path)
@@ -2949,7 +2950,7 @@ class ConsolidatedReportDocumentMixin:
             )
 
         coverage_report = (
-            self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
+            get_coverage_report_path(self.project_root)
         )
         if coverage_report.exists():
             href = self._markdown_href_from_dev_tools_report(coverage_report)

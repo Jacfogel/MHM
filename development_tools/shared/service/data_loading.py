@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Callable
 
+from development_tools.config import get_coverage_json_dir
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.audit_storage_scope import (
     STORAGE_SCOPE_FULL,
@@ -397,12 +398,11 @@ class DataLoadingMixin:
     
     def _load_coverage_summary(self) -> dict[str, Any] | None:
         """Load overall and per-module coverage metrics from coverage.json."""
-        # Check development_tools/tests/jsons for coverage results.
-        coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
+        coverage_path = get_coverage_json_dir(self.project_root) / "coverage.json"
         
         # If main file doesn't exist, check archive for most recent coverage.json (may have been rotated)
         if not coverage_path.exists():
-            archive_dir = self.project_root / "development_tools" / "tests" / "jsons" / "archive"
+            archive_dir = coverage_path.parent / "archive"
             if archive_dir.exists():
                 archived_files = sorted(
                     archive_dir.glob("coverage_*.json"),
@@ -413,7 +413,6 @@ class DataLoadingMixin:
                     coverage_path = archived_files[0]
                     logger.debug(f"[DATA SOURCE] coverage_summary: using archived file {coverage_path.name} (main file was rotated)")
         
-        # Note: Removed project root fallback - coverage.json is always in development_tools/tests/jsons/
         # If not found there, it doesn't exist (coverage hasn't been run yet)
         
         # Log data source
@@ -425,7 +424,7 @@ class DataLoadingMixin:
                 logger.debug(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (cached)")
         else:
             # This is expected if coverage hasn't been run yet - use DEBUG instead of WARNING
-            logger.debug(f"[DATA SOURCE] coverage_summary: not found at {coverage_path.relative_to(self.project_root)} (coverage not yet generated, using empty fallback)")
+            logger.debug(f"[DATA SOURCE] coverage_summary: not found at {coverage_path} (coverage not yet generated, using empty fallback)")
             return None
         try:
             with coverage_path.open('r', encoding='utf-8') as handle:
@@ -590,8 +589,7 @@ class DataLoadingMixin:
     
     def _load_dev_tools_coverage(self) -> None:
         """Load dev tools coverage from JSON file if it exists."""
-        # Check development_tools/tests/jsons for coverage results.
-        coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        coverage_path = get_coverage_json_dir(self.project_root) / "coverage_dev_tools.json"
         if not coverage_path.exists():
             return
         try:

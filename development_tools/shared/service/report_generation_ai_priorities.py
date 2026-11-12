@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from development_tools.config import get_coverage_report_path
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.exclusion_utilities import is_constructor_name
 
@@ -25,6 +26,12 @@ from .report_generation_linkify import (
 
 class AIPrioritiesDocumentMixin:
     """Mixin providing `_generate_ai_priorities_document`."""
+
+    def _coverage_report_display_path(self) -> str:
+        path = get_coverage_report_path(self.project_root)
+        if path.is_relative_to(self.project_root):
+            path = path.relative_to(self.project_root)
+        return path.as_posix()
 
     def _generate_ai_priorities_document(self) -> str:
         """Generate AI-optimized priorities document with immediate next steps."""
@@ -755,7 +762,7 @@ class AIPrioritiesDocumentMixin:
                 "Modernize error handling (Phase 1 + Phase 2)": self._scoped_tool_result_path(
                     "error_handling", "analyze_error_handling"
                 ),
-                "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
+                "Raise coverage for domains below target": self._coverage_report_display_path(),
                 "Raise development tools coverage": self._scoped_tool_result_path(
                     "tests", "generate_dev_tools_coverage"
                 ),
@@ -1333,7 +1340,7 @@ class AIPrioritiesDocumentMixin:
             coverage_bullets = [
                 "Review for Guidance: ai_development_docs/AI_TESTING_GUIDE.md",
                 f"Top target domains: {self._format_list_for_display(coverage_highlights, limit=3)}",
-                "Review for details: development_docs/TEST_COVERAGE_REPORT.md",
+                f"Review for details: {self._coverage_report_display_path()}",
                 "Action: Add scenario tests for uncovered code paths in target domains",
             ]
             add_priority(
@@ -3093,7 +3100,7 @@ class AIPrioritiesDocumentMixin:
             "- `python development_tools/run_development_tools.py audit --full`  -  rebuild hygiene/status data after fixes (does not refresh coverage)."
         )
         lines.append(
-            "- `python development_tools/run_development_tools.py coverage`  -  refresh coverage metrics, markers, and `development_docs/TEST_COVERAGE_REPORT.md`."
+            f"- `python development_tools/run_development_tools.py coverage`  -  refresh coverage metrics, markers, and `{self._coverage_report_display_path()}`."
         )
 
         return "\n".join(lines)
