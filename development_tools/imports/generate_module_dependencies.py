@@ -43,6 +43,7 @@ else:
     )
     from development_tools.shared.common import ensure_ascii
 
+from development_tools.shared.common import markdown_file_link
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
@@ -54,6 +55,12 @@ logger = get_dev_tools_logger("development_tools")
 
 # Import analysis functions are now in analyze_module_imports.py
 # Pattern analysis functions are now in analyze_dependency_patterns.py
+
+
+def _dependency_paths() -> tuple[Path, Path]:
+    detail = Path(config.get_analyze_module_dependencies_config()["dependency_doc_path"])
+    summary = Path(config.get_paths_config()["ai_docs_dir"]) / "AI_MODULE_DEPENDENCIES.md"
+    return detail, summary
 
 
 def generate_module_dependencies_content(
@@ -70,7 +77,7 @@ def generate_module_dependencies_content(
 
     content.append(f"# Module Dependencies - {project_name} Project")
     content.append("")
-    content.append("> **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`")
+    content.append(f"> **File**: `{_dependency_paths()[0].as_posix()}`")
     content.append(
         "> **Generated**: This file is auto-generated. Do not edit manually."
     )
@@ -587,6 +594,10 @@ def identify_modules_needing_enhancement(
 
 def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> str:
     """Generate the AI-facing dependency summary - dynamic and data-driven."""
+    detail_path, summary_path = _dependency_paths()
+    detail_link = markdown_file_link(
+        detail_path, summary_path, Path(config.get_project_root())
+    )
     generated_at = now_timestamp_full()
 
     total_files = len(actual_imports)
@@ -620,7 +631,7 @@ def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> 
         [
             "# AI Module Dependencies - Key Relationships & Patterns",
             "",
-            "> **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`",
+            f"> **File**: `{summary_path.as_posix()}`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
             ensure_ascii(f"> **Last Generated**: {generated_at}"),
             "> **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator",
@@ -664,7 +675,7 @@ def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> 
             "",
             pattern_analyzer.generate_quick_reference(actual_imports, patterns),
             "",
-            "> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md)**",
+            f"> **For complete dependency details, see [{detail_path.name}]({detail_link})**",
         ]
     )
 
@@ -688,13 +699,10 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     actual_imports = import_analyzer.scan_all_python_files()
 
     # Read existing content to preserve manual enhancements
-    # Script is at: development_tools/imports/generate_module_dependencies.py
-    # So we need to go up 2 levels to get to project root
-    detail_path = (
-        Path(__file__).parent.parent.parent
-        / "development_docs"
-        / "MODULE_DEPENDENCIES_DETAIL.md"
-    )
+    project_root = Path(config.get_project_root()).resolve()
+    detail_path, ai_path = _dependency_paths()
+    detail_path = project_root / detail_path
+    ai_path = project_root / ai_path
     existing_content = ""
     if detail_path.exists():
         try:
@@ -724,7 +732,6 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     # Write the DETAIL file with rotation
     from development_tools.shared.file_rotation import create_output_file
 
-    project_root = Path(__file__).parent.parent.parent
     try:
         create_output_file(
             str(detail_path),
@@ -735,9 +742,6 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         )
 
         # Write the AI file with rotation
-        # Script is at: development_tools/imports/generate_module_dependencies.py
-        # So we need to go up 2 levels to get to project root
-        ai_path = project_root / "ai_development_docs" / "AI_MODULE_DEPENDENCIES.md"
         create_output_file(
             str(ai_path),
             ai_content,
@@ -754,12 +758,12 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         logger.info(ensure_ascii("[FILES] Generated:"))
         logger.info(
             ensure_ascii(
-                "   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"
+                f"   {detail_path} - Complete detailed dependencies"
             )
         )
         logger.info(
             ensure_ascii(
-                "   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"
+                f"   {ai_path} - Concise AI-focused dependencies"
             )
         )
         logger.info(ensure_ascii("[STATS] Statistics:"))
@@ -900,7 +904,7 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     except Exception as e:
         logger.error(
             ensure_ascii(
-                f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}"
+                f"[ERROR] Failed to write dependency reports: {e}"
             )
         )
         return False

@@ -578,6 +578,46 @@ class TestConversationFlowManagerBehavior:
 
     @pytest.mark.behavior
     @pytest.mark.communication
+    @pytest.mark.checkins
+    @pytest.mark.file_io
+    def test_checkin_invalid_answer_preserves_progress_until_corrected(self, tmp_path):
+        manager = ConversationManager()
+        manager._state_file = tmp_path / "conversation_states.json"
+        user_id = "checkin-correction"
+        manager.user_states = {
+            user_id: {
+                "flow": FLOW_CHECKIN,
+                "state": CHECKIN_MOOD,
+                "data": {"energy": 4.0},
+                "question_order": ["energy", "mood", "stress_level"],
+                "current_question_index": 1,
+                "last_activity": now_timestamp_full(),
+            }
+        }
+        manager._save_user_states()
+
+        reply, completed = manager.handle_inbound_message(user_id, "6")
+
+        assert not completed
+        assert "between 1 and 5 for mood" in reply
+        open_prompt = manager.current_checkin_prompt(user_id)
+        assert open_prompt["index"] == 2
+        assert "How are you feeling today" in open_prompt["message"]
+        assert manager.user_states[user_id]["data"] == {"energy": 4.0}
+
+        reply, completed = manager.handle_inbound_message(user_id, "3.5")
+
+        assert not completed
+        manager.user_states = {}
+        manager._load_user_states()
+        assert manager.user_states[user_id]["data"] == {"energy": 4.0, "mood": 3.5}
+        next_prompt = manager.current_checkin_prompt(user_id)
+        assert next_prompt["index"] == 3
+        assert "How stressed" in next_prompt["message"]
+        assert "How stressed" in reply
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
     def test_active_checkin_keyword_cancel_clears_flow_state(self, test_data_dir):
         """Test active-flow keyword handling: !cancel during check-in clears flow and completes."""
         # Arrange

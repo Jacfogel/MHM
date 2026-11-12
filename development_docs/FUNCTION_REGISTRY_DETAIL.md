@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-09 12:13:05
+> **Last Generated**: 2026-11-12 01:17:38
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 225
 - **Total Documented**: 4398
 - **Template-Generated**: 72
-- **Last Updated**: 2026-11-09
+- **Last Updated**: 2026-11-12
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -7383,7 +7383,6 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `_resolve_next_week(now_dt, defaults)` - Snooze until the same weekday next week at morning.
 - [OK] `_resolve_one_hour(now_dt)` - Return one hour from *now_dt*.
 - [OK] `_resolve_tonight_or_morning(now_dt, defaults)` - Snooze until tonight, or tomorrow morning when evening/night has started.
-- [OK] `_schedule_snooze_fire(user_id, task_id, until)` - Schedule a one-time reminder job at *until*.
 - [OK] `_strip_time_words(phrase)` - Remove clock and time-of-day words so a date phrase remains.
 - [OK] `_time_of_day_from_phrase(phrase, defaults)` - Return HH:MM when the phrase names morning/afternoon/evening/night.
 - [OK] `_tomorrow_morning(now_dt, defaults)` - Return tomorrow at the user's morning default.
@@ -7404,6 +7403,7 @@ completion. Returns None when the reference is ambiguous.
 
 ``reminder_sent`` stays true after the first handoff. ``reminder_sent_on``
 is the date that blocks a second copy. A later day can send again.
+- [OK] `schedule_deferred_task_reminder(user_id, task_id, until)` - Schedule the one-time reminder after a snooze or skip has been saved.
 
 #### `tasks/task_schemas.py`
 **Functions:**

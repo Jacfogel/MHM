@@ -556,12 +556,10 @@ def scan_all_python_files(
             continue
 
         for py_file in dir_path.rglob("*.py"):
+            file_key = py_file.relative_to(project_root).as_posix()
             # Use production context exclusions to match audit behavior
-            if should_exclude_file(str(py_file), "analysis", "production"):
+            if should_exclude_file(file_key, "analysis", "production"):
                 continue
-
-            relative_path = py_file.relative_to(project_root)
-            file_key = str(relative_path).replace("\\", "/")
 
             functions = extract_functions_from_file(str(py_file))
             classes = extract_classes_from_file(str(py_file))
@@ -601,7 +599,7 @@ def scan_all_python_files(
             }
             continue
         # Use production context exclusions to match audit behavior
-        if should_exclude_file(str(py_file), "analysis", "production"):
+        if should_exclude_file(py_file.name, "analysis", "production"):
             continue
         file_key = py_file.name
 

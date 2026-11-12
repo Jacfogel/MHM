@@ -4,6 +4,8 @@ Tests for generate_function_registry.py.
 Tests function extraction, scanning, categorization, and file generation.
 """
 
+import json
+
 import pytest
 from unittest.mock import patch
 
@@ -24,7 +26,6 @@ scan_all_python_files = analyze_functions_module.scan_all_python_files
 detect_function_type = registry_module.detect_function_type
 generate_function_template = registry_module.generate_function_template
 generate_function_registry_content = registry_module.generate_function_registry_content
-update_function_registry = registry_module.update_function_registry
 generate_file_section = registry_module.generate_file_section
 get_directory_description = registry_module.get_directory_description
 get_file_stats = registry_module.get_file_stats
@@ -676,58 +677,66 @@ class TestRegistryHelpers:
         assert content == ""
 
 
-class TestFileGeneration:
-    """Test file generation."""
-    
-    @pytest.mark.integration
-    @pytest.mark.slow
-    def test_update_function_registry_writes_files(self, temp_output_dir, demo_project_root, monkeypatch):
-        """
-        Test that registry files are written to correct locations.
-        
-        This test patches module-level helpers via monkeypatch but remains safe under
-        xdist because each worker runs in a separate process.
-        """
-        # This is an integration test that would actually write files
-        # We'll mock the file writing to avoid side effects
-        import development_tools.config as config_module
-        from development_tools.shared import standard_exclusions
-        
-        def mock_get_project_root():
-            return demo_project_root
-        
-        def mock_get_scan_directories():
-            return ['.']
-        
-        # Mock should_exclude_file to not exclude demo project files
-        original_should_exclude = standard_exclusions.should_exclude_file
+@pytest.mark.integration
+@pytest.mark.parametrize("explicit_detail_paths", [False, True])
+def test_report_generators_use_host_paths(tmp_path, monkeypatch, explicit_detail_paths):
+    """Run the actual report scripts through the service for a separate project."""
+    from development_tools.config import config
+    from development_tools.functions.analyze_function_registry import parse_registry_document
+    from development_tools.imports.analyze_module_dependencies import parse_module_dependencies
+    from development_tools.shared.service.core import AIToolsService
 
-        def mock_should_exclude_file(file_path, tool_type, context='production'):
-            if 'development_tools_demo' in file_path:
-                return False
-            return original_should_exclude(file_path, tool_type, context)
-        
-        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
-        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
-        _patch_should_exclude_file(monkeypatch, mock_should_exclude_file)
-        
-        # Mock the file writing to use temp directory
-        
-        written_files = []
-        
-        def mock_update():
-            actual_functions = scan_all_python_files()
-            detail_content = generate_function_registry_content(actual_functions)
-            
-            # Write to temp directory instead
-            detail_path = temp_output_dir / 'FUNCTION_REGISTRY_DETAIL.md'
-            detail_path.write_text(detail_content, encoding='utf-8')
-            written_files.append(detail_path)
-        
-        # Call the mock
-        mock_update()
-        
-        # Verify file was written
-        assert len(written_files) > 0
-        assert written_files[0].exists()
-        assert written_files[0].stat().st_size > 0
+    monkeypatch.setattr(config, "_external_config", config._external_config)
+    monkeypatch.setattr(config, "_config_file_path", config._config_file_path)
+    source = tmp_path / "src"
+    source.mkdir()
+    (source / "sample.py").write_text(
+        'import math\n\ndef sample():\n    """Return a rounded value."""\n    return math.ceil(1.2)\n',
+        encoding="utf-8",
+    )
+    detail_dir = "custom/detail"
+    ai_dir = "custom/assistant notes"
+    settings = {
+        "paths": {
+            "development_docs_dir": detail_dir,
+            "ai_docs_dir": ai_dir,
+            "scan_directories": ["src"],
+        },
+    }
+    registry = f"{detail_dir}/FUNCTION_REGISTRY_DETAIL.md"
+    dependencies = f"{detail_dir}/MODULE_DEPENDENCIES_DETAIL.md"
+    if explicit_detail_paths:
+        registry = "overrides/Function registry.md"
+        dependencies = "overrides/Module dependencies.md"
+        settings["analyze_function_registry"] = {"registry_path": registry}
+        settings["analyze_module_dependencies"] = {"dependency_doc_path": dependencies}
+    config_file = tmp_path / "host-settings.json"
+    config_file.write_text(json.dumps(settings), encoding="utf-8")
+    service = AIToolsService(project_root=str(tmp_path), config_path=str(config_file))
+
+    for tool in ("generate_function_registry", "generate_module_dependencies"):
+        result = service.run_script(tool)
+        assert result["success"], result
+
+    pairs = (
+        (registry, f"{ai_dir}/AI_FUNCTION_REGISTRY.md", "Function Registry"),
+        (dependencies, f"{ai_dir}/AI_MODULE_DEPENDENCIES.md", "Module Dependencies"),
+    )
+    for detail, summary, title in pairs:
+        detail_content = (tmp_path / detail).read_text(encoding="utf-8")
+        summary_content = (tmp_path / summary).read_text(encoding="utf-8")
+        assert title in detail_content
+        assert f"> **File**: `{detail}`" in detail_content
+        assert f"> **File**: `{summary}`" in summary_content
+        target = (
+            f"../../{detail.replace(' ', '%20')}"
+            if explicit_detail_paths
+            else f"../detail/{detail.split('/')[-1]}"
+        )
+        assert f"]({target})" in summary_content
+
+    monkeypatch.setenv("DEVTOOLS_REPORT_PROJECT_ROOT", str(tmp_path))
+    parsed_registry = parse_registry_document()
+    assert "src/sample.py" in parsed_registry, (tmp_path / registry).read_text(encoding="utf-8")
+    assert parsed_registry["src/sample.py"] == {"sample"}
+    assert "src/sample.py" in parse_module_dependencies()

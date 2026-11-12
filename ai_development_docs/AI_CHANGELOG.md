@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Report portability, test coverage, and task skip recovery **COMPLETED**
+
+- Report scripts and analyzers use the host configuration. Integration tests exercise custom folders, detail overrides, and relative summary links.
+- Verify that invalid mood answers preserve progress and corrected answers persist across a state reload.
+- Excluded config and logs from the test backup and removed the serial-only marker after repeated two-worker checks.
+- Recurring and one-off skips report reminder scheduling failures while confirming the saved task state. Snoozes and skips share the deferred reminder scheduler.
+
 ### 2026-11-11 - Relocate development-tools tests **COMPLETED**
 
 - Moved the standalone suite to `development_tools/tool_tests/` and updated runners, coverage, CI, and configuration compatibility.
@@ -101,30 +108,6 @@ Guidelines:
 - Added sync page counts, complete non-sleep pagination with 1,000-record pages (sleep cap 25), and a validated 7-90-day historical baseline window, default 14, excluding future/target dates and retaining sparse-history safeguards.
 - Bounded context/session retention. The isolated state workload retained about 2.1 MB after two batches versus 41.3 MB before, then about 47 KB after explicit expiry; this excludes live providers and test-worker/OS pressure. Finished reference/guide/recovery refreshes; detailed evidence is in the paired changelog.
 - Validation: 115 focused rerun checks, targeted Ruff, and standard Tier 2 audit pass. All five standalone TODO items are implemented and removed; test reliability remains in TEST_PLAN. Full run was incomplete: 2,980 passes, 1 failure, 2 errors, 27 skips; development-tools parallel phase passed 1,694. Worker/xdist and serial configuration issues remain in TEST_PLAN 2.8. No live service or delivery was run.
-
-### 2026-11-05 - TODO progress: task processing, reconnects, and documentation
-- Removed duplicate task-read initialization. Local task-list medians improved from 5.29 to 4.19 ms (Discord) and 5.27 to 3.84 ms (email); task completion improved modestly. Provider/network time is excluded; check-in/fallback gains are not claimed.
-- Retained accounts linked to the same Discord identity receive a short reconnect acknowledgement without setup buttons. Non-creating account reads reject stale/unlinked/missing identities without reconstructing data or changing preferences; restart MHM to load the change.
-- Corrected setup/email/button guidance and expanded precise references. Added optional read-only `--check-section-links` / `--section-path` inventory: 177 resolved references, no broken anchors, 36 advisory hints. Remaining guide/reference review stays in TODO 3.1/4.4/4.5; completed TODO 3.2/4.3 and the finished checker subtask were removed.
-- Validation: 20 task/profile checks, 28 welcome checks, 25 tooling checks, and targeted Ruff passed; six reconnect checks passed again after encoding repair. Path/link regression checks also pass after fixing heading/query suffix handling; static docs were regenerated and path-drift analysis now reports zero issues instead of 103. A standard Tier 2 audit passed and refreshed the generated status reports, clearing the drift, registry, and completed-TODO warnings. No full audit or live delivery was run. A broader welcome run was stopped; a focused async attempt timed out in Windows event-loop/socketpair setup before application code. Focused view/delivery checks mock loop-bound dependencies.
-
-### 2026-11-05 - Optional AI, health sync, and TODO cleanup **COMPLETED**
-- Added manual-only AI controls and per-request task-breakdown authorization; global off and feature disables remain authoritative. Desktop Health Sync Now runs in the background, prevents duplicate actions, and offers reconnect/retry guidance, including revoked credentials retained on disk.
-- Clarified TODO scopes and completion criteria, moved test-performance measurement to TEST_PLAN section 2.9, closed completed AI/sync/contract tasks, and filled Health mocking/context documentation gaps. Documented policy, persistence, routing, and recovery contracts; synchronized configuration/spec guidance and regenerated registry/dependency documentation.
-- Fixed five TODO paths, standardized worker/close-hook error handling while preserving completion signals, updated the explicit-request test mock, and resolved optional-thread type warnings. Reviewed the routing facade advisory as a false positive and documented a narrow exclusion.
-- Validation: focused runs passed 45 AI/settings/UI/task checks, 2 manual-breakdown checks, 33 client/policy checks, 54 Health checks, and 67 task/UI checks (overlapping coverage); the previously failing node also passed with two workers. Ruff passed; doc-sync, Pyright, and targeted error-handling/facade checks reported zero findings. Broader Discord runs stalled; no live-provider verification. Full audit interrupted at the user's request before Tier 3; future full audits belong to the user.
-
-### 2026-11-05 - Clearer task reminders and simpler Discord controls
-- Shortened the gentle reminder heading, moved the priority emoji beside the title, added the short task ID below priority, and removed the automatic smaller-step closing suggestion.
-- Removed the Discord "Leave me alone" button and the due-date reassurance from the snooze-choice prompt. Snooze behavior and the text skip command remain unchanged.
-- Updated reminder-format and button tests. Six focused tests passed for the initial wording/layout changes; the later combined run stalled and was stopped, leaving final verification incomplete.
-
-### 2026-11-05 - Reminder and Google Health notification recovery
-- Prevented restart duplicates by checking persisted successful deliveries for the same category, period, and day before scheduling or sending. Existing delays remain unchanged; reminder-focused runs passed 23 and 49 tests.
-- Traced missing Google Health messages to October 4 token failures and auto-pause after the last October 3 sync/message. The reconnect warning failed and was never revisited; its original delivery error is no longer available. The personalized Google Health category is also absent from enabled preferences despite a saved schedule.
-- Persisted reconnect-warning recovery now retries paused accounts on health polls, independently acknowledges primary/website delivery, bypasses in-memory retries, and resets after successful sync. Disabled accounts and non-auth pauses remain silent. All 41 focused health tests and targeted Ruff checks pass; integration guide and data-model docs were updated.
-- Full-suite/live-service validation remains incomplete: the latest full run stalled after 1,152 recorded passes with no recorded failures and was interrupted; follow-up is in `TEST_PLAN.md`. Google reconnection and category re-enablement were not performed. Restart MHM to load the changes.
-
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

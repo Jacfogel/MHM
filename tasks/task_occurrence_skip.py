@@ -11,7 +11,6 @@ from core.logger import get_component_logger
 from core.natural_language_defaults import get_natural_language_defaults
 from core.time_utilities import (
     DATE_ONLY,
-    TIME_ONLY_MINUTE,
     TIMESTAMP_FULL,
     format_timestamp,
     now_datetime_full,
@@ -25,6 +24,7 @@ from tasks.task_data_handlers import (
     runtime_task_recurrence_pattern,
 )
 from tasks.task_reminder_snooze import snooze_task_reminder
+from tasks.task_reminder_state import reminder_sent_fields, schedule_deferred_task_reminder
 from tasks.task_time_parsing import parse_time_string
 
 logger = get_component_logger("main")
@@ -109,8 +109,6 @@ def _skip_recurring_occurrence(
     title = str(task.get("title") or "this task")
     from tasks.task_reminder_deferrals import append_reminder_deferral
 
-    from tasks.task_reminder_state import reminder_sent_fields
-
     saved = update_task(
         user_id,
         task_id,
@@ -129,26 +127,19 @@ def _skip_recurring_occurrence(
         return TaskOccurrenceSkipResult(
             False, "I could not skip that occurrence. Please try again."
         )
-    from scheduler.runtime_access import get_scheduler_manager
-
-    scheduler_manager = get_scheduler_manager()
-    if scheduler_manager:
-        scheduler_manager.schedule_task_reminder_at_datetime(
-            user_id,
-            task_id,
-            format_timestamp(ping_at, DATE_ONLY),
-            format_timestamp(ping_at, TIME_ONLY_MINUTE),
-        )
+    reminder_scheduled = schedule_deferred_task_reminder(user_id, task_id, ping_at)
     logger.info(
         f"Skipped occurrence of task {task_id} for user {user_id}; next due {next_due}"
     )
-    return TaskOccurrenceSkipResult(
-        True,
-        f"Okay. I skipped this time for **{title}**. Next one is due {next_due}. "
-        "That is not a failure.",
-        next_due=next_due,
-        recurring=True,
-    )
+    message = f"Okay. I skipped this time for **{title}**. Next one is due {next_due}."
+    if reminder_scheduled:
+        message += " That is not a failure."
+    else:
+        message += (
+            " I could not schedule the next reminder. "
+            "Set a separate reminder if you need an alert for the next occurrence."
+        )
+    return TaskOccurrenceSkipResult(True, message, next_due=next_due, recurring=True)
 
 
 @handle_errors("skipping a one-off task reminder", default_return=None)
@@ -167,13 +158,22 @@ def _skip_one_off_occurrence(
         now_dt=now_dt,
         deferral_action="skip",
     )
-    if not snoozed.success:
+    if not snoozed or (not snoozed.success and snoozed.until is None):
         return TaskOccurrenceSkipResult(
-            False, snoozed.message or "I could not skip that reminder right now."
+            False,
+            snoozed.message if snoozed else (
+                "I could not confirm the reminder was skipped. Check the task before trying again."
+            ),
         )
     title = str(task.get("title") or "this task")
     due = runtime_task_due_date(task)
     due_bit = f" It is still due {due}." if due else ""
+    if not snoozed.success:
+        return TaskOccurrenceSkipResult(
+            True,
+            f"**{title}** stays on your list.{due_bit} {snoozed.message}",
+            next_due=due,
+        )
     return TaskOccurrenceSkipResult(
         True,
         f"Okay. **{title}** stays on your list.{due_bit} "

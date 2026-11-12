@@ -125,6 +125,15 @@ class ToolWrappersMixin:
         cmd = [sys.executable, str(script_path)] + list(args)
         env = os.environ.copy()
         env["MHM_DEV_TOOLS_RUN"] = "1"
+        if script_name in {
+            "generate_function_registry",
+            "generate_module_dependencies",
+            "analyze_module_dependencies",
+        }:
+            env["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(self.project_root)
+            report_config = self.config_path or dev_config.get_loaded_config_file_path()
+            if report_config:
+                env["DEVTOOLS_REPORT_CONFIG"] = str(Path(report_config).resolve())
         run_kwargs = {
             "capture_output": True,
             "text": True,

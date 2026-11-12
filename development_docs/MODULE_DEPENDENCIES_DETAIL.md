@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-09 12:13:07
+> **Last Generated**: 2026-11-12 01:17:40
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 817 (28.7%)
 - **Third-Party Imports**: 235 (8.3%)
 - **Local Imports**: 1791 (63.0%)
-- **Last Updated**: 2026-11-09
+- **Last Updated**: 2026-11-12
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -4290,7 +4290,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.file_locking, core.logger, core.profile_v2_io, core.time_utilities, tasks.task_schemas
-- Removed: checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, collections.abc, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, core/admin_account_provisioning.py, core/response_tracking.py, core/service.py, core/tags.py, messages/message_data_manager.py, messages/message_reactions.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py, storage/user_item_storage.py
+- Removed: checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, collections.abc, communication/communication_channels/email/reply_context.py, communication/communication_channels/website/inbox.py, core/admin_account_provisioning.py, core/response_tracking.py, core/service.py, core/tags.py, messages/message_data_manager.py, messages/message_reactions.py, storage/runtime_state_storage.py, storage/user_data_backup.py, storage/user_data_index.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_summaries.py, storage/user_data_user_info.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: File operations and data management
@@ -4600,6 +4600,7 @@
   - `tasks/task_occurrence_skip.py`
   - `tasks/task_reference.py`
   - `tasks/task_reminder_snooze.py`
+  - `tasks/task_reminder_state.py`
   - `tasks/task_schemas.py`
   - `tasks/task_simplify.py`
   - `tasks/task_tag_helpers.py`
@@ -6329,8 +6330,7 @@
   - `core/service.py`
   - `scheduler/__init__.py`
   - `tasks/task_data_manager.py`
-  - `tasks/task_occurrence_skip.py`
-  - `tasks/task_reminder_snooze.py`
+  - `tasks/task_reminder_state.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
@@ -7107,13 +7107,12 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.natural_language_defaults (get_natural_language_defaults)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
-    - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_is_completed, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
     - `tasks.task_data_manager (_calculate_next_due_date, get_task_by_id, update_task)` (NEW)
     - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
     - `tasks.task_reminder_snooze (snooze_task_reminder)` (NEW)
-    - `tasks.task_reminder_state (reminder_sent_fields)` (NEW)
+    - `tasks.task_reminder_state (reminder_sent_fields, schedule_deferred_task_reminder)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -7125,7 +7124,7 @@
   - `core/web_tasks.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_reminder_state, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_snooze, tasks.task_reminder_state, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, core/web_tasks.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7192,12 +7191,11 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, get_natural_language_defaults, is_past_time_of_day)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIME_ONLY_SECOND, format_timestamp, now_datetime_full, parse_date_only, parse_timestamp_full)` (NEW)
-    - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
+    - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_datetime_full, parse_date_only, parse_timestamp_full)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
     - `tasks.task_data_manager (get_task_by_id, update_task)` (NEW)
     - `tasks.task_reminder_deferrals (append_reminder_deferral)` (NEW)
-    - `tasks.task_reminder_state (reminder_sent_fields)` (NEW)
+    - `tasks.task_reminder_state (reminder_sent_fields, schedule_deferred_task_reminder)` (NEW)
     - `tasks.task_service (parse_relative_date)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
@@ -7217,7 +7215,7 @@
   - `tasks/task_occurrence_skip.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, scheduler.runtime_access, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_state, tasks.task_service, tasks.task_time_parsing
+- Added: core.error_handling, core.logger, core.natural_language_defaults, core.time_utilities, tasks.task_data_handlers, tasks.task_data_manager, tasks.task_reminder_deferrals, tasks.task_reminder_state, tasks.task_service, tasks.task_time_parsing
 - Removed: communication/command_handlers/task_handler.py, communication/communication_channels/discord/ui/task_reminder_view.py, communication/message_processing/command_parser.py, communication/message_processing/email_reply_routing.py, core/web_tasks.py, scheduler/task_reminders.py, tasks/task_focus.py, tasks/task_occurrence_skip.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7229,7 +7227,9 @@
 - **Dependencies**:
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.time_utilities (DATE_ONLY, format_timestamp)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIME_ONLY_SECOND, format_timestamp)` (NEW)
+    - `scheduler.runtime_access (get_scheduler_manager)` (NEW)
     - `scheduler.user_timezone (user_local_now_naive)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -7240,7 +7240,7 @@
   - `tasks/task_reminder_snooze.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.time_utilities, scheduler.user_timezone
+- Added: core.error_handling, core.logger, core.time_utilities, scheduler.runtime_access, scheduler.user_timezone
 - Removed: tasks/task_occurrence_skip.py, tasks/task_reminder_snooze.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

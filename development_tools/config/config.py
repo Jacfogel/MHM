@@ -35,6 +35,7 @@ def load_external_config(config_path: str | None = None) -> bool:
     """
     global _external_config, _config_file_path
 
+    config_path = config_path or os.environ.get("DEVTOOLS_REPORT_CONFIG")
     if config_path:
         config_file = Path(config_path).resolve()
     else:
@@ -411,6 +412,9 @@ AI_VALIDATION = {
 # Helper functions
 def get_project_root():
     """Get the project root directory (from external config if available, otherwise default)."""
+    report_root = os.environ.get("DEVTOOLS_REPORT_PROJECT_ROOT")
+    if report_root:
+        return Path(report_root)
     external_root = _get_external_value("paths.project_root", None)
     if external_root:
         return Path(external_root)
@@ -1066,7 +1070,6 @@ def get_documentation_analysis_config():
 # Audit function registry configuration
 # Portable narrative defaults; project-specific paths live under decision_trees in JSON.
 AUDIT_FUNCTION_REGISTRY = {
-    "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",  # Generic default path
     "high_complexity_min": 50,  # Generic threshold
     "top_complexity": 10,
     "top_undocumented": 5,
@@ -1148,6 +1151,12 @@ def get_analyze_function_registry_config():
             ):
                 continue
             result[key] = value
+    result.setdefault(
+        "registry_path",
+        (
+            Path(get_paths_config()["development_docs_dir"]) / "FUNCTION_REGISTRY_DETAIL.md"
+        ).as_posix(),
+    )
     if not result.get("priority_directories"):
         prefixes = _get_external_value("constants.local_module_prefixes", None)
         if isinstance(prefixes, list) and prefixes:
@@ -1266,19 +1275,15 @@ def get_analyze_module_refactor_candidates_config():
 
 
 # Audit module dependencies configuration
-AUDIT_MODULE_DEPENDENCIES = {
-    "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md",  # Generic default
-}
-
-
 def get_analyze_module_dependencies_config():
     """Get audit module dependencies configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value("analyze_module_dependencies", None)
-    if external_config:
-        result = AUDIT_MODULE_DEPENDENCIES.copy()
-        result.update(external_config)
-        return result
-    return AUDIT_MODULE_DEPENDENCIES
+    result = {
+        "dependency_doc_path": (
+            Path(get_paths_config()["development_docs_dir"]) / "MODULE_DEPENDENCIES_DETAIL.md"
+        ).as_posix(),
+    }
+    result.update(_get_external_value("analyze_module_dependencies", None) or {})
+    return result
 
 
 # Audit package exports configuration

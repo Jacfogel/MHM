@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Report portability, test coverage, and task skip recovery
+
+- The development tools generate and read both report pairs in host-configured locations. Summary links follow detail overrides, and scanners apply exclusions to paths within the selected project.
+- Added a conversation-flow test that verifies an out-of-range mood answer preserves the open question and earlier answers. A corrected decimal answer advances the check-in and survives a state reload.
+- The empty-user backup test reads only its isolated user data. Removed its serial-only marker after three successful runs with two workers alongside backup creation and system-state tests.
+- Task skip replies confirm the saved change and offer a separate alert when the scheduler cannot create the reminder. Regression tests cover recurring and one-off skips.
+
 ### 2026-11-11 - Move the development-tools test suite beside the tools
 
 - Moved the standalone suite and its test configuration into `development_tools/tool_tests/`. Updated pytest isolation, Tier 3 and CLI routing, coverage discovery, CI, and testing guides. Existing local configuration can still refer to the former suite root.

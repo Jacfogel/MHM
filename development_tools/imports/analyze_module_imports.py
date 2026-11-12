@@ -234,14 +234,12 @@ class ModuleImportAnalyzer:
                 continue
 
             for py_file in dir_path.rglob("*.py"):
+                file_key = py_file.relative_to(self.project_root).as_posix()
                 # Use production context exclusions to match audit behavior
                 if standard_exclusions.should_exclude_file(
-                    str(py_file), "analysis", "production"
+                    file_key, "analysis", "production"
                 ):
                     continue
-
-                relative_path = py_file.relative_to(self.project_root)
-                file_key = str(relative_path).replace("\\", "/")
 
                 if self.cache:
                     cached = self.cache.get_cached(py_file)
@@ -269,7 +267,7 @@ class ModuleImportAnalyzer:
             ]:
                 # Use production context exclusions to match audit behavior
                 if standard_exclusions.should_exclude_file(
-                    str(py_file), "analysis", "production"
+                    py_file.name, "analysis", "production"
                 ):
                     continue
 

@@ -6,13 +6,26 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 from collections.abc import Callable, Iterable, Iterator, Sequence
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 from development_tools.shared.tool_metadata import COMMAND_GROUPS
+
+
+def markdown_file_link(target: Path, source: Path, root: Path) -> str:
+    """Build a Markdown link target relative to the document containing it."""
+    target = root / target
+    source = root / source
+    try:
+        relative = Path(os.path.relpath(target, source.parent)).as_posix()
+    except ValueError:
+        return target.resolve().as_uri()
+    return quote(relative, safe="/")
 
 # Import config for project root and paths
 try:

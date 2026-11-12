@@ -117,28 +117,26 @@ class TestParseModuleDependencies:
 - **Dependencies**: core.config, core.logger
 """)
         
-        with patch('development_tools.imports.analyze_module_dependencies.DEPENDENCY_DOC_PATH', 
-                   str(deps_file.relative_to(tmp_path))):
-            with patch('development_tools.imports.analyze_module_dependencies.Path') as mock_path:
-                mock_path.return_value.parent.parent.parent = tmp_path
-                
-                result = parse_module_dependencies()
-                
-                assert isinstance(result, dict)
-                assert 'core/config.py' in result or 'core\\config.py' in result
+        with patch(
+            "development_tools.imports.analyze_module_dependencies._dependency_document_path",
+            return_value=deps_file,
+        ):
+            result = parse_module_dependencies()
+
+            assert isinstance(result, dict)
+            assert 'core/config.py' in result or 'core\\config.py' in result
     
     @pytest.mark.unit
     def test_parse_module_dependencies_missing_file(self, tmp_path):
         """Test parsing when dependency document doesn't exist."""
-        with patch('development_tools.imports.analyze_module_dependencies.DEPENDENCY_DOC_PATH', 
-                   "nonexistent.md"):
-            with patch('development_tools.imports.analyze_module_dependencies.Path') as mock_path:
-                mock_path.return_value.parent.parent.parent = tmp_path
-                
-                result = parse_module_dependencies()
-                
-                # Should return empty dict or handle gracefully
-                assert isinstance(result, dict)
+        with patch(
+            "development_tools.imports.analyze_module_dependencies._dependency_document_path",
+            return_value=tmp_path / "nonexistent.md",
+        ):
+            result = parse_module_dependencies()
+
+            # Should return empty dict or handle gracefully
+            assert isinstance(result, dict)
     
     @pytest.mark.unit
     def test_parse_module_dependencies_empty_file(self, tmp_path):
@@ -146,14 +144,13 @@ class TestParseModuleDependencies:
         deps_file = tmp_path / "MODULE_DEPENDENCIES_DETAIL.md"
         deps_file.write_text("")
         
-        with patch('development_tools.imports.analyze_module_dependencies.DEPENDENCY_DOC_PATH', 
-                   str(deps_file.relative_to(tmp_path))):
-            with patch('development_tools.imports.analyze_module_dependencies.Path') as mock_path:
-                mock_path.return_value.parent.parent.parent = tmp_path
-                
-                result = parse_module_dependencies()
-                
-                assert isinstance(result, dict)
+        with patch(
+            "development_tools.imports.analyze_module_dependencies._dependency_document_path",
+            return_value=deps_file,
+        ):
+            result = parse_module_dependencies()
+
+            assert isinstance(result, dict)
 
 
 class TestAnalyzeCircularDependencies:
@@ -317,17 +314,16 @@ TODO: Add detailed purpose description
 <!-- MANUAL_ENHANCEMENT_END -->
 """)
         
-        with patch('development_tools.imports.analyze_module_dependencies.DEPENDENCY_DOC_PATH', 
-                   str(deps_file.relative_to(tmp_path))):
-            with patch('development_tools.imports.analyze_module_dependencies.Path') as mock_path:
-                mock_path.return_value.parent.parent.parent = tmp_path
-                
-                result = identify_enhancement_needs(documented_deps, actual_imports)
-                
-                assert isinstance(result, dict)
-                # Should identify enhancement needs
-                if 'core/config.py' in result:
-                    assert result['core/config.py'] in ['needs_enhancement', 'enhanced', 'missing_markers', 'not_found', 'error']
+        with patch(
+            "development_tools.imports.analyze_module_dependencies._dependency_document_path",
+            return_value=deps_file,
+        ):
+            result = identify_enhancement_needs(documented_deps, actual_imports)
+
+            assert isinstance(result, dict)
+            # Should identify enhancement needs
+            if 'core/config.py' in result:
+                assert result['core/config.py'] in ['needs_enhancement', 'enhanced', 'missing_markers', 'not_found', 'error']
     
     @pytest.mark.unit
     def test_identify_enhancement_needs_not_in_codebase(self):

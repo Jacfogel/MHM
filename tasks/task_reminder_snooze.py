@@ -15,8 +15,6 @@ from core.natural_language_defaults import (
     is_past_time_of_day,
 )
 from core.time_utilities import (
-    DATE_ONLY,
-    TIME_ONLY_SECOND,
     TIMESTAMP_FULL,
     format_timestamp,
     now_datetime_full,
@@ -24,6 +22,7 @@ from core.time_utilities import (
     parse_timestamp_full,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_is_completed
+from tasks.task_reminder_state import reminder_sent_fields, schedule_deferred_task_reminder
 from tasks.task_time_parsing import parse_time_string
 
 logger = get_component_logger("main")
@@ -302,28 +301,6 @@ def resolve_snooze_until(
     return None
 
 
-@handle_errors("scheduling a snoozed task reminder", default_return=False)
-def _schedule_snooze_fire(
-    user_id: str, task_id: str, until: datetime
-) -> bool:
-    """Schedule a one-time reminder job at *until*."""
-    from scheduler.runtime_access import get_scheduler_manager
-
-    scheduler_manager = get_scheduler_manager()
-    if not scheduler_manager:
-        logger.warning(
-            f"Scheduler unavailable while snoozing task {task_id} for user {user_id}"
-        )
-        return False
-    date_str = format_timestamp(until, DATE_ONLY)
-    time_str = format_timestamp(until, TIME_ONLY_SECOND)
-    return bool(
-        scheduler_manager.schedule_task_reminder_at_datetime(
-            user_id, task_id, date_str, time_str
-        )
-    )
-
-
 @handle_errors("snoozing a task reminder", default_return=None)
 def snooze_task_reminder(
     user_id: str,
@@ -372,7 +349,6 @@ def snooze_task_reminder(
     from tasks.task_reminder_deferrals import append_reminder_deferral
 
     action = "skip" if deferral_action == "skip" else "snooze"
-    from tasks.task_reminder_state import reminder_sent_fields
 
     saved = update_task(
         user_id,
@@ -400,7 +376,9 @@ def snooze_task_reminder(
             False, "Something went wrong saving the snooze. The due date may need a check."
         )
 
-    if not _schedule_snooze_fire(user_id, str(refreshed.get("id") or task_id), until):
+    if not schedule_deferred_task_reminder(
+        user_id, str(refreshed.get("id") or task_id), until
+    ):
         return TaskReminderSnoozeResult(
             False,
             f"I saved the snooze until {until_stamp}, but could not schedule the reminder. "

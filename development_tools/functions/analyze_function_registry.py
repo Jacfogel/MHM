@@ -58,7 +58,8 @@ except ImportError:
 from development_tools.shared.logging import get_dev_tools_logger
 
 # Load external config on module import
-config.load_external_config()
+if config.get_loaded_config_file_path() is None:
+    config.load_external_config()
 
 # Get configuration
 AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
@@ -67,11 +68,6 @@ AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
 logger = get_dev_tools_logger("development_tools")
 
 PATHS = ProjectPaths()
-# Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)
-_registry_path_str = AUDIT_REGISTRY_CONFIG.get(
-    "registry_path", "development_docs/FUNCTION_REGISTRY_DETAIL.md"
-)
-REGISTRY_PATH = PATHS.root / _registry_path_str
 CURRENT_DIR = Path(__file__).parent
 
 FUNCTION_CFG = config.get_analyze_functions_config()
@@ -299,7 +295,10 @@ def extract_documented_name(line: str) -> str | None:
     return signature.strip()
 
 
-def parse_registry_document(path: Path = REGISTRY_PATH) -> dict[str, set[str]]:
+def parse_registry_document(path: Path | None = None) -> dict[str, set[str]]:
+    if path is None:
+        configured_path = Path(config.get_analyze_function_registry_config()["registry_path"])
+        path = Path(config.get_project_root()) / configured_path
     if not path.exists():
         return {}
     mapping: dict[str, set[str]] = {}
@@ -673,21 +672,13 @@ def execute(
     """Execute audit with optional project_root and config_path."""
     try:
         # Declare globals at the top
-        global PATHS, AUDIT_REGISTRY_CONFIG, REGISTRY_PATH, HIGH_COMPLEXITY_MIN, TOP_COMPLEXITY, TOP_UNDOCUMENTED, TOP_DUPLICATES, ERROR_SAMPLE_LIMIT, MAX_COMPLEXITY_JSON, MAX_UNDOCUMENTED_JSON, MAX_DUPLICATES_JSON
-
-        # Use provided project_root or default
-        if project_root:
-            PATHS = ProjectPaths(root=project_root)
+        global PATHS, AUDIT_REGISTRY_CONFIG, HIGH_COMPLEXITY_MIN, TOP_COMPLEXITY, TOP_UNDOCUMENTED, TOP_DUPLICATES, ERROR_SAMPLE_LIMIT, MAX_COMPLEXITY_JSON, MAX_UNDOCUMENTED_JSON, MAX_DUPLICATES_JSON
 
         # Load config if path provided
         if config_path:
             config.load_external_config(config_path)
             # Reload config after loading external config
             AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
-            _registry_path_str = AUDIT_REGISTRY_CONFIG.get(
-                "registry_path", "development_docs/FUNCTION_REGISTRY_DETAIL.md"
-            )
-            REGISTRY_PATH = PATHS.root / _registry_path_str
             HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get("high_complexity_min", 50)
             TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get("top_complexity", 10)
             TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get("top_undocumented", 5)
@@ -698,9 +689,12 @@ def execute(
                 "max_undocumented_json", 200
             )
             MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get("max_duplicates_json", 200)
+        PATHS = ProjectPaths(root=project_root)
         errors: list[str] = []
         inventory = collect_project_inventory(errors, parsed_modules=parsed_modules)
-        registry = parse_registry_document()
+        registry = parse_registry_document(
+            PATHS.root / config.get_analyze_function_registry_config()["registry_path"]
+        )
         try:
             metrics = build_metrics(inventory, registry)
         except Exception:

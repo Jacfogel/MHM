@@ -33,14 +33,13 @@ from development_tools.shared.logging import get_dev_tools_logger
 # Load external config on module import
 config.load_external_config()
 
-# Get configuration
-AUDIT_DEPS_CONFIG = config.get_analyze_module_dependencies_config()
-DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get(
-    "dependency_doc_path", "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
-)
-
 logger = get_dev_tools_logger("development_tools")
 
+
+def _dependency_document_path() -> Path:
+    return Path(config.get_project_root()) / config.get_analyze_module_dependencies_config()[
+        "dependency_doc_path"
+    ]
 
 def extract_imports_from_file(file_path: str) -> dict[str, list[str]]:
     """Extract all imports from a Python file.
@@ -97,10 +96,7 @@ def scan_all_python_files() -> dict[str, dict]:
 
 def parse_module_dependencies() -> dict[str, list[str]]:
     """Parse the existing dependency doc to extract documented dependencies."""
-    # Script is at: development_tools/imports/analyze_module_dependencies.py
-    # So we need to go up 2 levels to get to project root
-    project_root = Path(__file__).parent.parent.parent
-    deps_path = project_root / DEPENDENCY_DOC_PATH
+    deps_path = _dependency_document_path()
     documented = {}
 
     try:
@@ -188,8 +184,7 @@ def identify_enhancement_needs(
     for file_path in documented_deps:
         if file_path in actual_imports:
             # Check if it has manual enhancement markers
-            project_root = Path(__file__).parent.parent
-            deps_path = project_root / DEPENDENCY_DOC_PATH
+            deps_path = _dependency_document_path()
             try:
                 with open(deps_path, encoding="utf-8") as f:
                     content = f.read()

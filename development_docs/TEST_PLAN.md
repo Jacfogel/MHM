@@ -38,7 +38,7 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 
 **Current rule**: Stability beats speed. Keep the marker if removing it risks false failures.
 
-**Remaining scope (2026-11-10)**: 57 Python decorator lines across 21 test files. The two backup system-state validation tests can serve as a focused parallel check with `python -m pytest tests/behavior/test_backup_manager_behavior.py -q -n 2 -k validate_system_state`. The empty-user backup test now uses a dedicated user directory and passes in isolation. Before removing its marker, check configured log paths and run repeated parallel checks alongside other backup creation tests. Assess the remaining backup markers individually because those tests exercise different filesystem operations.
+**Remaining scope (2026-11-12)**: 54 Python decorator lines across 20 test files. The two backup system-state validation tests can serve as a focused parallel check with `python -m pytest tests/behavior/test_backup_manager_behavior.py -q -n 2 -k validate_system_state`. Assess the remaining backup markers individually because those tests exercise different filesystem operations.
 
 **Before any wave**:
 - [ ] Refresh the current count:

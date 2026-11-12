@@ -24,6 +24,7 @@ project_root = _dev_tools_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from development_tools.shared.common import markdown_file_link
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 from development_tools.shared.exclusion_utilities import is_constructor_name
@@ -140,6 +141,12 @@ except ImportError:
     )
 
 
+def _registry_paths() -> tuple[Path, Path]:
+    detail = Path(config.get_analyze_function_registry_config()["registry_path"])
+    summary = Path(config.get_paths_config()["ai_docs_dir"]) / "AI_FUNCTION_REGISTRY.md"
+    return detail, summary
+
+
 def generate_function_registry_content(actual_functions: dict[str, dict]) -> str:
     """Generate the complete FUNCTION_REGISTRY_DETAIL.md content."""
 
@@ -206,7 +213,7 @@ def generate_function_registry_content(actual_functions: dict[str, dict]) -> str
     generated_at = now_timestamp_full()
     content = f"""# Function Registry - {project_name} Project
 
-> **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+> **File**: `{_registry_paths()[0].as_posix()}`
 > **Generated**: This file is auto-generated. Do not edit manually.
 > **Last Generated**: {generated_at}
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
@@ -466,9 +473,13 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
         else "[!] GOOD" if coverage_percentage >= 50 else "[X] NEEDS WORK"
     )
 
+    detail_path, summary_path = _registry_paths()
+    detail_link = markdown_file_link(
+        detail_path, summary_path, Path(config.get_project_root())
+    )
     content = f"""# AI Function Registry - Key Patterns & Decision Trees
 
-> **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
+> **File**: `{summary_path.as_posix()}`
 > **Generated**: This file is auto-generated. Do not edit manually.
 > **Last Generated**: {now_timestamp_full()}
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
@@ -541,7 +552,7 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
 ### **File Organization**
 {file_organization_section}
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**
+> **For complete function details, see [{detail_path.name}]({detail_link})**
 """
 
     return content
@@ -1224,7 +1235,8 @@ def update_function_registry():
     # Write DETAIL file with rotation
     from development_tools.shared.file_rotation import create_output_file
 
-    detail_path = project_root / "development_docs" / "FUNCTION_REGISTRY_DETAIL.md"
+    project_root = Path(config.get_project_root()).resolve()
+    detail_path, ai_path = _registry_paths()
     create_output_file(
         str(detail_path),
         detail_content,
@@ -1234,7 +1246,6 @@ def update_function_registry():
     )
 
     # Write AI file with rotation
-    ai_path = project_root / "ai_development_docs" / "AI_FUNCTION_REGISTRY.md"
     create_output_file(
         str(ai_path),
         ai_content,
@@ -1293,10 +1304,10 @@ def update_function_registry():
     logger.info("[SUCCESS] Both function registry files updated successfully!")
     logger.info("[FILES] Generated:")
     logger.info(
-        "   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry"
+        f"   {detail_path.as_posix()} - Complete detailed registry"
     )
     logger.info(
-        "   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry"
+        f"   {ai_path.as_posix()} - Concise AI-focused registry"
     )
     logger.info("[STATS] Statistics:")
     logger.info(f"   Files scanned: {total_files}")

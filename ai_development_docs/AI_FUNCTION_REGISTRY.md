@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-09 12:13:05
+> **Last Generated**: 2026-11-12 01:17:38
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -217,4 +217,4 @@ Most complex functions (may need refactoring):
 - `ui/` - User interface components (45 files, 1038 functions)
 - `user/` - User context and preferences (5 files, 54 functions)
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](../development_docs/FUNCTION_REGISTRY_DETAIL.md)**

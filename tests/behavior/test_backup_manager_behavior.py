@@ -767,7 +767,6 @@ class TestBackupManagerBehavior:
         # The backup manager may still create the backup even with invalid paths
         assert backup_path is not None or backup_path is None
 
-    @pytest.mark.no_parallel  # Backup creation also reads configured log paths.
     def test_backup_manager_with_empty_user_directory_real_behavior(self, monkeypatch):
         """Create a valid backup with an empty user directory."""
         empty_users_dir = os.path.join(self.test_data_dir, "empty_users")
@@ -775,7 +774,9 @@ class TestBackupManagerBehavior:
         monkeypatch.setattr(core.config, "USER_INFO_DIR_PATH", empty_users_dir)
 
         # Create backup
-        backup_path = self.backup_manager.create_backup("empty_users_backup")
+        backup_path = self.backup_manager.create_backup(
+            "empty_users_backup", include_config=False, include_logs=False
+        )
 
         # Verify backup was created (even with no users)
         assert backup_path is not None
