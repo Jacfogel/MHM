@@ -35,6 +35,7 @@ disable domain-marker enforcement.
 import sys
 import re
 import ast
+from itertools import chain
 from pathlib import Path
 from re import Pattern
 
@@ -66,6 +67,7 @@ except ImportError:
     )
 
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.tests.pytest_isolation import DEFAULT_TOOLS_TEST_PATHS
 
 # Ensure external config is loaded
 config.load_external_config()
@@ -192,12 +194,11 @@ class TestMarkerAnalyzer:
         )
 
     def find_test_files(self, exclude_ai: bool = True) -> list[Path]:
-        """Find all test files in the tests directory."""
+        """Find test files in the host and development-tools suites."""
         test_files = []
-        if not self.test_dir.exists():
-            return test_files
-
-        for test_file in self.test_dir.rglob("test_*.py"):
+        roots = [self.test_dir]
+        roots.extend(self.project_root / path for path in DEFAULT_TOOLS_TEST_PATHS)
+        for test_file in chain.from_iterable(root.rglob("test_*.py") for root in roots):
             if test_file.is_file():
                 file_str = str(test_file).replace("\\", "/")
                 relative_path = str(test_file.relative_to(self.project_root)).replace(

@@ -259,7 +259,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
 - **Output Format**: All analysis tools output standard format JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Use `--json` flag when running tools standalone to get standard format output.
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
-- Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
+- Store tests under `development_tools/tool_tests/` (with fixtures in `tests/fixtures/development_tools_demo/`)
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
 
 - All core tools are portable via external configuration (`development_tools/config/development_tools_config.json`). Tools can be used in other projects with minimal setup.
@@ -297,9 +297,9 @@ File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file(
 
 **Code-level markers**: Prefer canonical suppressions from `shared/exclusion_utilities.py`: `# devtools: ignore[duplicate-functions]: <reason>`, `# devtools: ignore[unused-functions]: <reason>`, `# devtools: ignore[facade-shims]: <reason>`, `# devtools: ignore[legacy-references]: <reason>`, and `# devtools: intentional[duplicate-functions]: <group_id>`. Existing duplicate-function aliases are still accepted but should not be added in new code.
 
-**Import boundary (Section 8.6 in paired guide)**: No host-package imports inside `development_tools/**` (`constants.local_module_prefixes` except `development_tools`). Use `shared/logging` (`get_dev_tools_logger`), `shared/time_helpers`, `shared/error_helpers`, and `shared/host_hooks.load_host_backup_manager` (config `host.backup_manager_module`; skip when empty). Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `tests/development_tools/test_import_boundary_policy.py`.
+**Import boundary (Section 8.6 in paired guide)**: No host-package imports inside `development_tools/**` (`constants.local_module_prefixes` except `development_tools`). Use `shared/logging` (`get_dev_tools_logger`), `shared/time_helpers`, `shared/error_helpers`, and `shared/host_hooks.load_host_backup_manager` (config `host.backup_manager_module`; skip when empty). Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `development_tools/tool_tests/test_import_boundary_policy.py`.
 
-**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` plus CLI `--confcutdir=tests/development_tools` (do not put `confcutdir` in the INI; `--strict-config` rejects it). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/`. CI `logging-enforcement.yml` Tooling Policy Consistency uses the same `-c` / `--confcutdir` flags.
+**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` plus CLI `--confcutdir=development_tools/tool_tests` (do not put `confcutdir` in the INI; `--strict-config` rejects it). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/`. CI `logging-enforcement.yml` Tooling Policy Consistency uses the same `-c` / `--confcutdir` flags.
 
 See section 8. "Exclusion Rules" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#8-exclusion-rules) for full rules, function-level exclusions, and import-boundary detail.
 
@@ -310,8 +310,8 @@ See section 8. "Exclusion Rules" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOO
 - **Config surface**: Repo root `pyproject.toml` (`[tool.pyright]`, `[tool.bandit]`, ...); `development_tools/config/` - `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml`.
 - **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
 - **Phase 2**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Use shims only per section 1. "Standards" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#1-standards); see section 9. "Directory taxonomy and configuration surface (Phase 1)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#9-directory-taxonomy-and-configuration-surface-phase-1).
-- **Pyright SSOT**: root `pyproject.toml` **`[tool.pyright]`** only (IDE/whole repo; default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`.
-- **Portability (V5 Section 7.6 / V6 B-004)**: Structural checks enforce `[tool.pyright]` + absent JSON configs. Prefer periodic full-repo Pyright via `pyproject.toml`. Optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py).
+- **Pyright SSOT**: root `pyproject.toml` **`[tool.pyright]`** only (IDE/whole repo; default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest development_tools/tool_tests/test_pyright_config_paths.py`.
+- **Portability (V5 Section 7.6 / V6 B-004)**: Structural checks enforce `[tool.pyright]` + absent JSON configs. Prefer periodic full-repo Pyright via `pyproject.toml`. Optional `pytest -m e2e` smoke in [`development_tools/tool_tests/test_pyright_config_paths.py`](../development_tools/tool_tests/test_pyright_config_paths.py).
 - **Human detail**: section 9. "Directory taxonomy and configuration surface (Phase 1)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#9-directory-taxonomy-and-configuration-surface-phase-1).
 
 **AI_PRIORITIES defaults**: Theme -> guide -> JSON table: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
@@ -328,7 +328,7 @@ See section 8. "Exclusion Rules" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOO
 
 **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run `analyze_documentation_sync` with `--check-example-markers` over paths in **`DEFAULT_DOCS`** ([`shared/constants.py`](shared/constants.py), merged from `development_tools_config.json` via `get_constants_config()`). Hints are stored in doc-sync JSON and surfaced in **AI_STATUS** (summary), **CONSOLIDATED_REPORT**, and **AI_PRIORITIES** (Tier 4 when count > 0). Heuristics and exclusions: section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit). Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 
-**Evaluation note (2026-07-28)**: **radon** / **pydeps** optional one-off installs for spot-checks only (not in `requirements.txt`). **pre-commit** optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`. Deeper Ruff declined without a named rule set.
+**Evaluation note (2026-07-28)**: **radon** / **pydeps** optional one-off installs for spot-checks only (not in `requirements.txt`). **pre-commit** optional on developer machines only; audit truth stays `run_development_tools.py` + `development_tools/tool_tests/`. Deeper Ruff declined without a named rule set.
 
 **Manual pilot (venv active)** - optional extras beyond the integrated wrappers:
 

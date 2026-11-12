@@ -53,7 +53,7 @@ def _default_domain_mapper_config() -> dict:
             "integrations": [[], ["integrations"]],
             "messages": [[], ["messages"]],
             "storage": [[], ["storage"]],
-            "development_tools": [["tests/development_tools/"], []],
+            "development_tools": [["development_tools/tool_tests/"], []],
         },
         "domain_dependencies": {
             "core": [],

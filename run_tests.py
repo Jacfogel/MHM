@@ -3041,7 +3041,7 @@ def main():
             "development_tools",
         ],
         default="all",
-        help="Test execution mode (default: all). Use development_tools for tests/development_tools/ only.",
+        help="Test execution mode (default: all). Use development_tools for development_tools/tool_tests/ only.",
     )
     parser.add_argument(
         "--full",
@@ -3422,7 +3422,7 @@ def main():
 
     elif args.mode == "development_tools":
         # Development tools infrastructure tests only
-        selected_test_paths = ["tests/development_tools/"]
+        selected_test_paths = ["development_tools/tool_tests/"]
         cmd = _with_tools_pytest_isolation(cmd)
         cmd.extend(selected_test_paths)
         description = "Development Tools Tests"
@@ -3440,7 +3440,7 @@ def main():
                 "tests/notebook/",
                 "tests/ai/",
             ]
-            _devtools_paths = ["tests/development_tools/"]
+            _devtools_paths = ["development_tools/tool_tests/"]
             full_phase_paths = [
                 ("Product", _product_paths),
                 ("Development Tools", _devtools_paths),

@@ -31,6 +31,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-11 - Relocate development-tools tests **COMPLETED**
+
+- Moved the standalone suite to `development_tools/tool_tests/` and updated runners, coverage, CI, and configuration compatibility.
+- Included the saved snooze time in alert scheduling failure replies.
+
 ### 2026-11-10 - Recovery messages and focused test validation **COMPLETED**
 
 - Added specific recovery steps for Discord account errors and task snoozes whose alerts fail to schedule.
@@ -120,18 +125,6 @@ Guidelines:
 - Persisted reconnect-warning recovery now retries paused accounts on health polls, independently acknowledges primary/website delivery, bypasses in-memory retries, and resets after successful sync. Disabled accounts and non-auth pauses remain silent. All 41 focused health tests and targeted Ruff checks pass; integration guide and data-model docs were updated.
 - Full-suite/live-service validation remains incomplete: the latest full run stalled after 1,152 recorded passes with no recorded failures and was interrupted; follow-up is in `TEST_PLAN.md`. Google reconnection and category re-enablement were not performed. Restart MHM to load the changes.
 
-
-### 2026-11-05 - Nightly test fixes and crash diagnostics **COMPLETED**
-- Added required category/domain markers for nine profile/context tests and completed three logger mocks with the Google Health log path. Verification passes 49 affected/policy tests with normal logging and 17 logger tests with verbose logging; targeted Ruff passes.
-- Nightly diagnostics now record per-process collection/execution histories, random seeds, invocation arguments, environment versions, and stall/native stack traces without changing application log verbosity. Raw cores stay on the runner and are deleted after extraction; only stack traces are uploaded.
-- Verified the recorder locally, including abrupt-exit durability, and on Ubuntu with six focused tests and a controlled native crash. Workflow YAML and shell syntax checks pass. The full suite was not rerun after the fixes; workflow changes are not yet active on main.
-- The original Qt crash remains unexplained: 12 local parallel widget runs and two full Linux diagnostic runs did not reproduce it. The Linux runs exposed the marker regression and verbose-only logger mock failures addressed here.
-
-### 2026-11-04 - Varied profile messages and expanded context **COMPLETED**
-- Profile messages receive up to five recent profile deliveries as repetition examples, vary their focus and writing approach, and request fresh generation instead of cached wording. Fallbacks choose across interests, goals, and encouraging activities and avoid recent exact repeats when alternatives exist.
-- Added pronouns, gender identity, loved ones, and custom fields to scheduled profile context. Limits are now 1,000 characters per standard field, 2,000 each for custom fields and support notes, and 12,000 overall; check-in and Google Health limits remain unchanged.
-- Both variety helpers use shared error handling with safe defaults. Regenerated function registries, dependency documentation, and directory trees.
-- **Verification**: 90 focused tests passed for the message/context changes; six variety tests passed after adding failure-path coverage. Documentation generation completed successfully. Live message quality was not evaluated.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

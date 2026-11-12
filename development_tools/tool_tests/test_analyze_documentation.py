@@ -1,0 +1,419 @@
+"""
+Tests for analyze_documentation.py.
+
+Tests documentation analysis including overlap detection, duplicate detection,
+and placeholder content detection.
+"""
+
+import pytest
+from types import SimpleNamespace
+from pathlib import Path
+from unittest.mock import patch
+
+from development_tools.tool_tests.conftest import load_development_tools_module
+
+# Load the module
+docs_module = load_development_tools_module("docs.analyze_documentation")
+extract_sections = docs_module.extract_sections
+load_documents = docs_module.load_documents
+detect_duplicates = docs_module.detect_duplicates
+detect_placeholders = docs_module.detect_placeholders
+execute = docs_module.execute
+analyse_topics = docs_module.analyse_topics
+detect_corrupted_artifacts = docs_module.detect_corrupted_artifacts
+document_profiles = docs_module.document_profiles
+detect_section_overlaps = docs_module.detect_section_overlaps
+generate_consolidation_recommendations = docs_module.generate_consolidation_recommendations
+
+
+class TestAnalyzeDocumentation:
+    """Test documentation analysis functionality."""
+    
+    @pytest.mark.unit
+    def test_extract_sections_basic(self):
+        """Test basic section extraction."""
+        content = """
+## Section 1
+Content for section 1
+
+## Section 2
+Content for section 2
+
+### Subsection 2.1
+Content for subsection
+"""
+        sections = extract_sections(content)
+        
+        assert isinstance(sections, dict), "Result should be a dictionary"
+        assert 'Section 1' in sections, "Should extract Section 1"
+        assert 'Section 2' in sections, "Should extract Section 2"
+        assert 'Subsection 2.1' in sections, "Should extract subsection"
+        assert 'Content for section 1' in sections['Section 1'], "Should include content"
+    
+    @pytest.mark.unit
+    def test_extract_sections_empty(self):
+        """Test section extraction with empty content."""
+        sections = extract_sections("")
+        
+        assert isinstance(sections, dict), "Result should be a dictionary"
+        assert 'Introduction' in sections, "Should have default Introduction section"
+    
+    @pytest.mark.unit
+    def test_load_documents_basic(self, tmp_path):
+        """Test basic document loading."""
+        # Create test documents
+        doc1 = tmp_path / "doc1.md"
+        doc1.write_text("# Document 1\n\nContent 1")
+        
+        doc2 = tmp_path / "doc2.md"
+        doc2.write_text("# Document 2\n\nContent 2")
+        
+        # Mock the exact module globals used by the dynamically loaded helper.
+        with patch.dict(load_documents.__globals__, {"PATHS": SimpleNamespace(root=tmp_path)}):
+            
+            docs, missing = load_documents(["doc1.md", "doc2.md", "nonexistent.md"])
+            
+            assert isinstance(docs, dict), "Result should be a dictionary"
+            assert 'doc1.md' in docs, "Should load doc1.md"
+            assert 'doc2.md' in docs, "Should load doc2.md"
+            assert isinstance(missing, list), "Missing should be a list"
+            assert 'nonexistent.md' in missing, "Should report missing file"
+    
+    @pytest.mark.unit
+    def test_detect_duplicates_basic(self):
+        """Test basic duplicate detection."""
+        docs = {
+            "doc1.md": """
+## Section 1
+This is some content.
+
+## Section 2
+More content here.
+""",
+            "doc2.md": """
+## Section 1
+This is some content.
+
+## Section 3
+Different content.
+"""
+        }
+        
+        duplicates = detect_duplicates(docs)
+        
+        assert isinstance(duplicates, list), "Result should be a list"
+        # Note: detect_duplicates only checks paired docs, so may not find duplicates in arbitrary docs
+    
+    @pytest.mark.unit
+    def test_detect_duplicates_no_duplicates(self):
+        """Test duplicate detection with no duplicates."""
+        docs = {
+            "doc1.md": "## Section 1\nContent 1",
+            "doc2.md": "## Section 2\nContent 2"
+        }
+        
+        duplicates = detect_duplicates(docs)
+        
+        assert isinstance(duplicates, list), "Result should be a list"
+        # Note: detect_duplicates only checks paired docs, so may not find duplicates in arbitrary docs
+    
+    @pytest.mark.unit
+    def test_detect_placeholders_basic(self):
+        """Test basic placeholder detection."""
+        docs = {
+            "test.md": """
+## Section 1
+This is real content.
+
+## Section 2
+TBD: This needs to be filled in.
+
+## Section 3
+TODO: Add more content here.
+"""
+        }
+        placeholders = detect_placeholders(docs)
+        
+        assert isinstance(placeholders, list), "Result should be a list"
+        # Note: placeholder detection depends on configured patterns, may or may not detect all patterns
+    
+    @pytest.mark.unit
+    def test_detect_placeholders_no_placeholders(self):
+        """Test placeholder detection with no placeholders."""
+        docs = {
+            "test.md": """
+## Section 1
+This is complete content.
+
+## Section 2
+More complete content here.
+"""
+        }
+        placeholders = detect_placeholders(docs)
+        
+        assert isinstance(placeholders, list), "Result should be a list"
+        # Should have no or minimal placeholders
+    
+    @pytest.mark.integration
+    def test_analyze_documentation_basic(self, demo_project_root, test_config_path):
+        """Test basic documentation analysis."""
+        import argparse
+        args = argparse.Namespace(files=None, overlap=False)
+        exit_code, result, payload = execute(
+            args,
+            project_root=Path(demo_project_root),
+            config_path=test_config_path,
+        )
+        
+        assert isinstance(result, str), "Result should be a string"
+        assert len(result) > 0, "Result should have content"
+        assert isinstance(payload, dict), "Payload should be a dictionary"
+        assert 'summary' in payload, "Payload should have summary (standard format)"
+        assert 'details' in payload, "Payload should have details (standard format)"
+        assert 'artifacts' in payload['details'], "Payload details should have artifacts"
+        assert 'duplicates' in payload['details'], "Payload details should have duplicates"
+        assert 'placeholders' in payload['details'], "Payload details should have placeholders"
+    
+    @pytest.mark.unit
+    def test_analyze_documentation_empty_project(self, tmp_path):
+        """Test analysis with empty project."""
+        import argparse
+        args = argparse.Namespace(files=None, overlap=False)
+        exit_code, result, payload = execute(args, project_root=Path(tmp_path))
+        
+        assert isinstance(result, str), "Result should be a string"
+        assert isinstance(payload, dict), "Payload should be a dictionary"
+        assert 'summary' in payload, "Payload should have summary (standard format)"
+        assert 'details' in payload, "Payload should have details (standard format)"
+        assert 'artifacts' in payload['details'], "Payload details should have artifacts"
+    
+    @pytest.mark.unit
+    def test_extract_sections_custom_patterns(self):
+        """Test section extraction with custom heading patterns."""
+        content = """
+# H1 Section
+Content
+
+### H3 Section
+More content
+"""
+        sections = extract_sections(content, heading_patterns=['# ', '### '])
+        
+        assert isinstance(sections, dict), "Result should be a dictionary"
+        # Should extract sections based on custom patterns
+    
+    @pytest.mark.unit
+    def test_detect_placeholders_various_patterns(self):
+        """Test placeholder detection with various placeholder patterns."""
+        docs = {
+            "test.md": """
+TBD: To be determined
+TODO: To do
+[insert content here]
+to be filled: placeholder
+"""
+        }
+        placeholders = detect_placeholders(docs)
+        
+        assert isinstance(placeholders, list), "Result should be a list"
+        # Should detect various placeholder patterns
+
+    @pytest.mark.unit
+    def test_detect_placeholders_ignores_todo_md_and_sync_todo(self):
+        """References to TODO.md / sync-todo are process docs, not holes."""
+        docs = {
+            "README.md": "See [TODO.md](TODO.md) and `TODO.md` for open work.\n",
+            "guide.md": "Run sync-todo then TODO sync after the changelog.\n",
+        }
+        assert detect_placeholders(docs) == []
+
+    @pytest.mark.unit
+    def test_detect_placeholders_still_flags_todo_colon(self):
+        """Incomplete TODO: markers remain placeholder hits."""
+        docs = {"guide.md": "TODO: fill in this section before publish.\n"}
+        hits = detect_placeholders(docs)
+        assert hits
+        assert hits[0]["file"] == "guide.md"
+
+    @pytest.mark.unit
+    def test_detect_placeholders_ignores_code_fences_and_changelogs(self):
+        """Example TODO: in fences/changelogs is documentation, not a hole."""
+        docs = {
+            "logs/LOGGING_GUIDE.md": (
+                "Use this template:\n"
+                "```python\n"
+                "# TODO: Remove after [specific condition]\n"
+                "```\n"
+            ),
+            "development_docs/CHANGELOG_DETAIL.md": (
+                "- TODO: Moved headless issues from Low to Medium.\n"
+            ),
+            "ai_development_docs/AI_CHANGELOG.md": "Placeholder TODO now means `TODO:`.\n",
+        }
+        assert detect_placeholders(docs) == []
+
+    @pytest.mark.unit
+    def test_analyse_topics_groups_by_keyword(self):
+        docs = {
+            "a.md": "## X\npytest and coverage are used in the test suite.",
+            "b.md": "## Y\narchitecture overview of modules.",
+        }
+        topics = analyse_topics(docs)
+        assert "Testing" in topics
+        assert "a.md" in topics["Testing"]
+        assert "Architecture" in topics
+        assert "b.md" in topics["Architecture"]
+
+    @pytest.mark.unit
+    def test_detect_corrupted_artifacts_finds_replacement_and_triple_question(self):
+        docs = {
+            "bad.md": "Line one has \ufffd bad data.\nAnother ??? line.\n",
+        }
+        issues = detect_corrupted_artifacts(docs)
+        labels = {i["pattern"] for i in issues}
+        assert "replacement_character" in labels
+        assert "triple_question_marks" in labels
+
+    @pytest.mark.unit
+    def test_document_profiles_lists_sections_and_lengths(self):
+        docs = {
+            "z.md": "## One\nbody\n## Two\nmore",
+        }
+        lines = document_profiles(docs)
+        assert any("z.md" in line for line in lines)
+        assert any("Sections:" in line for line in lines)
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_flags_substantial_duplicate_section(self):
+        """Same section name in two unpaired files with enough content -> overlap."""
+        docs = {
+            "notes_a.md": "## SharedTopic\n" + ("x" * 60),
+            "notes_b.md": "## SharedTopic\n" + ("y" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "SharedTopic" in overlaps
+        assert set(overlaps["SharedTopic"]) == {"notes_a.md", "notes_b.md"}
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_generic_headings(self):
+        """Numbered '1. Purpose and Scope'-style titles match EXPECTED_OVERLAPS and are skipped."""
+        body = "x" * 60
+        docs = {
+            "a.md": f"## 1. Purpose and Scope\n{body}\n",
+            "b.md": f"## 1. Purpose and Scope\n{body}\n",
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "1. Purpose and Scope" not in overlaps
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_quick_start(self):
+        docs = {
+            "t.md": "## 1. Quick Start\n" + ("y" * 60),
+            "u.md": "## 1. Quick Start\n" + ("z" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "1. Quick Start" not in overlaps
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_related_docs_heading(self):
+        docs = {
+            "alpha.md": "## 2. Related Docs\n" + ("a" * 60),
+            "beta.md": "## 2. Related Docs\n" + ("b" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "2. Related Docs" not in overlaps
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_discord_spec_boilerplate(self):
+        """Spec templates share Out of scope / checklist / related-doc headings."""
+        body = "x" * 60
+        docs = {
+            "specs/discord-a.md": (
+                f"## Out of scope\n{body}\n"
+                f"## Manual test checklist\n{body}\n"
+                f"## Related documentation\n{body}\n"
+            ),
+            "specs/discord-b.md": (
+                f"## Out of scope\n{body}\n"
+                f"## Manual test checklist\n{body}\n"
+                f"## Related documentation\n{body}\n"
+            ),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "Out of scope" not in overlaps
+        assert "Manual test checklist" not in overlaps
+        assert "Related documentation" not in overlaps
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_troubleshooting(self):
+        body = "z" * 60
+        docs = {
+            "a.md": f"## 3. Troubleshooting\n{body}\n",
+            "b.md": f"## 3. Troubleshooting\n{body}\n",
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "3. Troubleshooting" not in overlaps
+
+    @pytest.mark.unit
+    def test_consolidation_workflow_narrows_to_workflow_paths(self):
+        """Generic *guide* filenames without workflow signals are not lumped into Development Workflow."""
+        docs = {
+            "ai_development_docs/AI_UI_GUIDE.md": "# UI\n" + "x" * 120,
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": "# W\n" + "z" * 120,
+            "development_docs/DEVELOPMENT_WORKFLOW.md": "# W2\n" + "y" * 120,
+        }
+        recs = generate_consolidation_recommendations(docs)
+        wf = next((r for r in recs if r["category"] == "Development Workflow"), None)
+        assert wf is not None
+        assert set(wf["files"]) == {
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+            "development_docs/DEVELOPMENT_WORKFLOW.md",
+        }
+
+    @pytest.mark.unit
+    def test_consolidation_testing_requires_testing_marker_in_path(self):
+        """Testing bucket uses 'testing' / test-plan markers so generic guides are excluded."""
+        docs = {
+            "development_docs/HOW_TO_RUN.md": "body " * 80,
+            "ai_development_docs/AI_TESTING_GUIDE.md": "body " * 80,
+            "tests/FEATURE_TESTING_GUIDE.md": "body " * 80,
+        }
+        recs = generate_consolidation_recommendations(docs)
+        tr = next((r for r in recs if r["category"] == "Testing"), None)
+        assert tr is not None
+        assert set(tr["files"]) == {
+            "ai_development_docs/AI_TESTING_GUIDE.md",
+            "tests/FEATURE_TESTING_GUIDE.md",
+        }
+
+    @pytest.mark.unit
+    def test_consolidation_skips_expected_workflow_paired_docs(self):
+        """Configured paired docs are not consolidation debt by themselves."""
+        docs = {
+            "DEVELOPMENT_WORKFLOW.md": "# Workflow\n" + "human " * 80,
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": "# Workflow\n" + "ai " * 80,
+        }
+
+        _paired = {"DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"}
+        with patch.object(docs_module, "PAIRED_DOCS", _paired):
+            recs = generate_consolidation_recommendations(docs)
+
+        assert not any(r["category"] == "Development Workflow" for r in recs)
+
+    @pytest.mark.unit
+    def test_consolidation_skips_specialized_testing_guides_and_paired_docs(self):
+        """Manual, dev-tools, and AI testing guides have separate audiences."""
+        docs = {
+            "ai_development_docs/AI_TESTING_GUIDE.md": "body " * 80,
+            "tests/TESTING_GUIDE.md": "body " * 80,
+            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": "body " * 80,
+            "tests/MANUAL_TESTING_GUIDE.md": "body " * 80,
+            "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md": "body " * 80,
+        }
+
+        _paired = {"tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md"}
+        with patch.object(docs_module, "PAIRED_DOCS", _paired):
+            recs = generate_consolidation_recommendations(docs)
+
+        assert not any(r["category"] == "Testing" for r in recs)
+

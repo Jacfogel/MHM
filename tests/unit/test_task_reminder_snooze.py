@@ -107,23 +107,37 @@ class TestResolveSnoozeUntil:
 @pytest.mark.tasks
 class TestSnoozeTaskReminder:
     @pytest.mark.parametrize("scheduler_available", [False, True])
-    def test_scheduling_failure_is_reported(self, scheduler_available):
-        task = {"id": "task-1", "title": "Dentist", "status": "active"}
+    def test_scheduling_failure_is_reported(self, scheduler_available, test_data_dir):
+        from tasks import create_task, get_task_by_id
+
+        user_id = "snooze_schedule_failure"
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id, title="Dentist", due_date="2026-10-23")
         scheduler = MagicMock() if scheduler_available else None
         if scheduler is not None:
             scheduler.schedule_task_reminder_at_datetime.return_value = False
-        with (
-            patch("tasks.task_data_manager.get_task_by_id", return_value=task),
-            patch("tasks.task_data_manager.update_task", return_value=True),
-            patch("scheduler.runtime_access.get_scheduler_manager", return_value=scheduler),
+        with patch(
+            "scheduler.runtime_access.get_scheduler_manager", return_value=scheduler
         ):
             result = snooze_task_reminder(
-                "user-1", "task-1", "1_hour", now_dt=datetime(2026, 10, 22, 10, 0, 30)
+                user_id, task_id, "1_hour", now_dt=datetime(2026, 10, 22, 10, 0, 30)
             )
         assert not result.success
-        assert "saved the snooze" in result.message
+        assert "saved the snooze until 2026-10-22 11:00:30" in result.message
         assert "could not schedule" in result.message
         assert "Set a separate reminder" in result.message
+        task = get_task_by_id(user_id, task_id)
+        assert runtime_task_due_date(task) == "2026-10-23"
+        assert task["reminder_snooze_until"] == "2026-10-22 11:00:30"
+        assert task["reminder_deferrals"] == [
+            {
+                "action": "snooze",
+                "at": "2026-10-22 10:00:30",
+                "until": "2026-10-22 11:00:30",
+            }
+        ]
 
     def test_snooze_schedules_the_full_saved_timestamp(self):
         task = {"id": "task-1", "title": "Dentist", "status": "active"}

@@ -85,7 +85,7 @@ Paired docs = heading/content sync. Version-sync lists = version/date metadata. 
 | **Dev-tools base/context/generated exclusions** | config `exclusions.*` merged via `get_exclusions()`; portable defaults in `development_tools/shared/standard_exclusions.py` | Live/example omit full `base_exclusions`; use `base_exclusions_additions` / `base_exclusions_removals` for project deltas |
 | **Ruff exclude** | Generated from standard_exclusions + config via `development_tools/config/sync_ruff_toml.py` | Do not hand-edit `.ruff.toml` or `development_tools/config/ruff.toml` |
 | **Pyright exclude** | Root `pyproject.toml` `[tool.pyright]` only | |
-| **Pytest collection ignores** | Host: `pytest.ini` `--ignore=tests/development_tools` plus `tests/conftest.py` `collect_ignore`. Tools: `development_tools/pytest.ini` via `development_tools/tests/pytest_isolation.py` | Do not collect tools tests under the host conftest |
+| **Pytest collection ignores** | Host: `pytest.ini` `--ignore=development_tools/tool_tests` plus `tests/conftest.py` `collect_ignore`. Tools: `development_tools/pytest.ini` via `development_tools/tests/pytest_isolation.py` | Do not collect tools tests under the host conftest |
 | **Coverage omit** | `development_tools/tests/coverage.ini`, `development_tools/tests/coverage_dev_tools.ini` | Per coverage run |
 | **.gitignore / .cursorignore** | Those files | Different tools; no single "ignore" SSOT |
 

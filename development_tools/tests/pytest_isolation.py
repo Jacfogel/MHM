@@ -10,13 +10,20 @@ from __future__ import annotations
 from pathlib import Path
 
 DEFAULT_TOOLS_PYTEST_INI = "development_tools/pytest.ini"
-DEFAULT_TOOLS_CONFCUTDIR = "tests/development_tools"
-DEFAULT_TOOLS_TEST_PATHS = ["tests/development_tools"]
+DEFAULT_TOOLS_CONFCUTDIR = "development_tools/tool_tests"
+DEFAULT_TOOLS_TEST_PATHS = [DEFAULT_TOOLS_CONFCUTDIR]
 
 
 def normalize_rel(path: str) -> str:
     """Return a forward-slash relative path without a trailing slash."""
     return str(path).replace("\\", "/").strip().rstrip("/")
+
+
+def migrate_tools_test_root(path: str) -> str:
+    """Resolve the former built-in suite root in existing local configuration."""
+    if normalize_rel(path) == "tests/development_tools":
+        return DEFAULT_TOOLS_CONFCUTDIR
+    return path
 
 
 def is_tools_test_path(path: str, tools_roots: list[str] | None = None) -> bool:
@@ -76,9 +83,9 @@ def partition_test_paths(
 ) -> tuple[list[str], list[str]]:
     """Split requested pytest paths into (host_paths, tools_paths).
 
-    A host path that *contains* a tools root (for example ``tests`` containing
-    ``tests/development_tools``) stays in the host list; the tools roots are
-    also scheduled as a second invocation.
+    A host path that contains a tools root also schedules the tools invocation.
+    The repository's historical whole-suite selection, ``tests``, still includes
+    the relocated built-in tools suite.
     """
     if not tools_roots:
         return list(paths), []
@@ -91,7 +98,9 @@ def partition_test_paths(
             tools.append(raw)
             continue
         host.append(raw)
-        if path_contains_tools_root(raw, tools_roots):
+        if path_contains_tools_root(raw, tools_roots) or (
+            normalize_rel(raw) == "tests" and tools_roots == DEFAULT_TOOLS_TEST_PATHS
+        ):
             need_default_tools = True
     if need_default_tools:
         for root in tools_roots:

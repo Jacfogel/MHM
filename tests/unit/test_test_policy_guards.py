@@ -13,6 +13,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.user, pytest.mark.slow]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = PROJECT_ROOT / "tests"
+TOOLS_TESTS_ROOT = PROJECT_ROOT / "development_tools" / "tool_tests"
 CATEGORY_MARKERS = {"unit", "integration", "behavior", "ui"}
 TEMPFILE_CALLS_REQUIRING_DIR = {
     "mkdtemp",
@@ -24,9 +25,9 @@ DATETIME_NOW_ALLOWED_FILES = {
     "tests/conftest.py",
     "tests/conftest_hooks.py",
     "tests/test_helpers/test_support/conftest_hooks.py",
-    "tests/development_tools/conftest.py",
-    "tests/development_tools/test_changelog_trim_tooling.py",
-    "tests/development_tools/test_supporting_tools.py",
+    "development_tools/tool_tests/conftest.py",
+    "development_tools/tool_tests/test_changelog_trim_tooling.py",
+    "development_tools/tool_tests/test_supporting_tools.py",
     "tests/behavior/test_interaction_handlers_coverage_expansion.py",
 }
 PRODUCTION_LOG_REFERENCE_ALLOWED_FILES = {
@@ -63,13 +64,14 @@ NO_PARALLEL_REASON_ALLOWED_FILES = {
 
 
 def _iter_test_python_files():
-    for path in TESTS_ROOT.rglob("*.py"):
-        normalized = path.as_posix()
-        if "/tests/data/" in normalized or "/tests/fixtures/" in normalized:
-            continue
-        if normalized.endswith("/__init__.py"):
-            continue
-        yield path
+    for root in (TESTS_ROOT, TOOLS_TESTS_ROOT):
+        for path in root.rglob("*.py"):
+            normalized = path.as_posix()
+            if "/tests/data/" in normalized or "/tests/fixtures/" in normalized:
+                continue
+            if path.name == "__init__.py":
+                continue
+            yield path
 
 
 def test_run_tests_isolates_environment_before_core_imports():

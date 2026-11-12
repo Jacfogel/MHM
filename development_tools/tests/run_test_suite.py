@@ -85,6 +85,14 @@ class PhaseResult:
     output_tail: str
     junit_xml: str
     interrupted: bool = False
+    junit_reports: tuple[str, ...] = ()
+
+    def results_by_test_file(self) -> dict[str, dict[str, Any]]:
+        """Read every pytest report that contributed to this phase."""
+        results: dict[str, dict[str, Any]] = {}
+        for report in self.junit_reports or (self.junit_xml,):
+            results.update(_parse_junit_by_test_file(Path(report)))
+        return results
 
     @property
     def classification(self) -> str:
@@ -568,6 +576,7 @@ def _merge_phase_results(name: str, parts: list[PhaseResult]) -> PhaseResult:
             output_tail=only.output_tail,
             junit_xml=only.junit_xml,
             interrupted=only.interrupted,
+            junit_reports=only.junit_reports,
         )
     commands: list[str] = []
     for part in parts:
@@ -579,6 +588,10 @@ def _merge_phase_results(name: str, parts: list[PhaseResult]) -> PhaseResult:
     failed: list[str] = []
     for part in parts:
         failed.extend(part.failed_node_ids)
+    diagnostic_part = next(
+        (part for part in parts if part.classification in {"failed", "crashed"}),
+        parts[0],
+    )
     return PhaseResult(
         name=name,
         command=commands,
@@ -587,8 +600,11 @@ def _merge_phase_results(name: str, parts: list[PhaseResult]) -> PhaseResult:
         counts=_merge_counts(*(part.counts for part in parts)),
         failed_node_ids=sorted(set(failed)),
         output_tail="\n".join(tails),
-        junit_xml=parts[0].junit_xml,
+        junit_xml=diagnostic_part.junit_xml,
         interrupted=any(part.interrupted for part in parts),
+        junit_reports=tuple(
+            report for part in parts for report in (part.junit_reports or (part.junit_xml,))
+        ),
     )
 
 
@@ -629,7 +645,7 @@ def _tools_isolation_args(cfg: dict[str, Any], tools_roots: list[str]) -> list[s
     if tools_suite_pytest_args is None:
         return []
     pytest_ini = str(cfg.get("devtools_pytest_config") or "development_tools/pytest.ini")
-    confcutdir = str(cfg.get("devtools_confcutdir") or (tools_roots[0] if tools_roots else "tests/development_tools"))
+    confcutdir = str(cfg.get("devtools_confcutdir") or (tools_roots[0] if tools_roots else "development_tools/tool_tests"))
     return tools_suite_pytest_args(pytest_ini=pytest_ini, confcutdir=confcutdir)
 
 
@@ -998,7 +1014,7 @@ def _merge_phase_with_cache(
     phase_key: str,
 ) -> PhaseResult:
     """Merge cached counts without erasing fresh process diagnostics."""
-    fresh_by_file = _parse_junit_by_test_file(Path(phase.junit_xml))
+    fresh_by_file = phase.results_by_test_file()
     merged_counts: dict[str, int] = {}
     merged_failed: list[str] = []
     seen_files = set(cached_by_file.keys()) | set(fresh_by_file.keys())
@@ -1024,6 +1040,7 @@ def _merge_phase_with_cache(
         output_tail=phase.output_tail,
         junit_xml=phase.junit_xml,
         interrupted=phase.interrupted,
+        junit_reports=phase.junit_reports,
     )
 
 
@@ -1175,9 +1192,9 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                 and not _STOP_REQUESTED
                 and _should_write_suite_cache(phases)
             ):
-                parallel_by_file = _parse_junit_by_test_file(Path(parallel_phase.junit_xml))
+                parallel_by_file = parallel_phase.results_by_test_file()
                 no_parallel_by_file = (
-                    _parse_junit_by_test_file(Path(phases[-1].junit_xml))
+                    phases[-1].results_by_test_file()
                     if len(phases) > 1
                     else {}
                 )

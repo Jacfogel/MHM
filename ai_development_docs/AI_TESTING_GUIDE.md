@@ -42,7 +42,7 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/communication/` - communication subsystem tests.
 - `tests/notebook/` - notebook subsystem tests.
 - `tests/ai/` - AI-focused pytest tests and the dedicated AI functionality suite.
-- `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools). Run with `-c development_tools/pytest.ini` (host `pytest.ini` ignores this directory).
+- `development_tools/tool_tests/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools). Run with `-c development_tools/pytest.ini` (host `pytest.ini` ignores this directory).
 - `tests/test_helpers/` - test utilities and support (not test categories). Contains `test_utilities/` (factories: TestUserFactory, TestDataFactory, env helpers) and `test_support/` (conftest plugins, standalone helpers like wait_until). Import from `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support` (or `tests.test_helpers` for convenience).
 - `tests/conftest.py` - fixtures, hooks, and global configuration (root). Plugin modules live under `tests/test_helpers/test_support/` (conftest_env, conftest_mocks, conftest_cleanup, conftest_logging, conftest_user_data, conftest_hooks) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_helpers/test_support/conftest_logging_impl.py`; cleanup in `tests/test_helpers/test_support/conftest_cleanup_impl.py`.
 
@@ -58,7 +58,7 @@ When adding a test:
 - Pure logic -> `tests/unit/`.
 - Multi-module or service flows -> `tests/integration/` or `tests/behavior/`.
 - UI dialogs or widgets -> `tests/ui/`.
-- Development tools or infrastructure -> `tests/development_tools/`.
+- Development tools or infrastructure -> `development_tools/tool_tests/`.
   - CLI routing tests stay lightweight by mocking `AIToolsService` (no subprocesses).
   - Permission/error scenarios are simulated via monkeypatching so results are identical on Windows/Linux.
 
@@ -163,7 +163,7 @@ Preferred commands (via `run_tests.py`):
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run full `tests/` tree (includes `tests/development_tools/` and other test dirs):
+- Run full `tests/` tree (includes `development_tools/tool_tests/` and other test dirs):
 
   ```bash
   python run_tests.py --mode all --full
@@ -238,7 +238,7 @@ Parallel execution:
 
 - Expected default: tests run in parallel using `pytest-xdist` with `--dist=loadscope` (fixture-heavy modules stay on one worker).
 - Auto worker count: up to 6 workers (`cpu_count // 2`, minimum 2).
-- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the full `tests/` tree (including `tests/development_tools/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
+- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the full `tests/` tree (including `development_tools/tool_tests/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). Scheduled in `.github/workflows/nightly-tests.yml`. POSIX pytest-timeout uses `signal` so hung tests abort at 300s; Windows keeps `thread`.
 - **Website browser suite**: The `no_parallel` pytest bridge runs every `website/*.test.mjs` file under Node.js, so the default runner, Tier 3/full audit, and nightly suite all enforce the same browser tests.
 - The separate `coverage` command runs pytest again with coverage collection; that is additional time beyond Tier 3 test-suite execution.
@@ -290,10 +290,10 @@ Keep markers aligned with section 6.2. "Marker standards" in [TESTING_GUIDE.md](
 
 **Category (required - exactly one):** `unit`, `integration`, `behavior`, `ui` - suite layer.
 
-**Domain (required - at least one on non-exempt tests):** top-level product packages - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`. Dev-tools tests under `tests/development_tools/` use domain marker `development_tools` (registered in `pytest.ini`).
+**Domain (required - at least one on non-exempt tests):** top-level product packages - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`. Dev-tools tests under `development_tools/tool_tests/` use domain marker `development_tools` (registered in `pytest.ini`).
 
 - **Source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json` (derived into `test_markers.domain_markers`).
-- **Exempt:** `tests/development_tools/` (no domain mark); `tests/ai/` (excluded from scans).
+- **Exempt:** `development_tools/tool_tests/` (no domain mark); `tests/ai/` (excluded from scans).
 - **`ui` collision:** in `tests/ui/`, one `@pytest.mark.ui` covers category + domain; elsewhere use category + `@pytest.mark.ui` when testing the `ui/` package.
 - **`user` domain:** use `@pytest.mark.user` (not `user_management`). Legacy `user_management` is not a domain marker.
 

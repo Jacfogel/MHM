@@ -19,6 +19,7 @@ import configparser
 import ast
 from collections import Counter
 from datetime import datetime
+from itertools import chain
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,7 @@ if str(project_root) not in sys.path:
 
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
+from development_tools.tests.pytest_isolation import DEFAULT_TOOLS_TEST_PATHS
 
 # Import config module (absolute import for portability)
 try:
@@ -330,11 +332,9 @@ class TestCoverageReportGenerator:
         """Count marker usage across discovered test functions/methods."""
         marker_counter: Counter = Counter()
         total_test_nodes = 0
-        tests_root = self.project_root / "tests"
-        if not tests_root.exists():
-            return marker_counter, total_test_nodes
-
-        for test_file in tests_root.rglob("test_*.py"):
+        roots = [self.project_root / "tests"]
+        roots.extend(self.project_root / path for path in DEFAULT_TOOLS_TEST_PATHS)
+        for test_file in chain.from_iterable(root.rglob("test_*.py") for root in roots):
             rel_path = str(test_file.relative_to(self.project_root)).replace("\\", "/")
             if should_exclude_file(rel_path, tool_type="coverage", context="development"):
                 continue

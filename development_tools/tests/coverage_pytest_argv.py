@@ -41,16 +41,15 @@ def partition_coverage_pytest_paths(
 ) -> CoveragePytestPathSplit:
     """Split a coverage pytest selection into host and development-tools paths.
 
-    ``tests/development_tools/`` loads a conftest that refuses the host
+    ``development_tools/tool_tests/`` loads a conftest that refuses the host
     pytest.ini. Those paths must be a second pytest process started with
     ``development_tools/pytest.ini``. An empty filter means the whole default
     tree, so the host command collects that tree and ignores the tools root.
     """
     roots = [str(root) for root in (tools_roots or DEFAULT_TOOLS_TEST_PATHS) if str(root).strip()]
     if not test_filter_args:
-        if roots and path_contains_tools_root(default_test_path, roots):
-            return CoveragePytestPathSplit([], list(roots), host_ignore_args(roots), True)
-        return CoveragePytestPathSplit([], [], [], True)
+        _, tools_paths = partition_test_paths([default_test_path], roots)
+        return CoveragePytestPathSplit([], tools_paths, host_ignore_args(tools_paths), True)
 
     host_paths, tools_paths = partition_test_paths(list(test_filter_args), roots)
     ignore = (
@@ -234,7 +233,7 @@ def build_dev_tools_coverage_pytest_cmd(
     coverage_json_output: Path,
     coverage_config_path: Path,
     maxfail: int = 10,
-    test_path: str = "tests/development_tools/",
+    test_path: str = "development_tools/tool_tests/",
 ) -> list[str]:
     """Build the development_tools-only coverage pytest command."""
     cmd: list[str] = [

@@ -128,7 +128,7 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 **Follow-up rules**:
 - [ ] If worker loss recurs with normal loopback access, capture the active node and worker diagnostics before changing assertions or widening concurrency.
 - [ ] Treat shared log/temp-path failures as harness-isolation issues first.
-- [ ] Revisit `tests/development_tools/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
+- [ ] Revisit `development_tools/tool_tests/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
 - [ ] Keep each new suspect's node, observation date, reproducer, execution mode, and hypothesis; close stale entries with evidence.
 
 ---

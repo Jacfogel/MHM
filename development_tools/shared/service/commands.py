@@ -640,7 +640,7 @@ class CommandsMixin:
         dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
         dev_tools_patterns = [
             "development_tools/**/*.py",
-            "tests/development_tools/**/*.py",
+            "development_tools/tool_tests/**/*.py",
         ]
         if self._is_coverage_file_fresh(
             dev_tools_coverage_file,

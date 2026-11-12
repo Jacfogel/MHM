@@ -747,11 +747,22 @@ def get_test_run_config(profile: str | None = None) -> dict[str, Any]:
     tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
     if not result.get("test_paths"):
         result["test_paths"] = [tests_dir]
-    tools_rel = f"{tests_dir}/development_tools"
+    from development_tools.tests.pytest_isolation import (
+        DEFAULT_TOOLS_CONFCUTDIR,
+        migrate_tools_test_root,
+    )
+
+    tools_rel = DEFAULT_TOOLS_CONFCUTDIR
     if result.get("devtools_test_paths") is None:
         result["devtools_test_paths"] = [tools_rel]
+    elif isinstance(result["devtools_test_paths"], list):
+        result["devtools_test_paths"] = [
+            migrate_tools_test_root(path) for path in result["devtools_test_paths"]
+        ]
     if not result.get("devtools_confcutdir"):
         result["devtools_confcutdir"] = tools_rel
+    else:
+        result["devtools_confcutdir"] = migrate_tools_test_root(result["devtools_confcutdir"])
     profile_name = str(profile or result.get("default_profile") or "quick").strip().lower()
     profiles = result.get("profiles")
     if not isinstance(profiles, dict):
@@ -1798,5 +1809,13 @@ def get_domain_mapper_config():
         for key in ("source_to_test_mapping", "domain_dependencies", "keyword_map"):
             if key in external_config and isinstance(external_config[key], dict):
                 result[key].update(external_config[key])
+        tools_mapping = result["source_to_test_mapping"].get("development_tools")
+        if isinstance(tools_mapping, (list, tuple)) and len(tools_mapping) == 2:
+            from development_tools.tests.pytest_isolation import migrate_tools_test_root
+
+            dirs, markers = tools_mapping
+            result["source_to_test_mapping"]["development_tools"] = [
+                [migrate_tools_test_root(path) for path in (dirs or [])], markers
+            ]
         return _augment_domain_mapper_from_local_prefixes(result)
     return _augment_domain_mapper_from_local_prefixes(DOMAIN_MAPPER_DEFAULTS.copy())

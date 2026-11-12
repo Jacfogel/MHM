@@ -1646,46 +1646,39 @@ class TestSelectTaskForReminderBehavior:
 
     @pytest.mark.behavior
     def test_select_task_for_reminder_due_today_weighting_real_behavior(
-        self, scheduler_manager
+        self, scheduler_manager, monkeypatch
     ):
         """Test due date proximity weighting for tasks due today."""
-        today_date = now_datetime_full().date()
+        from scheduler import task_reminders
 
-        today = format_timestamp(
-            datetime.combine(today_date, datetime.min.time()), DATE_ONLY
-        )
-        future_date_obj = now_datetime_full().date() + timedelta(days=30)
-
-        future_date = format_timestamp(
-            datetime.combine(future_date_obj, datetime.min.time()), DATE_ONLY
-        )
+        now = datetime(2026, 11, 12, 10)
+        monkeypatch.setattr(task_reminders, "now_datetime_full", lambda: now)
 
         tasks = [
             {
                 "id": "task1",
                 "title": "Due Today",
                 "priority": "medium",
-                "due": {"date": today},
+                "due": {"date": format_timestamp(now, DATE_ONLY)},
             },
             {
                 "id": "task2",
                 "title": "Due Later",
                 "priority": "medium",
-                "due": {"date": future_date},
+                "due": {"date": format_timestamp(now + timedelta(days=30), DATE_ONLY)},
             },
         ]
 
-        # Test multiple times to verify due today weighting
-        results = []
-        for _ in range(50):
-            result = scheduler_manager.select_task_for_reminder(tasks)
-            results.append(result["title"])
-
-        # Due today task should be selected more often (2.5x weight vs 0.8x weight)
-        due_today_count = results.count("Due Today")
-        due_later_count = results.count("Due Later")
-
-        assert due_today_count > due_later_count
+        # With equal weights, a 60% draw would select the second task.
+        # The due-today weight extends the first task's share past that draw.
+        draws = iter((0.6, 0.9))
+        monkeypatch.setattr(
+            task_reminders.random,
+            "uniform",
+            lambda low, high: low + (high - low) * next(draws),
+        )
+        assert scheduler_manager.select_task_for_reminder(tasks) == tasks[0]
+        assert scheduler_manager.select_task_for_reminder(tasks) == tasks[1]
 
     @pytest.mark.behavior
     def test_select_task_for_reminder_overdue_weighting_real_behavior(

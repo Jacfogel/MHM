@@ -63,6 +63,7 @@ except ImportError:
     logger = None
 
 from .domain_mapper import DomainMapper
+from .pytest_isolation import DEFAULT_TOOLS_TEST_PATHS
 from development_tools.shared.mtime_cache import hash_file_sha256, resolve_config_identity
 from development_tools.shared.time_helpers import (
     now_timestamp_full,
@@ -334,29 +335,27 @@ class TestFileCoverageCache:
 
     def _iter_test_files(self) -> Iterable[Path]:
         """Iterate test files while tolerating transient ACL/path errors."""
-        if not self.test_root.exists():
-            return
-
         def _on_walk_error(_error):
             # Ignore inaccessible folders so cache bookkeeping remains best-effort.
             return
 
-        for root, dirs, files in os.walk(
-            self.test_root, topdown=True, onerror=_on_walk_error
-        ):
-            root_path = Path(root)
-            dirs[:] = [
-                dirname
-                for dirname in dirs
-                if not self._is_excluded_test_path(root_path / dirname)
-            ]
+        roots = [self.test_root]
+        roots.extend(self.project_root / path for path in DEFAULT_TOOLS_TEST_PATHS)
+        for test_root in roots:
+            for root, dirs, files in os.walk(test_root, onerror=_on_walk_error):
+                root_path = Path(root)
+                dirs[:] = [
+                    dirname
+                    for dirname in dirs
+                    if not self._is_excluded_test_path(root_path / dirname)
+                ]
 
-            for filename in files:
-                if not filename.startswith("test_") or not filename.endswith(".py"):
-                    continue
-                test_file = root_path / filename
-                if self.is_valid_test_file(test_file):
-                    yield test_file
+                for filename in files:
+                    if not filename.startswith("test_") or not filename.endswith(".py"):
+                        continue
+                    test_file = root_path / filename
+                    if self.is_valid_test_file(test_file):
+                        yield test_file
 
     def _load_cache(self) -> None:
         """Load cache from disk with file locking for thread safety."""

@@ -1377,7 +1377,7 @@ class AIPrioritiesDocumentMixin:
                             f"Review HTML report at {dev_tools_insights['html']}"
                         )
                     dev_bullets.append(
-                        "Action: Strengthen tests in `tests/development_tools/` for fragile helpers and low-coverage modules"
+                        "Action: Strengthen tests in `development_tools/tool_tests/` for fragile helpers and low-coverage modules"
                     )
                     if dev_pct < 60:
                         dev_reason = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."

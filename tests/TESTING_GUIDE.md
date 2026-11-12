@@ -102,7 +102,7 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Verify signals/slots, validation behavior, and critical UI flows.
 - Avoid brittle pixel-perfect assertions; focus on behavior.
 
-**Development tools tests (`tests/development_tools/`)**
+**Development tools tests (`development_tools/tool_tests/`)**
 
 - Test development tools and infrastructure components.
 - Include sanity tests for configuration, exclusions, constants, and CLI runners.
@@ -130,7 +130,7 @@ When adding a new test:
 - If it exercises **pure logic** in one module, put it in `tests/unit/`.
 - If it involves **multiple modules** or services, use `tests/integration/` or `tests/behavior/` depending on scope.
 - If it tests **dialogs, widgets, or UI flows**, put it in `tests/ui/`.
-- If it tests **development tools** (configuration, CLI runners, tooling), put it in `tests/development_tools/`.
+- If it tests **development tools** (configuration, CLI runners, tooling), put it in `development_tools/tool_tests/`.
 
 If you are unsure, err toward **integration or behavior tests**. Isolated unit tests are useful, but they should support a real-behavior-first strategy instead of replacing it.
 
@@ -331,17 +331,17 @@ Common commands:
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run core suites plus `tests/development_tools/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
+- Run core suites plus `development_tools/tool_tests/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
 
   ```bash
   python run_tests.py --full
   ```
 
-- Run only development tools tests (`tests/development_tools/`):
+- Run only development tools tests (`development_tools/tool_tests/`):
 
   ```bash
   python run_tests.py --mode development_tools
-  python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/
+  python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/
   ```
 
 - Run only unit tests:
@@ -529,7 +529,7 @@ Guidelines:
 
 Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` with the same parallel/serial split. Differences from `run_tests.py`:
 
-- **Scope**: Tier 3 runs the host `tests/` tree and `tests/development_tools/` as **two pytest invocations** (tools tests use `development_tools/pytest.ini` so they do not load host `tests/conftest.py`), using the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
+- **Scope**: Tier 3 runs the host `tests/` tree and `development_tools/tool_tests/` as **two pytest invocations** (tools tests use `development_tools/pytest.ini` so they do not load host `tests/conftest.py`), using the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). GitHub Actions runs this daily via `.github/workflows/nightly-tests.yml`. POSIX runs use pytest-timeout's `signal` method so a hung test aborts at 300s instead of dumping stacks and sitting until the 60-minute phase budget. Windows keeps the `thread` method.
 - **Website browser suite**: `tests/integration/test_browser_javascript_suite.py` runs every `website/*.test.mjs` file through Node.js in the serial phase. This makes browser-test failures fail both `run_tests.py` and Tier 3/full-audit runs.
 - **Contention**: During `audit --full`, pytest runs concurrently with ruff, pyright, bandit, pip-audit, and legacy analysis. The Tier 3 runner caps workers at 4 to leave CPU headroom.
@@ -595,7 +595,7 @@ Every test function must have exactly one category marker (on the function, on t
 Describe the **product area** under test. Domain markers correspond to **top-level product packages** (directories with product code at the repo root):
 
 - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`
-- Dev-tools tests under `tests/development_tools/` use domain marker `development_tools` (registered in `pytest.ini`)
+- Dev-tools tests under `development_tools/tool_tests/` use domain marker `development_tools` (registered in `pytest.ini`)
 
 **Canonical source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json`. The analyzer derives the enforced marker list from that config (`test_markers.domain_markers`).
 
@@ -608,7 +608,7 @@ Rules:
 
 **Exempt paths** (domain marker not required):
 
-- `tests/development_tools/` - meta tooling tests (directory-only mapping in `domain_mapper`).
+- `development_tools/tool_tests/` - meta tooling tests (directory-only mapping in `domain_mapper`).
 - `tests/ai/` - excluded from domain-marker scans (manual AI quality tests; see `test_markers.ai_path_tokens`).
 
 #### 6.2.3. Optional quality, resource, and feature-slice markers
@@ -649,7 +649,7 @@ When you add a top-level product package `foo/`:
 5. Register the `foo` marker when marker registration is configured (`pytest.ini` or `[tool.pytest.ini_options]`).
 6. Mark tests with `@pytest.mark.<category>` + `@pytest.mark.foo`.
 
-Policy tests in `tests/development_tools/test_domain_mapper_product_packages.py` validate alignment between on-disk packages, `domain_mapper`, and coverage config.
+Policy tests in `development_tools/tool_tests/test_domain_mapper_product_packages.py` validate alignment between on-disk packages, `domain_mapper`, and coverage config.
 
 #### 6.2.6. Enforcement
 
@@ -787,13 +787,13 @@ End-to-end tests marked with `@pytest.mark.e2e` run real audits with actual tool
 
 ```bash
 # Run all E2E tests
-python -m pytest -c development_tools/pytest.ini -m e2e tests/development_tools/test_audit_tier_e2e_verification.py
+python -m pytest -c development_tools/pytest.ini -m e2e development_tools/tool_tests/test_audit_tier_e2e_verification.py
 
 # Run specific E2E test
-python -m pytest -c development_tools/pytest.ini -m e2e tests/development_tools/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
+python -m pytest -c development_tools/pytest.ini -m e2e development_tools/tool_tests/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
 
 # Run all tests including E2E (override default exclusion)
-python -m pytest -c development_tools/pytest.ini -m "" tests/development_tools/
+python -m pytest -c development_tools/pytest.ini -m "" development_tools/tool_tests/
 ```
 
 **When to use E2E tests**:
@@ -802,7 +802,7 @@ python -m pytest -c development_tools/pytest.ini -m "" tests/development_tools/
 - When investigating audit tier issues that don't appear in orchestration tests.
 - To verify actual tool output and correctness.
 
-**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `tests/development_tools/test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
+**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `development_tools/tool_tests/test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
 
 ---
 

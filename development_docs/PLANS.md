@@ -195,7 +195,6 @@ These plans should not be duplicated in detail here.
 **Still in this repo before a sibling-repo cut**:
 
 - Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
-- Move `tests/development_tools/` with the package (files still live under MHM `tests/` today; pytest config is already separate).
 - Keep generated-report paths config-driven (`development_docs/` / `ai_development_docs/` must not be hardcoded).
 - Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
 - Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.

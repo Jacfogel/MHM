@@ -38,7 +38,7 @@ Output: Standard JSON with summary (total_issues, files_affected) and details
 
 **Compliance (AI_DEVELOPMENT_TOOLS_GUIDE):** Paths and scan directories come from
 config (development_tools_config.json); no hardcoded project paths. Tools stay
-isolated from MHM business logic. Tool tests live under tests/development_tools/.
+isolated from MHM business logic. Tool tests live under development_tools/tool_tests/.
 """
 
 from __future__ import annotations

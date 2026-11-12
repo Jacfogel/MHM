@@ -17,6 +17,7 @@ from typing import Any
 
 from development_tools.shared.host_hooks import get_forbidden_host_import_prefixes
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.tests.pytest_isolation import is_tools_test_path
 
 try:
     from .. import config
@@ -51,6 +52,8 @@ class DevToolsImportBoundaryChecker:
         for py_file in self.dev_tools_root.rglob("*.py"):
             rel = py_file.relative_to(self.project_root)
             rel_str = str(rel).replace("\\", "/")
+            if is_tools_test_path(rel_str):
+                continue
             if should_exclude_file(rel_str, tool_type="analysis", context="development"):
                 continue
             results.append(py_file)

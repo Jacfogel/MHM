@@ -293,7 +293,7 @@
       ],
       "development_tools": [
         [
-          "tests/development_tools/"
+          "development_tools/tool_tests/"
         ],
         []
       ]

@@ -130,7 +130,7 @@ config.load_external_config()
 
 logger = get_dev_tools_logger("development_tools")
 
-_DEV_TOOLS_TEST_POSIX_PREFIX = "tests/development_tools/"
+_DEV_TOOLS_TEST_POSIX_PREFIX = "development_tools/tool_tests/"
 
 
 class CoverageMetricsRegenerator:
@@ -1014,7 +1014,7 @@ class CoverageMetricsRegenerator:
                     str(tf.relative_to(self.project_root)) for tf in test_files_to_run
                 ]
 
-        # Host pytest must not collect tests/development_tools/. That conftest
+        # Host pytest must not collect development_tools/tool_tests/. That conftest
         # requires development_tools/pytest.ini, so those tests run in a second
         # process and their coverage data is combined into coverage.json.
 
@@ -1806,12 +1806,9 @@ class CoverageMetricsRegenerator:
                         )
                     if is_full_run:
                         # Full run - update domain mappings for all test files
-                        test_root = self.project_root / "tests"
-                        all_test_files = [
-                            tf
-                            for tf in test_root.rglob("test_*.py")
-                            if self.test_file_cache.is_valid_test_file(tf)
-                        ]
+                        all_test_files = self.test_file_cache.get_test_files_to_run(
+                            all_mapped_domains
+                        )
                         for test_file in all_test_files:
                             self.test_file_cache.update_test_file_mapping(
                                 test_file, reload_cache=False, save_cache=False
@@ -3846,7 +3843,7 @@ class CoverageMetricsRegenerator:
                 coverage_json_output=coverage_output_abs,
                 coverage_config_path=dev_cov_config,
                 maxfail=10,
-                test_path="tests/development_tools/",
+                test_path="development_tools/tool_tests/",
             )
             if self.parallel and logger:
                 logger.info(
@@ -4524,7 +4521,7 @@ class CoverageMetricsRegenerator:
             logger.error(f"Check log for details: {log_file}")
 
     def _dev_tools_test_path_predicate(self, node_id: str) -> bool:
-        """True when a pytest node id refers to tests under tests/development_tools/."""
+        """True when a pytest node id refers to tests under development_tools/tool_tests/."""
         raw = node_id.replace("\\", "/")
         return raw.startswith(_DEV_TOOLS_TEST_POSIX_PREFIX)
 
@@ -4535,7 +4532,7 @@ class CoverageMetricsRegenerator:
         parallel_outcome: dict[str, Any],
         no_parallel_outcome: dict[str, Any],
     ) -> dict[str, Any]:
-        """Tier 3 dev-tools track derived from failures under tests/development_tools/ only."""
+        """Tier 3 dev-tools track derived from failures under development_tools/tool_tests/ only."""
 
         def pick_logs() -> tuple[str | None, str | None]:
             p_log = parallel_outcome.get("log_file")
@@ -4571,7 +4568,7 @@ class CoverageMetricsRegenerator:
         if failed_node_ids:
             classification_reason = "pytest_failed_or_errored"
             actionable = (
-                "One or more tests under tests/development_tools/ failed or errored "
+                "One or more tests under development_tools/tool_tests/ failed or errored "
                 "in the unified Tier 3 run."
             )
             rc = par_rc if par_rc not in (None, 0) else np_rc
@@ -4623,7 +4620,7 @@ class CoverageMetricsRegenerator:
             "classification": "passed",
             "classification_reason": "no_dev_tools_failures_unified_run",
             "actionable_context": (
-                "No failures reported under tests/development_tools/ in the unified Tier 3 run."
+                "No failures reported under development_tools/tool_tests/ in the unified Tier 3 run."
             ),
             "log_file": log_par or log_np,
             "return_code_hex": parallel_outcome.get("return_code_hex"),
@@ -4913,7 +4910,7 @@ class CoverageMetricsRegenerator:
         tool_errors = list(tools_test_results.get("error_tests") or [])
         tool_errors.extend(tools_test_results.get("failed_tests") or [])
         if not tool_errors:
-            tool_errors = ["tests/development_tools"]
+            tool_errors = ["development_tools/tool_tests"]
         existing = list(no_parallel_test_results.get("error_tests") or [])
         for node_id in tool_errors:
             if node_id not in existing:

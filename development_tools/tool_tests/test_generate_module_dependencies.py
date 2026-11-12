@@ -1,0 +1,475 @@
+"""
+Tests for generate_module_dependencies.py.
+
+Tests import extraction, dependency analysis, and manual enhancement preservation.
+"""
+
+import pytest
+
+# Import helper from conftest
+from development_tools.tool_tests.conftest import load_development_tools_module
+
+# Load the modules using the helper
+deps_module = load_development_tools_module("generate_module_dependencies")
+imports_module = load_development_tools_module("imports.analyze_module_imports")
+
+# Import from the decomposed modules
+extract_imports_from_file = imports_module.extract_imports_from_file
+scan_all_python_files = imports_module.scan_all_python_files
+find_reverse_dependencies = imports_module.find_reverse_dependencies
+analyze_dependency_changes = imports_module.analyze_dependency_changes
+infer_module_purpose = imports_module.infer_module_purpose
+
+# Import from generate_module_dependencies (content generation)
+preserve_manual_enhancements = deps_module.preserve_manual_enhancements
+generate_module_dependencies_content = deps_module.generate_module_dependencies_content
+generate_module_section = deps_module.generate_module_section
+get_directory_description = deps_module.get_directory_description
+get_module_purpose = deps_module.get_module_purpose
+identify_modules_needing_enhancement = deps_module.identify_modules_needing_enhancement
+generate_ai_module_dependencies_content = deps_module.generate_ai_module_dependencies_content
+
+
+class TestImportExtraction:
+    """Test import extraction from files."""
+    
+    @pytest.mark.unit
+    def test_extract_imports_from_file_standard_library(self, demo_project_root):
+        """Test that standard library imports are categorized."""
+        demo_file = demo_project_root / "demo_module.py"
+        
+        imports = extract_imports_from_file(str(demo_file))
+        
+        # Should have standard_library imports (os, pathlib, typing)
+        assert 'standard_library' in imports
+        stdlib_modules = [imp['module'] for imp in imports['standard_library']]
+        
+        # Should find os, pathlib, or typing
+        assert any(module in ['os', 'pathlib', 'Path', 'typing', 'List', 'Dict'] 
+                  for module in stdlib_modules or [])
+    
+    @pytest.mark.unit
+    def test_extract_imports_from_file_local(self, demo_project_root):
+        """Test that local imports are categorized."""
+        demo_file2 = demo_project_root / "demo_module2.py"
+        
+        imports = extract_imports_from_file(str(demo_file2))
+        
+        # Should have imports (from demo_module)
+        # Note: demo_module may be classified as third_party if it doesn't match
+        # LOCAL_MODULE_PREFIXES, so we check both local and third_party
+        all_imports = imports.get('local', []) + imports.get('third_party', [])
+        all_modules = [imp['module'] for imp in all_imports]
+        
+        # Should find demo_module (may be in local or third_party)
+        assert 'demo_module' in all_modules, f"demo_module not found in imports. Local: {imports.get('local', [])}, Third-party: {imports.get('third_party', [])}"
+    
+    @pytest.mark.unit
+    def test_extract_imports_from_file_third_party(self, temp_output_dir):
+        """Test that third-party imports are categorized."""
+        # Create a test file with third-party import
+        test_file = temp_output_dir / "test_third_party.py"
+        test_file.write_text("import json\nimport requests\n", encoding='utf-8')
+        
+        imports = extract_imports_from_file(str(test_file))
+        
+        # json is stdlib, but requests would be third-party
+        # The categorization depends on the constants
+        assert 'third_party' in imports or 'standard_library' in imports
+
+
+class TestDependencyAnalysis:
+    """Test dependency analysis functionality."""
+    
+    @pytest.mark.unit
+    def test_scan_all_python_files_collects_imports(self, demo_project_root, monkeypatch):
+        """Test that all imports are collected from scan directories."""
+        import development_tools.config as config_module
+        from development_tools.shared import standard_exclusions
+        
+        def mock_get_project_root():
+            return demo_project_root
+        
+        def mock_get_scan_directories():
+            return ['.']
+        
+        # Mock should_exclude_file to not exclude demo project files
+        original_should_exclude = standard_exclusions.should_exclude_file
+
+        def mock_should_exclude_file(file_path, tool_type, context='production'):
+            if 'development_tools_demo' in file_path:
+                return False
+            return original_should_exclude(file_path, tool_type, context)
+        
+        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
+        
+        results = scan_all_python_files()
+        
+        # Should find demo files
+        assert len(results) > 0, f"No files found. Results: {list(results.keys())}"
+        
+        # Should have imports data
+        for _file_path, data in results.items():
+            assert 'imports' in data
+            assert 'total_imports' in data
+    
+    @pytest.mark.unit
+    def test_find_reverse_dependencies(self):
+        """Test that reverse dependencies are found correctly."""
+        all_modules = {
+            "demo_module.py": {
+                "imports": {"local": [], "standard_library": [], "third_party": []},
+                "total_imports": 0,
+            },
+            "demo_module2.py": {
+                "imports": {
+                    "local": [{"module": "demo_module", "imported_items": []}],
+                    "standard_library": [],
+                    "third_party": [],
+                },
+                "total_imports": 1,
+            },
+        }
+
+        reverse_deps = find_reverse_dependencies('demo_module.py', all_modules)
+
+        assert reverse_deps == ["demo_module2.py"]
+
+
+class TestContentGeneration:
+    """Test content generation."""
+    
+    @pytest.mark.unit
+    def test_generate_module_dependencies_content_structure(self, demo_project_root, monkeypatch):
+        """Test that generated content has expected structure."""
+        import development_tools.config as config_module
+        from development_tools.shared import standard_exclusions
+        
+        def mock_get_project_root():
+            return demo_project_root
+        
+        def mock_get_scan_directories():
+            return ['.']
+        
+        # Mock should_exclude_file to not exclude demo project files
+        original_should_exclude = standard_exclusions.should_exclude_file
+
+        def mock_should_exclude_file(file_path, tool_type, context='production'):
+            if 'development_tools_demo' in file_path:
+                return False
+            return original_should_exclude(file_path, tool_type, context)
+        
+        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
+        
+        actual_imports = scan_all_python_files()
+        content = generate_module_dependencies_content(actual_imports, "")
+        
+        # Should have expected sections
+        assert 'Module Dependencies' in content or 'Dependencies' in content
+        assert 'Overview' in content or 'overview' in content.lower()
+    
+    @pytest.mark.unit
+    def test_generate_module_dependencies_content_includes_modules(self, demo_project_root, monkeypatch):
+        """Test that known modules appear in output."""
+        import development_tools.config as config_module
+        from development_tools.shared import standard_exclusions
+        
+        def mock_get_project_root():
+            return demo_project_root
+        
+        def mock_get_scan_directories():
+            return ['.']
+        
+        # Mock should_exclude_file to not exclude demo project files
+        original_should_exclude = standard_exclusions.should_exclude_file
+
+        def mock_should_exclude_file(file_path, tool_type, context='production'):
+            if 'development_tools_demo' in file_path:
+                return False
+            return original_should_exclude(file_path, tool_type, context)
+        
+        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
+        
+        actual_imports = scan_all_python_files()
+        
+        # Should have found some files
+        assert len(actual_imports) > 0, "No files were scanned"
+        
+        content = generate_module_dependencies_content(actual_imports, "")
+        
+        # Should mention demo modules
+        assert 'demo_module' in content.lower() or 'demo' in content.lower(), \
+            f"Content should mention demo modules. Content preview: {content[:500]}"
+
+    @pytest.mark.unit
+    def test_generate_module_section_deduplicates_imports_and_reports_reverse_deps(
+        self, monkeypatch
+    ):
+        """Module sections should merge repeated imports and show reverse users."""
+        monkeypatch.setattr(
+            deps_module,
+            "infer_module_purpose",
+            lambda _file_path, _data, _all_modules: "Demo purpose",
+        )
+        monkeypatch.setattr(
+            deps_module,
+            "find_reverse_dependencies",
+            lambda _file_path, _all_modules: ["consumer.py"],
+        )
+        monkeypatch.setattr(
+            deps_module,
+            "analyze_dependency_changes",
+            lambda _file_path, _data, _existing: {
+                "added": ["core.config"],
+                "removed": [],
+                "unchanged": False,
+            },
+        )
+        data = {
+            "imports": {
+                "local": [
+                    {"module": "core.config", "imported_items": ["A"]},
+                    {"module": "core.config", "imported_items": ["B"]},
+                ],
+                "standard_library": [{"module": "json", "imported_items": []}],
+                "third_party": [{"module": "requests", "imported_items": []}],
+            },
+            "total_imports": 4,
+        }
+
+        section = "\n".join(generate_module_section("demo.py", data, {}, ""))
+
+        assert "- **Purpose**: Demo purpose" in section
+        assert section.count("core.config") == 2  # dependency line + change summary
+        assert "`consumer.py`" in section
+        assert "Added: core.config" in section
+
+    @pytest.mark.unit
+    def test_generate_module_section_handles_no_imports(self, monkeypatch):
+        monkeypatch.setattr(
+            deps_module,
+            "infer_module_purpose",
+            lambda _file_path, _data, _all_modules: "No import module",
+        )
+        monkeypatch.setattr(deps_module, "find_reverse_dependencies", lambda *_args: [])
+        monkeypatch.setattr(
+            deps_module,
+            "analyze_dependency_changes",
+            lambda *_args: {"added": [], "removed": [], "unchanged": True},
+        )
+        data = {
+            "imports": {
+                "local": [],
+                "standard_library": [],
+                "third_party": [],
+            },
+            "total_imports": 0,
+        }
+
+        section = "\n".join(generate_module_section("empty.py", data, {}, ""))
+
+        assert "None (no imports)" in section
+        assert "None (not imported by other modules)" in section
+
+    @pytest.mark.unit
+    def test_generate_ai_module_dependencies_content_uses_dynamic_pattern_sections(
+        self, monkeypatch
+    ):
+        class FakePatternAnalyzer:
+            def analyze_dependency_patterns(self, actual_imports):
+                assert "demo.py" in actual_imports
+                return {"fan_in": []}
+
+            def build_dynamic_decision_trees(self, _actual_imports):
+                return "decision tree text"
+
+            def find_critical_dependencies(self, _actual_imports):
+                return "critical dependency text"
+
+            def detect_risk_areas(self, _actual_imports, _patterns):
+                return "risk area text"
+
+            def generate_dependency_patterns_section(self, _patterns, _actual_imports):
+                return "pattern section text"
+
+            def generate_quick_reference(self, _actual_imports, _patterns):
+                return "quick reference text"
+
+        monkeypatch.setattr(deps_module, "DependencyPatternAnalyzer", FakePatternAnalyzer)
+        actual_imports = {
+            "demo.py": {
+                "total_imports": 2,
+                "imports": {
+                    "standard_library": [{"module": "json"}],
+                    "third_party": [],
+                    "local": [{"module": "core.config"}],
+                },
+            }
+        }
+
+        content = generate_ai_module_dependencies_content(actual_imports)
+
+        assert "Files Scanned**: 1" in content
+        assert "Standard Library**: 1 (50.0%)" in content
+        assert "decision tree text" in content
+        assert "quick reference text" in content
+
+    @pytest.mark.unit
+    def test_get_directory_and_module_purpose_fallbacks(self):
+        assert get_directory_description("core") == "Core System Modules (Foundation)"
+        assert get_directory_description("unknown") == "Unknown Directory"
+        assert "Configuration management" in get_module_purpose("core/config.py")
+        assert get_module_purpose("custom/tool.py") == "Module for custom/tool.py"
+
+
+class TestManualEnhancementPreservation:
+    """Test manual enhancement preservation."""
+    
+    @pytest.mark.unit
+    def test_preserve_manual_enhancements(self, temp_output_dir):
+        """Test that manual enhancement blocks are preserved."""
+        existing_content = """# Module Dependencies
+
+#### `demo_module.py`
+- **Purpose**: Test module
+- **Dependencies**: None
+<!-- MANUAL_ENHANCEMENT_START -->
+This is a manual enhancement that should be preserved.
+<!-- MANUAL_ENHANCEMENT_END -->
+"""
+        
+        new_content = """# Module Dependencies
+
+#### `demo_module.py`
+- **Purpose**: Test module
+- **Dependencies**: None
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+"""
+        
+        final_content, preserved = preserve_manual_enhancements(existing_content, new_content)
+        
+        # Should preserve the manual enhancement
+        assert 'This is a manual enhancement that should be preserved.' in final_content
+        assert len(preserved) > 0
+
+    @pytest.mark.unit
+    def test_preserve_manual_enhancements_appends_general_section(self):
+        existing_content = """# Module Dependencies
+
+## **Circular Dependencies**
+Keep this manually curated warning.
+<!-- MANUAL_ENHANCEMENT_END -->
+"""
+        new_content = "# Module Dependencies\n\n#### `demo.py`\n"
+
+        final_content, preserved = preserve_manual_enhancements(existing_content, new_content)
+
+        assert preserved == {}
+        assert "Keep this manually curated warning." in final_content
+
+    @pytest.mark.unit
+    def test_identify_modules_needing_enhancement_classifies_statuses(self):
+        existing_content = """#### `placeholder.py`
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+#### `enhanced.py`
+<!-- MANUAL_ENHANCEMENT_START -->
+Enhanced Purpose: Important module.
+<!-- MANUAL_ENHANCEMENT_END -->
+#### `missing.py`
+- **Purpose**: No enhancement markers here.
+"""
+        actual_imports = {
+            "placeholder.py": {},
+            "enhanced.py": {},
+            "missing.py": {},
+            "new.py": {},
+        }
+
+        statuses = identify_modules_needing_enhancement(existing_content, actual_imports)
+
+        assert statuses["placeholder.py"] == "needs_enhancement"
+        assert statuses["enhanced.py"] == "up_to_date"
+        assert statuses["missing.py"] == "missing_enhancement"
+        assert statuses["new.py"] == "new_module"
+
+
+class TestDependencyChangeAnalysis:
+    """Test dependency change analysis."""
+    
+    @pytest.mark.unit
+    def test_analyze_dependency_changes_detects_added(self, demo_project_root):
+        """Test that added dependencies are detected."""
+        file_path = "demo_module.py"
+        data = {
+            'imports': {
+                'local': [{'module': 'demo_module2'}],
+                'standard_library': [],
+                'third_party': []
+            }
+        }
+        existing_content = """#### `demo_module.py`
+- **Dependencies**:
+  - **Local**:
+    - `demo_module`"""
+        
+        changes = analyze_dependency_changes(file_path, data, existing_content)
+        
+        # Should detect that demo_module2 was added (if it wasn't in existing)
+        # The exact logic depends on the implementation
+        assert 'added' in changes
+        assert 'unchanged' in changes
+    
+    @pytest.mark.unit
+    def test_analyze_dependency_changes_detects_removed(self, demo_project_root):
+        """Test that removed dependencies are detected."""
+        file_path = "demo_module.py"
+        data = {
+            'imports': {
+                'local': [],
+                'standard_library': [],
+                'third_party': []
+            }
+        }
+        existing_content = """#### `demo_module.py`
+- **Dependencies**:
+  - **Local**:
+    - `demo_module2`"""
+        
+        changes = analyze_dependency_changes(file_path, data, existing_content)
+        
+        # Should detect that demo_module2 was removed
+        assert 'removed' in changes
+        assert 'unchanged' in changes
+
+
+class TestModulePurposeInference:
+    """Test module purpose inference."""
+    
+    @pytest.mark.unit
+    def test_infer_module_purpose(self):
+        """Test that module purpose inference works."""
+        all_modules = {
+            "demo_module2.py": {
+                "imports": {
+                    "local": [{"module": "core.config", "imported_items": []}],
+                    "standard_library": [],
+                    "third_party": [],
+                },
+                "total_imports": 1,
+            }
+        }
+        data = all_modules["demo_module2.py"]
+
+        purpose = infer_module_purpose("demo_module2.py", data, all_modules)
+
+        assert purpose == "Core system module with heavy core dependencies"

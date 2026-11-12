@@ -17,10 +17,10 @@ Use it when you change development tools behavior (analysis, reporting, CLI rout
 **Run Development Tools Tests**:
 ```powershell
 & c:/Users/Julie/projects/MHM/MHM/.venv/Scripts/Activate.ps1
-python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/
+python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/
 ```
 
-Do **not** use bare `pytest tests/development_tools/` with the host `pytest.ini`. That config ignores the tools tests so they do not load MHM's `tests/conftest.py`. If you forget `-c`, pytest exits with a usage error that repeats the command above.
+Do **not** use bare `pytest development_tools/tool_tests/` with the host `pytest.ini`. That config ignores the tools tests so they do not load MHM's `tests/conftest.py`. If you forget `-c`, pytest exits with a usage error that repeats the command above.
 
 **Run via project test runner (full tree)**:
 ```powershell
@@ -28,7 +28,7 @@ python run_tests.py --mode all --full
 ```
 
 Note:
-- Default `python run_tests.py` (`--mode all`) does not include `tests/development_tools/`.
+- Default `python run_tests.py` (`--mode all`) does not include `development_tools/tool_tests/`.
 - Use `--full` when you want development tools tests included in the same run.
 - `audit --full` uses `development_tools/tests/run_test_suite.py` to run pytest directly without coverage. It does not call the project-specific `run_tests.py`.
 - Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
@@ -39,30 +39,30 @@ Note:
 
 The development tools test suite is organized into focused, maintainable modules:
 
-- **`tests/development_tools/conftest.py`**: Shared fixtures (demo project, temp copies, config paths, module loading)
-- **`tests/development_tools/test_host_hooks.py`**: Host backup adapter loading and forbidden import-prefix derivation
-- **`tests/development_tools/test_config.py`**: Configuration validation and structure tests
-- **`tests/development_tools/test_constants.py`**: Constants and exclusion pattern tests
-- **`tests/development_tools/test_standard_exclusions.py`**: File exclusion logic tests
-- **`tests/development_tools/test_analyze_documentation.py`**: Documentation analysis tool tests
-- **`tests/development_tools/test_analyze_missing_addresses.py`**: Missing address detection tests
-- **`tests/development_tools/test_analysis_tool_validation.py`**: Analysis tool validation fixture tests
-- **`tests/development_tools/test_path_drift_detection.py`**: Path drift detection tests
-- **`tests/development_tools/test_path_drift_integration.py`**: Path drift integration with audit workflow
-- **`tests/development_tools/test_documentation_sync_checker.py`**: Documentation sync checker tests
-- **`tests/development_tools/test_generate_function_registry.py`**: Function registry generation tests
-- **`tests/development_tools/test_generate_module_dependencies.py`**: Module dependency analysis tests
-- **`tests/development_tools/test_regenerate_coverage_metrics.py`**: Coverage regeneration tests
-- **`tests/development_tools/test_legacy_reference_cleanup.py`**: Legacy reference cleanup tests
-- **`tests/development_tools/test_audit_status_updates.py`**: Lightweight audit status output tests (single batch of `create_output_file` calls for AI_STATUS / AI_PRIORITIES / CONSOLIDATED). The legacy suite in `tests/development_tools/test_audit_tier_comprehensive.py` remains retired (commented)-use this file plus `tests/development_tools/test_status_file_timing.py` for overlapping intent.
-- **`tests/development_tools/test_report_generation_problem_payload.py`**: Full-issue payload rendering for AI_STATUS, AI_PRIORITIES, and CONSOLIDATED reports (low coverage, complexity, doc drift, coupling, backup, validation).
-- **`tests/development_tools/test_status_file_timing.py`**: Status file write timing verification
-- **`tests/development_tools/test_output_storage_archiving.py`**: Output storage and archiving tests
-- **`tests/development_tools/test_run_development_tools.py`**: CLI runner smoke tests
-- **`tests/development_tools/test_integration_workflows.py`**: Integration workflow tests
-- **`tests/development_tools/test_error_scenarios.py`**: Error handling and edge case tests
-- **`tests/development_tools/test_supporting_tools.py`**: Supporting utility tests
-- **`tests/development_tools/test_analyze_ai_work.py`**: AI work validation tests
+- **`development_tools/tool_tests/conftest.py`**: Shared fixtures (demo project, temp copies, config paths, module loading)
+- **`development_tools/tool_tests/test_host_hooks.py`**: Host backup adapter loading and forbidden import-prefix derivation
+- **`development_tools/tool_tests/test_config.py`**: Configuration validation and structure tests
+- **`development_tools/tool_tests/test_constants.py`**: Constants and exclusion pattern tests
+- **`development_tools/tool_tests/test_standard_exclusions.py`**: File exclusion logic tests
+- **`development_tools/tool_tests/test_analyze_documentation.py`**: Documentation analysis tool tests
+- **`development_tools/tool_tests/test_analyze_missing_addresses.py`**: Missing address detection tests
+- **`development_tools/tool_tests/test_analysis_tool_validation.py`**: Analysis tool validation fixture tests
+- **`development_tools/tool_tests/test_path_drift_detection.py`**: Path drift detection tests
+- **`development_tools/tool_tests/test_path_drift_integration.py`**: Path drift integration with audit workflow
+- **`development_tools/tool_tests/test_documentation_sync_checker.py`**: Documentation sync checker tests
+- **`development_tools/tool_tests/test_generate_function_registry.py`**: Function registry generation tests
+- **`development_tools/tool_tests/test_generate_module_dependencies.py`**: Module dependency analysis tests
+- **`development_tools/tool_tests/test_regenerate_coverage_metrics.py`**: Coverage regeneration tests
+- **`development_tools/tool_tests/test_legacy_reference_cleanup.py`**: Legacy reference cleanup tests
+- **`development_tools/tool_tests/test_audit_status_updates.py`**: Lightweight audit status output tests (single batch of `create_output_file` calls for AI_STATUS / AI_PRIORITIES / CONSOLIDATED). The legacy suite in `development_tools/tool_tests/test_audit_tier_comprehensive.py` remains retired (commented)-use this file plus `development_tools/tool_tests/test_status_file_timing.py` for overlapping intent.
+- **`development_tools/tool_tests/test_report_generation_problem_payload.py`**: Full-issue payload rendering for AI_STATUS, AI_PRIORITIES, and CONSOLIDATED reports (low coverage, complexity, doc drift, coupling, backup, validation).
+- **`development_tools/tool_tests/test_status_file_timing.py`**: Status file write timing verification
+- **`development_tools/tool_tests/test_output_storage_archiving.py`**: Output storage and archiving tests
+- **`development_tools/tool_tests/test_run_development_tools.py`**: CLI runner smoke tests
+- **`development_tools/tool_tests/test_integration_workflows.py`**: Integration workflow tests
+- **`development_tools/tool_tests/test_error_scenarios.py`**: Error handling and edge case tests
+- **`development_tools/tool_tests/test_supporting_tools.py`**: Supporting utility tests
+- **`development_tools/tool_tests/test_analyze_ai_work.py`**: AI work validation tests
 
 ## 3. Prerequisites
 
@@ -93,7 +93,7 @@ The development tools test suite is organized into focused, maintainable modules
 
 **Critical**: Development tools tests must use `test_config.json` fixture instead of the default config.
 
-The `test_config_path` fixture (from `conftest.py`) provides a path to `tests/development_tools/test_config.json`, which:
+The `test_config_path` fixture (from `conftest.py`) provides a path to `development_tools/tool_tests/test_config.json`, which:
 - Does **not** exclude `tests/fixtures/` (unlike the default config)
 - Allows tests to run on the demo project without being filtered out
 - Maintains other standard exclusions for test isolation
@@ -198,25 +198,25 @@ When writing tests:
 ### 8.1. Run All Development Tools Tests
 
 ```bash
-pytest tests/development_tools/
+pytest development_tools/tool_tests/
 ```
 
 ### 8.2. Run Specific Test File
 
 ```bash
-pytest tests/development_tools/test_analyze_documentation.py
+pytest development_tools/tool_tests/test_analyze_documentation.py
 ```
 
 ### 8.3. Run with Verbose Output
 
 ```bash
-pytest -vv tests/development_tools/
+pytest -vv development_tools/tool_tests/
 ```
 
 ### 8.4. Run with Coverage
 
 ```bash
-pytest --cov=development_tools tests/development_tools/
+pytest --cov=development_tools development_tools/tool_tests/
 ```
 
 ## 9. Debugging Test Failures
@@ -248,7 +248,7 @@ These files should be regenerated when:
 Regeneration process:
 ```powershell
 & c:/Users/Julie/projects/MHM/MHM/.venv/Scripts/Activate.ps1
-python tests/development_tools/regenerate_fixture_status_files.py
+python development_tools/tool_tests/regenerate_fixture_status_files.py
 ```
 
 Notes:

@@ -48,7 +48,7 @@ def get_dev_tools_test_mtimes(project_root: Path) -> dict[str, float]:
     """Get current mtimes for development_tools test files."""
     mtimes: dict[str, float] = {}
     root = Path(project_root).resolve()
-    tests_dir = root / "tests" / "development_tools"
+    tests_dir = root / "development_tools" / "tool_tests"
     if not tests_dir.exists():
         return mtimes
     for test_file in tests_dir.rglob("test_*.py"):

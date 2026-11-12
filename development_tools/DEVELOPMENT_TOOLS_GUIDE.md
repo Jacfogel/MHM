@@ -399,7 +399,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - This guide and the AI guide (paired H2 requirements)
 - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
-- Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
+- Use the shared test locations: `development_tools/tool_tests/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 - Context-specific behavior:
 - `development_tools/config/config.py` defines production / development / testing contexts; commands must honor the active context.
@@ -413,7 +413,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 development_tools/
 ai_development_docs/
 development_docs/
-tests/development_tools/
+development_tools/tool_tests/
 tests/fixtures/development_tools_demo/
 development_tools/reports/archive/
 development_tools/tests/logs/
@@ -567,7 +567,7 @@ if should_exclude_file(file_path, tool_type='analysis', context='production'):
     # Skip this file
 ```
 
-Function-level exclusions (auto-generated code, special methods, test functions) are in `shared/exclusion_utilities.py`. See that module and tests in `tests/development_tools/test_standard_exclusions.py`, `tests/development_tools/test_exclusion_utilities.py` for details.
+Function-level exclusions (auto-generated code, special methods, test functions) are in `shared/exclusion_utilities.py`. See that module and tests in `development_tools/tool_tests/test_standard_exclusions.py`, `development_tools/tool_tests/test_exclusion_utilities.py` for details.
 
 ### 8.5. Code-Level Tool Markers
 
@@ -597,21 +597,21 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or add a documented `host.*` adapter; do not add host-package static imports under `development_tools/**`.
 
-**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.
+**Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.
 
 ### 8.7. Pytest isolation (portability)
 
 **Purpose**: Tools tests must not load the host project's `tests/conftest.py` (Qt, user-data loaders, MHM logging).
 
-**How**: Run them with [`development_tools/pytest.ini`](pytest.ini). Runners pass `-c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools`. `confcutdir` is a CLI option only; do not set it in the INI file because `--strict-config` treats that key as unknown. Helper: [`tests/pytest_isolation.py`](tests/pytest_isolation.py). Host `pytest.ini` ignores `tests/development_tools/` so a default `pytest` at repo root does not mix the suites.
+**How**: Run them with [`development_tools/pytest.ini`](pytest.ini). Runners pass `-c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests`. `confcutdir` is a CLI option only; do not set it in the INI file because `--strict-config` treats that key as unknown. Helper: [`tests/pytest_isolation.py`](tests/pytest_isolation.py). Host `pytest.ini` ignores `development_tools/tool_tests/` so a default `pytest` at repo root does not mix the suites.
 
 **Commands**:
 ```powershell
-python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=tests/development_tools tests/development_tools/
+python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/
 python run_tests.py --mode development_tools
 ```
 
-Tier 3 (`development_tools/tests/run_test_suite.py`), tools coverage, and GitHub `logging-enforcement.yml` Tooling Policy Consistency use the same isolation flags. Test files still live under `tests/development_tools/` until a later move with the package.
+Tier 3 (`development_tools/tests/run_test_suite.py`), tools coverage, and GitHub `logging-enforcement.yml` Tooling Policy Consistency use the same isolation flags. Test files live in `development_tools/tool_tests/` beside the tooling code.
 
 ---
 
@@ -638,12 +638,12 @@ Tier 3 (`development_tools/tests/run_test_suite.py`), tools coverage, and GitHub
 
 **Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow section 1. "Standards" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#1-standards) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
-**Pyright config**: Single SSOT is **`[tool.pyright]`** in `pyproject.toml` (IDE / Pylance / default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` was removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py`.
+**Pyright config**: Single SSOT is **`[tool.pyright]`** in `pyproject.toml` (IDE / Pylance / default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` was removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `development_tools/tool_tests/test_pyright_config_paths.py`.
 
 **Portability acceptance criteria (V5 Section 7.6 / V6 B-004)**:
 
 - **Structural**: Root `pyproject.toml` contains `[tool.pyright]` and excludes `tests/data` (and related temp/fixture paths). Nested/root `pyrightconfig.json` files must stay absent. Policy tests enforce this.
-- **Runtime**: `python -m pyright --outputjson --project pyproject.toml` succeeds when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
+- **Runtime**: `python -m pyright --outputjson --project pyproject.toml` succeeds when Pyright is installed (optional `pytest -m e2e` smoke in [`development_tools/tool_tests/test_pyright_config_paths.py`](../development_tools/tool_tests/test_pyright_config_paths.py), excluded from default runs).
 
 **AI_PRIORITIES default guidance (tool-suite themes)**
 
@@ -668,7 +668,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 
 - **Timing semantics (2026-04-15, V5 Section 4.3)**: JSON `details` include `pip_audit_execution_state` (`executed_subprocess`, `requirements_lock_cache_hit`, `skipped_env`, `error`) and `pip_audit_subprocess_seconds` when the subprocess ran. Audit logs and consolidated static-analysis lines clarify cache hits vs real subprocess time so `elapsed=0.00s` is not misread as a broken timer.
 
-- **Evaluation (2026-04-08 / 2026-07-28)**: **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). B-012 permanently declines integrating pre-commit into audit tiers; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks.
+- **Evaluation (2026-04-08 / 2026-07-28)**: **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). B-012 permanently declines integrating pre-commit into audit tiers; policy tests under `development_tools/tool_tests/` remain the authoritative CLI/exclusion checks.
 
 - **Recorded decisions (2026-04-09-10 / 2026-07-26 / 2026-07-28 B-012 close)**: **Vulture** is Tier 3 integrated. **Radon** and **pydeps** remain **manual-only** after uniqueness eval (same complexity/coupling hotspots as in-audit tools; pydeps viz needs host Graphviz). **pre-commit** remains optional host hygiene only. **deeper Ruff** declined (no named rule set). Prefer Tier 2 `module-refactor-candidates` (module size) and `analyze_functions` JSON (function complexity) as the in-audit signals; use Radon for spot-checks only. Prefer `analyze_dependency_patterns` for coupling/circular triage (high-coupling = unique local fan-out > 10, excluding `__init__.py`); use pydeps only for optional local graphs.
 
@@ -685,7 +685,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 - **Radon**: Declined for audit integration (B-012); overlaps `analyze_functions` / `analyze_module_refactor_candidates`. Manual recipe only.
 - **pydeps**: Declined for audit integration (B-012); optional dependency-graph visualization; in-audit coupling/circular source of truth is `analyze_dependency_patterns`.
 - **Vulture**: Tier 3 dead-code scan (min-confidence gated); excludes via shared `standard_exclusions` / `exclusions.tool_exclusions.vulture` (not hardcoded project paths); confirm before deleting symbols; AI_PRIORITIES Tier 4 only.
-- **pre-commit**: Optional host-repo hygiene only (B-012 declined audit integration); policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
+- **pre-commit**: Optional host-repo hygiene only (B-012 declined audit integration); policy tests under `development_tools/tool_tests/` remain the authoritative CLI/exclusion checks for this repository.
 - **deeper Ruff**: Declined (B-012); existing `analyze_ruff` is sufficient until a named rule set and noise budget are proposed.
 
 - **TODO sync workflow** (B-010):
