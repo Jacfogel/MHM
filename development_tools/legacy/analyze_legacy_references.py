@@ -38,7 +38,7 @@ else:
 
 # Load external config on module import (if not already loaded)
 try:
-    if hasattr(config, "load_external_config"):
+    if config.get_loaded_config_file_path() is None:
         config.load_external_config()
 except (AttributeError, ImportError):
     pass
@@ -71,9 +71,7 @@ class LegacyReferenceAnalyzer:
         legacy_config = config.get_external_value("legacy_cleanup", {})
 
         # Deprecation inventory first: canonical legacy_scan_patterns + active entry terms
-        self.deprecation_inventory_path = self._resolve_deprecation_inventory_path(
-            legacy_config
-        )
+        self.deprecation_inventory_path = config.get_deprecation_inventory_path(self.project_root)
         (
             self.deprecation_inventory_data,
             self.deprecation_inventory_summary,
@@ -165,30 +163,16 @@ class LegacyReferenceAnalyzer:
             self.cache = None
         self.cache_stats: dict[str, int] = {"hits": 0, "misses": 0}
 
-    def _resolve_deprecation_inventory_path(
-        self, legacy_config: dict[str, Any]
-    ) -> Path:
-        """Resolve deprecation inventory path from config or default."""
-        configured = legacy_config.get(
-            "deprecation_inventory_file",
-            "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
-        )
-        inventory_path = Path(configured)
-        if not inventory_path.is_absolute():
-            inventory_path = self.project_root / inventory_path
-        return inventory_path
-
     def _load_deprecation_inventory(
         self, inventory_path: Path
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Load deprecation inventory JSON and return data + summary metadata."""
         summary: dict[str, Any] = {
-            "inventory_path": str(
+            "inventory_path": (
                 inventory_path.relative_to(self.project_root)
-                if inventory_path.is_absolute()
-                and str(inventory_path).startswith(str(self.project_root))
+                if inventory_path.is_relative_to(self.project_root)
                 else inventory_path
-            ).replace("\\", "/"),
+            ).as_posix().replace("\\", "/"),
             "exists": inventory_path.exists(),
             "loaded": False,
             "error": None,

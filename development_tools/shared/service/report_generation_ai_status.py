@@ -9,7 +9,11 @@ they share AIToolsService helpers via MRO; no legacy shim / dual API.
 from datetime import datetime
 from typing import Any
 
-from development_tools.config import get_coverage_report_path
+from development_tools.config import (
+    get_coverage_report_path,
+    get_legacy_report_path,
+    get_status_report_paths,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 
 logger = get_dev_tools_logger("development_tools")
@@ -24,11 +28,11 @@ class AIStatusDocumentMixin:
         """Generate AI-optimized status document."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
-        status_target = (
-            "DEV_TOOLS_STATUS.md"
-            if self._is_dev_tools_scoped_report()
-            else "AI_STATUS.md"
+        report_paths = get_status_report_paths(
+            self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
         )
+        report_path = report_paths["ai_status"]
+        status_target = report_path.name
         if audit_tier:
             logger.info(
                 f"[REPORT GENERATION] Generating {status_target} using data from Tier {audit_tier} audit"
@@ -61,12 +65,15 @@ class AIStatusDocumentMixin:
         lines: list[str] = []
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Status - Scoped Snapshot")
-            lines.append("")
-            lines.append("> **File**: `development_tools/DEV_TOOLS_STATUS.md`")
         else:
             lines.append("# AI Status - Current Codebase State")
-            lines.append("")
-            lines.append("> **File**: `development_tools/AI_STATUS.md`")
+        lines.append("")
+        display_path = (
+            report_path.relative_to(self.project_root)
+            if report_path.is_relative_to(self.project_root)
+            else report_path
+        )
+        lines.append(f"> **File**: `{display_path.as_posix()}`")
         lines.append(
             "> **Generated**: This file is auto-generated. Do not edit manually."
         )
@@ -1517,7 +1524,7 @@ class AIStatusDocumentMixin:
                     / "generate_dev_tools_coverage_results.json"
                 )
                 if gen_json.exists():
-                    href = self._markdown_href_from_dev_tools_report(gen_json)
+                    href = self._markdown_href_from_dev_tools_report(gen_json, source=report_path)
                     lines.append(
                         f"    - **Machine-readable summary**: [generate_dev_tools_coverage_results.json]({href})"
                     )
@@ -1567,7 +1574,7 @@ class AIStatusDocumentMixin:
                 get_coverage_report_path(self.project_root)
             )
             if coverage_report_path.exists():
-                href = self._markdown_href_from_dev_tools_report(coverage_report_path)
+                href = self._markdown_href_from_dev_tools_report(coverage_report_path, source=report_path)
                 lines.append(
                     f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
                 )
@@ -1845,8 +1852,6 @@ class AIStatusDocumentMixin:
         ):
             summary = legacy_summary["summary"]
             legacy_issues = summary.get("files_affected", 0)
-            details = legacy_summary.get("details", {})
-            report_path = details.get("report_path")
 
             if legacy_issues == 0:
                 lines.append("- **Legacy References**: CLEAN (0 files flagged)")
@@ -1855,13 +1860,10 @@ class AIStatusDocumentMixin:
                     f"- **Legacy References**: {legacy_issues} files still reference legacy patterns"
                 )
 
-            if report_path:
-                report_path_obj = self._resolve_report_path(report_path)
-                if report_path_obj.exists():
-                    href = self._markdown_href_from_dev_tools_report(report_path_obj)
-                    lines.append(
-                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
-                    )
+            legacy_report = get_legacy_report_path(self.project_root)
+            if legacy_report.exists():
+                href = self._markdown_href_from_dev_tools_report(legacy_report, source=report_path)
+                lines.append(f"- **Detailed Report**: [{legacy_report.name}]({href})")
         else:
             lines.append(
                 "- Legacy reference data unavailable (run `audit --full` for latest scan)"

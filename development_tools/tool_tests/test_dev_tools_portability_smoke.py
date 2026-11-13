@@ -311,3 +311,132 @@ def test_coverage_report_uses_host_paths(tmp_path):
     report = tmp_path / "reports" / "quality" / "coverage.md"
     assert "reports/quality/coverage.md" in report.read_text(encoding="utf-8")
     assert service._load_coverage_summary()["overall"]["coverage"] == 75.0
+
+
+@pytest.mark.unit
+def test_legacy_report_and_scanner_share_host_paths(tmp_path, monkeypatch):
+    monkeypatch.delenv("PYTEST_XDIST_WORKER", raising=False)
+    config_path = tmp_path / "host-config.json"
+    host_config = _minimal_external_config()
+    report_path = "reports/maintenance/legacy.md"
+    inventory_path = "policy/retired.json"
+    host_config["legacy_cleanup"] = {
+        "detail_report_path": report_path,
+        "deprecation_inventory_file": inventory_path,
+    }
+    config_path.write_text(json.dumps(host_config), encoding="utf-8")
+    inventory = tmp_path / inventory_path
+    inventory.parent.mkdir()
+    inventory.write_text(
+        json.dumps({"active_or_candidate_inventory": [{"search_terms": ["retired_api"]}]}),
+        encoding="utf-8",
+    )
+
+    service_module = load_development_tools_module("shared.service")
+    service = service_module.AIToolsService(
+        project_root=str(tmp_path), config_path=str(config_path)
+    )
+    scan = service.run_analyze_legacy_references()
+    assert scan["success"], scan
+    details = scan["data"]["details"]
+    assert details["report_path"] == report_path
+    assert details["deprecation_inventory"]["inventory_path"] == inventory_path
+    assert details["deprecation_inventory"]["loaded"]
+
+    result = service.run_generate_legacy_reference_report()
+    assert result["success"], result
+    report = (tmp_path / report_path).read_text(encoding="utf-8")
+    assert f"> **File**: `{report_path}`" in report
+    assert f"Inventory file: `{inventory_path}`" in report
+
+
+@pytest.mark.unit
+def test_status_reports_use_host_paths_and_link_across_scopes(tmp_path):
+    config_path = tmp_path / "host-config.json"
+    host_config = _minimal_external_config()
+    host_config["status"] = {
+        "status_files": {
+            "ai_status": "reports/full/overview.md",
+            "ai_priorities": "reports/full/actions.md",
+            "consolidated_report": "reports/full/details/summary.md",
+        },
+        "dev_tools_status_files": {
+            "ai_status": "reports/tools/overview.md",
+            "ai_priorities": "reports/tools/actions.md",
+            "consolidated_report": "reports/tools/details/summary.md",
+        },
+    }
+    config_path.write_text(json.dumps(host_config), encoding="utf-8")
+
+    service_module = load_development_tools_module("shared.service")
+    service = service_module.AIToolsService(
+        project_root=str(tmp_path), config_path=str(config_path)
+    )
+    service.run_status()
+    service.dev_tools_only_mode = True
+    service.run_status()
+
+    for paths in host_config["status"].values():
+        for path in paths.values():
+            assert f"> **File**: `{path}`" in (tmp_path / path).read_text(encoding="utf-8")
+    full = (tmp_path / "reports/full/details/summary.md").read_text(encoding="utf-8")
+    scoped = (tmp_path / "reports/tools/details/summary.md").read_text(encoding="utf-8")
+    assert "[overview.md](../overview.md)" in full
+    assert "[actions.md](../actions.md)" in scoped
+    assert "[overview.md](../../full/overview.md)" in scoped
+    assert "[actions.md](../../full/actions.md)" in scoped
+
+
+@pytest.mark.unit
+def test_quick_status_and_freshness_read_configured_audit_outputs(tmp_path):
+    from development_tools.shared.service import data_freshness_audit
+
+    # The host itself can live under a directory named reports.
+    host = tmp_path / "reports" / "external"
+    host.mkdir(parents=True)
+    config_path = host / "host-config.json"
+    host_config = _minimal_external_config()
+    host_config["quick_audit"] = {"results_file": "artifacts/audit.json"}
+    host_config["status"] = {"status_files": {"ai_status": "artifacts/overview.md"}}
+    config_path.write_text(json.dumps(host_config), encoding="utf-8")
+    for name in ("README.md", "requirements.txt"):
+        (host / name).touch()
+
+    service_module = load_development_tools_module("shared.service")
+    service = service_module.AIToolsService(
+        project_root=str(host), config_path=str(config_path)
+    )
+    aggregate = service._get_results_file_path()
+    assert aggregate == host / "artifacts" / "audit.json"
+    service.dev_tools_only_mode = True
+    scoped_aggregate = service._get_results_file_path()
+    assert scoped_aggregate == host / "artifacts" / "scopes" / "dev_tools" / "audit.json"
+
+    aggregate.parent.mkdir(parents=True)
+    aggregate.write_text(
+        json.dumps({
+            "timestamp": "2026-11-12T01:02:03",
+            "results": {"analyze_function_registry": {"success": True, "output": "Coverage: 96%"}},
+        }),
+        encoding="utf-8",
+    )
+    scoped_aggregate.parent.mkdir(parents=True)
+    scoped_aggregate.write_text(
+        json.dumps({"timestamp": "2026-11-12T04:05:06", "path": "old/deleted.py"}),
+        encoding="utf-8",
+    )
+    (aggregate.parent / "overview.md").write_text("old/deleted.py", encoding="utf-8")
+
+    result = service.run_script("quick_status", "json")
+    assert result["success"], result
+    details = json.loads(result["output"])["details"]
+    assert details["documentation_status"]["coverage"] == "96%"
+    assert details["recent_activity"]["last_audit"] == "2026-11-12T01:02:03"
+    assert details["system_health"]["core_files"]["README.md"] == "OK"
+
+    assert data_freshness_audit.find_all_json_cache_files(host) == [aggregate, scoped_aggregate]
+    cache_issues = data_freshness_audit.check_tool_results_for_deleted_files(host, {"old/deleted.py"})
+    assert len(cache_issues) == 1
+    assert data_freshness_audit.check_generated_reports_for_deleted_files(
+        host, {"old/deleted.py"}
+    ) == [("old/deleted.py", "Found in overview.md")]

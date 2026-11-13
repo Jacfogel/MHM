@@ -216,9 +216,7 @@ class DataLoadingMixin:
                     # This allows tests to work with mocked data in results_cache
                     pass  # Continue to return statement at end of function
                 
-                cfg = (self.audit_config or {}).get(
-                    "results_file", "development_tools/reports/analysis_detailed_results.json"
-                )
+                cfg = (self.audit_config or {}).get("results_file")
                 results_file = scoped_analysis_detailed_path(
                     self.project_root,
                     configured_relative=cfg,
@@ -376,9 +374,7 @@ class DataLoadingMixin:
                 status_lines.append(f"[MISSING] {file_path}")
         
         # Check recent audit results
-        results_file_name = (self.audit_config or {}).get(
-            "results_file", "development_tools/reports/analysis_detailed_results.json"
-        )
+        results_file_name = (self.audit_config or {}).get("results_file")
         results_file = scoped_analysis_detailed_path(
             self.project_root,
             configured_relative=results_file_name,

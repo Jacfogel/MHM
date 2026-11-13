@@ -39,14 +39,11 @@ def _patch_audit_logger(service: Any):
 
 
 @pytest.mark.unit
-def test_get_status_file_mtimes_status_config_keyerror_uses_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """When get_status_config() raises KeyError, use default development_tools status paths."""
-    import development_tools.config as dev_config
+def test_get_status_file_mtimes_ignores_invalid_status_file_mapping(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """An invalid status-files mapping still leaves the default destinations available."""
+    from development_tools.config import config as dev_config
 
-    def _raise_key() -> dict:
-        raise KeyError("status_files")
-
-    monkeypatch.setattr(dev_config, "get_status_config", _raise_key)
+    monkeypatch.setattr(dev_config, "_external_config", {"status": {"status_files": None}})
     status_dir = tmp_path / "development_tools"
     status_dir.mkdir(parents=True, exist_ok=True)
     (status_dir / "AI_STATUS.md").write_text("ok", encoding="utf-8")
@@ -58,7 +55,7 @@ def test_get_status_file_mtimes_status_config_keyerror_uses_fallback(tmp_path: P
 
 @pytest.mark.unit
 def test_get_status_file_mtimes_uses_default_paths(tmp_path: Path):
-    """Fallback status-file paths should be resolved when config import is unavailable."""
+    """Default status-file paths resolve under the selected project root."""
     status_dir = tmp_path / "development_tools"
     status_dir.mkdir(parents=True, exist_ok=True)
     (status_dir / "AI_STATUS.md").write_text("status", encoding="utf-8")

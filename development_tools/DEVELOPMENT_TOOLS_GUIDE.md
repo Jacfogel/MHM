@@ -601,6 +601,12 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Coverage paths**. Set `coverage.json_dir` for product and development-tools coverage snapshots, the last-good snapshot, and rotated JSON. The Markdown report defaults to the filename shown in [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md), under `paths.development_docs_dir`. Set `coverage.detail_report_path` to override it. Relative paths resolve under the selected project root.
 
+**Legacy reporting paths**. Set `legacy_cleanup.detail_report_path` for the Markdown report and `legacy_cleanup.deprecation_inventory_file` for the inventory read by the scanner and report. The report defaults to the filename shown in [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) under `paths.development_docs_dir`. Relative paths resolve under the selected project root.
+
+**Audit summary paths**. Use `status.status_files` for full-repo reports and `status.dev_tools_status_files` for tools-only reports. Each accepts `ai_status`, `ai_priorities`, and `consolidated_report` overrides. The audit and cached status command share these destinations, and report links resolve from the directory containing the report.
+
+**Audit JSON path**. Use `quick_audit.results_file` for the aggregate JSON read by Quick Status and the freshness checker. Paths under a `reports` directory keep the `reports/scopes/<scope>/` layout. For paths elsewhere, full-repo audits keep the configured file and other scopes write to `scopes/<scope>/` beside it.
+
 **Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.
 
 ### 8.7. Pytest isolation (portability)

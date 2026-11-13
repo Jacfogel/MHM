@@ -15,7 +15,11 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
-from development_tools.config import get_coverage_json_dir, get_coverage_report_path
+from development_tools.config import (
+    get_coverage_json_dir,
+    get_coverage_report_path,
+    get_legacy_report_path,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools import config as dev_config
 
@@ -128,6 +132,7 @@ class ToolWrappersMixin:
         env["MHM_DEV_TOOLS_RUN"] = "1"
         if script_name in {
             "generate_function_registry",
+            "quick_status",
             "generate_module_dependencies",
             "analyze_module_dependencies",
             "analyze_test_coverage",
@@ -1323,17 +1328,20 @@ class ToolWrappersMixin:
                 / "legacy"
                 / "generate_legacy_reference_report.py"
             )
-            output_file = "development_docs/LEGACY_REFERENCE_REPORT.md"
+            output_file = get_legacy_report_path(self.project_root)
             cmd = [
                 sys.executable,
                 str(script_path),
                 "--findings-file",
                 findings_file,
                 "--output-file",
-                output_file,
+                str(output_file),
             ]
             env = os.environ.copy()
             env["MHM_DEV_TOOLS_RUN"] = "1"
+            report_config = self.config_path or dev_config.get_loaded_config_file_path()
+            if report_config:
+                env["DEVTOOLS_REPORT_CONFIG"] = str(Path(report_config).resolve())
             result_proc = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -1710,6 +1718,7 @@ class ToolWrappersMixin:
                     for file_path, content, matches in file_list
                 ]
             inventory_summary = analyzer.get_deprecation_inventory_summary()
+            report_path = get_legacy_report_path(self.project_root)
             standard_format = {
                 "summary": {
                     "total_issues": total_markers,
@@ -1719,7 +1728,11 @@ class ToolWrappersMixin:
                     "findings": serializable_findings,
                     "files_with_issues": total_files,
                     "legacy_markers": total_markers,
-                    "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
+                    "report_path": (
+                        report_path.relative_to(self.project_root)
+                        if report_path.is_relative_to(self.project_root)
+                        else report_path
+                    ).as_posix(),
                     "deprecation_inventory": inventory_summary,
                     "deprecation_inventory_sync": {"status": "disabled", "check_passed": True},
                     "cache": {

@@ -14,7 +14,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
 
-from development_tools.config import get_coverage_json_dir, get_coverage_report_path
+from development_tools.config import (
+    get_coverage_json_dir,
+    get_coverage_report_path,
+    get_legacy_report_path,
+    get_status_report_paths,
+)
 from development_tools.shared.host_hooks import (
     HostBackupLoadError,
     load_host_backup_manager,
@@ -920,23 +925,14 @@ class CommandsMixin:
         logger.info("=" * 50)
         
         if not skip_status_files:
-            # Get status file paths from config
-            try:
-                from ... import config
-                status_config = config.get_status_config()
-                status_files_config = status_config.get('status_files', {})
-                ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
-                ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
-            except (ImportError, AttributeError, KeyError):
-                ai_status_path = 'development_tools/AI_STATUS.md'
-                ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
-            
+            report_paths = get_status_report_paths(
+                self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
+            )
+
             try:
                 ai_status = self._generate_ai_status_document()
                 from ..file_rotation import create_output_file
-                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
+                ai_status_file = create_output_file(report_paths["ai_status"], ai_status, project_root=self.project_root)
                 logger.info(f"Generated: {ai_status_file}")
             except Exception as e:
                 if os.getenv("MHM_TESTING") == "1":
@@ -949,7 +945,7 @@ class CommandsMixin:
             try:
                 ai_priorities = self._generate_ai_priorities_document()
                 from ..file_rotation import create_output_file
-                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
+                ai_priorities_file = create_output_file(report_paths["ai_priorities"], ai_priorities, project_root=self.project_root)
                 logger.info(f"Generated: {ai_priorities_file}")
             except Exception as e:
                 if os.getenv("MHM_TESTING") == "1":
@@ -962,7 +958,7 @@ class CommandsMixin:
             try:
                 consolidated_report = self._generate_consolidated_report()
                 from ..file_rotation import create_output_file
-                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
+                consolidated_file = create_output_file(report_paths["consolidated_report"], consolidated_report, project_root=self.project_root)
                 logger.info(f"Generated: {consolidated_file}")
             except Exception as e:
                 if os.getenv("MHM_TESTING") == "1":
@@ -2467,7 +2463,7 @@ class CommandsMixin:
         ]
         generated_docs = [
             str(get_coverage_report_path(self.project_root)),
-            "development_docs/LEGACY_REFERENCE_REPORT.md",
+            str(get_legacy_report_path(self.project_root)),
         ]
         return self._latest_mtime_for_patterns(
             patterns,

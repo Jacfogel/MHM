@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Host-configured audit and legacy reporting
+
+- Quick Status, consolidated reports, and the freshness checker use the host-configured aggregate audit JSON path. Tools-only and path-scoped audits write separate files even when that path is outside the usual reports directory.
+- Full-repo and tools-only audits, cached status snapshots, and write-timing checks share configured Markdown destinations. Report headers and links follow those paths.
+- The legacy scanner and report generator share a configured deprecation inventory. Report generation, audit messages, generated links, and documentation freshness checks use the same legacy report destination.
+- Regression tests cover an external project with custom paths, separate audit JSON files, nested Markdown directories, links between report scopes, renamed reports in freshness checks, custom destinations at audit finalization, and legacy report generation with a custom inventory.
+
 ### 2026-11-12 - Windows test performance baseline
 
 - **Feature** - Measured a fixed 138-test product workload in serial and with two workers, including warm repeats. All four runs passed. Two workers reduced wall time from about 54 to 31 seconds and raised peak combined working set by about 207 MiB.

@@ -11,7 +11,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from development_tools.config import get_coverage_report_path
+from development_tools.config import (
+    get_coverage_report_path,
+    get_legacy_report_path,
+    get_status_report_paths,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.exclusion_utilities import is_constructor_name
 
@@ -37,11 +41,11 @@ class AIPrioritiesDocumentMixin:
         """Generate AI-optimized priorities document with immediate next steps."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
-        priorities_target = (
-            "DEV_TOOLS_PRIORITIES.md"
-            if self._is_dev_tools_scoped_report()
-            else "AI_PRIORITIES.md"
+        report_paths = get_status_report_paths(
+            self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
         )
+        report_path = report_paths["ai_priorities"]
+        priorities_target = report_path.name
         if audit_tier:
             logger.info(
                 f"[REPORT GENERATION] Generating {priorities_target} using data from Tier {audit_tier} audit"
@@ -74,12 +78,15 @@ class AIPrioritiesDocumentMixin:
         lines: list[str] = []
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Priorities - Immediate Next Steps")
-            lines.append("")
-            lines.append("> **File**: `development_tools/DEV_TOOLS_PRIORITIES.md`")
         else:
             lines.append("# AI Priorities - Immediate Next Steps")
-            lines.append("")
-            lines.append("> **File**: `development_tools/AI_PRIORITIES.md`")
+        lines.append("")
+        display_path = (
+            report_path.relative_to(self.project_root)
+            if report_path.is_relative_to(self.project_root)
+            else report_path
+        )
+        lines.append(f"> **File**: `{display_path.as_posix()}`")
         lines.append(
             "> **Generated**: This file is auto-generated. Do not edit manually."
         )
@@ -430,15 +437,19 @@ class AIPrioritiesDocumentMixin:
                 )
                 legacy_details = legacy_summary.get("details", {})
                 legacy_markers = to_int(legacy_details.get("legacy_markers", 0))
-                legacy_report = legacy_details.get("report_path")
             else:
                 legacy_files = None
                 legacy_markers = None
-                legacy_report = None
         else:
             legacy_files = None
             legacy_markers = None
-            legacy_report = None
+
+        def report_link(target: Path) -> str:
+            href = self._markdown_href_from_dev_tools_report(target, source=report_path)
+            return f"[{target.name}]({href})"
+
+        legacy_report_link = report_link(get_legacy_report_path(self.project_root))
+        consolidated_report_link = report_link(report_paths["consolidated_report"])
 
         low_coverage_modules: list[dict[str, Any]] = []
         if coverage_summary:
@@ -766,11 +777,11 @@ class AIPrioritiesDocumentMixin:
                 "Raise development tools coverage": self._scoped_tool_result_path(
                     "tests", "generate_dev_tools_coverage"
                 ),
-                "Reduce dependency pattern risk": "development_tools/CONSOLIDATED_REPORT.md",
+                "Reduce dependency pattern risk": consolidated_report_link,
                 "Fix development tools import boundary violations": self._scoped_tool_result_path(
                     "imports", "analyze_dev_tools_import_boundaries"
                 ),
-                "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
+                "Remove legacy compatibility code (after full call-site migration)": f"{legacy_report_link} (exact locations)",
                 "Update tools to use centralized config": self._scoped_tool_result_path(
                     "ai_work", "analyze_ai_work"
                 ),
@@ -798,8 +809,8 @@ class AIPrioritiesDocumentMixin:
                 "Refactor high-complexity functions": self._scoped_tool_result_path(
                     "functions", "analyze_functions"
                 ),
-                "Address Ruff findings": "development_tools/CONSOLIDATED_REPORT.md",
-                "Address Pyright findings": "development_tools/CONSOLIDATED_REPORT.md",
+                "Address Ruff findings": consolidated_report_link,
+                "Address Pyright findings": consolidated_report_link,
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
                 "Consolidate documentation files": self._scoped_tool_result_path(
@@ -844,7 +855,7 @@ class AIPrioritiesDocumentMixin:
                 normalized_bullets.insert(0, f"Review for guidance: {guidance}")
             if not has_details:
                 details = details_defaults.get(
-                    title, "development_tools/CONSOLIDATED_REPORT.md"
+                    title, consolidated_report_link
                 )
                 normalized_bullets.append(f"Review for details: {details}")
 
@@ -1498,7 +1509,7 @@ class AIPrioritiesDocumentMixin:
                         f"Ruff findings: {ruff_issues} issue(s) across {to_int(ruff_summary.get('files_affected')) or 0} file(s).",
                         "Action: Run `python -m ruff check .` to inspect full diagnostics before fixes.",
                         "Why this matters: Lint regressions reduce reliability and increase defect risk.",
-                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                        f"Review for details: {consolidated_report_link}",
                     ]
                     ruff_bullets.insert(
                         0,
@@ -1519,7 +1530,7 @@ class AIPrioritiesDocumentMixin:
                         f"Pyright findings: {pyright_errors} error(s), {pyright_warnings} warning(s).",
                         "Action: Run `python -m pyright` to inspect full diagnostics before fixes.",
                         "Why this matters: Type regressions reduce reliability and increase defect risk.",
-                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                        f"Review for details: {consolidated_report_link}",
                     ]
                     pyright_bullets.insert(
                         0,
@@ -1539,7 +1550,7 @@ class AIPrioritiesDocumentMixin:
                         f"{to_int(bandit_summary.get('files_affected')) or 0} file(s).",
                         "Action: Run `python -m bandit -r . -f screen` (or `python development_tools/static_checks/analyze_bandit.py`) to review.",
                         "Why this matters: Security regressions in application code increase exploit risk.",
-                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                        f"Review for details: {consolidated_report_link}",
                     ]
                     bandit_bullets.insert(
                         0,
@@ -1579,7 +1590,7 @@ class AIPrioritiesDocumentMixin:
                         f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s).",
                         pip_action,
                         "Why this matters: Known CVEs in dependencies are a supply-chain risk.",
-                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                        f"Review for details: {consolidated_report_link}",
                     ]
                     if pip_without_fix > 0:
                         pip_bullets.insert(
@@ -1608,7 +1619,7 @@ class AIPrioritiesDocumentMixin:
                         "Action: Run `python development_tools/static_checks/analyze_vulture.py` "
                         "and confirm false positives before deleting symbols.",
                         "Why this matters: Confirmed dead code increases maintenance cost; noisy hits should not drive Immediate Focus.",
-                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                        f"Review for details: {consolidated_report_link}",
                     ]
                     vulture_bullets.insert(
                         0,
@@ -1727,7 +1738,7 @@ class AIPrioritiesDocumentMixin:
                             f"Top high-coupling modules: {self._format_list_for_display(coupling_examples, limit=3)}"
                         )
                 dep_bullets.append(
-                    "Review for details: development_tools/CONSOLIDATED_REPORT.md"
+                    f"Review for details: {consolidated_report_link}"
                 )
 
                 dep_bullets.append(
@@ -1776,10 +1787,9 @@ class AIPrioritiesDocumentMixin:
                 legacy_bullets.append(
                     f"{legacy_markers} legacy markers still surface during scans."
                 )
-            if legacy_report:
-                legacy_bullets.append(
-                    f"Review for details: {legacy_report} (exact locations)"
-                )
+            legacy_bullets.append(
+                f"Review for details: {legacy_report_link} (exact locations)"
+            )
             legacy_bullets.append(
                 "Action: Remove active legacy compatibility behavior by migrating all callers/dependencies to current implementations. Only after migration is verified, remove legacy markers/comments/docs evidence."
             )
@@ -2139,7 +2149,7 @@ class AIPrioritiesDocumentMixin:
             if uf_count > 0 and isinstance(uf_list, list) and uf_list:
                 uf_bullets: list[str] = []
                 uf_bullets.append(
-                    "Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)"
+                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
                 )
                 uf_bullets.append("Top unused functions (consider removing or verifying usage):")
                 for idx, func in enumerate(uf_list[:5], start=1):
@@ -2780,7 +2790,12 @@ class AIPrioritiesDocumentMixin:
                 lines.append(f"{idx}. **{item['title']}**  ")
                 lines.append(f"   -  {item['reason']}")
                 for bullet in item["bullets"]:
-                    bullet = _linkify_review_paths_bullet(bullet)
+                    bullet = _linkify_review_paths_bullet(
+                        bullet,
+                        href_for_path=lambda path: self._markdown_href_from_dev_tools_report(
+                            self.project_root / path, source=report_path
+                        ),
+                    )
                     # Further indent top-3 list items (numbered or "Group N")
                     is_sub_bullet = bool(
                         re.match(r"^\d+\.\s", bullet.strip())

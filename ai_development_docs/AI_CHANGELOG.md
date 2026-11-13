@@ -31,6 +31,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Host-configured audit and legacy reporting **COMPLETED**
+
+- Audit summaries and aggregate JSON use host-configured paths and keep full-repo and scoped outputs separate. Quick Status, report links, and freshness checks follow those paths.
+- Legacy scanning and reporting share a configured deprecation inventory. Portability tests cover custom destinations, cross-scope links, and audit write timing.
+
 ### 2026-11-12 - Configurable coverage report paths **COMPLETED**
 
 - Share the host-configured coverage snapshot directory and Markdown report path across coverage execution, report generation, audit readers, and snapshot cleanup.

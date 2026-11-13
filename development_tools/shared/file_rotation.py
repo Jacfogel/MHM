@@ -502,8 +502,19 @@ def create_output_file(
                 f"Cannot write {file_name} during tests to real project - use temporary directories for testing"
             )
 
-    # Check status files (existing logic)
-    if file_name in status_files:
+    # Apply the same safeguards to status reports renamed by host config.
+    is_status_report = file_name in status_files
+    if not is_status_report and project_root is not None:
+        from development_tools.config import get_status_report_paths
+
+        is_status_report = any(
+            resolved_path == path.resolve()
+            for dev_tools_only in (False, True)
+            for path in get_status_report_paths(
+                Path(project_root), dev_tools_only=dev_tools_only
+            ).values()
+        )
+    if is_status_report:
         # During tests, ensure we're not writing to the real project root
         # Check if we're in a test environment and writing to real project
         if (

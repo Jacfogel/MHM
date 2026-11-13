@@ -6,6 +6,7 @@ that AI_STATUS.md, AI_PRIORITIES.md, and CONSOLIDATED_REPORT.md are only
 written once at the end, not during tool execution.
 """
 
+import json
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -21,7 +22,8 @@ from development_tools.tool_tests.conftest import load_development_tools_module
 
 @pytest.mark.integration
 @pytest.mark.slow
-def test_status_files_written_only_at_end_of_audit(tmp_path):
+@pytest.mark.parametrize("custom_paths", [False, True])
+def test_status_files_written_only_at_end_of_audit(tmp_path, custom_paths):
     """
     Verify that status files are only written at the end of audit execution.
     
@@ -44,6 +46,30 @@ def test_status_files_written_only_at_end_of_audit(tmp_path):
     ai_priorities_file = project_root / "development_tools" / "AI_PRIORITIES.md"
     consolidated_file = project_root / "development_tools" / "CONSOLIDATED_REPORT.md"
     
+    config_path = None
+    if custom_paths:
+        ai_status_file = project_root / "reports" / "overview.md"
+        ai_priorities_file = project_root / "reports" / "actions.md"
+        consolidated_file = project_root / "reports" / "details" / "summary.md"
+        config_path = project_root / "host-config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "status": {
+                        "status_files": {
+                            key: path.relative_to(project_root).as_posix()
+                            for key, path in (
+                                ("ai_status", ai_status_file),
+                                ("ai_priorities", ai_priorities_file),
+                                ("consolidated_report", consolidated_file),
+                            )
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
     # Remove any existing status files
     for f in [ai_status_file, ai_priorities_file, consolidated_file]:
         if f.exists():
@@ -52,7 +78,10 @@ def test_status_files_written_only_at_end_of_audit(tmp_path):
     # Get initial modification times (should be 0 since files don't exist)
     
     # Run a quick audit
-    service = AIToolsService(project_root=str(project_root))
+    service = AIToolsService(
+        project_root=str(project_root),
+        config_path=str(config_path) if config_path else None,
+    )
     no_op_patches = (
         patch.object(service, "_run_quick_audit_tools", return_value=True),
         patch.object(service, "_save_audit_results_aggregated", return_value=None),
@@ -81,6 +110,9 @@ def test_status_files_written_only_at_end_of_audit(tmp_path):
     # Verify audit completed (even if with errors, status files should still be written)
     assert result is not None, "Audit should complete and return a result"
     
+    if custom_paths:
+        assert not (project_root / "development_tools" / "AI_STATUS.md").exists()
+
     # Verify files exist (they should be created even if audit had some failures)
     assert ai_status_file.exists(), f"AI_STATUS.md should exist after audit. Path: {ai_status_file}"
     assert ai_priorities_file.exists(), f"AI_PRIORITIES.md should exist after audit. Path: {ai_priorities_file}"

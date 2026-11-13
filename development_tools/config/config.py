@@ -725,6 +725,18 @@ def get_coverage_report_path(project_root: Path) -> Path:
     return project_root / _get_external_value("coverage.detail_report_path", default)
 
 
+def get_legacy_report_path(project_root: Path) -> Path:
+    """Resolve the legacy Markdown report for the selected host."""
+    default = Path(get_paths_config()["development_docs_dir"]) / "LEGACY_REFERENCE_REPORT.md"
+    return project_root / _get_external_value("legacy_cleanup.detail_report_path", default)
+
+
+def get_deprecation_inventory_path(project_root: Path) -> Path:
+    """Resolve the inventory shared by the legacy scanner and report."""
+    default = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
+    return project_root / _get_external_value("legacy_cleanup.deprecation_inventory_file", default)
+
+
 SUITE_PROFILES: dict[str, dict[str, Any]] = {
     "quick": {"exclude_markers": ["e2e", "slow"]},
     "full": {"exclude_markers": ["e2e"], "timeout_seconds": 3600},
@@ -1578,6 +1590,11 @@ STATUS = {
     "check_key_files": True,
     "check_audit_results": True,
     "generate_status_files": True,
+    "dev_tools_status_files": {
+        "ai_status": "development_tools/DEV_TOOLS_STATUS.md",
+        "ai_priorities": "development_tools/DEV_TOOLS_PRIORITIES.md",
+        "consolidated_report": "development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md",
+    },
     "status_files": {
         "ai_status": "development_tools/AI_STATUS.md",
         "ai_priorities": "development_tools/AI_PRIORITIES.md",
@@ -1589,17 +1606,24 @@ STATUS = {
 def get_status_config():
     """Get status configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value("status", None)
+    result = copy.deepcopy(STATUS)
     if external_config:
-        result = STATUS.copy()
-        # Deep merge for nested dicts
-        if "status_files" in external_config and "status_files" in result:
-            result["status_files"].update(external_config.get("status_files", {}))
-        # Update other keys
         for key, value in external_config.items():
-            if key != "status_files":
+            if key in {"status_files", "dev_tools_status_files"}:
+                if isinstance(value, dict):
+                    result[key].update(value)
+            else:
                 result[key] = value
-        return result
-    return STATUS
+    return result
+
+
+def get_status_report_paths(
+    project_root: Path, *, dev_tools_only: bool = False
+) -> dict[str, Path]:
+    """Resolve the three Markdown report destinations for one audit scope."""
+    key = "dev_tools_status_files" if dev_tools_only else "status_files"
+    paths = get_status_config()[key]
+    return {name: project_root / paths[name] for name in STATUS[key]}
 
 
 # System signals configuration

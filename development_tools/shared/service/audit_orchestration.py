@@ -14,7 +14,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from development_tools.config import get_coverage_json_dir, get_coverage_report_path
+from development_tools.config import (
+    STATUS,
+    get_coverage_json_dir,
+    get_coverage_report_path,
+    get_legacy_report_path,
+    get_status_report_paths,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 
 logger = get_dev_tools_logger("development_tools")
@@ -60,47 +66,10 @@ def _get_status_file_mtimes(
     project_root: Path, *, dev_tools_only: bool = False
 ) -> dict[str, float]:
     """Get modification times for status outputs (full-repo AI_* or dev-tools-only DEV_TOOLS_*)."""
-    if dev_tools_only:
-        status_files = {
-            "DEV_TOOLS_STATUS.md": project_root / "development_tools" / "DEV_TOOLS_STATUS.md",
-            "DEV_TOOLS_PRIORITIES.md": project_root
-            / "development_tools"
-            / "DEV_TOOLS_PRIORITIES.md",
-            "DEV_TOOLS_CONSOLIDATED_REPORT.md": project_root
-            / "development_tools"
-            / "DEV_TOOLS_CONSOLIDATED_REPORT.md",
-        }
-    else:
-        try:
-            from ... import config
-
-            status_config = config.get_status_config()
-            status_files_config = status_config.get("status_files", {})
-            status_files = {
-                "AI_STATUS.md": project_root
-                / status_files_config.get(
-                    "ai_status", "development_tools/AI_STATUS.md"
-                ),
-                "AI_PRIORITIES.md": project_root
-                / status_files_config.get(
-                    "ai_priorities", "development_tools/AI_PRIORITIES.md"
-                ),
-                "CONSOLIDATED_REPORT.md": project_root
-                / status_files_config.get(
-                    "consolidated_report", "development_tools/CONSOLIDATED_REPORT.md"
-                ),
-            }
-        except (ImportError, AttributeError, KeyError):
-            status_files = {
-                "AI_STATUS.md": project_root / "development_tools" / "AI_STATUS.md",
-                "AI_PRIORITIES.md": project_root
-                / "development_tools"
-                / "AI_PRIORITIES.md",
-                "CONSOLIDATED_REPORT.md": project_root
-                / "development_tools"
-                / "CONSOLIDATED_REPORT.md",
-            }
-    mtimes = {}
+    paths = get_status_report_paths(project_root, dev_tools_only=dev_tools_only)
+    scope_key = "dev_tools_status_files" if dev_tools_only else "status_files"
+    status_files = {Path(STATUS[scope_key][key]).name: path for key, path in paths.items()}
+    mtimes: dict[str, float] = {}
     for name, path in status_files.items():
         if path.exists():
             mtimes[name] = path.stat().st_mtime
@@ -583,29 +552,10 @@ class AuditOrchestrationMixin:
                     logger.info("* Scoped audit status: %s", ai_status_file)
                 else:
                     # Generate status documents
-                    # Get status file paths from config
-                    try:
-                        from ... import config
-                        status_config = config.get_status_config()
-                        status_files_config = status_config.get('status_files', {})
-                        if getattr(self, 'dev_tools_only_mode', False):
-                            ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
-                            ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
-                            consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
-                        else:
-                            ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
-                            ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
-                            consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
-                    except (ImportError, AttributeError, KeyError):
-                        if getattr(self, 'dev_tools_only_mode', False):
-                            ai_status_path = 'development_tools/DEV_TOOLS_STATUS.md'
-                            ai_priorities_path = 'development_tools/DEV_TOOLS_PRIORITIES.md'
-                            consolidated_report_path = 'development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md'
-                        else:
-                            ai_status_path = 'development_tools/AI_STATUS.md'
-                            ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
-                            consolidated_report_path = 'development_tools/CONSOLIDATED_REPORT.md'
-                    
+                    report_paths = get_status_report_paths(
+                        self.project_root, dev_tools_only=dev_tools_only
+                    )
+
                     try:
                         ai_status = self._generate_ai_status_document()
                     except Exception as e:
@@ -616,7 +566,7 @@ class AuditOrchestrationMixin:
                         else:
                             logger.warning("Error generating AI_STATUS document: %s", e)
                         ai_status = "# AI Status\n\nError generating status document."
-                    ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
+                    ai_status_file = create_output_file(report_paths["ai_status"], ai_status, project_root=self.project_root)
                     
                     try:
                         ai_priorities = self._generate_ai_priorities_document()
@@ -634,7 +584,7 @@ class AuditOrchestrationMixin:
                                 "AI_PRIORITIES traceback:\n%s", traceback.format_exc()
                             )
                         ai_priorities = "# AI Priorities\n\nError generating priorities document."
-                    ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
+                    ai_priorities_file = create_output_file(report_paths["ai_priorities"], ai_priorities, project_root=self.project_root)
                     
                     try:
                         consolidated_report = self._generate_consolidated_report()
@@ -646,7 +596,7 @@ class AuditOrchestrationMixin:
                         else:
                             logger.warning("Error generating consolidated report: %s", e)
                         consolidated_report = "Error generating consolidated report."
-                    consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
+                    consolidated_file = create_output_file(report_paths["consolidated_report"], consolidated_report, project_root=self.project_root)
                 
                 post_final_mtimes = _get_status_file_mtimes(
                     self.project_root, dev_tools_only=dev_tools_only
@@ -1188,7 +1138,10 @@ class AuditOrchestrationMixin:
         if tool_name == "generate_test_coverage_report" and success:
             detail_fragment = f" detailed_report={get_coverage_report_path(self.project_root)}"
         elif tool_name == "generate_legacy_reference_report" and success:
-            detail_fragment = " detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md"
+            path = get_legacy_report_path(self.project_root)
+            if path.is_relative_to(self.project_root):
+                path = path.relative_to(self.project_root)
+            detail_fragment = f" detailed_report={path.as_posix()}"
         pip_audit_fragment = ""
         if tool_name == "analyze_pip_audit" and isinstance(result, dict):
             pdata = result.get("data")
@@ -1727,9 +1680,7 @@ class AuditOrchestrationMixin:
             from ..audit_storage_scope import scoped_analysis_detailed_path
 
             audit_cfg = getattr(self, "audit_config", None) or {}
-            configured = audit_cfg.get(
-                "results_file", "development_tools/reports/analysis_detailed_results.json"
-            )
+            configured = audit_cfg.get("results_file")
             results_file = scoped_analysis_detailed_path(
                 self.project_root, configured_relative=configured
             )
@@ -1835,9 +1786,7 @@ class AuditOrchestrationMixin:
             from ..audit_storage_scope import scoped_analysis_detailed_path
 
             audit_cfg = getattr(self, "audit_config", None) or {}
-            configured = audit_cfg.get(
-                "results_file", "development_tools/reports/analysis_detailed_results.json"
-            )
+            configured = audit_cfg.get("results_file")
             results_file = scoped_analysis_detailed_path(
                 self.project_root, configured_relative=configured
             )
@@ -2029,9 +1978,7 @@ class AuditOrchestrationMixin:
         audit_cfg = getattr(self, "audit_config", None) or {}
         from ..audit_storage_scope import scoped_analysis_detailed_path
 
-        configured = audit_cfg.get(
-            "results_file", "development_tools/reports/analysis_detailed_results.json"
-        )
+        configured = audit_cfg.get("results_file")
         scoped_results = scoped_analysis_detailed_path(
             self.project_root, configured_relative=configured
         )

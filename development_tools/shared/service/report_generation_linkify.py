@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 _REVIEW_PATH_LINK = re.compile(
@@ -18,7 +19,9 @@ def _href_from_dev_tools_report(path: str) -> str:
     return f"../{normalized}"
 
 
-def linkify_review_paths_bullet(text: str) -> str:
+def linkify_review_paths_bullet(
+    text: str, href_for_path: Callable[[str], str] = _href_from_dev_tools_report
+) -> str:
     """Turn repo-relative paths in Review for guidance/details lines into markdown links."""
     stripped = text.strip()
     lower = stripped.lower()
@@ -40,7 +43,7 @@ def linkify_review_paths_bullet(text: str) -> str:
         if m:
             path, suffix = m.group(1), m.group(2) or ""
             label = Path(path).name
-            href = _href_from_dev_tools_report(path)
+            href = href_for_path(path)
             out.append(f"[{label}]({href}){suffix}")
         else:
             out.append(part)

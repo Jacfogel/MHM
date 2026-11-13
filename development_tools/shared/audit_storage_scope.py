@@ -78,22 +78,31 @@ def legacy_flat_jsons_dir(project_root: Path, domain: str) -> Path:
 def scoped_analysis_detailed_path(
     project_root: Path,
     *,
-    configured_relative: str,
+    configured_relative: str | None = None,
     audit_scope: str | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> Path:
-    scope = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
-    path = (Path(project_root).resolve() / configured_relative).resolve()
-    parts = path.parts
-    reports_idx: int | None = None
-    for i, part in enumerate(parts):
-        if part == "reports":
-            reports_idx = i
-            break
-    if reports_idx is None:
+    """Resolve the host's aggregate file without mixing results from different scopes."""
+    from development_tools.config import QUICK_AUDIT, get_quick_audit_config
+
+    scope = effective_storage_scope(audit_scope)
+    if configured_relative is None:
+        configured = get_quick_audit_config().get("results_file")
+        default = str(QUICK_AUDIT["results_file"])
+        configured_relative = configured if isinstance(configured, str) and configured.strip() else default
+
+    root = Path(project_root).resolve()
+    path = (root / configured_relative).resolve()
+    # Only consider directories inside the selected host. A parent of the host
+    # named "reports" must not redirect output outside that host.
+    layout = path.relative_to(root) if path.is_relative_to(root) else Path(configured_relative)
+    directories = layout.parts[:-1]
+    if "reports" in directories:
+        parts_after_reports = len(directories) - directories.index("reports") - 1
+        base = path.parents[parts_after_reports]
+        return base / "scopes" / scope / path.relative_to(base)
+    if scope == STORAGE_SCOPE_FULL:
         return path
-    tail = Path(*parts[reports_idx + 1 :])
-    prefix = Path(*parts[: reports_idx + 1])
-    return (prefix / "scopes" / scope / tail).resolve()
+    return path.parent / "scopes" / scope / path.name
 
 
 def scoped_tool_timings_path(

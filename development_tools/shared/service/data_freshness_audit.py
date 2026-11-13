@@ -37,7 +37,8 @@ def _get_known_deleted_files() -> set[str]:
     """Load known deleted files from config (single canonical source: development_tools_config.json)."""
     try:
         from development_tools import config as dev_config
-        dev_config.load_external_config()
+        if dev_config.get_loaded_config_file_path() is None:
+            dev_config.load_external_config()
         cfg = dev_config.get_data_freshness_config()
         files = cfg.get("known_deleted_files")
         if isinstance(files, list):
@@ -60,10 +61,9 @@ def find_all_json_cache_files(project_root: Path) -> list[Path]:
     )
 
     cache_files = []
-    cfg = "development_tools/reports/analysis_detailed_results.json"
     for scope in (STORAGE_SCOPE_FULL, STORAGE_SCOPE_DEV_TOOLS):
         p = scoped_analysis_detailed_path(
-            project_root, configured_relative=cfg, audit_scope=scope
+            project_root, audit_scope=scope
         )
         cache_files.append(p)
     
@@ -131,27 +131,7 @@ def check_cache_file_for_deleted_files(cache_file: Path, project_root: Path, del
 def check_tool_results_for_deleted_files(project_root: Path, deleted_files: set[str]) -> list[tuple[str, str]]:
     """Check all tool result JSON files for deleted file references."""
     issues = []
-    
-    from development_tools.shared.audit_storage_scope import (
-        STORAGE_SCOPE_DEV_TOOLS,
-        STORAGE_SCOPE_FULL,
-        scoped_analysis_detailed_path,
-    )
-
-    cfg = "development_tools/reports/analysis_detailed_results.json"
-    for scope in (STORAGE_SCOPE_FULL, STORAGE_SCOPE_DEV_TOOLS):
-        results_file = scoped_analysis_detailed_path(
-            project_root, configured_relative=cfg, audit_scope=scope
-        )
-        if results_file.exists():
-            cache_issues = check_cache_file_for_deleted_files(
-                results_file, project_root, deleted_files
-            )
-            issues.extend(cache_issues)
-    
-    # Check tool-specific cache files
-    cache_files = find_all_json_cache_files(project_root)
-    for cache_file in cache_files:
+    for cache_file in find_all_json_cache_files(project_root):
         cache_issues = check_cache_file_for_deleted_files(cache_file, project_root, deleted_files)
         issues.extend(cache_issues)
     
@@ -200,14 +180,15 @@ def check_generated_reports_for_deleted_files(project_root: Path, deleted_files:
     """Check generated reports for references to deleted files."""
     issues = []
     
-    # Reports to check
-    reports = [
-        project_root / 'development_tools' / 'CONSOLIDATED_REPORT.md',
-        project_root / 'development_tools' / 'AI_STATUS.md',
-        project_root / 'development_tools' / 'AI_PRIORITIES.md',
-    ]
+    from development_tools.config import get_status_report_paths
+
+    reports = {
+        path
+        for dev_tools_only in (False, True)
+        for path in get_status_report_paths(project_root, dev_tools_only=dev_tools_only).values()
+    }
     
-    for report_path in reports:
+    for report_path in sorted(reports):
         if not report_path.exists():
             continue
         

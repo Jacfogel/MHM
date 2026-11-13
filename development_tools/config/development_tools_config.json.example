@@ -406,6 +406,7 @@
     }
   },
   "legacy_cleanup": {
+    "detail_report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
     "deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
     "_comment_required_pattern_keys": "Project-specific guard: pattern keys here must remain present in `DEPRECATION_INVENTORY.json` `legacy_scan_patterns` (or be re-added via `legacy_patterns`). `fix_legacy_references` warns once per missing key to flag inventory drift. Default is empty so the generic dev_tools tool stays portable; projects opt in by listing keys here.",
     "required_pattern_keys": [],
@@ -1128,6 +1129,18 @@
       "run_tests.py",
       "run_mhm.py"
     ]
+  },
+  "status": {
+    "status_files": {
+      "ai_status": "development_tools/AI_STATUS.md",
+      "ai_priorities": "development_tools/AI_PRIORITIES.md",
+      "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md"
+    },
+    "dev_tools_status_files": {
+      "ai_status": "development_tools/DEV_TOOLS_STATUS.md",
+      "ai_priorities": "development_tools/DEV_TOOLS_PRIORITIES.md",
+      "consolidated_report": "development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md"
+    }
   },
   "quick_status": {
     "core_files": [],

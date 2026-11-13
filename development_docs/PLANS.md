@@ -195,7 +195,7 @@ These plans should not be duplicated in detail here.
 **Still in this repo before a sibling-repo cut**:
 
 - Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
-- Migrate the remaining report paths to host config. The function registry, module dependency, and coverage tools already share configured paths between their generators and readers.
+- Migrate the remaining report paths to host config. The function registry, module dependency, coverage, legacy reference, and audit summary reports already share configured paths between their generators and readers. Audit summaries and aggregate JSON have separate paths for full-repo and tools-only runs.
 - Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
 - Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.
 

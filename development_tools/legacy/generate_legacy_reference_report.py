@@ -38,7 +38,7 @@ else:
 
 # Load external config on module import (if not already loaded)
 try:
-    if hasattr(config, "load_external_config"):
+    if config.get_loaded_config_file_path() is None:
         config.load_external_config()
 except (AttributeError, ImportError):
     pass
@@ -60,8 +60,12 @@ class LegacyReferenceReportGenerator:
 
     def _load_deprecation_inventory_summary(self) -> dict[str, Any]:
         """Load basic metadata from the canonical deprecation inventory JSON."""
-        inventory_rel_path = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
-        inventory_path = self.project_root / inventory_rel_path
+        inventory_path = config.get_deprecation_inventory_path(self.project_root)
+        inventory_rel_path = (
+            inventory_path.relative_to(self.project_root)
+            if inventory_path.is_relative_to(self.project_root)
+            else inventory_path
+        ).as_posix()
         summary: dict[str, Any] = {
             "path": inventory_rel_path,
             "exists": inventory_path.exists(),
@@ -154,7 +158,9 @@ class LegacyReferenceReportGenerator:
         return bool(base_name.endswith("_plan.md") or base_name.startswith("plan_"))
 
     def generate_cleanup_report(
-        self, findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]]
+        self,
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]],
+        output_file: Path | None = None,
     ) -> str:
         """
         Generate a report of all legacy references found.
@@ -170,13 +176,16 @@ class LegacyReferenceReportGenerator:
         generated_at = now_timestamp_full()
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
-        report_lines.append("> **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`")
+        report_path = output_file or config.get_legacy_report_path(self.project_root)
+        if report_path.is_relative_to(self.project_root):
+            report_path = report_path.relative_to(self.project_root)
+        report_lines.append(f"> **File**: `{report_path.as_posix()}`")
         report_lines.append(
             "> **Generated**: This file is auto-generated. Do not edit manually."
         )
         report_lines.append(f"> **Last Generated**: {generated_at}")
         report_lines.append(
-            "> **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator"
+            "> **Source**: `python development_tools/legacy/generate_legacy_reference_report.py` - Legacy Reference Report Generator"
         )
 
         filtered_findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]] = {}
@@ -273,7 +282,7 @@ class LegacyReferenceReportGenerator:
         report_lines.append("## Deprecation Inventory")
         if inventory_summary.get("loaded"):
             report_lines.append(
-                f"- Inventory file: `{inventory_summary.get('path', 'development_tools/config/jsons/DEPRECATION_INVENTORY.json')}`"
+                f"- Inventory file: `{inventory_summary['path']}`"
             )
             report_lines.append(
                 f"- Active/candidate entries: {inventory_summary.get('active_or_candidate_entries', 0)}"
@@ -294,10 +303,10 @@ class LegacyReferenceReportGenerator:
             )
         else:
             report_lines.append(
-                f"- Inventory file missing or unreadable: `{inventory_summary.get('path', 'development_tools/config/jsons/DEPRECATION_INVENTORY.json')}`"
+                f"- Inventory file missing or unreadable: `{inventory_summary['path']}`"
             )
             report_lines.append(
-                "- Action: create/fix `development_tools/config/jsons/DEPRECATION_INVENTORY.json` so legacy scans and retirement tracking stay aligned."
+                "- Action: create or repair the configured inventory so legacy scans and retirement tracking stay aligned."
             )
         report_lines.append("")
 
@@ -339,9 +348,7 @@ class LegacyReferenceReportGenerator:
             Path to the saved report file
         """
         if output_file is None:
-            output_file = (
-                self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
-            )
+            output_file = config.get_legacy_report_path(self.project_root)
         else:
             output_file = Path(output_file)
 
@@ -387,7 +394,7 @@ def main():
         "--output-file",
         type=str,
         metavar="FILE",
-        help="Output file path (default: development_docs/LEGACY_REFERENCE_REPORT.md)",
+        help="Output file path (defaults to the configured legacy report path)",
     )
 
     args = parser.parse_args()
@@ -411,10 +418,8 @@ def main():
             return 1
 
     # Generate report
-    report = generator.generate_cleanup_report(findings)
-
-    # Save report
     output_file = Path(args.output_file) if args.output_file else None
+    report = generator.generate_cleanup_report(findings, output_file)
     saved_path = generator.save_report(report, output_file)
 
     logger.info("Legacy Reference Report Generated")

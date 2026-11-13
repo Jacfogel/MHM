@@ -10,7 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from development_tools.config import get_coverage_report_path
+from development_tools.config import (
+    get_coverage_report_path,
+    get_legacy_report_path,
+    get_status_report_paths,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.exclusion_utilities import is_constructor_name
 
@@ -26,11 +30,11 @@ class ConsolidatedReportDocumentMixin:
         """Generate comprehensive consolidated report combining all tool outputs."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
-        consolidated_target = (
-            "DEV_TOOLS_CONSOLIDATED_REPORT.md"
-            if self._is_dev_tools_scoped_report()
-            else "CONSOLIDATED_REPORT.md"
+        report_paths = get_status_report_paths(
+            self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
         )
+        report_path = report_paths["consolidated_report"]
+        consolidated_target = report_path.name
         if audit_tier:
             logger.info(
                 f"[REPORT GENERATION] Generating {consolidated_target} using data from Tier {audit_tier} audit"
@@ -63,13 +67,15 @@ class ConsolidatedReportDocumentMixin:
         lines: list[str] = []
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Consolidated Report")
-            lines.append("")
-            lines.append(
-                "> **File**: `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md`"
-            )
         else:
             lines.append("# Comprehensive AI Development Tools Report")
-            lines.append("")
+        lines.append("")
+        display_path = (
+            report_path.relative_to(self.project_root)
+            if report_path.is_relative_to(self.project_root)
+            else report_path
+        )
+        lines.append(f"> **File**: `{display_path.as_posix()}`")
         lines.append(
             "> **Generated**: This file is auto-generated. Do not edit manually."
         )
@@ -1333,7 +1339,7 @@ class ConsolidatedReportDocumentMixin:
                     get_coverage_report_path(self.project_root)
                 )
                 if cov_path.exists():
-                    href = self._markdown_href_from_dev_tools_report(cov_path)
+                    href = self._markdown_href_from_dev_tools_report(cov_path, source=report_path)
                     lines.append(
                         f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
                     )
@@ -1679,7 +1685,6 @@ class ConsolidatedReportDocumentMixin:
             details = legacy_summary.get("details", {})
             legacy_markers = details.get("legacy_markers", 0)
             findings = details.get("findings", {})
-            report_path = details.get("report_path")
 
             if legacy_issues is not None:
                 lines.append(f"- **Files with Legacy Markers**: {legacy_issues}")
@@ -1716,25 +1721,20 @@ class ConsolidatedReportDocumentMixin:
                         file_list.append(f"... +{len(file_counts) - 5}")
                     lines.append(f"    - **Top files**: {', '.join(file_list)}")
 
-            if report_path:
-                report_path_obj = self._resolve_report_path(report_path)
-                if report_path_obj.exists():
-                    href = self._markdown_href_from_dev_tools_report(report_path_obj)
-                    lines.append(
-                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
-                    )
+            legacy_report = get_legacy_report_path(self.project_root)
+            if legacy_report.exists():
+                href = self._markdown_href_from_dev_tools_report(legacy_report, source=report_path)
+                lines.append(f"- **Detailed Report**: [{legacy_report.name}]({href})")
         else:
             lines.append(
                 "- **Files with Legacy Markers**: Data unavailable (run `audit --full` for latest scan)"
             )
             lines.append("- **Markers Found**: Data unavailable")
-            legacy_report = (
-                self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
-            )
+            legacy_report = get_legacy_report_path(self.project_root)
             if legacy_report.exists():
-                href = self._markdown_href_from_dev_tools_report(legacy_report)
+                href = self._markdown_href_from_dev_tools_report(legacy_report, source=report_path)
                 lines.append(
-                    f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
+                    f"- **Detailed Report**: [{legacy_report.name}]({href})"
                 )
 
         lines.append("")
@@ -2905,55 +2905,45 @@ class ConsolidatedReportDocumentMixin:
         # Reference Files
         lines.append("## Reference Files")
 
-        # Get status file paths from config for links
-        try:
-            from ... import config
-
-            status_config = config.get_status_config()
-            status_files_config = status_config.get("status_files", {})
-            ai_status_path = status_files_config.get(
-                "ai_status", "development_tools/AI_STATUS.md"
-            )
-            ai_priorities_path = status_files_config.get(
-                "ai_priorities", "development_tools/AI_PRIORITIES.md"
-            )
-        except (ImportError, AttributeError, KeyError):
-            ai_status_path = "development_tools/AI_STATUS.md"
-            ai_priorities_path = "development_tools/AI_PRIORITIES.md"
-
-        if self._is_dev_tools_scoped_report():
-            lines.append(
-                f"- Full-repo status (not produced by this run): [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
-            )
-            lines.append(
-                f"- Scoped priorities from this run: [DEV_TOOLS_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / 'development_tools' / 'DEV_TOOLS_PRIORITIES.md')})"
-            )
-            lines.append(
-                f"- Full-repo priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
-            )
-        else:
-            lines.append(
-                f"- Latest AI status: [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
-            )
-            lines.append(
-                f"- Current AI priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
-            )
-        lines.append("- Detailed JSON results: `analysis_detailed_results.json`")
-
-        legacy_report = (
-            self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
+        full_paths = (
+            get_status_report_paths(self.project_root)
+            if self._is_dev_tools_scoped_report()
+            else report_paths
         )
-        if legacy_report.exists():
-            href = self._markdown_href_from_dev_tools_report(legacy_report)
+        status_file = full_paths["ai_status"]
+        priorities_file = full_paths["ai_priorities"]
+        status_href = self._markdown_href_from_dev_tools_report(status_file, source=report_path)
+        priorities_href = self._markdown_href_from_dev_tools_report(priorities_file, source=report_path)
+        if self._is_dev_tools_scoped_report():
+            scoped_priorities = report_paths["ai_priorities"]
+            scoped_href = self._markdown_href_from_dev_tools_report(scoped_priorities, source=report_path)
             lines.append(
-                f"- Legacy reference report: [LEGACY_REFERENCE_REPORT.md]({href})"
+                f"- Full-repo status (not produced by this run): [{status_file.name}]({status_href})"
+            )
+            lines.append(
+                f"- Scoped priorities from this run: [{scoped_priorities.name}]({scoped_href})"
+            )
+            lines.append(f"- Full-repo priorities: [{priorities_file.name}]({priorities_href})")
+        else:
+            lines.append(f"- Latest AI status: [{status_file.name}]({status_href})")
+            lines.append(f"- Current AI priorities: [{priorities_file.name}]({priorities_href})")
+        results_path = self._get_results_file_path()
+        if results_path.is_relative_to(self.project_root):
+            results_path = results_path.relative_to(self.project_root)
+        lines.append(f"- Detailed JSON results: `{results_path.as_posix()}`")
+
+        legacy_report = get_legacy_report_path(self.project_root)
+        if legacy_report.exists():
+            href = self._markdown_href_from_dev_tools_report(legacy_report, source=report_path)
+            lines.append(
+                f"- Legacy reference report: [{legacy_report.name}]({href})"
             )
 
         coverage_report = (
             get_coverage_report_path(self.project_root)
         )
         if coverage_report.exists():
-            href = self._markdown_href_from_dev_tools_report(coverage_report)
+            href = self._markdown_href_from_dev_tools_report(coverage_report, source=report_path)
             lines.append(f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})")
 
         archive_dir = self.project_root / "development_tools" / "reports" / "archive"

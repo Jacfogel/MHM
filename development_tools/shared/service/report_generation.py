@@ -13,6 +13,9 @@ and composes those mixins.
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
+
+from development_tools.config import get_status_report_paths
 
 from development_tools.shared.logging import get_dev_tools_logger
 
@@ -105,18 +108,21 @@ class ReportGenerationMixin(
                 Path(report_path) if not isinstance(report_path, Path) else report_path
             )
 
-    def _markdown_href_from_dev_tools_report(self, target: Path) -> str:
-        """Relative URL for links in ``development_tools/*.md`` (repo root is one level up)."""
-        base = (self.project_root / "development_tools").resolve()
-        dest = Path(target).resolve()
-        return Path(os.path.relpath(dest, base)).as_posix()
+    def _markdown_href_from_dev_tools_report(
+        self, target: Path, *, source: Path | None = None
+    ) -> str:
+        """Return a link relative to the directory containing the report."""
+        base = source.parent if source is not None else self.project_root / "development_tools"
+        dest = target.resolve()
+        try:
+            relative = Path(os.path.relpath(dest, base.resolve())).as_posix()
+        except ValueError:  # Windows paths on different drives have no relative path.
+            return dest.as_uri()
+        return quote(relative, safe="/")
 
     def _get_results_file_path(self) -> Path:
         """Get the results file path from config."""
-        # Default matches development_tools_config.json
-        results_file_path = (self.audit_config or {}).get(
-            "results_file", "development_tools/reports/analysis_detailed_results.json"
-        )
+        results_file_path = (self.audit_config or {}).get("results_file")
         from ..audit_storage_scope import (
             STORAGE_SCOPE_DEV_TOOLS,
             STORAGE_SCOPE_FULL,
@@ -795,7 +801,11 @@ class ReportGenerationMixin(
                 "(audit output; regenerated each Tier 3 run)"
             )
         else:
-            href = self._markdown_href_from_dev_tools_report(json_path)
+            href = self._markdown_href_from_dev_tools_report(
+                json_path, source=get_status_report_paths(
+                    self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
+                )["consolidated_report"],
+            )
             out.append(
                 f"- **Machine-readable**: [verify_process_cleanup_results.json]({href})"
             )

@@ -374,7 +374,7 @@ def get_tier3_groups(
         legacy_names = [n for n in legacy_names if n != "generate_legacy_reference_report"]
         logger.info(
             "Skipping generate_legacy_reference_report (dev-tools-only scope); "
-            "development_docs/LEGACY_REFERENCE_REPORT.md left unchanged."
+            "The configured legacy report was left unchanged."
         )
     legacy_group = _names_to_runnables(service, legacy_names)
     static_analysis_group = _names_to_runnables(service, TIER3_GROUP_MAP["static_analysis"])

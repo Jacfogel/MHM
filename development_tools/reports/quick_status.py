@@ -10,6 +10,7 @@ Optimized for AI assistants to get essential information quickly.
 
 import sys
 import json
+import os
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -35,12 +36,8 @@ class QuickStatus:
     def __init__(
         self, project_root: Path | None = None, config_path: str | None = None
     ):
-        if project_root:
-            self.project_root = Path(project_root).resolve()
-        else:
-            # Script is at: development_tools/reports/quick_status.py
-            # So we need to go up 2 levels to get to project root
-            self.project_root = Path(__file__).parent.parent.parent
+        root = project_root or os.environ.get("DEVTOOLS_REPORT_PROJECT_ROOT")
+        self.project_root = Path(root).resolve() if root else Path(__file__).resolve().parents[2]
 
         # Load config if provided
         # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
@@ -116,12 +113,11 @@ class QuickStatus:
         # Tier 3 aggregate (scoped layout; V5 §7.16)
         audit_file = scoped_analysis_detailed_path(
             self.project_root,
-            configured_relative="development_tools/reports/analysis_detailed_results.json",
             audit_scope=STORAGE_SCOPE_FULL,
         )
         if audit_file.exists():
             try:
-                with open(audit_file) as f:
+                with audit_file.open(encoding="utf-8") as f:
                     audit_data = json.load(f)
                     docs["recent_audit"] = audit_data.get("timestamp")
 
@@ -237,12 +233,11 @@ class QuickStatus:
 
         audit_file = scoped_analysis_detailed_path(
             self.project_root,
-            configured_relative="development_tools/reports/analysis_detailed_results.json",
             audit_scope=STORAGE_SCOPE_FULL,
         )
         if audit_file.exists():
             try:
-                with open(audit_file) as f:
+                with audit_file.open(encoding="utf-8") as f:
                     audit_data = json.load(f)
                     activity["last_audit"] = audit_data.get("timestamp")
             except Exception:
